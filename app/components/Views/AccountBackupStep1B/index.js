@@ -51,6 +51,30 @@ const explain_backup_seedphrase = require('../../../images/explain-backup-seedph
 const IMAGE_1_RATIO = 162.8 / 138;
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
+const BodyXsText = ({ text, twClassName }) => (
+  <Text
+    variant={TextVariant.BodyXs}
+    color={TextColor.TextDefault}
+    twClassName={twClassName}
+  >
+    {text}
+  </Text>
+);
+
+BodyXsText.propTypes = {
+  text: PropTypes.string.isRequired,
+  twClassName: PropTypes.string,
+};
+
+const BulletText = ({ text, twClassName }) => (
+  <BodyXsText text={`• ${text}`} twClassName={twClassName} />
+);
+
+BulletText.propTypes = {
+  text: PropTypes.string.isRequired,
+  twClassName: PropTypes.string,
+};
+
 const AccountBackupStep1B = (props) => {
   const { navigation, route } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
@@ -181,64 +205,37 @@ const AccountBackupStep1B = (props) => {
             >
               {strings('account_backup_step_1B.manual_title')}
             </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
+            <BodyXsText
+              text={strings('account_backup_step_1B.manual_subtitle')}
               twClassName="mb-5"
-            >
-              {strings('account_backup_step_1B.manual_subtitle')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
+            />
+            <BodyXsText
+              text={strings('account_backup_step_1B.manual_security')}
               twClassName="mb-2"
-            >
-              {strings('account_backup_step_1B.manual_security')}
-            </Text>
+            />
             <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-5">
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
               <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
             </Box>
-            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
-              {strings('account_backup_step_1B.risks_title')}
-            </Text>
-            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
-              • {strings('account_backup_step_1B.risks_1')}
-            </Text>
-            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
-              • {strings('account_backup_step_1B.risks_2')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
+            <BodyXsText text={strings('account_backup_step_1B.risks_title')} />
+            <BulletText text={strings('account_backup_step_1B.risks_1')} />
+            <BulletText text={strings('account_backup_step_1B.risks_2')} />
+            <BulletText
+              text={strings('account_backup_step_1B.risks_3')}
               twClassName="mb-5"
-            >
-              • {strings('account_backup_step_1B.risks_3')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
+            />
+            <BodyXsText
+              text={strings('account_backup_step_1B.other_options')}
               twClassName="mb-5"
-            >
-              {strings('account_backup_step_1B.other_options')}
-            </Text>
-            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
-              {strings('account_backup_step_1B.tips_title')}
-            </Text>
-            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
-              • {strings('account_backup_step_1B.tips_1')}
-            </Text>
-            <Text variant={TextVariant.BodyXs} color={TextColor.TextDefault}>
-              • {strings('account_backup_step_1B.tips_2')}
-            </Text>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextDefault}
+            />
+            <BodyXsText text={strings('account_backup_step_1B.tips_title')} />
+            <BulletText text={strings('account_backup_step_1B.tips_1')} />
+            <BulletText text={strings('account_backup_step_1B.tips_2')} />
+            <BulletText
+              text={strings('account_backup_step_1B.tips_3')}
               twClassName="mb-5"
-            >
-              • {strings('account_backup_step_1B.tips_3')}
-            </Text>
+            />
 
             <Button
               variant={ButtonVariant.Primary}
