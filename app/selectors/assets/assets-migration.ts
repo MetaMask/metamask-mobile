@@ -1,16 +1,16 @@
 import { createDeepEqualSelector } from '../util';
 import { selectIsAssetsUnifyStateEnabled } from '../featureFlagController/assetsUnifyState';
 import {
-  AccountTrackerControllerState,
-  CurrencyRateState,
-  MarketDataDetails,
-  MultichainAssetsControllerState,
-  MultichainAssetsRatesControllerState,
-  MultichainBalancesControllerState,
-  Token,
-  TokenBalancesControllerState,
-  TokenRatesControllerState,
-  TokensControllerState,
+  type AccountTrackerControllerState,
+  type CurrencyRateState,
+  type MarketDataDetails,
+  type MultichainAssetsControllerState,
+  type MultichainAssetsRatesControllerState,
+  type MultichainBalancesControllerState,
+  type Token,
+  type TokenBalancesControllerState,
+  type TokenRatesControllerState,
+  type TokensControllerState,
   getNativeTokenAddress,
 } from '@metamask/assets-controllers';
 import { isEvmAccountType } from '@metamask/keyring-api';
