@@ -29,7 +29,6 @@ interface ExploreSearchBarInteractiveProps {
   searchQuery: string;
   onSearchChange: (query: string) => void;
   onCancel: () => void;
-  onSubmit?: () => void;
   placeholder?: string;
 }
 
@@ -87,8 +86,6 @@ const ExploreSearchBar: React.FC<ExploreSearchBarProps> = (props) => {
           <TextInput
             value={props.searchQuery}
             onChangeText={props.onSearchChange}
-            onSubmitEditing={props.onSubmit}
-            returnKeyType="go"
             placeholder={placeholder}
             placeholderTextColor={colors.text.muted}
             style={tw.style('flex-1 text-base text-default')}
