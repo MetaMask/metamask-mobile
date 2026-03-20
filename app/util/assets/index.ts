@@ -9,7 +9,7 @@ export const formatWithThreshold = (
   locale: string,
   options: Intl.NumberFormatOptions,
 ): string => {
-  if (amount === null) {
+  if (amount === null || isNaN(amount)) {
     return '';
   }
 

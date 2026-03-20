@@ -43,6 +43,7 @@ import {
 } from '../../../../../reducers/fiatOrders';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { selectTokenSelectors } from '../../Aggregator/components/TokenSelectModal/SelectToken.testIds';
+import { TokenSelectionSelectors } from './TokenSelection.testIds';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 
@@ -94,6 +95,13 @@ function TokenSelection() {
       });
     };
 
+    // When tokens have never been loaded, controllerTokens is null and
+    // controllerTokensLoading is false (default state). Treat that as loading
+    // so we show spinner instead of "No tokens match" on first load before
+    // controller.init() has completed (e.g. fresh install or update).
+    const tokensNotYetLoaded =
+      controllerTokens === null && !controllerTokensError;
+
     return {
       topTokens: filterTokens(controllerTokens?.topTokens) as
         | RampsToken[]
@@ -101,7 +109,7 @@ function TokenSelection() {
       allTokens: filterTokens(controllerTokens?.allTokens) as
         | RampsToken[]
         | null,
-      isLoading: controllerTokensLoading,
+      isLoading: controllerTokensLoading || tokensNotYetLoaded,
       error: controllerTokensError,
     };
   }, [
@@ -343,6 +351,7 @@ function TokenSelection() {
             <ActivityIndicator
               size="large"
               color={theme.colors.primary.default}
+              testID={TokenSelectionSelectors.LOADING_INDICATOR}
             />
           </Box>
         </ScreenLayout.Body>

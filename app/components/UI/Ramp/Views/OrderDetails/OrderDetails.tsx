@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { ActivityIndicator, RefreshControl } from 'react-native';
+import { ActivityIndicator, RefreshControl, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView } from 'react-native-gesture-handler';
 import {
@@ -11,7 +11,11 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
+import { extractOrderCode } from '../../utils/extractOrderCode';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -31,7 +35,7 @@ import OrderContent from './OrderContent';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 interface RampsOrderDetailsParams {
   orderId: string;
   showCloseButton?: boolean;
@@ -54,10 +58,20 @@ const PENDING_STATUSES = new Set([
  * Legacy orders (DEPOSIT, RAMPS_V2 in Redux) are routed to the aggregator
  * detail screen by OrdersList — they never reach this component.
  */
+const styles = StyleSheet.create({
+  scrollContentContainer: {
+    flexGrow: 1,
+  },
+  contentContainer: {
+    flex: 1,
+  },
+});
+
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
   const { getOrderById, refreshOrder } = useRampsOrders();
-  const order = getOrderById(params.orderId);
+  const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
+  const order = getOrderById(orderCode);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
 
   const [isLoading, setIsLoading] = useState(isPending);
@@ -109,10 +123,7 @@ const OrderDetails = () => {
     try {
       setError(null);
       setIsRefreshing(true);
-      const providerCode = (order.provider?.id ?? '').replace(
-        '/providers/',
-        '',
-      );
+      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -143,10 +154,6 @@ const OrderDetails = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!order) {
-    return <ScreenLayout />;
-  }
-
   if (isLoading) {
     return (
       <ScreenLayout>
@@ -157,6 +164,10 @@ const OrderDetails = () => {
         </ScreenLayout.Body>
       </ScreenLayout>
     );
+  }
+
+  if (!order) {
+    return <ScreenLayout />;
   }
 
   if (error) {
@@ -196,8 +207,9 @@ const OrderDetails = () => {
   }
 
   return (
-    <ScreenLayout>
+    <ScreenLayout testID={RampsOrderDetailsSelectorsIDs.CONTAINER}>
       <ScrollView
+        contentContainerStyle={styles.scrollContentContainer}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -208,7 +220,7 @@ const OrderDetails = () => {
         }
       >
         <ScreenLayout.Body>
-          <ScreenLayout.Content>
+          <ScreenLayout.Content style={styles.contentContainer}>
             <OrderContent
               order={order}
               showCloseButton={params.showCloseButton}

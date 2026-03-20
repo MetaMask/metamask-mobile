@@ -3,10 +3,10 @@ import { TransactionStatus } from '@metamask/transaction-controller';
 import { usePendingMerklClaim } from './usePendingMerklClaim';
 import { MERKL_CLAIM_ORIGIN } from '../constants';
 
-// Mock the selector
-const mockSelectTransactions = jest.fn();
-jest.mock('../../../../../../selectors/transactionController', () => ({
-  selectTransactions: (state: unknown) => mockSelectTransactions(state),
+const mockSelectMerklClaimTransactions = jest.fn();
+jest.mock('../../../selectors/merklClaimTransactions', () => ({
+  selectMerklClaimTransactions: (state: unknown) =>
+    mockSelectMerklClaimTransactions(state),
 }));
 
 // Mock react-redux
@@ -44,20 +44,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as false when no transactions exist', () => {
-    mockSelectTransactions.mockReturnValue([]);
-
-    const { result } = renderHook(() => usePendingMerklClaim());
-
-    expect(result.current.hasPendingClaim).toBe(false);
-  });
-
-  it('returns hasPendingClaim as false when no merkl claim transactions exist', () => {
-    mockSelectTransactions.mockReturnValue([
-      createMockTransaction({
-        origin: 'other-origin',
-        status: TransactionStatus.submitted,
-      }),
-    ]);
+    mockSelectMerklClaimTransactions.mockReturnValue([]);
 
     const { result } = renderHook(() => usePendingMerklClaim());
 
@@ -65,7 +52,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as true when approved merkl claim transaction exists', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({ status: TransactionStatus.approved }),
     ]);
 
@@ -75,7 +62,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as true when signed merkl claim transaction exists', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({ status: TransactionStatus.signed }),
     ]);
 
@@ -85,7 +72,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as true when submitted merkl claim transaction exists', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({ status: TransactionStatus.submitted }),
     ]);
 
@@ -95,7 +82,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as false when merkl claim transaction is confirmed', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({ status: TransactionStatus.confirmed }),
     ]);
 
@@ -105,7 +92,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as false when merkl claim transaction failed', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({ status: TransactionStatus.failed }),
     ]);
 
@@ -115,7 +102,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as false when merkl claim transaction was dropped', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({ status: TransactionStatus.dropped }),
     ]);
 
@@ -125,7 +112,7 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as false when merkl claim transaction is unapproved', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({ status: TransactionStatus.unapproved }),
     ]);
 
@@ -135,18 +122,13 @@ describe('usePendingMerklClaim', () => {
   });
 
   it('returns hasPendingClaim as true when at least one in-flight merkl claim exists among multiple transactions', () => {
-    mockSelectTransactions.mockReturnValue([
+    mockSelectMerklClaimTransactions.mockReturnValue([
       createMockTransaction({
         id: 'tx-1',
-        origin: 'other-origin',
-        status: TransactionStatus.submitted,
-      }),
-      createMockTransaction({
-        id: 'tx-2',
         status: TransactionStatus.confirmed,
       }),
       createMockTransaction({
-        id: 'tx-3',
+        id: 'tx-2',
         status: TransactionStatus.submitted,
       }),
     ]);
@@ -162,7 +144,7 @@ describe('usePendingMerklClaim', () => {
       const txId = 'tx-pending-to-confirmed';
 
       // Start with pending transaction
-      mockSelectTransactions.mockReturnValue([
+      mockSelectMerklClaimTransactions.mockReturnValue([
         createMockTransaction({
           id: txId,
           status: TransactionStatus.submitted,
@@ -176,7 +158,7 @@ describe('usePendingMerklClaim', () => {
       expect(onClaimConfirmed).not.toHaveBeenCalled();
 
       // Transaction becomes confirmed
-      mockSelectTransactions.mockReturnValue([
+      mockSelectMerklClaimTransactions.mockReturnValue([
         createMockTransaction({
           id: txId,
           status: TransactionStatus.confirmed,
@@ -192,7 +174,7 @@ describe('usePendingMerklClaim', () => {
       const onClaimConfirmed = jest.fn();
 
       // Start with already confirmed transaction (not tracked as pending)
-      mockSelectTransactions.mockReturnValue([
+      mockSelectMerklClaimTransactions.mockReturnValue([
         createMockTransaction({
           id: 'tx-already-confirmed',
           status: TransactionStatus.confirmed,
@@ -209,7 +191,7 @@ describe('usePendingMerklClaim', () => {
       const txId = 'tx-pending-to-failed';
 
       // Start with pending transaction
-      mockSelectTransactions.mockReturnValue([
+      mockSelectMerklClaimTransactions.mockReturnValue([
         createMockTransaction({
           id: txId,
           status: TransactionStatus.submitted,
@@ -221,7 +203,7 @@ describe('usePendingMerklClaim', () => {
       );
 
       // Transaction fails
-      mockSelectTransactions.mockReturnValue([
+      mockSelectMerklClaimTransactions.mockReturnValue([
         createMockTransaction({
           id: txId,
           status: TransactionStatus.failed,
@@ -237,7 +219,7 @@ describe('usePendingMerklClaim', () => {
       const txId = 'tx-no-callback';
 
       // Start with pending transaction
-      mockSelectTransactions.mockReturnValue([
+      mockSelectMerklClaimTransactions.mockReturnValue([
         createMockTransaction({
           id: txId,
           status: TransactionStatus.submitted,
@@ -247,7 +229,7 @@ describe('usePendingMerklClaim', () => {
       const { rerender } = renderHook(() => usePendingMerklClaim());
 
       // Transaction becomes confirmed - should not throw
-      mockSelectTransactions.mockReturnValue([
+      mockSelectMerklClaimTransactions.mockReturnValue([
         createMockTransaction({
           id: txId,
           status: TransactionStatus.confirmed,

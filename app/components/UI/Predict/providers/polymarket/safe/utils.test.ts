@@ -414,46 +414,19 @@ describe('safe utils', () => {
   });
 
   describe('getPermit2Nonce', () => {
-    it('returns 0 when nonce bitmap call returns 0x', async () => {
-      mockNetworkController();
-      mockQuery.mockReset();
-      mockQuery.mockResolvedValueOnce('0x');
+    it('returns a numeric string', async () => {
+      const nonce = await getPermit2Nonce();
 
-      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
-
-      expect(nonce).toBe('0');
+      expect(nonce).toMatch(/^\d+$/);
     });
 
-    it('returns first available nonce when bitmap is 0x7', async () => {
-      mockNetworkController();
-      mockQuery.mockReset();
-      mockQuery.mockResolvedValueOnce('0x7');
+    it('generates nonce from crypto.getRandomValues', async () => {
+      const spy = jest.spyOn(global.crypto, 'getRandomValues');
 
-      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
+      await getPermit2Nonce();
 
-      expect(nonce).toBe('3');
-    });
-
-    it('returns first available nonce when bitmap is 0x5', async () => {
-      mockNetworkController();
-      mockQuery.mockReset();
-      mockQuery.mockResolvedValueOnce('0x5');
-
-      const nonce = await getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS });
-
-      expect(nonce).toBe('1');
-    });
-
-    it('throws when nonce bitmap word 0 is fully used', async () => {
-      mockNetworkController();
-      mockQuery.mockReset();
-      mockQuery.mockResolvedValueOnce(`0x${'f'.repeat(64)}`);
-
-      await expect(
-        getPermit2Nonce({ safeAddress: TEST_SAFE_ADDRESS }),
-      ).rejects.toThrow(
-        'No available Permit2 nonce found in nonce bitmap word 0',
-      );
+      expect(spy).toHaveBeenCalledWith(expect.any(Uint32Array));
+      spy.mockRestore();
     });
   });
 
@@ -482,9 +455,6 @@ describe('safe utils', () => {
 
   describe('createPermit2FeeAuthorization', () => {
     it('creates safe-permit2 authorization payload', async () => {
-      mockNetworkController();
-      mockQuery.mockReset();
-      mockQuery.mockResolvedValueOnce('0x0');
       mockSignPersonalMessage.mockResolvedValue(
         '0xaabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff00112233445566778899aabbccddeeff0011223344556677889900',
       );
@@ -503,7 +473,7 @@ describe('safe utils', () => {
       expect(authorization.authorization.permit.permitted.amount).toBe(
         '1000000',
       );
-      expect(authorization.authorization.permit.nonce).toBe('0');
+      expect(authorization.authorization.permit.nonce).toMatch(/^\d+$/);
       expect(authorization.authorization.spender).toBe(TEST_TO_ADDRESS);
       expect(authorization.authorization.signature).toMatch(/^0x[a-f0-9]+$/);
     });

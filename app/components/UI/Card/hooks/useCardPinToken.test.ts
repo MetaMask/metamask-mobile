@@ -83,6 +83,7 @@ describe('useCardPinToken', () => {
       });
 
       expect(mockMutateAsync).toHaveBeenCalledWith({
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         customCss: { backgroundColor: '#FFF', textColor: '#000' },
       });
     });

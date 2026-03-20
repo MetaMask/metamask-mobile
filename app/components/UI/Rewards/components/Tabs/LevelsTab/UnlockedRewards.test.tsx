@@ -17,7 +17,7 @@ import {
   selectCurrentTier,
 } from '../../../../../../reducers/rewards/selectors';
 import { useUnlockedRewards } from '../../../hooks/useUnlockedRewards';
-import { SkeletonProps } from '../../../../../../component-library/components/Skeleton';
+import { SkeletonProps } from '../../../../../../component-library/components-temp/Skeleton';
 
 // Mock dependencies
 jest.mock('react-redux', () => ({
@@ -41,16 +41,12 @@ jest.mock('../../../../../../reducers/rewards/selectors', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    themeAppearance: 'light',
-    colors: {
-      grey: {
-        700: '#374151',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock useTailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -88,19 +84,22 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 jest.mock('../../RewardItem/RewardItem', () => jest.fn(() => null));
 
 // Mock Skeleton
-jest.mock('../../../../../../component-library/components/Skeleton', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    Skeleton: ({ style, ...props }: SkeletonProps) =>
-      ReactActual.createElement(View, {
-        testID: 'skeleton',
-        style,
-        ...props,
-      }),
-  };
-});
+jest.mock(
+  '../../../../../../component-library/components-temp/Skeleton',
+  () => {
+    const ReactActual = jest.requireActual('react');
+    const { View } = jest.requireActual('react-native');
+    return {
+      __esModule: true,
+      Skeleton: ({ style, ...props }: SkeletonProps) =>
+        ReactActual.createElement(View, {
+          testID: 'skeleton',
+          style,
+          ...props,
+        }),
+    };
+  },
+);
 
 // Mock the useUnlockedRewards hook
 jest.mock('../../../hooks/useUnlockedRewards', () => ({

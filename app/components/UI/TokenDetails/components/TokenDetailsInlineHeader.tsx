@@ -1,9 +1,5 @@
 import React from 'react';
 import { View, StyleSheet } from 'react-native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../component-library/components/Texts/Text';
 import { Theme } from '@metamask/design-tokens';
 import { useStyles } from '../../../hooks/useStyles';
 import {
@@ -34,10 +30,6 @@ const inlineHeaderStyles = (params: {
     leftButton: {
       marginLeft: 16,
     },
-    titleWrapper: {
-      flex: 1,
-      alignItems: 'center',
-    },
     rightButton: {
       marginRight: 16,
     },
@@ -45,17 +37,16 @@ const inlineHeaderStyles = (params: {
       marginRight: 16,
       width: 24,
     },
+    spacer: {
+      flex: 1,
+    },
   });
 };
 
 export const TokenDetailsInlineHeader = ({
-  title,
-  networkName,
   onBackPress,
   onOptionsPress,
 }: {
-  title: string;
-  networkName: string;
   onBackPress: () => void;
   onOptionsPress: (() => void) | undefined;
 }) => {
@@ -66,24 +57,11 @@ export const TokenDetailsInlineHeader = ({
       <ButtonIcon
         style={styles.leftButton}
         onPress={onBackPress}
-        size={ButtonIconSize.Lg}
+        size={ButtonIconSize.Md}
         iconName={IconName.ArrowLeft}
         testID="back-arrow-button"
       />
-      <View style={styles.titleWrapper}>
-        <Text variant={TextVariant.HeadingSM} numberOfLines={1}>
-          {title}
-        </Text>
-        {networkName ? (
-          <Text
-            variant={TextVariant.BodySM}
-            color={TextColor.Alternative}
-            numberOfLines={1}
-          >
-            {networkName}
-          </Text>
-        ) : null}
-      </View>
+      <View style={styles.spacer} />
       {onOptionsPress ? (
         <ButtonIcon
           style={styles.rightButton}

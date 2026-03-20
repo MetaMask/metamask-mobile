@@ -1580,6 +1580,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }
@@ -1686,6 +1687,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -1720,10 +1723,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -1830,7 +1833,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -1849,7 +1852,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -1862,10 +1865,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -1876,7 +1879,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -1986,6 +1989,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2020,10 +2025,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2130,7 +2135,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2149,7 +2154,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2162,10 +2167,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -2176,7 +2181,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2286,6 +2291,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2320,10 +2327,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2430,7 +2437,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2449,7 +2456,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2462,10 +2469,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -2476,7 +2483,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2586,6 +2593,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2620,10 +2629,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -2730,7 +2739,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2749,7 +2758,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -2762,10 +2771,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -2776,7 +2785,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -2886,6 +2895,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -2920,10 +2931,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -3030,7 +3041,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -3049,7 +3060,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -3062,10 +3073,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -3076,7 +3087,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (V2 ena
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -3899,6 +3910,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                       "fontWeight": "400",
                                       "height": 46,
                                       "letterSpacing": 0,
+                                      "lineHeight": 0,
                                       "opacity": 1,
                                     }
                                   }
@@ -4005,6 +4017,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4039,10 +4053,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4149,7 +4163,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4168,7 +4182,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4181,10 +4195,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -4195,7 +4209,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4305,6 +4319,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4339,10 +4355,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4449,7 +4465,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4468,7 +4484,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4481,10 +4497,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -4495,7 +4511,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4605,6 +4621,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4639,10 +4657,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -4749,7 +4767,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4768,7 +4786,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -4781,10 +4799,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -4795,7 +4813,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -4905,6 +4923,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -4939,10 +4959,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -5049,7 +5069,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -5068,7 +5088,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5081,10 +5101,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -5095,7 +5115,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -5205,6 +5225,8 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                     style={
                                       {
                                         "padding": 16,
+                                        "paddingHorizontal": 16,
+                                        "paddingVertical": 8,
                                       }
                                     }
                                   >
@@ -5239,10 +5261,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                               style={
                                                 {
                                                   "backgroundColor": "#ffffff",
-                                                  "borderRadius": 16,
-                                                  "height": 32,
+                                                  "borderRadius": 20,
+                                                  "height": 40,
                                                   "overflow": "hidden",
-                                                  "width": 32,
+                                                  "width": 40,
                                                 }
                                               }
                                             >
@@ -5349,7 +5371,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"
@@ -5368,7 +5390,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                             {
                                               "color": "#131416",
                                               "fontFamily": "Geist-Medium",
-                                              "fontSize": 20,
+                                              "fontSize": 16,
                                               "letterSpacing": 0,
                                               "lineHeight": 24,
                                             }
@@ -5381,10 +5403,10 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                           style={
                                             {
                                               "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 16,
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 14,
                                               "letterSpacing": 0,
-                                              "lineHeight": 24,
+                                              "lineHeight": 22,
                                             }
                                           }
                                         >
@@ -5395,7 +5417,7 @@ exports[`TokenSelection Component renders correctly and matches snapshot (legacy
                                         accessible={false}
                                         style={
                                           {
-                                            "width": 16,
+                                            "width": 20,
                                           }
                                         }
                                         testID="listitem-gap"

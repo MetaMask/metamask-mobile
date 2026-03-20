@@ -51,27 +51,13 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      text: {
-        alternative: '#666666',
-      },
-    },
-  })),
-  mockTheme: {
-    colors: {
-      background: {
-        default: '#ffffff',
-      },
-      text: {
-        default: '#000000',
-        alternative: '#666666',
-      },
-    },
-    themeAppearance: 'light',
-  },
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+    mockTheme,
+  };
+});
 
 jest.mock('./AddFundsBottomSheet.styles', () => ({
   createStyles: jest.fn(() => ({
@@ -105,6 +91,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     goBack: mockGoBack,
     navigate: mockNavigate,
+    isFocused: jest.fn(() => true),
   }),
 }));
 

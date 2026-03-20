@@ -50,9 +50,9 @@ exports[`EarnMaintenanceBanner renders banner and maintenance message 1`] = `
         {
           "color": "#131416",
           "fontFamily": "Geist-Regular",
-          "fontSize": 16,
+          "fontSize": 14,
           "letterSpacing": 0,
-          "lineHeight": 24,
+          "lineHeight": 22,
         }
       }
     >

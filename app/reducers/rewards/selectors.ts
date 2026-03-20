@@ -1,5 +1,6 @@
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
+import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -151,11 +152,49 @@ export const selectBulkLinkAccountProgress = (state: RootState) => {
   return (linkedAccounts + failedAccounts) / totalAccounts;
 };
 
-// Snapshots selectors
-export const selectSnapshots = (state: RootState) => state.rewards.snapshots;
+// Campaigns selectors
+export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
 
-export const selectSnapshotsLoading = (state: RootState) =>
-  state.rewards.snapshotsLoading;
+export const selectCampaignsLoading = (state: RootState) =>
+  state.rewards.campaignsLoading;
 
-export const selectSnapshotsError = (state: RootState) =>
-  state.rewards.snapshotsError;
+export const selectCampaignsError = (state: RootState) =>
+  state.rewards.campaignsError;
+
+// Campaign participant status selectors
+export const selectCampaignParticipantStatuses = (state: RootState) =>
+  state.rewards.campaignParticipantStatuses;
+
+export const selectCampaignParticipantStatusById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId] ?? null)
+      : null;
+
+export const selectCampaignParticipantCount =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId]
+          ?.participantCount ?? null)
+      : null;
+
+// Version guard selectors
+export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
+  state.rewards.versionGuardMinimumMobileVersion;
+
+export const selectVersionGuardLoading = (state: RootState) =>
+  state.rewards.versionGuardLoading;
+
+export const selectVersionGuardError = (state: RootState) =>
+  state.rewards.versionGuardError;
+
+/**
+ * Returns true when the current app version is below the minimum required
+ * by the rewards backend, meaning the user must update to use Rewards.
+ * Returns false when requirements have not been fetched yet.
+ */
+export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
+  const minVersion = state.rewards.versionGuardMinimumMobileVersion;
+  if (!minVersion) return false;
+  return !hasMinimumRequiredVersion(minVersion);
+};

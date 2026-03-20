@@ -78,16 +78,16 @@ export const rampsControllerInit: ControllerInitFunction<
       handleOrderStatusChangedForMetrics,
     );
 
-    Promise.resolve().then(() => {
-      controller
-        .init()
-        .then(() => {
-          controller.startOrderPolling();
-        })
-        .catch(() => {
-          // Initialization failed - error state will be available via selectors
-        });
-    });
+    // Start init immediately so tokens (and providers) load on app start.
+    // init() is async and does not block controller creation.
+    controller
+      .init()
+      .then(() => {
+        controller.startOrderPolling();
+      })
+      .catch(() => {
+        // Initialization failed - error state will be available via selectors
+      });
   }
 
   return {

@@ -395,21 +395,25 @@ export const submitClobOrder = async ({
   clobOrder,
   feeAuthorization,
   executor,
+  allowancesTx,
 }: {
   headers: ClobHeaders;
   clobOrder: ClobOrderObject;
   feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
   executor?: string;
+  allowancesTx?: { to: string; data: string };
 }): Promise<Result<OrderResponse>> => {
   const { CLOB_RELAYER } = getPolymarketEndpoints();
   const url = `${CLOB_RELAYER}/order`;
   const body: ClobOrderObject & {
     feeAuthorization?: SafeFeeAuthorization | Permit2FeeAuthorization;
     executor?: string;
+    allowancesTx?: { to: string; data: string };
   } = {
     ...clobOrder,
     feeAuthorization,
     ...(executor && { executor }),
+    ...(allowancesTx && { allowancesTx }),
   };
 
   // For our relayer, we need to replace the underscores with dashes
@@ -724,15 +728,23 @@ export const parsePolymarketEvents = (
           ? (buildGameData(event, eventLeague, predictTeamLookup) ?? undefined)
           : undefined;
 
+      // As per Polymarket's team, we should use the first market's description
+      // rather than the event's description. The event's description is not
+      // guaranteed to be accurate. They also do this on their webbsite.
+      //
+      // However, we noticed that the above statement is not correct, at least for game events.
+      const moneylineMarket = event.markets?.find((m) => isMoneylineMarket(m));
+      const description =
+        moneylineMarket?.description ??
+        event.markets?.[0]?.description ??
+        event.description;
+
       return {
         id: event.id,
         slug: event.slug,
         providerId: POLYMARKET_PROVIDER_ID,
         title: event.title,
-        // As per Polymarket's team, we should use the first market's description
-        // rather than the event's description. The event's description is not
-        // guaranteed to be accurate. They also do this on their webbsite.
-        description: event.markets?.[0]?.description ?? event.description,
+        description,
         image: event.icon,
         status: event.closed
           ? PredictMarketStatus.CLOSED
@@ -740,7 +752,7 @@ export const parsePolymarketEvents = (
         recurrence: getRecurrence(event.series),
         endDate: event.endDate,
         category,
-        tags: tags.map((t) => t.label),
+        tags: tags.map((t) => t.slug),
         outcomes: markets.map((market: PolymarketApiMarket) =>
           parsePolymarketMarket(market, event),
         ),
@@ -824,9 +836,15 @@ export interface GetParsedMarketsOptions extends GetMarketsParams {
   teamLookup?: PolymarketTeamLookupFn;
 }
 
-export const getParsedMarketsFromPolymarketApi = async (
+export interface FetchEventsResult {
+  events: PolymarketApiEvent[];
+  category: PredictCategory;
+  isSearch: boolean;
+}
+
+export const fetchEventsFromPolymarketApi = async (
   params?: GetParsedMarketsOptions,
-): Promise<PredictMarket[]> => {
+): Promise<FetchEventsResult> => {
   const { GAMMA_API_ENDPOINT } = getPolymarketEndpoints();
 
   const {
@@ -834,7 +852,6 @@ export const getParsedMarketsFromPolymarketApi = async (
     q,
     limit = 20,
     offset = 0,
-    teamLookup,
     customQueryParams,
   } = params || {};
   DevLogger.log(
@@ -907,13 +924,23 @@ export const getParsedMarketsFromPolymarketApi = async (
     ? eventsData
     : [];
 
+  return { events, category, isSearch: !!q };
+};
+
+export const getParsedMarketsFromPolymarketApi = async (
+  params?: GetParsedMarketsOptions,
+): Promise<PredictMarket[]> => {
+  const { teamLookup } = params || {};
+  const { events, category, isSearch } =
+    await fetchEventsFromPolymarketApi(params);
+
   const parsedMarkets: PredictMarket[] = parsePolymarketEvents(events, {
     category,
     sortMarketsBy: 'price',
     teamLookup,
   });
 
-  if (q) {
+  if (isSearch) {
     return parsedMarkets.filter((m) => m.outcomes.length > 0);
   }
 
@@ -1075,7 +1102,7 @@ async function waiveFees({
   const market = await getMarketDetailsFromGammaApi({ marketId });
   const { tags } = market;
   const slugs = tags?.map((t) => t.slug);
-  return slugs?.some((slug) => waiveList.includes(slug)) ?? false;
+  return slugs?.some((slug) => waiveList?.includes(slug)) ?? false;
 }
 
 export async function calculateFees({
@@ -1105,15 +1132,11 @@ export async function calculateFees({
   const totalFeePercentage =
     (feeCollection.metamaskFee + feeCollection.providerFee) * 100;
 
-  let metamaskFee = userBetAmount * feeCollection.metamaskFee;
-  let providerFee = userBetAmount * feeCollection.providerFee;
+  const metamaskFee = userBetAmount * feeCollection.metamaskFee;
+  const providerFee = userBetAmount * feeCollection.providerFee;
 
-  // Round to 3 decimals
-  metamaskFee = Math.round(metamaskFee * 1000) / 1000;
-  providerFee = Math.round(providerFee * 1000) / 1000;
-
-  // Rounded to 4 decimals
-  const totalFee = metamaskFee + providerFee;
+  // Rounded to 6 decimals
+  const totalFee = Math.round((metamaskFee + providerFee) * 1000000) / 1000000;
 
   return {
     metamaskFee,
@@ -1516,7 +1539,7 @@ export const previewOrder = async (
       fees: await calculateFees({
         feeCollection,
         marketId,
-        userBetAmount: size,
+        userBetAmount: makerAmount,
       }),
     };
   }

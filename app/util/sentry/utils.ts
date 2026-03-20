@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import * as Sentry from '@sentry/react-native';
 import { dedupeIntegration, extraErrorDataIntegration } from '@sentry/browser';
 import { Breadcrumb, Event as SentryEvent } from '@sentry/core';

@@ -41,6 +41,12 @@ import ListItemColumn, {
   WidthType,
 } from '../../../../../../component-library/components/List/ListItemColumn';
 import ListItemColumnEnd from '../../components/ListItemColumnEnd';
+import {
+  getOrderRowTestId,
+  getOrderRowCryptoAmountTestId,
+  getOrderRowFiatAmountTestId,
+  type RampsOrderTypeSlug,
+} from './OrdersList.testIds';
 
 type filterType = 'ALL' | 'PURCHASE' | 'SELL';
 
@@ -92,12 +98,25 @@ function getStatusColorAndText(
   return [statusColor, statusText];
 }
 
-function DisplayOrderListItem({ item }: { item: DisplayOrder }) {
+function getOrderTypeSlug(orderType: string): RampsOrderTypeSlug {
+  if (orderType === 'DEPOSIT') return 'deposit';
+  if (orderType === 'SELL') return 'sell';
+  return 'buy';
+}
+
+function DisplayOrderListItem({
+  item,
+  index,
+}: {
+  item: DisplayOrder;
+  index: number;
+}) {
   const isBuy = item.orderType === 'BUY' || item.orderType === 'DEPOSIT';
   const [statusColor, statusText] = getStatusColorAndText(
     item.status,
     item.orderType,
   );
+  const typeSlug = getOrderTypeSlug(item.orderType);
 
   const title = item.providerName
     ? `${item.providerName}: ${strings(
@@ -128,10 +147,17 @@ function DisplayOrderListItem({ item }: { item: DisplayOrder }) {
       </ListItemColumn>
 
       <ListItemColumnEnd>
-        <Text variant={TextVariant.BodyMD}>
+        <Text
+          testID={getOrderRowCryptoAmountTestId(typeSlug, index)}
+          variant={TextVariant.BodyMD}
+        >
           {item.cryptoAmount} {item.cryptoCurrencySymbol}
         </Text>
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Text
+          testID={getOrderRowFiatAmountTestId(typeSlug, index)}
+          variant={TextVariant.BodySM}
+          color={TextColor.Alternative}
+        >
           {item.fiatAmount == null
             ? '...'
             : addCurrencySymbol(
@@ -256,8 +282,15 @@ function OrdersList() {
     ],
   );
 
-  const renderItem = ({ item }: { item: DisplayOrder }) => (
+  const renderItem = ({
+    item,
+    index,
+  }: {
+    item: DisplayOrder;
+    index: number;
+  }) => (
     <TouchableHighlight
+      testID={getOrderRowTestId(getOrderTypeSlug(item.orderType), index + 1)}
       accessibilityRole="button"
       accessible
       style={styles.row}
@@ -265,7 +298,7 @@ function OrdersList() {
       underlayColor={colors.background.alternative}
       activeOpacity={1}
     >
-      <DisplayOrderListItem item={item} />
+      <DisplayOrderListItem item={item} index={index + 1} />
     </TouchableHighlight>
   );
 

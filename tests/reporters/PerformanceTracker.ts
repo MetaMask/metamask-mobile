@@ -12,7 +12,7 @@ interface Timer {
   hasThreshold(): boolean;
 }
 
-interface MetricsOutput {
+export interface MetricsOutput {
   steps: MetricStep[];
   timestamp: string;
   thresholdMarginPercent: number;

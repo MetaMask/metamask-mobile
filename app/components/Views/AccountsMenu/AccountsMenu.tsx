@@ -42,7 +42,6 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
-import { useNetworkManagementEnabled } from '../../../selectors/featureFlagController/networkManagement/useNetworkManagementEnabled';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -121,8 +120,6 @@ const AccountsMenu = () => {
     readNotificationCount,
     isBackupAndSyncEnabled,
   ]);
-  const isNetworkManagementEnabled = useNetworkManagementEnabled();
-
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -458,17 +455,13 @@ const AccountsMenu = () => {
         )}
 
         {/* Networks Row */}
-        {isNetworkManagementEnabled && (
-          <ActionListItem
-            startAccessory={
-              <Icon name={IconName.Hierarchy} size={IconSize.Lg} />
-            }
-            label={strings('accounts_menu.networks')}
-            endAccessory={arrowRightIcon}
-            onPress={onPressNetworks}
-            testID={AccountsMenuSelectorsIDs.NETWORKS}
-          />
-        )}
+        <ActionListItem
+          startAccessory={<Icon name={IconName.Hierarchy} size={IconSize.Lg} />}
+          label={strings('accounts_menu.networks')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressNetworks}
+          testID={AccountsMenuSelectorsIDs.NETWORKS}
+        />
 
         {separator}
 

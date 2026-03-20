@@ -122,10 +122,10 @@ describe('QRSigningTransactionModal', () => {
 
     (
       Engine.context as unknown as {
-        ApprovalController: { accept: jest.Mock };
+        ApprovalController: { acceptRequest: jest.Mock };
       }
     ).ApprovalController = {
-      accept: jest.fn().mockResolvedValue(undefined),
+      acceptRequest: jest.fn().mockResolvedValue(undefined),
     };
   });
 
@@ -157,7 +157,7 @@ describe('QRSigningTransactionModal', () => {
     expect(queryByTestId('QRSigningDetails')).toBeNull();
   });
 
-  it('calls ApprovalController.accept and onConfirmationComplete on success callback', async () => {
+  it('calls ApprovalController.acceptRequest and onConfirmationComplete on success callback', async () => {
     const initialState = createInitialState();
 
     const { getByTestId } = renderScreen(
@@ -171,11 +171,11 @@ describe('QRSigningTransactionModal', () => {
 
     await successCallback();
 
-    expect(Engine.context.ApprovalController.accept).toHaveBeenCalledWith(
-      mockTransactionId,
-      undefined,
-      { waitForResult: true },
-    );
+    expect(
+      Engine.context.ApprovalController.acceptRequest,
+    ).toHaveBeenCalledWith(mockTransactionId, undefined, {
+      waitForResult: true,
+    });
 
     expect(mockOnConfirmationComplete).toHaveBeenCalledWith(true);
   });
@@ -232,9 +232,6 @@ describe('QRSigningTransactionModal', () => {
     expect(qrSigningDetailsElement.props.tighten).toBe(true);
     expect(qrSigningDetailsElement.props.showHint).toBe(true);
     expect(qrSigningDetailsElement.props.shouldStartAnimated).toBe(true);
-    expect(qrSigningDetailsElement.props.bypassAndroidCameraAccessCheck).toBe(
-      false,
-    );
     expect(qrSigningDetailsElement.props.fromAddress).toBe(
       mockSelectedAccount.address,
     );

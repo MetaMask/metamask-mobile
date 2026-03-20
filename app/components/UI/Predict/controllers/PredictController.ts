@@ -61,6 +61,7 @@ import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
 import { Signer } from '../providers/types';
 import {
   AccountState,
+  ActiveOrderState,
   ClaimParams,
   ConnectionStatus,
   GameUpdateCallback,
@@ -79,6 +80,7 @@ import {
   PredictClaim,
   PredictClaimStatus,
   PredictMarket,
+  PredictOrderType,
   PredictPosition,
   PredictPositionStatus,
   PredictPriceHistoryPoint,
@@ -115,6 +117,8 @@ import {
   validatedVersionGatedFeatureFlag,
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
+import { parse, PredictFeeCollectionSchema } from '../schemas';
+import { PREDICTION_ERROR_TRANSACTION_BATCH_ID } from '../constants/transactions';
 
 /**
  * State shape for PredictController
@@ -139,9 +143,26 @@ export type PredictControllerState = {
   // Deposit management
   pendingDeposits: { [address: string]: string };
 
+  // Claim management (pending claim tracking per account)
+  pendingClaims: { [address: string]: string };
+
   // Withdraw management
   // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
+
+  activeOrder?: {
+    amount?: number;
+    batchId?: string;
+    isInputFocused?: boolean;
+    state: ActiveOrderState;
+    error?: string;
+  } | null;
+
+  selectedPaymentToken: {
+    address: string;
+    chainId: string;
+    symbol?: string;
+  } | null;
 
   // Persisted data
   accountMeta: {
@@ -159,7 +180,10 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   balances: {},
   claimablePositions: {},
   pendingDeposits: {},
+  pendingClaims: {},
   withdrawTransaction: null,
+  activeOrder: null,
+  selectedPaymentToken: null,
   accountMeta: {},
 });
 
@@ -203,6 +227,12 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInStateLogs: false,
     usedInUi: false,
   },
+  pendingClaims: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
   withdrawTransaction: {
     persist: false,
     includeInDebugSnapshot: false,
@@ -211,6 +241,18 @@ const metadata: StateMetadata<PredictControllerState> = {
   },
   accountMeta: {
     persist: true,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  activeOrder: {
+    persist: false,
+    includeInDebugSnapshot: false,
+    includeInStateLogs: false,
+    usedInUi: true,
+  },
+  selectedPaymentToken: {
+    persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
     usedInUi: true,
@@ -437,10 +479,13 @@ export class PredictController extends BaseController<
         ? rawMarketHighlightsFlag
         : DEFAULT_MARKET_HIGHLIGHTS_FLAG;
 
-    const feeCollection =
+    const feeCollection = parse(
       unwrapRemoteFeatureFlag<PredictFeatureFlags['feeCollection']>(
         flags.predictFeeCollection,
-      ) ?? DEFAULT_FEE_COLLECTION_FLAG;
+      ),
+      PredictFeeCollectionSchema,
+      DEFAULT_FEE_COLLECTION_FLAG,
+    );
 
     const fakOrdersEnabled =
       validatedVersionGatedFeatureFlag(
@@ -1046,6 +1091,7 @@ export class PredictController extends BaseController<
     failureReason,
     sharePrice,
     pnl,
+    orderType,
   }: {
     status: PredictTradeStatusValue;
     amountUsd?: number;
@@ -1054,6 +1100,7 @@ export class PredictController extends BaseController<
     failureReason?: string;
     sharePrice?: number;
     pnl?: number;
+    orderType?: PredictOrderType;
   }): Promise<void> {
     if (!analyticsProperties) {
       return;
@@ -1106,6 +1153,9 @@ export class PredictController extends BaseController<
       }),
       ...(analyticsProperties.gameClock && {
         [PredictEventProperties.GAME_CLOCK]: analyticsProperties.gameClock,
+      }),
+      ...(orderType && {
+        [PredictEventProperties.ORDER_TYPE]: orderType,
       }),
     };
 
@@ -1436,6 +1486,7 @@ export class PredictController extends BaseController<
         amountUsd,
         analyticsProperties,
         sharePrice,
+        orderType: preview.orderType,
       });
 
       // Invalidate query cache (to avoid nonce issues)
@@ -1496,6 +1547,7 @@ export class PredictController extends BaseController<
         analyticsProperties,
         completionDuration,
         sharePrice: realSharePrice,
+        orderType: preview.orderType,
       });
 
       traceData = { success: true, side: preview.side };
@@ -1515,6 +1567,7 @@ export class PredictController extends BaseController<
         sharePrice,
         completionDuration,
         failureReason: errorMessage,
+        orderType: preview.orderType,
       });
 
       // Update error state for Sentry integration
@@ -1581,10 +1634,20 @@ export class PredictController extends BaseController<
       },
     });
 
+    const signer = this.getSigner();
+
     try {
       const provider = this.provider;
 
-      const signer = this.getSigner();
+      // Skip if there's already a pending claim for this account
+      if (this.state.pendingClaims[signer.address]) {
+        traceData = { success: false, reason: 'already_pending' };
+        return {
+          batchId: this.state.pendingClaims[signer.address],
+          chainId: 0,
+          status: PredictClaimStatus.PENDING,
+        };
+      }
 
       // Get claimable positions from state
       const claimablePositions = this.state.claimablePositions[signer.address];
@@ -1592,6 +1655,11 @@ export class PredictController extends BaseController<
       if (!claimablePositions || claimablePositions.length === 0) {
         throw new Error('No claimable positions found');
       }
+
+      // Set pending claim placeholder before preparing the transaction
+      this.update((state) => {
+        state.pendingClaims[signer.address] = 'pending';
+      });
 
       // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
       const prepareClaimResult = await provider.prepareClaim({
@@ -1645,6 +1713,11 @@ export class PredictController extends BaseController<
 
       const { batchId } = batchResult;
 
+      // Store the real batchId for pending claim tracking
+      this.update((state) => {
+        state.pendingClaims[signer.address] = batchId;
+      });
+
       const predictClaim: PredictClaim = {
         batchId,
         chainId,
@@ -1659,6 +1732,8 @@ export class PredictController extends BaseController<
       traceData = { success: true, positionCount: claimablePositions.length };
       return predictClaim;
     } catch (error) {
+      this.clearPendingClaimForAddress({ address: signer.address });
+
       const e = ensureError(error);
       if (e.message.includes('User denied transaction signature')) {
         traceData = { success: false, reason: 'user_cancelled' };
@@ -1849,6 +1924,26 @@ export class PredictController extends BaseController<
     this.update(updater);
   }
 
+  public setActiveOrder(order: PredictControllerState['activeOrder']): void {
+    this.update((state) => {
+      state.activeOrder = order;
+    });
+  }
+
+  public clearActiveOrder(): void {
+    this.update((state) => {
+      state.activeOrder = null;
+    });
+  }
+
+  public setSelectedPaymentToken(
+    token: PredictControllerState['selectedPaymentToken'],
+  ): void {
+    this.update((state) => {
+      state.selectedPaymentToken = token;
+    });
+  }
+
   public async depositWithConfirmation(
     _params: PrepareDepositParams = {},
   ): Promise<Result<{ batchId: string }>> {
@@ -1970,6 +2065,153 @@ export class PredictController extends BaseController<
     }
   }
 
+  /**
+   * Prepares and submits a deposit transaction batch using the
+   * `predictDepositAndOrder` transaction type. This triggers the new
+   * deposit-and-order confirmation screen instead of the standard deposit screen.
+   *
+   * The flow reuses `provider.prepareDeposit` but overrides the transaction
+   * type so the confirmation routing in `info-root.tsx` renders
+   * `PredictPayWithAnyTokenInfo`.
+   *
+   * TODO: Remove the cast once `predictDepositAndOrder` is added to
+   * `@metamask/transaction-controller`.
+   */
+  public async payWithAnyTokenConfirmation(): Promise<
+    Result<{ batchId: string }>
+  > {
+    const provider = this.provider;
+
+    try {
+      const signer = this.getSigner();
+
+      this.update((state) => {
+        if (state.activeOrder) {
+          delete state.activeOrder.batchId;
+        }
+      });
+
+      const depositPreparation = await provider.prepareDeposit({
+        signer,
+      });
+
+      if (!depositPreparation) {
+        throw new Error('Deposit preparation returned undefined');
+      }
+
+      const { transactions, chainId } = depositPreparation;
+
+      if (!transactions || transactions.length === 0) {
+        throw new Error('No transactions returned from deposit preparation');
+      }
+
+      if (!chainId) {
+        throw new Error('Chain ID not provided by deposit preparation');
+      }
+
+      // TODO: Remove cast once predictDepositAndOrder is in @metamask/transaction-controller
+      const predictDepositAndOrderType =
+        'predictDepositAndOrder' as unknown as TransactionType;
+
+      // Override transaction types to predictDepositAndOrder so the
+      // confirmation routing renders the deposit-and-order info component.
+      const depositAndOrderTransactions = transactions.map((tx) => ({
+        ...tx,
+        type:
+          tx.type === TransactionType.predictDeposit
+            ? predictDepositAndOrderType
+            : tx.type,
+      }));
+
+      DevLogger.log(
+        'PredictController: payWithAnyTokenConfirmation transactions',
+        {
+          count: depositAndOrderTransactions.length,
+          transactions: depositAndOrderTransactions.map((tx, index) => ({
+            index,
+            type: tx?.type,
+            to: tx?.params?.to,
+            dataLength: tx?.params?.data?.length ?? 0,
+          })),
+        },
+      );
+
+      validateDepositTransactions(depositAndOrderTransactions, {
+        providerId: POLYMARKET_PROVIDER_ID,
+      });
+
+      const networkClientId = this.messenger.call(
+        'NetworkController:findNetworkClientIdByChainId',
+        chainId,
+      );
+
+      if (!networkClientId) {
+        throw new Error(`Network client not found for chain ID: ${chainId}`);
+      }
+
+      const batchResult = await addTransactionBatch({
+        from: signer.address as Hex,
+        origin: ORIGIN_METAMASK,
+        networkClientId,
+        disableHook: true,
+        disableSequential: true,
+        skipInitialGasEstimate: true,
+        transactions: depositAndOrderTransactions,
+      });
+
+      if (!batchResult?.batchId) {
+        throw new Error('Failed to get batch ID from transaction submission');
+      }
+
+      const { batchId } = batchResult;
+
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.batchId = batchId;
+          delete state.activeOrder.error;
+        }
+      });
+
+      return {
+        success: true,
+        response: {
+          batchId,
+        },
+      };
+    } catch (error) {
+      const e = ensureError(error);
+      if (e.message.includes('User denied transaction signature')) {
+        this.update((state) => {
+          if (state.activeOrder) {
+            state.activeOrder = null;
+          }
+        });
+        return {
+          success: true,
+          response: { batchId: PREDICTION_ERROR_TRANSACTION_BATCH_ID },
+        };
+      }
+
+      const errorMessage = e.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.error = errorMessage;
+          state.activeOrder.batchId = PREDICTION_ERROR_TRANSACTION_BATCH_ID;
+        }
+      });
+
+      Logger.error(
+        e,
+        this.getErrorContext('payWithAnyTokenConfirmation', {
+          providerId: POLYMARKET_PROVIDER_ID,
+        }),
+      );
+
+      throw new Error(errorMessage);
+    }
+  }
+
   public clearPendingDeposit(): void {
     const selectedAddress = this.getSigner().address;
     this.clearPendingDepositForAddress({ address: selectedAddress });
@@ -1988,6 +2230,19 @@ export class PredictController extends BaseController<
 
       if (matchedAddress) {
         delete state.pendingDeposits[matchedAddress];
+      }
+    });
+  }
+
+  private clearPendingClaimForAddress({ address }: { address: string }): void {
+    const normalizedAddress = address.toLowerCase();
+    this.update((state) => {
+      const matchedAddress = Object.keys(state.pendingClaims).find(
+        (addressKey) => addressKey.toLowerCase() === normalizedAddress,
+      );
+
+      if (matchedAddress) {
+        delete state.pendingClaims[matchedAddress];
       }
     });
   }
@@ -2071,6 +2326,10 @@ export class PredictController extends BaseController<
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    if (type === 'claim' && isTerminal) {
+      this.clearPendingClaimForAddress({ address });
     }
 
     if (type === 'claim' && status === 'confirmed') {
