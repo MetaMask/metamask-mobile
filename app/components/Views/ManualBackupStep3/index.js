@@ -8,7 +8,6 @@ import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
 import Device from '../../../util/device';
-import Confetti from '../../UI/Confetti';
 import HintModal from '../../UI/HintModal';
 import { getTransparentOnboardingNavbarOptions } from '../../UI/Navbar';
 import { SEED_PHRASE_HINTS } from '../../../constants/storage';
@@ -133,7 +132,6 @@ class ManualBackupStep3 extends PureComponent {
     return (
       <Box twClassName="flex-1 bg-default mt-4">
         <OnboardingSuccessComponent onDone={this.done} backedUpSRP />
-        <Confetti />
         {Device.isAndroid() && (
           <AndroidBackHandler customBackPress={this.props.navigation.pop} />
         )}

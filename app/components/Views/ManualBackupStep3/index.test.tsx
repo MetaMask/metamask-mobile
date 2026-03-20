@@ -65,11 +65,6 @@ jest.mock('../OnboardingSuccess', () => ({
   },
 }));
 
-jest.mock('../../UI/Confetti', () => {
-  const { View } = jest.requireActual('react-native');
-  return () => <View testID="confetti" />;
-});
-
 jest.mock('../../UI/HintModal', () => {
   const { View, TextInput, TouchableOpacity, Text } =
     jest.requireActual('react-native');
@@ -176,14 +171,6 @@ describe('ManualBackupStep3', () => {
   });
 
   describe('rendering', () => {
-    it('renders Confetti animation', async () => {
-      const { getByTestId } = renderComponent();
-
-      await waitFor(() => {
-        expect(getByTestId('confetti')).toBeOnTheScreen();
-      });
-    });
-
     it('renders OnboardingSuccessComponent', async () => {
       const { getByTestId } = renderComponent();
 
