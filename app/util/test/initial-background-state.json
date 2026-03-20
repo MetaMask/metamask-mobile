@@ -301,7 +301,6 @@
       "0x1": true,
       "0x5": true,
       "0x38": true,
-      "0x3e7": true,
       "0x61": true,
       "0xa": true,
       "0xa869": true,
@@ -320,7 +319,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x3e7": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -681,11 +681,12 @@
   },
   "CardController": {
     "selectedCountry": null,
-    "activeProviderId": null,
+    "activeProviderId": "baanx",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
   },
+  "ComplianceController": {},
   "ConnectivityController": {
     "connectivityStatus": "online"
   },

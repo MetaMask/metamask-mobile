@@ -29,7 +29,6 @@ export function getSmartTransactionsControllerMessenger(
   });
   rootMessenger.delegate({
     actions: [
-      'ErrorReportingService:captureException',
       'NetworkController:getNetworkClientById',
       'NetworkController:getState',
       'RemoteFeatureFlagController:getState',
