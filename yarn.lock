@@ -7629,15 +7629,15 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ai-controllers@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/ai-controllers@npm:0.3.0"
+"@metamask/ai-controllers@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/ai-controllers@npm:0.4.0"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
     "@metamask/superstruct": "npm:^3.1.0"
     "@metamask/utils": "npm:^11.9.0"
-  checksum: 10/a1a4655243a5de34378aad291a34a1b5bf441b186b9e541083bc870ee65bb3244c31e45d84ec3a24bcf8f36452408f3518445939bd450304feaacfcadffb51f5
+  checksum: 10/b51e15821dd62c6b15dc2c1efe6da56f4467b81ee8e7ff7df5f38c429d8b47162ee918e94a5713fe55902390f75a4cb6672813f4e103e8b348fca624dd27c467
   languageName: node
   linkType: hard
 
@@ -7991,6 +7991,20 @@ __metadata:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/messenger": "npm:^0.3.0"
   checksum: 10/79a81ebae21fbe41cc110c5f8593751aebd64c3df98e23c4ec1b2129fa4d86d301afc3a8aa8ff65fc0c917f65c171aa6c90bce00753ec1378966cfca95f89d9c
+  languageName: node
+  linkType: hard
+
+"@metamask/compliance-controller@npm:^1.0.1":
+  version: 1.0.1
+  resolution: "@metamask/compliance-controller@npm:1.0.1"
+  dependencies:
+    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/superstruct": "npm:^3.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+    reselect: "npm:^5.1.1"
+  checksum: 10/5847e60715cf6896d7dc496d9cd6a68b0b0e6a9515e732a682b4dbb8741a8d864bd78754f7ca00e040d220612177206afafd77d477986046be002867961516fe
   languageName: node
   linkType: hard
 
@@ -20489,9 +20503,9 @@ __metadata:
   linkType: hard
 
 "@wdio/protocols@npm:^9.24.0":
-  version: 9.24.0
-  resolution: "@wdio/protocols@npm:9.24.0"
-  checksum: 10/b5478e70dbd0f5294115334c833455032433eff57b62c7355ec6ca01d15f56fb16bc0c5d62acb3c6f66b8360d33af71b8b66d7a9e2e76d684ec45dd0bb318f1b
+  version: 9.25.0
+  resolution: "@wdio/protocols@npm:9.25.0"
+  checksum: 10/b794d6c7b9636a2ee07bf098fef5c4e5b9c3c7ccbd768afda3acc12bfc3edfc4a5281505e8fd20449036732d0df665c06d45facf72673fb7168f63cb26dd23c5
   languageName: node
   linkType: hard
 
@@ -35502,7 +35516,7 @@ __metadata:
     "@metamask/account-tree-controller": "npm:^5.0.0"
     "@metamask/accounts-controller": "npm:^37.0.0"
     "@metamask/address-book-controller": "npm:^7.1.0"
-    "@metamask/ai-controllers": "npm:^0.3.0"
+    "@metamask/ai-controllers": "npm:^0.4.0"
     "@metamask/analytics-controller": "npm:^1.0.0"
     "@metamask/app-metadata-controller": "npm:^2.0.0"
     "@metamask/approval-controller": "npm:^9.0.0"
@@ -35517,6 +35531,7 @@ __metadata:
     "@metamask/browser-playground": "npm:0.3.0"
     "@metamask/build-utils": "npm:^3.0.0"
     "@metamask/chain-agnostic-permission": "npm:^1.3.0"
+    "@metamask/compliance-controller": "npm:^1.0.1"
     "@metamask/connectivity-controller": "npm:^0.1.0"
     "@metamask/controller-utils": "npm:^11.18.0"
     "@metamask/core-backend": "npm:^5.0.0"
