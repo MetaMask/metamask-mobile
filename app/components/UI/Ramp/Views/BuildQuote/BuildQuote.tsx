@@ -579,7 +579,7 @@ function BuildQuote() {
         if (!quote) {
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
-        await transakRouteAfterAuth(quote);
+        await transakRouteAfterAuth(quote, amountAsNumber);
       } else {
         navigation.navigate(
           ...createV2VerifyIdentityNavDetails({

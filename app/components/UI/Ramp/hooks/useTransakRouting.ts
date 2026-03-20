@@ -159,13 +159,13 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToVerifyIdentityCallback = useCallback(
-    ({ quote }: { quote: TransakBuyQuote }) => {
+    ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
       navigation.reset({
         index: 1,
         routes: [
           {
             name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount: quote.fiatAmount },
+            params: { amount },
           },
           { name: Routes.RAMP.VERIFY_IDENTITY, params: { quote } },
         ],
@@ -178,16 +178,18 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
     ({
       quote,
       previousFormData,
+      amount,
     }: {
       quote: TransakBuyQuote;
       previousFormData?: BasicInfoFormData & AddressFormData;
+      amount?: number;
     }) => {
       navigation.reset({
         index: 1,
         routes: [
           {
             name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount: quote.fiatAmount },
+            params: { amount },
           },
           {
             name: Routes.RAMP.BASIC_INFO,
@@ -240,17 +242,19 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
       quote,
       kycUrl,
       workFlowRunId,
+      amount,
     }: {
       quote: TransakBuyQuote;
       kycUrl: string;
       workFlowRunId: string;
+      amount?: number;
     }) => {
       navigation.reset({
         index: 1,
         routes: [
           {
             name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount: quote.fiatAmount },
+            params: { amount },
           },
           {
             name: Routes.RAMP.ADDITIONAL_VERIFICATION,
@@ -372,13 +376,13 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToKycProcessingCallback = useCallback(
-    ({ quote }: { quote: TransakBuyQuote }) => {
+    ({ quote, amount }: { quote: TransakBuyQuote; amount?: number }) => {
       navigation.reset({
         index: 1,
         routes: [
           {
             name: Routes.RAMP.AMOUNT_INPUT,
-            params: { amount: quote.fiatAmount },
+            params: { amount },
           },
           { name: Routes.RAMP.KYC_PROCESSING, params: { quote } },
         ],
@@ -408,7 +412,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const routeAfterAuthentication = useCallback(
-    async (quote: TransakBuyQuote, depth = 0) => {
+    async (quote: TransakBuyQuote, amount?: number, depth = 0) => {
       try {
         const userDetails = await getUserDetails();
         const previousFormData = {
@@ -493,7 +497,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
 
                 navigateToWebviewModalCallback({
                   paymentUrl,
-                  amount: quote.fiatAmount,
+                  amount,
                 });
               }
               return true;
@@ -514,7 +518,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
               region: regionIsoCode,
             });
 
-            navigateToBasicInfoCallback({ quote, previousFormData });
+            navigateToBasicInfoCallback({ quote, previousFormData, amount });
             return;
 
           case 'ADDITIONAL_FORMS_REQUIRED': {
@@ -532,7 +536,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 await submitPurposeOfUsageForm([
                   'Buying/selling crypto for investments',
                 ]);
-                await routeAfterAuthentication(quote, depth + 1);
+                await routeAfterAuthentication(quote, amount, depth + 1);
               } else {
                 Logger.error(
                   new Error(`Submit of purpose depth exceeded: ${depth}`),
@@ -559,16 +563,17 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 quote,
                 kycUrl: metadata.kycUrl,
                 workFlowRunId: metadata.workFlowRunId,
+                amount,
               });
               return;
             }
 
-            navigateToKycProcessingCallback({ quote });
+            navigateToKycProcessingCallback({ quote, amount });
             return;
           }
 
           case 'SUBMITTED': {
-            navigateToKycProcessingCallback({ quote });
+            navigateToKycProcessingCallback({ quote, amount });
             return;
           }
 

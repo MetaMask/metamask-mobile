@@ -760,7 +760,7 @@ describe('BuildQuote', () => {
         '/payments/debit-credit-card',
         '100',
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE);
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
 
     it('navigates to VerifyIdentity when user has no token', async () => {
