@@ -154,8 +154,8 @@
     ]
   },
   "resolutions": {
-    "@metamask/keyring-controller": "npm:@metamask-previews/keyring-controller@25.1.0-preview-e9620906a",
-    "@metamask/accounts-controller": "npm:@metamask-previews/accounts-controller@37.0.0-preview-e9620906a",
+    "@metamask/keyring-controller": "npm:@metamask-previews/keyring-controller@25.1.0-preview-04f063ba1",
+    "@metamask/accounts-controller": "npm:@metamask-previews/accounts-controller@37.0.0-preview-04f063ba1",
     "@appium/schema/json-schema": "^0.4.0",
     "@metamask/react-native-payments/validator": "^13.7.0",
     "@unrs/resolver-binding-wasm32-wasi": "npm:npm-empty-package@1.0.0",
@@ -204,9 +204,9 @@
     "@lavamoat/react-native-lockdown": "^0.0.2",
     "@ledgerhq/hw-app-eth": "^6.42.0",
     "@ledgerhq/react-native-hw-transport-ble": "^6.37.0",
-    "@metamask-previews/accounts-controller": "37.0.0-preview-e9620906a",
-    "@metamask-previews/keyring-controller": "25.1.0-preview-e9620906a",
-    "@metamask-previews/money-account-service": "0.0.0-preview-e9620906a",
+    "@metamask-previews/accounts-controller": "37.0.0-preview-04f063ba1",
+    "@metamask-previews/keyring-controller": "25.1.0-preview-04f063ba1",
+    "@metamask-previews/money-account-service": "0.0.0-preview-04f063ba1",
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.0",
     "@metamask/account-tree-controller": "^5.0.0",

@@ -7525,9 +7525,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask-previews/accounts-controller@npm:37.0.0-preview-e9620906a, @metamask/accounts-controller@npm:@metamask-previews/accounts-controller@37.0.0-preview-e9620906a":
-  version: 37.0.0-preview-e9620906a
-  resolution: "@metamask-previews/accounts-controller@npm:37.0.0-preview-e9620906a"
+"@metamask-previews/accounts-controller@npm:37.0.0-preview-04f063ba1, @metamask/accounts-controller@npm:@metamask-previews/accounts-controller@37.0.0-preview-04f063ba1":
+  version: 37.0.0-preview-04f063ba1
+  resolution: "@metamask-previews/accounts-controller@npm:37.0.0-preview-04f063ba1"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -7551,19 +7551,19 @@ __metadata:
   peerDependencies:
     "@metamask/providers": ^22.0.0
     webextension-polyfill: ^0.10.0 || ^0.11.0 || ^0.12.0
-  checksum: 10/8d8f89eb086770f0540e961c0276f61d6f6056a61544a62208e1bd078e45bda6f77cd2b4ce7c93359ce93e303b70e03346bc65aecd29b4b61026a5dec5f27b0c
+  checksum: 10/a94f7ff7e93d2ff5338bacfa4af700d6293088e3f8b6fb8e2d17767d77c2398ffd8c74a749d5581f30332320701d142c37a157e5d128320732e586ed24733f4d
   languageName: node
   linkType: hard
 
-"@metamask-previews/keyring-controller@npm:25.1.0-preview-e9620906a, @metamask/keyring-controller@npm:@metamask-previews/keyring-controller@25.1.0-preview-e9620906a":
-  version: 25.1.0-preview-e9620906a
-  resolution: "@metamask-previews/keyring-controller@npm:25.1.0-preview-e9620906a"
+"@metamask-previews/keyring-controller@npm:25.1.0-preview-04f063ba1, @metamask/keyring-controller@npm:@metamask-previews/keyring-controller@25.1.0-preview-04f063ba1":
+  version: 25.1.0-preview-04f063ba1
+  resolution: "@metamask-previews/keyring-controller@npm:25.1.0-preview-04f063ba1"
   dependencies:
     "@ethereumjs/util": "npm:^9.1.0"
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/browser-passworder": "npm:^6.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
-    "@metamask/eth-money-keyring": "npm:1.0.0"
+    "@metamask/eth-money-keyring": "npm:^1.0.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
     "@metamask/eth-simple-keyring": "npm:^11.0.0"
     "@metamask/keyring-api": "npm:^21.6.0"
@@ -7575,19 +7575,20 @@ __metadata:
     immer: "npm:^9.0.6"
     lodash: "npm:^4.17.21"
     ulid: "npm:^2.3.0"
-  checksum: 10/408fc6c1c8a413ab3ffbdcbb7e6f1fa4cbd456d494ae20e1f5185c10e3213ee8616b8e97ecbe93b712c2a059957530b71e5869065e4db21b0b52c522bd43ae85
+  checksum: 10/3565f9560540ea6cb69280ba51622f0aabb4b6860d1dba1b5cbc8e0bec79587a458d78616c95cda330355139dbdabfd3b7c7343de25557d1b695d97a70577174
   languageName: node
   linkType: hard
 
-"@metamask-previews/money-account-service@npm:0.0.0-preview-e9620906a":
-  version: 0.0.0-preview-e9620906a
-  resolution: "@metamask-previews/money-account-service@npm:0.0.0-preview-e9620906a"
+"@metamask-previews/money-account-service@npm:0.0.0-preview-04f063ba1":
+  version: 0.0.0-preview-04f063ba1
+  resolution: "@metamask-previews/money-account-service@npm:0.0.0-preview-04f063ba1"
   dependencies:
     "@metamask/base-controller": "npm:^9.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
+    "@metamask/eth-money-keyring": "npm:^1.0.0"
     "@metamask/keyring-controller": "npm:^25.1.0"
     "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/796968492e53315252ec302bcc66c3872bfbb7ca804b8f39d1310c9e2fe8c9f2d59594f70896a487801272d39b138133620a7ff7e41e320cd4fbba09bb4f9c4b
+  checksum: 10/15b50abb89855ab653b4a961bd602d76d7d8850c50d2309a12a26c4ee19f06d89c1f968d40ac0d02a41acf3119958c0a1df872dde19e37b9fa12cfa8b176afd5
   languageName: node
   linkType: hard
 
@@ -8436,7 +8437,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/eth-money-keyring@npm:1.0.0":
+"@metamask/eth-money-keyring@npm:1.0.0, @metamask/eth-money-keyring@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/eth-money-keyring@npm:1.0.0"
   dependencies:
@@ -35529,9 +35530,9 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
-    "@metamask-previews/accounts-controller": "npm:37.0.0-preview-e9620906a"
-    "@metamask-previews/keyring-controller": "npm:25.1.0-preview-e9620906a"
-    "@metamask-previews/money-account-service": "npm:0.0.0-preview-e9620906a"
+    "@metamask-previews/accounts-controller": "npm:37.0.0-preview-04f063ba1"
+    "@metamask-previews/keyring-controller": "npm:25.1.0-preview-04f063ba1"
+    "@metamask-previews/money-account-service": "npm:0.0.0-preview-04f063ba1"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^5.0.0"
