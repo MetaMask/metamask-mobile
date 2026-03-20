@@ -131,11 +131,18 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
+        // Earn entry can be animation-heavy; sync off only for that step. Leaving sync
+        // disabled through Activity breaks matching transaction row text ("Staking deposit")
+        // on iOS (FlashList + confirmation navigation).
         await device.disableSynchronization();
-        await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-          timeout: 30000,
-        });
-        await WalletView.tapOnEarnButton();
+        try {
+          await Assertions.expectElementToBeVisible(WalletView.earnButton, {
+            timeout: 30000,
+          });
+          await WalletView.tapOnEarnButton();
+        } finally {
+          await device.enableSynchronization();
+        }
         await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
         await StakeView.enterAmount(AMOUNT_TO_STAKE);
         await StakeView.tapReviewWithRetry(30000);
@@ -146,6 +153,10 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
 
         await Assertions.expectElementToBeVisible(
           ActivitiesView.stakeDepositedLabel,
+          {
+            description: 'Staking deposit activity row title',
+            timeout: 120000,
+          },
         );
         await Assertions.expectElementToHaveText(
           ActivitiesView.transactionStatus(FIRST_ROW),
