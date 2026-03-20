@@ -25,16 +25,9 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import useRampsUnifiedV2Enabled from '../../hooks/useRampsUnifiedV2Enabled';
 import { showV2OrderToast } from '../../utils/v2OrderToast';
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../util/device';
@@ -312,16 +305,11 @@ const Checkout = () => {
   );
 
   const sharedHeader = (
-    <BottomSheetHeader
-      endAccessory={
-        <ButtonIcon
-          iconName={IconName.Close}
-          size={ButtonIconSizes.Lg}
-          iconColor={IconColor.Default}
-          testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
-          onPress={handleClosePress}
-        />
-      }
+    <HeaderCompactStandard
+      onClose={handleClosePress}
+      closeButtonProps={{
+        testID: CHECKOUT_TEST_IDS.CLOSE_BUTTON,
+      }}
       style={styles.headerWithoutPadding}
     />
   );

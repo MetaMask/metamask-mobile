@@ -6,7 +6,7 @@
  * loads trending data). See tests/component-view/api-mocking/ and references/navigation-mocking.md for adding other API mocks.
  */
 
-// eslint-disable-next-line import/no-extraneous-dependencies
+// eslint-disable-next-line import-x/no-extraneous-dependencies
 import nock from 'nock';
 import { clearAllNockMocks, disableNetConnect } from './nockHelpers';
 

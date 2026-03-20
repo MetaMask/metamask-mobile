@@ -220,6 +220,40 @@ export async function setupMockRequest(
 }
 
 /**
+ * Sets up a mock for Server-Sent Events (SSE) endpoints through the mobile proxy.
+ * Unlike {@link setupMockRequest}, this sends the response with
+ * `Content-Type: text/event-stream` so that SSE clients (e.g. expo/fetch)
+ * recognise the stream format.
+ *
+ * @param server - The mockttp server instance
+ * @param url - URL pattern to match (string or RegExp)
+ * @param sseBody - Pre-formatted SSE body (use `toSSEResponse()` to convert quote arrays)
+ * @param priority - Rule priority (default 999)
+ */
+export async function setupSSEMockRequest(
+  server: Mockttp,
+  url: string | RegExp,
+  sseBody: string,
+  priority = 999,
+) {
+  await server
+    .forGet('/proxy')
+    .matching((request) => {
+      const decodedUrl = getDecodedProxiedURL(request.url);
+      if (url instanceof RegExp) {
+        return url.test(decodedUrl);
+      }
+      return decodedUrl.includes(String(url));
+    })
+    .asPriority(priority)
+    .thenReply(200, sseBody, {
+      'content-type': 'text/event-stream',
+      'cache-control': 'no-cache',
+      connection: 'keep-alive',
+    });
+}
+
+/**
  * Helper to mock a POST request with complex body matching through the mobile proxy pattern
  *
  * @param mockServer - The mock server instance
