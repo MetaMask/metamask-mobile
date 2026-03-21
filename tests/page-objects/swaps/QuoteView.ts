@@ -234,8 +234,20 @@ class QuoteView {
    * to avoid triggering navigation to the token selector.
    */
   async dismissKeypad(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.destinationTokenInput, {
-      description: 'Tap destination token input to dismiss keypad',
+    await encapsulatedAction({
+      detox: async () => {
+        // Android reports the read-only destination field as disabled while the keypad is open;
+        // the tap still dismisses the sheet.
+        await Gestures.waitAndTap(asDetoxElement(this.destinationTokenInput), {
+          checkEnabled: false,
+          elemDescription: 'Tap destination token input to dismiss keypad',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.destinationTokenInput, {
+          description: 'Tap destination token input to dismiss keypad',
+        });
+      },
     });
   }
 

@@ -40,7 +40,13 @@ export default class Assertions {
           );
           await waitFor(el).toExist().withTimeout(iosExistWaitMs);
         } else {
-          await waitFor(el).toBeVisible().withTimeout(100);
+          // Match iOS: a fixed 100ms per attempt is too aggressive on Android after
+          // rehydration (Fabric mount errors) and heavy fixtures.
+          const androidVisibleWaitMs = Math.min(
+            2500,
+            Math.max(500, Math.floor(timeout / 8)),
+          );
+          await waitFor(el).toBeVisible().withTimeout(androidVisibleWaitMs);
         }
       },
       {

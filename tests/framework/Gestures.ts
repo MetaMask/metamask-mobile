@@ -32,6 +32,8 @@ export default class Gestures {
       elemDescription?: string;
       delay?: number;
       waitForElementToDisappear?: boolean;
+      /** Passed to checkElementReadyState (visibility / stability waits); must match outer tap timeout. */
+      readyStateTimeout?: number;
     },
     point?: { x: number; y: number },
   ) => {
@@ -56,6 +58,7 @@ export default class Gestures {
       checkStability,
       checkVisibility,
       checkEnabled,
+      timeout: options.readyStateTimeout,
     });
 
     if (options.delay) {
@@ -104,6 +107,7 @@ export default class Gestures {
         elemDescription,
         waitForElementToDisappear,
         delay,
+        readyStateTimeout: timeout,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -141,6 +145,7 @@ export default class Gestures {
         elemDescription,
         delay,
         waitForElementToDisappear,
+        readyStateTimeout: timeout,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -222,6 +227,7 @@ export default class Gestures {
           checkVisibility,
           checkEnabled,
           elemDescription,
+          readyStateTimeout: timeout,
         },
         point,
       );
