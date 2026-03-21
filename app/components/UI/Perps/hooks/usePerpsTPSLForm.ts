@@ -742,6 +742,17 @@ export function usePerpsTPSLForm(
       if (price && price !== '' && Number.parseFloat(price) > 0) {
         // Round to 5 significant figures to match input validation
         const roundedPrice = roundToSignificantFigures(price.toString());
+        // eslint-disable-next-line no-console
+        console.log(
+          '[PR-27773] BUG_MARKER: TP percentage button price rounded original=' +
+            price.toString() +
+            ' rounded=' +
+            roundedPrice +
+            ' asset=' +
+            asset +
+            ' currentPrice=' +
+            currentPrice,
+        );
         const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
