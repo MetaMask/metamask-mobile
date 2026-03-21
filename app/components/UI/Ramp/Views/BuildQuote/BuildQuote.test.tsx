@@ -402,6 +402,41 @@ describe('BuildQuote', () => {
     });
   });
 
+  describe('amount param initialization', () => {
+    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
+      mockUseParams.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('100');
+    });
+
+    it('uses amount param as initial value when provided via route params', () => {
+      mockUseParams.mockReturnValue({ amount: 30 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('30');
+    });
+
+    it('does not override amount with region default when amount param is provided', () => {
+      mockUseParams.mockReturnValue({ amount: 50 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('50');
+    });
+  });
+
   describe('navigateAfterExternalBrowser', () => {
     it('resets to BuildQuote when returnDestination is buildQuote (Android external browser path)', async () => {
       mockDeviceIsAndroid.mockReturnValue(true);
@@ -725,7 +760,7 @@ describe('BuildQuote', () => {
         '/payments/debit-credit-card',
         '100',
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE);
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
 
     it('navigates to VerifyIdentity when user has no token', async () => {
