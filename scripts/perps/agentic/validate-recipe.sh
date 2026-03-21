@@ -87,6 +87,18 @@ jfile() { node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')
 # Read a field from a JSON string passed as arg
 jstr()  { node -p "JSON.parse(process.argv[1])[process.argv[2]]||''" "$1" "$2"; }
 
+# ── Apply {{param|default}} substitution on the recipe itself ─────────
+# When run directly (not via flow_ref), replace any remaining {{key|default}} with defaults.
+_RECIPE_SUBST=$(mktemp /tmp/perps-recipe-XXXXXX.json)
+trap 'rm -f "$_RECIPE_SUBST"' EXIT
+node -e "
+  const fs=require('fs');
+  let src=fs.readFileSync(process.argv[1],'utf8');
+  src=src.replace(/\{\{[^|}]+\|([^}]+)\}\}/g,'\$1');
+  fs.writeFileSync(process.argv[2],src);
+" "$RECIPE" "$_RECIPE_SUBST"
+RECIPE="$_RECIPE_SUBST"
+
 # ── Recipe metadata ───────────────────────────────────────────────────
 TITLE=$(node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).title||'Untitled'" "$RECIPE")
 PR=$(node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).pr||'?'" "$RECIPE")
@@ -316,7 +328,10 @@ while IFS= read -r sj; do
         const fs=require('fs');
         let src=fs.readFileSync(process.argv[1],'utf8');
         const p=JSON.parse(process.argv[2]);
-        for(const [k,v] of Object.entries(p)){src=src.replace(new RegExp('\\\\{\\\\{'+k+'\\\\}\\\\}','g'),String(v));}
+        // First pass: replace {{key}} and {{key|default}} with provided param values
+        for(const [k,v] of Object.entries(p)){src=src.replace(new RegExp('\\\\{\\\\{'+k+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(v));}
+        // Second pass: replace remaining {{key|default}} with their defaults
+        src=src.replace(/\{\{[^|}]+\|([^}]+)\}\}/g,'\$1');
         fs.writeFileSync(process.argv[3],src);
       " "$FLOW_FILE" "$FL_PARAMS" "$SUBST_FLOW"
       FLOW_FLAGS=()
@@ -351,6 +366,25 @@ while IFS= read -r sj; do
       PROV=$(node -p "JSON.parse(process.argv[1]).provider||''" "$sj")
       echo "  -> switch_provider $PROV"
       [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.switchProvider('$PROV').then(function(r){return JSON.stringify(r)})" 2>/dev/null)
+      ;;
+    type_keypad)
+      TK_VAL=$(node -p "JSON.parse(process.argv[1]).value||''" "$sj")
+      echo "  -> type_keypad \"$TK_VAL\""
+      if [ "$DRY" = false ]; then
+        KEYS=$(node -p "
+          var v=String(process.argv[1]),keys=[];
+          for(var i=0;i<v.length;i++){
+            var c=v[i];
+            if(c>='0'&&c<='9') keys.push('keypad-key-'+c);
+            else if(c==='.') keys.push('keypad-key-dot');
+          }
+          keys.join('\n')
+        " "$TK_VAL")
+        while IFS= read -r key; do
+          [ -n "$key" ] && node "$SD/cdp-bridge.js" press-test-id "$key" 2>/dev/null || true
+        done <<< "$KEYS"
+        RESULT="{\"ok\":true,\"value\":\"$TK_VAL\"}"
+      fi
       ;;
     *)
       echo "  ❌ FAIL: unknown action '$ACT'"

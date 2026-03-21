@@ -193,6 +193,7 @@ export const PerpsAmountDisplaySelectorsIDs = {
   CONTAINER: 'perps-amount-display',
   AMOUNT_LABEL: 'perps-amount-display-amount',
   MAX_LABEL: 'perps-amount-display-max',
+  TOUCHABLE: 'perps-amount-display-touchable',
 };
 
 // ========================================
@@ -376,6 +377,7 @@ export const PerpsMarketHeaderSelectorsIDs = {
   PRICE_TITLE_SECTION: 'perps-market-header-price-title-section',
   PRICE_CHANGE_TITLE_SECTION: 'perps-market-header-price-change-title-section',
   MORE_BUTTON: 'perps-market-header-more-button',
+  FAVORITE_BUTTON: 'perps-market-header-favorite-button',
 };
 
 // ========================================
@@ -523,6 +525,23 @@ export const PerpsOrderViewSelectorsIDs = {
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
   KEYPAD: 'perps-order-view-keypad',
+  // Keypad action buttons
+  KEYPAD_25_PCT: 'perps-order-view-keypad-25pct',
+  KEYPAD_50_PCT: 'perps-order-view-keypad-50pct',
+  KEYPAD_MAX: 'perps-order-view-keypad-max',
+  KEYPAD_DONE: 'perps-order-view-keypad-done',
+  // Row touchables that open bottom sheets
+  LEVERAGE_ROW: 'perps-order-view-leverage-row',
+  LIMIT_PRICE_ROW: 'perps-order-view-limit-price-row',
+};
+
+// ========================================
+// PERPS LIMIT PRICE BOTTOM SHEET SELECTORS
+// ========================================
+
+export const PerpsLimitPriceBottomSheetSelectorsIDs = {
+  PRICE_DISPLAY: 'perps-limit-price-display',
+  CONFIRM_BUTTON: 'perps-limit-price-confirm-button',
 };
 
 // ========================================

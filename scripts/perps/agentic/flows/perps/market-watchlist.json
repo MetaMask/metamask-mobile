@@ -1,33 +1,22 @@
 {
-  "title": "Market Watchlist — toggle {{symbol}} on/off watchlist",
+  "title": "Market Watchlist — toggle {{symbol|BTC}} on/off watchlist",
   "validate": {
     "runtime": {
       "pre_conditions": [
         "Wallet unlocked",
-        "Perps feature enabled"
+        "Perps feature enabled",
+        "{{symbol|BTC}} is NOT already in watchlist"
       ],
       "steps": [
         {
-          "id": "nav-market-list",
-          "description": "Navigate to perps market list",
-          "action": "navigate",
-          "target": "PerpsTrendingView"
-        },
-        {
-          "id": "assert-watchlist-state",
-          "description": "Capture initial watchlist state",
-          "action": "eval_sync",
-          "expression": "JSON.stringify(Engine.context.PerpsController.state.watchlistMarkets)"
-        },
-        {
           "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
+          "description": "Navigate to {{symbol|BTC}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
             "market": {
-              "symbol": "{{symbol}}",
-              "name": "{{symbol}}",
+              "symbol": "{{symbol|BTC}}",
+              "name": "{{symbol|BTC}}",
               "price": "0",
               "change24h": "0",
               "change24hPercent": "0",
@@ -36,57 +25,34 @@
             }
           }
         },
+        { "id": "wait-render", "action": "wait", "ms": 1500 },
         {
-          "id": "wait-render",
-          "description": "Wait for market detail to render",
-          "action": "wait",
-          "ms": 1500
-        },
-        {
-          "id": "press-watchlist-add",
-          "description": "Press watchlist toggle button to add {{symbol}}",
+          "id": "press-favorite-add",
+          "description": "Press star button to add {{symbol|BTC}} to watchlist",
           "action": "press",
-          "test_id": "perps-market-header-more-button"
+          "test_id": "perps-market-header-favorite-button"
         },
-        {
-          "id": "wait-state-update",
-          "description": "Wait for state update",
-          "action": "wait",
-          "ms": 1000
-        },
+        { "id": "wait-state-update", "action": "wait", "ms": 1000 },
         {
           "id": "assert-added",
-          "description": "Assert {{symbol}} is now in watchlist",
+          "description": "Assert {{symbol|BTC}} is now in watchlist",
           "action": "eval_sync",
-          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
-          "assert": {
-            "operator": "eq",
-            "field": "inWatchlist",
-            "value": true
-          }
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol|BTC}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol|BTC}}')>=0})",
+          "assert": { "operator": "eq", "field": "inWatchlist", "value": true }
         },
         {
-          "id": "press-watchlist-remove",
-          "description": "Press watchlist toggle again to remove {{symbol}}",
+          "id": "press-favorite-remove",
+          "description": "Press star button again to remove {{symbol|BTC}} from watchlist",
           "action": "press",
-          "test_id": "perps-market-header-more-button"
+          "test_id": "perps-market-header-favorite-button"
         },
-        {
-          "id": "wait-state-update-2",
-          "description": "Wait for state update",
-          "action": "wait",
-          "ms": 1000
-        },
+        { "id": "wait-state-update-2", "action": "wait", "ms": 1000 },
         {
           "id": "assert-removed",
-          "description": "Assert {{symbol}} is no longer in watchlist",
+          "description": "Assert {{symbol|BTC}} is no longer in watchlist",
           "action": "eval_sync",
-          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
-          "assert": {
-            "operator": "eq",
-            "field": "inWatchlist",
-            "value": false
-          }
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol|BTC}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol|BTC}}')>=0})",
+          "assert": { "operator": "eq", "field": "inWatchlist", "value": false }
         }
       ]
     }

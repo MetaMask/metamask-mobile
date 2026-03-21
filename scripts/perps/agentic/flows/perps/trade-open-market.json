@@ -1,22 +1,22 @@
 {
-  "title": "Trade — open market order form for {{symbol}} {{side}} ${{usdAmount}} {{leverage}}x",
+  "title": "Trade — market {{side|long}} {{symbol|BTC}} ${{usdAmount|10}}",
   "validate": {
     "runtime": {
       "pre_conditions": [
         "Wallet unlocked",
-        "Perps auth active (run perps/auth recipe to verify)",
+        "Perps auth active",
         "Sufficient balance"
       ],
       "steps": [
         {
-          "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
+          "id": "nav",
+          "description": "Navigate to {{symbol|BTC}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
             "market": {
-              "symbol": "{{symbol}}",
-              "name": "{{symbol}}",
+              "symbol": "{{symbol|BTC}}",
+              "name": "{{symbol|BTC}}",
               "price": "0",
               "change24h": "0",
               "change24hPercent": "0",
@@ -33,18 +33,18 @@
         },
         {
           "id": "press-side",
-          "description": "Press {{side}} button (navigates to RedesignedConfirmations order form)",
+          "description": "Press {{side|long}} button to open order form",
           "action": "press",
-          "test_id": "perps-market-details-{{side}}-button"
+          "test_id": "perps-market-details-{{side|long}}-button"
         },
         {
-          "id": "wait-nav",
+          "id": "wait-form",
           "description": "Wait for order form to render",
           "action": "wait",
           "ms": 1500
         },
         {
-          "id": "assert-order-form",
+          "id": "assert-form",
           "description": "Assert navigated to order form screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
@@ -53,6 +53,48 @@
             "field": "route",
             "value": "RedesignedConfirmations"
           }
+        },
+        {
+          "id": "press-amount",
+          "description": "Tap amount display to open keypad",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad",
+          "description": "Wait for keypad to appear",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "type-amount",
+          "description": "Type ${{usdAmount|10}} using keypad",
+          "action": "type_keypad",
+          "value": "{{usdAmount|10}}"
+        },
+        {
+          "id": "press-done",
+          "description": "Press Done to close keypad",
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done"
+        },
+        {
+          "id": "wait-summary",
+          "description": "Wait for order summary to update",
+          "action": "wait",
+          "ms": 800
+        },
+        {
+          "id": "place-order",
+          "description": "Press Place Order button",
+          "action": "press",
+          "test_id": "perps-order-view-place-order-button"
+        },
+        {
+          "id": "wait-confirm",
+          "description": "Wait for order confirmation",
+          "action": "wait",
+          "ms": 2000
         }
       ]
     }

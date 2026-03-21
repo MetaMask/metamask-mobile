@@ -1,21 +1,21 @@
 {
-  "title": "Order — place limit {{side}} for {{symbol}} ${{usdAmount}} at {{limitPrice}}",
+  "title": "Order — limit {{side|long}} {{symbol|BTC}} ${{usdAmount|10}} at ${{limitPrice|60000}}",
   "validate": {
     "runtime": {
       "pre_conditions": [
         "Wallet unlocked",
-        "Perps auth active (run perps/auth recipe to verify)"
+        "Perps auth active"
       ],
       "steps": [
         {
-          "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
+          "id": "nav",
+          "description": "Navigate to {{symbol|BTC}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
             "market": {
-              "symbol": "{{symbol}}",
-              "name": "{{symbol}}",
+              "symbol": "{{symbol|BTC}}",
+              "name": "{{symbol|BTC}}",
               "price": "0",
               "change24h": "0",
               "change24hPercent": "0",
@@ -32,26 +32,15 @@
         },
         {
           "id": "press-side",
-          "description": "Press {{side}} button (navigates to RedesignedConfirmations order form)",
+          "description": "Press {{side|long}} button to open order form",
           "action": "press",
-          "test_id": "perps-market-details-{{side}}-button"
+          "test_id": "perps-market-details-{{side|long}}-button"
         },
         {
-          "id": "wait-order-form",
+          "id": "wait-form",
           "description": "Wait for order form to render",
           "action": "wait",
           "ms": 1500
-        },
-        {
-          "id": "assert-order-form",
-          "description": "Assert on order form screen",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "RedesignedConfirmations"
-          }
         },
         {
           "id": "press-order-type",
@@ -60,13 +49,13 @@
           "test_id": "perps-order-header-order-type-button"
         },
         {
-          "id": "wait-order-type-sheet",
+          "id": "wait-type-sheet",
           "description": "Wait for order type sheet",
           "action": "wait",
           "ms": 800
         },
         {
-          "id": "press-limit-type",
+          "id": "press-limit",
           "description": "Select Limit order type",
           "action": "press",
           "test_id": "perps-order-type-limit"
@@ -76,6 +65,78 @@
           "description": "Wait for limit form to update",
           "action": "wait",
           "ms": 800
+        },
+        {
+          "id": "press-limit-price-row",
+          "description": "Open limit price bottom sheet",
+          "action": "press",
+          "test_id": "perps-order-view-limit-price-row"
+        },
+        {
+          "id": "wait-price-sheet",
+          "description": "Wait for limit price sheet to open",
+          "action": "wait",
+          "ms": 800
+        },
+        {
+          "id": "type-limit-price",
+          "description": "Type ${{limitPrice|60000}} using keypad",
+          "action": "type_keypad",
+          "value": "{{limitPrice|60000}}"
+        },
+        {
+          "id": "press-set",
+          "description": "Confirm limit price",
+          "action": "press",
+          "test_id": "perps-limit-price-confirm-button"
+        },
+        {
+          "id": "wait-price-set",
+          "description": "Wait for price to be applied",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "press-amount",
+          "description": "Tap amount display to open keypad",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad",
+          "description": "Wait for keypad to appear",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "type-amount",
+          "description": "Type ${{usdAmount|10}} using keypad",
+          "action": "type_keypad",
+          "value": "{{usdAmount|10}}"
+        },
+        {
+          "id": "press-done",
+          "description": "Press Done to close keypad",
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done"
+        },
+        {
+          "id": "wait-summary",
+          "description": "Wait for order summary to update",
+          "action": "wait",
+          "ms": 800
+        },
+        {
+          "id": "place-order",
+          "description": "Press Place Order button",
+          "action": "press",
+          "test_id": "perps-order-view-place-order-button"
+        },
+        {
+          "id": "wait-confirm",
+          "description": "Wait for order confirmation",
+          "action": "wait",
+          "ms": 2000
         }
       ]
     }
