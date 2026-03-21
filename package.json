@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.71.0",
+  "version": "7.72.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -307,7 +307,6 @@
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/swaps-controller": "^15.0.0",
     "@metamask/transaction-controller": "^63.0.0",
     "@metamask/transaction-pay-controller": "^17.1.0",
     "@metamask/tron-wallet-snap": "1.24.0",
