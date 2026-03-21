@@ -1,6 +1,7 @@
 import '../../../../../../tests/component-view/mocks';
+import { setGlobalDevModeChecks } from 'reselect';
 import { renderQuoteSelectorView } from '../../../../../../tests/component-view/renderers/quoteSelectorView';
-import { waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { RequestStatus } from '@metamask/bridge-controller';
 import {
@@ -9,6 +10,9 @@ import {
   USDC_DEST,
 } from '../../_mocks_/bridgeViewTestConstants';
 import { describeForPlatforms } from '../../../../../../tests/component-view/platform';
+import { QUOTES_PLACEHOLDER_DATA } from './constants';
+import { selectSelectedQuoteRequestId } from '../../../../../core/redux/slices/bridge';
+import type { RootState } from '../../../../../reducers';
 
 /** Minimal EVM QuoteResponse with a lifi bridge for use in BridgeController.quotes. */
 const makeEvmQuote = (requestId = 'req-evm-1') => ({
@@ -48,19 +52,59 @@ const makeEvmQuote = (requestId = 'req-evm-1') => ({
     gasIncluded: false,
     steps: [],
   },
+  trade: {
+    chainId: 1,
+    to: '0x1111111254eeb25477b68fb85ed929f73a960582',
+    from: '0x0000000000000000000000000000000000000001',
+    value: '0x0',
+    data: '0x',
+    gasLimit: null,
+  },
   totalNetworkFee: { amount: '0.001', valueInCurrency: '2', usd: '2' },
   estimatedProcessingTimeInSeconds: 30,
 });
 
-describeForPlatforms('QuoteSelectorView', () => {
-  it('renders the sort-order info text', () => {
-    const { getByText } = renderQuoteSelectorView();
+// selectBridgeAppState spreads multiple controller slices into a new object on every call,
+// which causes reselect's inputStabilityCheck to throw a false positive in tests.
+beforeAll(() => {
+  setGlobalDevModeChecks({ inputStabilityCheck: 'never' });
+});
 
-    expect(getByText(strings('bridge.select_quote_info'))).toBeOnTheScreen();
+describeForPlatforms('QuoteSelectorView', () => {
+  it('dispatches setSelectedQuoteRequestId when user selects a quote', async () => {
+    const now = Date.now();
+    const quote = makeEvmQuote('req-selected');
+
+    const { store, findByText } = renderQuoteSelectorView({
+      deterministicFiat: true,
+      overrides: {
+        bridge: {
+          ...DEFAULT_BRIDGE,
+        },
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [quote],
+              recommendedQuote: quote,
+              quotesLastFetched: now,
+              quotesLoadingStatus: 'SUCCEEDED',
+              quotesRefreshCount: 0,
+              quoteFetchError: null,
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>,
+    });
+
+    fireEvent.press(await findByText('Lifi'));
+
+    expect(
+      selectSelectedQuoteRequestId(store.getState() as unknown as RootState),
+    ).toBe('req-selected');
   });
 
-  it('shows placeholder skeleton rows while quotes are loading', () => {
-    const { getByText } = renderQuoteSelectorView({
+  it('hides quote content behind Skeleton rows while quotes are loading', async () => {
+    const { queryByText } = renderQuoteSelectorView({
       overrides: {
         engine: {
           backgroundState: {
@@ -77,8 +121,13 @@ describeForPlatforms('QuoteSelectorView', () => {
       } as unknown as Record<string, unknown>,
     });
 
-    // Info text is always visible
-    expect(getByText(strings('bridge.select_quote_info'))).toBeOnTheScreen();
+    // Each placeholder row's content is hidden by the Skeleton component while loading.
+    // If skeleton rendering broke the content would become visible and these assertions would fail.
+    await waitFor(() => {
+      QUOTES_PLACEHOLDER_DATA.forEach(({ provider }) => {
+        expect(queryByText(provider.name)).toBeNull();
+      });
+    });
   });
 
   it('shows provider name and total cost label when quotes are available', async () => {
