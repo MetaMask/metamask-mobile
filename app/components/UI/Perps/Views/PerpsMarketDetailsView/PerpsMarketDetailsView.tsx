@@ -65,6 +65,7 @@ import {
   PerpsMarketHeaderSelectorsIDs,
   PerpsOrderViewSelectorsIDs,
   PerpsTutorialSelectorsIDs,
+  PerpsCompactOrderRowSelectorsIDs,
 } from '../../Perps.testIds';
 import HeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated';
 import useHeaderStandardAnimated from '../../../../../component-library/components-temp/HeaderStandardAnimated/useHeaderStandardAnimated';
@@ -1311,12 +1312,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
               <Text variant={TextVariant.HeadingMD} style={styles.sectionTitle}>
                 {strings('perps.market.orders')}
               </Text>
-              {displayOrders.map((order) => (
+              {displayOrders.map((order, index) => (
                 <PerpsCompactOrderRow
                   key={order.orderId}
                   order={order}
                   onPress={() => handleOrderSelect(order)}
-                  testID={`compact-order-${order.orderId}`}
+                  testID={
+                    index === 0
+                      ? PerpsCompactOrderRowSelectorsIDs.FIRST_ROW
+                      : `compact-order-${order.orderId}`
+                  }
                 />
               ))}
             </View>

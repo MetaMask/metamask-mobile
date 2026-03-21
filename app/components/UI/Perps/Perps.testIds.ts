@@ -261,6 +261,8 @@ export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
   SET_BUTTON: 'bottomsheetfooter-button',
+  TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-tp-input',
+  STOP_LOSS_PRICE_INPUT: 'perps-tpsl-sl-input',
 } as const;
 
 export const getPerpsTPSLViewSelector = {
@@ -550,6 +552,16 @@ export const PerpsClosePositionViewSelectorsIDs = {
 // PERPS MARKET TABS SELECTORS
 // ========================================
 
+export const PerpsOrderTypeBottomSheetSelectorsIDs = {
+  MARKET_OPTION: 'perps-order-type-market',
+  LIMIT_OPTION: 'perps-order-type-limit',
+} as const;
+
+export const PerpsAdjustMarginActionSheetSelectorsIDs = {
+  ADD_MARGIN_OPTION: 'perps-adjust-margin-add-btn',
+  REDUCE_MARGIN_OPTION: 'perps-adjust-margin-reduce-btn',
+} as const;
+
 export const PerpsMarketTabsSelectorsIDs = {
   // Container
   CONTAINER: 'perps-market-tabs-container',
@@ -686,4 +698,20 @@ export const PerpsOrderBookDepthChartSelectorsIDs = {
 export const PerpsWebSocketHealthToastSelectorsIDs = {
   TOAST: 'perps-websocket-health-toast',
   RETRY_BUTTON: 'perps-websocket-health-toast-retry-button',
+} as const;
+
+// ========================================
+// PERPS ORDER DETAILS VIEW SELECTORS
+// ========================================
+
+export const PerpsOrderDetailsViewSelectorsIDs = {
+  CANCEL_BUTTON: 'perps-order-details-cancel-button',
+} as const;
+
+// ========================================
+// PERPS COMPACT ORDER ROW SELECTORS
+// ========================================
+
+export const PerpsCompactOrderRowSelectorsIDs = {
+  FIRST_ROW: 'perps-compact-order-row-first',
 } as const;

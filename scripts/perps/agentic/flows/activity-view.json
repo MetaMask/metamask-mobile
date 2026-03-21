@@ -2,7 +2,10 @@
   "title": "Activity — view recent trades and funding history",
   "validate": {
     "runtime": {
-      "pre_conditions": ["Wallet unlocked", "Perps feature enabled"],
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Perps feature enabled"
+      ],
       "steps": [
         {
           "id": "nav-activity",
@@ -21,13 +24,11 @@
           "description": "Assert on activity screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": { "operator": "eq", "field": "route", "value": "PerpsActivity" }
-        },
-        {
-          "id": "screenshot-top",
-          "description": "Screenshot activity screen top",
-          "action": "screenshot",
-          "filename": "activity-view-top"
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "PerpsActivity"
+          }
         },
         {
           "id": "scroll-down",
@@ -41,12 +42,6 @@
           "description": "Wait for scroll to settle",
           "action": "wait",
           "ms": 800
-        },
-        {
-          "id": "screenshot-bottom",
-          "description": "Screenshot activity screen after scroll",
-          "action": "screenshot",
-          "filename": "activity-view-scrolled"
         }
       ]
     }

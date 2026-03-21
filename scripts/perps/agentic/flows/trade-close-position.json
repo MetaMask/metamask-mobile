@@ -12,7 +12,11 @@
           "description": "Assert open position exists for {{symbol}}",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
-          "assert": { "operator": "eq", "field": "found", "value": true }
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": true
+          }
         },
         {
           "id": "nav-market-detail",
@@ -41,7 +45,7 @@
           "id": "press-close",
           "description": "Press Close Position button",
           "action": "press",
-          "test_id": "perps-close-position-btn"
+          "test_id": "perps-market-details-close-button"
         },
         {
           "id": "wait-close-screen",
@@ -54,13 +58,11 @@
           "description": "Assert navigated to close position screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": { "operator": "eq", "field": "route", "value": "PerpsClosePosition" }
-        },
-        {
-          "id": "screenshot",
-          "description": "Screenshot close position form",
-          "action": "screenshot",
-          "filename": "trade-close-position-{{symbol}}"
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "PerpsClosePosition"
+          }
         }
       ]
     }

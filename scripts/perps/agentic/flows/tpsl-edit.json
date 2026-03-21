@@ -32,9 +32,9 @@
         },
         {
           "id": "press-modify-tpsl",
-          "description": "Press modify TP/SL button",
+          "description": "Press auto-close toggle to open TP/SL screen",
           "action": "press",
-          "test_id": "perps-modify-tpsl-btn"
+          "test_id": "position-card-auto-close-toggle"
         },
         {
           "id": "wait-tpsl-screen",
@@ -47,7 +47,11 @@
           "description": "Assert navigated to TP/SL screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": { "operator": "eq", "field": "route", "value": "PerpsTPSL" }
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "PerpsTPSL"
+          }
         },
         {
           "id": "set-new-tp",
@@ -61,12 +65,6 @@
           "description": "Wait for input to register",
           "action": "wait",
           "ms": 500
-        },
-        {
-          "id": "screenshot",
-          "description": "Screenshot updated TP value",
-          "action": "screenshot",
-          "filename": "tpsl-edit-{{symbol}}"
         }
       ]
     }

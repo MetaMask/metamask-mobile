@@ -41,6 +41,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
             const props = (child as React.ReactElement).props as {
               tabLabel?: string;
               isDisabled?: boolean;
+              tabTestID?: string;
             };
             const tabLabel = props.tabLabel || `Tab ${index + 1}`;
             const isDisabled = props.isDisabled || false;
@@ -51,6 +52,7 @@ const TabsList = forwardRef<TabsListRef, TabsListProps>(
               content: child,
               isDisabled,
               isLoaded: false,
+              tabTestID: props.tabTestID,
             };
           }),
       [children],

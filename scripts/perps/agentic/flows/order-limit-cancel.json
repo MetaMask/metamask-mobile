@@ -12,7 +12,11 @@
           "description": "Assert at least one open order exists for {{symbol}}",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='{{symbol}}'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
-          "assert": { "operator": "gt", "field": "count", "value": 0 }
+          "assert": {
+            "operator": "gt",
+            "field": "count",
+            "value": 0
+          }
         },
         {
           "id": "nav-market-detail",
@@ -35,25 +39,25 @@
           "id": "wait-render",
           "description": "Wait for market detail to render",
           "action": "wait",
+          "ms": 2000
+        },
+        {
+          "id": "press-first-order",
+          "description": "Tap first compact order row to navigate to order details",
+          "action": "press",
+          "test_id": "perps-compact-order-row-first"
+        },
+        {
+          "id": "wait-order-details",
+          "description": "Wait for order details screen to render",
+          "action": "wait",
           "ms": 1500
         },
         {
-          "id": "press-orders-tab",
-          "description": "Switch to Orders tab",
+          "id": "press-cancel-button",
+          "description": "Press cancel order button",
           "action": "press",
-          "test_id": "perps-orders-tab"
-        },
-        {
-          "id": "wait-orders-tab",
-          "description": "Wait for orders tab to render",
-          "action": "wait",
-          "ms": 800
-        },
-        {
-          "id": "press-cancel-first-order",
-          "description": "Press cancel on first order",
-          "action": "press",
-          "test_id": "perps-order-cancel-btn-0"
+          "test_id": "perps-order-details-cancel-button"
         },
         {
           "id": "wait-cancel",
@@ -63,16 +67,14 @@
         },
         {
           "id": "assert-order-removed",
-          "description": "Assert order count decreased",
+          "description": "Assert order count decreased for {{symbol}}",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='{{symbol}}'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
-          "assert": { "operator": "eq", "field": "count", "value": 0 }
-        },
-        {
-          "id": "screenshot",
-          "description": "Screenshot after cancellation",
-          "action": "screenshot",
-          "filename": "order-limit-cancel-{{symbol}}"
+          "assert": {
+            "operator": "eq",
+            "field": "count",
+            "value": 0
+          }
         }
       ]
     }

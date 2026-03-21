@@ -32,21 +32,32 @@
         },
         {
           "id": "press-side",
-          "description": "Press {{side}} button",
+          "description": "Press {{side}} button (navigates to RedesignedConfirmations order form)",
           "action": "press",
-          "test_id": "perps-trade-{{side}}-btn"
+          "test_id": "perps-market-details-{{side}}-button"
         },
         {
-          "id": "wait-side",
-          "description": "Wait for side selection",
+          "id": "wait-order-form",
+          "description": "Wait for order form to render",
           "action": "wait",
-          "ms": 500
+          "ms": 1500
+        },
+        {
+          "id": "assert-order-form",
+          "description": "Assert on order form screen",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "RedesignedConfirmations"
+          }
         },
         {
           "id": "press-order-type",
           "description": "Open order type selector",
           "action": "press",
-          "test_id": "perps-order-type-selector"
+          "test_id": "perps-order-header-order-type-button"
         },
         {
           "id": "wait-order-type-sheet",
@@ -62,41 +73,9 @@
         },
         {
           "id": "wait-limit-form",
-          "description": "Wait for limit price input to appear",
+          "description": "Wait for limit form to update",
           "action": "wait",
           "ms": 800
-        },
-        {
-          "id": "set-limit-price",
-          "description": "Set limit price to {{limitPrice}}",
-          "action": "set_input",
-          "test_id": "perps-limit-price-input",
-          "value": "{{limitPrice}}"
-        },
-        {
-          "id": "wait-price-input",
-          "description": "Wait for price input to register",
-          "action": "wait",
-          "ms": 500
-        },
-        {
-          "id": "set-size",
-          "description": "Set USD amount to {{usdAmount}}",
-          "action": "set_input",
-          "test_id": "perps-trade-size-input",
-          "value": "{{usdAmount}}"
-        },
-        {
-          "id": "wait-size-input",
-          "description": "Wait for size input to register",
-          "action": "wait",
-          "ms": 500
-        },
-        {
-          "id": "screenshot",
-          "description": "Screenshot limit order form",
-          "action": "screenshot",
-          "filename": "order-limit-place-{{symbol}}-{{side}}"
         }
       ]
     }

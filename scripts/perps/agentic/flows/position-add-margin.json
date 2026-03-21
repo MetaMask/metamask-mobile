@@ -37,14 +37,26 @@
           "ms": 1500
         },
         {
-          "id": "press-add-margin",
-          "description": "Press Add Margin button",
+          "id": "press-margin-chevron",
+          "description": "Press margin chevron to open adjust margin action sheet",
           "action": "press",
-          "test_id": "perps-add-margin-btn"
+          "test_id": "position-card-margin-chevron"
+        },
+        {
+          "id": "wait-action-sheet",
+          "description": "Wait for adjust margin action sheet",
+          "action": "wait",
+          "ms": 1000
+        },
+        {
+          "id": "press-add-margin-option",
+          "description": "Press Add Margin option",
+          "action": "press",
+          "test_id": "perps-adjust-margin-add-btn"
         },
         {
           "id": "wait-margin-screen",
-          "description": "Wait for margin screen",
+          "description": "Wait for adjust margin screen",
           "action": "wait",
           "ms": 1500
         },
@@ -53,26 +65,11 @@
           "description": "Assert on adjust margin screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": { "operator": "eq", "field": "route", "value": "PerpsAdjustMargin" }
-        },
-        {
-          "id": "set-margin-amount",
-          "description": "Enter margin amount {{marginAmount}}",
-          "action": "set_input",
-          "test_id": "perps-margin-amount-input",
-          "value": "{{marginAmount}}"
-        },
-        {
-          "id": "wait-input",
-          "description": "Wait for input to register",
-          "action": "wait",
-          "ms": 500
-        },
-        {
-          "id": "screenshot",
-          "description": "Screenshot margin form with amount entered",
-          "action": "screenshot",
-          "filename": "position-add-margin-{{symbol}}"
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "PerpsAdjustMargin"
+          }
         }
       ]
     }

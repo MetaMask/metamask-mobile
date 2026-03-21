@@ -2,7 +2,10 @@
   "title": "Market Watchlist — toggle {{symbol}} on/off watchlist",
   "validate": {
     "runtime": {
-      "pre_conditions": ["Wallet unlocked", "Perps feature enabled"],
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Perps feature enabled"
+      ],
       "steps": [
         {
           "id": "nav-market-list",
@@ -43,7 +46,7 @@
           "id": "press-watchlist-add",
           "description": "Press watchlist toggle button to add {{symbol}}",
           "action": "press",
-          "test_id": "perps-watchlist-toggle-btn"
+          "test_id": "perps-market-header-more-button"
         },
         {
           "id": "wait-state-update",
@@ -55,14 +58,18 @@
           "id": "assert-added",
           "description": "Assert {{symbol}} is now in watchlist",
           "action": "eval_sync",
-          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets||[]).indexOf('{{symbol}}')>=0})",
-          "assert": { "operator": "eq", "field": "inWatchlist", "value": true }
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
+          "assert": {
+            "operator": "eq",
+            "field": "inWatchlist",
+            "value": true
+          }
         },
         {
           "id": "press-watchlist-remove",
           "description": "Press watchlist toggle again to remove {{symbol}}",
           "action": "press",
-          "test_id": "perps-watchlist-toggle-btn"
+          "test_id": "perps-market-header-more-button"
         },
         {
           "id": "wait-state-update-2",
@@ -74,14 +81,12 @@
           "id": "assert-removed",
           "description": "Assert {{symbol}} is no longer in watchlist",
           "action": "eval_sync",
-          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets||[]).indexOf('{{symbol}}')>=0})",
-          "assert": { "operator": "eq", "field": "inWatchlist", "value": false }
-        },
-        {
-          "id": "screenshot",
-          "description": "Screenshot final state",
-          "action": "screenshot",
-          "filename": "market-watchlist-{{symbol}}"
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
+          "assert": {
+            "operator": "eq",
+            "field": "inWatchlist",
+            "value": false
+          }
         }
       ]
     }
