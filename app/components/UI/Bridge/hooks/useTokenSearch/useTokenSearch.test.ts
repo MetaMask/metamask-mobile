@@ -60,14 +60,14 @@ describe('useTokenSearch', () => {
     jest.clearAllTimers();
   });
 
-  it('should initialize with empty search string and empty token list', async () => {
+  it('should initialize with empty search string and empty token list', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     expect(result.current.searchString).toBe('');
     expect(result.current.searchResults).toEqual([]);
   });
 
-  it('should update search string when setSearchString is called', async () => {
+  it('should update search string when setSearchString is called', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
@@ -84,16 +84,12 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('ETH');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
 
-
     await waitFor(() => {
-  expect(result.current.searchResults[0].symbol).toBe('ETH');
+      expect(result.current.searchResults[0].symbol).toBe('ETH');
     });
   });
 
@@ -104,16 +100,12 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('Coin');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
 
-
     await waitFor(() => {
-  expect(result.current.searchResults[0].symbol).toBe('USDC');
+      expect(result.current.searchResults[0].symbol).toBe('USDC');
     });
   });
 
@@ -124,16 +116,12 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('0x1');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
 
-
     await waitFor(() => {
-  expect(result.current.searchResults[0].symbol).toBe('ETH');
+      expect(result.current.searchResults[0].symbol).toBe('ETH');
     });
   });
 
@@ -144,16 +132,12 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('NONEXISTENT');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
 
-
     await waitFor(() => {
-  expect(result.current.searchResults).toHaveLength(0);
+      expect(result.current.searchResults).toHaveLength(0);
     });
   });
 
@@ -161,20 +145,16 @@ describe('useTokenSearch', () => {
     const { result } = renderHook(() => useTokenSearch({ tokens: mockTokens }));
 
     act(() => {
-      result.current.setSearchString('USD'); // Should match both USDC and USDT
+      result.current.setSearchString('USD');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
-
 
     await waitFor(() => {
       expect(result.current.searchResults).toHaveLength(2);
-      expect(result.current.searchResults[0].symbol).toBe('USDC'); // Higher fiat value should be first
+      expect(result.current.searchResults[0].symbol).toBe('USDC');
       expect(result.current.searchResults[1].symbol).toBe('USDT');
     });
   });
@@ -186,16 +166,12 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('ETH');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
 
-
     await waitFor(() => {
-  expect(result.current.searchResults).toHaveLength(0);
+      expect(result.current.searchResults).toHaveLength(0);
     });
   });
 
@@ -208,21 +184,16 @@ describe('useTokenSearch', () => {
       result.current.setSearchString('ETH');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
 
-
     await waitFor(() => {
-  expect(result.current.searchResults).toHaveLength(0);
+      expect(result.current.searchResults).toHaveLength(0);
     });
   });
 
   it('should limit results to MAX_TOKENS_RESULTS', async () => {
-    // Create a large token list
     const largeTokenList = Array.from({ length: 30 }, (_, i) => ({
       address: `0x${i}`,
       symbol: `TKN${i}`,
@@ -240,19 +211,15 @@ describe('useTokenSearch', () => {
     );
 
     act(() => {
-      result.current.setSearchString('TKN'); // Should match all tokens
+      result.current.setSearchString('TKN');
     });
 
-    // Advance timers to trigger the debounce
     act(() => {
-
       jest.advanceTimersByTime(500);
-
     });
-
 
     await waitFor(() => {
-  expect(result.current.searchResults.length).toBeLessThanOrEqual(20);
-    }); // MAX_TOKENS_RESULTS is 20
+      expect(result.current.searchResults.length).toBeLessThanOrEqual(20);
+    });
   });
 });
