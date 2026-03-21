@@ -7,6 +7,8 @@ import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import {
   BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
+  SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
+  SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
   SolanaTestDappSelectorsWebIDs,
 } from '../../selectors/Browser/SolanaTestDapp.selectors';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
@@ -192,9 +194,13 @@ class SolanaTestDApp {
   }
 
   async confirmSignMessage(): Promise<void> {
-    // Redesigned confirmations use `confirm-button`; the footer also assigns default
-    // testIDs per slot. Legacy signing UI uses `request-signature-confirm-button`.
+    // Solana Wallet Standard uses @metamask/solana-wallet-snap UI: SnapUIFooterButton
+    // testID is `${name}-snap-footer-button` (e.g. confirm-sign-message-confirm-snap-footer-button).
+    // Redesigned EVM confirmations use `confirm-button`; legacy signing used
+    // `request-signature-confirm-button` (removed).
     const confirmSelectors = [
+      SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
+      SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
       BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
       SigningBottomSheetSelectorsIDs.SIGN_BUTTON,

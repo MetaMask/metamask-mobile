@@ -23,6 +23,22 @@ export const BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID =
   'bottomsheetfooter-button-subsequent';
 
 /**
+ * Snap UI footer confirm for Solana sign message (`name` + `-snap-footer-button` in SnapUIFooterButton).
+ *
+ * @see @metamask/solana-wallet-snap (confirm-sign-message-confirm)
+ */
+export const SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID =
+  'confirm-sign-message-confirm-snap-footer-button';
+
+/**
+ * Snap UI footer confirm for Solana transaction review (send / sign-and-send).
+ *
+ * @see tests/selectors/SendFlow/SendActionView.selectors.ts (SEND_TRANSACTION_BUTTON)
+ */
+export const SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID =
+  'transaction-confirmation-submit-button-snap-footer-button';
+
+/**
  * Timeout constants for solana tests
  */
 export const SOLANA_TEST_TIMEOUTS = {
