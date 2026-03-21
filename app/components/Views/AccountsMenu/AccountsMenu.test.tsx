@@ -637,6 +637,26 @@ describe('AccountsMenu', () => {
     });
   });
 
+  describe('Networks Row', () => {
+    it('render Networks row', () => {
+      const { getByText, getByTestId } = render(<AccountsMenu />);
+
+      expect(getByText('accounts_menu.networks')).toBeOnTheScreen();
+      expect(getByTestId(AccountsMenuSelectorsIDs.NETWORKS)).toBeOnTheScreen();
+    });
+
+    it('navigate to NetworksManagement when Networks is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const networksButton = getByTestId(AccountsMenuSelectorsIDs.NETWORKS);
+
+      fireEvent.press(networksButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.NETWORKS_MANAGEMENT,
+      );
+    });
+  });
+
   describe('RESOURCES Section', () => {
     describe('About MetaMask Row', () => {
       it('render About MetaMask row', () => {

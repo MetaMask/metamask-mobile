@@ -3,19 +3,16 @@ import {
   selectBitcoinRewardsEnabledFlag,
   selectTronRewardsEnabledRawFlag,
   selectTronRewardsEnabledFlag,
-  selectSnapshotsRewardsEnabledRawFlag,
-  selectSnapshotsRewardsEnabledFlag,
   selectMissingEnrolledAccountsRewardsEnabledRawFlag,
   selectMissingEnrolledAccountsRewardsEnabledFlag,
   selectCampaignsRewardsEnabledRawFlag,
   selectCampaignsRewardsEnabledFlag,
   BITCOIN_REWARDS_FLAG_NAME,
   TRON_REWARDS_FLAG_NAME,
-  SNAPSHOTS_REWARDS_FLAG_NAME,
   MISSING_ENROLLED_ACCOUNTS_FLAG_NAME,
   CAMPAIGNS_REWARDS_FLAG_NAME,
 } from './rewardsEnabled';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
@@ -209,94 +206,6 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
 
     it('returns false when basic functionality is disabled and raw flag is false', () => {
       const result = selectTronRewardsEnabledFlag.resultFunc(false, false);
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('selectSnapshotsRewardsEnabledRawFlag', () => {
-    it('returns true when remote flag is valid and enabled', () => {
-      const result = selectSnapshotsRewardsEnabledRawFlag.resultFunc({
-        [SNAPSHOTS_REWARDS_FLAG_NAME]: {
-          enabled: true,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when remote flag is valid but disabled', () => {
-      const result = selectSnapshotsRewardsEnabledRawFlag.resultFunc({
-        [SNAPSHOTS_REWARDS_FLAG_NAME]: {
-          enabled: false,
-          minimumVersion: '1.0.0',
-        },
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when version check fails', () => {
-      mockHasMinimumRequiredVersion.mockReturnValue(false);
-
-      const result = selectSnapshotsRewardsEnabledRawFlag.resultFunc({
-        [SNAPSHOTS_REWARDS_FLAG_NAME]: {
-          enabled: true,
-          minimumVersion: '99.0.0',
-        },
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote flag is invalid', () => {
-      const result = selectSnapshotsRewardsEnabledRawFlag.resultFunc({
-        [SNAPSHOTS_REWARDS_FLAG_NAME]: {
-          enabled: 'invalid',
-          minimumVersion: 123,
-        },
-      });
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when remote feature flags are empty', () => {
-      const result = selectSnapshotsRewardsEnabledRawFlag.resultFunc({});
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when flag property is missing', () => {
-      const result = selectSnapshotsRewardsEnabledRawFlag.resultFunc({
-        someOtherFlag: true,
-      });
-
-      expect(result).toBe(false);
-    });
-  });
-
-  describe('selectSnapshotsRewardsEnabledFlag', () => {
-    it('returns true when basic functionality is enabled and raw flag is true', () => {
-      const result = selectSnapshotsRewardsEnabledFlag.resultFunc(true, true);
-
-      expect(result).toBe(true);
-    });
-
-    it('returns false when basic functionality is enabled and raw flag is false', () => {
-      const result = selectSnapshotsRewardsEnabledFlag.resultFunc(true, false);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when basic functionality is disabled even if raw flag is true', () => {
-      const result = selectSnapshotsRewardsEnabledFlag.resultFunc(false, true);
-
-      expect(result).toBe(false);
-    });
-
-    it('returns false when basic functionality is disabled and raw flag is false', () => {
-      const result = selectSnapshotsRewardsEnabledFlag.resultFunc(false, false);
 
       expect(result).toBe(false);
     });

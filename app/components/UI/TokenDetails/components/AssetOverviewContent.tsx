@@ -49,6 +49,9 @@ import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
 import AssetDetailsActions from '../../../Views/AssetDetails/AssetDetailsActions';
 import { TokenDetailsActions } from './TokenDetailsActions';
+import AssetOverviewClaimBonus from '../../Earn/components/AssetOverviewClaimBonus';
+import { isTokenEligibleForMerklRewards } from '../../Earn/components/MerklRewards/hooks/useMerklRewards';
+import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/featureFlags';
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
@@ -58,7 +61,7 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type Hex } from '@metamask/utils';
+import { isCaipAssetType, type CaipChainId, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -154,10 +157,6 @@ const styleSheet = (params: { theme: Theme }) => {
     perpsPositionTitle: {
       marginBottom: 8,
     } as TextStyle,
-    bannerWrapper: {
-      paddingHorizontal: 16,
-      marginTop: 8,
-    } as ViewStyle,
   });
 };
 
@@ -333,6 +332,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     !isPerpsPositionLoading;
 
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+
+  const isMerklClaimingEnabled = useSelector(
+    selectMerklCampaignClaimingEnabledFlag,
+  );
+  const isTokenEligibleForMerklClaim = useMemo(
+    () =>
+      isMerklClaimingEnabled &&
+      isTokenEligibleForMerklRewards(
+        token.chainId as Hex,
+        token.address as Hex | undefined,
+      ),
+    [isMerklClaimingEnabled, token.chainId, token.address],
+  );
 
   const securityBadge = useMemo(() => {
     switch (securityData?.resultType) {
@@ -836,6 +848,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               secondaryBalance={secondaryBalance}
             />
           )}
+          {isTokenEligibleForMerklClaim && (
+            <AssetOverviewClaimBonus asset={token} />
+          )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && stakedTrxAsset && (
@@ -852,39 +867,42 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && readyForWithdrawalBalance && (
-              <View style={styles.bannerWrapper}>
-                <TronUnstakedBanner amount={readyForWithdrawalBalance} />
-              </View>
+              <Box paddingTop={3} paddingHorizontal={4}>
+                <TronUnstakedBanner
+                  amount={readyForWithdrawalBalance}
+                  chainId={String(token.chainId) as CaipChainId}
+                />
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && inLockPeriodBalance && (
-              <View style={styles.bannerWrapper}>
+              <Box paddingTop={3} paddingHorizontal={4}>
                 <TronUnstakingBanner amount={inLockPeriodBalance} />
-              </View>
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && stakedTrxAsset && (
-              <View style={styles.bannerWrapper}>
+              <Box paddingTop={4} paddingHorizontal={4}>
                 <TronStakingButtons asset={stakedTrxAsset} />
-              </View>
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && !stakedTrxAsset && (
-              <View style={styles.bannerWrapper}>
+              <Box paddingTop={3} paddingHorizontal={4}>
                 <TronStakingCta
                   asset={token}
                   aprText={tronApyPercent ?? undefined}
                 />
-              </View>
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }

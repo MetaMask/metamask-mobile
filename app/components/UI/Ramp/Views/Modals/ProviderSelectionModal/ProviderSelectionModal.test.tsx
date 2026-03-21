@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 import ProviderSelectionModal, {
   type ProviderSelectionModalParams,
 } from './ProviderSelectionModal';
@@ -127,6 +127,20 @@ jest.mock('../../../hooks/useRampAccountAddress', () => ({
   default: () => '0x123',
 }));
 
+const mockUseRampsQuotes = jest.fn((_opts?: unknown) => ({
+  data: null,
+  loading: false,
+  status: 'idle' as const,
+  isSuccess: false,
+  error: null,
+  getQuotes: mockGetQuotes,
+  getBuyWidgetData: jest.fn(),
+}));
+
+jest.mock('../../../hooks/useRampsQuotes', () => ({
+  useRampsQuotes: (opts: unknown) => mockUseRampsQuotes(opts),
+}));
+
 let capturedOnClose: ((hasPendingAction?: boolean) => void) | undefined;
 
 jest.mock(
@@ -170,45 +184,41 @@ function renderWithProvider(component: React.ComponentType) {
 describe('ProviderSelectionModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockGetQuotes.mockResolvedValue({
-      success: [],
-      error: [],
-      sorted: [],
-      customActions: [],
+    mockUseRampsQuotes.mockReturnValue({
+      data: null,
+      loading: false,
+      status: 'idle' as const,
+      isSuccess: false,
+      error: null,
+      getQuotes: mockGetQuotes,
+      getBuyWidgetData: jest.fn(),
     });
     mockUseRampsController.mockImplementation(() => defaultControllerReturn);
     mockUseParams.mockReturnValue({ amount: 100 });
   });
 
-  it('matches snapshot', async () => {
+  it('matches snapshot', () => {
     const { toJSON } = renderWithProvider(ProviderSelectionModal);
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalled();
-    });
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('calls getQuotes with provider params on mount', async () => {
+  it('calls useRampsQuotes with provider params on mount', () => {
     renderWithProvider(ProviderSelectionModal);
 
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalledWith({
+    expect(mockUseRampsQuotes).toHaveBeenCalledWith(
+      expect.objectContaining({
         amount: 100,
         walletAddress: '0x123',
         assetId: 'eip155:1/slip44:60',
         providers: ['/providers/transak', '/providers/moonpay'],
         paymentMethods: ['/payments/debit-credit-card-1'],
         forceRefresh: true,
-      });
-    });
+      }),
+    );
   });
 
-  it('calls setSelectedProvider and goBack when provider is selected', async () => {
+  it('calls setSelectedProvider and goBack when provider is selected', () => {
     const { getByText } = renderWithProvider(ProviderSelectionModal);
-
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalled();
-    });
 
     fireEvent.press(getByText('Transak'));
 
@@ -218,12 +228,8 @@ describe('ProviderSelectionModal', () => {
     expect(mockGoBack).toHaveBeenCalled();
   });
 
-  it('calls goBack when back button is pressed', async () => {
+  it('calls goBack when back button is pressed', () => {
     const { getByTestId } = renderWithProvider(ProviderSelectionModal);
-
-    await waitFor(() => {
-      expect(mockGetQuotes).toHaveBeenCalled();
-    });
 
     fireEvent.press(getByTestId('button-icon'));
 
@@ -237,7 +243,7 @@ describe('ProviderSelectionModal', () => {
     });
     renderWithProvider(ProviderSelectionModal);
 
-    expect(mockGetQuotes).not.toHaveBeenCalled();
+    expect(mockUseRampsQuotes).toHaveBeenCalledWith(null);
   });
 
   it('filters providers by assetId when provided', () => {

@@ -14,6 +14,7 @@ import Logger from '../../../../util/Logger';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { getUnclaimedAmountForMerklClaimTx } from '../utils/musd';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { mockTheme } from '../../../../util/theme';
 
 // Mock all external dependencies
 jest.mock('../../../../core/Engine');
@@ -95,8 +96,8 @@ describe('useMerklClaimStatus', () => {
     variant: ToastVariants.Icon as const,
     iconName: IconName.Loading,
     hasNoTimeout: true,
-    iconColor: '#000000',
-    backgroundColor: '#FFFFFF',
+    iconColor: mockTheme.colors.icon.default,
+    backgroundColor: mockTheme.colors.background.default,
     hapticsType: NotificationFeedbackType.Warning,
     labelOptions: [{ label: 'Claiming bonus', isBold: true }],
   };
@@ -105,7 +106,7 @@ describe('useMerklClaimStatus', () => {
     iconName: IconName.CheckBold,
     hasNoTimeout: false,
     iconColor: '#00FF00',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: mockTheme.colors.background.default,
     hapticsType: NotificationFeedbackType.Success,
     labelOptions: [{ label: 'Your mUSD is here!', isBold: true }],
   };
@@ -114,7 +115,7 @@ describe('useMerklClaimStatus', () => {
     iconName: IconName.CircleX,
     hasNoTimeout: false,
     iconColor: '#FF0000',
-    backgroundColor: '#FFFFFF',
+    backgroundColor: mockTheme.colors.background.default,
     hapticsType: NotificationFeedbackType.Error,
     labelOptions: [{ label: 'Bonus claim failed', isBold: true }],
   };
@@ -128,6 +129,9 @@ describe('useMerklClaimStatus', () => {
       inProgress: mockInProgressToast,
       success: mockSuccessToast,
       failed: mockFailedToast,
+    },
+    tronWithdrawal: {
+      failed: jest.fn().mockReturnValue(mockFailedToast),
     },
   };
 

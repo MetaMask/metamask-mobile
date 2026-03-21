@@ -242,6 +242,10 @@ export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
 } as const;
 
+export const PredictBalanceSelectorsText = {
+  AVAILABLE_BALANCE: enContent.predict.available_balance,
+} as const;
+
 // ========================================
 // PREDICT ADD FUNDS SELECTORS
 // ========================================

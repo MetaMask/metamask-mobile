@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-/* eslint-disable no-undef, import/no-extraneous-dependencies */
+/* eslint-disable no-undef, import-x/no-extraneous-dependencies */
 /**
  * CDP Bridge — Connect to the running MetaMask app via Hermes Chrome DevTools Protocol.
  *

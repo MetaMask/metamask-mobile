@@ -1,12 +1,6 @@
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { FlashList } from '@shopify/flash-list';
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
@@ -42,7 +36,6 @@ import {
   FilterTab,
   ListItem,
   PerpsTransaction,
-  PerpsTransactionsViewProps,
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
@@ -51,15 +44,14 @@ import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
-const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
+const PerpsTransactionsView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
   const tw = useTailwind();
   const navigation = useNavigation();
 
-  // Transaction data is now computed from hooks instead of stored in state
-  const [flatListData, setFlatListData] = useState<ListItem[]>([]);
   const [activeFilter, setActiveFilter] = useState<FilterTab>('Trades');
   const [refreshing, setRefreshing] = useState(false);
+  const [isFocusRefreshing, setIsFocusRefreshing] = useState(false);
 
   // Ref for FlashList to control scrolling
   const flashListRef = useRef(null);
@@ -179,16 +171,10 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     groupTransactionsByDate,
   ]);
 
-  // Memoized flat data for current filter - prevents re-flattening on every change
-  const currentFlatListData = useMemo(() => {
+  const flatListData = useMemo(() => {
     const currentGrouped = allGroupedTransactions[activeFilter] || [];
     return flattenGroupedTransactions(currentGrouped, activeFilter);
-  }, [allGroupedTransactions, activeFilter]);
-
-  // Update state only when needed - much faster tab switching
-  useEffect(() => {
-    setFlatListData(currentFlatListData);
-  }, [allGroupedTransactions, activeFilter, currentFlatListData]);
+  }, [activeFilter, allGroupedTransactions]);
 
   // Note: Removed automatic scroll to top on tab change to allow switching tabs while scrolling
 
@@ -207,7 +193,35 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
     }
   }, [isConnected, refreshTransactions]);
 
-  // Initial loading is handled by the hooks themselves
+  useFocusEffect(
+    useCallback(() => {
+      if (!isConnected) {
+        setIsFocusRefreshing(false);
+        return;
+      }
+
+      let isMounted = true;
+
+      const refreshOnFocus = async () => {
+        setIsFocusRefreshing(true);
+        try {
+          await refreshTransactions();
+        } catch (error) {
+          console.warn('Failed to refresh perps transactions on focus:', error);
+        } finally {
+          if (isMounted) {
+            setIsFocusRefreshing(false);
+          }
+        }
+      };
+
+      refreshOnFocus();
+
+      return () => {
+        isMounted = false;
+      };
+    }, [isConnected, refreshTransactions]),
+  );
 
   const renderFilterTab = useCallback(
     (tab: FilterTab, index: number) => {
@@ -381,9 +395,18 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
   // Determine if we should show loading skeleton
   const isInitialLoading = useMemo(
     () =>
-      // Show loading if we're connecting or if transaction data is loading
-      isConnecting || transactionsLoading,
-    [isConnecting, transactionsLoading],
+      // Show loading for connection/data fetch states and focus-refresh with no cached rows.
+      isConnecting ||
+      transactionsLoading ||
+      (!isConnected && flatListData.length === 0) ||
+      (isFocusRefreshing && flatListData.length === 0),
+    [
+      isConnecting,
+      transactionsLoading,
+      isConnected,
+      isFocusRefreshing,
+      flatListData.length,
+    ],
   );
 
   // Track screen load performance - measures time until all data is loaded and UI is interactive
