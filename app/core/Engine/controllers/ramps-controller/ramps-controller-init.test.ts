@@ -67,17 +67,17 @@ jest.mock('react-native-device-info', () => ({
 
 const createMockInitMessenger = (
   overrides: {
-    active?: boolean;
+    enabled?: boolean;
     minimumVersion?: string | null;
   } = {},
 ): RampsControllerInitMessenger => {
-  const { active = false, minimumVersion = null } = overrides;
+  const { enabled = false, minimumVersion = null } = overrides;
 
   return {
     call: jest.fn().mockReturnValue({
       remoteFeatureFlags: {
         rampsUnifiedBuyV2: {
-          active,
+          enabled,
           minimumVersion,
         },
       },
@@ -196,7 +196,7 @@ describe('ramps controller init', () => {
   describe('when V2 feature flag is enabled', () => {
     it('calls init at startup', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
+        enabled: true,
         minimumVersion: '1.0.0',
       });
 
@@ -209,7 +209,7 @@ describe('ramps controller init', () => {
 
     it('handles init failure gracefully', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
+        enabled: true,
         minimumVersion: '1.0.0',
       });
       mockInit.mockRejectedValue(new Error('Network error'));
@@ -225,7 +225,7 @@ describe('ramps controller init', () => {
   describe('when V2 feature flag is disabled', () => {
     it('does not call init at startup', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: false,
+        enabled: false,
       });
 
       rampsControllerInit(initRequestMock);
@@ -235,9 +235,9 @@ describe('ramps controller init', () => {
       });
     });
 
-    it('does not call init when active is true but minimumVersion is missing', async () => {
+    it('does not call init when enabled is true but minimumVersion is missing', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
+        enabled: true,
         minimumVersion: null,
       });
 
@@ -265,7 +265,7 @@ describe('ramps controller init', () => {
 
   it('always returns the controller instance regardless of flag state', () => {
     initRequestMock.initMessenger = createMockInitMessenger({
-      active: false,
+      enabled: false,
     });
 
     const result = rampsControllerInit(initRequestMock);
