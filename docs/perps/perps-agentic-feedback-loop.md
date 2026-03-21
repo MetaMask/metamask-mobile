@@ -174,16 +174,19 @@ scripts/perps/agentic/
 │   │   └── core.json       # Extended perps recipes (pump-market, tpsl-orders, watchlist, etc.)
 │   └── README.md
 └── flows/                 # Multi-step UI workflow files (see flows/README.md)
-    ├── market-discovery.json
-    ├── market-watchlist.json
-    ├── trade-open-market.json
-    ├── trade-close-position.json
-    ├── tpsl-create.json
-    ├── tpsl-edit.json
-    ├── position-add-margin.json
-    ├── order-limit-place.json
-    ├── order-limit-cancel.json
-    ├── activity-view.json
+    ├── perps/
+    │   ├── market-discovery.json
+    │   ├── market-watchlist.json
+    │   ├── trade-open-market.json
+    │   ├── trade-close-position.json
+    │   ├── tpsl-create.json
+    │   ├── tpsl-edit.json
+    │   ├── position-add-margin.json
+    │   ├── order-limit-place.json
+    │   ├── order-limit-cancel.json
+    │   ├── activity-view.json
+    │   ├── setup-testnet.json
+    │   └── setup-account.json
     └── README.md
 ```
 
@@ -411,17 +414,19 @@ Flows are multi-step UI workflows in `scripts/perps/agentic/flows/` that combine
 **Run a flow directly:**
 
 ```bash
-bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/tpsl-create.json --skip-manual
-bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/market-discovery.json --skip-manual
+bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/perps/tpsl-create.json --skip-manual
+bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/perps/market-discovery.json --skip-manual
 ```
 
 **Embed a flow in a task recipe using `flow_ref`:**
+
+Use `team/name` format — resolves to `flows/team/name.json`:
 
 ```json
 {
   "id": "check_tpsl",
   "action": "flow_ref",
-  "ref": "tpsl-create",
+  "ref": "perps/tpsl-create",
   "params": {
     "symbol": "PUMP",
     "takeProfitPrice": "0.001500",
@@ -430,22 +435,24 @@ bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/market
 }
 ```
 
-`validate-recipe.sh` loads `flows/tpsl-create.json`, substitutes `{{takeProfitPrice}}` → `0.001500` etc., then runs the sub-steps inline. If any sub-step fails, the parent recipe fails immediately.
+`validate-recipe.sh` loads `flows/perps/tpsl-create.json`, substitutes `{{takeProfitPrice}}` → `0.001500` etc., then runs the sub-steps inline. If any sub-step fails, the parent recipe fails immediately.
 
 **Available flows:**
 
-| Flow                   | Params                                       | Description                                              |
-| ---------------------- | -------------------------------------------- | -------------------------------------------------------- |
-| `market-discovery`     | `symbol`                                     | Navigate to market list, find symbol, verify price loads |
-| `market-watchlist`     | `symbol`                                     | Toggle symbol on/off watchlist, assert state changes     |
-| `trade-open-market`    | `symbol`, `side`, `usdAmount`, `leverage`    | Fill market order form (does NOT submit)                 |
-| `trade-close-position` | `symbol`                                     | Navigate to close position form, assert summary shown    |
-| `tpsl-create`          | `symbol`, `takeProfitPrice`, `stopLossPrice` | Set TP/SL inputs, assert accepted                        |
-| `tpsl-edit`            | `symbol`, `newTakeProfitPrice`               | Open existing TP/SL, update TP value                     |
-| `position-add-margin`  | `symbol`, `marginAmount`                     | Open add-margin form, enter amount                       |
-| `order-limit-place`    | `symbol`, `side`, `usdAmount`, `limitPrice`  | Fill limit order form, assert values                     |
-| `order-limit-cancel`   | `symbol`                                     | Cancel first open limit order, assert removed            |
-| `activity-view`        | _(none)_                                     | Navigate to activity, assert trades list loads           |
+| Flow                         | Params                                       | Description                                              |
+| ---------------------------- | -------------------------------------------- | -------------------------------------------------------- |
+| `perps/market-discovery`     | `symbol`                                     | Navigate to market list, find symbol, verify price loads |
+| `perps/market-watchlist`     | `symbol`                                     | Toggle symbol on/off watchlist, assert state changes     |
+| `perps/trade-open-market`    | `symbol`, `side`, `usdAmount`, `leverage`    | Fill market order form (does NOT submit)                 |
+| `perps/trade-close-position` | `symbol`                                     | Navigate to close position form, assert summary shown    |
+| `perps/tpsl-create`          | `symbol`, `takeProfitPrice`, `stopLossPrice` | Set TP/SL inputs, assert accepted                        |
+| `perps/tpsl-edit`            | `symbol`, `newTakeProfitPrice`               | Open existing TP/SL, update TP value                     |
+| `perps/position-add-margin`  | `symbol`, `marginAmount`                     | Open add-margin form, enter amount                       |
+| `perps/order-limit-place`    | `symbol`, `side`, `usdAmount`, `limitPrice`  | Fill limit order form, assert values                     |
+| `perps/order-limit-cancel`   | `symbol`                                     | Cancel first open limit order, assert removed            |
+| `perps/activity-view`        | _(none)_                                     | Navigate to activity, assert trades list loads           |
+| `perps/setup-testnet`        | _(none)_                                     | Enable testnet mode, assert market data loads            |
+| `perps/setup-account`        | `address`                                    | Switch to account by address, assert selected            |
 
 **Example: TAT-2403 style recipe using flow_ref:**
 
@@ -460,7 +467,7 @@ bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/market
         {
           "id": "verify-tpsl-create",
           "action": "flow_ref",
-          "ref": "tpsl-create",
+          "ref": "perps/tpsl-create",
           "params": {
             "symbol": "PUMP",
             "takeProfitPrice": "0.001500",
@@ -479,7 +486,7 @@ bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/market
 }
 ```
 
-**Adding recipes for your team:** Create `recipes/<team>.json` (flat) or `recipes/<team>/<subfile>.json` (hierarchical) — see `recipes/README.md`. **Adding flows:** Create `flows/<name>.json` using the full recipe JSON schema with `{{param}}` placeholders — see `flows/README.md`.
+**Adding recipes for your team:** Create `recipes/<team>.json` (flat) or `recipes/<team>/<subfile>.json` (hierarchical) — see `recipes/README.md`. **Adding flows:** Create `flows/<team>/<name>.json` using the full recipe JSON schema with `{{param}}` placeholders — see `flows/README.md`.
 
 ### Pre-conditions & Setup
 
@@ -532,11 +539,11 @@ bash scripts/perps/agentic/validate-recipe.sh flows/my-flow.json --testnet --acc
 | `toggle_testnet`  | `enabled` (bool, default `true`) | Enable or disable testnet mode; no-op if already correct    |
 | `switch_provider` | `provider`                       | Switch active provider (`hyperliquid`, `myx`, `aggregated`) |
 
-**Setup flows** (`flows/setup-*.json`) wrap these actions for reuse via `flow_ref`:
+**Setup flows** (`flows/perps/setup-*.json`) wrap these actions for reuse via `flow_ref`:
 
 ```json
-{ "id": "go-testnet", "action": "flow_ref", "ref": "setup-testnet" }
-{ "id": "switch-acct", "action": "flow_ref", "ref": "setup-account", "params": { "address": "0xabc..." } }
+{ "id": "go-testnet", "action": "flow_ref", "ref": "perps/setup-testnet" }
+{ "id": "switch-acct", "action": "flow_ref", "ref": "perps/setup-account", "params": { "address": "0xabc..." } }
 ```
 
 **Setup recipes** (`recipes/perps/setup.json`) provide quick state reads:
