@@ -84,7 +84,7 @@ function TokenListItem({
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={textColor}
+          color={textColor as TextColor}
         >
           {token.symbol}
         </Text>
