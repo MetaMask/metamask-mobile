@@ -65,6 +65,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -82,6 +83,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -100,6 +102,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$1,234.56"
           toWin={250}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -119,6 +122,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton
+          isPlacingOrder={false}
         />,
       );
 
@@ -136,6 +140,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={150}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -153,6 +158,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -172,6 +178,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={250}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -189,6 +196,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -209,6 +217,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -226,6 +235,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -245,6 +255,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={0}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -262,6 +273,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$50000"
           toWin={10000}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -279,6 +291,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -296,6 +309,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
@@ -313,6 +327,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={100}
           isShowingToWinSkeleton
+          isPlacingOrder={false}
         />,
       );
 
@@ -333,6 +348,7 @@ describe('PredictBuyAmountSection', () => {
           availableBalanceDisplay="$500"
           toWin={150}
           isShowingToWinSkeleton={false}
+          isPlacingOrder={false}
         />,
       );
 
