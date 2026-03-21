@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent , act } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import { Linking, Text, View } from 'react-native';
 import { SnapUILink } from './SnapUILink';
 import Icon, {
@@ -19,22 +19,28 @@ describe('SnapUILink', () => {
   };
 
   it('renders correctly with valid props', () => {
-    const { getByTestId, getByText } = render(
+    const { getByTestId } = render(
       <SnapUILink {...validProps} />,
     );
 
     const linkText = getByTestId('snaps-ui-link');
     expect(linkText).toBeTruthy();
     expect(linkText.props.accessibilityRole).toBe('link');
+
+    // Children array: [text, spacer View, Icon]
+    const children = linkText.props.children[0];
+    expect(children[0]).toBe('Visit MetaMask');
+    expect(children[1].props.style).toEqual({ width: 4 });
+
+    const icon = getByTestId('snaps-ui-link-icon');
+    expect(icon).toBeTruthy();
   });
 
-  it('opens URL when pressed with valid https URL', async () => {
+  it('opens URL when pressed with valid https URL', () => {
     const { getByTestId } = render(<SnapUILink {...validProps} />);
 
     const link = getByTestId('snaps-ui-link');
-    await act(async () => {
-      fireEvent.press(link);
-    });
+    fireEvent.press(link);
 
     expect(Linking.openURL).toHaveBeenCalledWith(validProps.href);
     expect(Linking.openURL).toHaveBeenCalledTimes(1);
@@ -72,16 +78,17 @@ describe('SnapUILink', () => {
   });
 
   it('handles array children correctly', () => {
-    const { toJSON } = render(
+    const { getByTestId } = render(
       <SnapUILink href="https://metamask.io">
         {'Part 1 '}
         {'Part 2'}
       </SnapUILink>,
     );
 
-    const output = JSON.stringify(toJSON());
-    expect(output).toContain('Part 1');
-    expect(output).toContain('Part 2');
+    const link = getByTestId('snaps-ui-link');
+    const textContent = link.props.children[0].toString();
+    expect(textContent).toContain('Part 1');
+    expect(textContent).toContain('Part 2');
   });
 
   it('renders correctly with complex children', () => {
