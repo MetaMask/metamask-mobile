@@ -410,8 +410,13 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          Math.max(
+            priceDecimals,
+            DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+          ),
+        );
         setTakeProfitPrice(roundedPrice);
         setSelectedTpPercentage(roeValue);
       } else if (!finalValue) {
@@ -520,8 +525,13 @@ export function usePerpsTPSLForm(
           leverage,
           entryPrice,
         });
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          Math.max(
+            priceDecimals,
+            DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+          ),
+        );
         setStopLossPrice(roundedPrice);
         setSelectedSlPercentage(roeValue); // Store absolute value for button comparison
       } else if (!finalValue) {
@@ -582,9 +592,12 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== takeProfitPrice) {
-            // Round to 5 significant figures to match input validation
             const roundedPrice = roundToSignificantFigures(
               zeroRoePrice.toString(),
+              Math.max(
+                priceDecimals,
+                DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+              ),
             );
             setTakeProfitPrice(roundedPrice);
           }
@@ -598,6 +611,7 @@ export function usePerpsTPSLForm(
     actualDirection,
     entryPrice,
     position,
+    priceDecimals,
   ]);
 
   const handleTakeProfitPercentageFocus = useCallback(() => {
@@ -621,8 +635,10 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      // Round to 5 significant figures to match input validation
-      const roundedPrice = roundToSignificantFigures(price.toString());
+      const roundedPrice = roundToSignificantFigures(
+        price.toString(),
+        Math.max(priceDecimals, DECIMAL_PRECISION_CONFIG.MaxSignificantFigures),
+      );
       setTakeProfitPrice(roundedPrice);
     }
   }, [
@@ -631,6 +647,7 @@ export function usePerpsTPSLForm(
     currentPrice,
     actualDirection,
     entryPrice,
+    priceDecimals,
   ]);
 
   const handleStopLossPriceFocus = useCallback(() => {
@@ -673,9 +690,12 @@ export function usePerpsTPSLForm(
             entryPrice,
           });
           if (zeroRoePrice && zeroRoePrice !== stopLossPrice) {
-            // Round to 5 significant figures to match input validation
             const roundedPrice = roundToSignificantFigures(
               zeroRoePrice.toString(),
+              Math.max(
+                priceDecimals,
+                DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+              ),
             );
             setStopLossPrice(roundedPrice);
           }
@@ -689,6 +709,7 @@ export function usePerpsTPSLForm(
     actualDirection,
     entryPrice,
     position,
+    priceDecimals,
   ]);
 
   const handleStopLossPercentageFocus = useCallback(() => {
@@ -712,11 +733,20 @@ export function usePerpsTPSLForm(
         leverage,
         entryPrice,
       });
-      // Round to 5 significant figures to match input validation
-      const roundedPrice = roundToSignificantFigures(price.toString());
+      const roundedPrice = roundToSignificantFigures(
+        price.toString(),
+        Math.max(priceDecimals, DECIMAL_PRECISION_CONFIG.MaxSignificantFigures),
+      );
       setStopLossPrice(roundedPrice);
     }
-  }, [stopLossPercentage, leverage, currentPrice, actualDirection, entryPrice]);
+  }, [
+    stopLossPercentage,
+    leverage,
+    currentPrice,
+    actualDirection,
+    entryPrice,
+    priceDecimals,
+  ]);
 
   // Button handlers for percentage quick-select
   const handleTakeProfitPercentageButton = useCallback(
@@ -746,8 +776,13 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          Math.max(
+            priceDecimals,
+            DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+          ),
+        );
         const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
@@ -769,7 +804,7 @@ export function usePerpsTPSLForm(
         );
       }
     },
-    [asset, currentPrice, actualDirection, leverage, entryPrice],
+    [asset, currentPrice, actualDirection, leverage, entryPrice, priceDecimals],
   );
 
   const handleStopLossPercentageButton = useCallback(
@@ -800,8 +835,13 @@ export function usePerpsTPSLForm(
 
       // Only set values if we got a valid price
       if (price && price !== '' && Number.parseFloat(price) > 0) {
-        // Round to 5 significant figures to match input validation
-        const roundedPrice = roundToSignificantFigures(price.toString());
+        const roundedPrice = roundToSignificantFigures(
+          price.toString(),
+          Math.max(
+            priceDecimals,
+            DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+          ),
+        );
         const formattedPriceString = formatPerpsFiat(roundedPrice, {
           ranges: PRICE_RANGES_UNIVERSAL,
         });
@@ -822,7 +862,7 @@ export function usePerpsTPSLForm(
       setSlUsingPercentage(true);
       setSlSourceOfTruth('percentage');
     },
-    [asset, currentPrice, actualDirection, leverage, entryPrice],
+    [asset, currentPrice, actualDirection, leverage, entryPrice, priceDecimals],
   );
 
   // "Off" button handlers - clear all related state
