@@ -9,29 +9,63 @@ recipes/
   perps.json          # Core perps recipes (positions, auth, balances, markets, etc.)
   perps/
     core.json         # Extended perps recipes (pump-market, tpsl-orders, watchlist, etc.)
-  myx.json            # MYX-specific recipes
-  myx-validation/     # MYX validation flow recipes
+    setup.json        # Setup state recipes (testnet-mode, current-provider, account-balance)
   README.md
 ```
 
+## Reference format
+
+There are two contexts where you reference a recipe — the format differs.
+
+### CLI / `app-state.sh recipe` (full path)
+
+Always use the full `team/name` or `team/subfile/name` path:
+
+```bash
+# Flat file (recipes/perps.json, key "positions")
+scripts/perps/agentic/app-state.sh recipe perps/positions
+
+# Subdirectory file (recipes/perps/core.json, key "watchlist")
+scripts/perps/agentic/app-state.sh recipe perps/core/watchlist
+
+# Subdirectory file (recipes/perps/setup.json, key "testnet-mode")
+scripts/perps/agentic/app-state.sh recipe perps/setup/testnet-mode
+```
+
+### `recipe_ref` in flow JSON (omit the team prefix)
+
+The `recipe_ref` step action in `validate-recipe.sh` hardcodes the `perps/` team prefix.
+Use only the `name` or `subfile/name` part in `"ref"`:
+
+```json
+{ "action": "recipe_ref", "ref": "positions" }
+{ "action": "recipe_ref", "ref": "core/watchlist" }
+{ "action": "recipe_ref", "ref": "setup/testnet-mode" }
+```
+
+These become `perps/positions`, `perps/core/watchlist`, `perps/setup/testnet-mode` internally.
+
 ## Adding recipes
 
-**Flat file** (top-level team, e.g. `perps.json`):
-```bash
-scripts/perps/agentic/app-state.sh recipe perps/positions
-```
+**Flat file** (`recipes/perps.json` → referenced as `perps/<name>`):
 
-**Subdirectory file** (team + subfile, e.g. `perps/core.json`):
-```bash
-scripts/perps/agentic/app-state.sh recipe perps/core/watchlist
-```
-
-Recipe JSON format:
 ```json
 {
-  "recipe-name": {
+  "my-recipe": {
     "description": "What it does",
-    "expression": "Engine.context.SomeController.someMethod().then(function(r){return JSON.stringify(r)})",
+    "expression": "Engine.context.PerpsController.state.someField",
+    "async": false
+  }
+}
+```
+
+**Subdirectory file** (`recipes/perps/myfile.json` → referenced as `perps/myfile/<name>`):
+
+```json
+{
+  "my-recipe": {
+    "description": "What it does",
+    "expression": "Engine.context.PerpsController.someMethod().then(function(r){return JSON.stringify(r)})",
     "async": true
   }
 }
@@ -45,10 +79,12 @@ Fields:
 ## Usage
 
 ```bash
-# Run a recipe
+# Run a recipe (CLI — full path)
 scripts/perps/agentic/app-state.sh recipe perps/positions
 scripts/perps/agentic/app-state.sh recipe perps/core/watchlist
 scripts/perps/agentic/app-state.sh recipe perps/core/tpsl-orders
+scripts/perps/agentic/app-state.sh recipe perps/setup/testnet-mode
+scripts/perps/agentic/app-state.sh recipe perps/setup/current-provider
 
 # List all recipes (includes subdirectory files)
 scripts/perps/agentic/app-state.sh recipe --list

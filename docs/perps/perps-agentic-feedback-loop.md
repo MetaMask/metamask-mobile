@@ -470,7 +470,7 @@ bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/market
         {
           "id": "assert-orders-created",
           "action": "recipe_ref",
-          "ref": "perps/core/tpsl-orders",
+          "ref": "core/tpsl-orders",
           "assert": { "operator": "length_gt", "field": null, "value": 0 }
         }
       ]
