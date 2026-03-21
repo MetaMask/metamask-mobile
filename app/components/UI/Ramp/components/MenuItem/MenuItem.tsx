@@ -1,4 +1,10 @@
 import React from 'react';
+import {
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -9,10 +15,6 @@ import styleSheet from './MenuItem.styles';
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../../../component-library/components/Texts/Text';
 
 interface MenuItemProps {
   iconName: IconName;
@@ -45,9 +47,11 @@ export default function MenuItem({
         />
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {title}
+        </Text>
         {description && (
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {description}
           </Text>
         )}
