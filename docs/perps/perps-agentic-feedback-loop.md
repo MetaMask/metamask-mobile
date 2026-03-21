@@ -481,6 +481,74 @@ bash scripts/perps/agentic/validate-recipe.sh scripts/perps/agentic/flows/market
 
 **Adding recipes for your team:** Create `recipes/<team>.json` (flat) or `recipes/<team>/<subfile>.json` (hierarchical) — see `recipes/README.md`. **Adding flows:** Create `flows/<name>.json` using the full recipe JSON schema with `{{param}}` placeholders — see `flows/README.md`.
 
+### Pre-conditions & Setup
+
+Recipes can declare required app state in a top-level `initial_conditions` block. `validate-recipe.sh` reads this block and applies the state before running any steps — no manual setup needed between sessions.
+
+**`initial_conditions` fields:**
+
+| Field      | Type      | Description                                                                    |
+| ---------- | --------- | ------------------------------------------------------------------------------ |
+| `account`  | `string`  | Ethereum address to switch to before the recipe runs                           |
+| `testnet`  | `boolean` | Set testnet mode (`true`/`false`). No-op if already in the desired state       |
+| `provider` | `string`  | Active provider to switch to. Valid values: `hyperliquid`, `myx`, `aggregated` |
+
+**Example recipe with `initial_conditions`:**
+
+```json
+{
+  "title": "Verify position flow on testnet",
+  "initial_conditions": {
+    "testnet": true,
+    "provider": "hyperliquid",
+    "account": "0xabc123..."
+  },
+  "validate": {
+    "runtime": {
+      "steps": [...]
+    }
+  }
+}
+```
+
+**CLI overrides** (useful for ad-hoc runs without editing the recipe):
+
+```bash
+# Force testnet mode
+bash scripts/perps/agentic/validate-recipe.sh flows/my-flow.json --testnet
+
+# Switch to a specific account
+bash scripts/perps/agentic/validate-recipe.sh flows/my-flow.json --account 0xabc123...
+
+# Combine
+bash scripts/perps/agentic/validate-recipe.sh flows/my-flow.json --testnet --account 0xabc123...
+```
+
+**Setup step actions** (use inside `steps[]` for in-flow state changes):
+
+| Action            | Key param                        | Description                                                 |
+| ----------------- | -------------------------------- | ----------------------------------------------------------- |
+| `select_account`  | `address`                        | Switch to account by Ethereum address                       |
+| `toggle_testnet`  | `enabled` (bool, default `true`) | Enable or disable testnet mode; no-op if already correct    |
+| `switch_provider` | `provider`                       | Switch active provider (`hyperliquid`, `myx`, `aggregated`) |
+
+**Setup flows** (`flows/setup-*.json`) wrap these actions for reuse via `flow_ref`:
+
+```json
+{ "id": "go-testnet", "action": "flow_ref", "ref": "setup-testnet" }
+{ "id": "switch-acct", "action": "flow_ref", "ref": "setup-account", "params": { "address": "0xabc..." } }
+```
+
+**Setup recipes** (`recipes/perps/setup.json`) provide quick state reads:
+
+```bash
+# Check current testnet mode
+scripts/perps/agentic/app-state.sh recipe perps/setup/testnet-mode
+
+# Check active provider
+scripts/perps/agentic/app-state.sh recipe perps/setup/current-provider
+```
+
 ---
 
 ## 5. State Paths & Routes

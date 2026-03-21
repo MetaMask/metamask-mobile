@@ -1,0 +1,33 @@
+{
+  "title": "Setup — switch to account {{address}} and verify",
+  "validate": {
+    "runtime": {
+      "pre_conditions": ["Wallet unlocked"],
+      "steps": [
+        {
+          "id": "switch-account",
+          "description": "Switch to account {{address}}",
+          "action": "select_account",
+          "address": "{{address}}"
+        },
+        {
+          "id": "wait-switch",
+          "description": "Wait for account switch to apply",
+          "action": "wait",
+          "ms": 1000
+        },
+        {
+          "id": "verify-account",
+          "description": "Assert selected account address matches {{address}}",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({address:Engine.context.AccountsController.state.internalAccounts.accounts[Engine.context.AccountsController.state.internalAccounts.selectedAccount].address})",
+          "assert": {
+            "operator": "eq",
+            "field": "address",
+            "value": "{{address}}"
+          }
+        }
+      ]
+    }
+  }
+}

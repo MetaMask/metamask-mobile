@@ -50,18 +50,20 @@ export WATCHER_PORT="${WATCHER_PORT:-8081}"
 SD="scripts/perps/agentic"
 
 # ── Args ──────────────────────────────────────────────────────────────
-RECIPE="" DRY=false SKIP_MANUAL=false SINGLE=""
+RECIPE="" DRY=false SKIP_MANUAL=false SINGLE="" OVERRIDE_ACCOUNT="" OVERRIDE_TESTNET=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)     DRY=true; shift ;;
     --skip-manual) SKIP_MANUAL=true; shift ;;
     --step)        SINGLE="$2"; shift 2 ;;
+    --account)     OVERRIDE_ACCOUNT="$2"; shift 2 ;;
+    --testnet)     OVERRIDE_TESTNET=true; shift ;;
     -*)            echo "Unknown flag: $1"; exit 1 ;;
     *)             RECIPE="$1"; shift ;;
   esac
 done
 
-[ -z "$RECIPE" ] && { echo "Usage: validate-recipe.sh <recipe-folder-or-json> [--dry-run] [--step <id>] [--skip-manual]"; exit 1; }
+[ -z "$RECIPE" ] && { echo "Usage: validate-recipe.sh <recipe-folder-or-json> [--dry-run] [--step <id>] [--skip-manual] [--account <addr>] [--testnet]"; exit 1; }
 
 # Resolve folder → recipe.json; track RECIPE_DIR for artifact output
 RECIPE_DIR=""
@@ -93,6 +95,33 @@ PRECOND=$(node -p "const d=JSON.parse(require('fs').readFileSync(process.argv[1]
 echo "Running recipe: $TITLE (PR #$PR)"
 echo "Pre-conditions: $PRECOND"
 echo ""
+
+# ── Initial conditions ────────────────────────────────────────────────
+IC_ACCOUNT=$(node -p "const c=(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).initial_conditions||{});c.account||''" "$RECIPE")
+IC_TESTNET=$(node -p "const c=(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).initial_conditions||{});c.testnet!==undefined?String(c.testnet):''" "$RECIPE")
+IC_PROVIDER=$(node -p "const c=(JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).initial_conditions||{});c.provider||''" "$RECIPE")
+
+# CLI overrides
+[ -n "$OVERRIDE_ACCOUNT" ]       && IC_ACCOUNT="$OVERRIDE_ACCOUNT"
+[ "$OVERRIDE_TESTNET" = true ]   && IC_TESTNET="true"
+
+if [ "$DRY" = false ]; then
+  if [ -n "$IC_ACCOUNT" ]; then
+    echo "[setup] switch-account $IC_ACCOUNT"
+    bash "$SD/app-state.sh" switch-account "$IC_ACCOUNT" >/dev/null 2>&1
+  fi
+  if [ -n "$IC_TESTNET" ]; then
+    CURR_TESTNET=$(node "$SD/cdp-bridge.js" eval "Engine.context.PerpsController.state.isTestnet" 2>/dev/null)
+    if [ "$CURR_TESTNET" != "$IC_TESTNET" ]; then
+      echo "[setup] toggle_testnet (current: $CURR_TESTNET → desired: $IC_TESTNET)"
+      node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.toggleTestnet().then(function(r){return JSON.stringify(r)})" >/dev/null 2>&1
+    fi
+  fi
+  if [ -n "$IC_PROVIDER" ]; then
+    echo "[setup] switch_provider $IC_PROVIDER"
+    node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.switchProvider('$IC_PROVIDER').then(function(r){return JSON.stringify(r)})" >/dev/null 2>&1
+  fi
+fi
 
 # ── Counters ──────────────────────────────────────────────────────────
 TOTAL=0 PASSED=0 FAILED=0 SKIPPED=0
@@ -300,6 +329,28 @@ while IFS= read -r sj; do
         echo "  ❌ FAIL: flow failed: $FL_REF"; fail_recipe
       fi
       rm -f "$SUBST_FLOW"
+      ;;
+    select_account)
+      ADDR=$(node -p "JSON.parse(process.argv[1]).address||''" "$sj")
+      echo "  -> switch-account $ADDR"
+      [ "$DRY" = false ] && RESULT=$(bash "$SD/app-state.sh" switch-account "$ADDR" 2>&1)
+      ;;
+    toggle_testnet)
+      DESIRED=$(node -p "var s=JSON.parse(process.argv[1]);s.enabled!==undefined?String(s.enabled):'true'" "$sj")
+      echo "  -> toggle_testnet (desired: $DESIRED)"
+      if [ "$DRY" = false ]; then
+        CURR=$(node "$SD/cdp-bridge.js" eval "Engine.context.PerpsController.state.isTestnet" 2>/dev/null)
+        if [ "$CURR" != "$DESIRED" ]; then
+          RESULT=$(node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.toggleTestnet().then(function(r){return JSON.stringify(r)})" 2>/dev/null)
+        else
+          RESULT='{"ok":true,"already":true}'
+        fi
+      fi
+      ;;
+    switch_provider)
+      PROV=$(node -p "JSON.parse(process.argv[1]).provider||''" "$sj")
+      echo "  -> switch_provider $PROV"
+      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-async "Engine.context.PerpsController.switchProvider('$PROV').then(function(r){return JSON.stringify(r)})" 2>/dev/null)
       ;;
     *)
       echo "  ❌ FAIL: unknown action '$ACT'"

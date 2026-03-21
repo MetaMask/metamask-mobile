@@ -1,0 +1,44 @@
+{
+  "title": "Setup — enable testnet and verify market data loads",
+  "validate": {
+    "runtime": {
+      "pre_conditions": ["Wallet unlocked", "Perps feature enabled"],
+      "steps": [
+        {
+          "id": "enable-testnet",
+          "description": "Enable testnet mode (no-op if already enabled)",
+          "action": "toggle_testnet",
+          "enabled": true
+        },
+        {
+          "id": "wait-reload",
+          "description": "Wait for market data to reload after testnet toggle",
+          "action": "wait",
+          "ms": 2000
+        },
+        {
+          "id": "verify-testnet",
+          "description": "Assert testnet is enabled in controller state",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({isTestnet:Engine.context.PerpsController.state.isTestnet})",
+          "assert": {
+            "operator": "eq",
+            "field": "isTestnet",
+            "value": true
+          }
+        },
+        {
+          "id": "verify-markets",
+          "description": "Assert market list is non-empty after testnet switch",
+          "action": "recipe_ref",
+          "ref": "markets",
+          "assert": {
+            "operator": "not_null",
+            "field": null,
+            "value": null
+          }
+        }
+      ]
+    }
+  }
+}
