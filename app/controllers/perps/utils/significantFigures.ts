@@ -27,7 +27,14 @@ export const countSignificantFigures = (priceString: string): number => {
     : trimmedInteger.replace(/0+$/u, '').length ||
       (trimmedInteger.length > 0 ? 1 : 0);
 
-  return effectiveIntegerLength + decimalPart.length;
+  // For numbers < 1 (e.g. 0.001234), leading zeros after the decimal are not
+  // significant figures. Strip them before counting.
+  const significantDecimalPart =
+    effectiveIntegerLength === 0
+      ? decimalPart.replace(/^0+/u, '')
+      : decimalPart;
+
+  return effectiveIntegerLength + significantDecimalPart.length;
 };
 
 /**
@@ -90,7 +97,13 @@ export const roundToSignificantFigures = (
     return normalized;
   }
 
-  const allowedDecimalDigits = maxSigFigs - integerSigFigs;
+  // For numbers < 1 (e.g. 0.001234), leading zeros after the decimal are not
+  // significant. Count them so we reserve enough decimal places for the actual
+  // significant digits that follow (e.g. 0.001234 needs 2 leading zeros + 4 sig figs = 6 decimals).
+  const leadingDecimalZeros =
+    integerSigFigs === 0 ? (decimalPart.match(/^0+/u)?.[0].length ?? 0) : 0;
+  const allowedDecimalDigits =
+    maxSigFigs - integerSigFigs + leadingDecimalZeros;
 
   if (allowedDecimalDigits <= 0) {
     return Math.round(number).toString();

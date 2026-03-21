@@ -261,6 +261,8 @@ export const PerpsTPSLViewSelectorsIDs = {
   BACK_BUTTON: 'back-button',
   BOTTOM_SHEET: 'perps-tpsl-bottomsheet',
   SET_BUTTON: 'bottomsheetfooter-button',
+  TAKE_PROFIT_PRICE_INPUT: 'perps-tpsl-take-profit-price-input',
+  STOP_LOSS_PRICE_INPUT: 'perps-tpsl-stop-loss-price-input',
 } as const;
 
 export const getPerpsTPSLViewSelector = {

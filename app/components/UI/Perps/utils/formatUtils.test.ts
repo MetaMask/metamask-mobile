@@ -1571,20 +1571,32 @@ describe('formatUtils', () => {
     });
 
     describe('leading zeros after decimal', () => {
-      it('counts all 6 decimal digits for 0.000123', () => {
+      it('counts only non-leading-zero decimal digits for 0.000123 (3 sig figs)', () => {
         const result = countSignificantFigures('0.000123');
 
-        expect(result).toBe(6);
+        expect(result).toBe(3);
       });
 
-      it('counts all 8 decimal digits for 0.00001234', () => {
+      it('counts only non-leading-zero decimal digits for 0.00001234 (4 sig figs)', () => {
         const result = countSignificantFigures('0.00001234');
 
-        expect(result).toBe(8);
+        expect(result).toBe(4);
       });
 
-      it('counts 4 decimal digits for 0.0001', () => {
+      it('counts 1 sig fig for 0.0001', () => {
         const result = countSignificantFigures('0.0001');
+
+        expect(result).toBe(1);
+      });
+
+      it('counts 4 sig figs for PUMP price 0.001234', () => {
+        const result = countSignificantFigures('0.001234');
+
+        expect(result).toBe(4);
+      });
+
+      it('counts 4 sig figs for PUMP price 0.001358', () => {
+        const result = countSignificantFigures('0.001358');
 
         expect(result).toBe(4);
       });
@@ -1603,10 +1615,10 @@ describe('formatUtils', () => {
         expect(result).toBe(3);
       });
 
-      it('returns 3 for 0.001000 after trimming trailing zeros', () => {
+      it('returns 1 for 0.001000 (JS normalizes to 0.001, which has 1 sig fig)', () => {
         const result = countSignificantFigures('0.001000');
 
-        expect(result).toBe(3);
+        expect(result).toBe(1);
       });
     });
 
@@ -1665,14 +1677,32 @@ describe('formatUtils', () => {
         expect(result).toBe(true);
       });
 
-      it('returns true for decimal with 6 digits including leading zeros', () => {
+      it('returns false for 0.000123 (3 actual sig figs, within limit of 5)', () => {
         const result = hasExceededSignificantFigures('0.000123');
 
-        expect(result).toBe(true);
+        expect(result).toBe(false);
       });
 
-      it('returns true for 8 significant figures', () => {
+      it('returns false for 0.00001234 (4 actual sig figs, within limit of 5)', () => {
         const result = hasExceededSignificantFigures('0.00001234');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for PUMP price 0.001234 (4 actual sig figs, within limit of 5)', () => {
+        const result = hasExceededSignificantFigures('0.001234');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns false for PUMP price 0.0012345 (5 actual sig figs, at limit of 5)', () => {
+        const result = hasExceededSignificantFigures('0.0012345');
+
+        expect(result).toBe(false);
+      });
+
+      it('returns true for PUMP price 0.00123456 (6 actual sig figs, exceeds limit of 5)', () => {
+        const result = hasExceededSignificantFigures('0.00123456');
 
         expect(result).toBe(true);
       });
@@ -1883,16 +1913,34 @@ describe('formatUtils', () => {
         expect(result).toBe('1.2346');
       });
 
-      it('rounds decimal with leading zeros to 5 significant figures', () => {
+      it('returns unchanged for 0.065242 (5 actual sig figs, at limit)', () => {
         const result = roundToSignificantFigures('0.065242');
 
-        expect(result).toBe('0.06524');
+        expect(result).toBe('0.065242');
       });
 
-      it('rounds correctly with many leading zeros', () => {
+      it('rounds correctly with many leading zeros: 0.00123456 rounds to 5 sig figs (7 decimal places)', () => {
         const result = roundToSignificantFigures('0.00123456');
 
-        expect(result).toBe('0.00123');
+        expect(result).toBe('0.0012346');
+      });
+
+      it('returns unchanged for PUMP price 0.001234 (4 sig figs, within limit)', () => {
+        const result = roundToSignificantFigures('0.001234');
+
+        expect(result).toBe('0.001234');
+      });
+
+      it('returns unchanged for PUMP price 0.001358 (4 sig figs, within limit)', () => {
+        const result = roundToSignificantFigures('0.001358');
+
+        expect(result).toBe('0.001358');
+      });
+
+      it('returns unchanged for PUMP price 0.0012345 (5 sig figs, at limit)', () => {
+        const result = roundToSignificantFigures('0.0012345');
+
+        expect(result).toBe('0.0012345');
       });
     });
 

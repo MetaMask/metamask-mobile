@@ -21,6 +21,7 @@ import {
   HYPERLIQUID_MAINNET_CHAIN_ID,
   HYPERLIQUID_TESTNET_CHAIN_ID,
 } from '@metamask/perps-controller/constants/hyperLiquidConfig';
+import { DECIMAL_PRECISION_CONFIG } from '@metamask/perps-controller';
 
 export { HYPERLIQUID_MAINNET_CHAIN_ID, HYPERLIQUID_TESTNET_CHAIN_ID };
 
@@ -106,10 +107,10 @@ export const TP_SL_VIEW_CONFIG = {
 
   // Keypad configuration for price inputs
   // USD_PERPS is not a real currency - it's a custom configuration
-  // that allows 5 decimal places for crypto prices, overriding the
-  // default USD configuration which only allows 2 decimal places
+  // that allows up to MaxPriceDecimals decimal places for crypto prices,
+  // overriding the default USD configuration which only allows 2 decimal places
   KeypadCurrencyCode: 'USD_PERPS' as const,
-  KeypadDecimals: 5,
+  KeypadDecimals: DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
 } as const;
 
 /**
