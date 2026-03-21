@@ -4,7 +4,7 @@ import ImageIcon from './';
 
 describe('ImageIcon', () => {
   it('should render correctly', () => {
-    const component = render(<ImageIcon image={'ETHEREUM'} style={{}} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<ImageIcon image={'ETHEREUM'} style={{}} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

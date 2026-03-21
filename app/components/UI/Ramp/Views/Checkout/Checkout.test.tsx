@@ -118,8 +118,8 @@ describe('Checkout', () => {
       url: '',
       providerName: 'Test Provider',
     });
-    const component = render();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets and displays error on http error for initial URL', async () => {
@@ -139,8 +139,7 @@ describe('Checkout', () => {
   });
 
   it('sets and displays error on http error for callback URL', async () => {
-    const component = render();
-    const { getByTestId } = component;
+    const { getByTestId, toJSON } = render();
     const webview = getByTestId('checkout-webview');
 
     await act(async () => {
@@ -152,7 +151,7 @@ describe('Checkout', () => {
       });
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('ignores http error for auxiliary resources', async () => {

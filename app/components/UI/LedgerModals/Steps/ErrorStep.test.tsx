@@ -42,13 +42,13 @@ describe('ErrorStep', () => {
     const store = mockStore(initialState);
 
     it('renders correctly when showViewSettings is true', () => {
-      const component = createWrapper({ store });
-      expect(component).toMatchSnapshot();
+      const { toJSON } = createWrapper({ store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly when showViewSettings false', () => {
-      const component = createWrapper({ showViewSettings: false, store });
-      expect(component).toMatchSnapshot();
+      const { toJSON } = createWrapper({ showViewSettings: false, store });
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -62,13 +62,13 @@ describe('ErrorStep', () => {
     const store = mockStore(initialState);
 
     it('renders correctly when showViewSettings is true', () => {
-      const component = createWrapper({ store });
-      expect(component).toMatchSnapshot();
+      const { toJSON } = createWrapper({ store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly when showViewSettings false', () => {
-      const component = createWrapper({ showViewSettings: false, store });
-      expect(component).toMatchSnapshot();
+      const { toJSON } = createWrapper({ showViewSettings: false, store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     jest.resetAllMocks();
@@ -84,13 +84,13 @@ describe('ErrorStep', () => {
     const store = mockStore(initialState);
 
     it('renders correctly when showViewSettings is true', () => {
-      const component = createWrapper({ store });
-      expect(component).toMatchSnapshot();
+      const { toJSON } = createWrapper({ store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly when showViewSettings false', () => {
-      const component = createWrapper({ showViewSettings: false, store });
-      expect(component).toMatchSnapshot();
+      const { toJSON } = createWrapper({ showViewSettings: false, store });
+      expect(toJSON()).toMatchSnapshot();
     });
 
     jest.resetAllMocks();

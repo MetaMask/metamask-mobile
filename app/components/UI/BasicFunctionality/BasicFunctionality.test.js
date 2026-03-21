@@ -7,7 +7,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('BasicFunctionality', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(<BasicFunctionality />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<BasicFunctionality />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

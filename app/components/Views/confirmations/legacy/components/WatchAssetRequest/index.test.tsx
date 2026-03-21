@@ -32,7 +32,7 @@ const initialState = {
 
 describe('WatchAssetRequest', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <WatchAssetRequest
         suggestedAssetMeta={{
           asset: { address: '0x0000000000000000000000000000000000000002', symbol: 'TKN', decimals: 0 },
@@ -41,6 +41,6 @@ describe('WatchAssetRequest', () => {
       />,
       { state: initialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

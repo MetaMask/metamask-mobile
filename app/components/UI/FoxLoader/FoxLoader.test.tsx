@@ -5,7 +5,7 @@ import FoxLoader from './FoxLoader';
 
 describe('FoxLoader', () => {
   it('renders correctly and matches snapshot', () => {
-    const component = render(<FoxLoader />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<FoxLoader />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

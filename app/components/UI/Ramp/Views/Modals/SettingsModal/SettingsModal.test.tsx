@@ -176,9 +176,9 @@ describe('SettingsModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(SettingsModal);
+    const { toJSON } = renderWithProvider(SettingsModal);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays settings title in header', () => {

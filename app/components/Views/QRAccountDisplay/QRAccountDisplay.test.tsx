@@ -83,13 +83,13 @@ describe('QRAccountDisplay', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => <TestWrapper accountAddress={ACCOUNT} />,
       { name: 'QRAccountDisplay' },
       // @ts-expect-error initialBackgroundState throws error
       { state: initialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('copies address to clipboard when copy button is pressed', async () => {

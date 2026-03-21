@@ -30,15 +30,15 @@ describe('ManageCardListItem Component', () => {
   });
 
   it('renders with required props and matches snapshot', () => {
-    const component = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem title="Test Title" description="Test description" />
     ));
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with all props and matches snapshot', () => {
-    const component = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="Custom Title"
         description="Custom description"
@@ -48,7 +48,7 @@ describe('ManageCardListItem Component', () => {
       />
     ));
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with React.ReactNode description and matches snapshot', () => {
@@ -58,14 +58,14 @@ describe('ManageCardListItem Component', () => {
       </React.Fragment>
     );
 
-    const component = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="Title with React Node"
         description={customDescription}
       />
     ));
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress when item is pressed', () => {
@@ -85,18 +85,18 @@ describe('ManageCardListItem Component', () => {
   });
 
   it('renders without right icon when rightIcon is not provided', () => {
-    const component = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="No Icon Test"
         description="Should render without any right icon"
       />
     ));
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with custom right icon when rightIcon is provided', () => {
-    const component = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ManageCardListItem
         title="Custom Icon Test"
         description="Should use Edit icon"
@@ -104,7 +104,7 @@ describe('ManageCardListItem Component', () => {
       />
     ));
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('uses default testID when testID is not provided', () => {

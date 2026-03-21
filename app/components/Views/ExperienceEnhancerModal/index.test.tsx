@@ -46,13 +46,13 @@ describe('ExperienceEnhancerModal', () => {
   });
 
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <SafeAreaProvider>
         <ExperienceEnhancerModal />
       </SafeAreaProvider>,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should handle cancel button press correctly', () => {

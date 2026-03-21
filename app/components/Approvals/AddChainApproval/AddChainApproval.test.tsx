@@ -63,16 +63,16 @@ describe('AddChainApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const component = renderWithProvider(<AddChainApproval />, { state: initialState });
+    const { toJSON } = renderWithProvider(<AddChainApproval />, { state: initialState });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const component = renderWithProvider(<AddChainApproval />, { state: initialState });
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<AddChainApproval />, { state: initialState });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -80,7 +80,7 @@ describe('AddChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.CONNECT_ACCOUNTS } as any);
 
-    const component = renderWithProvider(<AddChainApproval />, { state: initialState });
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<AddChainApproval />, { state: initialState });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

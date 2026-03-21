@@ -16,7 +16,7 @@ describe('PhishingModal', () => {
   });
 
   it('should match snapshot when showPhishingModal is false', () => {
-    const component = render(
+    const { toJSON } = render(
       <ThemeContext.Provider value={mockTheme}>
         <PhishingModal
           blockedUrl="http://phishing.com"
@@ -30,11 +30,11 @@ describe('PhishingModal', () => {
         />
       </ThemeContext.Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match snapshot when showPhishingModal is true', () => {
-    const component = render(
+    const { toJSON } = render(
       <ThemeContext.Provider value={mockTheme}>
         <PhishingModal
           blockedUrl="http://phishing.com"
@@ -48,6 +48,6 @@ describe('PhishingModal', () => {
         />
       </ThemeContext.Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

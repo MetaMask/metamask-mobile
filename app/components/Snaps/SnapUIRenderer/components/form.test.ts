@@ -32,7 +32,7 @@ const mockEngine = jest.mocked(Engine);
 
 describe('SnapUIForm', () => {
   it('will render', () => {
-    const component = renderInterface(
+    const { toJSON, getByText } = renderInterface(
       Box({
         children: Form({
           name: 'form',
@@ -43,14 +43,13 @@ describe('SnapUIForm', () => {
         }),
       }),
     );
-    const { getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
     expect(getByText('Submit')).toBeTruthy();
   });
 
   it('will render with fields', () => {
-    const component = renderInterface(
+    const { toJSON, getByTestId, getByText } = renderInterface(
       Box({
         children: Form({
           name: 'form',
@@ -120,7 +119,6 @@ describe('SnapUIForm', () => {
         },
       },
     );
-    const { getByTestId, getByText } = component;
 
     const input = getByTestId('input-snap-ui-input');
     fireEvent.changeText(input, 'abc');
@@ -353,6 +351,6 @@ describe('SnapUIForm', () => {
       },
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

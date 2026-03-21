@@ -131,12 +131,12 @@ describe('StakeConfirmationView', () => {
       },
     };
 
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Provider store={store}>
         <StakeConfirmationView {...props} />
       </Provider>,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

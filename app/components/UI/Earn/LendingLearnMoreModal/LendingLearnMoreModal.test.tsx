@@ -178,13 +178,12 @@ describe('LendingLearnMoreModal', () => {
   });
 
   it('render lending history apy chart', async () => {
-    const component = renderWithProvider(
+    const { toJSON, getByTestId } = renderWithProvider(
       <SafeAreaProvider initialMetrics={initialMetrics}>
         <LendingLearnMoreModal />
       </SafeAreaProvider>,
       { state: mockInitialState },
     );
-    const { getByTestId } = component;
 
     await waitFor(async () => {
       const chartContainer = getByTestId(
@@ -196,7 +195,7 @@ describe('LendingLearnMoreModal', () => {
 
       fireLayoutEvent(areaChart);
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

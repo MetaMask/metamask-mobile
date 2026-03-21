@@ -332,7 +332,7 @@ describe('BridgeView', () => {
   });
 
   it('renders', async () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       BridgeView,
       {
         name: Routes.BRIDGE.ROOT,
@@ -340,7 +340,7 @@ describe('BridgeView', () => {
       { state: mockState },
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
@@ -940,7 +940,7 @@ describe('BridgeView', () => {
           activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
         }));
 
-      const component = renderScreen(
+      const { toJSON } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
@@ -954,7 +954,7 @@ describe('BridgeView', () => {
         });
       });
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('displays hardware wallet not supported banner when using hardware wallet with Solana source', async () => {

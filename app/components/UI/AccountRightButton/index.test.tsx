@@ -69,7 +69,7 @@ describe('AccountRightButton', () => {
   });
 
   it('should render correctly', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => (
         <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
       ),
@@ -78,11 +78,11 @@ describe('AccountRightButton', () => {
       },
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly when a EVM network is selected', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => (
         <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
       ),
@@ -91,7 +91,7 @@ describe('AccountRightButton', () => {
       },
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly when a non-EVM network is selected', () => {
@@ -110,7 +110,7 @@ describe('AccountRightButton', () => {
       },
     };
 
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => (
         <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
       ),
@@ -120,7 +120,7 @@ describe('AccountRightButton', () => {
       { state: mockInitialStateNonEvm },
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call onPress when button is pressed and selectedAddress is present', () => {
@@ -140,14 +140,14 @@ describe('AccountRightButton', () => {
   });
 
   it('should render network avatar when selectedAddress is not provided (EVM)', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
       {
         name: 'AccountRightButton',
       },
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render network avatar when selectedAddress is not provided (non-EVM)', () => {
@@ -166,18 +166,18 @@ describe('AccountRightButton', () => {
       },
     };
 
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
       {
         name: 'AccountRightButton',
       },
       { state: mockInitialStateNonEvm },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render account avatar when selectedAddress is provided', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => (
         <AccountRightButton selectedAddress="0x123" onPress={() => undefined} />
       ),
@@ -186,7 +186,7 @@ describe('AccountRightButton', () => {
       },
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should navigate with EVM chainId when selectedAddress is empty and EVM is selected', () => {
@@ -272,7 +272,7 @@ describe('AccountRightButton', () => {
       },
     };
 
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => <AccountRightButton selectedAddress="" onPress={() => undefined} />,
       {
         name: 'AccountRightButton',
@@ -280,6 +280,6 @@ describe('AccountRightButton', () => {
       { state: mockInitialStateNonEvm },
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

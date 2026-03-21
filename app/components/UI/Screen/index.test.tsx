@@ -5,11 +5,11 @@ import Screen from './';
 
 describe('Screen', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <Screen>
         <View>Foobar</View>
       </Screen>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

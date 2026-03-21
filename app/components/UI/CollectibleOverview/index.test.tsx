@@ -19,7 +19,7 @@ const store = mockStore(initialState);
 
 describe('CollectibleOverview', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <CollectibleOverview
@@ -34,6 +34,6 @@ describe('CollectibleOverview', () => {
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

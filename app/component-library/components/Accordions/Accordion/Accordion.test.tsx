@@ -13,20 +13,20 @@ import {
 
 describe('Accordion - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <Accordion title={SAMPLE_ACCORDION_TITLE}>
         <View />
       </Accordion>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render a proper expanded state', () => {
-    const component = render(
+    const { toJSON } = render(
       <Accordion title={SAMPLE_ACCORDION_TITLE} isExpanded>
         <View />
       </Accordion>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 

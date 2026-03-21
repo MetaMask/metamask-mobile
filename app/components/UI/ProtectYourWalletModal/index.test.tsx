@@ -104,14 +104,14 @@ describe('ProtectYourWalletModal', () => {
     jest.clearAllMocks();
   });
   it('render matches snapshot', () => {
-    const component = render(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <ProtectYourWalletModal {...defaultProps} />
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('render title, top button and bottom button', () => {
@@ -219,7 +219,7 @@ describe('ProtectYourWalletModal', () => {
   });
 
   it('render matches snapshot when isSeedlessOnboardingLoginFlow is true', () => {
-    const component = renderWithProvider(
+    const { toJSON, queryByText } = renderWithProvider(
       <ProtectYourWalletModal />,
       {
         state: {
@@ -234,8 +234,7 @@ describe('ProtectYourWalletModal', () => {
         },
       },
     );
-    const { queryByText } = component;
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
     expect(queryByText(strings('protect_wallet_modal.title'))).toBeNull();
   });
 });

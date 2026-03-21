@@ -64,25 +64,24 @@ describe('TokenSelectorModal Component', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const component = renderWithProvider(TokenSelectorModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(TokenSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays network filter selector when pressing "All networks" button', async () => {
-    const component = renderWithProvider(TokenSelectorModal);
-    const { getByText } = component;
+    const { getByText, toJSON } = renderWithProvider(TokenSelectorModal);
     const allNetworksButton = getByText('All networks');
     fireEvent.press(allNetworksButton);
     await waitFor(() => {
       expect(getByText('Deselect all')).toBeTruthy();
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays empty state when no tokens match search', async () => {
     (useSearchTokenResults as jest.Mock).mockReturnValue([]);
-    const component = renderWithProvider(TokenSelectorModal);
-    const { getByPlaceholderText, getByText } = component;
+    const { getByPlaceholderText, getByText, toJSON } =
+      renderWithProvider(TokenSelectorModal);
 
     const searchInput = getByPlaceholderText('Search token by name or address');
     fireEvent.changeText(searchInput, 'Nonexistent Token');
@@ -90,7 +89,7 @@ describe('TokenSelectorModal Component', () => {
     await waitFor(() => {
       expect(getByText('No tokens match "Nonexistent Token"')).toBeTruthy();
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks RAMPS_TOKEN_SELECTED event with new properties when token is selected', () => {

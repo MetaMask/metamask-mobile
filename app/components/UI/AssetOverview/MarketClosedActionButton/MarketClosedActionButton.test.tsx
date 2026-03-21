@@ -12,7 +12,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 describe('MarketClosedActionButton', () => {
   it('renders correctly', () => {
     const mockOnPress = jest.fn();
-    const component = render(
+    const { toJSON } = render(
       <MarketClosedActionButton
         iconName={IconName.Add}
         label="Test Button"
@@ -20,7 +20,7 @@ describe('MarketClosedActionButton', () => {
         testID={MARKETCLOSED_ACTIONBUTTON_TEST_ID}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with custom label', () => {

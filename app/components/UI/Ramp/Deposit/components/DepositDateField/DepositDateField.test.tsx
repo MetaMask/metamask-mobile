@@ -19,28 +19,28 @@ describe('DepositDateField', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = render(<DepositDateField {...defaultProps} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<DepositDateField {...defaultProps} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('render matches snapshot with a value', () => {
     const value = new Date(2024, 0, 2).getTime().toString();
-    const component = render(
+    const { toJSON } = render(
       <DepositDateField {...defaultProps} value={value} />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('render matches snapshot with an error', () => {
-    const component = render(
+    const { toJSON } = render(
       <DepositDateField {...defaultProps} error="Invalid date format" />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('render matches snapshot with empty value', () => {
-    const component = render(<DepositDateField {...defaultProps} value="" />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<DepositDateField {...defaultProps} value="" />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('Platform specific rendering', () => {
@@ -52,24 +52,22 @@ describe('DepositDateField', () => {
 
     it('date picker matches snapshot on Android', () => {
       Platform.OS = 'android';
-      const component = render(
+      const { toJSON, getByTestId } = render(
         <DepositDateField {...defaultProps} />,
       );
-      const { getByTestId } = component;
       fireEvent.press(getByTestId('textfield'));
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('date picker matches snapshot on iOS', () => {
       Platform.OS = 'ios';
-      const component = render(
+      const { toJSON, getByTestId } = render(
         <DepositDateField {...defaultProps} />,
       );
-      const { getByTestId } = component;
       fireEvent.press(getByTestId('textfield'));
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

@@ -4,20 +4,20 @@ import SettingsNotification from './';
 
 describe('SettingsNotification', () => {
   it('should render correctly as warning', () => {
-    const component = render(
+    const { toJSON } = render(
       <SettingsNotification isWarning>
         {'this is a warning'}
       </SettingsNotification>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly as notification', () => {
-    const component = render(
+    const { toJSON } = render(
       <SettingsNotification isWarning isNotification>
         {'this is a notification'}
       </SettingsNotification>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

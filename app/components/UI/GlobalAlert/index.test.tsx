@@ -4,7 +4,7 @@ import GlobalAlert from './';
 
 describe('GlobalAlert', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(<GlobalAlert />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<GlobalAlert />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

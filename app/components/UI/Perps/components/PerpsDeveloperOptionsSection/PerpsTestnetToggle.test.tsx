@@ -51,12 +51,11 @@ describe('PerpsTestnetToggle', () => {
   it('renders correctly with testnet network', () => {
     mockUsePerpsNetwork.mockReturnValue('testnet');
 
-    const component = renderWithToastContext(
+    const { toJSON, getByTestId, getByText } = renderWithToastContext(
       <PerpsTestnetToggle />,
     );
-    const { getByTestId, getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
 
     const switchElement = getByTestId(PerpsTestnetToggleSelectorsIDs.SWITCH);
     expect(switchElement.props.value).toBe(true);

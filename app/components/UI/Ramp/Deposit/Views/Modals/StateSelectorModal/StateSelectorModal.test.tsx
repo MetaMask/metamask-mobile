@@ -137,51 +137,51 @@ describe('StateSelectorModal Component', () => {
 
   describe('Snapshot Tests', () => {
     it('renders initial state correctly', () => {
-      const component = renderWithProvider(StateSelectorModal);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = renderWithProvider(StateSelectorModal);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders filtered state when searching by name', () => {
-      const component = renderWithProvider(StateSelectorModal);
-      const { getByPlaceholderText } = component;
+      const { getByPlaceholderText, toJSON } =
+        renderWithProvider(StateSelectorModal);
       fireEvent.changeText(
         getByPlaceholderText('Search by state'),
         'California',
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders filtered state when searching by code', () => {
-      const component = renderWithProvider(StateSelectorModal);
-      const { getByPlaceholderText } = component;
+      const { getByPlaceholderText, toJSON } =
+        renderWithProvider(StateSelectorModal);
       fireEvent.changeText(getByPlaceholderText('Search by state'), 'CA');
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders empty state when no search results found', () => {
-      const component = renderWithProvider(StateSelectorModal);
-      const { getByPlaceholderText } = component;
+      const { getByPlaceholderText, toJSON } =
+        renderWithProvider(StateSelectorModal);
       fireEvent.changeText(
         getByPlaceholderText('Search by state'),
         'Nonexistent State',
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders partial search results', () => {
-      const component = renderWithProvider(StateSelectorModal);
-      const { getByPlaceholderText } = component;
+      const { getByPlaceholderText, toJSON } =
+        renderWithProvider(StateSelectorModal);
       fireEvent.changeText(getByPlaceholderText('Search by state'), 'Cal');
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders cleared search state', () => {
-      const component = renderWithProvider(StateSelectorModal);
-      const { getByPlaceholderText, getByTestId } = component;
+      const { getByPlaceholderText, getByTestId, toJSON } =
+        renderWithProvider(StateSelectorModal);
       fireEvent.changeText(getByPlaceholderText('Search by state'), 'Cal');
       const clearButton = getByTestId('textfield-endacccessory');
       fireEvent.press(clearButton);
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

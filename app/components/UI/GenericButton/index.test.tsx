@@ -5,15 +5,15 @@ import GenericButtonAndroid from './index.android';
 
 describe('GenericButton', () => {
   it('should render correctly on iOS', () => {
-    const component = render(<GenericButtonIos />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<GenericButtonIos />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly on android', () => {
     jest.doMock('react-native/Libraries/Utilities/Platform', () => ({
       OS: 'android',
     }));
-    const component = render(<GenericButtonAndroid />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<GenericButtonAndroid />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

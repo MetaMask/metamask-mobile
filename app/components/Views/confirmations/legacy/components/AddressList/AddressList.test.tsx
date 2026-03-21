@@ -111,8 +111,8 @@ describe('AddressList', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderComponent(initialState);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders both my accounts and address book when onlyRenderAddressBook is false', async () => {

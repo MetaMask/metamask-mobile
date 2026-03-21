@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../util/test/renderWithProvider';
 
 describe('Empty', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(<Empty />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<Empty />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

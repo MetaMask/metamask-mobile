@@ -12,7 +12,7 @@ import {
 
 describe('ButtonIcon', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <ButtonIcon
         iconColor={DEFAULT_BUTTONICON_ICONCOLOR}
         iconName={DEFAULT_BUTTONICON_ICONNAME}
@@ -20,6 +20,6 @@ describe('ButtonIcon', () => {
         onPress={jest.fn}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

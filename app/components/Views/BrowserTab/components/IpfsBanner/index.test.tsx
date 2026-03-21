@@ -19,10 +19,10 @@ describe('IpfsBanner', () => {
   });
 
   it('should render banner correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <IpfsBanner setIpfsBannerVisible={mockSetIpfsBannerVisible} />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call setIpfsBannerVisible with false when banner is closed', () => {

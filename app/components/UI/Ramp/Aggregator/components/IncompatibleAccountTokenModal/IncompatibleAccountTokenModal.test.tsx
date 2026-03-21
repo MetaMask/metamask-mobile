@@ -22,7 +22,7 @@ describe('IncompatibleAccountTokenModal', () => {
   });
 
   it('renders the modal with the correct title and description', () => {
-    const component = render(IncompatibleAccountTokenModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(IncompatibleAccountTokenModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

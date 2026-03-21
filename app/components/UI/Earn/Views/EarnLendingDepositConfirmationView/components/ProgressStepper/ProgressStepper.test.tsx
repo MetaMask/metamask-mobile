@@ -30,12 +30,11 @@ describe('ProgressStepper', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON, getByText } = renderWithProvider(
       <ProgressStepper {...defaultProps} />,
     );
-    const { getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
     expect(getByText(strings('earn.approve'))).toBeDefined();
     expect(getByText(strings('earn.deposit'))).toBeDefined();
   });
@@ -43,10 +42,9 @@ describe('ProgressStepper', () => {
   it('renders first step pending state when active step is 0', () => {
     const firstStepPendingProps = getProps({ activeStep: 0 });
 
-    const component = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
-    const { queryAllByTestId, queryByTestId } = component;
 
     const progressBar = queryByTestId(PROGRESS_STEPPER_TEST_IDS.PROGRESS_BAR);
 
@@ -64,16 +62,15 @@ describe('ProgressStepper', () => {
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(0);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders first step complete and second step pending state when active step is 1', () => {
     const firstStepPendingProps = getProps({ activeStep: 1 });
 
-    const component = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
-    const { queryAllByTestId, queryByTestId } = component;
 
     const progressBar = queryByTestId(PROGRESS_STEPPER_TEST_IDS.PROGRESS_BAR);
 
@@ -91,16 +88,15 @@ describe('ProgressStepper', () => {
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(1);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders first and second step complete state when active step is 2', () => {
     const firstStepPendingProps = getProps({ activeStep: 2 });
 
-    const component = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
-    const { queryAllByTestId, queryByTestId } = component;
 
     const progressBar = queryByTestId(PROGRESS_STEPPER_TEST_IDS.PROGRESS_BAR);
 
@@ -118,7 +114,7 @@ describe('ProgressStepper', () => {
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(2);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders first step loading when isLoading prop set to true for firt step', () => {
@@ -130,10 +126,9 @@ describe('ProgressStepper', () => {
       steps: [firstStepLoading, secondStep],
     });
 
-    const component = renderWithProvider(
+    const { toJSON, queryAllByTestId, queryByTestId } = renderWithProvider(
       <ProgressStepper {...firstStepPendingProps} />,
     );
-    const { queryAllByTestId, queryByTestId } = component;
 
     const progressBar = queryByTestId(PROGRESS_STEPPER_TEST_IDS.PROGRESS_BAR);
 
@@ -151,6 +146,6 @@ describe('ProgressStepper', () => {
       queryAllByTestId(PROGRESS_STEPPER_TEST_IDS.STEP_ICON.COMPLETED).length,
     ).toBe(0);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

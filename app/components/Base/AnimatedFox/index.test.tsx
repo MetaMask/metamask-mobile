@@ -31,7 +31,7 @@ describe('AnimatedFox', () => {
       3 * 1024 * 1024 * 1024,
     ); // Mock 3GB device
 
-    const component = render(<AnimatedFox bgColor="black" />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<AnimatedFox bgColor="black" />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -51,8 +51,8 @@ describe('QuoteExpiredModal', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderQuoteExpiredModal();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderQuoteExpiredModal();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('resets BridgeController state, updates quote params, and closes modal when get new quote button is pressed', () => {

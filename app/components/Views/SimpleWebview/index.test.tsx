@@ -35,9 +35,9 @@ describe('SimpleWebview', () => {
   });
 
   it('renders correctly', () => {
-    const component = render(<SimpleWebview />);
+    const { toJSON } = render(<SimpleWebview />);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets navigation options on mount', () => {

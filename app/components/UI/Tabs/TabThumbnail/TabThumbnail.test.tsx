@@ -28,7 +28,7 @@ describe('TabThumbnail', () => {
   });
 
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <TabThumbnail
         tab={mockTab}
         isActiveTab
@@ -43,7 +43,7 @@ describe('TabThumbnail', () => {
         },
       },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should handle tab switching', () => {

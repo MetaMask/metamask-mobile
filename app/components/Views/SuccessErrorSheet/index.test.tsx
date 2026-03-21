@@ -50,10 +50,10 @@ describe('SuccessErrorSheet', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <SuccessErrorSheet route={mockRoute} />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with all props', () => {

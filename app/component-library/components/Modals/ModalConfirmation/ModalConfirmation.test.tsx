@@ -16,7 +16,7 @@ jest.mock('@react-navigation/native', () => ({
 
 describe('ModalConfirmation', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <ModalConfirmation
         route={{
           params: {
@@ -27,7 +27,7 @@ describe('ModalConfirmation', () => {
         }}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should show normal variant button', () => {
     render(

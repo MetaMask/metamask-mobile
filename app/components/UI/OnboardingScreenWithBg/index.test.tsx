@@ -5,20 +5,20 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('OnboardingScreenWithBg', () => {
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <OnboardingScreenWithBg screen={'carousel'}>
         <Text>Test</Text>
       </OnboardingScreenWithBg>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with background color and image', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <OnboardingScreenWithBg screen={'a'} backgroundColor={'red'}>
         <Text>Test</Text>
       </OnboardingScreenWithBg>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -7,7 +7,7 @@ import Tag from './Tag';
 
 describe('Tag', () => {
   it('should render correctly', () => {
-    const component = render(<Tag label={'Imported'} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<Tag label={'Imported'} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

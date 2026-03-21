@@ -4,9 +4,9 @@ import { render } from '@testing-library/react-native';
 
 describe('NavigationUnitTest', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <NavigationUnitTest firstRoute={'TestScreen1'} />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

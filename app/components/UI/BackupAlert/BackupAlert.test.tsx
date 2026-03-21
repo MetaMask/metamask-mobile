@@ -31,7 +31,7 @@ describe('BackupAlert', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <BackupAlert navigation={mockNavigation} onDismiss={() => null} />,
       {
         state: initialState,
@@ -39,7 +39,7 @@ describe('BackupAlert', () => {
       true,
       false,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to backupFlow when Protect Wallet button is pressed', () => {

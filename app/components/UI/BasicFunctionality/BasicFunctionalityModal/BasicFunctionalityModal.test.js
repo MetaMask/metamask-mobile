@@ -76,11 +76,11 @@ describe('BasicFunctionalityModal', () => {
   });
 
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <BasicFunctionalityModal route={mockRoute} />,
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   // Test coverage for the new thunk action integration

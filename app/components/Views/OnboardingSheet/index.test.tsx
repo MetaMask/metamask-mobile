@@ -56,8 +56,8 @@ describe('OnboardingSheet', () => {
 
   describe('Snapshots', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
-      const component = render(<OnboardingSheet {...defaultProps} />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<OnboardingSheet {...defaultProps} />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {
@@ -69,8 +69,8 @@ describe('OnboardingSheet', () => {
           },
         },
       };
-      const component = render(<OnboardingSheet {...propsWithCreateWallet} />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<OnboardingSheet {...propsWithCreateWallet} />);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

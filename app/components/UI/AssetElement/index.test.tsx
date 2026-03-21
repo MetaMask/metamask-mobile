@@ -35,8 +35,8 @@ describe('AssetElement', () => {
   });
 
   it('renders correctly', () => {
-    const component = render(<AssetElement asset={erc20Token} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<AssetElement asset={erc20Token} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the main balance if provided', () => {

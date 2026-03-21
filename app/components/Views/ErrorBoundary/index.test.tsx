@@ -90,8 +90,8 @@ describe('ErrorBoundary', () => {
   });
 
   it('render matches snapshot', async () => {
-    const component = renderWithProvider(<ErrorBoundary />, {});
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks error event when error is thrown by child component', async () => {
@@ -269,7 +269,7 @@ describe('ErrorBoundary', () => {
     };
 
     it('renders onboarding error state snapshot', () => {
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <ErrorBoundary
           view="Login"
           navigation={mockNavigation}
@@ -277,7 +277,7 @@ describe('ErrorBoundary', () => {
           useOnboardingErrorHandling
         />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('uses onboarding error config when useOnboardingErrorHandling is true', () => {

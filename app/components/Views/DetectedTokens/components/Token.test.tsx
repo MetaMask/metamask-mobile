@@ -71,19 +71,18 @@ describe('Token Component', () => {
     );
 
   it('renders correctly', () => {
-    const component = renderComponent();
-    const { getByText } = component;
+    const { getByText, toJSON } = renderComponent();
 
     // Verifying key elements render
     expect(getByText('0 ABC')).toBeTruthy();
     expect(getByText('Token address:')).toBeTruthy();
 
     // Snapshot test
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with token chainId', () => {
-    const component = render(
+    const { getByText, toJSON } = render(
       <Token
         token={
           {
@@ -99,14 +98,13 @@ describe('Token Component', () => {
         toggleSelected={jest.fn()}
       />,
     );
-    const { getByText } = component;
 
     // Verifying key elements render
     expect(getByText('0 ABC')).toBeTruthy();
     expect(getByText('Token address:')).toBeTruthy();
 
     // Snapshot test
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('expands token aggregator list on "show more" press', () => {
@@ -121,15 +119,15 @@ describe('Token Component', () => {
   });
 
   it('matches snapshot when token is selected', () => {
-    const component = renderComponent(true);
+    const { toJSON } = renderComponent(true);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot when token is not selected', () => {
-    const component = renderComponent(false);
+    const { toJSON } = renderComponent(false);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('copies address to clipboard and triggers alert', async () => {

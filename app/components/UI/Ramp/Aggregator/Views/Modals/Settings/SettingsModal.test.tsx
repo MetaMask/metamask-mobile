@@ -84,8 +84,8 @@ describe('SettingsModal', () => {
   });
 
   it('renders snapshot correctly', () => {
-    const component = render();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays settings title in header', () => {

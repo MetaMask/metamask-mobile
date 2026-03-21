@@ -120,8 +120,8 @@ describe('ConfigurationModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(ConfigurationModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(ConfigurationModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should navigate to order history when view order history is pressed', () => {

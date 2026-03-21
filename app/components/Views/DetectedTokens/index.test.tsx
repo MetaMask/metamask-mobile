@@ -109,12 +109,11 @@ describe('DetectedTokens Component', () => {
   });
 
   it('renders correctly with detected tokens', () => {
-    const component = render(
+    const { getByText, toJSON } = render(
       <ThemeContext.Provider value={mockTheme}>
         <DetectedTokens />
       </ThemeContext.Provider>,
     );
-    const { getByText } = component;
 
     expect(getByText('2 new tokens found')).toBeTruthy();
     expect(getByText('0 TKN1')).toBeTruthy();
@@ -122,7 +121,7 @@ describe('DetectedTokens Component', () => {
     expect(getByText('Import (2)')).toBeTruthy();
 
     // Snapshot test
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot when no detected tokens', () => {
@@ -134,13 +133,13 @@ describe('DetectedTokens Component', () => {
       return {};
     });
 
-    const component = render(
+    const { toJSON } = render(
       <ThemeContext.Provider value={mockTheme}>
         <DetectedTokens />
       </ThemeContext.Provider>,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to confirmation on "Hide All" button press', () => {

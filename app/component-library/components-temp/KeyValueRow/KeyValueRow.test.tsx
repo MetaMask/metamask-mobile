@@ -17,18 +17,18 @@ describe('KeyValueRow', () => {
   describe('Prebuilt Component', () => {
     describe('KeyValueRow', () => {
       it('should render when there is only text', () => {
-        const component = render(
+        const { toJSON } = render(
           <KeyValueRow
             field={{ label: { text: 'Sample Key Text' } }}
             value={{ label: { text: 'Sample Value Text' } }}
           />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(toJSON()).toMatchSnapshot();
       });
 
       it('should render text with tooltips', () => {
-        const component = render(
+        const { toJSON } = render(
           <KeyValueRow
             field={{
               label: { text: 'Key Text' },
@@ -47,11 +47,11 @@ describe('KeyValueRow', () => {
           />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(toJSON()).toMatchSnapshot();
       });
 
       it('should render text with icons', () => {
-        const component = render(
+        const { toJSON } = render(
           <KeyValueRow
             field={{
               label: { text: 'Key Text' },
@@ -68,11 +68,11 @@ describe('KeyValueRow', () => {
           />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(toJSON()).toMatchSnapshot();
       });
 
       it('should render text with icons and tooltips', () => {
-        const component = render(
+        const { toJSON } = render(
           <KeyValueRow
             field={{
               label: { text: 'Key Text' },
@@ -97,7 +97,7 @@ describe('KeyValueRow', () => {
           />,
         );
 
-        expect(component).toMatchSnapshot();
+        expect(toJSON()).toMatchSnapshot();
       });
     });
   });

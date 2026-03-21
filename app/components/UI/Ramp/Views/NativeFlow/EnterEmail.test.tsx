@@ -77,8 +77,8 @@ describe('V2EnterEmail', () => {
   });
 
   it('matches snapshot', () => {
-    const component = renderWithTheme(<V2EnterEmail />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithTheme(<V2EnterEmail />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the email input and submit button', () => {

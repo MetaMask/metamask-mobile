@@ -112,11 +112,11 @@ describe('AccountConnectMultiSelector', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <AccountConnectMultiSelector {...defaultProps} />,
       { state: { engine: { backgroundState } } },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays accounts list', () => {

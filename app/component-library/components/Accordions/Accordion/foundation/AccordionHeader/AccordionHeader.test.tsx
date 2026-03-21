@@ -16,16 +16,16 @@ import {
 
 describe('AccordionHeader - Snapshot', () => {
   it('should render default settings correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render a rotated down Arrow if isExpanded is true', () => {
-    const component = render(
+    const { toJSON } = render(
       <AccordionHeader title={SAMPLE_ACCORDIONHEADER_TITLE} isExpanded />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 

@@ -87,7 +87,7 @@ describe('SnapUIAccountSelector', () => {
   };
 
   it('renders an account selector', () => {
-    const component = renderInterface(
+    const { getByTestId, toJSON } = renderInterface(
       Box({
         children: AccountSelector({
           name: 'account-selector',
@@ -104,10 +104,9 @@ describe('SnapUIAccountSelector', () => {
         },
       },
     );
-    const { getByTestId } = component;
 
     expect(getByTestId('snap-ui-renderer__selector')).toBeTruthy();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('can switch account', async () => {
@@ -212,7 +211,7 @@ describe('SnapUIAccountSelector', () => {
   });
 
   it('renders inside a field', () => {
-    const component = renderInterface(
+    const { toJSON, getByText } = renderInterface(
       Box({
         children: Field({
           label: 'Account Selector',
@@ -232,10 +231,9 @@ describe('SnapUIAccountSelector', () => {
         },
       },
     );
-    const { getByText } = component;
 
     expect(getByText('Account Selector')).toBeTruthy();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('can show an error', () => {

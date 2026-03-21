@@ -83,10 +83,10 @@ describe('Settings', () => {
   });
 
   it('renders settings component with all sections', () => {
-    const component = renderWithProvider(<Settings />, {
+    const { toJSON } = renderWithProvider(<Settings />, {
       state: initialState,
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders header with correct title', () => {

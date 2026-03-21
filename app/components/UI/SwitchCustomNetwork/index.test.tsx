@@ -72,13 +72,13 @@ jest.mock('../../../components/hooks/useAccounts', () => {
 
 describe('SwitchCustomNetwork', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <SwitchCustomNetwork
         customNetworkInformation={{ chainName: '', chainId: '' }}
         currentPageInformation={{ url: 'https://app.uniswap.org/' }}
       />,
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

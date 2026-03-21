@@ -56,12 +56,11 @@ describe('ConfirmationFooter', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON, getByText } = renderWithProvider(
       <ConfirmationFooter {...defaultProps} />,
     );
-    const { getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
     expect(getByText(strings('earn.confirm'))).toBeDefined();
     expect(getByText(strings('earn.cancel'))).toBeDefined();
     expect(getByText(strings('earn.approve'))).toBeDefined();

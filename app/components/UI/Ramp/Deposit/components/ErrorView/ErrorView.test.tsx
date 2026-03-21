@@ -28,12 +28,12 @@ describe('ErrorView Component', () => {
   });
 
   it('renders with default props and matches snapshot', () => {
-    const component = renderWithProvider(() => <ErrorView />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(() => <ErrorView />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with all props and matches snapshot', () => {
-    const component = renderWithProvider(() => (
+    const { toJSON } = renderWithProvider(() => (
       <ErrorView
         title="Custom Error Title"
         description="Custom error description"
@@ -41,7 +41,7 @@ describe('ErrorView Component', () => {
         ctaOnPress={mockCtaOnPress}
       />
     ));
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls ctaOnPress when button is pressed', () => {

@@ -28,8 +28,7 @@ describe('TokenDetails', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderComponent();
-    const { getByText } = component;
+    const { toJSON, getByText } = renderComponent();
 
     expect(getByText('Token details')).toBeDefined();
     expect(getByText('Contract address')).toBeDefined();
@@ -38,6 +37,6 @@ describe('TokenDetails', () => {
     expect(getByText('18')).toBeDefined();
     expect(getByText('Token list')).toBeDefined();
     expect(getByText('Metamask, Coinmarketcap')).toBeDefined();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

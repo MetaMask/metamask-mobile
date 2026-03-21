@@ -43,13 +43,13 @@ describe('ChangeInSimulationModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <ChangeInSimulationModal route={NAVIGATION_PARAMS_MOCK} />,
       {
         state: mockInitialState,
       },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onProceed and onReject callbacks', () => {

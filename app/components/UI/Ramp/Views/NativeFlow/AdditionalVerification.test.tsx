@@ -60,8 +60,8 @@ describe('V2AdditionalVerification', () => {
   });
 
   it('matches snapshot', () => {
-    const component = renderWithTheme(<V2AdditionalVerification />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithTheme(<V2AdditionalVerification />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls navigateToKycWebview when continue button is pressed', () => {

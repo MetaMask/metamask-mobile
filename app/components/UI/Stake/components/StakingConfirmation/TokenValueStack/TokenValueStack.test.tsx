@@ -27,7 +27,7 @@ describe('TokenValueStack', () => {
       tokenSymbol: 'wETH',
     };
 
-    const component = renderWithProvider(
+    const { getByText, toJSON } = renderWithProvider(
       <TokenValueStack {...props} />,
       {
         state: {
@@ -39,13 +39,12 @@ describe('TokenValueStack', () => {
         },
       },
     );
-    const { getByText } = component;
 
     expect(
       getByText(`${renderFromWei(props.amountWei)} ${props.tokenSymbol}`),
     ).toBeDefined(); // 0.00321 wETH
     expect(getByText(props.amountFiat)).toBeDefined();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -32,12 +32,12 @@ describe('DeveloperOptions', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       DeveloperOptions,
       { name: 'DeveloperOptions' },
       { state: initialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('does not render PerpsDeveloperOptionsSection when Perps is not enabled', () => {

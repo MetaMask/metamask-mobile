@@ -31,12 +31,12 @@ beforeEach(() => {
 
 describe('UpdateNeeded', () => {
   it('should render snapshot correctly', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       UpdateNeeded,
       { name: 'UpdateNeeded' },
       { state: {} },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render correctly', () => {
     const { getByText, getByTestId } = renderScreen(

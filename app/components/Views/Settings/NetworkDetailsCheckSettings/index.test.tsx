@@ -43,8 +43,8 @@ describe('NetworkDetailsCheckSettings', () => {
       if (selector === selectUseSafeChainsListValidation) return false;
       return null;
     });
-    const component = renderWithProvider(<NetworkDetailsCheckSettings />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<NetworkDetailsCheckSettings />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render the Network Details Check section', () => {

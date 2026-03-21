@@ -139,9 +139,9 @@ describe('NetworkDetails', () => {
         if (selector === selectUseSafeChainsListValidation) return true;
       },
     );
-    const component = renderWithTheme(<NetworkModal {...props} />);
+    const { toJSON } = renderWithTheme(<NetworkModal {...props} />);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call setTokenNetworkFilter when switching networks', async () => {

@@ -63,8 +63,8 @@ describe('ErrorDetailsModal', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const component = renderWithProvider(ErrorDetailsModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with a multiline error message', () => {
@@ -73,8 +73,8 @@ describe('ErrorDetailsModal', () => {
         'Error on line 1.\nError on line 2.\nAdditional context for debugging.',
     });
 
-    const component = renderWithProvider(ErrorDetailsModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with an empty error message', () => {
@@ -82,8 +82,8 @@ describe('ErrorDetailsModal', () => {
       errorMessage: '',
     });
 
-    const component = renderWithProvider(ErrorDetailsModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders with provider support info and matches snapshot', () => {
@@ -93,8 +93,8 @@ describe('ErrorDetailsModal', () => {
       providerSupportUrl: 'https://support.transak.com',
     });
 
-    const component = renderWithProvider(ErrorDetailsModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('closes the modal when the close button is pressed', () => {
@@ -172,8 +172,8 @@ describe('ErrorDetailsModal', () => {
       showChangeProvider: true,
     });
 
-    const component = renderWithProvider(ErrorDetailsModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to provider selection when Change provider is pressed', () => {

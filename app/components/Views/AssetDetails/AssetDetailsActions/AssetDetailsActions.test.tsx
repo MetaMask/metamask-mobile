@@ -103,11 +103,11 @@ describe('AssetDetailsActions', () => {
   });
 
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <AssetDetailsActions {...defaultProps} />,
       { state: initialRootState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with all buttons displayed', () => {

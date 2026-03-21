@@ -13,7 +13,7 @@ const ActionViewComponent = () => (
 
 describe('ActionView', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(<ActionViewComponent />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<ActionViewComponent />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

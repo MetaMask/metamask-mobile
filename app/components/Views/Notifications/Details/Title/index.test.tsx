@@ -21,7 +21,7 @@ describe('Header', () => {
   const DESCRIPTION = 'This is a mock of description';
 
   it('should render correctly', () => {
-    const component = render(<Header title={TITLE} subtitle={DESCRIPTION} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<Header title={TITLE} subtitle={DESCRIPTION} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -48,9 +48,9 @@ describe('EligibilityFailedModal', () => {
   });
 
   it('renders modal with title and description', () => {
-    const component = render(EligibilityFailedModal);
+    const { toJSON } = render(EligibilityFailedModal);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
   it('navigates to contact support when the contact support button is pressed', () => {
     const { getByText } = render(EligibilityFailedModal);

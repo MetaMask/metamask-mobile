@@ -33,8 +33,8 @@ describe('PermittedNetworksInfoSheet', () => {
   });
 
   it('should render correctly', () => {
-    const component = renderWithProvider(<PermittedNetworksInfoSheet />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<PermittedNetworksInfoSheet />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should display the correct title', () => {

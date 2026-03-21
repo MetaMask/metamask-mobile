@@ -164,13 +164,13 @@ describe('AccountFromToInfoCard', () => {
   });
 
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <Provider store={store}>
         {/* @ts-expect-error: Rest props are ignored for testing purposes */}
         <AccountFromToInfoCard transactionState={transactionState} />
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match snapshot', async () => {

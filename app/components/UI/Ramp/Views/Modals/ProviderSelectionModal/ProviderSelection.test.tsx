@@ -165,8 +165,8 @@ describe('ProviderSelection', () => {
   });
 
   it('matches snapshot when no quotes are available', () => {
-    const component = renderWithProvider();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot when quotes are loading', () => {
@@ -177,10 +177,10 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const component = renderWithProvider(mockProviders, mockProviders[0], {
+    const { toJSON } = renderWithProvider(mockProviders, mockProviders[0], {
       quotesLoading: true,
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders skeleton loading state when quotes are loading', () => {
@@ -209,17 +209,16 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const component = renderWithProvider(
+    const { toJSON, getByText } = renderWithProvider(
       mockProviders,
       mockProviders[0],
       { quotesError: 'Failed to load quotes' },
     );
-    const { getByText } = component;
 
     await waitFor(() => {
       expect(getByText('Failed to load quotes')).toBeOnTheScreen();
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onBack when back button is pressed', () => {
@@ -236,7 +235,7 @@ describe('ProviderSelection', () => {
       providers: mockProviders,
       selectedProvider: mockProviders[0],
     });
-    const component = renderWithProvider(
+    const { toJSON, getByText } = renderWithProvider(
       mockProviders,
       mockProviders[0],
       {
@@ -249,12 +248,11 @@ describe('ProviderSelection', () => {
         },
       },
     );
-    const { getByText } = component;
 
     await waitFor(() => {
       expect(getByText('Transak')).toBeOnTheScreen();
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('filters out quotes for providers not in the providers array', async () => {

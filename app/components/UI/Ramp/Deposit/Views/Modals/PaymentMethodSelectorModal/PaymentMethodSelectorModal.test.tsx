@@ -54,8 +54,8 @@ describe('PaymentMethodSelectorModal Component', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const component = renderWithProvider(PaymentMethodSelectorModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(PaymentMethodSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays payment methods and allows selection', async () => {

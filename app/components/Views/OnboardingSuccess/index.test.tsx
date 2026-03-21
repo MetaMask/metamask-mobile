@@ -107,33 +107,33 @@ describe('OnboardingSuccessComponent', () => {
   });
 
   it('renders matching snapshot when successFlow is BACKED_UP_SRP', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders matching snapshot when successFlow is NO_BACKED_UP_SRP', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders matching snapshot when successFlow is IMPORT_FROM_SEED_PHRASE', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <OnboardingSuccessComponent
         onDone={jest.fn()}
         successFlow={ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls discoverAccounts when onDone is called', () => {
@@ -257,40 +257,40 @@ describe('OnboardingSuccess', () => {
 
   describe('route params successFlow is IMPORT_FROM_SEED_PHRASE', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP false', () => {
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <OnboardingSuccess
           route={createMockRoute(
             ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
           )}
         />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('fails to add networks to the network controller but renders the component', async () => {
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <OnboardingSuccess
           route={createMockRoute(
             ONBOARDING_SUCCESS_FLOW.IMPORT_FROM_SEED_PHRASE,
           )}
         />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
   describe('route params successFlow is NO_BACKED_UP_SRP', () => {
     it('renders matching snapshot with route params backedUpSRP true and noSRP false', () => {
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <OnboardingSuccess
           route={createMockRoute(ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP)}
         />,
       );
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
@@ -311,12 +311,12 @@ describe('OnboardingSuccess', () => {
 
   describe('route params successFlow is BACKED_UP_SRP', () => {
     it('renders matching snapshot with route params backedUpSRP false and noSRP true', () => {
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <OnboardingSuccess
           route={createMockRoute(ONBOARDING_SUCCESS_FLOW.BACKED_UP_SRP)}
         />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -328,7 +328,7 @@ describe('OnboardingSuccess', () => {
         name: 'OnboardingSuccess' as const,
       };
 
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <OnboardingSuccess
           route={
             routeWithNoParams as unknown as ReturnType<typeof createMockRoute>
@@ -336,7 +336,7 @@ describe('OnboardingSuccess', () => {
         />,
       );
       // Should render with default BACKED_UP_SRP flow
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('uses default successFlow when successFlow param is undefined', () => {
@@ -346,7 +346,7 @@ describe('OnboardingSuccess', () => {
         name: 'OnboardingSuccess' as const,
       };
 
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <OnboardingSuccess
           route={
             routeWithEmptyParams as unknown as ReturnType<
@@ -356,7 +356,7 @@ describe('OnboardingSuccess', () => {
         />,
       );
       // Should render with default BACKED_UP_SRP flow
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

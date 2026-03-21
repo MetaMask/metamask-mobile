@@ -23,18 +23,16 @@ describe('FooterLegalLinks', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(<FooterLegalLinks />);
-    const { getByText } = component;
+    const { getByText, toJSON } = renderWithProvider(<FooterLegalLinks />);
 
     expect(getByText(strings('stake.terms_of_service'))).toBeDefined();
     expect(getByText(strings('stake.risk_disclosure'))).toBeDefined();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to terms of use web page', () => {
-    const component = renderWithProvider(<FooterLegalLinks />);
-    const { getByText } = component;
+    const { getByText, toJSON } = renderWithProvider(<FooterLegalLinks />);
 
     fireEvent.press(getByText(strings('stake.terms_of_service')));
 
@@ -44,12 +42,11 @@ describe('FooterLegalLinks', () => {
       screen: 'SimpleWebview',
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to risk disclosure web page', () => {
-    const component = renderWithProvider(<FooterLegalLinks />);
-    const { getByText } = component;
+    const { getByText, toJSON } = renderWithProvider(<FooterLegalLinks />);
 
     fireEvent.press(getByText(strings('stake.risk_disclosure')));
 
@@ -59,6 +56,6 @@ describe('FooterLegalLinks', () => {
       screen: 'SimpleWebview',
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

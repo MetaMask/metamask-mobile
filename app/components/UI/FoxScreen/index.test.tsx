@@ -4,7 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('FoxScreen', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(<FoxScreen />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<FoxScreen />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

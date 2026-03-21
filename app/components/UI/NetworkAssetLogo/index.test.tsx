@@ -13,7 +13,7 @@ describe('NetworkAssetLogo Component', () => {
   });
 
   it('matches the snapshot for non-mainnet', () => {
-    const component = render(
+    const { toJSON } = render(
       <NetworkAssetLogo
         chainId="42"
         ticker="DAI"
@@ -24,7 +24,7 @@ describe('NetworkAssetLogo Component', () => {
       />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders TokenIcon with ETH for mainnet chainId', () => {

@@ -269,11 +269,11 @@ describe('QrScanner', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <QrScanner onScanSuccess={jest.fn()} />,
       { state: initialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('requests permission when hasPermission is false', async () => {

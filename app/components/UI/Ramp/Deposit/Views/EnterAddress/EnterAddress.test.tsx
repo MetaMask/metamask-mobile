@@ -135,8 +135,8 @@ describe('EnterAddress Component', () => {
   });
 
   it('render matches snapshot', async () => {
-    const component = render(EnterAddress);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(EnterAddress);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays form validation errors when continue is pressed with empty fields', async () => {
@@ -203,8 +203,8 @@ describe('EnterAddress Component', () => {
       selectedRegion: { isoCode: 'FR', name: 'France', flag: '🇫🇷' },
     };
 
-    const component = render(EnterAddress);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(EnterAddress);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('validates address line 2 when provided', async () => {

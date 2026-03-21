@@ -25,7 +25,7 @@ describe('TokenNetworkFilterBar', () => {
   });
 
   it('renders correctly with all networks selected (null)', () => {
-    const component = render(
+    const { toJSON } = render(
       <TokenNetworkFilterBar
         networks={mockNetworks}
         networkFilter={null}
@@ -33,11 +33,11 @@ describe('TokenNetworkFilterBar', () => {
       />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with all networks selected (empty array)', () => {
-    const component = render(
+    const { toJSON } = render(
       <TokenNetworkFilterBar
         networks={mockNetworks}
         networkFilter={[]}
@@ -45,11 +45,11 @@ describe('TokenNetworkFilterBar', () => {
       />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly with single network selected', () => {
-    const component = render(
+    const { toJSON } = render(
       <TokenNetworkFilterBar
         networks={mockNetworks}
         networkFilter={['eip155:1'] as CaipChainId[]}
@@ -57,7 +57,7 @@ describe('TokenNetworkFilterBar', () => {
       />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('handleAllPress', () => {

@@ -4,7 +4,7 @@ import AssetList from './';
 
 describe('AssetList', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <AssetList
         searchQuery={''}
         searchResults={[]}
@@ -12,6 +12,6 @@ describe('AssetList', () => {
         selectedAsset={{ address: '0xABC', symbol: 'ABC', decimals: 0 }}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -241,12 +241,12 @@ describe('SampleFeature', () => {
       mockSelectSampleFeatureCounterEnabled.mockReturnValue(true);
 
       // Act
-      const component = renderWithProvider(<SampleFeature />, {
+      const { toJSON } = renderWithProvider(<SampleFeature />, {
         state: initialRootState,
       });
 
       // Assert
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('matches rendered snapshot when feature flag is disabled', () => {
@@ -254,12 +254,12 @@ describe('SampleFeature', () => {
       mockSelectSampleFeatureCounterEnabled.mockReturnValue(false);
 
       // Act
-      const component = renderWithProvider(<SampleFeature />, {
+      const { toJSON } = renderWithProvider(<SampleFeature />, {
         state: initialRootState,
       });
 
       // Assert
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

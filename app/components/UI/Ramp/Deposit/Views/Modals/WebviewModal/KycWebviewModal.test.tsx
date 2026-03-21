@@ -74,8 +74,8 @@ describe('KycWebviewModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = render(KycWebviewModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(KycWebviewModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls the hook when component mounts', () => {

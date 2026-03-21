@@ -121,8 +121,7 @@ const render = (state = STATE_MOCK) =>
 
 describe('Staking Earnings', () => {
   it('should render correctly', () => {
-    const component = render();
-    const { getByText, queryByText } = component;
+    const { toJSON, getByText, queryByText } = render();
 
     expect(getByText(strings('stake.your_earnings'))).toBeDefined();
     expect(getByText(strings('stake.annual_rate'))).toBeDefined();
@@ -136,7 +135,7 @@ describe('Staking Earnings', () => {
         strings('earn.service_interruption_banner.maintenance_message'),
       ),
     ).toBeNull();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays pooled-staking maintenance banner when feature flag is enabled', () => {
@@ -146,10 +145,9 @@ describe('Staking Earnings', () => {
       >
     ).mockReturnValue(true);
 
-    const component = render();
-    const { getByText } = component;
+    const { toJSON, getByText } = render();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings('earn.service_interruption_banner.maintenance_message'),

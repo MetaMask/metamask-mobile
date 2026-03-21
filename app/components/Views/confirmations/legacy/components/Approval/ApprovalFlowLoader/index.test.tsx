@@ -4,7 +4,7 @@ import ApprovalFlowLoader from '.';
 
 describe('ApprovalFlowLoader', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(<ApprovalFlowLoader />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<ApprovalFlowLoader />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

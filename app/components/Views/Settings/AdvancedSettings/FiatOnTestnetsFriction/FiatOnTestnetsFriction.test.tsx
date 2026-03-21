@@ -26,8 +26,8 @@ jest.mock('@react-navigation/native', () => {
 
 describe('Show fiat on testnets friction bottom sheet', () => {
   it('should render', () => {
-    const component = renderWithProvider(<FiatOnTestnetsFriction />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<FiatOnTestnetsFriction />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should close on cancel', () => {

@@ -7,10 +7,10 @@ const MOCK_LINE =
 
 describe('PlotLine', () => {
   it('render matches snapshot', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <PlotLine line={MOCK_LINE} color={'blue'} />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

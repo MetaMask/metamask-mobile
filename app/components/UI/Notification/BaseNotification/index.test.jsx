@@ -45,10 +45,10 @@ const defaultProps = [
 describe('BaseNotification', () => {
   it('gets icon correctly for each status', () => {
     defaultProps.forEach(({ status, data }) => {
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <BaseNotification status={status} data={data} />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

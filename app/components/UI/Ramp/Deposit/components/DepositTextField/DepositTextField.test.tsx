@@ -30,8 +30,8 @@ jest.mock('../../../../../hooks/useStyles', () => ({
 
 describe('DepositTextField', () => {
   it('should render default settings correctly', () => {
-    const component = render(<DepositTextField {...defaultProps} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<DepositTextField {...defaultProps} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render DepositTextField with correct label', () => {
@@ -40,8 +40,8 @@ describe('DepositTextField', () => {
   });
 
   it('should render TextField component with correct props', () => {
-    const component = render(<DepositTextField {...defaultProps} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<DepositTextField {...defaultProps} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render error text when error prop is provided', () => {
@@ -58,22 +58,22 @@ describe('DepositTextField', () => {
   });
 
   it('should apply custom container style when provided', () => {
-    const component = render(
+    const { toJSON } = render(
       <DepositTextField {...defaultProps} containerStyle={{ marginTop: 20 }} />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should pass additional props to TextField', () => {
     const placeholder = 'Enter your text here';
     const maxLength = 50;
-    const component = render(
+    const { toJSON } = render(
       <DepositTextField
         {...defaultProps}
         placeholder={placeholder}
         maxLength={maxLength}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

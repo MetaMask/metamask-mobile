@@ -20,9 +20,8 @@ describe('BadgeNetwork', () => {
     render(<BadgeNetwork {...SAMPLE_BADGENETWORK_PROPS} {...props} />);
 
   it('should render BadgeNetwork', () => {
-    const component = renderComponent();
-    const { queryByTestId } = component;
-    expect(component).toMatchSnapshot();
+    const { toJSON, queryByTestId } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
     expect(queryByTestId(BADGENETWORK_TEST_ID)).not.toBe(null);
   });
 

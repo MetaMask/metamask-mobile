@@ -13,8 +13,8 @@ describe('DataGradient', () => {
       dataPoints: MOCK_DATA_POINTS,
     };
 
-    const component = renderWithProvider(<DataGradient {...props} />);
+    const { toJSON } = renderWithProvider(<DataGradient {...props} />);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

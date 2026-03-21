@@ -206,15 +206,15 @@ describe('AccountsMenu', () => {
     it('match snapshot when MetaMask Card is hidden', () => {
       (useSelector as jest.Mock).mockReturnValue(false);
 
-      const component = render(<AccountsMenu />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<AccountsMenu />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('match snapshot when MetaMask Card is visible', () => {
       (useSelector as jest.Mock).mockReturnValue(true);
 
-      const component = render(<AccountsMenu />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<AccountsMenu />);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

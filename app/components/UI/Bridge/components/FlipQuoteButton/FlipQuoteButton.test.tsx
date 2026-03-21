@@ -25,19 +25,17 @@ describe('FLipQuoteButton', () => {
 
   describe('Rendering', () => {
     it('renders with enabled state', () => {
-      const component = renderFlipQuoteButton(false);
-      const { getByTestId } = component;
+      const { toJSON, getByTestId } = renderFlipQuoteButton(false);
 
       expect(getByTestId('arrow-button')).toBeTruthy();
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders with disabled state', () => {
-      const component = renderFlipQuoteButton(true);
-      const { getByTestId } = component;
+      const { toJSON, getByTestId } = renderFlipQuoteButton(true);
 
       expect(getByTestId('arrow-button')).toBeTruthy();
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders SwapVertical icon', () => {

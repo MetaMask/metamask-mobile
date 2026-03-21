@@ -15,7 +15,7 @@ const store = mockStore(initialState);
 
 describe('AssetList', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <Provider store={store}>
         <AssetList
           handleSelectAsset={() => null}
@@ -24,6 +24,6 @@ describe('AssetList', () => {
         />
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

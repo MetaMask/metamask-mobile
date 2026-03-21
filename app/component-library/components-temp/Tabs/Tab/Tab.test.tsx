@@ -18,8 +18,8 @@ describe('Tab', () => {
 
   describe('Rendering', () => {
     it('renders correctly', () => {
-      const component = render(<Tab {...defaultProps} />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<Tab {...defaultProps} />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('displays the label text', () => {
@@ -51,13 +51,13 @@ describe('Tab', () => {
 
   describe('Active State', () => {
     it('applies active styling when isActive is true', () => {
-      const component = render(<Tab {...defaultProps} isActive />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<Tab {...defaultProps} isActive />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('applies inactive styling when isActive is false', () => {
-      const component = render(<Tab {...defaultProps} isActive={false} />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<Tab {...defaultProps} isActive={false} />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('shows bold font weight when active', () => {
@@ -78,8 +78,8 @@ describe('Tab', () => {
 
   describe('Disabled State', () => {
     it('applies disabled styling when isDisabled is true', () => {
-      const component = render(<Tab {...defaultProps} isDisabled />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<Tab {...defaultProps} isDisabled />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('does not call onPress when disabled and pressed', () => {
@@ -94,15 +94,15 @@ describe('Tab', () => {
     });
 
     it('shows muted text color when disabled and inactive', () => {
-      const component = render(
+      const { toJSON } = render(
         <Tab {...defaultProps} isDisabled isActive={false} />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('shows disabled styling even when marked as active', () => {
-      const component = render(<Tab {...defaultProps} isDisabled isActive />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<Tab {...defaultProps} isDisabled isActive />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('does not show pressed feedback when disabled', () => {

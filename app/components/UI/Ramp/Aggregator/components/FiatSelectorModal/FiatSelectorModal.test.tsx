@@ -99,31 +99,28 @@ describe('FiatSelectorModal', () => {
   });
 
   it('renders the modal with currency list', () => {
-    const component = render(FiatSelectorModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(FiatSelectorModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   describe('search', () => {
     it('displays filtered currencies when search string matches results', () => {
-      const component = render(FiatSelectorModal);
-      const { getByTestId } = component;
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
       const searchInput = getByTestId('textfieldsearch');
       fireEvent.changeText(searchInput, 'USD');
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
     it('displays filtered currencies when search string does not match results', () => {
-      const component = render(FiatSelectorModal);
-      const { getByTestId } = component;
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
       const searchInput = getByTestId('textfieldsearch');
       fireEvent.changeText(searchInput, 'Nonexistent Currency');
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
     it('displays max 20 results', () => {
-      const component = render(FiatSelectorModal);
-      const { getByTestId } = component;
+      const { getByTestId, toJSON } = render(FiatSelectorModal);
       const searchInput = getByTestId('textfieldsearch');
       fireEvent.changeText(searchInput, 'u');
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 });

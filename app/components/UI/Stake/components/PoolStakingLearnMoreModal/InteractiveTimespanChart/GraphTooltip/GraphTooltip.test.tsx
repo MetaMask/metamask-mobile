@@ -10,8 +10,8 @@ describe('GraphTooltip', () => {
       color: 'blue',
     };
 
-    const component = renderWithProvider(<GraphTooltip {...props} />);
+    const { toJSON } = renderWithProvider(<GraphTooltip {...props} />);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

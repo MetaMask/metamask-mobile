@@ -63,13 +63,13 @@ describe('WalletRecovery', () => {
     });
 
   it('render matches snapshot', () => {
-    const component = renderComponent({
+    const { toJSON } = renderComponent({
       authConnection: 'google',
       userId: '123',
       socialLoginEmail: 'test@example.com',
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders SRP section and sets navigation options', () => {

@@ -37,25 +37,23 @@ describe('TradeTabBarItem', () => {
   });
 
   it('renders TradeTabBarItem with icon and label', () => {
-    const component = render(
+    const { getByText, getByTestId, toJSON } = render(
       <TradeTabBarItem {...defaultProps} testID="trade-tab-item" />,
     );
-    const { getByText, getByTestId } = component;
 
     expect(getByTestId('trade-tab-item')).toBeTruthy();
     expect(getByText('Trade')).toBeTruthy();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders TradeTabBarItem with icon only', () => {
-    const component = render(
+    const { queryByText, getByTestId, toJSON } = render(
       <TradeTabBarItem testID="trade-tab-item" />,
     );
-    const { queryByText, getByTestId } = component;
 
     expect(getByTestId('trade-tab-item')).toBeTruthy();
     expect(queryByText('Trade')).not.toBeTruthy();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates to Trade screen on press and tracks event', () => {

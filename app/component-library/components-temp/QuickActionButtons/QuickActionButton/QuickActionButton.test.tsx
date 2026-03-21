@@ -13,13 +13,12 @@ describe('QuickActionButton', () => {
   });
 
   it('renders correctly with default props', () => {
-    const component = render(
+    const { toJSON, getByText } = render(
       <QuickActionButton onPress={mockOnPress}>Test Button</QuickActionButton>,
     );
-    const { getByText } = component;
 
     expect(getByText('Test Button')).toBeTruthy();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress handler when pressed', () => {

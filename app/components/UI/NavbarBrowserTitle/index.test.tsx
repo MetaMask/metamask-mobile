@@ -11,10 +11,10 @@ const mockInitialState = {
 
 describe('NavbarBrowserTitle', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <NavbarBrowserTitle hostname={'faucet.metamask.io'} https />,
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -33,7 +33,7 @@ describe('ConnectionDetails', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <ConnectionDetails
         route={{
           params: {
@@ -42,7 +42,7 @@ describe('ConnectionDetails', () => {
         }}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays the correct title', () => {

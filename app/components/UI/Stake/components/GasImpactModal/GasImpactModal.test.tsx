@@ -116,9 +116,9 @@ describe('GasImpactModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderGasImpactModal();
+    const { toJSON } = renderGasImpactModal();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('closes gas impact modal on cancel', () => {

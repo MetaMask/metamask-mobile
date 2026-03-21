@@ -5,8 +5,8 @@ import { mockTheme } from '../../../../util/theme';
 
 describe('PercentageChange', () => {
   it('should render correctly', () => {
-    const component = render(<PercentageChange value={5.5} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<PercentageChange value={5.5} />);
+    expect(toJSON()).toMatchSnapshot();
   });
   it('displays a positive value correctly', () => {
     const { getByText } = render(<PercentageChange value={5.5} />);

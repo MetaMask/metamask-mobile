@@ -33,7 +33,7 @@ describe('NetworkVerificationInfo', () => {
   });
   it('renders correctly', () => {
     (useSelector as jest.Mock).mockReturnValue(true);
-    const component = render(
+    const { toJSON } = render(
       <NetworkVerificationInfo
         customNetworkInformation={mockNetworkInfo}
         onReject={() => undefined}
@@ -41,7 +41,7 @@ describe('NetworkVerificationInfo', () => {
       />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders updated details when isNetworkRpcUpdate is true', () => {
@@ -55,7 +55,7 @@ describe('NetworkVerificationInfo', () => {
       alerts: [],
     };
 
-    const component = render(
+    const { toJSON, getByText } = render(
       <NetworkVerificationInfo
         // @ts-expect-error - The CustomNetworkInformation type is missing the pageMeta property
         customNetworkInformation={networkWithCustomRpcUrl}
@@ -64,9 +64,8 @@ describe('NetworkVerificationInfo', () => {
         isNetworkRpcUpdate
       />,
     );
-    const { getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
     expect(
       getByText(
         strings(

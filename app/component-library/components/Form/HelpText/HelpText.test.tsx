@@ -14,8 +14,8 @@ import { HelpTextSeverity } from './HelpText.types';
 
 describe('HelpText', () => {
   it('should render default settings correctly', () => {
-    const component = render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);
+    expect(toJSON()).toMatchSnapshot();
   });
   it('should render HelpText', () => {
     render(<HelpText>{SAMPLE_HELPTEXT_TEXT}</HelpText>);

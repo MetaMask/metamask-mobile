@@ -21,7 +21,7 @@ describe('NetworksFilterBar', () => {
   });
 
   it('renders correctly when networkFilter is null', () => {
-    const component = render(
+    const { toJSON, getByText } = render(
       <NetworksFilterBar
         networks={networks}
         networkFilter={null}
@@ -29,9 +29,8 @@ describe('NetworksFilterBar', () => {
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
     );
-    const { getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
 
     const allNetworksButton = getByText('All networks');
     fireEvent.press(allNetworksButton);
@@ -41,7 +40,7 @@ describe('NetworksFilterBar', () => {
   });
 
   it('renders correctly when networkFilter is the same as uniqueNetworks', () => {
-    const component = render(
+    const { toJSON, getByText } = render(
       <NetworksFilterBar
         networks={networks}
         networkFilter={networks}
@@ -49,9 +48,8 @@ describe('NetworksFilterBar', () => {
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
     );
-    const { getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
 
     const allNetworksButton = getByText('All networks');
     fireEvent.press(allNetworksButton);
@@ -62,7 +60,7 @@ describe('NetworksFilterBar', () => {
 
   it('renders correctly when networkFilter is a subset of uniqueNetworks and removes selection', () => {
     const subsetNetworkFilter: CaipChainId[] = ['eip155:1', 'eip155:59144'];
-    const component = render(
+    const { toJSON, getByText } = render(
       <NetworksFilterBar
         networks={networks}
         networkFilter={subsetNetworkFilter}
@@ -70,9 +68,8 @@ describe('NetworksFilterBar', () => {
         setIsEditingNetworkFilter={mockSetIsEditingNetworkFilter}
       />,
     );
-    const { getByText } = component;
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
 
     const ethereumButton = getByText('Ethereum');
     fireEvent.press(ethereumButton);

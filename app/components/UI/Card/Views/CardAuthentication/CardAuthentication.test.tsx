@@ -153,9 +153,9 @@ describe('CardAuthentication Component', () => {
     });
 
     it('matches login step snapshot', () => {
-      const component = render();
+      const { toJSON } = render();
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

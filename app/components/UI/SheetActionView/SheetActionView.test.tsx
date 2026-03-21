@@ -4,10 +4,10 @@ import SheetActionView from './SheetActionVIew';
 
 describe('SheetActionView', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <SheetActionView onCancel={() => null} onConfirm={() => null} />,
       { state: {} },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

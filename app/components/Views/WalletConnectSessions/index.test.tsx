@@ -42,25 +42,24 @@ describe('WalletConnectSessions', () => {
   });
 
   it('does not render when not ready', () => {
-    const component = renderScreen(WalletConnectSessions, {
+    const { toJSON } = renderScreen(WalletConnectSessions, {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders empty component with no active sessions', async () => {
     mockGetSessions.mockReturnValue([]);
 
-    const component = renderScreen(WalletConnectSessions, {
+    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
     });
-    const { getByTestId } = component;
 
     // Wait for the component to be ready and render the empty state
     await waitFor(() => {
       const emptyMessage = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
       expect(emptyMessage).toBeTruthy();
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -82,15 +81,14 @@ describe('WalletConnectSessions', () => {
 
     mockGetSessions.mockReturnValue(sessions);
 
-    const component = renderScreen(WalletConnectSessions, {
+    const { getByTestId, toJSON } = renderScreen(WalletConnectSessions, {
       name: Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW,
     });
-    const { getByTestId } = component;
 
     await waitFor(() => {
       const viewID = getByTestId(ExperimentalSelectorsIDs.CONTAINER);
       expect(viewID).toBeTruthy();
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

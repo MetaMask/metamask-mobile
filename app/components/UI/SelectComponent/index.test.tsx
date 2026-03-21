@@ -10,7 +10,7 @@ jest.mock('../../../core/Engine', () => ({
 
 describe('SelectComponent', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <SelectComponent
         options={[
           { key: 'key 1', val: 'val 1', label: 'option 1' },
@@ -20,6 +20,6 @@ describe('SelectComponent', () => {
         label={'Choose an option'}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

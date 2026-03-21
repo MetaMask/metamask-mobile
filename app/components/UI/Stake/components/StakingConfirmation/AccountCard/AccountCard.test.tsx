@@ -88,17 +88,16 @@ describe('AccountCard', () => {
       chainId: 1,
     };
 
-    const component = renderWithProvider(
+    const { getByText, toJSON } = renderWithProvider(
       <AccountCard {...props} />,
       { state: mockInitialState },
     );
-    const { getByText } = component;
 
     expect(getByText(strings('stake.staking_from'))).toBeDefined();
     expect(getByText(strings('stake.interacting_with'))).toBeDefined();
     expect(getByText(strings('asset_details.network'))).toBeDefined();
     expect(getByText(props.contractName)).toBeDefined();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

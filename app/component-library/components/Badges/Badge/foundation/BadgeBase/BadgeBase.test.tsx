@@ -11,12 +11,12 @@ import { BADGE_BASE_TEST_ID } from './BadgeBase.constants';
 
 describe('BadgeBase - snapshots', () => {
   it('should render badge correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <BadgeBase>
         <Tag label={'Children'} />
       </BadgeBase>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });
 

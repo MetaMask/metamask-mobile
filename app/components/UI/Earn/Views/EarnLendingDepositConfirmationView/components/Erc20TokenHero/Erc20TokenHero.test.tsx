@@ -18,13 +18,13 @@ describe('Erc20TokenHero', () => {
   };
 
   it('renders USDC token correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Erc20TokenHero {...defaultProps} />,
       {
         state: mockInitialState,
       },
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

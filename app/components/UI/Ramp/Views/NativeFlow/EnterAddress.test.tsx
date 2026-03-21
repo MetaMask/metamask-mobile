@@ -141,8 +141,8 @@ describe('V2EnterAddress', () => {
   });
 
   it('matches snapshot', () => {
-    const component = renderWithTheme(<V2EnterAddress />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithTheme(<V2EnterAddress />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders the address form fields', () => {
@@ -252,8 +252,8 @@ describe('V2EnterAddress', () => {
       regionCode: 'gb',
     };
 
-    const component = renderWithTheme(<V2EnterAddress />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithTheme(<V2EnterAddress />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows country flag in country input', () => {

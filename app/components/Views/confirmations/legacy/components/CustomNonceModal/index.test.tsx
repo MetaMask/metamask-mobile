@@ -21,8 +21,8 @@ const renderComponent = (props = {}) =>
   );
 describe('CustomNonceModal', () => {
   it('renders correctly', () => {
-    const component = renderComponent();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('handles only numeric inputs', () => {

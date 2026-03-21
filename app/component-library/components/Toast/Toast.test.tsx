@@ -28,8 +28,8 @@ describe('Toast', () => {
   });
 
   it('renders correctly with default state', () => {
-    const component = render(<Toast ref={toastRef} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<Toast ref={toastRef} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays toast with correct label when showToast is called', async () => {

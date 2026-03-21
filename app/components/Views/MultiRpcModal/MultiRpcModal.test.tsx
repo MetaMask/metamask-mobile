@@ -47,8 +47,8 @@ describe('MultiRpcModal', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderComponent(initialState);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderComponent(initialState);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls setShowMultiRpcModal and trackEvent when clicking on allow button', () => {

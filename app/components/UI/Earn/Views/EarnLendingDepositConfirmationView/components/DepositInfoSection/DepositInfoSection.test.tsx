@@ -65,11 +65,10 @@ describe('DepositInfoSection', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON, getByText } = renderWithProvider(
       <DepositInfoSection {...defaultProps} />,
       { state: mockInitialState },
     );
-    const { getByText } = component;
 
     const expectedDefinedStrings = [
       strings('earn.every_minute'),
@@ -87,6 +86,6 @@ describe('DepositInfoSection', () => {
       expect(getByText(str)).toBeDefined();
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

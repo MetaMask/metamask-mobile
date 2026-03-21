@@ -45,11 +45,11 @@ describe('DataCollectionModal', () => {
   });
 
   it('should render expected snapshot', () => {
-    const component = render(
+    const { toJSON } = render(
       <SafeAreaProvider>
         <DataCollectionModal />
       </SafeAreaProvider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

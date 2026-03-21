@@ -63,9 +63,9 @@ describe('MarketClosedBottomSheet', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderMarketClosedBottomSheet();
+    const { toJSON } = renderMarketClosedBottomSheet();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('navigates back when Done button is pressed', () => {

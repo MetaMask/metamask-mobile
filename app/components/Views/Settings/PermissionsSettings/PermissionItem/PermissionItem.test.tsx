@@ -45,11 +45,11 @@ const mockInitialState: DeepPartial<RootState> = {
 
 describe('PermissionItem', () => {
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <PermissionItem item={mockPermissionItems[0]} />,
       { state: mockInitialState },
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

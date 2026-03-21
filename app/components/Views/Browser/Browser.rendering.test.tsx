@@ -180,7 +180,7 @@ const mockSortMultichainAccountsByLastSelected =
 
 describe('Browser - Rendering and Initialization', () => {
   it('renders Browser component', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Provider store={mockStore(mockInitialState)}>
         <ThemeContext.Provider value={mockTheme}>
           <NavigationContainer independent>
@@ -205,7 +205,7 @@ describe('Browser - Rendering and Initialization', () => {
       </Provider>,
       { state: { ...mockInitialState } },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('creates a new homepage tab when rendered with no tabs', () => {

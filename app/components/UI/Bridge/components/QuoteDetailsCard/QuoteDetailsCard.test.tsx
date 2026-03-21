@@ -272,14 +272,14 @@ describe('QuoteDetailsCard', () => {
   });
 
   it('renders initial state', () => {
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       QuoteDetailsCardTestScreen,
       {
         name: Routes.BRIDGE.ROOT,
       },
       { state: testState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays fee amount', () => {

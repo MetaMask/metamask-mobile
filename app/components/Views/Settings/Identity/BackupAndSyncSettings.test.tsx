@@ -26,8 +26,8 @@ describe('BackupAndSyncSettings', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderWithProvider(<BackupAndSyncSettings />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<BackupAndSyncSettings />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('wraps content in SafeAreaView', () => {

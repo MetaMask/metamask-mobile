@@ -7,23 +7,21 @@ import ButtonToggle from './ButtonToggle';
 
 describe('ButtonToggle', () => {
   it('renders correctly in inactive state', () => {
-    const component = render(
+    const { toJSON, getByText } = render(
       <ButtonToggle isActive={false} label="Mode 1" onPress={jest.fn()} />,
     );
-    const { getByText } = component;
 
     expect(getByText('Mode 1')).toBeTruthy();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly in active state', () => {
-    const component = render(
+    const { toJSON, getByText } = render(
       <ButtonToggle isActive label="Mode 1" onPress={jest.fn()} />,
     );
-    const { getByText } = component;
 
     expect(getByText('Mode 1')).toBeTruthy();
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls onPress handler when pressed', () => {

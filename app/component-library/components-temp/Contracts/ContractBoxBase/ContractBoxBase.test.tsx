@@ -36,8 +36,8 @@ describe('Component ContractBoxBase', () => {
   });
 
   it('should render correctly', () => {
-    const component = renderComponent();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render correctly when contract petname is not provided', () => {

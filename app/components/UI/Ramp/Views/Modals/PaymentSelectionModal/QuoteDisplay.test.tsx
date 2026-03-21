@@ -34,45 +34,45 @@ const renderWithTheme = (component: React.ReactElement) =>
 
 describe('QuoteDisplay', () => {
   it('matches snapshot when loading', () => {
-    const component = renderWithTheme(
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay cryptoAmount="" fiatAmount={null} isLoading />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot with crypto and fiat', () => {
-    const component = renderWithTheme(
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay
         cryptoAmount="0.05 ETH"
         fiatAmount="$100.00"
         isLoading={false}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot with crypto only', () => {
-    const component = renderWithTheme(
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay
         cryptoAmount="1.5 USDC"
         fiatAmount={null}
         isLoading={false}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot with warning icon', () => {
-    const component = renderWithTheme(
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay cryptoAmount="" fiatAmount={null} showWarningIcon />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('matches snapshot when quote is unavailable', () => {
-    const component = renderWithTheme(
+    const { toJSON } = renderWithTheme(
       <QuoteDisplay cryptoAmount="" fiatAmount={null} quoteUnavailable />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

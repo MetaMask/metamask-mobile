@@ -48,11 +48,11 @@ describe('TokenListItem', () => {
     it('renders correctly and matches snapshot', () => {
       const token = createMockToken();
 
-      const component = render(
+      const { toJSON } = render(
         <TokenListItem token={token} onPress={mockOnPress} />,
       );
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('displays token name and symbol', () => {
@@ -69,7 +69,7 @@ describe('TokenListItem', () => {
     it('renders disabled token with info button and matches snapshot', () => {
       const token = createMockToken();
 
-      const component = render(
+      const { toJSON } = render(
         <TokenListItem
           token={token}
           onPress={mockOnPress}
@@ -78,7 +78,7 @@ describe('TokenListItem', () => {
         />,
       );
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 

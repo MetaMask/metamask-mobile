@@ -33,11 +33,11 @@ describe('NetworkMainAssetLogo', () => {
   const store = mockStore(mockInitialState);
 
   it('should renders correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <Provider store={store}>
         <NetworkMainAssetLogo />
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

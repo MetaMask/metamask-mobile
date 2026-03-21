@@ -62,9 +62,9 @@ describe('ViewPinBottomSheet', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const component = renderWithProvider(() => <ViewPinBottomSheet />);
+    const { toJSON } = renderWithProvider(() => <ViewPinBottomSheet />);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('displays the title', () => {

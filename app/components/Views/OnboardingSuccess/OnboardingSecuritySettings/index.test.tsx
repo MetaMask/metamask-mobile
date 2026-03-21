@@ -77,8 +77,8 @@ describe('OnboardingSecuritySettings', () => {
         if (selector === selectSeedlessOnboardingLoginFlow) return false;
         return null;
       });
-      const component = renderWithProvider(<OnboardingSecuritySettings />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = renderWithProvider(<OnboardingSecuritySettings />);
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('should always render NetworkDetailsCheckSettings regardless of auth connection', () => {

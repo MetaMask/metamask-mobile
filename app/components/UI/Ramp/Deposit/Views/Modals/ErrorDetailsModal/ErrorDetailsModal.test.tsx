@@ -23,7 +23,7 @@ describe('ErrorDetailsModal', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const component = renderWithProvider(ErrorDetailsModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(ErrorDetailsModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

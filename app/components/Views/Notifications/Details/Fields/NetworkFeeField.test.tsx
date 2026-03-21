@@ -45,7 +45,7 @@ describe('NetworkFeeField', () => {
   });
 
   it('renders correctly when type has "ModalField-NetworkFee"', () => {
-    const component = render(
+    const { toJSON } = render(
       <NetworkFeeField
         type={ModalFieldType.NETWORK_FEE}
         isCollapsed={isCollapsed}
@@ -67,7 +67,7 @@ describe('NetworkFeeField', () => {
       />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders loading state', () => {

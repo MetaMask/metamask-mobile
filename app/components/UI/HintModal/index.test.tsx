@@ -7,7 +7,7 @@ const hint = 'hint';
 
 describe('HintModal', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <HintModal
         onCancel={noop}
         onConfirm={noop}
@@ -17,6 +17,6 @@ describe('HintModal', () => {
         value={hint}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

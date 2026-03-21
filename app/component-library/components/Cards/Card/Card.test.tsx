@@ -8,11 +8,11 @@ import Card from './Card';
 
 describe('Card - Snapshot', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <Card>
         <View />
       </Card>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

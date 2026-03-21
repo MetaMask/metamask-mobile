@@ -4,7 +4,7 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 describe('CustomAlert', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(<CustomAlert isVisible />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<CustomAlert isVisible />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

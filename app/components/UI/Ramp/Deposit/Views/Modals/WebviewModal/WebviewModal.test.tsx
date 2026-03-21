@@ -81,12 +81,12 @@ describe('WebviewModal Component', () => {
   });
 
   it('renders correctly and matches snapshot', () => {
-    const component = renderWithProvider(WebviewModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(WebviewModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should display error view when webview HTTP error occurs', () => {
-    const component = renderWithProvider(WebviewModal);
+    const { toJSON } = renderWithProvider(WebviewModal);
 
     act(() => {
       mockWebViewProps.onHttpError({
@@ -97,7 +97,7 @@ describe('WebviewModal Component', () => {
       });
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should call handleNavigationStateChange with correct parameters when WebView navigation state changes', () => {

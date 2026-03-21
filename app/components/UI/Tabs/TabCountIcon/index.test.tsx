@@ -16,13 +16,13 @@ const store = mockStore(initialState);
 describe('TabCountIcon', () => {
   it('should render correctly', () => {
     // eslint-disable-next-line react/jsx-no-bind
-    const component = render(
+    const { toJSON } = render(
       <Provider store={store}>
         <ThemeContext.Provider value={mockTheme}>
           <TabCountIcon />
         </ThemeContext.Provider>
       </Provider>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

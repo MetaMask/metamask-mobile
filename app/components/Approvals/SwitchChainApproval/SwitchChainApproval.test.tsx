@@ -84,16 +84,16 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const component = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const component = renderWithProvider(<SwitchChainApproval />, { state: initialState });
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if incorrect approval request type', () => {
@@ -101,8 +101,8 @@ describe('SwitchChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const component = renderWithProvider(<SwitchChainApproval />, { state: initialState });
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls networkSwitched action when confirm is pressed', () => {

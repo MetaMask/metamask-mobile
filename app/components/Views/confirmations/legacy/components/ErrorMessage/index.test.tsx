@@ -4,7 +4,7 @@ import ErrorMessage from '.';
 
 describe('ErrorMessage', () => {
   it('should render correctly', () => {
-    const component = render(<ErrorMessage errorMessage={'error'} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<ErrorMessage errorMessage={'error'} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

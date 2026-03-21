@@ -32,7 +32,7 @@ describe('OnboardingGeneralSettings', () => {
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return mockNetworkName;
     });
-    const component = renderWithProvider(<OnboardingGeneralSettings />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<OnboardingGeneralSettings />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

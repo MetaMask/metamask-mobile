@@ -85,9 +85,9 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const component = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no request data', () => {
@@ -97,16 +97,16 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const component = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const component = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('sets isVisible to false if incorrect approval request type', () => {
@@ -117,7 +117,7 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const component = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    expect(toJSON()).toMatchSnapshot();
   });
 });

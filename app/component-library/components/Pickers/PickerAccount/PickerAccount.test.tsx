@@ -48,8 +48,8 @@ describe('PickerAccount', () => {
     });
 
     it('should render correctly with snapshot', () => {
-      const component = render(<PickerAccount {...defaultProps} />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<PickerAccount {...defaultProps} />);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -126,21 +126,21 @@ describe('PickerAccount', () => {
   describe('Props Forwarding', () => {
     it('forwards hitSlop prop to PickerBase', () => {
       const customHitSlop = { top: 10, bottom: 10, left: 15, right: 15 };
-      const component = render(
+      const { toJSON } = render(
         <PickerAccount {...defaultProps} hitSlop={customHitSlop} />,
       );
 
       // Verify through snapshot that hitSlop is applied
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('forwards style prop', () => {
       const customStyle = { marginTop: 20 };
-      const component = render(
+      const { toJSON } = render(
         <PickerAccount {...defaultProps} style={customStyle} />,
       );
 
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('forwards additional TouchableOpacity props', () => {

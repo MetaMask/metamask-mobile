@@ -62,8 +62,8 @@ describe('UnsupportedRegionModal', () => {
   });
 
   it('renders correctly for buy flow', () => {
-    const component = render(UnsupportedRegionModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(UnsupportedRegionModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders correctly for sell flow', () => {
@@ -72,7 +72,7 @@ describe('UnsupportedRegionModal', () => {
       isBuy: false,
       isSell: true,
     };
-    const component = render(UnsupportedRegionModal);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(UnsupportedRegionModal);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

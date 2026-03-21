@@ -73,8 +73,8 @@ describe('ReturnToAppNotification', () => {
   });
 
   it('renders correctly with default message', () => {
-    const component = renderWithProviders(mockRoute);
+    const { toJSON } = renderWithProviders(mockRoute);
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

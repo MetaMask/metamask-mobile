@@ -168,11 +168,11 @@ describe('ProviderSelectionModal', () => {
   });
 
   it('matches snapshot', async () => {
-    const component = renderWithProvider(ProviderSelectionModal);
+    const { toJSON } = renderWithProvider(ProviderSelectionModal);
     await waitFor(() => {
       expect(mockGetQuotes).toHaveBeenCalled();
     });
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls getQuotes with provider params on mount', async () => {

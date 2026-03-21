@@ -50,22 +50,22 @@ describe('TruncatedError', () => {
 
   describe('Basic rendering', () => {
     it('renders correctly and matches snapshot', () => {
-      const component = render(
+      const { toJSON } = render(
         <TruncatedError error="This is a test error message" />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders with custom maxLines prop', () => {
-      const component = render(
+      const { toJSON } = render(
         <TruncatedError error="This is a test error message" maxLines={3} />,
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders an empty error string', () => {
-      const component = render(<TruncatedError error="" />);
-      expect(component).toMatchSnapshot();
+      const { toJSON } = render(<TruncatedError error="" />);
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -78,15 +78,14 @@ describe('TruncatedError', () => {
 
     it('displays the error text after measurement confirms it fits', () => {
       const shortError = 'Short error message';
-      const component = render(
+      const { getByText, toJSON } = render(
         <TruncatedError error={shortError} />,
       );
-      const { getByText } = component;
 
       triggerFitsMeasurement(getByText, shortError);
 
       expect(getByText(shortError)).toBeOnTheScreen();
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
   });
 
@@ -95,15 +94,14 @@ describe('TruncatedError', () => {
       'This is a very long error message that should be truncated when displayed because it exceeds the maximum number of lines allowed.';
 
     it('shows fallback text when error is truncated', () => {
-      const component = render(
+      const { getByText, toJSON } = render(
         <TruncatedError error={longError} />,
       );
-      const { getByText } = component;
 
       triggerTruncation(getByText, longError, longError);
 
       expect(getByText("We've encountered an error")).toBeOnTheScreen();
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('does not oscillate when a short error is truncated and fallback is longer', () => {

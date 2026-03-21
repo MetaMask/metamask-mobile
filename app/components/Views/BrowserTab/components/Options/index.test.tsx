@@ -46,7 +46,7 @@ describe('Options', () => {
   });
 
   it('should render options correctly', () => {
-    const component = render(<Options {...mockProps} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<Options {...mockProps} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

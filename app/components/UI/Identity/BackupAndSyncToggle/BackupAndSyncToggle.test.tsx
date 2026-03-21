@@ -93,7 +93,7 @@ describe('BackupAndSyncToggle', () => {
   });
 
   it('renders correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <BackupAndSyncToggle
         trackBackupAndSyncToggleEventOverride={mockTrackEventOverride}
       />,
@@ -101,7 +101,7 @@ describe('BackupAndSyncToggle', () => {
         state: MOCK_STORE_STATE,
       },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('tracks the event when the toggle is changed', async () => {

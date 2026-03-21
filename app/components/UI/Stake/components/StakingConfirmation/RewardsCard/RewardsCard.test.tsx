@@ -29,16 +29,15 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const component = renderWithProvider(
+    const { getByText, toJSON } = renderWithProvider(
       <RewardsCard {...props} />,
     );
-    const { getByText } = component;
 
     expect(getByText(props.rewardRate)).toBeDefined();
     expect(getByText(props.rewardsEth)).toBeDefined();
     expect(getByText(props.rewardsFiat)).toBeDefined();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('reward rate tooltip displayed when pressed', () => {
@@ -48,10 +47,9 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const component = renderWithProvider(
+    const { toJSON, getByLabelText } = renderWithProvider(
       <RewardsCard {...props} />,
     );
-    const { getByLabelText } = component;
 
     fireEvent.press(
       getByLabelText(`${strings('tooltip_modal.reward_rate.title')} tooltip`),
@@ -69,7 +67,7 @@ describe('RewardsCard', () => {
       screen: 'tooltipModal',
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('reward frequency tooltip displayed when pressed', () => {
@@ -79,10 +77,9 @@ describe('RewardsCard', () => {
       rewardsFiat: '$334.93',
     };
 
-    const component = renderWithProvider(
+    const { toJSON, getByLabelText } = renderWithProvider(
       <RewardsCard {...props} />,
     );
-    const { getByLabelText } = component;
 
     fireEvent.press(
       getByLabelText(
@@ -102,6 +99,6 @@ describe('RewardsCard', () => {
       screen: 'tooltipModal',
     });
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

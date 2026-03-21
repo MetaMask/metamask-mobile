@@ -42,13 +42,13 @@ describe('AccountNetworkIndicator', () => {
       scopes: [`${KnownCaipNamespace.Eip155}:0` as CaipChainId],
     };
 
-    const component = renderScreen(
+    const { toJSON } = renderScreen(
       () => <AccountNetworkIndicator partialAccount={partialAccount} />,
       {
         name: 'AccountNetworkIndicator',
       },
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

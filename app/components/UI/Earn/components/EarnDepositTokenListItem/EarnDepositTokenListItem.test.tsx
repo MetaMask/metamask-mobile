@@ -61,11 +61,11 @@ describe('EarnDepositTokenListItem', () => {
       secondaryText,
     };
 
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <EarnDepositTokenListItem {...props} />,
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders primary text and secondary text', () => {

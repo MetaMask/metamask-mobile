@@ -23,7 +23,7 @@ describe('AggregatedPercentage', () => {
     (useSelector as jest.Mock).mockClear();
   });
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <AggregatedPercentage
         ethFiat={100}
         tokenFiat={100}
@@ -31,7 +31,7 @@ describe('AggregatedPercentage', () => {
         ethFiat1dAgo={90}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders positive percentage change correctly', () => {

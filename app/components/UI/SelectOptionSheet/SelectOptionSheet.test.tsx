@@ -30,7 +30,7 @@ describe('SelectOptionSheet', () => {
 
     const mockOnValueChange = jest.fn();
 
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <SelectOptionSheet
         options={options}
         selectedValue={'val 2'}
@@ -39,7 +39,7 @@ describe('SelectOptionSheet', () => {
         onValueChange={mockOnValueChange}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('shows selected value', () => {

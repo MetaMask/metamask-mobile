@@ -8,11 +8,11 @@ describe('ApprovalModal', () => {
   });
 
   it('renders', () => {
-    const component = render(
+    const { toJSON } = render(
       <ApprovalModal isVisible onCancel={() => undefined}>
         <div>test</div>
       </ApprovalModal>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

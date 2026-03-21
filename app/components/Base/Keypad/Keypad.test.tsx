@@ -6,10 +6,10 @@ import { act, fireEvent, render } from '@testing-library/react-native';
 describe('Keypad', () => {
   it('should render correctly and match snapshot', () => {
     const mockOnChange = jest.fn();
-    const component = render(
+    const { toJSON } = render(
       <Keypad currency="native" value="0" onChange={mockOnChange} />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls the onChange handler with correct data when a key is pressed', () => {
@@ -33,7 +33,7 @@ describe('Keypad', () => {
 describe('Keypad components', () => {
   it('components should render correctly and match snapshot', () => {
     const dummyHandler = jest.fn();
-    const component = render(
+    const { toJSON } = render(
       <KeypadComponents>
         <KeypadComponents.Row>
           <KeypadComponents.Button onPress={dummyHandler}>
@@ -79,7 +79,7 @@ describe('Keypad components', () => {
         </KeypadComponents.Row>
       </KeypadComponents>,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('calls the onPress handler when a button is pressed', () => {

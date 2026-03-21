@@ -12,12 +12,12 @@ import BadgeNotifications from './BadgeNotifications';
 
 describe('BadgeNotifications', () => {
   it('should render badge notifications correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <BadgeNotifications
         testID={TEST_NOTIFICATIONS_ACTION}
         iconName={TEST_NOTIFICATIONS_ICON_NAME}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

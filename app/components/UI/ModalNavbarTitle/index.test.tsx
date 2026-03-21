@@ -6,7 +6,7 @@ describe('ModalNavbarTitle', () => {
   it('should render correctly', () => {
     const title = 'Test';
 
-    const component = render(<ModalNavbarTitle title={title} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<ModalNavbarTitle title={title} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 });

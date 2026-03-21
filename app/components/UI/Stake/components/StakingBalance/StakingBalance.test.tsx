@@ -263,19 +263,19 @@ describe('StakingBalance', () => {
   });
 
   it('render matches snapshot', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should match the snapshot', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <StakingBalance asset={MOCK_STAKED_ETH_MAINNET_ASSET} />,
       { state: mockInitialState },
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('redirects to StakeInputView on stake button click', async () => {

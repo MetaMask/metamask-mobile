@@ -16,8 +16,8 @@ describe('AvatarGroup', () => {
     render(<AvatarGroup {...SAMPLE_AVATARGROUP_PROPS} {...props} />);
 
   it('should render AvatarGroup component', () => {
-    const component = renderComponent();
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderComponent();
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render the correct number of avatars', () => {

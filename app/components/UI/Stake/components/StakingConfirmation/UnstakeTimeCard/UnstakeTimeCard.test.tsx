@@ -17,8 +17,7 @@ jest.mock('@react-navigation/native', () => {
 
 describe('UnstakingTimeCard', () => {
   it('render matches snapshot', () => {
-    const component = renderWithProvider(<UnstakingTimeCard />);
-    const { getByText } = component;
+    const { toJSON, getByText } = renderWithProvider(<UnstakingTimeCard />);
 
     const estimatedUnstakingTime = strings('stake.estimated_unstaking_time');
 
@@ -27,6 +26,6 @@ describe('UnstakingTimeCard', () => {
     ).toBeDefined();
     expect(getByText(estimatedUnstakingTime)).toBeDefined(); // 1 to 44 days
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

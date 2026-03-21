@@ -8,12 +8,12 @@ import { SAMPLE_TAGURL_PROPS } from './TagUrl.constants';
 
 describe('TagUrl', () => {
   it('should render correctly', () => {
-    const component = render(
+    const { toJSON } = render(
       <TagUrl
         imageSource={SAMPLE_TAGURL_PROPS.imageSource}
         label={SAMPLE_TAGURL_PROPS.label}
       />,
     );
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

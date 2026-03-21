@@ -16,7 +16,7 @@ const Stack = createStackNavigator();
 
 describe('ShowTokenId', () => {
   it('should render correctly', () => {
-    const component = renderWithProvider(
+    const { toJSON } = renderWithProvider(
       <Stack.Navigator>
         <Stack.Screen name={Routes.SHEET.SHOW_TOKEN_ID}>
           {() => <ShowTokenIdSheet />}
@@ -27,6 +27,6 @@ describe('ShowTokenId', () => {
       },
     );
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

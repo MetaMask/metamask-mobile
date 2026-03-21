@@ -92,8 +92,8 @@ describe('V2KycProcessing', () => {
   });
 
   it('matches snapshot in loading state', () => {
-    const component = renderWithTheme(<V2KycProcessing />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = renderWithTheme(<V2KycProcessing />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('renders activity indicator while polling', async () => {

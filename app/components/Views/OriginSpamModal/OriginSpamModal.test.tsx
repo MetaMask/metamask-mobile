@@ -52,13 +52,13 @@ describe('OriginSpamModal', () => {
 
   describe('renders', () => {
     it('spam modal content by default', () => {
-      const component = renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <OriginSpamModal route={NAVIGATION_PARAMS_MOCK} />,
         {
           state: mockInitialState,
         },
       );
-      expect(component).toMatchSnapshot();
+      expect(toJSON()).toMatchSnapshot();
     });
 
     it('SiteBlockedContent if user opt in to block dapp', () => {

@@ -8,16 +8,15 @@ const MOCK_CONTRACT_ADRESS = '0x0000000000000000000000000000000000000000';
 
 describe('ContractTag', () => {
   it('render matches snapshot', () => {
-    const component = renderWithProvider(
+    const { getByText, toJSON } = renderWithProvider(
       <ContractTag
         contractAddress={MOCK_CONTRACT_ADRESS}
         contractName={MOCK_STAKING_CONTRACT_NAME}
       />,
     );
-    const { getByText } = component;
 
     expect(getByText(MOCK_STAKING_CONTRACT_NAME)).toBeDefined();
 
-    expect(component).toMatchSnapshot();
+    expect(toJSON()).toMatchSnapshot();
   });
 });

@@ -11,8 +11,8 @@ import {
 
 describe('SheetHeader', () => {
   it('should render correctly', () => {
-    const component = render(<SheetHeader title={'Title'} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<SheetHeader title={'Title'} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render back button', () => {

@@ -12,8 +12,8 @@ import {
 
 describe('AvatarNetwork', () => {
   it('should render correctly', () => {
-    const component = render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
-    expect(component).toMatchSnapshot();
+    const { toJSON } = render(<AvatarNetwork {...SAMPLE_AVATARNETWORK_PROPS} />);
+    expect(toJSON()).toMatchSnapshot();
   });
 
   it('should render remote network image', () => {
