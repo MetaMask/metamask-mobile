@@ -9,10 +9,12 @@ import { logger } from '../../framework/logger';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import QuoteView from '../../page-objects/swaps/QuoteView';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
-import { GASLESS_SWAP_QUOTES_ETH_MUSD } from '../../helpers/swap/constants';
+import { setupSSEMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import {
+  GASLESS_SWAP_QUOTES_ETH_MUSD,
+  toSSEResponse,
+} from '../../helpers/swap/constants';
 import { setupSpotPricesMock } from '../../helpers/swap/swap-mocks';
-import { setupRemoteFeatureFlagsMock } from '../../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
 
 describe(SmokeTrade('Gasless Swap - '), (): void => {
   const chainId = '0x1';
@@ -52,29 +54,12 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         ],
         testSpecificMock: async (mockServer) => {
           await setupSpotPricesMock(mockServer);
-          // Mock ETH->MUSD quote (gasless swap)
-          await setupMockRequest(mockServer, {
-            requestMethod: 'GET',
-            url: /getQuote.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
-            response: GASLESS_SWAP_QUOTES_ETH_MUSD,
-            responseCode: 200,
-          });
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            bridgeConfigV2: {
-              sse: { enabled: false },
-            },
-            smartTransactionsNetworks: {
-              '0x1': {
-                mobileActiveIOS: true,
-                sentinelUrl:
-                  'https://tx-sentinel-ethereum-mainnet.api.cx.metamask.io',
-                expectedDeadline: 45,
-                maxDeadline: 160,
-                mobileActive: true,
-                mobileActiveAndroid: true,
-              },
-            },
-          });
+          // Mock ETH->MUSD quote — SSE path (getQuoteStream)
+          await setupSSEMockRequest(
+            mockServer,
+            /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
+            toSSEResponse(GASLESS_SWAP_QUOTES_ETH_MUSD),
+          );
         },
         restartDevice: true,
         endTestfn: async () => {

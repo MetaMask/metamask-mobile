@@ -351,29 +351,35 @@ jobs:
             SCRIPT_NAME="build:${{ matrix.platform }}:${BUILD_NAME//-/:}"
             yarn "$SCRIPT_NAME"
 
-      # Rename build artifacts (also zips simulator .app and writes ios_deploy_path / ios_archive_path outputs)
+      # Rename build artifacts (zips simulator .app and .xcarchive; writes ios_deploy_path / ios_archive_path / android_*_path outputs)
       - name: Rename ${{ matrix.platform }} artifacts
         if: success()
         id: rename
         run: node scripts/rename-artifacts.js ${{ matrix.platform }}
 
       # Upload build artifacts (only if build succeeded)
-      - name: Upload iOS simulator artifacts
+      - name: Upload iOS simulator app
         if: matrix.platform == 'ios' && env.IS_SIM_BUILD == 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ inputs.build_name }}
+          name: ios-app-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.ios_deploy_path }}
           if-no-files-found: error
 
-      - name: Upload iOS device artifacts
+      - name: Upload iOS IPA
         if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
         uses: actions/upload-artifact@v4
         with:
-          name: ios-${{ inputs.build_name }}
-          path: |
-            ${{ steps.rename.outputs.ios_deploy_path }}
-            ${{ steps.rename.outputs.ios_archive_path }}
+          name: ios-ipa-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_deploy_path }}
+          if-no-files-found: error
+
+      - name: Upload iOS xcarchive
+        if: matrix.platform == 'ios' && env.IS_SIM_BUILD != 'true'
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-xcarchive-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.ios_archive_path }}
           if-no-files-found: error
 
       - name: Upload iOS sourcemap
@@ -384,27 +390,32 @@ jobs:
           path: ${{ steps.rename.outputs.ios_sourcemap_path }}
           if-no-files-found: warn
 
-      # Dev builds (CONFIGURATION=Debug): APK only — mirrors Bitrise IS_DEV_BUILD behavior
-      - name: Upload Android dev artifacts
+      # Dev builds (CONFIGURATION=Debug): APK only
+      - name: Upload Android APK (dev)
         if: matrix.platform == 'android' && env.CONFIGURATION == 'Debug'
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.build_name }}
+          name: android-apk-${{ inputs.build_name }}
           path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
 
-      # Release builds: APK + AAB — mirrors Bitrise Deploy APK + Deploy AAB
-      - name: Upload Android release artifacts
+      # Release builds: APK and AAB as separate artifacts
+      - name: Upload Android APK (release)
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
         uses: actions/upload-artifact@v4
         with:
-          name: android-${{ inputs.build_name }}
-          path: |
-            ${{ steps.rename.outputs.android_apk_path }}
-            ${{ steps.rename.outputs.android_aab_path }}
+          name: android-apk-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_apk_path }}
           if-no-files-found: error
 
-      # Non-Debug builds (prod, RC, beta, test, e2e, exp): sourcemaps — mirrors Bitrise Deploy Android Sourcemaps step
+      - name: Upload Android AAB
+        if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-aab-${{ inputs.build_name }}
+          path: ${{ steps.rename.outputs.android_aab_path }}
+          if-no-files-found: error
+
       - name: Upload Android sourcemaps
         if: matrix.platform == 'android' && env.CONFIGURATION != 'Debug'
         uses: actions/upload-artifact@v4

@@ -108,10 +108,10 @@ jobs:
           working-directory: ios
           bundler-cache: true
 
-      - name: Download iOS build artifact
+      - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-exp
+          name: ios-ipa-main-exp
 
       - name: Find IPA path
         id: ipa
@@ -167,10 +167,10 @@ jobs:
           working-directory: ios
           bundler-cache: true
 
-      - name: Download iOS build artifact
+      - name: Download iOS IPA artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-main-rc
+          name: ios-ipa-main-rc
 
       - name: Find IPA path
         id: ipa
@@ -196,6 +196,8 @@ jobs:
 
       - name: Upload to TestFlight
         run: |
+          # Group arg is required as positional placeholder for the 5th arg (distribute_external=false).
+          # With distribute_external=false the build is uploaded but NOT distributed to external testers.
           bash scripts/upload-to-testflight.sh \
             "github_actions_main-rc" \
             "${{ github.ref_name }}" \
