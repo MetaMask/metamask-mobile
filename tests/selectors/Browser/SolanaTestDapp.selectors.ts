@@ -13,6 +13,16 @@ export const SolanaTestDappSelectorsWebIDs: SolanaTestDappWebIDs = {
 };
 
 /**
+ * Second-slot default testID from BottomSheetFooter (primary action). Duplicated here
+ * instead of importing `BottomSheetFooter.constants` in E2E — that file pulls in
+ * component-library Button → `react-native`, which Jest cannot parse in Detox runs.
+ *
+ * @see app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants.ts
+ */
+export const BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID =
+  'bottomsheetfooter-button-subsequent';
+
+/**
  * Timeout constants for solana tests
  */
 export const SOLANA_TEST_TIMEOUTS = {

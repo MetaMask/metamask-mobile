@@ -5,8 +5,10 @@ import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTa
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
-import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
-import { TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT } from '../../../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
+import {
+  BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
+  SolanaTestDappSelectorsWebIDs,
+} from '../../selectors/Browser/SolanaTestDapp.selectors';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
 import { SigningBottomSheetSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/SigningBottomSheet.testIds';
 
@@ -194,7 +196,7 @@ class SolanaTestDApp {
     // testIDs per slot. Legacy signing UI uses `request-signature-confirm-button`.
     const confirmSelectors = [
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-      TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
+      BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
       SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
     ] as const;
 
