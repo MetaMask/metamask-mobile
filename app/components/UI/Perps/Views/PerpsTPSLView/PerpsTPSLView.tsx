@@ -75,15 +75,6 @@ const PerpsTPSLView: React.FC = () => {
   const styles = createStyles(colors);
   const scrollViewRef = useRef<ScrollView>(null);
 
-  // BUG_MARKER [PR-27774]: Keypad hardcoded to 5 decimals but pxDecimals for asset may be higher
-  // eslint-disable-next-line no-console
-  console.log('[PR-27774] BUG_MARKER: PerpsTPSL render', {
-    asset,
-    szDecimals,
-    keypadDecimals: TP_SL_VIEW_CONFIG.KeypadDecimals,
-    pxDecimalsNeeded: szDecimals !== undefined ? 6 - szDecimals : 'unknown',
-  });
-
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
 
