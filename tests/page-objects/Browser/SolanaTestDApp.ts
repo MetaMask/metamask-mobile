@@ -6,7 +6,9 @@ import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
+import { TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT } from '../../../app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { SigningBottomSheetSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/SigningBottomSheet.testIds';
 
 /**
  * Get a test element by data-testid
@@ -188,11 +190,37 @@ class SolanaTestDApp {
   }
 
   async confirmSignMessage(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector, {
-      elemDescription: 'Solana sign message confirmation Confirm button',
-      delay: 1800,
-      timeout: 30000,
-    });
+    // Redesigned confirmations use `confirm-button`; the footer also assigns default
+    // testIDs per slot. Legacy signing UI uses `request-signature-confirm-button`.
+    const confirmSelectors = [
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+      TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT,
+      SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
+    ] as const;
+
+    let lastError: unknown;
+    for (let i = 0; i < confirmSelectors.length; i += 1) {
+      const testId = confirmSelectors[i];
+      try {
+        await Gestures.waitAndTap(Matchers.getElementByID(testId), {
+          elemDescription: `Solana sign message confirmation (${testId})`,
+          delay: i === 0 ? 1800 : 0,
+          timeout: i === 0 ? 25000 : 12000,
+        });
+        return;
+      } catch (error) {
+        lastError = error;
+      }
+    }
+
+    try {
+      await Gestures.waitAndTap(Matchers.getElementByText('Confirm'), {
+        elemDescription: 'Solana sign message confirmation (Confirm label)',
+        timeout: 15000,
+      });
+    } catch {
+      throw lastError;
+    }
   }
 
   async tapCancelButton(): Promise<void> {
