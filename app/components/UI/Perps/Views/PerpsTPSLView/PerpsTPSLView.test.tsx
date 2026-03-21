@@ -92,9 +92,26 @@ jest.mock('../../hooks/usePerpsTPSLForm', () => ({
   usePerpsTPSLForm: jest.fn(),
 }));
 
+jest.mock('../../hooks/usePerpsMarketData', () => ({
+  usePerpsMarketData: jest.fn(() => ({
+    marketData: null,
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('../../../../../core/SDKConnect/utils/DevLogger', () => ({
+  __esModule: true,
+  default: { log: jest.fn() },
+}));
+
 const mockUsePerpsTPSLForm = jest.requireMock(
   '../../hooks/usePerpsTPSLForm',
 ).usePerpsTPSLForm;
+
+const mockUsePerpsMarketData = jest.requireMock(
+  '../../hooks/usePerpsMarketData',
+).usePerpsMarketData;
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -195,6 +212,11 @@ describe('PerpsTPSLView', () => {
     jest.clearAllMocks();
     mockUseTheme.mockReturnValue(baseMockTheme);
     mockUsePerpsTPSLForm.mockReturnValue(defaultMockReturn);
+    mockUsePerpsMarketData.mockReturnValue({
+      marketData: null,
+      isLoading: false,
+      error: null,
+    });
     mockRouteParams = { ...defaultRouteParams };
   });
 
@@ -555,6 +577,55 @@ describe('PerpsTPSLView', () => {
 
       expect(screen.getByText('perps.tpsl.cancel')).toBeOnTheScreen();
       expect(screen.getByText('perps.tpsl.set')).toBeOnTheScreen();
+    });
+
+    it('passes priceDecimals=6 to form hook when szDecimals=0 (PUMP)', () => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        asset: 'PUMP',
+        szDecimals: 0,
+      };
+      renderView();
+
+      expect(mockUsePerpsTPSLForm).toHaveBeenCalledWith(
+        expect.objectContaining({ priceDecimals: 6 }),
+      );
+    });
+
+    it('passes priceDecimals=1 to form hook when szDecimals=5 (BTC)', () => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        asset: 'BTC',
+        szDecimals: 5,
+      };
+      renderView();
+
+      expect(mockUsePerpsTPSLForm).toHaveBeenCalledWith(
+        expect.objectContaining({ priceDecimals: 1 }),
+      );
+    });
+
+    it('uses market data szDecimals when szDecimals not in route params', () => {
+      mockRouteParams = {
+        ...defaultRouteParams,
+        asset: 'PUMP',
+        szDecimals: undefined,
+      };
+      mockUsePerpsMarketData.mockReturnValue({
+        marketData: {
+          name: 'PUMP',
+          szDecimals: 0,
+          maxLeverage: 10,
+          marginTableId: 52,
+        },
+        isLoading: false,
+        error: null,
+      });
+      renderView();
+
+      expect(mockUsePerpsTPSLForm).toHaveBeenCalledWith(
+        expect.objectContaining({ priceDecimals: 6 }),
+      );
     });
   });
 
