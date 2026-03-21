@@ -274,6 +274,33 @@ while IFS= read -r sj; do
         fi
       fi
       ;;
+    flow_ref)
+      FL_REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
+      FL_PARAMS=$(node -p "JSON.stringify(JSON.parse(process.argv[1]).params||{})" "$sj")
+      FLOW_FILE="$SD/flows/${FL_REF}.json"
+      if [ ! -f "$FLOW_FILE" ]; then
+        echo "  ❌ FAIL: flow not found: flows/${FL_REF}.json"; fail_recipe
+      fi
+      echo "  -> flow: $FL_REF (params: ${FL_PARAMS:0:80})"
+      SUBST_FLOW=$(mktemp /tmp/perps-flow-XXXXXX.json)
+      node -e "
+        const fs=require('fs');
+        let src=fs.readFileSync(process.argv[1],'utf8');
+        const p=JSON.parse(process.argv[2]);
+        for(const [k,v] of Object.entries(p)){src=src.replace(new RegExp('\\\\{\\\\{'+k+'\\\\}\\\\}','g'),String(v));}
+        fs.writeFileSync(process.argv[3],src);
+      " "$FLOW_FILE" "$FL_PARAMS" "$SUBST_FLOW"
+      FLOW_FLAGS=()
+      [ "$DRY" = true ]         && FLOW_FLAGS+=(--dry-run)
+      [ "$SKIP_MANUAL" = true ] && FLOW_FLAGS+=(--skip-manual)
+      if bash "$SD/validate-recipe.sh" "$SUBST_FLOW" "${FLOW_FLAGS[@]}"; then
+        RESULT='{"ok":true}'
+      else
+        rm -f "$SUBST_FLOW"
+        echo "  ❌ FAIL: flow failed: $FL_REF"; fail_recipe
+      fi
+      rm -f "$SUBST_FLOW"
+      ;;
     *)
       echo "  ❌ FAIL: unknown action '$ACT'"
       FAILED=$((FAILED + 1)); echo ""; continue

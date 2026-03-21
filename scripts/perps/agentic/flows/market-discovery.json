@@ -1,0 +1,72 @@
+{
+  "title": "Market Discovery — find {{symbol}} in list and verify price loads",
+  "validate": {
+    "runtime": {
+      "pre_conditions": ["Wallet unlocked", "Perps feature enabled"],
+      "steps": [
+        {
+          "id": "nav-market-list",
+          "description": "Navigate to perps market list",
+          "action": "navigate",
+          "target": "PerpsTrendingView"
+        },
+        {
+          "id": "wait-market-data",
+          "description": "Wait for market data to load",
+          "action": "wait",
+          "ms": 2000
+        },
+        {
+          "id": "assert-markets-loaded",
+          "description": "Assert markets list is non-empty",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "assert-symbol-in-list",
+          "description": "Assert {{symbol}} appears in market data",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!m,symbol:m?m.symbol:null})})",
+          "assert": { "operator": "eq", "field": "found", "value": true }
+        },
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to {{symbol}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-price-load",
+          "description": "Wait for price to load",
+          "action": "wait",
+          "ms": 2000
+        },
+        {
+          "id": "assert-price-loaded",
+          "description": "Assert {{symbol}} price is non-zero",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({price:m?m.price:'0'})})",
+          "assert": { "operator": "not_null", "field": "price" }
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot {{symbol}} market detail",
+          "action": "screenshot",
+          "filename": "market-discovery-{{symbol}}"
+        }
+      ]
+    }
+  }
+}

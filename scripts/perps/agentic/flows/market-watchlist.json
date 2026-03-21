@@ -1,0 +1,89 @@
+{
+  "title": "Market Watchlist — toggle {{symbol}} on/off watchlist",
+  "validate": {
+    "runtime": {
+      "pre_conditions": ["Wallet unlocked", "Perps feature enabled"],
+      "steps": [
+        {
+          "id": "nav-market-list",
+          "description": "Navigate to perps market list",
+          "action": "navigate",
+          "target": "PerpsTrendingView"
+        },
+        {
+          "id": "assert-watchlist-state",
+          "description": "Capture initial watchlist state",
+          "action": "eval_sync",
+          "expression": "JSON.stringify(Engine.context.PerpsController.state.watchlistMarkets)"
+        },
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to {{symbol}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for market detail to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "press-watchlist-add",
+          "description": "Press watchlist toggle button to add {{symbol}}",
+          "action": "press",
+          "test_id": "perps-watchlist-toggle-btn"
+        },
+        {
+          "id": "wait-state-update",
+          "description": "Wait for state update",
+          "action": "wait",
+          "ms": 1000
+        },
+        {
+          "id": "assert-added",
+          "description": "Assert {{symbol}} is now in watchlist",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets||[]).indexOf('{{symbol}}')>=0})",
+          "assert": { "operator": "eq", "field": "inWatchlist", "value": true }
+        },
+        {
+          "id": "press-watchlist-remove",
+          "description": "Press watchlist toggle again to remove {{symbol}}",
+          "action": "press",
+          "test_id": "perps-watchlist-toggle-btn"
+        },
+        {
+          "id": "wait-state-update-2",
+          "description": "Wait for state update",
+          "action": "wait",
+          "ms": 1000
+        },
+        {
+          "id": "assert-removed",
+          "description": "Assert {{symbol}} is no longer in watchlist",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets||[]).indexOf('{{symbol}}')>=0})",
+          "assert": { "operator": "eq", "field": "inWatchlist", "value": false }
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot final state",
+          "action": "screenshot",
+          "filename": "market-watchlist-{{symbol}}"
+        }
+      ]
+    }
+  }
+}

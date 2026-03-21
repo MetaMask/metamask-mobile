@@ -2,10 +2,31 @@
 
 Per-team recipe files for domain-specific CDP helpers. Each file is a JSON map of recipe name to expression.
 
+## Directory structure
+
+```
+recipes/
+  perps.json          # Core perps recipes (positions, auth, balances, markets, etc.)
+  perps/
+    core.json         # Extended perps recipes (pump-market, tpsl-orders, watchlist, etc.)
+  myx.json            # MYX-specific recipes
+  myx-validation/     # MYX validation flow recipes
+  README.md
+```
+
 ## Adding recipes
 
-Create `<team>.json` in this directory:
+**Flat file** (top-level team, e.g. `perps.json`):
+```bash
+scripts/perps/agentic/app-state.sh recipe perps/positions
+```
 
+**Subdirectory file** (team + subfile, e.g. `perps/core.json`):
+```bash
+scripts/perps/agentic/app-state.sh recipe perps/core/watchlist
+```
+
+Recipe JSON format:
 ```json
 {
   "recipe-name": {
@@ -25,9 +46,11 @@ Fields:
 
 ```bash
 # Run a recipe
-scripts/perps/agentic/app-state.sh recipe <team>/<name>
+scripts/perps/agentic/app-state.sh recipe perps/positions
+scripts/perps/agentic/app-state.sh recipe perps/core/watchlist
+scripts/perps/agentic/app-state.sh recipe perps/core/tpsl-orders
 
-# List all recipes
+# List all recipes (includes subdirectory files)
 scripts/perps/agentic/app-state.sh recipe --list
 ```
 

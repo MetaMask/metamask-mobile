@@ -1,0 +1,74 @@
+{
+  "title": "TP/SL — edit take-profit to {{newTakeProfitPrice}} for {{symbol}}",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Open position with TP/SL exists for {{symbol}}"
+      ],
+      "steps": [
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to {{symbol}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for market detail to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "press-modify-tpsl",
+          "description": "Press modify TP/SL button",
+          "action": "press",
+          "test_id": "perps-modify-tpsl-btn"
+        },
+        {
+          "id": "wait-tpsl-screen",
+          "description": "Wait for TP/SL screen",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "assert-tpsl-route",
+          "description": "Assert navigated to TP/SL screen",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": { "operator": "eq", "field": "route", "value": "PerpsTPSL" }
+        },
+        {
+          "id": "set-new-tp",
+          "description": "Update take-profit to {{newTakeProfitPrice}}",
+          "action": "set_input",
+          "test_id": "perps-tpsl-tp-input",
+          "value": "{{newTakeProfitPrice}}"
+        },
+        {
+          "id": "wait-input",
+          "description": "Wait for input to register",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot updated TP value",
+          "action": "screenshot",
+          "filename": "tpsl-edit-{{symbol}}"
+        }
+      ]
+    }
+  }
+}

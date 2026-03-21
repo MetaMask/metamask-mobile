@@ -1,0 +1,75 @@
+{
+  "title": "Trade — open market order form for {{symbol}} {{side}} ${{usdAmount}} {{leverage}}x",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Perps auth active (run perps/auth recipe to verify)",
+        "Sufficient balance"
+      ],
+      "steps": [
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to {{symbol}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for market detail to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "press-side",
+          "description": "Press {{side}} button",
+          "action": "press",
+          "test_id": "perps-trade-{{side}}-btn"
+        },
+        {
+          "id": "wait-side",
+          "description": "Wait for side selection",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "set-size",
+          "description": "Set USD amount to {{usdAmount}}",
+          "action": "set_input",
+          "test_id": "perps-trade-size-input",
+          "value": "{{usdAmount}}"
+        },
+        {
+          "id": "wait-input",
+          "description": "Wait for input to register",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "assert-order-preview",
+          "description": "Assert order preview section is visible",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": { "operator": "eq", "field": "route", "value": "PerpsMarketDetails" }
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot order form filled state",
+          "action": "screenshot",
+          "filename": "trade-open-market-{{symbol}}-{{side}}"
+        }
+      ]
+    }
+  }
+}

@@ -865,34 +865,56 @@ const COMMANDS = {
     const recipesDir = path.resolve(__dirname, 'recipes');
 
     if (arg === '--list') {
-      // List all available recipes from recipes/*.json
-      const files = fs.readdirSync(recipesDir).filter((f) => f.endsWith('.json'));
+      // List all available recipes from recipes/*.json and recipes/*/*.json
       const all = {};
-      for (const file of files) {
+      const topFiles = fs.readdirSync(recipesDir).filter((f) => f.endsWith('.json'));
+      for (const file of topFiles) {
         const team = path.basename(file, '.json');
         const data = JSON.parse(fs.readFileSync(path.join(recipesDir, file), 'utf8'));
         all[team] = Object.fromEntries(
           Object.entries(data).map(([name, r]) => [name, r.description || ''])
         );
       }
+      // Walk subdirectories (e.g. recipes/perps/core.json → "perps/core")
+      const subdirs = fs.readdirSync(recipesDir, { withFileTypes: true })
+        .filter((d) => d.isDirectory())
+        .map((d) => d.name);
+      for (const subdir of subdirs) {
+        const subFiles = fs.readdirSync(path.join(recipesDir, subdir)).filter((f) => f.endsWith('.json'));
+        for (const file of subFiles) {
+          const key = `${subdir}/${path.basename(file, '.json')}`;
+          const data = JSON.parse(fs.readFileSync(path.join(recipesDir, subdir, file), 'utf8'));
+          all[key] = Object.fromEntries(
+            Object.entries(data).map(([name, r]) => [name, r.description || ''])
+          );
+        }
+      }
       return all;
     }
 
-    // Parse "team/name"
+    // Parse "team/name" (2-part) or "team/subfile/name" (3-part)
     const parts = arg.split('/');
-    if (parts.length !== 2) {
-      throw new Error('Recipe must be in "team/name" format (e.g. perps/positions)');
+    if (parts.length < 2 || parts.length > 3) {
+      throw new Error('Recipe must be "team/name" or "team/subfile/name" (e.g. perps/positions or perps/core/pump-market)');
     }
-    const [team, name] = parts;
-    const recipeFile = path.join(recipesDir, `${team}.json`);
+    let recipeFile, recipeName;
+    if (parts.length === 3) {
+      const [team, subfile, name] = parts;
+      recipeFile = path.join(recipesDir, team, `${subfile}.json`);
+      recipeName = name;
+    } else {
+      const [team, name] = parts;
+      recipeFile = path.join(recipesDir, `${team}.json`);
+      recipeName = name;
+    }
     if (!fs.existsSync(recipeFile)) {
-      throw new Error(`No recipe file found: recipes/${team}.json`);
+      throw new Error(`No recipe file found: ${path.relative(path.dirname(recipesDir), recipeFile)}`);
     }
     const recipes = JSON.parse(fs.readFileSync(recipeFile, 'utf8'));
-    const recipe = recipes[name];
+    const recipe = recipes[recipeName];
     if (!recipe) {
       const available = Object.keys(recipes).join(', ');
-      throw new Error(`Recipe "${name}" not found in ${team}. Available: ${available}`);
+      throw new Error(`Recipe "${recipeName}" not found. Available: ${available}`);
     }
 
     let raw;

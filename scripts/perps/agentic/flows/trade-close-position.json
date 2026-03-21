@@ -1,0 +1,68 @@
+{
+  "title": "Trade — close position for {{symbol}}",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Open position exists for {{symbol}}"
+      ],
+      "steps": [
+        {
+          "id": "assert-position-exists",
+          "description": "Assert open position exists for {{symbol}}",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
+          "assert": { "operator": "eq", "field": "found", "value": true }
+        },
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to {{symbol}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for market detail to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "press-close",
+          "description": "Press Close Position button",
+          "action": "press",
+          "test_id": "perps-close-position-btn"
+        },
+        {
+          "id": "wait-close-screen",
+          "description": "Wait for close position screen",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "assert-close-route",
+          "description": "Assert navigated to close position screen",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": { "operator": "eq", "field": "route", "value": "PerpsClosePosition" }
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot close position form",
+          "action": "screenshot",
+          "filename": "trade-close-position-{{symbol}}"
+        }
+      ]
+    }
+  }
+}

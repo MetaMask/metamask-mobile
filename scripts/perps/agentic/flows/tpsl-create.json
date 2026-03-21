@@ -1,0 +1,71 @@
+{
+  "title": "TP/SL — create take-profit {{takeProfitPrice}} stop-loss {{stopLossPrice}} for {{symbol}}",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Open position exists for {{symbol}}"
+      ],
+      "steps": [
+        {
+          "id": "nav-tpsl",
+          "description": "Navigate to TP/SL screen",
+          "action": "navigate",
+          "target": "PerpsTPSL"
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for TP/SL screen to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "assert-tpsl-route",
+          "description": "Assert on TP/SL screen",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": { "operator": "eq", "field": "route", "value": "PerpsTPSL" }
+        },
+        {
+          "id": "set-tp",
+          "description": "Set take-profit price to {{takeProfitPrice}}",
+          "action": "set_input",
+          "test_id": "perps-tpsl-tp-input",
+          "value": "{{takeProfitPrice}}"
+        },
+        {
+          "id": "wait-tp-input",
+          "description": "Wait for TP input to register",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "set-sl",
+          "description": "Set stop-loss price to {{stopLossPrice}}",
+          "action": "set_input",
+          "test_id": "perps-tpsl-sl-input",
+          "value": "{{stopLossPrice}}"
+        },
+        {
+          "id": "wait-sl-input",
+          "description": "Wait for SL input to register",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "assert-no-validation-error",
+          "description": "Assert no validation error visible",
+          "action": "log_watch",
+          "window_seconds": 2,
+          "must_not_appear": ["validation error", "invalid price", "tpsl error"]
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot TP/SL inputs filled",
+          "action": "screenshot",
+          "filename": "tpsl-create-{{symbol}}"
+        }
+      ]
+    }
+  }
+}

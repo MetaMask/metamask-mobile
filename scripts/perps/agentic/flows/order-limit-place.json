@@ -1,0 +1,104 @@
+{
+  "title": "Order — place limit {{side}} for {{symbol}} ${{usdAmount}} at {{limitPrice}}",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Perps auth active (run perps/auth recipe to verify)"
+      ],
+      "steps": [
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to {{symbol}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for market detail to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "press-side",
+          "description": "Press {{side}} button",
+          "action": "press",
+          "test_id": "perps-trade-{{side}}-btn"
+        },
+        {
+          "id": "wait-side",
+          "description": "Wait for side selection",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "press-order-type",
+          "description": "Open order type selector",
+          "action": "press",
+          "test_id": "perps-order-type-selector"
+        },
+        {
+          "id": "wait-order-type-sheet",
+          "description": "Wait for order type sheet",
+          "action": "wait",
+          "ms": 800
+        },
+        {
+          "id": "press-limit-type",
+          "description": "Select Limit order type",
+          "action": "press",
+          "test_id": "perps-order-type-limit"
+        },
+        {
+          "id": "wait-limit-form",
+          "description": "Wait for limit price input to appear",
+          "action": "wait",
+          "ms": 800
+        },
+        {
+          "id": "set-limit-price",
+          "description": "Set limit price to {{limitPrice}}",
+          "action": "set_input",
+          "test_id": "perps-limit-price-input",
+          "value": "{{limitPrice}}"
+        },
+        {
+          "id": "wait-price-input",
+          "description": "Wait for price input to register",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "set-size",
+          "description": "Set USD amount to {{usdAmount}}",
+          "action": "set_input",
+          "test_id": "perps-trade-size-input",
+          "value": "{{usdAmount}}"
+        },
+        {
+          "id": "wait-size-input",
+          "description": "Wait for size input to register",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot limit order form",
+          "action": "screenshot",
+          "filename": "order-limit-place-{{symbol}}-{{side}}"
+        }
+      ]
+    }
+  }
+}

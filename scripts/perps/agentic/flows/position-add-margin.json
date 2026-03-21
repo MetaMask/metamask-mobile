@@ -1,0 +1,80 @@
+{
+  "title": "Position — add ${{marginAmount}} margin to {{symbol}}",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "Wallet unlocked",
+        "Open position exists for {{symbol}}"
+      ],
+      "steps": [
+        {
+          "id": "snapshot-pre",
+          "description": "Snapshot margin before adding",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({marginUsed:p?p.margin:null})})"
+        },
+        {
+          "id": "nav-market-detail",
+          "description": "Navigate to {{symbol}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for market detail to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "press-add-margin",
+          "description": "Press Add Margin button",
+          "action": "press",
+          "test_id": "perps-add-margin-btn"
+        },
+        {
+          "id": "wait-margin-screen",
+          "description": "Wait for margin screen",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "assert-margin-route",
+          "description": "Assert on adjust margin screen",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": { "operator": "eq", "field": "route", "value": "PerpsAdjustMargin" }
+        },
+        {
+          "id": "set-margin-amount",
+          "description": "Enter margin amount {{marginAmount}}",
+          "action": "set_input",
+          "test_id": "perps-margin-amount-input",
+          "value": "{{marginAmount}}"
+        },
+        {
+          "id": "wait-input",
+          "description": "Wait for input to register",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "screenshot",
+          "description": "Screenshot margin form with amount entered",
+          "action": "screenshot",
+          "filename": "position-add-margin-{{symbol}}"
+        }
+      ]
+    }
+  }
+}
