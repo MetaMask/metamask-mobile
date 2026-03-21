@@ -28,7 +28,7 @@ interface TokenListItemProps {
   token: DepositCryptoCurrency;
   isSelected?: boolean;
   onPress: () => void;
-  textColor?: string;
+  textColor?: TextColor | string;
   isDisabled?: boolean;
   onInfoPress?: () => void;
 }
@@ -48,6 +48,12 @@ function TokenListItem({
   const handleInfoPress = useCallback(() => {
     onInfoPress?.();
   }, [onInfoPress]);
+
+  const tokenSymbolColor =
+    Object.values(TextColor).includes(textColor as TextColor) &&
+    textColor !== undefined
+      ? (textColor as TextColor)
+      : undefined;
 
   return (
     <ListItemSelect
@@ -84,7 +90,10 @@ function TokenListItem({
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
-          color={textColor as TextColor}
+          color={tokenSymbolColor}
+          style={
+            !tokenSymbolColor && textColor ? { color: textColor } : undefined
+          }
         >
           {token.symbol}
         </Text>
