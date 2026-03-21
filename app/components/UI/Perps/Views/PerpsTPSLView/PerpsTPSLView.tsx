@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -27,14 +27,14 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Keypad from '../../../../../components/Base/Keypad';
 import { useTheme } from '../../../../../util/theme';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
-
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
+  DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
+import { usePerpsMarketData } from '../../hooks/usePerpsMarketData';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import type { PerpsNavigationParamList } from '../../types/navigation';
@@ -72,23 +72,16 @@ const PerpsTPSLView: React.FC = () => {
     onConfirm,
   } = route.params;
 
+  // Fetch market data to resolve per-market price precision when szDecimals is not in route params
+  const { marketData } = usePerpsMarketData(asset);
+  const resolvedSzDecimals = szDecimals ?? marketData?.szDecimals ?? 0;
+  const priceDecimals =
+    DECIMAL_PRECISION_CONFIG.MaxPriceDecimals - resolvedSzDecimals;
+
   const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const scrollViewRef = useRef<ScrollView>(null);
-
-  useEffect(() => {
-    DevLogger.log('[PR-27771] BUG_MARKER: PerpsTPSLView mounted', {
-      asset,
-      szDecimals,
-      keypadDecimals: TP_SL_VIEW_CONFIG.KeypadDecimals,
-      bug:
-        szDecimals === 0
-          ? 'keypad=5 but priceDecimals=6 for low-price asset'
-          : 'no bug for this asset',
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
@@ -180,6 +173,7 @@ const PerpsTPSLView: React.FC = () => {
     orderType,
     amount,
     szDecimals,
+    priceDecimals,
   });
 
   // Extract form state and handlers for easier access
@@ -880,7 +874,7 @@ const PerpsTPSLView: React.FC = () => {
                 })()}
                 onChange={handleKeypadChange}
                 currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
-                decimals={TP_SL_VIEW_CONFIG.KeypadDecimals}
+                decimals={priceDecimals}
               />
             </View>
           </>
