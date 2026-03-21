@@ -715,3 +715,10 @@ export const PerpsOrderDetailsViewSelectorsIDs = {
 export const PerpsCompactOrderRowSelectorsIDs = {
   FIRST_ROW: 'perps-compact-order-row-first',
 } as const;
+
+export const PerpsTransactionsViewSelectorsIDs = {
+  TAB_TRADES: 'perps-transactions-tab-trades',
+  TAB_ORDERS: 'perps-transactions-tab-orders',
+  TAB_FUNDING: 'perps-transactions-tab-funding',
+  TAB_DEPOSITS: 'perps-transactions-tab-deposits',
+} as const;

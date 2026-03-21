@@ -9,9 +9,12 @@
       "steps": [
         {
           "id": "nav-activity",
-          "description": "Navigate to perps activity screen",
+          "description": "Navigate to perps activity screen (perps transactions tab)",
           "action": "navigate",
-          "target": "PerpsActivity"
+          "target": "PerpsActivity",
+          "params": {
+            "redirectToPerpsTransactions": true
+          }
         },
         {
           "id": "wait-render",
@@ -31,15 +34,14 @@
           }
         },
         {
-          "id": "scroll-down",
-          "description": "Scroll down to see more activity",
-          "action": "scroll",
-          "test_id": "perps-activity-list",
-          "offset": 400
+          "id": "press-tab",
+          "description": "Select the requested tab (trades/orders/funding/deposits)",
+          "action": "press",
+          "test_id": "perps-transactions-tab-{{tab}}"
         },
         {
-          "id": "wait-scroll",
-          "description": "Wait for scroll to settle",
+          "id": "wait-filter",
+          "description": "Wait for tab filter to apply",
           "action": "wait",
           "ms": 800
         }

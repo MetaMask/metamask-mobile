@@ -242,6 +242,7 @@ const PerpsTransactionsView: React.FC<PerpsTransactionsViewProps> = () => {
           size={ButtonSize.Md}
           onPress={handleTabPress}
           accessibilityRole="button"
+          testID={`perps-transactions-tab-${i18nKey}`}
         >
           {strings(`perps.transactions.tabs.${i18nKey}`)}
         </ButtonFilter>
