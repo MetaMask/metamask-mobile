@@ -131,25 +131,25 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
       },
       async () => {
         await loginToApp();
-        // Earn entry can be animation-heavy; sync off only for that step. Leaving sync
-        // disabled through Activity breaks matching transaction row text ("Staking deposit")
-        // on iOS (FlashList + confirmation navigation).
+        // Earn and stake flows keep recurring native timers; with sync on, Detox waits for
+        // idle indefinitely after opening stake. Keep sync off through confirm, then re-enable
+        // for Activity (FlashList row text is unreliable with sync disabled on iOS).
         await device.disableSynchronization();
         try {
           await Assertions.expectElementToBeVisible(WalletView.earnButton, {
             timeout: 30000,
           });
           await WalletView.tapOnEarnButton();
+          await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
+          await StakeView.enterAmount(AMOUNT_TO_STAKE);
+          await StakeView.tapReviewWithRetry(30000);
+          await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
+            timeout: 30000,
+          });
+          await StakeView.tapConfirm(30000);
         } finally {
           await device.enableSynchronization();
         }
-        await Assertions.expectElementToBeVisible(StakeView.stakeContainer);
-        await StakeView.enterAmount(AMOUNT_TO_STAKE);
-        await StakeView.tapReviewWithRetry(30000);
-        await Assertions.expectElementToBeVisible(StakeView.confirmButton, {
-          timeout: 30000,
-        });
-        await StakeView.tapConfirm(30000);
 
         await Assertions.expectElementToBeVisible(
           ActivitiesView.stakeDepositedLabel,

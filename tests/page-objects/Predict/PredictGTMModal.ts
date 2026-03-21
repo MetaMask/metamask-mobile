@@ -1,4 +1,5 @@
-import Assertions from '../../framework/Assertions';
+import { waitFor } from 'detox';
+
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import { PREDICT_GTM_MODAL_TEST_IDS } from '../../../app/components/UI/Predict/components/PredictGTMModal/PredictGTMModal.testIds';
@@ -20,10 +21,10 @@ class PredictGTMModal {
    */
   async dismissIfVisible(): Promise<void> {
     try {
-      await Assertions.expectElementToBeVisible(this.container, {
-        description: 'Predict GTM promo modal container should be visible',
-        timeout: 6000,
-      });
+      const modalRoot = await Matchers.getElementByID(
+        PREDICT_GTM_MODAL_TEST_IDS.CONTAINER,
+      );
+      await waitFor(modalRoot).toExist().withTimeout(2000);
       await Gestures.waitAndTap(this.notNowButton, {
         elemDescription: 'Predict GTM Not now button',
       });

@@ -101,14 +101,14 @@ export const waitForAppReady = async (
   };
 
   const stabilizeWalletScreen = async (): Promise<void> => {
-    await Assertions.expectElementToBeVisible(WalletView.container, {
+    await Assertions.expectElementToBeVisible(WalletView.safeArea, {
       description: 'Wallet view should be stable',
       timeout: 2000,
     });
 
     await sleep(1000);
 
-    await Assertions.expectElementToBeVisible(WalletView.container, {
+    await Assertions.expectElementToBeVisible(WalletView.safeArea, {
       description: 'Wallet view should remain visible',
       timeout: 1000,
     });

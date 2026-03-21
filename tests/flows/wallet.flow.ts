@@ -2,6 +2,7 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
+  Gestures,
   PortManager,
   ResourceType,
   sleep,
@@ -398,6 +399,11 @@ export const loginToApp = async (password?: string): Promise<void> => {
       // Settings lock uses reset: false — keychain unlock may finish during this window,
       // after login looked stable in waitForAppReady. Re-check wallet on every retry.
       try {
+        await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+          description:
+            'Wallet home mounted (keychain auto-unlock or already signed in)',
+          timeout: 12000,
+        });
         await Assertions.expectElementToBeVisible(WalletView.container, {
           description:
             'Wallet after rehydration (keychain auto-unlock or already signed in)',
@@ -424,11 +430,26 @@ export const loginToApp = async (password?: string): Promise<void> => {
         },
       );
 
-      await LoginView.enterPassword(PASSWORD);
+      // Do not rely on a trailing newline to fire onSubmitEditing; iOS Detox + TextField
+      // can leave the user on the login screen with a filled field. Submit via the unlock button.
+      await Gestures.typeText(
+        asDetoxElement(LoginView.passwordInput),
+        PASSWORD,
+        {
+          elemDescription: 'Password Input',
+          hideKeyboard: false,
+        },
+      );
+      await LoginView.tapLoginButton();
 
+      // Home mounts before the internal account is selected; wallet-screen only exists then.
+      await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+        description: 'Wallet safe area visible after unlock (home mounted)',
+        timeout: 25000,
+      });
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should be visible after login',
-        timeout: 10000,
+        timeout: 25000,
       });
 
       await sleep(1000);

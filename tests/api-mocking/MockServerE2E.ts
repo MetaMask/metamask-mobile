@@ -70,6 +70,35 @@ export interface InternalMockServer extends Mockttp {
  * @param url - The URL that may contain a fallback port
  * @returns The URL with fallback port replaced by actual allocated port, or original URL
  */
+/**
+ * True when URL is the Snaps execution WebView document origin (see SnapsExecutionWebView baseUrl).
+ * Proxied fetches to this URL cannot be forwarded to a real TLS listener in E2E.
+ */
+const isSnapExecutionLocalhostDocumentUrl = (url: string): boolean => {
+  try {
+    const u = new URL(url);
+    const isSnapHost = u.hostname === 'localhost' || u.hostname === '127.0.0.1';
+    return (
+      u.protocol === 'https:' &&
+      isSnapHost &&
+      (u.port === '' || u.port === '443') &&
+      (u.pathname === '/' || u.pathname === '')
+    );
+  } catch {
+    return false;
+  }
+};
+
+const snapExecutionLocalhostHtmlResponse = (): {
+  statusCode: number;
+  headers?: Record<string, string>;
+  body: string;
+} => ({
+  statusCode: 200,
+  headers: { 'content-type': 'text/html; charset=utf-8' },
+  body: '<!DOCTYPE html><html><head></head><body></body></html>',
+});
+
 const translateFallbackPortToActual = (url: string): string => {
   try {
     const parsedUrl = new URL(url);
@@ -382,6 +411,13 @@ export default class MockServerE2E implements Resource {
           // Translate fallback ports to actual allocated ports (host-side forwarding)
           updatedUrl = translateFallbackPortToActual(updatedUrl);
 
+          if (isSnapExecutionLocalhostDocumentUrl(updatedUrl)) {
+            if (method === 'HEAD') {
+              return { statusCode: 200, body: '' };
+            }
+            return snapExecutionLocalhostHtmlResponse();
+          }
+
           if (!isUrlAllowed(updatedUrl)) {
             const errorMessage = `Request going to live server: ${updatedUrl}`;
             logger.warn(errorMessage);
@@ -453,6 +489,13 @@ export default class MockServerE2E implements Resource {
 
         // Translate fallback ports to actual allocated ports (host-side forwarding)
         const translatedUrl = translateFallbackPortToActual(request.url);
+
+        if (isSnapExecutionLocalhostDocumentUrl(translatedUrl)) {
+          if (request.method === 'HEAD') {
+            return { statusCode: 200, body: '' };
+          }
+          return snapExecutionLocalhostHtmlResponse();
+        }
 
         if (!isUrlAllowed(translatedUrl)) {
           const errorMessage = `Request going to live server: ${translatedUrl}`;
