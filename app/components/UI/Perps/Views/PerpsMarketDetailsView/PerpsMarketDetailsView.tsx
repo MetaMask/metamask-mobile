@@ -1156,7 +1156,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {
             iconName: isWatchlist ? IconName.StarFilled : IconName.Star,
             onPress: handleWatchlistPress,
-            testID: PerpsMarketHeaderSelectorsIDs.MORE_BUTTON,
+            testID: PerpsMarketHeaderSelectorsIDs.FAVORITE_BUTTON,
           },
         ]}
         testID={PerpsMarketDetailsViewSelectorsIDs.HEADER}
