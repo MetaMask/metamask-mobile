@@ -198,6 +198,10 @@ class SolanaTestDApp {
     // testID is `${name}-snap-footer-button` (e.g. confirm-sign-message-confirm-snap-footer-button).
     // Redesigned EVM confirmations use `confirm-button`; legacy signing used
     // `request-signature-confirm-button` (removed).
+    //
+    // Android: Detox visibility requires ≥75% of the view visible; snap footer buttons in the
+    // slide-up modal can exist and be tappable but still fail that check — wait for existence,
+    // then tap with visibility checks relaxed on Android only.
     const confirmSelectors = [
       SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
       SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
@@ -206,14 +210,22 @@ class SolanaTestDApp {
       SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
     ] as const;
 
+    const relaxSnapFooterVisibility = device.getPlatform() === 'android';
+
     let lastError: unknown;
     for (let i = 0; i < confirmSelectors.length; i += 1) {
       const testId = confirmSelectors[i];
       try {
-        await Gestures.waitAndTap(Matchers.getElementByID(testId), {
+        const el = await Matchers.getElementByID(testId);
+        const existenceTimeout = i === 0 ? 28000 : 12000;
+        await waitFor(el).toExist().withTimeout(existenceTimeout);
+
+        await Gestures.waitAndTap(Promise.resolve(el), {
           elemDescription: `Solana sign message confirmation (${testId})`,
           delay: i === 0 ? 1800 : 0,
-          timeout: i === 0 ? 25000 : 12000,
+          timeout: 8000,
+          checkVisibility: !relaxSnapFooterVisibility,
+          checkEnabled: !relaxSnapFooterVisibility,
         });
         return;
       } catch (error) {
@@ -222,9 +234,13 @@ class SolanaTestDApp {
     }
 
     try {
-      await Gestures.waitAndTap(Matchers.getElementByText('Confirm'), {
+      const confirmByLabel = await Matchers.getElementByText('Confirm');
+      await waitFor(confirmByLabel).toExist().withTimeout(15000);
+      await Gestures.waitAndTap(Promise.resolve(confirmByLabel), {
         elemDescription: 'Solana sign message confirmation (Confirm label)',
-        timeout: 15000,
+        timeout: 8000,
+        checkVisibility: !relaxSnapFooterVisibility,
+        checkEnabled: !relaxSnapFooterVisibility,
       });
     } catch {
       throw lastError;

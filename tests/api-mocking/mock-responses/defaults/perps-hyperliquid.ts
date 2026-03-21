@@ -27,7 +27,8 @@ export const PERPS_HYPERLIQUID_MOCKS: MockEventsObject = {
       requestBody: {
         type: 'frontendOpenOrders',
       },
-      ignoreFields: ['user'],
+      // `user` is the wallet address; `dex` is included when querying a specific perp DEX.
+      ignoreFields: ['user', 'dex'],
       responseCode: 200,
       response: {},
     },
