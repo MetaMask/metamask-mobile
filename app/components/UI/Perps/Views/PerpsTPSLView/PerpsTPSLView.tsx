@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -27,6 +27,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Keypad from '../../../../../components/Base/Keypad';
 import { useTheme } from '../../../../../util/theme';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
@@ -75,6 +76,19 @@ const PerpsTPSLView: React.FC = () => {
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const scrollViewRef = useRef<ScrollView>(null);
+
+  useEffect(() => {
+    DevLogger.log('[PR-27771] BUG_MARKER: PerpsTPSLView mounted', {
+      asset,
+      szDecimals,
+      keypadDecimals: TP_SL_VIEW_CONFIG.KeypadDecimals,
+      bug:
+        szDecimals === 0
+          ? 'keypad=5 but priceDecimals=6 for low-price asset'
+          : 'no bug for this asset',
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Keypad state management
   const [focusedInput, setFocusedInput] = useState<string | null>(null);
