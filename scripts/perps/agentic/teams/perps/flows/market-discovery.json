@@ -1,5 +1,5 @@
 {
-  "title": "Market Discovery — find {{symbol}} in list and verify price loads",
+  "title": "Market Discovery — find {{symbol|BTC}} in list and verify price loads",
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -32,9 +32,9 @@
         },
         {
           "id": "assert-symbol-in-list",
-          "description": "Assert {{symbol}} appears in market data",
+          "description": "Assert {{symbol|BTC}} appears in market data",
           "action": "eval_async",
-          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!m,symbol:m?m.symbol:null})})",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol|BTC}}'});return JSON.stringify({found:!!m,symbol:m?m.symbol:null})})",
           "assert": {
             "operator": "eq",
             "field": "found",
@@ -43,13 +43,13 @@
         },
         {
           "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
+          "description": "Navigate to {{symbol|BTC}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
             "market": {
-              "symbol": "{{symbol}}",
-              "name": "{{symbol}}",
+              "symbol": "{{symbol|BTC}}",
+              "name": "{{symbol|BTC}}",
               "price": "0",
               "change24h": "0",
               "change24hPercent": "0",
@@ -66,9 +66,9 @@
         },
         {
           "id": "assert-price-loaded",
-          "description": "Assert {{symbol}} price is non-zero",
+          "description": "Assert {{symbol|BTC}} price is non-zero",
           "action": "eval_async",
-          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({price:m?m.price:'0'})})",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol|BTC}}'});return JSON.stringify({price:m?m.price:'0'})})",
           "assert": {
             "operator": "not_null",
             "field": "price"

@@ -11,6 +11,11 @@ function checkAssert(raw, assertSpec) {
   if (!assertSpec) return true;
   let parsed;
   try { parsed = JSON.parse(raw); } catch (_) { parsed = raw; }
+  // cdp-bridge.js eval prints output JSON-encoded (strings get outer quotes).
+  // Unwrap one extra level so field traversal works against the real value.
+  if (typeof parsed === 'string') {
+    try { parsed = JSON.parse(parsed); } catch (_) { /* keep as string */ }
+  }
   let actual = parsed;
   if (assertSpec.field) {
     for (const part of assertSpec.field.split('.')) {

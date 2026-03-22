@@ -181,7 +181,7 @@ fail_recipe() {
 # Output: "PASS" or "FAIL"
 check_assert() {
   node -e "
-const { checkAssert } = require(require('path').join(process.argv[3], 'lib/assert'));
+const { checkAssert } = require(require('path').resolve(process.argv[3], 'lib/assert'));
 console.log(checkAssert(process.argv[1], JSON.parse(process.argv[2])) ? 'PASS' : 'FAIL');
 " "$1" "$2" "$SD"
 }
