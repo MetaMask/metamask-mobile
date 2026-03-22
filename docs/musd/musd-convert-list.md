@@ -67,7 +67,7 @@ The `TransactionPayController` **automatically fetches Relay quotes** whenever:
 - A transaction is updated (`TransactionController:stateChange`)
 - A payment token is set (`updatePaymentToken`)
 
-**This means no custom quote-fetching logic is needed for the Max bottom sheet.** We create a transaction with max amount, set the payment token, and the controller handles everything.
+**This means no custom quote-fetching logic is needed for the Max bottom sheet.** We create a transaction with the max amount, set the payment token, and the controller handles everything.
 
 ### Relay Supports Same-Chain AND Cross-Chain
 
@@ -197,8 +197,8 @@ export enum TransactionType {
 | `destinationTokenAmount`   | `string`            | Expected mUSD amount                                                                          |
 | `destinationTokenDecimals` | `number`            | mUSD decimals                                                                                 |
 | `time`                     | `number`            | Transaction creation timestamp (ms)                                                           |
-| `submittedTime`            | `number`            | When submitted to network (ms)                                                                |
-| `blockTimestamp`           | `string`            | When included in block                                                                        |
+| `submittedTime`            | `number`            | When submitted to the network (ms)                                                                |
+| `blockTimestamp`           | `string`            | When included in a block                                                                        |
 | `txParams.from`            | `string`            | User's account address                                                                        |
 
 ### TransactionStatus Enum
@@ -319,7 +319,7 @@ app/components/UI/Earn/
 
 **Path:** `app/components/UI/Earn/hooks/useMusdMaxConversion.ts`
 
-Creates max-amount transaction and sets payment token. Leverages existing infrastructure:
+Creates a max-amount transaction and sets the payment token. Leverages existing infrastructure:
 
 ```typescript
 export const useMusdMaxConversion = () => {
@@ -537,7 +537,7 @@ const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
 
 ### Token Filtering
 
-Tokens shown in list must meet ALL criteria:
+Tokens shown in the list must meet ALL criteria:
 
 1. User has balance > 0
 2. Token is in `musdConversionPaymentTokensAllowlist`
@@ -943,7 +943,7 @@ This avoids creating a duplicate `MusdInfoBanner` component.
 | Get real-time status updates  | Subscribe to `TransactionController:transactionStatusUpdated` event                                  |
 | Display pending indicators    | Check `tx.status` is `'submitted'`, `'signed'`, or `'approved'`                                      |
 | Display completion indicators | Check `tx.status === 'confirmed'`                                                                    |
-| Fetch Relay quotes            | Set payment token via `TransactionPayController.updatePaymentToken()` - quotes fetched automatically |
+| Fetch Relay quotes            | Set payment token via `TransactionPayController.updatePaymentToken()` - quotes are fetched automatically |
 | Cross-client reuse            | Selectors can be shared; logic derives from common TransactionController                             |
 | Persist conversion history    | Already persisted by TransactionController                                                           |
 
@@ -951,7 +951,7 @@ This avoids creating a duplicate `MusdInfoBanner` component.
 
 1. **No new controller is needed.** The existing `TransactionController` with `TransactionType.musdConversion` provides all the infrastructure.
 
-2. **TransactionPayController is reactive.** Setting a payment token automatically triggers quote fetching - no custom logic needed.
+2. **TransactionPayController is reactive.** Setting a payment token automatically triggers quote fetching; no custom logic needed.
 
 3. **Relay supports same-chain AND cross-chain.** The implementation handles both scenarios based on whether mUSD exists on the source chain.
 
