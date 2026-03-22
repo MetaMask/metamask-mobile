@@ -581,6 +581,11 @@ export const PerpsAdjustMarginActionSheetSelectorsIDs = {
   REDUCE_MARGIN_OPTION: 'perps-adjust-margin-reduce-btn',
 } as const;
 
+export const PerpsAdjustMarginViewSelectorsIDs = {
+  CONFIRM_BUTTON: 'perps-adjust-margin-confirm-button',
+  DONE_BUTTON: 'perps-adjust-margin-done-button',
+} as const;
+
 export const PerpsMarketTabsSelectorsIDs = {
   // Container
   CONTAINER: 'perps-market-tabs-container',
