@@ -1,6 +1,6 @@
 # Approve
 
-This confirmation page allows user to give approval to their assets:
+This confirmation page allows users to give approval to their assets:
 
 1. Giving approval to token:
    <img src="https://github.com/MetaMask/metamask-mobile/blob/approve_architectural_doc/docs/confirmation-refactoring/approve/approve_token.png?raw=true" width="150"/>
@@ -12,16 +12,16 @@ The component responsible for rendering this view is: [/Views/ApproveView/Approv
 
 ### Refactoring `/Views/ApproveView/Approve`
 
-This is a well defined component. The components also includes 3 small child components: - [ShowBlockExplorer](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/ApproveTransactionReview/ShowBlockExplorer) - [AddNickName](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/ApproveTransactionReview/AddNickname) - [ApproveTransactionReview](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/UI/ApproveTransactionReview/index.js)
-Following are the improveement areas:
+This is a well-defined component. The component also includes 3 small child components: - [ShowBlockExplorer](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/ApproveTransactionReview/ShowBlockExplorer) - [AddNickName](https://github.com/MetaMask/metamask-mobile/tree/main/app/components/UI/ApproveTransactionReview/AddNickname) - [ApproveTransactionReview](https://github.com/MetaMask/metamask-mobile/blob/main/app/components/UI/ApproveTransactionReview/index.js)
+Following are the improvement areas:
 
 1. The file path can be improved to `/Views/Approve` as it is the only component in `/Views/ApproveView` folder.
-2. The component has few methods are are quite generic and should be fully or partially converted to reusable functions in utils or hooks:
+2. The component has few methods that are quite generic and should be fully or partially converted to reusable functions in utils or hooks:
    - For gas polling its proposed to create re-usable hook [here](https://github.com/MetaMask/metamask-mobile/pull/6003/files#diff-7c74af67b37335b69af34b0dc466c46bc3a08e37832414f7eba12984bcbf5abfR119), the hook can be used in this component also.
    - Function [validateGas](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/Views/ApproveView/Approve/index.js#L326)
    - Function [prepareTransaction](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/Views/ApproveView/Approve/index.js#L350)
-3. Nested ternary conditions like used [here](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/Views/ApproveView/Approve/index.js#L625) are avoidable.
-4. AddNickName, ApproveTransactionReview components also has logic to show block explorer which looks redundant [here](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/UI/ApproveTransactionReview/AddNickname/index.tsx#L150) and [here](https://github.com/MetaMask/metamask-mobile/blob/f5d3bb82924bce231fee76ef29d7ba077886bc17/app/components/UI/ApproveTransactionReview/index.js#L949).
+3. Nested ternary conditions like those used [here](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/Views/ApproveView/Approve/index.js#L625) are avoidable.
+4. AddNickName, ApproveTransactionReview components also have logic to show block explorer which looks redundant [here](https://github.com/MetaMask/metamask-mobile/blob/a803bec1d941f92062349f1edb619f447819f932/app/components/UI/ApproveTransactionReview/AddNickname/index.tsx#L150) and [here](https://github.com/MetaMask/metamask-mobile/blob/f5d3bb82924bce231fee76ef29d7ba077886bc17/app/components/UI/ApproveTransactionReview/index.js#L949).
 
 ### Refactoring `/UI/ApproveTransactionReview`
 
