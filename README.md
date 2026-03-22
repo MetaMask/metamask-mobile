@@ -6,7 +6,7 @@
 
 MetaMask is a mobile wallet that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
-For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or [Medium](https://medium.com/metamask) pages.
+For up-to-the-minute news, follow our [Twitter](https://twitter.com/metamask) or [Medium](https://medium.com/metamask) pages.
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
@@ -43,11 +43,11 @@ MetaMask Mobile requires an Infura project ID to connect to blockchain networks.
 
 1. Go to [https://developer.metamask.io](https://developer.metamask.io) and create an account
 2. Generate an API key
-3. Add API key to `MM_INFURA_PROJECT_ID` in `.js.env.example`
+3. Add the API key to `MM_INFURA_PROJECT_ID` in `.js.env.example`
 4. Rename `.js.env.example` to `.js.env`
 5. Rebuild the app
 
-[!CAUTION]
+> [!CAUTION]
 
 > Without an Infura project ID, the app cannot connect to blockchain networks.
 
@@ -89,7 +89,7 @@ yarn watch
     - Your test device needs to first be registered with our Apple developer account.
     - Once registered, download and install an `.ipa` file from this [Runway bucket](https://app.runway.team/bucket/MV2BJmn6D5_O7nqGw8jHpATpEA4jkPrBB4EcWXC6wV7z8jgwIbAsDhE5Ncl7KwF32qRQQD9YrahAIaxdFVvLT4v3UvBcViMtT3zJdMMfkXDPjSdqVGw=) onto your device.
   - Simulator
-    - Download and install an `.app` file from this [Runway bucket](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=) onto your simulator.
+    - Download and install an `.app` file from this [Runway bucket](https://app.runway.team/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=) ono your simulator.
     - Note: Our `.app` files are zipped and hosted under `Additional Artifacts` in the bucket. Since this hosting additional artifacts in public buckets is a relatively new feature, contributors may find that some builds are missing additional artifacts. Under the hood, these are usually associated with failed or aborted Bitrise builds. We are working with the Runway team to better filter out these builds and are subject to change in the future.
 
 #### Load the app
@@ -111,7 +111,7 @@ If developing or modifying native code or installing any library that introduces
 
 #### Native Environment setup
 
-Before running the app for native development, make sure your development environment has all the required tools. Several of these tools (ie Node and Ruby) may require specific versions in order to successfully build the app.
+Before running the app for native development, make sure your development environment has all the required tools. Several of these tools (i.e. Node and Ruby) may require specific versions in order to successfully build the app.
 
 [Setup your development environment](./docs/readme/environment.md)
 
@@ -147,13 +147,13 @@ As an external contributor, you need to provide your own Firebase project config
    - Create/Update the `google-services.json` and `GoogleService-Info.plist` files in:
    - `android/app/google-services.json` (for Android)
    - `ios/GoogleServices/GoogleService-Info.plist` directory (for iOS)
-3. Create the correct base64 environments variables.
+3. Create the correct base64 environment variables.
 
 ```bash
 # Generate Android Base64 Version of Google Services
 export GOOGLE_SERVICES_B64_ANDROID="$(base64 -w0 -i ./android/app/google-services.json)" && echo "export GOOGLE_SERVICES_B64_ANDROID=\"$GOOGLE_SERVICES_B64_ANDROID\"" | tee -a .js.env
 
-# Generate IOS Base64 Version of Google Services
+# Generate iOS Base64 Version of Google Services
 export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleService-Info.plist)" && echo "export GOOGLE_SERVICES_B64_IOS=\"$GOOGLE_SERVICES_B64_IOS\"" | tee -a .js.env
 ```
 
@@ -182,7 +182,7 @@ yarn watch
 
 _Like a local server for the app_
 
-**Run on a iOS device**
+**Run on an iOS device**
 
 ```bash
 yarn start:ios
