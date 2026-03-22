@@ -100,9 +100,11 @@ const V2OtpCode = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resendButtonState, setResendButtonState] = useState<
     'resend' | 'cooldown' | 'contactSupport'
-  >('cooldown');
+  >('resend');
   const [cooldownSeconds, setCooldownSeconds] = useState(COOLDOWN_TIME);
   const timerRef = useRef<NodeJS.Timeout | null>(null);
+  /** When true, user entered 6 digits while another verify was in flight; retry after loading ends. */
+  const pendingVerifyAfterInFlightRef = useRef(false);
   const [resetAttemptCount, setResetAttemptCount] = useState(0);
 
   useEffect(() => {
@@ -175,6 +177,7 @@ const V2OtpCode = () => {
       }
       setResetAttemptCount((prev) => prev + 1);
       setResendButtonState('cooldown');
+      setCooldownSeconds(COOLDOWN_TIME);
       const resendResponse = await sendUserOtp(email);
 
       if (!resendResponse?.stateToken) {
@@ -191,6 +194,9 @@ const V2OtpCode = () => {
           .build(),
       );
     } catch (e) {
+      setResetAttemptCount((prev) => Math.max(0, prev - 1));
+      setResendButtonState('resend');
+      setCooldownSeconds(COOLDOWN_TIME);
       setError(
         parseUserFacingError(e, strings('deposit.otp_code.resend_code_error')),
       );
@@ -211,74 +217,81 @@ const V2OtpCode = () => {
   }, []);
 
   const handleSubmit = useCallback(async () => {
-    if (!isLoading && value.length === CELL_COUNT) {
-      try {
-        setIsLoading(true);
-        setError(null);
+    if (value.length !== CELL_COUNT) {
+      return;
+    }
+    if (isLoading) {
+      pendingVerifyAfterInFlightRef.current = true;
+      return;
+    }
 
-        if (!currentStateToken) {
-          throw new Error('State token is required for OTP verification');
-        }
+    try {
+      pendingVerifyAfterInFlightRef.current = false;
+      setIsLoading(true);
+      setError(null);
 
-        trace({
-          name: TraceName.DepositInputOtp,
-        });
-
-        const token = await verifyUserOtp(email, value, currentStateToken);
-
-        if (!token) {
-          throw new Error('No response from verifyUserOtp');
-        }
-
-        await setAuthToken(token);
-
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
-            .addProperties({
-              ramp_type: 'DEPOSIT',
-              region: userRegion?.regionCode || '',
-            })
-            .build(),
-        );
-
-        if (amount && currency && assetId) {
-          try {
-            const quote = await transakGetBuyQuote(
-              currency,
-              assetId,
-              selectedToken?.chainId || '',
-              selectedPaymentMethod?.id || '',
-              amount,
-            );
-            await routeAfterAuthentication(quote);
-          } catch (routeError) {
-            navigation.navigate(
-              Routes.RAMP.AMOUNT_INPUT as never,
-              {
-                nativeFlowError: parseUserFacingError(
-                  routeError,
-                  strings('deposit.otp_code.error'),
-                ),
-              } as never,
-            );
-          }
-        } else {
-          navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
-        }
-      } catch (e) {
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
-            .addProperties({
-              ramp_type: 'DEPOSIT',
-              region: userRegion?.regionCode || '',
-            })
-            .build(),
-        );
-        setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
-        Logger.error(e as Error, 'Error submitting OTP code or verifying');
-      } finally {
-        setIsLoading(false);
+      if (!currentStateToken) {
+        throw new Error('State token is required for OTP verification');
       }
+
+      trace({
+        name: TraceName.DepositInputOtp,
+      });
+
+      const token = await verifyUserOtp(email, value, currentStateToken);
+
+      if (!token) {
+        throw new Error('No response from verifyUserOtp');
+      }
+
+      await setAuthToken(token);
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_OTP_CONFIRMED)
+          .addProperties({
+            ramp_type: 'DEPOSIT',
+            region: userRegion?.regionCode || '',
+          })
+          .build(),
+      );
+
+      if (amount && currency && assetId) {
+        try {
+          const quote = await transakGetBuyQuote(
+            currency,
+            assetId,
+            selectedToken?.chainId || '',
+            selectedPaymentMethod?.id || '',
+            amount,
+          );
+          await routeAfterAuthentication(quote);
+        } catch (routeError) {
+          navigation.navigate(
+            Routes.RAMP.AMOUNT_INPUT as never,
+            {
+              nativeFlowError: parseUserFacingError(
+                routeError,
+                strings('deposit.otp_code.error'),
+              ),
+            } as never,
+          );
+        }
+      } else {
+        navigation.navigate(Routes.RAMP.AMOUNT_INPUT);
+      }
+    } catch (e) {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.RAMPS_OTP_FAILED)
+          .addProperties({
+            ramp_type: 'DEPOSIT',
+            region: userRegion?.regionCode || '',
+          })
+          .build(),
+      );
+      setError(parseUserFacingError(e, strings('deposit.otp_code.error')));
+      Logger.error(e as Error, 'Error submitting OTP code or verifying');
+    } finally {
+      setIsLoading(false);
     }
   }, [
     navigation,
@@ -299,6 +312,22 @@ const V2OtpCode = () => {
     selectedPaymentMethod?.id,
     routeAfterAuthentication,
   ]);
+
+  useEffect(() => {
+    if (isLoading) {
+      return;
+    }
+    if (!pendingVerifyAfterInFlightRef.current) {
+      return;
+    }
+    if (value.length !== CELL_COUNT) {
+      pendingVerifyAfterInFlightRef.current = false;
+      return;
+    }
+    Promise.resolve(handleSubmit()).catch(() => {
+      // Errors are surfaced via state; avoid unhandled rejection
+    });
+  }, [isLoading, value, handleSubmit]);
 
   const handleValueChange = useCallback((text: string) => {
     setValue(text);

@@ -206,6 +206,48 @@ describe('V2OtpCode', () => {
     });
   });
 
+  it('verifies with the latest six digits after a new code was entered while a previous verify was in flight', async () => {
+    jest.useRealTimers();
+
+    const releaseFns: { release?: () => void } = {};
+    const firstCall = new Promise<never>((_, reject) => {
+      releaseFns.release = () => {
+        reject(new Error('Invalid OTP'));
+      };
+    });
+
+    mockVerifyUserOtp
+      .mockImplementationOnce(() => firstCall)
+      .mockResolvedValueOnce({ accessToken: 'otp-token', ttl: 3600 });
+    mockSetAuthToken.mockResolvedValue(true);
+
+    const { getByTestId } = renderWithTheme(<V2OtpCode />);
+    const otpInput = getByTestId('otp-code-input');
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '123456');
+    });
+
+    await act(async () => {
+      fireEvent.changeText(otpInput, '12345');
+      fireEvent.changeText(otpInput, '999999');
+    });
+
+    await act(async () => {
+      releaseFns.release?.();
+    });
+
+    await waitFor(() => {
+      expect(mockVerifyUserOtp).toHaveBeenCalledTimes(2);
+      expect(mockVerifyUserOtp).toHaveBeenNthCalledWith(
+        2,
+        'test@example.com',
+        '999999',
+        'test-state-token',
+      );
+    });
+  });
+
   it('renders the paste button', () => {
     const { getByTestId } = renderWithTheme(<V2OtpCode />);
     expect(getByTestId('otp-code-paste-button')).toBeOnTheScreen();
@@ -301,12 +343,6 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
     });
@@ -320,12 +356,6 @@ describe('V2OtpCode', () => {
     mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
-
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
 
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
@@ -388,12 +418,6 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
-
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
     });
@@ -407,12 +431,6 @@ describe('V2OtpCode', () => {
     mockSendUserOtp.mockRejectedValue(new Error());
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
-
-    for (let i = 0; i < 60; i++) {
-      act(() => {
-        jest.advanceTimersByTime(1000);
-      });
-    }
 
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
