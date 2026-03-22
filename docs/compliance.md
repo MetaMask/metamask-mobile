@@ -49,7 +49,7 @@ Compliance is gated behind the `complianceEnabled` remote feature flag. When the
 To enable compliance:
 
 1. Set `complianceEnabled: true` in LaunchDarkly (or via the local feature flag override screen in dev builds).
-2. The controller will fetch the blocked wallets list on next app launch.
+2. The controller will fetch the blocked wallets list on the next app launch.
 
 ### Feature flag selector
 
