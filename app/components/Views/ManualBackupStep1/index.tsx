@@ -88,7 +88,7 @@ const ManualBackupStep1 = () => {
   );
 
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-  const [password, setPassword] = useState<string | undefined>(undefined);
+  const [password, setPassword] = useState('');
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
     string | undefined
   >(undefined);
