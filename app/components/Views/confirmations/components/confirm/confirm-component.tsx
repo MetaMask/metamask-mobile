@@ -97,11 +97,7 @@ const ConfirmWrapped = ({
   return (
     <ConfirmationContextProvider>
       <ConfirmationAssetPollingProvider>
-        {isReady ? (
-          <ConfirmationAlerts>{content}</ConfirmationAlerts>
-        ) : (
-          <AlertsContextProvider alerts={[]}>{content}</AlertsContextProvider>
-        )}
+        <ConfirmationAlerts>{content}</ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
     </ConfirmationContextProvider>
   );

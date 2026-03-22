@@ -81,7 +81,14 @@ export function PayWithRow() {
       return payToken ?? defaultWithdrawToken ?? null;
     }
     return payToken ?? null;
-  }, [isWithdraw, payToken, defaultWithdrawToken]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    isWithdraw,
+    payToken?.address,
+    payToken?.chainId,
+    defaultWithdrawToken?.address,
+    defaultWithdrawToken?.chainId,
+  ]);
 
   // For deposits, show the user's balance of the selected pay token
   const balanceUsdFormatted = useMemo(

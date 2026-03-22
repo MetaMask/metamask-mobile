@@ -170,7 +170,6 @@ function TokenIcon({
       <RemoteImage
         key={icon || `symbol-${symbol}`}
         testID={testID}
-        fadeIn
         source={getSource()}
         onError={() => setShowFallback(true)}
         style={[
@@ -222,4 +221,4 @@ TokenIcon.propTypes = {
   testID: PropTypes.string,
 };
 
-export default TokenIcon;
+export default React.memo(TokenIcon);
