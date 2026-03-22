@@ -6,7 +6,7 @@
 
 MetaMask is a mobile wallet that provides easy access to websites that use the [Ethereum](https://ethereum.org/) blockchain.
 
-For up to the minute news, follow our [Twitter](https://twitter.com/metamask) or [Medium](https://medium.com/metamask) pages.
+For up-to-the-minute news, follow our [Twitter](https://twitter.com/metamask) or [Medium](https://medium.com/metamask) pages.
 
 To learn how to develop MetaMask-compatible applications, visit our [Developer Docs](https://docs.metamask.io).
 
@@ -103,7 +103,7 @@ If on a physical device:
 
 - Use the camera app to scan the QR code presented by the bundler running on the terminal
 
-That's it! This will work for any javascript development, if you need to develop or modify native code please see the next section.
+That's it! This will work for any JavaScript development, if you need to develop or modify native code please see the next section.
 
 ### Native Development
 
@@ -147,13 +147,13 @@ As an external contributor, you need to provide your own Firebase project config
    - Create/Update the `google-services.json` and `GoogleService-Info.plist` files in:
    - `android/app/google-services.json` (for Android)
    - `ios/GoogleServices/GoogleService-Info.plist` directory (for iOS)
-3. Create the correct base64 environments variables.
+3. Create the correct base64 environment variables.
 
 ```bash
 # Generate Android Base64 Version of Google Services
 export GOOGLE_SERVICES_B64_ANDROID="$(base64 -w0 -i ./android/app/google-services.json)" && echo "export GOOGLE_SERVICES_B64_ANDROID=\"$GOOGLE_SERVICES_B64_ANDROID\"" | tee -a .js.env
 
-# Generate IOS Base64 Version of Google Services
+# Generate iOS Base64 Version of Google Services
 export GOOGLE_SERVICES_B64_IOS="$(base64 -w0 -i ./ios/GoogleServices/GoogleService-Info.plist)" && echo "export GOOGLE_SERVICES_B64_IOS=\"$GOOGLE_SERVICES_B64_IOS\"" | tee -a .js.env
 ```
 
@@ -182,7 +182,7 @@ yarn watch
 
 _Like a local server for the app_
 
-**Run on a iOS device**
+**Run on an iOS device**
 
 ```bash
 yarn start:ios
