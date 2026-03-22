@@ -11,8 +11,7 @@ import { handleOrderStatusChangedForNotifications } from './event-handlers/notif
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
 /**
- * Determines whether the ramps unified buy V2 feature is enabled
- * by reading the remote feature flag state.
+ * Whether Unified Buy V2 is enabled per RemoteFeatureFlagController state.
  *
  * @param initMessenger - The init messenger to read RemoteFeatureFlagController state.
  * @returns Whether V2 is enabled.
@@ -54,21 +53,28 @@ export const rampsControllerInit: ControllerInitFunction<
     state: rampsControllerState,
   });
 
-  const isV2Enabled = getIsRampsUnifiedBuyV2Enabled(initMessenger);
+  let orderSubscriptionsRegistered = false;
 
-  if (isV2Enabled) {
+  const registerUnifiedBuyV2OrderSubscriptions = (): void => {
+    if (orderSubscriptionsRegistered) {
+      return;
+    }
+    orderSubscriptionsRegistered = true;
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForNotifications,
     );
-
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
     );
+  };
 
-    // Start init immediately so tokens (and providers) load on app start.
-    // init() is async and does not block controller creation.
+  const startUnifiedBuyV2IfEnabled = (): void => {
+    if (!getIsRampsUnifiedBuyV2Enabled(initMessenger)) {
+      return;
+    }
+    registerUnifiedBuyV2OrderSubscriptions();
     controller
       .init()
       .then(() => {
@@ -77,7 +83,15 @@ export const rampsControllerInit: ControllerInitFunction<
       .catch(() => {
         // Initialization failed - error state will be available via selectors
       });
-  }
+  };
+
+  startUnifiedBuyV2IfEnabled();
+
+  // Remote flags can be empty on first Engine init and fill in once the
+  // controller has fetched; re-check so RampsController.init() runs then.
+  initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
+    startUnifiedBuyV2IfEnabled();
+  });
 
   return {
     controller,
