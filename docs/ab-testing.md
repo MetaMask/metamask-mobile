@@ -263,7 +263,7 @@ If you must touch a legacy `ab_tests` line before full migration, mark it with `
 
 ## LaunchDarkly Setup
 
-1. Create JSON flag.
+1. Create a JSON flag.
 2. Name format: `{team name}{ticket ID}Abtest{test name}`.
    - Team name prefix: lower camel team token (for example `swaps`).
    - Ticket ID: uppercase project key + number (for example `SWAPS4135`).
@@ -271,7 +271,7 @@ If you must touch a legacy `ab_tests` line before full migration, mark it with `
    - Test name: PascalCase semantic name (for example `NumpadQuickAmounts`).
    - Example: `swapsSWAPS4135AbtestButtonColor`
 3. Enable mobile SDK availability.
-4. Configure variation value as threshold array:
+4. Configure variation value as a threshold array:
 
 ```json
 [
@@ -286,7 +286,7 @@ If you must touch a legacy `ab_tests` line before full migration, mark it with `
 ]
 ```
 
-Use default targeting rule to serve this variation value.
+Use the default targeting rule to serve this variation value.
 
 ---
 
