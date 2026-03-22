@@ -51,9 +51,9 @@ function validateFlow(filePath) {
   }
 
   // Rule 0: pre_conditions must use registered names
-  const preConds = ((data.validate || {}).runtime || {}).pre_conditions || [];
+  const preConds = data.validate?.runtime?.pre_conditions ?? [];
   preConds.forEach((spec) => {
-    const name = typeof spec === 'string' ? spec : spec && spec.name;
+    const name = typeof spec === 'string' ? spec : spec?.name;
     if (!name) {
       issues.push(`  pre_condition entry has no name: ${JSON.stringify(spec)}`);
     } else if (!PRE_CONDITIONS[name]) {
@@ -63,7 +63,7 @@ function validateFlow(filePath) {
     }
   });
 
-  const steps = ((data.validate || {}).runtime || {}).steps || [];
+  const steps = data.validate?.runtime?.steps ?? [];
   if (steps.length === 0) {
     return ['  no steps defined'];
   }
