@@ -320,7 +320,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Button interactions', () => {
-    it('calls custom filter handler when provided', async () => {
+    it('calls custom filter handler when provided', () => {
       const customFilterHandler = jest.fn();
       const { getByTestId } = renderComponent({
         onFilterPress: customFilterHandler,
@@ -333,7 +333,7 @@ describe('BaseControlBar', () => {
       expect(mockNavigation.navigate).not.toHaveBeenCalled();
     });
 
-    it('calls default sort handler when no custom handler provided', async () => {
+    it('calls default sort handler when no custom handler provided', () => {
       const { UNSAFE_getAllByType } = renderComponent();
       const buttonIcons = UNSAFE_getAllByType(ButtonIcon);
       const sortButton = buttonIcons[0]; // First ButtonIcon should be sort button
@@ -346,7 +346,7 @@ describe('BaseControlBar', () => {
       );
     });
 
-    it('calls custom sort handler when provided', async () => {
+    it('calls custom sort handler when provided', () => {
       const customSortHandler = jest.fn();
       const { UNSAFE_getAllByType } = renderComponent({
         onSortPress: customSortHandler,
@@ -362,7 +362,7 @@ describe('BaseControlBar', () => {
   });
 
   describe('Filter button behavior', () => {
-    it('navigates to NetworkManager when filter button is pressed', async () => {
+    it('navigates to NetworkManager when filter button is pressed', () => {
       const { getByTestId } = renderComponent();
       const filterButton = getByTestId('test-network-filter');
 

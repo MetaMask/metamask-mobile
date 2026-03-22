@@ -932,7 +932,7 @@ describe('AnimatedQRScannerModal - Metrics', () => {
       );
     });
 
-    it('does not throw error when pauseQRCode is not provided', async () => {
+    it('does not throw error when pauseQRCode is not provided', () => {
       const propsWithoutPauseHidden = {
         ...defaultProps,
         pauseQRCode: undefined,

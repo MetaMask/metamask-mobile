@@ -322,10 +322,28 @@ exports[`AccountNetworkIndicator should render correctly 1`] = `
                         >
                           <View
                             caipChainId="0x1"
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
                             testID="avatargroup-avatar"
                           >
-                            <Image … />
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={[Object]}
+                              testID="network-avatar-image"
+                            />
                           </View>
                         </View>
                         <View
@@ -338,10 +356,28 @@ exports[`AccountNetworkIndicator should render correctly 1`] = `
                         >
                           <View
                             caipChainId="0x38"
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 4,
+                                "borderWidth": 1.5,
+                                "height": 16,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "width": 16,
+                              }
+                            }
                             testID="avatargroup-avatar"
                           >
-                            <Image … />
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={[Object]}
+                              testID="network-avatar-image"
+                            />
                           </View>
                         </View>
                       </View>

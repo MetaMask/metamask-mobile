@@ -326,7 +326,7 @@ describe('AccountListFooter', () => {
   });
 
   describe('Error Handling', () => {
-    it('disables button and prevents account creation when no keyring ID is found', async () => {
+    it('disables button and prevents account creation when no keyring ID is found', () => {
       (useWalletInfo as jest.Mock).mockReturnValue({ keyringId: undefined });
 
       const onAccountCreated = jest.fn();

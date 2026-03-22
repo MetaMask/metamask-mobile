@@ -323,22 +323,47 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a payment method
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="0"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -355,7 +380,10 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             {
                               "duration": "instant",
                               "icon": "Apple",
-                              "iconColor": [Object],
+                              "iconColor": {
+                                "dark": "var(--color-icon-default)",
+                                "light": "var(--color-icon-default)",
+                              },
                               "id": "apple_pay",
                               "name": "Apple Pay",
                             },
@@ -396,14 +424,49 @@ exports[`PaymentMethodSelectorModal Component renders correctly and matches snap
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

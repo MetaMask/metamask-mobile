@@ -80,7 +80,7 @@ describe('CollectibleContractInformation', () => {
     expect(onCloseMock).toHaveBeenCalledWith(true);
   });
 
-  it('should navigate to OpenSea when credits are pressed', async () => {
+  it('should navigate to OpenSea when credits are pressed', () => {
     const collectibleContract = {
       name: 'name',
       symbol: 'symbol',

@@ -842,7 +842,7 @@ describe('CardHome Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with privacy mode enabled', async () => {
+  it('renders correctly with privacy mode enabled', () => {
     // Given: privacy mode is enabled
     setupMockSelectors({ privacyMode: true });
 
@@ -982,7 +982,7 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('displays correct priority token information', async () => {
+  it('displays correct priority token information', () => {
     // Given: USDC is the priority token
     // When: component renders with privacy mode off
     render();
@@ -1019,7 +1019,7 @@ describe('CardHome Component', () => {
     ).not.toBeOnTheScreen();
   });
 
-  it('displays manage card section', async () => {
+  it('displays manage card section', () => {
     // Given: default state
     // When: component renders
     render();
@@ -1048,7 +1048,7 @@ describe('CardHome Component', () => {
     });
   });
 
-  it('displays error state when there is an error fetching priority token', async () => {
+  it('displays error state when there is an error fetching priority token', () => {
     // Given: priority token fetch failed
     setupLoadCardDataMock({
       priorityToken: null,
@@ -1103,7 +1103,7 @@ describe('CardHome Component', () => {
     expect(screen.getByText('Limited spending allowance')).toBeTruthy();
   });
 
-  it('sets navigation options correctly', async () => {
+  it('sets navigation options correctly', () => {
     // Given: navigation object
     const mockNavigation = {
       navigate: mockNavigate,
@@ -1800,7 +1800,7 @@ describe('CardHome Component', () => {
       expect(addFundsButton).toBeEnabled();
     });
 
-    it('applies disabled styling when swap is not enabled', async () => {
+    it('applies disabled styling when swap is not enabled', () => {
       // Given: swap is not enabled for the priority token
       (useIsSwapEnabledForPriorityToken as jest.Mock).mockReturnValueOnce(
         false,
@@ -2070,7 +2070,7 @@ describe('CardHome Component', () => {
       expect(useLoadCardData).toHaveBeenCalled();
     });
 
-    it('shows error when cardDetails fetch fails', async () => {
+    it('shows error when cardDetails fetch fails', () => {
       // Given: card details error
       setupLoadCardDataMock({
         cardDetails: null,
@@ -3578,7 +3578,7 @@ describe('CardHome Component', () => {
         ).toBeTruthy();
       });
 
-      it('does not display enable card button for PENDING user without delegated asset', async () => {
+      it('does not display enable card button for PENDING user without delegated asset', () => {
         // Given: PENDING user without card and without delegated asset
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
@@ -3666,7 +3666,7 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('does not show card details button when user has no card', async () => {
+      it('does not show card details button when user has no card', () => {
         // Given: Authenticated user without card
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
@@ -3687,7 +3687,7 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('does not show card details button while loading', async () => {
+      it('does not show card details button while loading', () => {
         // Given: Loading state
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
@@ -3706,7 +3706,7 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('shows card details button when authenticated user has a card', async () => {
+      it('shows card details button when authenticated user has a card', () => {
         // Given: Authenticated user with card
         setupMockSelectors({ isAuthenticated: true });
         setupLoadCardDataMock({
@@ -4041,7 +4041,7 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('does not show view pin button for international virtual card', async () => {
+      it('does not show view pin button for international virtual card', () => {
         // Given: International user with virtual card
         setupMockSelectors({
           isAuthenticated: true,
@@ -4064,7 +4064,7 @@ describe('CardHome Component', () => {
         ).toBeNull();
       });
 
-      it('shows view pin button for US user with virtual card', async () => {
+      it('shows view pin button for US user with virtual card', () => {
         // Given: US user with virtual card
         setupMockSelectors({ isAuthenticated: true, userLocation: 'us' });
         setupLoadCardDataMock({
@@ -4084,7 +4084,7 @@ describe('CardHome Component', () => {
         ).toBeOnTheScreen();
       });
 
-      it('shows view pin button for international user with metal card', async () => {
+      it('shows view pin button for international user with metal card', () => {
         // Given: International user with metal card
         setupMockSelectors({
           isAuthenticated: true,
@@ -5711,7 +5711,7 @@ describe('CardHome Component', () => {
       ).toBeOnTheScreen();
     });
 
-    it('navigates to cashback screen on press', async () => {
+    it('navigates to cashback screen on press', () => {
       // Given: authenticated international user with verified KYC
       setupMockSelectors({
         isAuthenticated: true,
@@ -5733,7 +5733,7 @@ describe('CardHome Component', () => {
       expect(mockNavigate).toHaveBeenCalled();
     });
 
-    it('tracks analytics event on press', async () => {
+    it('tracks analytics event on press', () => {
       // Given: authenticated international user with verified KYC
       setupMockSelectors({
         isAuthenticated: true,

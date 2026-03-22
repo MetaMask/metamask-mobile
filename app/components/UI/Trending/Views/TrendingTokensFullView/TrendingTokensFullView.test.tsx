@@ -449,7 +449,7 @@ describe('TrendingTokensFullView', () => {
       expect(getByText('Bitcoin')).toBeOnTheScreen();
     });
 
-    it('returns results without sorting when no price change option is selected', async () => {
+    it('returns results without sorting when no price change option is selected', () => {
       const mockTokens = [
         createMockToken({
           name: 'Token A',
@@ -480,7 +480,7 @@ describe('TrendingTokensFullView', () => {
       expect(getByText('Token C')).toBeOnTheScreen();
     });
 
-    it('returns empty array when search results are empty', async () => {
+    it('returns empty array when search results are empty', () => {
       const mocks = arrangeMocks();
       mocks.setTrendingSearchMock({ data: [] });
 

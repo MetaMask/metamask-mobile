@@ -330,21 +330,46 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="0"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Providers
+                            </Text>
                           </View>
                         </View>
                         <View>
@@ -358,7 +383,15 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                         data={
                           [
                             {
-                              "provider": [Object],
+                              "provider": {
+                                "description": "Test provider",
+                                "environmentType": "PRODUCTION",
+                                "hqAddress": "Test Address",
+                                "id": "/providers/transak",
+                                "links": [Array],
+                                "logos": [Object],
+                                "name": "Transak",
+                              },
                               "type": "provider",
                             },
                           ]
@@ -398,7 +431,25 @@ exports[`ProviderSelection matches snapshot when no quotes are available 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -745,21 +796,46 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="1"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Providers
+                            </Text>
                           </View>
                         </View>
                         <View>
@@ -815,11 +891,30 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -870,11 +965,30 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -925,11 +1039,30 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -980,11 +1113,30 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1035,11 +1187,30 @@ exports[`ProviderSelection matches snapshot when quotes are loading 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1386,21 +1557,46 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="3"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Providers
+                            </Text>
                           </View>
                         </View>
                         <View>
@@ -1436,14 +1632,34 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                           testID="banneralert"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 8,
+                              }
+                            }
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#ca3542"
+                              fill="currentColor"
+                              height={24}
+                              name="Danger"
+                              style={[Object]}
+                              width={24}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Failed to load quotes
+                            </Text>
                           </View>
                         </View>
                       </View>
@@ -1452,7 +1668,15 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                         data={
                           [
                             {
-                              "provider": [Object],
+                              "provider": {
+                                "description": "Test provider",
+                                "environmentType": "PRODUCTION",
+                                "hqAddress": "Test Address",
+                                "id": "/providers/transak",
+                                "links": [Array],
+                                "logos": [Object],
+                                "name": "Transak",
+                              },
                               "type": "provider",
                             },
                           ]
@@ -1492,7 +1716,25 @@ exports[`ProviderSelection matches snapshot when quotes fail to load 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1839,21 +2081,46 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="5"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Providers
+                            </Text>
                           </View>
                         </View>
                         <View>
@@ -1867,7 +2134,15 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                         data={
                           [
                             {
-                              "provider": [Object],
+                              "provider": {
+                                "description": "Test provider",
+                                "environmentType": "PRODUCTION",
+                                "hqAddress": "Test Address",
+                                "id": "/providers/transak",
+                                "links": [Array],
+                                "logos": [Object],
+                                "name": "Transak",
+                              },
                               "type": "provider",
                             },
                           ]
@@ -1907,7 +2182,25 @@ exports[`ProviderSelection renders providers directly when quotes load but none 
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

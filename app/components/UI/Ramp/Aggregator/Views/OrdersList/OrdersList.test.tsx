@@ -266,24 +266,24 @@ describe('OrdersList', () => {
     mockGoToDeposit.mockClear();
   });
 
-  it('renders correctly', async () => {
+  it('renders correctly', () => {
     render(<OrdersList />);
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders buy only correctly when pressing buy filter', async () => {
+  it('renders buy only correctly when pressing buy filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders sell only correctly when pressing sell filter', async () => {
+  it('renders sell only correctly when pressing sell filter', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders empty sell message', async () => {
+  it('renders empty sell message', () => {
     render(
       <OrdersList />,
       [testOrders[0]], // a buy order,
@@ -292,7 +292,7 @@ describe('OrdersList', () => {
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('renders empty buy message', async () => {
+  it('renders empty buy message', () => {
     render(
       <OrdersList />,
       [testOrders[1]], // a sell order,
@@ -301,7 +301,7 @@ describe('OrdersList', () => {
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('resets filter to all after other filter was set', async () => {
+  it('resets filter to all after other filter was set', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
@@ -309,7 +309,7 @@ describe('OrdersList', () => {
     expect(normalizeAnimatedProps(screen.toJSON())).toMatchSnapshot();
   });
 
-  it('navigates when pressing item', async () => {
+  it('navigates when pressing item', () => {
     render(<OrdersList />);
     fireEvent.press(screen.getByRole('button', { name: 'Sold' }));
     fireEvent.press(screen.getByRole('button', { name: /Sold ETH/ }));
@@ -326,7 +326,7 @@ describe('OrdersList', () => {
     `);
   });
 
-  it('navigates to ramps order details when pressing RAMPS_V2 order item', async () => {
+  it('navigates to ramps order details when pressing RAMPS_V2 order item', () => {
     render(<OrdersList />, [testOrders[4]]);
 
     fireEvent.press(screen.getByRole('button', { name: /Purchased ETH/ }));
@@ -335,7 +335,7 @@ describe('OrdersList', () => {
     });
   });
 
-  it('navigates to deposit order details when pressing deposit order item', async () => {
+  it('navigates to deposit order details when pressing deposit order item', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
@@ -345,7 +345,7 @@ describe('OrdersList', () => {
     });
   });
 
-  it('navigates to deposit flow when pressing created deposit order item', async () => {
+  it('navigates to deposit flow when pressing created deposit order item', () => {
     render(<OrdersList />);
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));

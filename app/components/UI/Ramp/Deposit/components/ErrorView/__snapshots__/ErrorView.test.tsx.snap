@@ -324,33 +324,90 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "padding": 15,
+                                "paddingHorizontal": 16,
+                              },
                               undefined,
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "flex": 1,
+                                "gap": 16,
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ca35421a",
+                                "borderRadius": 28,
+                                "height": 56,
+                                "justifyContent": "center",
+                                "width": 56,
+                              }
+                            }
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#ca3542"
+                              fill="currentColor"
+                              height={32}
+                              name="Close"
+                              style={[Object]}
+                              width={32}
+                            />
                           </View>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#ca3542",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              }
+                            }
                           >
                             Custom Error Title
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              }
+                            }
                           >
                             Custom error description
                           </Text>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -361,9 +418,27 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "center",
+                                "backgroundColor": "#121314",
+                                "borderRadius": 12,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
+                              }
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              custom cta label
+                            </Text>
                           </View>
                         </View>
                       </View>
@@ -704,26 +779,68 @@ exports[`ErrorView Component renders with default props and matches snapshot 1`]
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "padding": 15,
+                                "paddingHorizontal": 16,
+                              },
                               undefined,
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "flex": 1,
+                                "gap": 16,
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ca35421a",
+                                "borderRadius": 28,
+                                "height": 56,
+                                "justifyContent": "center",
+                                "width": 56,
+                              }
+                            }
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#ca3542"
+                              fill="currentColor"
+                              height={32}
+                              name="Close"
+                              style={[Object]}
+                              width={32}
+                            />
                           </View>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#ca3542",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              }
+                            }
                           >
                             There was an error
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              }
+                            }
                           >
                             There was an error processing your deposit. Please contact support if the problem continues.
                           </Text>

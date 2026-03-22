@@ -84,7 +84,7 @@ describe('TransactionDetailsStatus', () => {
     expect(getByText(strings('transaction.pending'))).toBeDefined();
   });
 
-  it('renders error message if status is failed', async () => {
+  it('renders error message if status is failed', () => {
     const { getByText, getByTestId } = render({
       error: {
         name: 'test',
@@ -99,7 +99,7 @@ describe('TransactionDetailsStatus', () => {
     expect(getByText(ERROR_MESSAGE_MOCK)).toBeDefined();
   });
 
-  it('renders error message from stack if status is failed', async () => {
+  it('renders error message from stack if status is failed', () => {
     const { getByText, getByTestId } = render({
       error: {
         name: 'test',

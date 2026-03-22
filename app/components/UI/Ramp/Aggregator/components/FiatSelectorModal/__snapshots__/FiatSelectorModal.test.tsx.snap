@@ -323,22 +323,47 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select region currency
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="0"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -396,15 +421,43 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search for a currency"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -470,21 +523,72 @@ exports[`FiatSelectorModal renders the modal with currency list 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -824,22 +928,47 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select region currency
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="2"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -897,21 +1026,69 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search for a currency"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value="Nonexistent Currency"
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginLeft": 12,
+                              }
+                            }
                             testID="textfield-endacccessory"
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -949,8 +1126,23 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                       >
                         <View>
                           <View
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": true,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={false}
@@ -961,9 +1153,22 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "backgroundColor": "#ffffff",
+                                "borderRadius": 4,
+                                "opacity": 0.5,
+                                "position": "relative",
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="none"
+                              accessible={true}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1303,22 +1508,47 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select region currency
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="1"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1376,21 +1606,69 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search for a currency"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value="USD"
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginLeft": 12,
+                              }
+                            }
                             testID="textfield-endacccessory"
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1449,14 +1727,48 @@ exports[`FiatSelectorModal search displays filtered currencies when search strin
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1796,22 +2108,47 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select region currency
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="3"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1869,21 +2206,69 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search for a currency"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value="u"
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginLeft": 12,
+                              }
+                            }
                             testID="textfield-endacccessory"
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1949,21 +2334,72 @@ exports[`FiatSelectorModal search displays max 20 results 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

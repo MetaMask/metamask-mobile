@@ -324,24 +324,68 @@ exports[`VerifyIdentity Component renders verify identity screen with all conten
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <RCTScrollView
-                            contentContainerStyle={[Object]}
+                            contentContainerStyle={
+                              {
+                                "flexGrow": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View>
+                              <View … />
+                            </View>
                           </RCTScrollView>
                         </View>
                         <View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                                [Object],
+                              ]
+                            }
                           >
-                            <Text … />
-                            <View … />
-                            <SvgMock … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              By clicking the button below, you agree to 
+                              <Text … />
+                               and 
+                              <Text … />
+                              .
+                            </Text>
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <Text … />
+                            </View>
+                            <SvgMock
+                              fill="currentColor"
+                              name="powered-by-transak-logo"
+                              style={[Object]}
+                            />
                           </View>
                         </View>
                       </View>

@@ -425,7 +425,7 @@ describe('usePredictPriceHistory', () => {
   });
 
   describe('cleanup', () => {
-    it('does not update state after unmount', async () => {
+    it('does not update state after unmount', () => {
       jest.useFakeTimers();
 
       // Mock a delayed response

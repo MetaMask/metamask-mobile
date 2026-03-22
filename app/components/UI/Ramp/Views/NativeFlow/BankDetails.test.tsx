@@ -365,7 +365,7 @@ describe('V2BankDetails', () => {
     });
   });
 
-  it('renders the refresh control scroll view', async () => {
+  it('renders the refresh control scroll view', () => {
     mockGetOrderById.mockReturnValue(createMockV2Order({ paymentDetails: [] }));
 
     const { getByTestId } = renderWithTheme(<V2BankDetails />);

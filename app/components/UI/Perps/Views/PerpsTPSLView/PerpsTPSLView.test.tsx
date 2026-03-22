@@ -324,7 +324,7 @@ describe('PerpsTPSLView', () => {
       expect(mockHandler).toHaveBeenCalled();
     });
 
-    it('does not show Clear button when no value is set', async () => {
+    it('does not show Clear button when no value is set', () => {
       renderView({
         formState: {
           ...defaultMockReturn.formState,
@@ -426,7 +426,7 @@ describe('PerpsTPSLView', () => {
   // ==================== Display Hook Data ====================
 
   describe('Display Hook Data', () => {
-    it('displays validation errors from hook', async () => {
+    it('displays validation errors from hook', () => {
       renderView({
         validation: {
           ...defaultMockReturn.validation,
@@ -440,7 +440,7 @@ describe('PerpsTPSLView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays stop loss liquidation error for long positions', async () => {
+    it('displays stop loss liquidation error for long positions', () => {
       renderView({
         validation: {
           ...defaultMockReturn.validation,
@@ -455,7 +455,7 @@ describe('PerpsTPSLView', () => {
       ).toBeOnTheScreen();
     });
 
-    it('displays formatted prices from hook', async () => {
+    it('displays formatted prices from hook', () => {
       renderView({
         formState: {
           ...defaultMockReturn.formState,
@@ -563,7 +563,7 @@ describe('PerpsTPSLView', () => {
   // ==================== Keypad Integration ====================
 
   describe('Keypad Integration', () => {
-    it('shows action buttons when keypad is not active', async () => {
+    it('shows action buttons when keypad is not active', () => {
       renderView();
 
       expect(screen.getByText('perps.tpsl.cancel')).toBeOnTheScreen();
@@ -574,7 +574,7 @@ describe('PerpsTPSLView', () => {
   // ==================== Edge Cases ====================
 
   describe('Edge Cases', () => {
-    it('displays entry price when editing existing position', async () => {
+    it('displays entry price when editing existing position', () => {
       const mockPosition: Position = {
         symbol: 'ETH',
         entryPrice: '2800.00',
@@ -600,13 +600,13 @@ describe('PerpsTPSLView', () => {
       expect(screen.getByText('$2,800.00')).toBeOnTheScreen();
     });
 
-    it('displays current price for new orders', async () => {
+    it('displays current price for new orders', () => {
       renderView();
 
       expect(screen.getByText('$3,000.00')).toBeOnTheScreen();
     });
 
-    it('renders for SHORT direction', async () => {
+    it('renders for SHORT direction', () => {
       mockRouteParams = { ...defaultRouteParams, direction: 'short' };
       renderView();
 

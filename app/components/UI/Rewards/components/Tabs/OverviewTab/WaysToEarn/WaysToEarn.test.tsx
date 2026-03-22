@@ -259,7 +259,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('rendering', () => {
-    it('renders the component title', async () => {
+    it('renders the component title', () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -267,7 +267,7 @@ describe('WaysToEarn', () => {
       expect(getByText('Ways to earn')).toBeOnTheScreen();
     });
 
-    it('renders all earning ways from selector data', async () => {
+    it('renders all earning ways from selector data', () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -277,7 +277,7 @@ describe('WaysToEarn', () => {
       expect(getByText('Perps')).toBeOnTheScreen();
     });
 
-    it('displays correct short descriptions for each earning way', async () => {
+    it('displays correct short descriptions for each earning way', () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -287,7 +287,7 @@ describe('WaysToEarn', () => {
       expect(getByText('10 points per $100')).toBeOnTheScreen();
     });
 
-    it('renders an empty list when no ways to earn exist', async () => {
+    it('renders an empty list when no ways to earn exist', () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -303,7 +303,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('earning way press (modal open)', () => {
-    it('opens modal with correct data when an earning way is pressed', async () => {
+    it('opens modal with correct data when an earning way is pressed', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -325,7 +325,7 @@ describe('WaysToEarn', () => {
       );
     });
 
-    it('tracks button click event with correct properties', async () => {
+    it('tracks button click event with correct properties', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -344,7 +344,7 @@ describe('WaysToEarn', () => {
       expect(mockTrackEvent).toHaveBeenCalled();
     });
 
-    it('passes WaysToEarnSheetTitle as modal title with bottomSheetTitle and pointsEarningRule', async () => {
+    it('passes WaysToEarnSheetTitle as modal title with bottomSheetTitle and pointsEarningRule', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -359,7 +359,7 @@ describe('WaysToEarn', () => {
       expect(modalCall?.[1]?.title.type).toBeDefined();
     });
 
-    it('passes description content to modal', async () => {
+    it('passes description content to modal', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -376,7 +376,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('BONUS_CODE earning way press', () => {
-    it('navigates to BonusCodeBottomSheet instead of generic modal', async () => {
+    it('navigates to BonusCodeBottomSheet instead of generic modal', () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -400,7 +400,7 @@ describe('WaysToEarn', () => {
       );
     });
 
-    it('passes title and description to BonusCodeBottomSheet', async () => {
+    it('passes title and description to BonusCodeBottomSheet', () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -420,7 +420,7 @@ describe('WaysToEarn', () => {
       expect(navCall?.[1]?.ctaLabel).toBe('Submit');
     });
 
-    it('tracks button click event for BONUS_CODE type', async () => {
+    it('tracks button click event for BONUS_CODE type', () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -444,7 +444,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - deeplink action', () => {
-    it('calls handleDeeplink when buttonAction has deeplink', async () => {
+    it('calls handleDeeplink when buttonAction has deeplink', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
       fireEvent.press(getByText('Swap'));
@@ -464,7 +464,7 @@ describe('WaysToEarn', () => {
       });
     });
 
-    it('tracks CTA click event with correct properties for deeplink action', async () => {
+    it('tracks CTA click event with correct properties for deeplink action', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
       fireEvent.press(getByText('Swap'));
@@ -493,7 +493,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - route action', () => {
-    it('navigates to route when buttonAction has route with root and screen', async () => {
+    it('navigates to route when buttonAction has route with root and screen', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
       fireEvent.press(getByText('Perps'));
@@ -515,7 +515,7 @@ describe('WaysToEarn', () => {
       });
     });
 
-    it('navigates to route without screen param when screen is empty', async () => {
+    it('navigates to route without screen param when screen is empty', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
       fireEvent.press(getByText('Refer friends'));
@@ -540,7 +540,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - URL action', () => {
-    it('navigates to browser when buttonAction has url', async () => {
+    it('navigates to browser when buttonAction has url', () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -572,7 +572,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - no action', () => {
-    it('closes modal but does not navigate when buttonAction is undefined', async () => {
+    it('closes modal but does not navigate when buttonAction is undefined', () => {
       // Arrange
       const mockUseSelector = jest.requireMock('react-redux')
         .useSelector as jest.Mock;
@@ -600,7 +600,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA press - action priority', () => {
-    it('prioritizes deeplink over route and url', async () => {
+    it('prioritizes deeplink over route and url', () => {
       // Arrange
       const mixedActionWay = createWayToEarn({
         id: 'mixed-id',
@@ -637,7 +637,7 @@ describe('WaysToEarn', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('prioritizes route over url when no deeplink', async () => {
+    it('prioritizes route over url when no deeplink', () => {
       // Arrange
       const routeAndUrlWay = createWayToEarn({
         id: 'route-url-id',
@@ -678,7 +678,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('specificContent rendering', () => {
-    it('includes SwapSupportedNetworksSection in description when specificContent has supportedNetworks', async () => {
+    it('includes SwapSupportedNetworksSection in description when specificContent has supportedNetworks', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -695,7 +695,7 @@ describe('WaysToEarn', () => {
       expect(modalCall?.[1]?.description.type).toBeDefined();
     });
 
-    it('includes ReferralStatsSummary in description when specificContent has referralPointsTitle', async () => {
+    it('includes ReferralStatsSummary in description when specificContent has referralPointsTitle', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -712,7 +712,7 @@ describe('WaysToEarn', () => {
       expect(modalCall?.[1]?.description.type).toBeDefined();
     });
 
-    it('does not include specific content sections when specificContent is undefined', async () => {
+    it('does not include specific content sections when specificContent is undefined', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -730,7 +730,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('modal close before navigation', () => {
-    it('closes modal (goBack) before executing CTA navigation', async () => {
+    it('closes modal (goBack) before executing CTA navigation', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
       fireEvent.press(getByText('Perps'));
@@ -751,7 +751,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('FlatList configuration', () => {
-    it('renders list items with unique keys', async () => {
+    it('renders list items with unique keys', () => {
       // Act
       const { getByText } = render(<WaysToEarn />);
 
@@ -763,7 +763,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('metrics tracking', () => {
-    it('tracks button click events with ways_to_earn_type matching wayToEarn.type', async () => {
+    it('tracks button click events with ways_to_earn_type matching wayToEarn.type', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
 
@@ -781,7 +781,7 @@ describe('WaysToEarn', () => {
       });
     });
 
-    it('tracks CTA click events with ways_to_earn_type matching wayToEarn.type', async () => {
+    it('tracks CTA click events with ways_to_earn_type matching wayToEarn.type', () => {
       // Arrange
       const { getByText } = render(<WaysToEarn />);
       fireEvent.press(getByText('Perps'));
@@ -809,7 +809,7 @@ describe('WaysToEarn', () => {
   });
 
   describe('CTA labels', () => {
-    it('renders correct CTA label for each earning way type', async () => {
+    it('renders correct CTA label for each earning way type', () => {
       // Arrange
       const testCases = [
         { title: 'Swap', expectedLabel: 'Start a swap' },

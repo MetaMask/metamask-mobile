@@ -134,12 +134,12 @@ describe('EnterAddress Component', () => {
     mockTrackEvent.mockClear();
   });
 
-  it('render matches snapshot', async () => {
+  it('render matches snapshot', () => {
     const { toJSON } = render(EnterAddress);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays form validation errors when continue is pressed with empty fields', async () => {
+  it('displays form validation errors when continue is pressed with empty fields', () => {
     render(EnterAddress);
     fireEvent.press(screen.getByTestId('address-continue-button'));
     expect(screen.toJSON()).toMatchSnapshot();
@@ -172,7 +172,7 @@ describe('EnterAddress Component', () => {
     });
   });
 
-  it('calls setOptions with header function when the component mounts', async () => {
+  it('calls setOptions with header function when the component mounts', () => {
     render(EnterAddress);
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
@@ -198,7 +198,7 @@ describe('EnterAddress Component', () => {
     expect(button).toBeDisabled();
   });
 
-  it('shows text input for state when region is not US', async () => {
+  it('shows text input for state when region is not US', () => {
     mockUseDepositSDKReturnValue = {
       selectedRegion: { isoCode: 'FR', name: 'France', flag: '🇫🇷' },
     };
@@ -229,7 +229,7 @@ describe('EnterAddress Component', () => {
     });
   });
 
-  it('displays validation error when continue is pressed without selecting a state for US region', async () => {
+  it('displays validation error when continue is pressed without selecting a state for US region', () => {
     render(EnterAddress);
 
     fireEvent.changeText(

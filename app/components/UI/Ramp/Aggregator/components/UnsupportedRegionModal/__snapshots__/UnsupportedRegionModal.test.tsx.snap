@@ -318,14 +318,28 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             Region not supported
                           </Text>
@@ -363,13 +377,30 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             🇦🇫
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "marginLeft": 8,
+                              }
+                            }
                           >
                             Afghanistan
                           </Text>
@@ -410,7 +441,16 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#4459ff",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "textDecorationLine": "underline",
+                              }
+                            }
                           >
                             Visit support article
                           </Text>
@@ -470,7 +510,15 @@ exports[`UnsupportedRegionModal renders correctly for buy flow 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#ffffff",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             Select your region
                           </Text>
@@ -807,14 +855,28 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             Region not supported
                           </Text>
@@ -852,13 +914,30 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             🇦🇫
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "marginLeft": 8,
+                              }
+                            }
                           >
                             Afghanistan
                           </Text>
@@ -899,7 +978,16 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#4459ff",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                                "textDecorationLine": "underline",
+                              }
+                            }
                           >
                             Visit support article
                           </Text>
@@ -959,7 +1047,15 @@ exports[`UnsupportedRegionModal renders correctly for sell flow 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#ffffff",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             Select your region
                           </Text>

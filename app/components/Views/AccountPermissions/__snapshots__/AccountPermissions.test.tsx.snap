@@ -337,16 +337,36 @@ exports[`AccountPermissions renders correctly 1`] = `
                           testID="avatar-group-container"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginLeft": 0,
+                              }
+                            }
                             testID="avatargroup-avatar-container-0"
                           >
-                            <View … />
+                            <View
+                              caipChainId="0x1"
+                              style={[Object]}
+                              testID="avatargroup-avatar"
+                            >
+                              <Image … />
+                            </View>
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginLeft": -6,
+                              }
+                            }
                             testID="avatargroup-avatar-container-1"
                           >
-                            <View … />
+                            <View
+                              caipChainId="0x38"
+                              style={[Object]}
+                              testID="avatargroup-avatar"
+                            >
+                              <Image … />
+                            </View>
                           </View>
                         </View>
                       </View>

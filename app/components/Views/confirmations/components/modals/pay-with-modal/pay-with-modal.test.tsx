@@ -269,7 +269,7 @@ describe('PayWithModal', () => {
     );
   });
 
-  it('renders tokens', async () => {
+  it('renders tokens', () => {
     const { getByText } = render();
 
     expect(getByText('Native Token 1')).toBeDefined();
@@ -282,7 +282,7 @@ describe('PayWithModal', () => {
   });
 
   describe('on token select', () => {
-    it('sets pay asset', async () => {
+    it('sets pay asset', () => {
       const { getByText } = render();
 
       fireEvent.press(getByText('Test Token 1'));
@@ -293,7 +293,7 @@ describe('PayWithModal', () => {
       });
     });
 
-    it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', async () => {
+    it('calls onPerpsPaymentTokenChange via close callback when type is perpsDepositAndOrder', () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         chainId: CHAIN_ID_1_MOCK,
@@ -367,7 +367,7 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('uses withdrawTokenFilter for withdrawal transactions', async () => {
+    it('uses withdrawTokenFilter for withdrawal transactions', () => {
       const withdrawFilterFn = jest.fn((tokens: AssetType[]) => tokens);
       useWithdrawTokenFilterMock.mockReturnValue(withdrawFilterFn);
 
@@ -377,7 +377,7 @@ describe('PayWithModal', () => {
       expect(getAvailableTokensMock).not.toHaveBeenCalled();
     });
 
-    it('adds zero-balance token to TokensController on withdraw selection', async () => {
+    it('adds zero-balance token to TokensController on withdraw selection', () => {
       const zeroBalanceToken = {
         accountType: EthAccountType.Eoa,
         address: '0xZeroBalanceToken',

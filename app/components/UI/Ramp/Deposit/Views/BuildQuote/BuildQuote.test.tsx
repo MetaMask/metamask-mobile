@@ -483,7 +483,7 @@ describe('BuildQuote Component', () => {
       });
     });
 
-    it('initializes to zero when amount param is "0"', async () => {
+    it('initializes to zero when amount param is "0"', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockUseRoute.mockReturnValue({
         params: { amount: '0' },
@@ -502,7 +502,7 @@ describe('BuildQuote Component', () => {
       );
     });
 
-    it('initializes to zero when amount param is invalid', async () => {
+    it('initializes to zero when amount param is invalid', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockUseRoute.mockReturnValue({
         params: { amount: 'invalid' },
@@ -521,7 +521,7 @@ describe('BuildQuote Component', () => {
       );
     });
 
-    it('initializes to zero when amount param is not provided', async () => {
+    it('initializes to zero when amount param is not provided', () => {
       mockUseDepositSDK.mockReturnValue(createMockSDKReturn());
       mockUseRoute.mockReturnValue({ params: {} });
 

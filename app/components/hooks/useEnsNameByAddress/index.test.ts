@@ -56,7 +56,7 @@ describe('useEnsNameByAddress', () => {
     });
   });
 
-  it('returns empty string for account address without ENS address', async () => {
+  it('returns empty string for account address without ENS address', () => {
     const { result } = renderHook(() => useEnsNameByAddress('0x321'));
     expect(result.current.ensName).toStrictEqual('');
   });

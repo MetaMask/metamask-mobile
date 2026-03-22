@@ -148,7 +148,7 @@ describe('useBluetoothPermissions', () => {
     expect(result.current.hasBluetoothPermissions).toBe(false);
   });
 
-  it('checks permissions when app state changes to active', async () => {
+  it('checks permissions when app state changes to active', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (getSystemVersion as jest.Mock).mockReturnValue('12');
     (requestMultiple as jest.Mock).mockResolvedValue({
@@ -169,7 +169,7 @@ describe('useBluetoothPermissions', () => {
     expect(requestMultiple).toHaveBeenCalledTimes(2);
   });
 
-  it('does not check permissions when app state changes to background', async () => {
+  it('does not check permissions when app state changes to background', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (getSystemVersion as jest.Mock).mockReturnValue('12');
     (requestMultiple as jest.Mock).mockResolvedValue({

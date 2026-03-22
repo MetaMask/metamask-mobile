@@ -93,7 +93,7 @@ describe('useInAppBrowser', () => {
     };
   });
 
-  it('returns render in app browser function', async () => {
+  it('returns render in app browser function', () => {
     const { result } = renderHookWithProvider(() => useInAppBrowser(), {
       state: defaultState,
     });

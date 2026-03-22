@@ -315,7 +315,7 @@ describe('Browser - Component Rendering', () => {
   });
 
   describe('showTabsView function', () => {
-    it('takes screenshot and shows tabs view when active tab exists', async () => {
+    it('takes screenshot and shows tabs view when active tab exists', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];
@@ -359,7 +359,7 @@ describe('Browser - Component Rendering', () => {
       expect(mockUpdateTab).toBeDefined();
     });
 
-    it('handles screenshot error gracefully', async () => {
+    it('handles screenshot error gracefully', () => {
       const tabs = [
         { id: 1, url: 'https://tab1.com', image: '', isArchived: false },
       ];

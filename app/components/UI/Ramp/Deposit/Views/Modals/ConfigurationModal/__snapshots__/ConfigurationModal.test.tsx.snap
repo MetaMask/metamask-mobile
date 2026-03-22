@@ -323,14 +323,25 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                [Object],
+                              ]
+                            }
                             testID="header-title"
                           >
                             Settings
@@ -340,7 +351,23 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -392,11 +419,30 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <SvgMock … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -448,11 +494,30 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <SvgMock … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -504,11 +569,31 @@ exports[`ConfigurationModal render matches snapshot 1`] = `
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <SvgMock … />
+                            </View>
+                            <View
+                              accessible={false}
+                              style={[Object]}
+                              testID="listitem-gap"
+                            />
+                            <View
+                              style={[Object]}
+                              testID="listitemcolumn"
+                            >
+                              <Text … />
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>

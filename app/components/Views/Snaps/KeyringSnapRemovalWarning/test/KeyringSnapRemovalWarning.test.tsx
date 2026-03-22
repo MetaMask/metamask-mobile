@@ -230,7 +230,7 @@ describe('KeyringSnapRemovalWarning', () => {
     });
   });
 
-  it('calls onSubmit when confirmed and continue is pressed', async () => {
+  it('calls onSubmit when confirmed and continue is pressed', () => {
     const { getByTestId } = renderWithProvider(
       <KeyringSnapRemovalWarning
         snap={mockSnap}

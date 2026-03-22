@@ -110,7 +110,7 @@ describe('ClaimBanner', () => {
     (useFocusEffect as jest.Mock).mockImplementation(jest.fn());
   });
 
-  it('render matches snapshot', async () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(
       <ClaimBanner
         claimableAmount={MOCK_CLAIM_AMOUNT}

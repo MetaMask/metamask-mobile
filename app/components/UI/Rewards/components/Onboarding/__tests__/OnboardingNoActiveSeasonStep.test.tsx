@@ -711,7 +711,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
       expect(screen.getByTestId('bulk-link-checkbox')).toBeDefined();
     });
 
-    it('renders checkbox initially unchecked', async () => {
+    it('renders checkbox initially unchecked', () => {
       renderWithProviders(
         <OnboardingNoActiveSeasonStep canContinue={mockCanContinue} />,
       );

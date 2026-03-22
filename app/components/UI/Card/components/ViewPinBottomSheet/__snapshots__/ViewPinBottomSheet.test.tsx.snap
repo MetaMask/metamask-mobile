@@ -323,14 +323,25 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
                             Your Card PIN
                           </Text>
@@ -339,7 +350,23 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -360,23 +387,56 @@ exports[`ViewPinBottomSheet renders correctly and matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
-                              [Object],
+                              {
+                                "borderRadius": 8,
+                                "display": "flex",
+                                "overflow": "hidden",
+                                "width": "100%",
+                              },
+                              {
+                                "aspectRatio": 3,
+                              },
                             ]
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "borderRadius": 8,
+                                "bottom": 0,
+                                "height": "100%",
+                                "left": 0,
+                                "overflow": "hidden",
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                                "width": "100%",
+                                "zIndex": 10,
+                              }
+                            }
                             testID="view-pin-image-skeleton"
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              pointerEvents="none"
+                              style={[Object]}
+                            />
                           </View>
                           <Image
                             onError={[Function]}
                             onLoad={[Function]}
                             resizeMode="contain"
-                            source={[Object]}
-                            style={[Object]}
+                            source={
+                              {
+                                "uri": "https://cards.baanx.com/details-image?token=test-pin-token",
+                              }
+                            }
+                            style={
+                              {
+                                "height": "100%",
+                                "width": "100%",
+                              }
+                            }
                             testID="view-pin-image"
                           />
                         </View>

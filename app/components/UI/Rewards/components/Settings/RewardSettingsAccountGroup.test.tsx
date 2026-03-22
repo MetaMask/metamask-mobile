@@ -675,7 +675,7 @@ describe('RewardSettingsAccountGroup', () => {
   });
 
   describe('User Interactions', () => {
-    it('should call linkAccountGroup when link button is pressed', async () => {
+    it('should call linkAccountGroup when link button is pressed', () => {
       const { getByTestId } = render(
         <RewardSettingsAccountGroup
           item={mockItem}

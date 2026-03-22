@@ -314,14 +314,30 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "justifyContent": "center",
+                                "paddingBottom": 12,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 12,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             fiat_on_ramp.pay_with
                           </Text>
@@ -330,8 +346,26 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                           collapsable={false}
                           data={
                             [
-                              [Object],
-                              [Object],
+                              {
+                                "delay": "5 to 10 minutes.",
+                                "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
+                                "icon": "card",
+                                "id": "/payments/debit-credit-card-1",
+                                "name": "Debit or Credit",
+                                "paymentType": "debit-credit-card",
+                                "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
+                                "score": 90,
+                              },
+                              {
+                                "delay": "5 to 10 minutes.",
+                                "disclaimer": "Credit card purchases may incur your bank's cash advance fees.",
+                                "icon": "card",
+                                "id": "/payments/debit-credit-card-2",
+                                "name": "Debit or Credit",
+                                "paymentType": "debit-credit-card",
+                                "pendingOrderDescription": "Card purchases may take a few minutes to complete.",
+                                "score": 90,
+                              },
                             ]
                           }
                           getItem={[Function]}
@@ -364,8 +398,20 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                           viewabilityConfigCallbackPairs={[]}
                         >
                           <View>
-                            <View … />
-                            <View … />
+                            <View
+                              onFocusCapture={[Function]}
+                              onLayout={[Function]}
+                              style={null}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              onFocusCapture={[Function]}
+                              onLayout={[Function]}
+                              style={null}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </RCTScrollView>
                       </View>
@@ -403,7 +449,15 @@ exports[`PaymentSelectionModal matches snapshot 1`] = `
                           <Text
                             accessibilityRole="text"
                             onPress={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#4459ff",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
                           >
                             fiat_on_ramp.change_provider
                           </Text>
@@ -736,14 +790,30 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "justifyContent": "center",
+                                "paddingBottom": 12,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 12,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             fiat_on_ramp.pay_with
                           </Text>
@@ -763,7 +833,13 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                           }
                         >
                           <View>
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="banneralert"
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </RCTScrollView>
                       </View>
@@ -801,7 +877,15 @@ exports[`PaymentSelectionModal matches snapshot when no payment methods are avai
                           <Text
                             accessibilityRole="text"
                             onPress={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#4459ff",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
                           >
                             fiat_on_ramp.change_provider
                           </Text>
@@ -1134,14 +1218,30 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "justifyContent": "center",
+                                "paddingBottom": 12,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 12,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             fiat_on_ramp.pay_with
                           </Text>
@@ -1155,14 +1255,142 @@ exports[`PaymentSelectionModal matches snapshot when payment methods are loading
                           }
                         >
                           <View>
-                            <View … />
-                            <View … />
-                            <View … />
-                            <View … />
-                            <View … />
-                            <View … />
-                            <View … />
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </RCTScrollView>
                       </View>
@@ -1493,14 +1721,30 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "justifyContent": "center",
+                                "paddingBottom": 12,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 12,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 18,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             fiat_on_ramp.pay_with
                           </Text>
@@ -1520,7 +1764,13 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                           }
                         >
                           <View>
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="banneralert"
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </RCTScrollView>
                       </View>
@@ -1557,7 +1807,15 @@ exports[`PaymentSelectionModal matches snapshot when payment methods fail to loa
                            
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#686e7d",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 14,
+                                "letterSpacing": 0,
+                                "lineHeight": 22,
+                              }
+                            }
                           >
                             fiat_on_ramp.change_provider
                           </Text>

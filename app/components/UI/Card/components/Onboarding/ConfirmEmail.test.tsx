@@ -823,7 +823,7 @@ describe('ConfirmEmail Component', () => {
   });
 
   describe('Resend Cooldown Timer', () => {
-    it('shows initial cooldown timer on component mount', async () => {
+    it('shows initial cooldown timer on component mount', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -837,7 +837,7 @@ describe('ConfirmEmail Component', () => {
       expect(resendElement).toHaveTextContent('Resend in 60s');
     });
 
-    it('shows "Resend verification code" when initial cooldown expires', async () => {
+    it('shows "Resend verification code" when initial cooldown expires', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>

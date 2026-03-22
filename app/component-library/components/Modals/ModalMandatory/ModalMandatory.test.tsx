@@ -67,7 +67,7 @@ describe('ModalMandatory', () => {
     jest.clearAllMocks();
   });
 
-  it('renders correctly with all props', async () => {
+  it('renders correctly with all props', () => {
     const { getByText, toJSON } = render(<ModalMandatory route={mockRoute} />);
 
     expect(getByText('Test Title')).toBeTruthy();
@@ -78,7 +78,7 @@ describe('ModalMandatory', () => {
     expect(toJSON).toMatchSnapshot();
   });
 
-  it('handles scroll events correctly', async () => {
+  it('handles scroll events correctly', () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const webview = getByTestId(TermsOfUseModalSelectorsIDs.WEBVIEW);
 
@@ -92,7 +92,7 @@ describe('ModalMandatory', () => {
     );
   });
 
-  it('handles checkbox selection', async () => {
+  it('handles checkbox selection', () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const checkbox = getByTestId(TermsOfUseModalSelectorsIDs.CHECKBOX);
 
@@ -100,14 +100,14 @@ describe('ModalMandatory', () => {
     expect(checkbox).toBeTruthy();
   });
 
-  it('disables button when conditions are not met', async () => {
+  it('disables button when conditions are not met', () => {
     const { getByTestId } = render(<ModalMandatory route={mockRoute} />);
     const button = getByTestId('test-button');
 
     expect(button).toBeDisabled();
   });
 
-  it('enables button when conditions are met', async () => {
+  it('enables button when conditions are met', () => {
     const routeWithoutScroll = {
       ...mockRoute,
       params: {
@@ -132,7 +132,7 @@ describe('ModalMandatory', () => {
     expect(button).toBeEnabled();
   });
 
-  it('calls onAccept when button is pressed', async () => {
+  it('calls onAccept when button is pressed', () => {
     // Mock the navigation object
     const mockNavigate = jest.fn();
     const mockGoBack = jest.fn();

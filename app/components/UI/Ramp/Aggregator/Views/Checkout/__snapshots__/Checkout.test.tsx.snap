@@ -324,7 +324,13 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -333,7 +339,24 @@ exports[`Checkout displays WebView when url is present and no errors 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -694,7 +717,13 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -703,7 +732,24 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -725,15 +771,27 @@ exports[`Checkout displays and tracks error if no url or errors 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RNCSafeAreaView>
@@ -1074,7 +1132,13 @@ exports[`Checkout displays sdkError when present 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -1083,7 +1147,24 @@ exports[`Checkout displays sdkError when present 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1105,15 +1186,27 @@ exports[`Checkout displays sdkError when present 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RNCSafeAreaView>
@@ -1454,7 +1547,13 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -1463,7 +1562,24 @@ exports[`Checkout displays sell WebView when url is present and no errors 1`] = 
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1824,7 +1940,13 @@ exports[`Checkout handles get order error gracefully 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -1833,7 +1955,24 @@ exports[`Checkout handles get order error gracefully 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1855,15 +1994,27 @@ exports[`Checkout handles get order error gracefully 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RNCSafeAreaView>
@@ -2204,7 +2355,13 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -2213,7 +2370,24 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2235,15 +2409,27 @@ exports[`Checkout handles undefined order gracefully 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RNCSafeAreaView>
@@ -2584,7 +2770,13 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -2593,7 +2785,24 @@ exports[`Checkout ignores irrelevant error on http error in WebView for callback
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2954,7 +3163,13 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -2963,7 +3178,24 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2985,15 +3217,27 @@ exports[`Checkout sets and displays error on http error in WebView 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RNCSafeAreaView>
@@ -3334,7 +3578,13 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -3343,7 +3593,24 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -3365,15 +3632,27 @@ exports[`Checkout sets and displays error on http error in WebView for callback 
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RNCSafeAreaView>
@@ -3714,7 +3993,13 @@ exports[`Checkout sets error when handling url navigation state change and selec
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -3723,7 +4008,24 @@ exports[`Checkout sets error when handling url navigation state change and selec
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="checkout-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -3745,15 +4047,27 @@ exports[`Checkout sets error when handling url navigation state change and selec
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RNCSafeAreaView>

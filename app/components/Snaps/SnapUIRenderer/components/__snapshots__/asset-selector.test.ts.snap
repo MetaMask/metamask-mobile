@@ -189,8 +189,18 @@ exports[`SnapUIAssetSelector should render 1`] = `
                           <Image
                             onError={[Function]}
                             resizeMode="contain"
-                            source={[Object]}
-                            style={[Object]}
+                            source={
+                              {
+                                "uri": "https://static.cx.metamask.io/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/slip44/501.png",
+                              }
+                            }
+                            style={
+                              {
+                                "flex": 1,
+                                "height": undefined,
+                                "width": undefined,
+                              }
+                            }
                             testID="token-avatar-image"
                           />
                         </View>
@@ -206,8 +216,12 @@ exports[`SnapUIAssetSelector should render 1`] = `
                             "position": "absolute",
                             "right": 0,
                             "transform": [
-                              [Object],
-                              [Object],
+                              {
+                                "translateX": 0,
+                              },
+                              {
+                                "translateY": 0,
+                              },
                             ],
                           }
                         }
@@ -228,9 +242,32 @@ exports[`SnapUIAssetSelector should render 1`] = `
                           testID="badgenetwork"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "backgroundColor": "#ffffff",
+                                "borderColor": "#ffffff",
+                                "borderRadius": 8,
+                                "borderWidth": 2,
+                                "height": 32,
+                                "justifyContent": "center",
+                                "overflow": "hidden",
+                                "shadowColor": "#0000001a",
+                                "shadowOffset": [Object],
+                                "shadowOpacity": 1,
+                                "shadowRadius": 4,
+                                "transform": [Array],
+                                "width": 32,
+                              }
+                            }
                           >
-                            <Image … />
+                            <Image
+                              onError={[Function]}
+                              resizeMode="contain"
+                              source={1}
+                              style={[Object]}
+                              testID="network-avatar-image"
+                            />
                           </View>
                         </View>
                       </View>

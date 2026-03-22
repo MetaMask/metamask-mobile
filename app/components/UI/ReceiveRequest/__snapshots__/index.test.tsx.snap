@@ -326,20 +326,47 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexDirection": "column",
+                                "paddingBottom": 24,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 24,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
+                              testID="receive-request-qr-code"
+                            >
+                              QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
+                            </Text>
                           </View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              testID="receive-request-qr-account-display"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -360,32 +387,57 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                           collapsable={false}
                           jestAnimatedProps={
                             {
-                              "value": [Object],
+                              "value": {},
                             }
                           }
                           jestAnimatedStyle={
                             {
-                              "value": [Object],
+                              "value": {
+                                "transform": [Array],
+                              },
                             }
                           }
                           jestInlineStyle={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                           nativeID="0"
                           style={
                             [
-                              [Object],
-                              [Object],
+                              {
+                                "transform": [Array],
+                              },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                         >
                           <View
                             accessibilityLabel="Request payment"
                             accessibilityRole="button"
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -398,11 +450,25 @@ exports[`ReceiveRequest render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                              ]
+                            }
                             testID="request-payment-button"
                           >
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="spinner-container"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                              testID="content-container"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -745,20 +811,47 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexDirection": "column",
+                                "paddingBottom": 24,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 24,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
+                              testID="receive-request-qr-code"
+                            >
+                              QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
+                            </Text>
                           </View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              testID="receive-request-qr-account-display"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -779,32 +872,57 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                           collapsable={false}
                           jestAnimatedProps={
                             {
-                              "value": [Object],
+                              "value": {},
                             }
                           }
                           jestAnimatedStyle={
                             {
-                              "value": [Object],
+                              "value": {
+                                "transform": [Array],
+                              },
                             }
                           }
                           jestInlineStyle={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                           nativeID="6"
                           style={
                             [
-                              [Object],
-                              [Object],
+                              {
+                                "transform": [Array],
+                              },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                         >
                           <View
                             accessibilityLabel="Request payment"
                             accessibilityRole="button"
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -817,11 +935,25 @@ exports[`ReceiveRequest render with different ticker matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                              ]
+                            }
                             testID="request-payment-button"
                           >
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="spinner-container"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                              testID="content-container"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1164,20 +1296,47 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexDirection": "column",
+                                "paddingBottom": 24,
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                                "paddingTop": 24,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityLabel="QR Code: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1, size: 200, logoSize: 32, logoBorderRadius: 8"
+                              testID="receive-request-qr-code"
+                            >
+                              QR: ethereum:0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756@0x1
+                            </Text>
                           </View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              testID="receive-request-qr-account-display"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1198,32 +1357,57 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                           collapsable={false}
                           jestAnimatedProps={
                             {
-                              "value": [Object],
+                              "value": {},
                             }
                           }
                           jestAnimatedStyle={
                             {
-                              "value": [Object],
+                              "value": {
+                                "transform": [Array],
+                              },
                             }
                           }
                           jestInlineStyle={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                           nativeID="8"
                           style={
                             [
-                              [Object],
-                              [Object],
+                              {
+                                "transform": [Array],
+                              },
+                              {
+                                "alignItems": "center",
+                                "justifyContent": "center",
+                              },
                             ]
                           }
                         >
                           <View
                             accessibilityLabel="Request payment"
                             accessibilityRole="button"
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -1236,11 +1420,25 @@ exports[`ReceiveRequest render without buy matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                              ]
+                            }
                             testID="request-payment-button"
                           >
-                            <View … />
-                            <View … />
+                            <View
+                              style={[Object]}
+                              testID="spinner-container"
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                              testID="content-container"
+                            >
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </View>

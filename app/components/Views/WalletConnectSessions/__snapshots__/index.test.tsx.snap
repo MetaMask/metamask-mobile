@@ -641,21 +641,46 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="1"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              WalletConnect sessions
+                            </Text>
                           </View>
                         </View>
                         <View>
@@ -679,9 +704,19 @@ exports[`WalletConnectSessions renders empty component with no active sessions 1
                       >
                         <View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "flex": 1,
+                                "justifyContent": "center",
+                              }
+                            }
                           >
-                            <Text … />
+                            <Text
+                              style={[Object]}
+                            >
+                              You have no active sessions
+                            </Text>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1033,21 +1068,46 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="2"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              WalletConnect sessions
+                            </Text>
                           </View>
                         </View>
                         <View>
@@ -1071,8 +1131,23 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                       >
                         <View>
                           <View
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={false}
@@ -1083,14 +1158,46 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "borderBottomColor": "#b7bbc866",
+                                "borderBottomWidth": 1,
+                                "flexDirection": "row",
+                                "opacity": 1,
+                                "paddingHorizontal": 20,
+                                "paddingVertical": 10,
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
+                            <View>
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                            >
+                              <Text … />
+                              <Text … />
+                              <Text … />
+                            </View>
                           </View>
                           <View
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={false}
@@ -1101,10 +1208,27 @@ exports[`WalletConnectSessions should render active sessions 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "borderBottomColor": "#b7bbc866",
+                                "borderBottomWidth": 1,
+                                "flexDirection": "row",
+                                "opacity": 1,
+                                "paddingHorizontal": 20,
+                                "paddingVertical": 10,
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
+                            <View>
+                              <View … />
+                            </View>
+                            <View
+                              style={[Object]}
+                            >
+                              <Text … />
+                              <Text … />
+                              <Text … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

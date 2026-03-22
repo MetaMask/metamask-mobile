@@ -153,7 +153,7 @@ describe('FooterButtonGroup', () => {
     consoleErrorSpy.mockRestore();
   });
 
-  it('render matches snapshot', async () => {
+  it('render matches snapshot', () => {
     const props: FooterButtonGroupProps = {
       valueWei: '3210000000000000',
       action: FooterButtonGroupActions.STAKE,

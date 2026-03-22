@@ -322,11 +322,34 @@ exports[`BridgeView Bottom Content blurs input when opening QuoteExpiredModal 1`
                           <View
                             onResponderRelease={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                [Object],
+                              ]
+                            }
                           >
-                            <View … />
-                            <RCTScrollView … />
-                            <View … />
+                            <View
+                              style={[Array]}
+                            >
+                              <View … />
+                              <View … />
+                              <View … />
+                            </View>
+                            <RCTScrollView
+                              contentContainerStyle={[Object]}
+                              showsVerticalScrollIndicator={false}
+                              style={[Object]}
+                              testID="bridge-view-scroll"
+                            >
+                              <View … />
+                            </RCTScrollView>
+                            <View
+                              style={[Array]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -665,11 +688,34 @@ exports[`BridgeView renders 1`] = `
                           <View
                             onResponderRelease={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                [Object],
+                              ]
+                            }
                           >
-                            <View … />
-                            <RCTScrollView … />
-                            <View … />
+                            <View
+                              style={[Array]}
+                            >
+                              <View … />
+                              <View … />
+                              <View … />
+                            </View>
+                            <RCTScrollView
+                              contentContainerStyle={[Object]}
+                              showsVerticalScrollIndicator={false}
+                              style={[Object]}
+                              testID="bridge-view-scroll"
+                            >
+                              <View … />
+                            </RCTScrollView>
+                            <View
+                              style={[Array]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

@@ -96,7 +96,7 @@ describe('useAccounts', () => {
     jest.clearAllMocks();
   });
 
-  it('returns empty data if isLoading is true', async () => {
+  it('returns empty data if isLoading is true', () => {
     const { result } = renderHook(() => useAccounts({ isLoading: true }));
     expect(result.current.accounts).toStrictEqual([]);
     expect(result.current.ensByAccountAddress).toStrictEqual({});

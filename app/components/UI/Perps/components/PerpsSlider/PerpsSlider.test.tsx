@@ -135,7 +135,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Component Rendering', () => {
-    it('renders slider with default props', async () => {
+    it('renders slider with default props', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -147,7 +147,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('100%')).toBeOnTheScreen();
     });
 
-    it('renders without percentage labels when showPercentageLabels is false', async () => {
+    it('renders without percentage labels when showPercentageLabels is false', () => {
       // Act
       render(<PerpsSlider {...defaultProps} showPercentageLabels={false} />);
 
@@ -159,7 +159,7 @@ describe('PerpsSlider', () => {
       expect(screen.queryByText('100%')).toBeNull();
     });
 
-    it('renders quick values when provided', async () => {
+    it('renders quick values when provided', () => {
       // Arrange
       const quickValues = [1, 2, 5, 10];
 
@@ -173,7 +173,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('10x')).toBeOnTheScreen();
     });
 
-    it('does not render quick values when not provided', async () => {
+    it('does not render quick values when not provided', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -182,7 +182,7 @@ describe('PerpsSlider', () => {
       expect(screen.queryByText('2x')).toBeNull();
     });
 
-    it('renders with custom min/max values', async () => {
+    it('renders with custom min/max values', () => {
       // Act
       render(
         <PerpsSlider
@@ -198,7 +198,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('100%')).toBeOnTheScreen();
     });
 
-    it('renders with gradient progress color', async () => {
+    it('renders with gradient progress color', () => {
       // Act
       render(<PerpsSlider {...defaultProps} progressColor="gradient" />);
 
@@ -206,7 +206,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('renders with default progress color', async () => {
+    it('renders with default progress color', () => {
       // Act
       render(<PerpsSlider {...defaultProps} progressColor="default" />);
 
@@ -348,7 +348,7 @@ describe('PerpsSlider', () => {
       expect(mockOnValueChange).toHaveBeenCalledTimes(2);
     });
 
-    it('renders custom quick values correctly', async () => {
+    it('renders custom quick values correctly', () => {
       // Arrange
       const customQuickValues = [0.5, 1.5, 3.7, 25];
 
@@ -364,7 +364,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Props and Configuration', () => {
-    it('handles step prop correctly', async () => {
+    it('handles step prop correctly', () => {
       // Act
       render(<PerpsSlider {...defaultProps} step={5} />);
 
@@ -372,7 +372,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('handles custom spring configuration', async () => {
+    it('handles custom spring configuration', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -380,7 +380,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('uses default spring config when not provided', async () => {
+    it('uses default spring config when not provided', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -388,7 +388,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('handles disabled state correctly', async () => {
+    it('handles disabled state correctly', () => {
       // Act
       render(<PerpsSlider {...defaultProps} disabled />);
 
@@ -397,7 +397,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('handles enabled state correctly', async () => {
+    it('handles enabled state correctly', () => {
       // Act
       render(<PerpsSlider {...defaultProps} disabled={false} />);
 
@@ -408,7 +408,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Layout and Animation', () => {
-    it('handles layout events', async () => {
+    it('handles layout events', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -417,12 +417,12 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('handles layout with zero width gracefully', async () => {
+    it('handles layout with zero width gracefully', () => {
       // Act & Assert - Should not crash
       expect(() => render(<PerpsSlider {...defaultProps} />)).not.toThrow();
     });
 
-    it('updates position when value changes', async () => {
+    it('updates position when value changes', () => {
       // Arrange
       const { rerender } = render(<PerpsSlider {...defaultProps} value={25} />);
 
@@ -435,7 +435,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Edge Cases', () => {
-    it('handles equal minimum and maximum values', async () => {
+    it('handles equal minimum and maximum values', () => {
       // Act
       render(
         <PerpsSlider
@@ -450,7 +450,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('handles value outside range gracefully', async () => {
+    it('handles value outside range gracefully', () => {
       // Act & Assert - Should not crash with value outside range
       expect(() =>
         render(
@@ -464,7 +464,7 @@ describe('PerpsSlider', () => {
       ).not.toThrow();
     });
 
-    it('handles negative values', async () => {
+    it('handles negative values', () => {
       // Act
       render(
         <PerpsSlider
@@ -479,7 +479,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('25%')).toBeOnTheScreen();
     });
 
-    it('handles fractional values', async () => {
+    it('handles fractional values', () => {
       // Act
       render(
         <PerpsSlider
@@ -495,7 +495,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('handles large value ranges', async () => {
+    it('handles large value ranges', () => {
       // Act
       render(
         <PerpsSlider
@@ -510,7 +510,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('handles zero value in positive range', async () => {
+    it('handles zero value in positive range', () => {
       // Act
       render(
         <PerpsSlider
@@ -527,7 +527,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Logger & Haptics Integration', () => {
-    it('configures reanimated logger on first render (if available)', async () => {
+    it('configures reanimated logger on first render (if available)', () => {
       // configureReanimatedLogger is called at module scope, not per render.
       // After jest.clearAllMocks() the call count is reset, so we just
       // verify the component renders without crashing.
@@ -573,7 +573,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Gesture Integration', () => {
-    it('sets up pan gesture correctly', async () => {
+    it('sets up pan gesture correctly', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -581,7 +581,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('sets up tap gesture correctly', async () => {
+    it('sets up tap gesture correctly', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -589,7 +589,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('disables gestures when disabled prop is true', async () => {
+    it('disables gestures when disabled prop is true', () => {
       // Act
       render(<PerpsSlider {...defaultProps} disabled />);
 
@@ -597,7 +597,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('enables gestures when disabled prop is false', async () => {
+    it('enables gestures when disabled prop is false', () => {
       // Act
       render(<PerpsSlider {...defaultProps} disabled={false} />);
 
@@ -607,7 +607,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Progress Color Variants', () => {
-    it('renders default progress color correctly', async () => {
+    it('renders default progress color correctly', () => {
       // Act
       render(<PerpsSlider {...defaultProps} progressColor="default" />);
 
@@ -615,7 +615,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('renders gradient progress color correctly', async () => {
+    it('renders gradient progress color correctly', () => {
       // Act
       render(<PerpsSlider {...defaultProps} progressColor="gradient" />);
 
@@ -623,7 +623,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('50%')).toBeOnTheScreen();
     });
 
-    it('defaults to default progress color when not specified', async () => {
+    it('defaults to default progress color when not specified', () => {
       // Act
       render(<PerpsSlider value={50} onValueChange={jest.fn()} />);
 
@@ -633,7 +633,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Accessibility', () => {
-    it('provides accessible touch targets for percentage buttons', async () => {
+    it('provides accessible touch targets for percentage buttons', () => {
       // Act
       render(<PerpsSlider {...defaultProps} />);
 
@@ -645,7 +645,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('100%')).toBeOnTheScreen();
     });
 
-    it('provides accessible touch targets for quick value buttons', async () => {
+    it('provides accessible touch targets for quick value buttons', () => {
       // Arrange
       const quickValues = [1, 2, 5];
 
@@ -658,7 +658,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('5x')).toBeOnTheScreen();
     });
 
-    it('disables touch targets when slider is disabled', async () => {
+    it('disables touch targets when slider is disabled', () => {
       // Act
       render(<PerpsSlider {...defaultProps} disabled />);
 
@@ -670,7 +670,7 @@ describe('PerpsSlider', () => {
   });
 
   describe('Component Memoization and Performance', () => {
-    it('handles rapid value changes without crashing', async () => {
+    it('handles rapid value changes without crashing', () => {
       // Arrange
       const { rerender } = render(<PerpsSlider {...defaultProps} value={0} />);
 
@@ -683,7 +683,7 @@ describe('PerpsSlider', () => {
       expect(screen.getByText('100%')).toBeOnTheScreen();
     });
 
-    it('handles prop changes efficiently', async () => {
+    it('handles prop changes efficiently', () => {
       // Arrange
       const { rerender } = render(<PerpsSlider {...defaultProps} />);
 

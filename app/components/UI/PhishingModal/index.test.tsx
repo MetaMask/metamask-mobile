@@ -15,7 +15,7 @@ beforeEach(() => {
 });
 
 describe('PhishingModal', () => {
-  it('should render correctly', async () => {
+  it('should render correctly', () => {
     const { toJSON } = renderWithProvider(<PhishingModal />);
     expect(toJSON()).toMatchSnapshot();
   });

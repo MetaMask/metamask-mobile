@@ -348,7 +348,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       expect(getByText('Got it')).toBeOnTheScreen();
     });
 
-    it('should call navigation.goBack when "Got it" is pressed for locked rewards', async () => {
+    it('should call navigation.goBack when "Got it" is pressed for locked rewards', () => {
       const lockedRoute = {
         ...defaultRoute,
         params: {
@@ -371,7 +371,7 @@ describe('RewardsClaimBottomSheetModal', () => {
   });
 
   describe('Unlocked rewards', () => {
-    it('should render the claim button when the reward is not locked and not claimed', async () => {
+    it('should render the claim button when the reward is not locked and not claimed', () => {
       const { getByTestId } = render(
         <RewardsClaimBottomSheetModal route={defaultRoute} />,
       );
@@ -381,7 +381,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       ).toBeOnTheScreen();
     });
 
-    it('should handle generic reward type correctly', async () => {
+    it('should handle generic reward type correctly', () => {
       const { getByTestId } = render(
         <RewardsClaimBottomSheetModal route={routeWithGenericReward} />,
       );
@@ -396,7 +396,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('should handle perps discount reward type correctly', async () => {
+    it('should handle perps discount reward type correctly', () => {
       const { getByTestId } = render(
         <RewardsClaimBottomSheetModal route={routeWithPerpsDiscountReward} />,
       );
@@ -411,7 +411,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       expect(mockGoBack).toHaveBeenCalled();
     });
 
-    it('should handle points boost reward type correctly', async () => {
+    it('should handle points boost reward type correctly', () => {
       const { getByTestId } = render(
         <RewardsClaimBottomSheetModal route={routeWithPointsBoostReward} />,
       );
@@ -426,7 +426,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       expect(mockClaimReward).toHaveBeenCalledWith('reward-123', {});
     });
 
-    it('should handle alpha fox invite reward type correctly', async () => {
+    it('should handle alpha fox invite reward type correctly', () => {
       const { getByTestId, getByPlaceholderText } = render(
         <RewardsClaimBottomSheetModal route={routeWithAlphaFoxInviteReward} />,
       );
@@ -534,7 +534,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       expect(claimButton).toBeDisabled();
     });
 
-    it('should enable button when input is provided and not claiming', async () => {
+    it('should enable button when input is provided and not claiming', () => {
       mockUseClaimRewardState.isClaimingReward = false;
 
       const { getByTestId, getByPlaceholderText } = render(
@@ -550,7 +550,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       expect(claimButton).not.toBeDisabled();
     });
 
-    it('should disable button when claiming even with input provided', async () => {
+    it('should disable button when claiming even with input provided', () => {
       mockUseClaimRewardState.isClaimingReward = true;
 
       const { getByTestId, getByPlaceholderText } = render(
@@ -568,7 +568,7 @@ describe('RewardsClaimBottomSheetModal', () => {
       mockUseClaimRewardState.isClaimingReward = false;
     });
 
-    it('should show error message when claim fails', async () => {
+    it('should show error message when claim fails', () => {
       mockUseClaimRewardState.claimRewardError = 'Claim failed';
 
       const { getByTestId } = render(

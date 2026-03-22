@@ -975,7 +975,7 @@ describe('SwapsConfirmButton', () => {
       expect(mockSubmitBridgeTx).not.toHaveBeenCalled();
     });
 
-    it('does not submit when walletAddress is missing', async () => {
+    it('does not submit when walletAddress is missing', () => {
       jest.mocked(selectSourceWalletAddress).mockReturnValue(undefined);
 
       const { getByTestId } = renderWithProvider(

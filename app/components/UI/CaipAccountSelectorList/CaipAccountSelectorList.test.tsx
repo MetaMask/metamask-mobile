@@ -594,7 +594,7 @@ describe('CaipAccountSelectorList', () => {
     mockAlert.mockRestore();
   });
 
-  it('renders accounts with balance error', async () => {
+  it('renders accounts with balance error', () => {
     // Clear previous mocks
     (useAccounts as jest.Mock).mockClear();
 
@@ -711,7 +711,7 @@ describe('CaipAccountSelectorList', () => {
     });
   });
 
-  it('disables account selection when isSelectionDisabled is true', async () => {
+  it('disables account selection when isSelectionDisabled is true', () => {
     // Clear any previous calls
     onSelectAccount.mockClear();
 
@@ -746,7 +746,7 @@ describe('CaipAccountSelectorList', () => {
     // Calling onPress manually here would bypass the disabled check in the real component.
   });
 
-  it('navigates to account actions when menu button is clicked', async () => {
+  it('navigates to account actions when menu button is clicked', () => {
     // Clear mocks
     mockNavigate.mockClear();
 
@@ -774,7 +774,7 @@ describe('CaipAccountSelectorList', () => {
     );
   });
 
-  it('should not allow account removal when long-pressed for HD Key Tree account type', async () => {
+  it('should not allow account removal when long-pressed for HD Key Tree account type', () => {
     const mockAlert = jest.spyOn(Alert, 'alert');
     mockAlert.mockReset();
 
@@ -819,7 +819,7 @@ describe('CaipAccountSelectorList', () => {
     mockAlert.mockRestore();
   });
 
-  it('should not allow account removal when isRemoveAccountEnabled is false', async () => {
+  it('should not allow account removal when isRemoveAccountEnabled is false', () => {
     const mockAlert = jest.spyOn(Alert, 'alert');
     mockAlert.mockReset();
 
@@ -935,7 +935,7 @@ describe('CaipAccountSelectorList', () => {
   });
 
   // TODO: fix this test
-  it('should not auto-scroll when isAutoScrollEnabled is false', async () => {
+  it('should not auto-scroll when isAutoScrollEnabled is false', () => {
     const mockScrollToOffset = jest.fn();
 
     // Create test component with auto-scroll disabled
@@ -1041,7 +1041,7 @@ describe('CaipAccountSelectorList', () => {
     });
   });
 
-  it('selects an account when tapped', async () => {
+  it('selects an account when tapped', () => {
     // Setup with multiple accounts
     const mockMultipleAccounts = [
       {
@@ -1113,7 +1113,7 @@ describe('CaipAccountSelectorList', () => {
     expect(true).toBe(true);
   });
 
-  it('correctly handles auto-scrolling when an account is marked with autoscroll', async () => {
+  it('correctly handles auto-scrolling when an account is marked with autoscroll', () => {
     // Create mock for FlatList's scrollToOffset
     const mockScrollToOffset = jest.fn();
 

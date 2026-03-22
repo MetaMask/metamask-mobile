@@ -242,7 +242,7 @@ describe('SitesFullView', () => {
   });
 
   describe('Navigation', () => {
-    it('navigates back when back button is pressed', async () => {
+    it('navigates back when back button is pressed', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -259,7 +259,7 @@ describe('SitesFullView', () => {
   });
 
   describe('Search Functionality', () => {
-    it('filters sites by name, URL, and display URL', async () => {
+    it('filters sites by name, URL, and display URL', () => {
       setupMockWithSearchFilter();
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);
@@ -284,7 +284,7 @@ describe('SitesFullView', () => {
       expect(getByTestId('site-item-3')).toBeOnTheScreen();
     });
 
-    it('shows all sites when search query is empty', async () => {
+    it('shows all sites when search query is empty', () => {
       setupMockWithSearchFilter();
 
       const { getByTestId } = render(<SitesFullView />);
@@ -302,7 +302,7 @@ describe('SitesFullView', () => {
       expect(getByTestId('site-item-3')).toBeOnTheScreen();
     });
 
-    it('clears search query when search is closed', async () => {
+    it('clears search query when search is closed', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -329,7 +329,7 @@ describe('SitesFullView', () => {
       expect(newSearchInput.props.value).toBe('');
     });
 
-    it('displays SitesSearchFooter when search is active', async () => {
+    it('displays SitesSearchFooter when search is active', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -352,7 +352,7 @@ describe('SitesFullView', () => {
       expect(getByTestId('sites-search-footer')).toBeOnTheScreen();
     });
 
-    it('hides SitesSearchFooter when search query is empty or search is inactive', async () => {
+    it('hides SitesSearchFooter when search query is empty or search is inactive', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -437,7 +437,7 @@ describe('SitesFullView', () => {
       expect(getByTestId('site-item-1')).toBeOnTheScreen();
     });
 
-    it('handles empty sites array', async () => {
+    it('handles empty sites array', () => {
       mockUseSitesData.mockReturnValue({
         sites: [],
         isLoading: false,
@@ -450,7 +450,7 @@ describe('SitesFullView', () => {
       expect(queryByTestId('site-item-1')).toBeNull();
     });
 
-    it('performs case-insensitive search', async () => {
+    it('performs case-insensitive search', () => {
       setupMockWithSearchFilter();
 
       const { getByTestId, queryByTestId } = render(<SitesFullView />);

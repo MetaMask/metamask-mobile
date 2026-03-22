@@ -393,7 +393,7 @@ describe('DiscoveryTab', () => {
   });
 
   describe('onSelect callback', () => {
-    it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', async () => {
+    it('hides URL bar and calls onSubmitEditing when selecting site from autocomplete', () => {
       const mockProcessUrlForBrowser = processUrlForBrowser as jest.Mock;
       mockProcessUrlForBrowser.mockReturnValue('https://processed-site.com');
 

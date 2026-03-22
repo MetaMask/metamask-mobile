@@ -73,7 +73,7 @@ describe('useAccountsWithNetworkActivitySync', () => {
     ).setMocks({ context: {}, controllerMessenger: { subscribe: jest.fn(), unsubscribe: jest.fn() } });
   });
 
-  it('fetches on first load if basicFunctionalityEnabled is true', async () => {
+  it('fetches on first load if basicFunctionalityEnabled is true', () => {
     store = mockStore({
       settings: { basicFunctionalityEnabled: true },
     });
@@ -114,7 +114,7 @@ describe('useAccountsWithNetworkActivitySync', () => {
     expect(fetchAccountsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fetch on first load if basicFunctionalityEnabled is false', async () => {
+  it('does not fetch on first load if basicFunctionalityEnabled is false', () => {
     store = mockStore({
       settings: { basicFunctionalityEnabled: false },
     });
@@ -298,7 +298,7 @@ describe('useAccountsWithNetworkActivitySync', () => {
     expect(fetchAccountsSpy).toHaveBeenCalledTimes(1);
   });
 
-  it('does not fetch on first load if onFirstLoad is false', async () => {
+  it('does not fetch on first load if onFirstLoad is false', () => {
     store = mockStore({
       settings: { basicFunctionalityEnabled: true },
     });

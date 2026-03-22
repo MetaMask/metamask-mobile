@@ -161,12 +161,12 @@ const renderComponent = (props = {}) =>
   );
 
 describe('PaymentRequest', () => {
-  it('renders correctly', async () => {
+  it('renders correctly', () => {
     const { toJSON } = renderComponent();
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('renders correctly with network picker when feature flag is enabled', async () => {
+  it('renders correctly with network picker when feature flag is enabled', () => {
     const { toJSON } = renderComponent({
       chainId: '0x1',
       networkImageSource: ethLogo,
@@ -174,7 +174,7 @@ describe('PaymentRequest', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('displays the correct title for asset selection', async () => {
+  it('displays the correct title for asset selection', () => {
     const { getByText } = renderComponent();
     expect(getByText('Choose an asset to request')).toBeTruthy();
   });
@@ -339,7 +339,7 @@ describe('PaymentRequest', () => {
       }).not.toThrow();
     });
 
-    it('initializes with correct state on mount', async () => {
+    it('initializes with correct state on mount', () => {
       // Given a PaymentRequest component
       const { getByText } = renderComponent();
 
@@ -348,7 +348,7 @@ describe('PaymentRequest', () => {
       expect(getByText('Choose an asset to request')).toBeTruthy();
     });
 
-    it('handles route params with receiveAsset on mount', async () => {
+    it('handles route params with receiveAsset on mount', () => {
       // Given a route with receiveAsset parameter
       const mockRouteWithAsset = {
         params: {
@@ -428,7 +428,7 @@ describe('PaymentRequest', () => {
   });
 
   describe('Network Configuration Tests', () => {
-    it('shows correct assets for mainnet', async () => {
+    it('shows correct assets for mainnet', () => {
       // Given a PaymentRequest component on mainnet
       const { getByText } = renderComponent({ chainId: '0x1' });
 
@@ -437,7 +437,7 @@ describe('PaymentRequest', () => {
       expect(getByText('SAI')).toBeTruthy();
     });
 
-    it('shows correct assets for non-mainnet networks', async () => {
+    it('shows correct assets for non-mainnet networks', () => {
       // Given a PaymentRequest component on non-mainnet
       const { getByText } = renderComponent({ chainId: '0x5' }); // Goerli
 
@@ -445,7 +445,7 @@ describe('PaymentRequest', () => {
       expect(getByText('ETH')).toBeTruthy();
     });
 
-    it('handles networks without token detection support', async () => {
+    it('handles networks without token detection support', () => {
       // Given a PaymentRequest component on network without token detection
       const { getByText } = renderComponent({ chainId: '0x2' });
 

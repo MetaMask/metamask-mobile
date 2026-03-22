@@ -120,7 +120,7 @@ describe('useBalanceChanges', () => {
   });
 
   describe('pending states', () => {
-    it('returns pending=true if no simulation data', async () => {
+    it('returns pending=true if no simulation data', () => {
       const { result } = renderHook(() =>
         useBalanceChanges({
           chainId: CHAIN_ID_MOCK,
@@ -159,7 +159,7 @@ describe('useBalanceChanges', () => {
       unmount();
     });
 
-    it('returns pending=true while fetching token fiat rates', async () => {
+    it('returns pending=true while fetching token fiat rates', () => {
       mockFetchTokenContractExchangeRates.mockImplementation(PENDING_PROMISE);
       const simulationData: SimulationData = {
         nativeBalanceChange: undefined,

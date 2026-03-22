@@ -323,22 +323,47 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a cryptocurrency
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="0"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -361,8 +386,23 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                         <View>
                           <View
                             accessibilityRole="button"
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -373,9 +413,33 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#3c4d9d0f",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 32,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              alignItems="center"
+                              flexDirection="row"
+                              gap={8}
+                              style={[Array]}
+                            >
+                              <View … />
+                              <Text … />
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -433,15 +497,43 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by cryptocurrency"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="token-select-modal-search-input"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -455,7 +547,10 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                               "id": "eth-1",
                               "logo": "https://example.com/eth.png",
                               "name": "Ethereum",
-                              "network": [Object],
+                              "network": {
+                                "chainId": 1,
+                                "shortName": "Ethereum",
+                              },
                               "symbol": "ETH",
                             },
                             {
@@ -463,7 +558,10 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                               "id": "polygon-token",
                               "logo": "https://example.com/pol.png",
                               "name": "Polygon Token",
-                              "network": [Object],
+                              "network": {
+                                "chainId": 137,
+                                "shortName": "Polygon",
+                              },
                               "symbol": "POL",
                             },
                             {
@@ -471,7 +569,10 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                               "id": "solana-sol",
                               "logo": "https://example.com/sol.png",
                               "name": "Solana",
-                              "network": [Object],
+                              "network": {
+                                "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+                                "shortName": "Solana",
+                              },
                               "symbol": "SOL",
                             },
                             {
@@ -479,7 +580,10 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                               "id": "solana-usdc",
                               "logo": "https://example.com/usdc.png",
                               "name": "USD Coin (Solana)",
-                              "network": [Object],
+                              "network": {
+                                "chainId": "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp",
+                                "shortName": "Solana",
+                              },
                               "symbol": "USDC",
                             },
                           ]
@@ -518,28 +622,96 @@ exports[`TokenSelectModal renders the modal with token list 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

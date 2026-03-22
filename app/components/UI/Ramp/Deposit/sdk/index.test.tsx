@@ -196,7 +196,7 @@ describe('Deposit SDK Context', () => {
       );
     });
 
-    it('allows calling SDK methods through the context', async () => {
+    it('allows calling SDK methods through the context', () => {
       const TestComponent = () => {
         const { sdk } = useDepositSDK();
         return (
@@ -236,7 +236,7 @@ describe('Deposit SDK Context', () => {
   });
 
   describe('NativeRampsSdk integration', () => {
-    it('allows calling SDK methods through the context', async () => {
+    it('allows calling SDK methods through the context', () => {
       const TestComponent = () => {
         const { sdk } = useDepositSDK();
         return (

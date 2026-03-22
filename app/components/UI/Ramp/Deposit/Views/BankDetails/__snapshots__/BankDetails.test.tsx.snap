@@ -416,9 +416,17 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
                             <RefreshControlMock
-                              colors={[Array]}
+                              colors={
+                                [
+                                  "#4459ff",
+                                ]
+                              }
                               onRefresh={[Function]}
-                              ref={[Object]}
+                              ref={
+                                {
+                                  "current": [RefreshControlMock],
+                                }
+                              }
                               refreshing={true}
                               tintColor="#121314"
                             />
@@ -427,14 +435,29 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                         >
                           <RCTRefreshControl />
                           <View>
-                            <View … />
+                            <View
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </RCTScrollView>
                         <View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -867,9 +890,17 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                           onGestureHandlerStateChange={[Function]}
                           refreshControl={
                             <RefreshControlMock
-                              colors={[Array]}
+                              colors={
+                                [
+                                  "#4459ff",
+                                ]
+                              }
                               onRefresh={[Function]}
-                              ref={[Object]}
+                              ref={
+                                {
+                                  "current": [RefreshControlMock],
+                                }
+                              }
                               refreshing={true}
                               tintColor="#121314"
                             />
@@ -878,14 +909,29 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                         >
                           <RCTRefreshControl />
                           <View>
-                            <View … />
+                            <View
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </RCTScrollView>
                         <View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>

@@ -373,7 +373,7 @@ describe('Network Selector', () => {
     expect(popularNetworksTitle).toBeTruthy();
   });
 
-  it('changes network when another network cell is pressed', async () => {
+  it('changes network when another network cell is pressed', () => {
     (isNetworkUiRedesignEnabled as jest.Mock).mockImplementation(() => false);
     const { getByText } = renderComponent(initialState);
     const polygonCell = getByText('Polygon Mainnet');
@@ -458,7 +458,7 @@ describe('Network Selector', () => {
     expect(testNetworksSwitch).toHaveProp('disabled', true);
   });
 
-  it('changes to non infura network when another network cell is pressed', async () => {
+  it('changes to non infura network when another network cell is pressed', () => {
     const { getByText } = renderComponent(initialState);
     const gnosisCell = getByText('Gnosis Chain');
 

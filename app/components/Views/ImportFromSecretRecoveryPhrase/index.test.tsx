@@ -240,7 +240,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       jest.mocked(Clipboard.getString).mockResolvedValue('');
     });
 
-    it('renders show all and Paste button when no seed phrase is entered', async () => {
+    it('renders show all and Paste button when no seed phrase is entered', () => {
       const { getByText } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -417,7 +417,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       });
     });
 
-    it('renders qr code button', async () => {
+    it('renders qr code button', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         { name: Routes.ONBOARDING.IMPORT_FROM_SECRET_RECOVERY_PHRASE },
@@ -1964,7 +1964,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
   });
 
   describe('SRP Word Suggestions Feature', () => {
-    it('renders SRP input grid with word suggestions support', async () => {
+    it('renders SRP input grid with word suggestions support', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {
@@ -2004,7 +2004,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       expect(srpInput).toBeTruthy();
     });
 
-    it('renders with KeyboardProvider wrapper', async () => {
+    it('renders with KeyboardProvider wrapper', () => {
       const { getByTestId } = renderScreen(
         ImportFromSecretRecoveryPhrase,
         {

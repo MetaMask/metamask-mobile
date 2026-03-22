@@ -279,7 +279,7 @@ describe('Account Network Row', () => {
       expect(mockNavigate).not.toHaveBeenCalledWith(Routes.WALLET_VIEW);
     });
 
-    it('returns early when switchRequestSubmitted is true', async () => {
+    it('returns early when switchRequestSubmitted is true', () => {
       mockMultichainAccountsState1Enabled.mockReturnValueOnce(true);
       const { getByTestId } = renderWithProvider(
         <AccountNetworkRow address={MOCK_ADDRESS} network={MOCK_NETWORK} />,

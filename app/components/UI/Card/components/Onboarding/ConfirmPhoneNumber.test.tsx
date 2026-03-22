@@ -545,7 +545,7 @@ describe('ConfirmPhoneNumber Component', () => {
       });
     });
 
-    it('does not auto-submit when less than 6 digits are entered', async () => {
+    it('does not auto-submit when less than 6 digits are entered', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>
@@ -1346,7 +1346,7 @@ describe('ConfirmPhoneNumber Component', () => {
       expect(resendElement).toHaveTextContent('Resend in 60s');
     });
 
-    it('shows "Resend verification code" when cooldown expires', async () => {
+    it('shows "Resend verification code" when cooldown expires', () => {
       const store = createTestStore();
       const { getByTestId } = render(
         <Provider store={store}>

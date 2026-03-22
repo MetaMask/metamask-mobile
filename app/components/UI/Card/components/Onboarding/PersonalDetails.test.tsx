@@ -549,7 +549,7 @@ describe('PersonalDetails Component', () => {
       expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
     });
 
-    it('does not show SSN error after blur when SSN is valid', async () => {
+    it('does not show SSN error after blur when SSN is valid', () => {
       const { getByTestId, queryByTestId } = render(<PersonalDetails />);
 
       const ssnInput = getByTestId('personal-details-ssn-input');

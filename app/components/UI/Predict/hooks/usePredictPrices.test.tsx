@@ -722,7 +722,7 @@ describe('usePredictPrices', () => {
   });
 
   describe('cleanup', () => {
-    it('does not update state after unmount', async () => {
+    it('does not update state after unmount', () => {
       jest.useFakeTimers();
 
       (
@@ -792,7 +792,7 @@ describe('usePredictPrices', () => {
   });
 
   describe('edge cases', () => {
-    it('handles empty queries array', async () => {
+    it('handles empty queries array', () => {
       const { result } = renderHook(() =>
         usePredictPrices({
           queries: [],
@@ -805,7 +805,7 @@ describe('usePredictPrices', () => {
       expect(Engine.context.PredictController.getPrices).not.toHaveBeenCalled();
     });
 
-    it('handles undefined queries', async () => {
+    it('handles undefined queries', () => {
       const { result } = renderHook(() =>
         usePredictPrices({
           queries: undefined as unknown as [],

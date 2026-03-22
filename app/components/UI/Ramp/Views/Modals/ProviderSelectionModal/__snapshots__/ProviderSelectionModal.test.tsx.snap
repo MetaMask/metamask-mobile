@@ -320,7 +320,14 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "minHeight": 56,
+                                "paddingLeft": 8,
+                                "paddingRight": 8,
+                              },
                               false,
                               undefined,
                             ]
@@ -328,23 +335,44 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                           testID="header"
                         >
                           <View>
-                            <View … />
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Array]}
+                            >
+                              <Text … />
+                            </View>
                           </View>
                           <View>
-                            <View … />
+                            <View
+                              onLayout={[Function]}
+                            />
                           </View>
                         </View>
                         <RCTScrollView
                           collapsable={false}
                           data={
                             [
-                              [Object],
-                              [Object],
+                              {
+                                "provider": [Object],
+                                "type": "provider",
+                              },
+                              {
+                                "provider": [Object],
+                                "type": "provider",
+                              },
                             ]
                           }
                           getItem={[Function]}
@@ -377,8 +405,20 @@ exports[`ProviderSelectionModal matches snapshot 1`] = `
                           viewabilityConfigCallbackPairs={[]}
                         >
                           <View>
-                            <View … />
-                            <View … />
+                            <View
+                              onFocusCapture={[Function]}
+                              onLayout={[Function]}
+                              style={null}
+                            >
+                              <View … />
+                            </View>
+                            <View
+                              onFocusCapture={[Function]}
+                              onLayout={[Function]}
+                              style={null}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </RCTScrollView>
                       </View>

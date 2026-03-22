@@ -267,7 +267,7 @@ describe('OnboardingSuccess', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('fails to add networks to the network controller but renders the component', async () => {
+    it('fails to add networks to the network controller but renders the component', () => {
       (
         Engine.context.NetworkController.addNetwork as jest.Mock
       ).mockRejectedValue(new Error('Failed to add network'));
@@ -293,7 +293,7 @@ describe('OnboardingSuccess', () => {
       expect(toJSON()).toMatchSnapshot();
     });
 
-    it('dispatches ResetNavigationToHome action when done button is pressed', async () => {
+    it('dispatches ResetNavigationToHome action when done button is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <OnboardingSuccess
           route={createMockRoute(ONBOARDING_SUCCESS_FLOW.NO_BACKED_UP_SRP)}

@@ -349,7 +349,7 @@ describe('CardAuthentication Component', () => {
       });
     });
 
-    it('does not navigate when login error exists', async () => {
+    it('does not navigate when login error exists', () => {
       mockUseCardProviderAuthentication.mockReturnValue({
         login: mockLogin,
         loading: false,

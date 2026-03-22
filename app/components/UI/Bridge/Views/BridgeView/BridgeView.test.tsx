@@ -331,7 +331,7 @@ describe('BridgeView', () => {
     jest.clearAllMocks();
   });
 
-  it('renders', async () => {
+  it('renders', () => {
     const { toJSON } = renderScreen(
       BridgeView,
       {
@@ -507,7 +507,7 @@ describe('BridgeView', () => {
     expect(queryByTestId('token-input-area-max-button')).toBeNull();
   });
 
-  it('should display max button when source token is not native token', async () => {
+  it('should display max button when source token is not native token', () => {
     const stateWithERC20Token = {
       ...mockState,
       bridge: {
@@ -1244,7 +1244,7 @@ describe('BridgeView', () => {
       } as BridgeRouteParams;
     });
 
-    it('uses sourceToken from route params when provided', async () => {
+    it('uses sourceToken from route params when provided', () => {
       mockRoute.params.sourceToken = mockDeepLinkSourceToken;
 
       // Update the mock state to include the deep link source token
@@ -1318,7 +1318,7 @@ describe('BridgeView', () => {
       expect(input.props.value).toBe('1,000,000');
     });
 
-    it('uses all deep link params when all are provided', async () => {
+    it('uses all deep link params when all are provided', () => {
       mockRoute.params = {
         ...mockRoute.params,
         sourceToken: mockDeepLinkSourceToken,

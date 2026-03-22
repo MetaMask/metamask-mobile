@@ -46,7 +46,7 @@ describe('SnapUILink', () => {
     expect(Linking.openURL).toHaveBeenCalledTimes(1);
   });
 
-  it('throws error when URL does not start with https://', async () => {
+  it('throws error when URL does not start with https://', () => {
     const invalidProps = {
       href: 'http://example.com',
       children: 'Invalid Link',

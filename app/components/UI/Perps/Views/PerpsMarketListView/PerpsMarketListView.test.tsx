@@ -641,7 +641,7 @@ describe('PerpsMarketListView', () => {
   });
 
   describe('Search Functionality', () => {
-    it('shows search bar always visible', async () => {
+    it('shows search bar always visible', () => {
       renderWithProvider(<PerpsMarketListView />, { state: mockState });
 
       expect(

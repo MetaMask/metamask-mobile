@@ -180,7 +180,7 @@ describe('PredictTabView', () => {
     expect(mockRefreshFn).toHaveBeenCalledTimes(1);
   });
 
-  it('sets refreshing state to false before pull-to-refresh executes', async () => {
+  it('sets refreshing state to false before pull-to-refresh executes', () => {
     isHomepageRedesignEnabled = false;
     let callCount = 0;
     mockUseSelector.mockImplementation(() => {
@@ -234,7 +234,7 @@ describe('PredictTabView', () => {
       expect(queryByTestId('predict-add-funds-sheet')).not.toBeOnTheScreen();
     });
 
-    it('displays retry button in error state', async () => {
+    it('displays retry button in error state', () => {
       const PredictHomeMock = jest.requireMock('../../components/PredictHome');
       let capturedOnError: ((error: string | null) => void) | undefined;
       PredictHomeMock.PredictHomePositions = React.forwardRef(

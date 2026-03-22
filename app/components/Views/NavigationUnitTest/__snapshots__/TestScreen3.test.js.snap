@@ -321,17 +321,46 @@ exports[`NavigationUnitTest should render correctly 1`] = `
                           <View
                             collapsable={false}
                             pointerEvents="box-none"
-                            style={[Object]}
+                            style={
+                              {
+                                "bottom": 0,
+                                "left": 0,
+                                "opacity": 1,
+                                "position": "absolute",
+                                "right": 0,
+                                "top": 0,
+                                "zIndex": 0,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              style={[Object]}
+                            />
                           </View>
                           <View
                             collapsable={false}
                             pointerEvents="box-none"
-                            style={[Object]}
+                            style={
+                              {
+                                "height": 44,
+                                "maxHeight": undefined,
+                                "minHeight": undefined,
+                                "opacity": undefined,
+                                "transform": undefined,
+                              }
+                            }
                           >
-                            <View … />
-                            <View … />
+                            <View
+                              pointerEvents="none"
+                              style={[Object]}
+                            />
+                            <View
+                              pointerEvents="box-none"
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -357,7 +386,11 @@ exports[`NavigationUnitTest should render correctly 1`] = `
                         >
                           <View
                             collapsable={false}
-                            style={[Object]}
+                            style={
+                              {
+                                "opacity": 1,
+                              }
+                            }
                           />
                           <View
                             accessibilityElementsHidden={false}
@@ -371,10 +404,27 @@ exports[`NavigationUnitTest should render correctly 1`] = `
                             onOpen={[Function]}
                             onTransition={[Function]}
                             pointerEvents="box-none"
-                            style={[Array]}
-                            transitionSpec={[Object]}
+                            style={
+                              [
+                                [Object],
+                                [Object],
+                              ]
+                            }
+                            transitionSpec={
+                              {
+                                "close": [Object],
+                                "open": [Object],
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              needsOffscreenAlphaCompositing={false}
+                              pointerEvents="box-none"
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>

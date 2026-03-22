@@ -324,7 +324,13 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -332,14 +338,36 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                           <Image
                             resizeMode="contain"
                             source={1}
-                            style={[Object]}
+                            style={
+                              {
+                                "height": 32,
+                                "width": 67,
+                              }
+                            }
                           />
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="update-needed-modal-close-button"
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -359,19 +387,48 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                       >
                         <View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "marginBottom": 40,
+                              }
+                            }
                           >
-                            <Image … />
+                            <Image
+                              resizeMethod="auto"
+                              resizeMode="contain"
+                              source={1}
+                              style={[Object]}
+                            />
                           </View>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Bold",
+                                "fontSize": 24,
+                                "letterSpacing": 0,
+                                "lineHeight": 32,
+                                "paddingBottom": 16,
+                                "textAlign": "center",
+                              }
+                            }
                           >
                             Get the newest features
                           </Text>
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              }
+                            }
                           >
                             We’ve made your wallet safer, smoother, and added some new features. Update now to stay protected and use our latest improvements.
                           </Text>
@@ -433,7 +490,15 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#ffffff",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             Update to latest version
                           </Text>

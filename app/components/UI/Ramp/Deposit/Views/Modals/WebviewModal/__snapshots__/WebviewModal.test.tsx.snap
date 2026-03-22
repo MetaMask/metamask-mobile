@@ -323,7 +323,13 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -332,7 +338,16 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="0"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -354,13 +369,21 @@ exports[`WebviewModal Component renders correctly and matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           />
                         </View>
                       </RNCSafeAreaView>
@@ -700,7 +723,13 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
@@ -709,7 +738,16 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="1"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -731,15 +769,28 @@ exports[`WebviewModal Component should display error view when webview HTTP erro
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "backgroundColor": "#ffffff",
+                                "flex": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <RNCSafeAreaView … />
+                            <RNCSafeAreaView
+                              edges={[Object]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </RNCSafeAreaView>
                           </View>
                         </View>
                       </RNCSafeAreaView>

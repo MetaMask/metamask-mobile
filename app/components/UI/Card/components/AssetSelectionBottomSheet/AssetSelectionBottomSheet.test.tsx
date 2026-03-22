@@ -535,7 +535,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('token selection', () => {
-    it('calls onTokenSelect and closes bottom sheet in selection only mode', async () => {
+    it('calls onTokenSelect and closes bottom sheet in selection only mode', () => {
       const mockOnTokenSelect = jest.fn();
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
@@ -563,7 +563,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('navigates to spending limit for not enabled token', async () => {
+    it('navigates to spending limit for not enabled token', () => {
       const token = createMockToken({
         allowanceState: AllowanceState.NotEnabled,
       });
@@ -666,7 +666,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('closes bottom sheet when already priority token is selected and navigateToCardHomeOnPriorityToken is false', async () => {
+    it('closes bottom sheet when already priority token is selected and navigateToCardHomeOnPriorityToken is false', () => {
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
       const cardExternalWalletDetails = {
@@ -841,7 +841,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('navigation-based selection', () => {
-    it('navigates back to caller route with selected token', async () => {
+    it('navigates back to caller route with selected token', () => {
       const token = createMockToken({
         symbol: 'EURe',
         address: '0xeure',
@@ -881,7 +881,7 @@ describe('AssetSelectionBottomSheet', () => {
       );
     });
 
-    it('goes back when no caller route is provided in navigation mode', async () => {
+    it('goes back when no caller route is provided in navigation mode', () => {
       const token = createMockToken({
         symbol: 'mUSD',
         address: '0xmusd',
@@ -927,7 +927,7 @@ describe('AssetSelectionBottomSheet', () => {
       expect(getByText('Enable on card.metamask.io')).toBeOnTheScreen();
     });
 
-    it('calls navigateToCardPage when Solana not supported button is pressed', async () => {
+    it('calls navigateToCardPage when Solana not supported button is pressed', () => {
       const token = createMockToken();
       const delegationSettings = createMockDelegationSettings();
 

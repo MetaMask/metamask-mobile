@@ -173,12 +173,12 @@ describe('OrderDetails', () => {
     (processFiatOrder as jest.Mock).mockClear();
   });
 
-  it('calls setOptions when rendering', async () => {
+  it('calls setOptions when rendering', () => {
     render(OrderDetails);
     expect(mockSetNavigationOptions).toHaveBeenCalled();
   });
 
-  it('renders an empty screen layout if there is no order', async () => {
+  it('renders an empty screen layout if there is no order', () => {
     mockUseParamsValues = {
       ...mockUseParamsDefaultValues,
       orderId: 'invalid-id',
@@ -187,7 +187,7 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders header with back navigation capability on empty order state', async () => {
+  it('renders header with back navigation capability on empty order state', () => {
     mockUseParamsValues = {
       ...mockUseParamsDefaultValues,
       orderId: 'invalid-id',
@@ -198,7 +198,7 @@ describe('OrderDetails', () => {
     expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
-  it('redirects to send transaction page when user is redirected back from a provider for a sell order', async () => {
+  it('redirects to send transaction page when user is redirected back from a provider for a sell order', () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.CREATED,
@@ -215,12 +215,12 @@ describe('OrderDetails', () => {
     });
   });
 
-  it('renders a pending order', async () => {
+  it('renders a pending order', () => {
     render(OrderDetails);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders a completed order', async () => {
+  it('renders a completed order', () => {
     const completedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
@@ -233,7 +233,7 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders a cancelled order', async () => {
+  it('renders a cancelled order', () => {
     const cancelledOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.CANCELLED,
@@ -247,7 +247,7 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('renders a failed order', async () => {
+  it('renders a failed order', () => {
     const failedOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.FAILED,
@@ -261,7 +261,7 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('sends analytics events when an order is loaded', async () => {
+  it('sends analytics events when an order is loaded', () => {
     render(OrderDetails);
     expect(mockTrackEvent.mock.lastCall).toMatchInlineSnapshot(`
       [
@@ -305,7 +305,7 @@ describe('OrderDetails', () => {
     `);
   });
 
-  it('navigates to buy flow when the user attempts to make another purchase', async () => {
+  it('navigates to buy flow when the user attempts to make another purchase', () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
@@ -324,7 +324,7 @@ describe('OrderDetails', () => {
     expect(mockGoToAggregator).toHaveBeenCalledWith();
   });
 
-  it('navigates to sell flow when the user attempts to make another purchase', async () => {
+  it('navigates to sell flow when the user attempts to make another purchase', () => {
     const testOrder = {
       ...mockOrder,
       orderType: OrderOrderTypeEnum.Sell,
@@ -480,7 +480,7 @@ describe('OrderDetails', () => {
     expect(screen.getByText('Order details')).toBeOnTheScreen();
   });
 
-  it('renders the support links if the provider has them', async () => {
+  it('renders the support links if the provider has them', () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,
@@ -503,7 +503,7 @@ describe('OrderDetails', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('tracks external link clicks', async () => {
+  it('tracks external link clicks', () => {
     const testOrder = {
       ...mockOrder,
       state: FIAT_ORDER_STATES.COMPLETED,

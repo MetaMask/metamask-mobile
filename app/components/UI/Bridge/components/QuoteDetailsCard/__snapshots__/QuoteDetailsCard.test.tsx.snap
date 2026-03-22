@@ -325,96 +325,234 @@ exports[`QuoteDetailsCard renders initial state 1`] = `
                         <View
                           style={
                             [
-                              [Object],
-                              [Array],
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                                "overflow": "hidden",
+                              },
+                              [
+                                undefined,
+                              ],
                             ]
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-end",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
-                              [Array],
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                                "overflow": "hidden",
+                              },
+                              [
+                                undefined,
+                              ],
                             ]
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-end",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
-                              [Array],
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                                "overflow": "hidden",
+                              },
+                              [
+                                undefined,
+                              ],
                             ]
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-end",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
-                              [Array],
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                                "overflow": "hidden",
+                              },
+                              [
+                                undefined,
+                              ],
                             ]
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-end",
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <View … />
+                            <View
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "justifyContent": "space-between",
+                                "overflow": "hidden",
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                [Object],
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Recipient
+                            </Text>
                           </View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                [Object],
+                              ]
+                            }
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="recipient-selector-button"
+                            >
+                              <Text … />
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>

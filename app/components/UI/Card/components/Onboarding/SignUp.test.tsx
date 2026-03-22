@@ -257,7 +257,7 @@ describe('SignUp Component', () => {
       expect(passwordInput.props.value).toBe('password123');
     });
 
-    it('has password hidden by default (secureTextEntry)', async () => {
+    it('has password hidden by default (secureTextEntry)', () => {
       const { getByTestId } = render(
         <Provider store={store}>
           <SignUp />

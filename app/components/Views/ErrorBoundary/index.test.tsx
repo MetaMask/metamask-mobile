@@ -89,12 +89,12 @@ describe('ErrorBoundary', () => {
     jest.clearAllMocks();
   });
 
-  it('render matches snapshot', async () => {
+  it('render matches snapshot', () => {
     const { toJSON } = renderWithProvider(<ErrorBoundary />, {});
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('tracks error event when error is thrown by child component', async () => {
+  it('tracks error event when error is thrown by child component', () => {
     renderWithProvider(
       <ErrorBoundary view={'Root'}>
         <MockThrowComponent />
@@ -104,7 +104,7 @@ describe('ErrorBoundary', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  it('renders all buttons when dataCollectionForMarketing is true', async () => {
+  it('renders all buttons when dataCollectionForMarketing is true', () => {
     const { getByText } = renderWithProvider(<Fallback {...mockProps} />, {
       state: initialState,
     });
@@ -114,7 +114,7 @@ describe('ErrorBoundary', () => {
     expect(getByText('Try again')).toBeTruthy();
   });
 
-  it('hides Describe what happened button when dataCollectionForMarketing is false', async () => {
+  it('hides Describe what happened button when dataCollectionForMarketing is false', () => {
     const stateWithoutDataCollection = {
       security: {
         dataCollectionForMarketing: false,
@@ -303,7 +303,7 @@ describe('ErrorBoundary', () => {
       );
     });
 
-    it('renders onboarding error fallback with correct props', async () => {
+    it('renders onboarding error fallback with correct props', () => {
       const { getByText } = renderWithProvider(
         <Fallback {...onboardingProps} />,
         { state: initialState },

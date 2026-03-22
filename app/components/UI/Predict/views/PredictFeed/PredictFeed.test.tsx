@@ -310,7 +310,7 @@ describe('PredictFeed', () => {
   });
 
   describe('search functionality', () => {
-    it('opens search overlay when search button pressed', async () => {
+    it('opens search overlay when search button pressed', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId('predict-search-button'));
@@ -318,7 +318,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('search-icon')).toBeOnTheScreen();
     });
 
-    it('closes search overlay when cancel button pressed', async () => {
+    it('closes search overlay when cancel button pressed', () => {
       const { getByTestId, getByText, queryByTestId } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId('predict-search-button'));
@@ -340,7 +340,7 @@ describe('PredictFeed', () => {
       expect(getByTestId('tab-politics')).toBeOnTheScreen();
     });
 
-    it('does not track analytics when tab pressed', async () => {
+    it('does not track analytics when tab pressed', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId('tab-sports'));
@@ -382,7 +382,7 @@ describe('PredictFeed', () => {
   });
 
   describe('navigation', () => {
-    it('calls goBack when back button pressed and navigation can go back', async () => {
+    it('calls goBack when back button pressed and navigation can go back', () => {
       const { getByTestId } = render(<PredictFeed />);
 
       fireEvent.press(getByTestId(PredictMarketListSelectorsIDs.BACK_BUTTON));
@@ -390,7 +390,7 @@ describe('PredictFeed', () => {
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
 
-    it('navigates to wallet home when back button pressed and navigation cannot go back', async () => {
+    it('navigates to wallet home when back button pressed and navigation cannot go back', () => {
       mockNavigation.canGoBack.mockReturnValue(false);
       const { getByTestId } = render(<PredictFeed />);
 
@@ -876,7 +876,7 @@ describe('PredictFeed', () => {
       },
     );
 
-    it('closes search overlay when cancel is pressed', async () => {
+    it('closes search overlay when cancel is pressed', () => {
       mockUseRoute.mockReturnValue({
         params: {
           entryPoint: 'deeplink',

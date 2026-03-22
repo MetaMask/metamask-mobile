@@ -181,7 +181,7 @@ describe('AccountList', () => {
     };
   };
 
-  it('renders correctly', async () => {
+  it('renders correctly', () => {
     arrangeMocks();
     const { getByTestId, queryByTestId } = renderWithProvider(
       <AccountsList />,

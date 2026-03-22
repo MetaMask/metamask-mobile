@@ -318,11 +318,38 @@ exports[`ImportPrivateKeySuccess should render correctly 1`] = `
                       >
                         <View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                              }
+                            }
                             testID="import-success-screen"
                           >
-                            <View … />
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                              testID="import-close-button"
+                            >
+                              <Text … />
+                            </View>
+                            <View
+                              style={[Object]}
+                            >
+                              <Text … />
+                              <Text … />
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

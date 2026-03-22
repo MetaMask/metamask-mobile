@@ -171,7 +171,7 @@ describe('AssetOverviewContent', () => {
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
     });
 
-    it('shows geo block modal and tracks event when Long is pressed and user is not eligible', async () => {
+    it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(false) },
@@ -191,7 +191,7 @@ describe('AssetOverviewContent', () => {
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
     });
 
-    it('shows geo block modal and tracks event when Short is pressed and user is not eligible', async () => {
+    it('shows geo block modal and tracks event when Short is pressed and user is not eligible', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(false) },
@@ -211,7 +211,7 @@ describe('AssetOverviewContent', () => {
       expect(mockHandlePerpsAction).not.toHaveBeenCalled();
     });
 
-    it('calls handlePerpsAction with long when Long is pressed and user is eligible', async () => {
+    it('calls handlePerpsAction with long when Long is pressed and user is eligible', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(true) },
@@ -223,7 +223,7 @@ describe('AssetOverviewContent', () => {
       expect(mockTrack).not.toHaveBeenCalled();
     });
 
-    it('calls handlePerpsAction with short when Short is pressed and user is eligible', async () => {
+    it('calls handlePerpsAction with short when Short is pressed and user is eligible', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(true) },
@@ -235,7 +235,7 @@ describe('AssetOverviewContent', () => {
       expect(mockTrack).not.toHaveBeenCalled();
     });
 
-    it('closes geo block modal when closeEligibilityModal is called', async () => {
+    it('closes geo block modal when closeEligibilityModal is called', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(false) },
@@ -267,7 +267,7 @@ describe('AssetOverviewContent', () => {
       expect(mockPerpsBottomSheetTooltipInner).not.toHaveBeenCalled();
     });
 
-    it('renders market insights entry card and navigates to market insights view on press', async () => {
+    it('renders market insights entry card and navigates to market insights view on press', () => {
       const { getByTestId } = renderWithProvider(
         <AssetOverviewContent {...defaultProps} />,
         { state: createState(true) },

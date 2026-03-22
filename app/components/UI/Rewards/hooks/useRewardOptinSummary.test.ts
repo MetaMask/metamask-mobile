@@ -384,7 +384,7 @@ describe('useRewardOptinSummary', () => {
       });
     });
 
-    it('should handle no selected account group', async () => {
+    it('should handle no selected account group', () => {
       // Arrange
       mockUseSelector
         .mockReset()
@@ -514,7 +514,7 @@ describe('useRewardOptinSummary', () => {
   });
 
   describe('edge cases', () => {
-    it('should handle empty account groups', async () => {
+    it('should handle empty account groups', () => {
       // Arrange
       mockUseSelector
         .mockReset()
@@ -534,7 +534,7 @@ describe('useRewardOptinSummary', () => {
       expect(result.current.bySelectedAccountGroup).toBeNull();
     });
 
-    it('should handle empty internal accounts', async () => {
+    it('should handle empty internal accounts', () => {
       // Arrange
       mockUseSelector
         .mockReset()

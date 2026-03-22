@@ -213,7 +213,17 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           <Text
                             accessibilityRole="text"
                             numberOfLines={1}
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "flex": 1,
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "minWidth": 0,
+                              }
+                            }
                             testID="multichain-account-cell-address"
                           >
                             Account 1
@@ -279,7 +289,15 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                             testID="multichain-account-cell-balance"
                           />
                         </View>
@@ -485,7 +503,17 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                           <Text
                             accessibilityRole="text"
                             numberOfLines={1}
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "flex": 1,
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "minWidth": 0,
+                              }
+                            }
                             testID="multichain-account-cell-address"
                           >
                             Account 2
@@ -551,7 +579,15 @@ exports[`MultichainAccountsConnectedList renders component with different accoun
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                             testID="multichain-account-cell-balance"
                           />
                         </View>

@@ -308,23 +308,46 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "flexDirection": "row",
+                                "gap": 16,
+                                "minHeight": 56,
+                              },
                               false,
-                              [Object],
+                              {
+                                "paddingHorizontal": 16,
+                              },
                             ]
                           }
                           testID="header"
                         >
                           <View>
-                            <View … />
+                            <View
+                              onLayout={[Function]}
+                            />
                           </View>
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Max
+                            </Text>
                           </View>
                           <View>
-                            <View … />
+                            <View
+                              onLayout={[Function]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                         <View
@@ -337,7 +360,15 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                         >
                           <Text
                             accessibilityRole="text"
-                            style={[Object]}
+                            style={
+                              {
+                                "color": "#121314",
+                                "fontFamily": "Geist-Regular",
+                                "fontSize": 16,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                              }
+                            }
                           >
                             Max is the total amount of ETH you have, minus the gas fee required to stake. It’s a good idea to keep some extra ETH in your wallet for future transactions.
                           </Text>
@@ -362,8 +393,23 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -374,9 +420,29 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#3c4d9d0f",
+                                "borderColor": "transparent",
+                                "borderRadius": 12,
+                                "borderWidth": 1,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
+                              }
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Cancel
+                            </Text>
                           </View>
                         </View>
                         <View
@@ -388,8 +454,23 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                         >
                           <View
                             accessibilityRole="button"
-                            accessibilityState={[Object]}
-                            accessibilityValue={[Object]}
+                            accessibilityState={
+                              {
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": undefined,
+                                "expanded": undefined,
+                                "selected": undefined,
+                              }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
                             accessible={true}
                             collapsable={false}
                             focusable={true}
@@ -400,9 +481,27 @@ exports[`MaxInputModal render matches snapshot 1`] = `
                             onResponderTerminate={[Function]}
                             onResponderTerminationRequest={[Function]}
                             onStartShouldSetResponder={[Function]}
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "stretch",
+                                "backgroundColor": "#121314",
+                                "borderRadius": 12,
+                                "flexDirection": "row",
+                                "height": 48,
+                                "justifyContent": "center",
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingHorizontal": 16,
+                              }
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Use max
+                            </Text>
                           </View>
                         </View>
                       </View>

@@ -149,12 +149,12 @@ describe('BankDetails Component', () => {
     mockOrderData.state = FIAT_ORDER_STATES.CREATED;
   });
 
-  it('render matches snapshot', async () => {
+  it('render matches snapshot', () => {
     const { toJSON } = render(BankDetails);
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('render matches snapshot with bank info shown', async () => {
+  it('render matches snapshot with bank info shown', () => {
     const { toJSON } = render(BankDetails);
 
     fireEvent.press(screen.getByText('Show bank information'));
@@ -185,7 +185,7 @@ describe('BankDetails Component', () => {
     });
   });
 
-  it('toggles bank information visibility when show/hide button is pressed', async () => {
+  it('toggles bank information visibility when show/hide button is pressed', () => {
     render(BankDetails);
 
     expect(screen.getByText('Show bank information')).toBeTruthy();
@@ -195,7 +195,7 @@ describe('BankDetails Component', () => {
     expect(screen.getByText('Hide bank information')).toBeTruthy();
   });
 
-  it('displays beneficiary address when bank information is shown', async () => {
+  it('displays beneficiary address when bank information is shown', () => {
     render(BankDetails);
 
     // Initially beneficiary address should not be visible
@@ -208,7 +208,7 @@ describe('BankDetails Component', () => {
     expect(screen.getByText('456 Recipient Street')).toBeTruthy();
   });
 
-  it('calls setOptions with header function when component mounts', async () => {
+  it('calls setOptions with header function when component mounts', () => {
     render(BankDetails);
 
     expect(mockSetNavigationOptions).toHaveBeenCalledWith(
@@ -232,7 +232,7 @@ describe('BankDetails Component', () => {
     });
   });
 
-  it('resets navigation when order state is canceled', async () => {
+  it('resets navigation when order state is canceled', () => {
     mockOrderData.state = FIAT_ORDER_STATES.CANCELLED;
     render(BankDetails);
 
@@ -246,7 +246,7 @@ describe('BankDetails Component', () => {
     });
   });
 
-  it('dispatches replace action when order state is completed, failed or pending', async () => {
+  it('dispatches replace action when order state is completed, failed or pending', () => {
     mockDispatch.mockClear();
     mockOrderData.state = FIAT_ORDER_STATES.COMPLETED;
     render(BankDetails);
@@ -294,7 +294,7 @@ describe('BankDetails Component', () => {
     });
   });
 
-  it('calls Logger.error when handleBankTransferSent fails', async () => {
+  it('calls Logger.error when handleBankTransferSent fails', () => {
     mockConfirmPayment.mockImplementationOnce(() => {
       throw new Error('Payment confirmation failed');
     });
@@ -309,7 +309,7 @@ describe('BankDetails Component', () => {
     expect(mockLoggerError).toHaveBeenCalled();
   });
 
-  it('calls Logger.error when cancelOrder fails', async () => {
+  it('calls Logger.error when cancelOrder fails', () => {
     mockCancelOrder.mockImplementationOnce(() => {
       throw new Error('Order cancellation failed');
     });
@@ -321,7 +321,7 @@ describe('BankDetails Component', () => {
     expect(mockLoggerError).toHaveBeenCalled();
   });
 
-  it('should call endTrace three times when component mounts', async () => {
+  it('should call endTrace three times when component mounts', () => {
     const mockEndTrace = endTrace as jest.MockedFunction<typeof endTrace>;
     mockEndTrace.mockClear();
 

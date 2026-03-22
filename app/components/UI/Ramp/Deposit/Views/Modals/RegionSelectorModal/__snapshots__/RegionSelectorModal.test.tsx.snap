@@ -323,22 +323,47 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="9"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -396,15 +421,43 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -443,9 +496,19 @@ exports[`RegionSelectorModal Component handles empty regions array from navigati
                       >
                         <View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "padding": 16,
+                              }
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              No region matches
+                            </Text>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -785,22 +848,47 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="8"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -858,15 +946,43 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -880,7 +996,11 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                               "flag": "🇩🇪",
                               "isoCode": "DE",
                               "name": "Germany",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "30 12345678",
+                                "prefix": "+49",
+                                "template": "## ########",
+                              },
                               "supported": true,
                             },
                             {
@@ -888,7 +1008,11 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                               "flag": "🇨🇦",
                               "isoCode": "CA",
                               "name": "Canada",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "supported": true,
                             },
                           ]
@@ -928,14 +1052,48 @@ exports[`RegionSelectorModal Component receives and uses regions from navigation
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1275,22 +1433,47 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="0"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1348,15 +1531,43 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -1370,7 +1581,11 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               "flag": "🇺🇸",
                               "isoCode": "US",
                               "name": "United States",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "recommended": true,
                               "supported": true,
                             },
@@ -1379,7 +1594,11 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               "flag": "🇩🇪",
                               "isoCode": "DE",
                               "name": "Germany",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "30 12345678",
+                                "prefix": "+49",
+                                "template": "## ########",
+                              },
                               "supported": true,
                             },
                             {
@@ -1387,7 +1606,11 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               "flag": "🇨🇦",
                               "isoCode": "CA",
                               "name": "Canada",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "supported": false,
                             },
                             {
@@ -1395,7 +1618,11 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                               "flag": "🇫🇷",
                               "isoCode": "FR",
                               "name": "France",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "1 23 45 67 89",
+                                "prefix": "+33",
+                                "template": "X XX XX XX XX",
+                              },
                               "supported": true,
                             },
                           ]
@@ -1435,28 +1662,97 @@ exports[`RegionSelectorModal Component render matches snapshot 1`] = `
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -1796,22 +2092,47 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="2"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1869,21 +2190,69 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value="Nonexistent Country"
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginLeft": 12,
+                              }
+                            }
                             testID="textfield-endacccessory"
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -1922,9 +2291,19 @@ exports[`RegionSelectorModal Component render matches snapshot when search has n
                       >
                         <View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "center",
+                                "padding": 16,
+                              }
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              No region matches
+                            </Text>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -2264,22 +2643,47 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="1"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2337,21 +2741,69 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value="Germany"
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginLeft": 12,
+                              }
+                            }
                             testID="textfield-endacccessory"
                           >
-                            <View … />
+                            <View
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <SvgMock … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2365,7 +2817,11 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                               "flag": "🇩🇪",
                               "isoCode": "DE",
                               "name": "Germany",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "30 12345678",
+                                "prefix": "+49",
+                                "template": "## ########",
+                              },
                               "supported": true,
                             },
                           ]
@@ -2405,7 +2861,24 @@ exports[`RegionSelectorModal Component render matches snapshot when searching fo
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -2745,22 +3218,47 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="13"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2818,15 +3316,43 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -2840,7 +3366,11 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                               "flag": "🇺🇸",
                               "isoCode": "US",
                               "name": "United States",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "recommended": true,
                               "supported": true,
                             },
@@ -2849,7 +3379,11 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                               "flag": "🇩🇪",
                               "isoCode": "DE",
                               "name": "Germany",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "30 12345678",
+                                "prefix": "+49",
+                                "template": "## ########",
+                              },
                               "supported": true,
                             },
                             {
@@ -2857,7 +3391,11 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                               "flag": "🇨🇦",
                               "isoCode": "CA",
                               "name": "Canada",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "supported": false,
                             },
                             {
@@ -2865,7 +3403,11 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                               "flag": "🇫🇷",
                               "isoCode": "FR",
                               "name": "France",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "1 23 45 67 89",
+                                "prefix": "+33",
+                                "template": "X XX XX XX XX",
+                              },
                               "supported": true,
                             },
                           ]
@@ -2905,28 +3447,97 @@ exports[`RegionSelectorModal Component render matches snapshot with allRegionsSe
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -3266,22 +3877,47 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="14"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -3339,15 +3975,43 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -3361,7 +4025,11 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                               "flag": "🇺🇸",
                               "isoCode": "US",
                               "name": "United States",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "recommended": true,
                               "supported": true,
                             },
@@ -3370,7 +4038,11 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                               "flag": "🇩🇪",
                               "isoCode": "DE",
                               "name": "Germany",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "30 12345678",
+                                "prefix": "+49",
+                                "template": "## ########",
+                              },
                               "supported": true,
                             },
                             {
@@ -3378,7 +4050,11 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                               "flag": "🇨🇦",
                               "isoCode": "CA",
                               "name": "Canada",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "supported": false,
                             },
                             {
@@ -3386,7 +4062,11 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                               "flag": "🇫🇷",
                               "isoCode": "FR",
                               "name": "France",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "1 23 45 67 89",
+                                "prefix": "+33",
+                                "template": "X XX XX XX XX",
+                              },
                               "supported": true,
                             },
                           ]
@@ -3426,28 +4106,97 @@ exports[`RegionSelectorModal Component render matches snapshot with custom selec
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>
@@ -3787,22 +4536,47 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                         <View
                           style={
                             [
-                              [Object],
+                              {
+                                "alignItems": "center",
+                                "display": "flex",
+                                "flexBasis": "0%",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                              },
                               undefined,
                             ]
                           }
                         >
                           <View
-                            style={[Array]}
+                            style={
+                              [
+                                [Object],
+                                undefined,
+                              ]
+                            }
                           >
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Array]}
+                            >
+                              Select a region
+                            </Text>
                           </View>
                         </View>
                         <View>
                           <View
                             onLayout={[Function]}
                           >
-                            <View … />
+                            <View
+                              collapsable={false}
+                              jestAnimatedProps={[Object]}
+                              jestAnimatedStyle={[Object]}
+                              jestInlineStyle={[Array]}
+                              nativeID="5"
+                              style={[Array]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -3860,15 +4634,43 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                           testID="textfield"
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "marginRight": 12,
+                              }
+                            }
                             testID="textfield-startacccessory"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#686e7d"
+                              fill="currentColor"
+                              height={20}
+                              name="Search"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": 1,
+                              }
+                            }
                           >
-                            <TextInput … />
+                            <TextInput
+                              autoFocus={false}
+                              editable={true}
+                              multiline={false}
+                              numberOfLines={1}
+                              onBlur={[Function]}
+                              onChangeText={[Function]}
+                              onFocus={[Function]}
+                              placeholder="Search by country"
+                              placeholderTextColor="#686e7d"
+                              style={[Object]}
+                              testID="textfieldsearch"
+                              value=""
+                            />
                           </View>
                         </View>
                       </View>
@@ -3882,7 +4684,11 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                               "flag": "🇺🇸",
                               "isoCode": "US",
                               "name": "United States",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "recommended": true,
                               "supported": true,
                             },
@@ -3891,7 +4697,11 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                               "flag": "🇩🇪",
                               "isoCode": "DE",
                               "name": "Germany",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "30 12345678",
+                                "prefix": "+49",
+                                "template": "## ########",
+                              },
                               "supported": true,
                             },
                             {
@@ -3899,7 +4709,11 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                               "flag": "🇨🇦",
                               "isoCode": "CA",
                               "name": "Canada",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "(555) 123-4567",
+                                "prefix": "+1",
+                                "template": "(###) ###-####",
+                              },
                               "supported": false,
                             },
                             {
@@ -3907,7 +4721,11 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                               "flag": "🇫🇷",
                               "isoCode": "FR",
                               "name": "France",
-                              "phone": [Object],
+                              "phone": {
+                                "placeholder": "1 23 45 67 89",
+                                "prefix": "+33",
+                                "template": "X XX XX XX XX",
+                              },
                               "supported": true,
                             },
                           ]
@@ -3947,28 +4765,97 @@ exports[`RegionSelectorModal Component sorts recommended regions to the top when
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={false}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                           <View
                             onFocusCapture={[Function]}
                             onLayout={[Function]}
                             style={null}
                           >
-                            <View … />
+                            <View
+                              accessibilityRole="button"
+                              accessibilityState={[Object]}
+                              accessibilityValue={[Object]}
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onClick={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={[Object]}
+                            >
+                              <View … />
+                            </View>
                           </View>
                         </View>
                       </RCTScrollView>

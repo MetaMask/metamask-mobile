@@ -349,11 +349,25 @@ exports[`ManageCardListItem Component renders with React.ReactNode description a
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
+                              }
+                            }
                             testID="listitemcolumn"
                           >
-                            <Text … />
-                            <View … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Title with React Node
+                            </Text>
+                            <View>
+                              Custom
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -719,22 +733,54 @@ exports[`ManageCardListItem Component renders with all props and matches snapsho
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
+                              }
+                            }
                             testID="listitemcolumn"
                           >
-                            <Text … />
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Custom Title
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Custom description
+                            </Text>
                           </View>
                           <View
                             accessible={false}
-                            style={[Object]}
+                            style={
+                              {
+                                "width": 16,
+                              }
+                            }
                             testID="listitem-gap"
                           />
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": -1,
+                              }
+                            }
                             testID="listitemcolumn"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={20}
+                              name="Edit"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                         </View>
                       </View>
@@ -1100,22 +1146,54 @@ exports[`ManageCardListItem Component renders with custom right icon when rightI
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
+                              }
+                            }
                             testID="listitemcolumn"
                           >
-                            <Text … />
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Custom Icon Test
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Should use Edit icon
+                            </Text>
                           </View>
                           <View
                             accessible={false}
-                            style={[Object]}
+                            style={
+                              {
+                                "width": 16,
+                              }
+                            }
                             testID="listitem-gap"
                           />
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "flex": -1,
+                              }
+                            }
                             testID="listitemcolumn"
                           >
-                            <SvgMock … />
+                            <SvgMock
+                              color="#121314"
+                              fill="currentColor"
+                              height={20}
+                              name="Edit"
+                              style={[Object]}
+                              width={20}
+                            />
                           </View>
                         </View>
                       </View>
@@ -1481,11 +1559,28 @@ exports[`ManageCardListItem Component renders with required props and matches sn
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
+                              }
+                            }
                             testID="listitemcolumn"
                           >
-                            <Text … />
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Test Title
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Test description
+                            </Text>
                           </View>
                         </View>
                       </View>
@@ -1851,11 +1946,28 @@ exports[`ManageCardListItem Component renders without right icon when rightIcon 
                           }
                         >
                           <View
-                            style={[Object]}
+                            style={
+                              {
+                                "alignItems": "flex-start",
+                                "flex": 1,
+                                "flexDirection": "column",
+                                "justifyContent": "space-between",
+                              }
+                            }
                             testID="listitemcolumn"
                           >
-                            <Text … />
-                            <Text … />
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              No Icon Test
+                            </Text>
+                            <Text
+                              accessibilityRole="text"
+                              style={[Object]}
+                            >
+                              Should render without any right icon
+                            </Text>
                           </View>
                         </View>
                       </View>

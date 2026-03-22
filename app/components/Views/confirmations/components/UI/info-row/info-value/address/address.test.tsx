@@ -36,7 +36,7 @@ jest.mock('../../../../../../../UI/Name', () => ({
 
 describe('InfoAddress', () => {
   const mockName = jest.mocked(Name);
-  it('calls Name component with correct props', async () => {
+  it('calls Name component with correct props', () => {
     renderWithProvider(
       <Address address={MOCK_ADDRESS_1} chainId={CHAIN_IDS.MAINNET} />,
       {
