@@ -1,0 +1,35 @@
+{
+  "title": "Validate trade-close-position flow with SOL",
+  "validate": {
+    "runtime": {
+      "steps": [
+        {
+          "id": "pre-check-position",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='SOL'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": true
+          }
+        },
+        {
+          "id": "run-flow",
+          "action": "flow_ref",
+          "ref": "trade-close-position",
+          "params": { "symbol": "SOL" }
+        },
+        {
+          "id": "post-verify-position-closed",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='SOL'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": false
+          }
+        }
+      ]
+    }
+  }
+}

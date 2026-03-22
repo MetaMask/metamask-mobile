@@ -1,0 +1,38 @@
+{
+  "title": "Validate tpsl-create flow with BTC tp=73000 sl=62000",
+  "validate": {
+    "runtime": {
+      "steps": [
+        {
+          "id": "pre-check-no-tpsl",
+          "action": "recipe_ref",
+          "ref": "core/tpsl-orders",
+          "assert": {
+            "operator": "length_eq",
+            "value": 0
+          }
+        },
+        {
+          "id": "run-flow",
+          "action": "flow_ref",
+          "ref": "tpsl-create",
+          "params": {
+            "symbol": "BTC",
+            "takeProfitPrice": "73000",
+            "stopLossPrice": "62000"
+          }
+        },
+        {
+          "id": "post-verify-tpsl-created",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({hasTp:!!(p&&p.takeProfitPrice),hasSl:!!(p&&p.stopLossPrice)})})",
+          "assert": {
+            "operator": "eq",
+            "field": "hasTp",
+            "value": true
+          }
+        }
+      ]
+    }
+  }
+}

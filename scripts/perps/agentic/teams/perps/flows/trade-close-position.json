@@ -4,6 +4,11 @@
     "symbol": {
       "type": "string",
       "description": "Market symbol of position to close"
+    },
+    "closePercent": {
+      "type": "string",
+      "default": "100",
+      "description": "Percentage of position to close (reserved for future partial close)"
     }
   },
   "validate": {
@@ -65,6 +70,26 @@
             "operator": "eq",
             "field": "route",
             "value": "PerpsClosePosition"
+          }
+        },
+        {
+          "id": "press-confirm-close",
+          "action": "press",
+          "test_id": "close-position-confirm-button"
+        },
+        {
+          "id": "wait-close-execute",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "assert-position-closed",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": false
           }
         }
       ]

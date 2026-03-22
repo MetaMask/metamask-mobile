@@ -91,7 +91,7 @@ jstr()  { node -p "JSON.parse(process.argv[1])[process.argv[2]]||''" "$1" "$2"; 
 # ── Apply {{param|default}} substitution on the recipe itself ─────────
 # Pass 1: apply defaults declared in the "inputs" block (single source of truth).
 # Pass 2: fallback — replace remaining {{key|default}} with inline defaults (backward compat).
-_RECIPE_SUBST=$(mktemp /tmp/perps-recipe-XXXXXX.json)
+_RECIPE_SUBST=$(mktemp /tmp/perps-recipe-XXXXXXXXXXXX).json
 trap 'rm -f "$_RECIPE_SUBST"' EXIT
 node -e "
   var fs=require('fs');
@@ -373,7 +373,7 @@ while IFS= read -r sj; do
         echo "  ❌ FAIL: flow not found: ${FLOW_FILE#$SD/}"; fail_recipe
       fi
       echo "  -> flow: $FL_REF (params: ${FL_PARAMS:0:80})"
-      SUBST_FLOW=$(mktemp /tmp/perps-flow-XXXXXX.json)
+      SUBST_FLOW=$(mktemp /tmp/perps-flow-XXXXXXXXXXXX).json
       node -e "
         var fs=require('fs');
         var src=fs.readFileSync(process.argv[1],'utf8');

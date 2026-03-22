@@ -15,6 +15,11 @@
       "type": "string",
       "default": "10",
       "description": "USD notional amount"
+    },
+    "leverage": {
+      "type": "string",
+      "default": "2",
+      "description": "Leverage multiplier (reserved, not wired yet)"
     }
   },
   "validate": {

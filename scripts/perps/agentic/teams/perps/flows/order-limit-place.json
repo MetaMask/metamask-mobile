@@ -91,6 +91,11 @@
           "ms": 800
         },
         {
+          "id": "clear-limit-keypad",
+          "action": "clear_keypad",
+          "count": 12
+        },
+        {
           "id": "type-limit-price",
           "action": "type_keypad",
           "value": "{{limitPrice}}"
@@ -153,7 +158,7 @@
         {
           "id": "wait-confirm",
           "action": "wait",
-          "ms": 2000
+          "ms": 5000
         },
         {
           "id": "assert-order-placed",

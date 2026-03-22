@@ -1,0 +1,45 @@
+{
+  "title": "Validate tpsl-edit flow with BTC newTakeProfitPrice=73000",
+  "description": "Sets up TP/SL via tpsl-create first, then edits TP via tpsl-edit.",
+  "validate": {
+    "runtime": {
+      "steps": [
+        {
+          "id": "pre-check-position",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": true
+          }
+        },
+        {
+          "id": "setup-tpsl",
+          "action": "flow_ref",
+          "ref": "tpsl-create",
+          "params": {
+            "symbol": "BTC",
+            "takeProfitPrice": "72000",
+            "stopLossPrice": "61000"
+          }
+        },
+        {
+          "id": "run-flow",
+          "action": "flow_ref",
+          "ref": "tpsl-edit",
+          "params": { "symbol": "BTC", "newTakeProfitPrice": "73000" }
+        },
+        {
+          "id": "post-verify-tp-updated",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({tp:p?String(p.takeProfitPrice):null})})",
+          "assert": {
+            "operator": "not_null",
+            "field": "tp"
+          }
+        }
+      ]
+    }
+  }
+}

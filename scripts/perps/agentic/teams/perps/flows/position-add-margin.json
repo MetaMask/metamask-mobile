@@ -23,7 +23,7 @@
         {
           "id": "assert-position-exists",
           "action": "eval_async",
-          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.margin:null})})",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.marginUsed:null})})",
           "assert": {
             "operator": "not_null",
             "field": "margin"
@@ -78,6 +78,55 @@
             "operator": "eq",
             "field": "route",
             "value": "PerpsAdjustMargin"
+          }
+        },
+        {
+          "id": "press-amount-display",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "clear-keypad",
+          "action": "clear_keypad",
+          "count": 8
+        },
+        {
+          "id": "type-amount",
+          "action": "type_keypad",
+          "value": "{{marginAmount}}"
+        },
+        {
+          "id": "press-done",
+          "action": "press",
+          "test_id": "perps-adjust-margin-done-button"
+        },
+        {
+          "id": "wait-done",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "press-confirm",
+          "action": "press",
+          "test_id": "perps-adjust-margin-confirm-button"
+        },
+        {
+          "id": "wait-confirm",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "assert-margin-changed",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.marginUsed:null})})",
+          "assert": {
+            "operator": "not_null",
+            "field": "margin"
           }
         }
       ]

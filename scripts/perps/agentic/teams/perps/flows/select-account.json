@@ -1,5 +1,5 @@
 {
-  "title": "Setup — switch to account {{address}} and verify",
+  "title": "Select — switch to account {{address}} and verify",
   "inputs": {
     "address": {
       "type": "string",

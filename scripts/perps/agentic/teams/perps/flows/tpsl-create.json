@@ -106,6 +106,26 @@
             "field": "route",
             "value": "PerpsTPSL"
           }
+        },
+        {
+          "id": "press-set-tpsl",
+          "action": "press",
+          "test_id": "perps-tpsl-bottomsheet"
+        },
+        {
+          "id": "wait-submit",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "assert-tpsl-created",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({hasTp:!!(p&&p.takeProfitPrice),hasSl:!!(p&&p.stopLossPrice)})})",
+          "assert": {
+            "operator": "eq",
+            "field": "hasTp",
+            "value": true
+          }
         }
       ]
     }

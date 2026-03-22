@@ -1,0 +1,38 @@
+{
+  "title": "Validate order-limit-place flow with ETH long $10 at limit $2000",
+  "validate": {
+    "runtime": {
+      "steps": [
+        {
+          "id": "pre-snapshot-orders",
+          "action": "recipe_ref",
+          "ref": "orders",
+          "assert": {
+            "operator": "not_null"
+          }
+        },
+        {
+          "id": "run-flow",
+          "action": "flow_ref",
+          "ref": "order-limit-place",
+          "params": {
+            "symbol": "ETH",
+            "side": "long",
+            "usdAmount": "10",
+            "limitPrice": "2000"
+          }
+        },
+        {
+          "id": "post-verify-order-exists",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='ETH'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
+          "assert": {
+            "operator": "gt",
+            "field": "count",
+            "value": 0
+          }
+        }
+      ]
+    }
+  }
+}
