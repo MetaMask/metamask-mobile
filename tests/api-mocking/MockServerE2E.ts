@@ -20,6 +20,7 @@ import PortManager, { ResourceType } from '../framework/PortManager.ts';
 import {
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
+  FALLBACK_MOCKSERVER_PORT,
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
 import { logLiveMetaMetricsPostIfDebug } from '../helpers/analytics/analyticsDebug.ts';
@@ -113,8 +114,11 @@ const translateFallbackPortToActual = (url: string): string => {
     let actualPort: number | undefined;
 
     // Map fallback ports to actual allocated ports
-    // Try Ganache first, fallback to Anvil if Ganache not running
-    if (portNum === FALLBACK_GANACHE_PORT) {
+    // Mock server: fixtures/shim use 8000 while local CI uses a dynamic host port
+    if (portNum === FALLBACK_MOCKSERVER_PORT) {
+      actualPort = portManager.getPort(ResourceType.MOCK_SERVER);
+    } else if (portNum === FALLBACK_GANACHE_PORT) {
+      // Try Ganache first, fallback to Anvil if Ganache not running
       actualPort = portManager.getPort(ResourceType.GANACHE);
       if (actualPort === undefined) {
         actualPort = portManager.getPort(ResourceType.ANVIL);

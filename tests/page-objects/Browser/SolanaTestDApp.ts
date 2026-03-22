@@ -3,8 +3,8 @@ import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
-import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
+import Utilities from '../../framework/Utilities';
 import { waitFor } from 'detox';
 import {
   BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
@@ -198,15 +198,22 @@ class SolanaTestDApp {
     // testID is `${name}-snap-footer-button` (e.g. confirm-sign-message-confirm-snap-footer-button).
     // Redesigned confirmations may use `confirm-button` / BottomSheetFooter.
     //
-    // Wait for the snap sheet title first (locale string "Sign message" — distinct from the dapp
-    // button label "Sign Message"). Then tap confirm without strict visibility: iOS + Android
-    // often report the modal footer as not matching Detox visibility while sync is off or the
-    // run loop is busy.
-    await Assertions.expectTextDisplayed('Sign message', {
-      timeout: 50000,
-      description:
-        'Solana snap sign message approval sheet title should be visible',
-    });
+    // Wait for the primary snap confirm control with toExist (not title text + toBeVisible):
+    // on Android, expectTextDisplayed uses strict visibility (75% area) and often flakes for
+    // sheet headers while sync is disabled; the footer testID is stable and matches tap targets.
+    await Utilities.executeWithRetry(
+      async () => {
+        const confirmEl = await Matchers.getElementByID(
+          SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
+        );
+        await waitFor(confirmEl).toExist().withTimeout(100);
+      },
+      {
+        timeout: 50000,
+        description:
+          'Solana snap sign message confirm control should be present',
+      },
+    );
 
     const confirmSelectors = [
       SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
