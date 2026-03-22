@@ -9,7 +9,7 @@ The sender of the token genesis transaction will specify the following:
 3. `szDecimals`: the minimum tradable number of decimals on spot order books. In other words, the lot size of the token on all spot order books will be `10 ** (weiDecimals - szDecimals)`. It is required that `szDecimals + 5 <= weiDecimals`.
 4. `maxSupply`: the maximum and initial supply. The supply may decrease over time due to spot order book fees or future burn mechanisms.
 5. `initialWei`: optional genesis balances specified by the sender of the transaction. This could include a multisig treasury, an initial bridge mint, etc.
-6. `anchorTokenWei` the sender of the transaction can specify existing HIP-1 tokens to proportionally receieve genesis balances.
+6. `anchorTokenWei`: the sender of the transaction can specify existing HIP-1 tokens to proportionally receive genesis balances.
 7. `hyperliquidityInit`: parameters for initializing the Hyperliquidity for the USDC spot pair. See HIP-2 section for more details.
 
 The deployment transaction of the token will generate a globally unique hash by which the execution logic will index the token.
