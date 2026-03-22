@@ -112,7 +112,7 @@ Once the PR is ready:
   - Runs `yarn setup:github-ci`.
   - Uses `EXPO_TOKEN`, `EXPO_PROJECT_ID`, and `EXPO_CHANNEL` (nightly channel) to run `yarn run eas update` and publish the OTA.
 
-On success, devices on the **nightly channel** receive the new OTA on next app launch.
+On success, devices on the **nightly channel** receive the new OTA on the next app launch.
 
 ---
 
