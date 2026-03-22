@@ -8,9 +8,11 @@ import BottomSheetHeader from '../../../../../component-library/components/Botto
 import BottomSheetFooter, {
   ButtonsAlignment,
 } from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+  TextColor,
+} from '@metamask/design-system-react-native';
 import {
   ButtonSize,
   ButtonVariants,
@@ -78,15 +80,16 @@ const PasswordBottomSheet: React.FC = () => {
   const content = (
     <>
       <BottomSheetHeader onClose={handleClose}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('card.password_bottomsheet.title')}
         </Text>
       </BottomSheetHeader>
 
       <View style={tw.style('px-4 pb-4')}>
         <Text
-          variant={TextVariant.BodyMD}
-          style={tw.style('text-text-alternative mb-4')}
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          style={tw.style('mb-4')}
         >
           {description ?? strings('card.password_bottomsheet.description')}
         </Text>
@@ -112,8 +115,9 @@ const PasswordBottomSheet: React.FC = () => {
 
         {error && (
           <Text
-            variant={TextVariant.BodySM}
-            style={tw.style('text-error-default mt-2')}
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            style={tw.style('mt-2')}
             testID={CardHomeSelectors.PASSWORD_ERROR}
           >
             {error}
