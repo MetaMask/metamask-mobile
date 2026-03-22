@@ -1,5 +1,11 @@
 {
   "title": "Trade — close position for {{symbol}}",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "description": "Market symbol of position to close"
+    }
+  },
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -12,7 +18,6 @@
       "steps": [
         {
           "id": "assert-position-exists",
-          "description": "Assert open position exists for {{symbol}}",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
           "assert": {
@@ -23,7 +28,6 @@
         },
         {
           "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -40,25 +44,21 @@
         },
         {
           "id": "wait-render",
-          "description": "Wait for market detail to render",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "press-close",
-          "description": "Press Close Position button",
           "action": "press",
           "test_id": "perps-market-details-close-button"
         },
         {
           "id": "wait-close-screen",
-          "description": "Wait for close position screen",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "assert-close-route",
-          "description": "Assert navigated to close position screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {

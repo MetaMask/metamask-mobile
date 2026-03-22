@@ -1,5 +1,27 @@
 {
-  "title": "Order — limit {{side|long}} {{symbol|BTC}} ${{usdAmount|10}} at ${{limitPrice|60000}}",
+  "title": "Order — limit {{side}} {{symbol}} ${{usdAmount}} at ${{limitPrice}}",
+  "inputs": {
+    "side": {
+      "type": "string",
+      "default": "long",
+      "description": "Trade side (long/short)"
+    },
+    "symbol": {
+      "type": "string",
+      "default": "BTC",
+      "description": "Market symbol"
+    },
+    "usdAmount": {
+      "type": "string",
+      "default": "10",
+      "description": "USD notional amount"
+    },
+    "limitPrice": {
+      "type": "string",
+      "default": "60000",
+      "description": "Limit price in USD"
+    }
+  },
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -9,13 +31,12 @@
       "steps": [
         {
           "id": "nav",
-          "description": "Navigate to {{symbol|BTC}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
             "market": {
-              "symbol": "{{symbol|BTC}}",
-              "name": "{{symbol|BTC}}",
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
               "price": "0",
               "change24h": "0",
               "change24hPercent": "0",
@@ -26,180 +47,116 @@
         },
         {
           "id": "wait-render",
-          "description": "Wait for market detail to render",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "press-side",
-          "description": "Press {{side|long}} button to open order form",
           "action": "press",
-          "test_id": "perps-market-details-{{side|long}}-button"
+          "test_id": "perps-market-details-{{side}}-button"
         },
         {
           "id": "wait-form",
-          "description": "Wait for order form to render",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "press-order-type",
-          "description": "Open order type selector",
           "action": "press",
           "test_id": "perps-order-header-order-type-button"
         },
         {
           "id": "wait-type-sheet",
-          "description": "Wait for order type sheet",
           "action": "wait",
           "ms": 800
         },
         {
           "id": "press-limit",
-          "description": "Select Limit order type",
           "action": "press",
           "test_id": "perps-order-type-limit"
         },
         {
           "id": "wait-limit-form",
-          "description": "Wait for limit form to update",
           "action": "wait",
           "ms": 800
         },
         {
           "id": "press-limit-price-row",
-          "description": "Open limit price bottom sheet",
           "action": "press",
           "test_id": "perps-order-view-limit-price-row"
         },
         {
           "id": "wait-price-sheet",
-          "description": "Wait for limit price sheet to open",
           "action": "wait",
           "ms": 800
         },
         {
           "id": "type-limit-price",
-          "description": "Type ${{limitPrice|60000}} using keypad",
           "action": "type_keypad",
-          "value": "{{limitPrice|60000}}"
+          "value": "{{limitPrice}}"
         },
         {
           "id": "press-set",
-          "description": "Confirm limit price",
           "action": "press",
           "test_id": "perps-limit-price-confirm-button"
         },
         {
           "id": "wait-price-set",
-          "description": "Wait for price to be applied",
           "action": "wait",
           "ms": 500
         },
         {
           "id": "press-amount",
-          "description": "Tap amount display to open keypad",
           "action": "press",
           "test_id": "perps-amount-display-touchable"
         },
         {
           "id": "wait-keypad",
-          "description": "Wait for keypad to appear",
           "action": "wait",
           "ms": 500
         },
         {
-          "id": "clear-keypad-1",
-          "description": "Clear existing amount (delete ×1)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
-        },
-        {
-          "id": "clear-keypad-2",
-          "description": "Clear existing amount (delete ×2)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
-        },
-        {
-          "id": "clear-keypad-3",
-          "description": "Clear existing amount (delete ×3)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
-        },
-        {
-          "id": "clear-keypad-4",
-          "description": "Clear existing amount (delete ×4)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
-        },
-        {
-          "id": "clear-keypad-5",
-          "description": "Clear existing amount (delete ×5)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
-        },
-        {
-          "id": "clear-keypad-6",
-          "description": "Clear existing amount (delete ×6)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
-        },
-        {
-          "id": "clear-keypad-7",
-          "description": "Clear existing amount (delete ×7)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
-        },
-        {
-          "id": "clear-keypad-8",
-          "description": "Clear existing amount (delete ×8)",
-          "action": "press",
-          "test_id": "keypad-delete-button"
+          "id": "clear-keypad",
+          "action": "clear_keypad",
+          "count": 8
         },
         {
           "id": "type-amount",
-          "description": "Type ${{usdAmount|10}} using keypad",
           "action": "type_keypad",
-          "value": "{{usdAmount|10}}"
+          "value": "{{usdAmount}}"
         },
         {
           "id": "assert-amount",
-          "description": "Assert amount display shows ${{usdAmount|10}}",
           "action": "eval_sync",
           "expression": "JSON.stringify((function(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook)return{v:null}; var found=null; function walk(f){if(!f)return; if(f.memoizedProps&&f.memoizedProps.testID==='perps-amount-display-amount'){found=f;return;} walk(f.child);if(!found)walk(f.sibling);} for(var [id] of hook.renderers){var roots=hook.getFiberRoots?hook.getFiberRoots(id):null;if(roots)roots.forEach(function(r){if(!found)walk(r.current);});} return {v: found&&found.memoizedProps?String(found.memoizedProps.children||''):null}; })())",
           "assert": {
             "operator": "contains",
             "field": "v",
-            "value": "{{usdAmount|10}}"
+            "value": "{{usdAmount}}"
           }
         },
         {
           "id": "press-done",
-          "description": "Press Done to close keypad",
           "action": "press",
           "test_id": "perps-order-view-keypad-done"
         },
         {
           "id": "wait-summary",
-          "description": "Wait for order summary to update",
           "action": "wait",
           "ms": 800
         },
         {
           "id": "place-order",
-          "description": "Press Place Order button",
           "action": "press",
           "test_id": "perps-order-view-place-order-button"
         },
         {
           "id": "wait-confirm",
-          "description": "Wait for order confirmation",
           "action": "wait",
           "ms": 2000
         },
         {
           "id": "assert-order-placed",
-          "description": "Assert navigated away from order form (order submitted)",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {

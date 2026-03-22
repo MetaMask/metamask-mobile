@@ -1,5 +1,15 @@
 {
   "title": "Position — add ${{marginAmount}} margin to {{symbol}}",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "description": "Market symbol of position to add margin to"
+    },
+    "marginAmount": {
+      "type": "string",
+      "description": "USD margin amount to add"
+    }
+  },
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -12,7 +22,6 @@
       "steps": [
         {
           "id": "assert-position-exists",
-          "description": "Assert open position exists for {{symbol}}",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.margin:null})})",
           "assert": {
@@ -22,7 +31,6 @@
         },
         {
           "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -39,37 +47,31 @@
         },
         {
           "id": "wait-render",
-          "description": "Wait for market detail to render",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "press-margin-chevron",
-          "description": "Press margin chevron to open adjust margin action sheet",
           "action": "press",
           "test_id": "position-card-margin-chevron"
         },
         {
           "id": "wait-action-sheet",
-          "description": "Wait for adjust margin action sheet",
           "action": "wait",
           "ms": 1000
         },
         {
           "id": "press-add-margin-option",
-          "description": "Press Add Margin option",
           "action": "press",
           "test_id": "perps-adjust-margin-add-btn"
         },
         {
           "id": "wait-margin-screen",
-          "description": "Wait for adjust margin screen",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "assert-margin-route",
-          "description": "Assert on adjust margin screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {

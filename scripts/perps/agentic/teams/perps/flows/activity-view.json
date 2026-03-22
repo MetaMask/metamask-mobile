@@ -1,5 +1,12 @@
 {
   "title": "Activity — view recent trades and funding history",
+  "inputs": {
+    "tab": {
+      "type": "string",
+      "default": "trades",
+      "description": "Activity tab to select (trades/orders/funding/deposits)"
+    }
+  },
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -18,13 +25,11 @@
         },
         {
           "id": "wait-render",
-          "description": "Wait for activity screen to render",
           "action": "wait",
           "ms": 2000
         },
         {
           "id": "assert-activity-route",
-          "description": "Assert on activity screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {
@@ -35,19 +40,17 @@
         },
         {
           "id": "press-tab",
-          "description": "Select the requested tab (trades/orders/funding/deposits)",
+          "description": "Select the requested tab",
           "action": "press",
-          "test_id": "perps-transactions-tab-{{tab|trades}}"
+          "test_id": "perps-transactions-tab-{{tab}}"
         },
         {
           "id": "wait-filter",
-          "description": "Wait for tab filter to apply",
           "action": "wait",
           "ms": 800
         },
         {
           "id": "assert-tab-active",
-          "description": "Assert still on activity screen after tab change",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {

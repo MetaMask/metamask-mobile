@@ -1,5 +1,19 @@
 {
   "title": "TP/SL — create take-profit {{takeProfitPrice}} stop-loss {{stopLossPrice}} for {{symbol}}",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "description": "Market symbol with open position"
+    },
+    "takeProfitPrice": {
+      "type": "string",
+      "description": "Take-profit trigger price"
+    },
+    "stopLossPrice": {
+      "type": "string",
+      "description": "Stop-loss trigger price"
+    }
+  },
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -12,7 +26,6 @@
       "steps": [
         {
           "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -29,25 +42,21 @@
         },
         {
           "id": "wait-market-render",
-          "description": "Wait for market detail to render with position card",
           "action": "wait",
           "ms": 2000
         },
         {
           "id": "press-auto-close",
-          "description": "Press auto-close toggle to open TP/SL screen",
           "action": "press",
           "test_id": "position-card-auto-close-toggle"
         },
         {
           "id": "wait-render",
-          "description": "Wait for TP/SL screen to render",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "assert-tpsl-route",
-          "description": "Assert on TP/SL screen",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {
@@ -58,33 +67,28 @@
         },
         {
           "id": "set-tp",
-          "description": "Set take-profit price to {{takeProfitPrice}}",
           "action": "set_input",
           "test_id": "perps-tpsl-tp-input",
           "value": "{{takeProfitPrice}}"
         },
         {
           "id": "wait-tp-input",
-          "description": "Wait for TP input to register",
           "action": "wait",
           "ms": 500
         },
         {
           "id": "set-sl",
-          "description": "Set stop-loss price to {{stopLossPrice}}",
           "action": "set_input",
           "test_id": "perps-tpsl-sl-input",
           "value": "{{stopLossPrice}}"
         },
         {
           "id": "wait-sl-input",
-          "description": "Wait for SL input to register",
           "action": "wait",
           "ms": 500
         },
         {
           "id": "assert-no-validation-error",
-          "description": "Assert no validation error visible",
           "action": "log_watch",
           "window_seconds": 2,
           "must_not_appear": [
@@ -95,7 +99,6 @@
         },
         {
           "id": "assert-tpsl-screen-intact",
-          "description": "Assert still on TP/SL screen with values entered",
           "action": "eval_sync",
           "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
           "assert": {

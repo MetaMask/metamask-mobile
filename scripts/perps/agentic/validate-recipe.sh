@@ -89,12 +89,20 @@ jfile() { node -p "JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')
 jstr()  { node -p "JSON.parse(process.argv[1])[process.argv[2]]||''" "$1" "$2"; }
 
 # ── Apply {{param|default}} substitution on the recipe itself ─────────
-# When run directly (not via flow_ref), replace any remaining {{key|default}} with defaults.
+# Pass 1: apply defaults declared in the "inputs" block (single source of truth).
+# Pass 2: fallback — replace remaining {{key|default}} with inline defaults (backward compat).
 _RECIPE_SUBST=$(mktemp /tmp/perps-recipe-XXXXXX.json)
 trap 'rm -f "$_RECIPE_SUBST"' EXIT
 node -e "
-  const fs=require('fs');
-  let src=fs.readFileSync(process.argv[1],'utf8');
+  var fs=require('fs');
+  var src=fs.readFileSync(process.argv[1],'utf8');
+  var doc; try{doc=JSON.parse(src);}catch(e){doc={};}
+  var inputs=doc.inputs||{};
+  for(var k in inputs){
+    if(inputs[k].default!=null){
+      src=src.replace(new RegExp('\\\\{\\\\{'+k+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(inputs[k].default));
+    }
+  }
   src=src.replace(/\{\{[^|}]+\|([^}]+)\}\}/g,'\$1');
   fs.writeFileSync(process.argv[2],src);
 " "$RECIPE" "$_RECIPE_SUBST"
@@ -137,7 +145,23 @@ if [ "$DRY" = false ]; then
 fi
 
 # ── Pre-condition checks ──────────────────────────────────────────────
-PC_JSON=$(node -p "JSON.stringify(((JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).validate||{}).runtime||{}).pre_conditions||[])" "$RECIPE")
+# Expand pre-condition shorthand: "name(k=v)" → { name, k: v }
+PC_JSON=$(node -p "
+  var d=JSON.parse(require('fs').readFileSync(process.argv[1],'utf8'));
+  var pcs=((d.validate||{}).runtime||{}).pre_conditions||[];
+  var expanded=pcs.map(function(spec){
+    if(typeof spec!=='string')return spec;
+    var m=spec.match(/^([^(]+)\((.+)\)$/);
+    if(!m)return spec;
+    var r={name:m[1]};
+    m[2].split(',').forEach(function(pair){
+      var eq=pair.indexOf('=');
+      if(eq>0)r[pair.slice(0,eq).trim()]=pair.slice(eq+1).trim();
+    });
+    return r;
+  });
+  JSON.stringify(expanded);
+" "$RECIPE")
 if [ "$PC_JSON" != "[]" ] && [ "$DRY" = false ]; then
   echo "[pre-conditions] Checking: $PC_JSON"
   PC_RESULT=$(node "$SD/cdp-bridge.js" check-pre-conditions "$PC_JSON" 2>&1)
@@ -337,19 +361,34 @@ while IFS= read -r sj; do
     flow_ref)
       FL_REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
       FL_PARAMS=$(node -p "JSON.stringify(JSON.parse(process.argv[1]).params||{})" "$sj")
-      FLOW_FILE="$SD/flows/${FL_REF}.json"
+      # Resolve flow path: "team/name" → teams/team/flows/name.json
+      if [[ "$FL_REF" == */* ]]; then
+        FL_TEAM="${FL_REF%%/*}"
+        FL_NAME="${FL_REF#*/}"
+        FLOW_FILE="$SD/teams/${FL_TEAM}/flows/${FL_NAME}.json"
+      else
+        FLOW_FILE="$SD/teams/perps/flows/${FL_REF}.json"
+      fi
       if [ ! -f "$FLOW_FILE" ]; then
-        echo "  ❌ FAIL: flow not found: flows/${FL_REF}.json"; fail_recipe
+        echo "  ❌ FAIL: flow not found: ${FLOW_FILE#$SD/}"; fail_recipe
       fi
       echo "  -> flow: $FL_REF (params: ${FL_PARAMS:0:80})"
       SUBST_FLOW=$(mktemp /tmp/perps-flow-XXXXXX.json)
       node -e "
-        const fs=require('fs');
-        let src=fs.readFileSync(process.argv[1],'utf8');
-        const p=JSON.parse(process.argv[2]);
-        // First pass: replace {{key}} and {{key|default}} with provided param values
-        for(const [k,v] of Object.entries(p)){src=src.replace(new RegExp('\\\\{\\\\{'+k+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(v));}
-        // Second pass: replace remaining {{key|default}} with their defaults
+        var fs=require('fs');
+        var src=fs.readFileSync(process.argv[1],'utf8');
+        var doc; try{doc=JSON.parse(src);}catch(e){doc={};}
+        var p=JSON.parse(process.argv[2]);
+        var inputs=doc.inputs||{};
+        // Pass 1: replace {{key}} and {{key|default}} with provided param values
+        for(var k in p){src=src.replace(new RegExp('\\\\{\\\\{'+k+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(p[k]));}
+        // Pass 2: apply defaults from the referenced flow's inputs block
+        for(var ik in inputs){
+          if(inputs[ik].default!=null && !p.hasOwnProperty(ik)){
+            src=src.replace(new RegExp('\\\\{\\\\{'+ik+'(?:\\\\|[^}]*)?\\\\}\\\\}','g'),String(inputs[ik].default));
+          }
+        }
+        // Pass 3: fallback — replace remaining {{key|default}} with inline defaults
         src=src.replace(/\{\{[^|}]+\|([^}]+)\}\}/g,'\$1');
         fs.writeFileSync(process.argv[3],src);
       " "$FLOW_FILE" "$FL_PARAMS" "$SUBST_FLOW"
@@ -403,6 +442,16 @@ while IFS= read -r sj; do
           [ -n "$key" ] && node "$SD/cdp-bridge.js" press-test-id "$key" 2>/dev/null || true
         done <<< "$KEYS"
         RESULT="{\"ok\":true,\"value\":\"$TK_VAL\"}"
+      fi
+      ;;
+    clear_keypad)
+      CK_COUNT=$(node -p "JSON.parse(process.argv[1]).count||8" "$sj")
+      echo "  -> clear_keypad x${CK_COUNT}"
+      if [ "$DRY" = false ]; then
+        for ((i=0; i<CK_COUNT; i++)); do
+          node "$SD/cdp-bridge.js" press-test-id "keypad-delete-button" 2>/dev/null || true
+        done
+        RESULT="{\"ok\":true,\"deleted\":$CK_COUNT}"
       fi
       ;;
     *)

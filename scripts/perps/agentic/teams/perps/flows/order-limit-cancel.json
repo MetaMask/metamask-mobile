@@ -1,5 +1,11 @@
 {
   "title": "Order — cancel first open limit order for {{symbol}}",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "description": "Market symbol of limit order to cancel"
+    }
+  },
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -12,7 +18,6 @@
       "steps": [
         {
           "id": "assert-order-exists",
-          "description": "Assert at least one open order exists for {{symbol}}",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='{{symbol}}'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
           "assert": {
@@ -23,7 +28,6 @@
         },
         {
           "id": "nav-market-detail",
-          "description": "Navigate to {{symbol}} market detail",
           "action": "navigate",
           "target": "PerpsMarketDetails",
           "params": {
@@ -40,7 +44,6 @@
         },
         {
           "id": "wait-render",
-          "description": "Wait for market detail to render",
           "action": "wait",
           "ms": 2000
         },
@@ -52,25 +55,21 @@
         },
         {
           "id": "wait-order-details",
-          "description": "Wait for order details screen to render",
           "action": "wait",
           "ms": 1500
         },
         {
           "id": "press-cancel-button",
-          "description": "Press cancel order button",
           "action": "press",
           "test_id": "perps-order-details-cancel-button"
         },
         {
           "id": "wait-cancel",
-          "description": "Wait for cancellation to process",
           "action": "wait",
           "ms": 2000
         },
         {
           "id": "assert-order-removed",
-          "description": "Assert order count decreased for {{symbol}}",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='{{symbol}}'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
           "assert": {
