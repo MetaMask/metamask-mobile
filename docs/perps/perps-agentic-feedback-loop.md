@@ -439,20 +439,20 @@ Use `team/name` format — resolves to `flows/team/name.json`:
 
 **Available flows:**
 
-| Flow                         | Params (defaults)                                                     | Description                                                              |
-| ---------------------------- | --------------------------------------------------------------------- | ------------------------------------------------------------------------ |
-| `perps/market-discovery`     | `symbol`                                                              | Navigate to market list, find symbol, verify price loads                 |
-| `perps/market-watchlist`     | `symbol`                                                              | Toggle symbol on/off watchlist, assert state changes                     |
-| `perps/trade-open-market`    | `symbol` (BTC), `side` (long), `usdAmount` (10)                       | Full E2E market order: navigate → side → enter amount → place order      |
-| `perps/trade-close-position` | `symbol`                                                              | Navigate to close position form, assert summary shown                    |
-| `perps/tpsl-create`          | `symbol`, `takeProfitPrice`, `stopLossPrice`                          | Set TP/SL inputs, assert accepted                                        |
-| `perps/tpsl-edit`            | `symbol`, `newTakeProfitPrice`                                        | Open existing TP/SL, update TP value                                     |
-| `perps/position-add-margin`  | `symbol`, `marginAmount`                                              | Open add-margin form, enter amount                                       |
-| `perps/order-limit-place`    | `symbol` (BTC), `side` (long), `usdAmount` (10), `limitPrice` (60000) | Full E2E limit order: navigate → side → set limit price → amount → place |
-| `perps/order-limit-cancel`   | `symbol`                                                              | Cancel first open limit order, assert removed                            |
-| `perps/activity-view`        | _(none)_                                                              | Navigate to activity, assert trades list loads                           |
-| `perps/setup-testnet`        | _(none)_                                                              | Enable testnet mode, assert market data loads                            |
-| `perps/setup-account`        | `address`                                                             | Switch to account by address, assert selected                            |
+| Flow                         | Params (defaults)                                                     | Description                                                                |
+| ---------------------------- | --------------------------------------------------------------------- | -------------------------------------------------------------------------- |
+| `perps/market-discovery`     | `symbol`                                                              | Navigate to market list, find symbol, verify price loads                   |
+| `perps/market-watchlist`     | `symbol`                                                              | Toggle symbol on/off watchlist, assert state changes                       |
+| `perps/trade-open-market`    | `symbol` (BTC), `side` (long), `usdAmount` (10)                       | Full E2E market order: navigate → side → enter amount → place order        |
+| `perps/trade-close-position` | `symbol`                                                              | Navigate to close position form, assert summary shown                      |
+| `perps/tpsl-create`          | `symbol`, `takeProfitPrice`, `stopLossPrice`                          | Set TP/SL inputs, assert accepted                                          |
+| `perps/tpsl-edit`            | `symbol`, `newTakeProfitPrice`                                        | Open existing TP/SL, update TP value                                       |
+| `perps/position-add-margin`  | `symbol`, `marginAmount`                                              | Open add-margin form, enter amount                                         |
+| `perps/order-limit-place`    | `symbol` (BTC), `side` (long), `usdAmount` (10), `limitPrice` (60000) | Full E2E limit order: navigate → side → set limit price → amount → place   |
+| `perps/order-limit-cancel`   | `symbol`                                                              | Cancel first open limit order, assert removed                              |
+| `perps/activity-view`        | `tab` (trades)                                                        | Navigate to activity, press requested tab (trades/orders/funding/deposits) |
+| `perps/setup-testnet`        | _(none)_                                                              | Enable testnet mode, assert market data loads                              |
+| `perps/setup-account`        | `address`                                                             | Switch to account by address, assert selected                              |
 
 **Example: TAT-2403 style recipe using flow_ref:**
 

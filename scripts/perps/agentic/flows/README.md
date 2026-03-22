@@ -64,7 +64,7 @@ Use `team/name` format — `validate-recipe.sh` resolves it to `flows/team/name.
 | `perps/position-add-margin` | `symbol`, `marginAmount` | Open add-margin form, enter amount |
 | `perps/order-limit-place` | `symbol` (BTC), `side` (long), `usdAmount` (10), `limitPrice` (60000) | Full E2E limit order: navigate → side → limit price → amount → place |
 | `perps/order-limit-cancel` | `symbol` | Cancel first open limit order, assert removed |
-| `perps/activity-view` | _(none)_ | Navigate to activity, assert trades list loads |
+| `perps/activity-view` | `tab` (trades) | Navigate to activity, press requested tab (trades/orders/funding/deposits) |
 | `perps/setup-testnet` | _(none)_ | Enable testnet mode, assert market data loads |
 | `perps/setup-account` | `address` | Switch to account by address, assert selected |
 

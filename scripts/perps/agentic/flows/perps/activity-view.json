@@ -37,7 +37,7 @@
           "id": "press-tab",
           "description": "Select the requested tab (trades/orders/funding/deposits)",
           "action": "press",
-          "test_id": "perps-transactions-tab-{{tab}}"
+          "test_id": "perps-transactions-tab-{{tab|trades}}"
         },
         {
           "id": "wait-filter",
