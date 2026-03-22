@@ -15,6 +15,7 @@ let mockActiveOrder: {
   state?: string;
 } | null = null;
 let mockIsPredictBalanceSelected = true;
+let mockPayWithAnyTokenEnabled = true;
 
 const mockAddListener = jest.fn(
   (_event: string, callback: (e: { data: { closing: boolean } }) => void) => {
@@ -29,6 +30,10 @@ jest.mock('@react-navigation/native', () => ({
     dispatch: mockDispatch,
     addListener: mockAddListener,
   }),
+}));
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(() => mockPayWithAnyTokenEnabled),
 }));
 
 jest.mock(
@@ -96,6 +101,7 @@ describe('usePredictBuyActions', () => {
     jest.clearAllMocks();
     mockActiveOrder = null;
     mockIsPredictBalanceSelected = true;
+    mockPayWithAnyTokenEnabled = true;
     mockInitiPayWithAnyToken.mockResolvedValue(undefined);
   });
 
@@ -104,6 +110,14 @@ describe('usePredictBuyActions', () => {
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
       expect(mockInitiPayWithAnyToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call initiPayWithAnyToken when payWithAnyTokenEnabled is false', () => {
+      mockPayWithAnyTokenEnabled = false;
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      expect(mockInitiPayWithAnyToken).not.toHaveBeenCalled();
     });
   });
 

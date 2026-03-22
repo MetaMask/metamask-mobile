@@ -7141,4 +7141,331 @@ describe('PredictController', () => {
       });
     });
   });
+
+  describe('onDepositOrderSuccess', () => {
+    it('sets activeOrder state to PLACE_ORDER', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        controller.onDepositOrderSuccess();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PLACE_ORDER,
+        );
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onDepositOrderSuccess()).not.toThrow();
+      });
+    });
+  });
+
+  describe('onOrderSuccess', () => {
+    it('sets activeOrder state to SUCCESS', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.PLACING_ORDER,
+        });
+
+        controller.onOrderSuccess();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.SUCCESS,
+        );
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onOrderSuccess()).not.toThrow();
+      });
+    });
+  });
+
+  describe('onPlaceOrder', () => {
+    it('sets activeOrder state to PLACING_ORDER', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.PLACE_ORDER,
+        });
+
+        controller.onPlaceOrder();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PLACING_ORDER,
+        );
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onPlaceOrder()).not.toThrow();
+      });
+    });
+  });
+
+  describe('onPlaceOrderEnd', () => {
+    it('clears activeOrder and selectedPaymentToken', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.SUCCESS,
+        });
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        controller.onPlaceOrderEnd();
+
+        expect(controller.state.activeOrder).toBeNull();
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+  });
+
+  describe('placeOrder with activeOrder', () => {
+    it('sets activeOrder to PLACING_ORDER before calling provider', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+        controller.setActiveOrder({
+          state: ActiveOrderState.PLACE_ORDER,
+        });
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({ preview });
+
+        expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('handleTransactionSideEffects for depositAndOrder', () => {
+    const accountAddress = '0x1234567890123456789012345678901234567890';
+
+    const createPredictTransactionMeta = ({
+      nestedType,
+      status,
+      batchId,
+    }: {
+      nestedType: TransactionType;
+      status: TransactionStatus;
+      batchId?: string;
+    }) =>
+      ({
+        id: 'tx-1',
+        status,
+        batchId,
+        txParams: {
+          from: accountAddress,
+          to: '0x0000000000000000000000000000000000000001',
+          value: '0x0',
+          data: '0x',
+        },
+        nestedTransactions: [
+          {
+            type: nestedType,
+          },
+        ],
+      }) as any;
+
+    it('calls onDepositOrderSuccess when depositAndOrder transaction is confirmed', () => {
+      withController(({ controller, messenger }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.confirmed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PLACE_ORDER,
+        );
+      });
+    });
+
+    it('calls onDepositOrderFailed when depositAndOrder transaction fails', () => {
+      withController(({ controller, messenger }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        jest
+          .spyOn(controller, 'initiPayWithAnyToken')
+          .mockResolvedValue(undefined as never);
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Transaction reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+      });
+    });
+
+    it('uses default error message when depositAndOrder fails without error message', () => {
+      withController(({ controller, messenger }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        jest
+          .spyOn(controller, 'initiPayWithAnyToken')
+          .mockResolvedValue(undefined as never);
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder?.error).toBeDefined();
+      });
+    });
+  });
+
+  describe('initiPayWithAnyToken error branches', () => {
+    it('throws error when deposit preparation returns undefined', async () => {
+      await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        mockPolymarketProvider.prepareDeposit.mockResolvedValue(
+          undefined as never,
+        );
+
+        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
+          'Deposit preparation returned undefined',
+        );
+      });
+    });
+
+    it('throws error when deposit preparation returns empty transactions', async () => {
+      await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+          transactions: [],
+          chainId: '0x89',
+        });
+
+        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
+          'No transactions returned from deposit preparation',
+        );
+      });
+    });
+
+    it('throws error when deposit preparation returns no chainId', async () => {
+      await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+          transactions: [
+            {
+              params: {
+                to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+                data: '0xa9059cbb' as `0x${string}`,
+              },
+              type: TransactionType.predictDeposit,
+            },
+          ],
+        } as never);
+
+        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
+          'Chain ID not provided by deposit preparation',
+        );
+      });
+    });
+
+    it('throws error when network client not found for chain ID', async () => {
+      await withController(
+        async ({ controller }) => {
+          controller.setActiveOrder({
+            state: ActiveOrderState.PREVIEW,
+          });
+
+          await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
+            'Network client not found for chain ID',
+          );
+        },
+        {
+          mocks: {
+            findNetworkClientIdByChainId: jest.fn().mockReturnValue(undefined),
+          },
+        },
+      );
+    });
+
+    it('throws error when transaction batch returns no batchId', async () => {
+      await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        (addTransactionBatch as jest.Mock).mockResolvedValue({});
+
+        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
+          'Failed to get batch ID from transaction submission',
+        );
+      });
+    });
+  });
 });

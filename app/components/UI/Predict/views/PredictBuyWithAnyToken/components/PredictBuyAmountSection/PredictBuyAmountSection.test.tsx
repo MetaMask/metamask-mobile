@@ -336,6 +336,27 @@ describe('PredictBuyAmountSection', () => {
     });
   });
 
+  describe('isPlacingOrder behavior', () => {
+    it('disables amount press and isActive when isPlacingOrder is true', () => {
+      renderWithProvider(
+        <PredictBuyAmountSection
+          currentValueUSDString="$100"
+          keypadRef={mockKeypadRef}
+          isInputFocused
+          isBalanceLoading={false}
+          isBalancePulsing={false}
+          availableBalanceDisplay="$500"
+          toWin={100}
+          isShowingToWinSkeleton={false}
+          isPlacingOrder
+        />,
+      );
+
+      expect(screen.getByTestId('amount-display')).toBeOnTheScreen();
+      expect(mockKeypadRef.current.handleAmountPress).not.toHaveBeenCalled();
+    });
+  });
+
   describe('integration', () => {
     it('displays all sections together', () => {
       renderWithProvider(

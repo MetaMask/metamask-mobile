@@ -183,4 +183,16 @@ describe('usePredictBalanceTokenFilter', () => {
 
     expect(filteredTokens[0].symbol).toBe('USDC.e');
   });
+
+  it('uses empty string for image when usdceToken is null', () => {
+    mockHasTransactionType.mockReturnValue(true);
+    mockUseSelector.mockReturnValue(null);
+    const tokens = [createMockToken()];
+
+    const { result } = renderHook(() => usePredictBalanceTokenFilter());
+    const filteredTokens = result.current(tokens);
+
+    expect(filteredTokens[0].image).toBe('');
+    expect(filteredTokens[0].logo).toBe('');
+  });
 });
