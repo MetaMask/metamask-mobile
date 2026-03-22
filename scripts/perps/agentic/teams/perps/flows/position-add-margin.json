@@ -3,15 +3,22 @@
   "validate": {
     "runtime": {
       "pre_conditions": [
-        "Wallet unlocked",
-        "Open position exists for {{symbol}}"
+        "wallet.unlocked",
+        {
+          "name": "perps.open_position",
+          "symbol": "{{symbol}}"
+        }
       ],
       "steps": [
         {
-          "id": "snapshot-pre",
-          "description": "Snapshot margin before adding",
+          "id": "assert-position-exists",
+          "description": "Assert open position exists for {{symbol}}",
           "action": "eval_async",
-          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({marginUsed:p?p.margin:null})})"
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.margin:null})})",
+          "assert": {
+            "operator": "not_null",
+            "field": "margin"
+          }
         },
         {
           "id": "nav-market-detail",

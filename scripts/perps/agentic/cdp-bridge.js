@@ -19,6 +19,7 @@
 const http = require('node:http');
 const fs = require('node:fs');
 const path = require('node:path');
+const PRE_CONDITIONS = require('./lib/registry');
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -855,6 +856,92 @@ const COMMANDS = {
     };
   },
 
+  async 'check-pre-conditions'(client, args) {
+    const specsJson = args[0];
+    if (!specsJson) throw new Error('Usage: check-pre-conditions <specs-json>');
+
+    let specs;
+    try {
+      specs = JSON.parse(specsJson);
+    } catch (e) {
+      throw new Error(`Invalid specs JSON: ${e.message}`);
+    }
+    if (!Array.isArray(specs) || specs.length === 0) return { ok: true, checked: 0 };
+
+    // Inline assertion evaluator (same operators as validate-recipe.sh check_assert)
+    function checkAssert(raw, assertSpec) {
+      let val;
+      try { val = JSON.parse(raw); } catch (_) { val = raw; }
+      if (typeof val === 'string') { try { val = JSON.parse(val); } catch (_) { /* not JSON — keep as string */ } }
+      const field = assertSpec.field || '';
+      if (field) {
+        for (const p of field.split('.')) {
+          val = val != null && typeof val === 'object' ? val[p] : undefined;
+        }
+      }
+      const op = assertSpec.operator || '';
+      const exp = assertSpec.value;
+      if (op === 'not_null') return val != null;
+      if (op === 'eq') return val === exp;
+      if (op === 'gt') return val > exp;
+      if (op === 'length_eq') return val != null && val.length === exp;
+      if (op === 'length_gt') return val != null && val.length > exp;
+      if (op === 'contains') return typeof val === 'string' ? val.includes(String(exp)) : Array.isArray(val) && val.map(String).includes(String(exp));
+      if (op === 'not_contains') return typeof val === 'string' ? !val.includes(String(exp)) : Array.isArray(val) && !val.map(String).includes(String(exp));
+      throw new Error(`Unknown operator: ${op}`);
+    }
+
+    const failures = [];
+
+    for (const spec of specs) {
+      const name = typeof spec === 'string' ? spec : spec.name;
+      const params = typeof spec === 'object' ? spec : {};
+      const entry = PRE_CONDITIONS[name];
+
+      if (!entry) {
+        failures.push({ name, error: `Unknown pre-condition "${name}". Check pre-conditions.js for valid names.` });
+        continue;
+      }
+
+      const expr = typeof entry.expression === 'function'
+        ? entry.expression(params)
+        : entry.expression;
+
+      let raw;
+      try {
+        raw = entry.async
+          ? await cdpEvalAsync(client, expr)
+          : await cdpEval(client, expr);
+        if (raw === undefined || raw === null) raw = 'null';
+        if (typeof raw !== 'string') raw = JSON.stringify(raw);
+      } catch (e) {
+        failures.push({ name, description: entry.description, error: `Eval failed: ${e.message}`, hint: entry.hint });
+        continue;
+      }
+
+      const passed = checkAssert(raw, entry.assert);
+      if (!passed) {
+        failures.push({ name, description: entry.description, got: raw, hint: entry.hint });
+      }
+    }
+
+    const ok = failures.length === 0;
+    return { ok, checked: specs.length, failures: ok ? [] : failures };
+  },
+
+  async 'show-step'(client, args) {
+    const stepId = args[0] || '';
+    const description = args.slice(1).join(' ');
+    const payload = JSON.stringify({ id: stepId, description });
+    await cdpEval(client, `globalThis.__AGENTIC__?.showStep && globalThis.__AGENTIC__.showStep(${payload})`);
+    return { ok: true };
+  },
+
+  async 'hide-step'(client) {
+    await cdpEval(client, `globalThis.__AGENTIC__?.hideStep && globalThis.__AGENTIC__.hideStep()`);
+    return { ok: true };
+  },
+
   async recipe(client, args) {
     const arg = args[0];
     if (!arg || arg === '--help') {
@@ -862,28 +949,32 @@ const COMMANDS = {
       process.exit(1);
     }
 
-    const recipesDir = path.resolve(__dirname, 'recipes');
+    const teamsDir = path.resolve(__dirname, 'teams');
 
     if (arg === '--list') {
-      // List all available recipes from recipes/*.json and recipes/*/*.json
+      // List all available recipes from teams/<team>/snippets.json and teams/<team>/recipes/*.json
       const all = {};
-      const topFiles = fs.readdirSync(recipesDir).filter((f) => f.endsWith('.json'));
-      for (const file of topFiles) {
-        const team = path.basename(file, '.json');
-        const data = JSON.parse(fs.readFileSync(path.join(recipesDir, file), 'utf8'));
-        all[team] = Object.fromEntries(
-          Object.entries(data).map(([name, r]) => [name, r.description || ''])
-        );
-      }
-      // Walk subdirectories (e.g. recipes/perps/core.json → "perps/core")
-      const subdirs = fs.readdirSync(recipesDir, { withFileTypes: true })
+      const teamDirs = fs.readdirSync(teamsDir, { withFileTypes: true })
         .filter((d) => d.isDirectory())
         .map((d) => d.name);
-      for (const subdir of subdirs) {
-        const subFiles = fs.readdirSync(path.join(recipesDir, subdir)).filter((f) => f.endsWith('.json'));
+      // Top-level snippets: teams/<team>/snippets.json → keyed as <team>
+      for (const team of teamDirs) {
+        const f = path.join(teamsDir, team, 'snippets.json');
+        if (fs.existsSync(f)) {
+          const data = JSON.parse(fs.readFileSync(f, 'utf8'));
+          all[team] = Object.fromEntries(
+            Object.entries(data).map(([name, r]) => [name, r.description || ''])
+          );
+        }
+      }
+      // Sub-collections: teams/<team>/recipes/<file>.json → keyed as <team>/<file>
+      for (const team of teamDirs) {
+        const recipesDir = path.join(teamsDir, team, 'recipes');
+        if (!fs.existsSync(recipesDir)) continue;
+        const subFiles = fs.readdirSync(recipesDir).filter((f) => f.endsWith('.json'));
         for (const file of subFiles) {
-          const key = `${subdir}/${path.basename(file, '.json')}`;
-          const data = JSON.parse(fs.readFileSync(path.join(recipesDir, subdir, file), 'utf8'));
+          const key = `${team}/${path.basename(file, '.json')}`;
+          const data = JSON.parse(fs.readFileSync(path.join(recipesDir, file), 'utf8'));
           all[key] = Object.fromEntries(
             Object.entries(data).map(([name, r]) => [name, r.description || ''])
           );
@@ -900,15 +991,15 @@ const COMMANDS = {
     let recipeFile, recipeName;
     if (parts.length === 3) {
       const [team, subfile, name] = parts;
-      recipeFile = path.join(recipesDir, team, `${subfile}.json`);
+      recipeFile = path.join(teamsDir, team, 'recipes', `${subfile}.json`);
       recipeName = name;
     } else {
       const [team, name] = parts;
-      recipeFile = path.join(recipesDir, `${team}.json`);
+      recipeFile = path.join(teamsDir, team, 'snippets.json');
       recipeName = name;
     }
     if (!fs.existsSync(recipeFile)) {
-      throw new Error(`No recipe file found: ${path.relative(path.dirname(recipesDir), recipeFile)}`);
+      throw new Error(`No recipe file found: ${path.relative(path.dirname(teamsDir), recipeFile)}`);
     }
     const recipes = JSON.parse(fs.readFileSync(recipeFile, 'utf8'));
     const recipe = recipes[recipeName];

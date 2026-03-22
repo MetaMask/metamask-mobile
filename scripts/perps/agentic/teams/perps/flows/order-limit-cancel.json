@@ -3,8 +3,11 @@
   "validate": {
     "runtime": {
       "pre_conditions": [
-        "Wallet unlocked",
-        "Open limit order exists for {{symbol}}"
+        "wallet.unlocked",
+        {
+          "name": "perps.open_limit_order",
+          "symbol": "{{symbol}}"
+        }
       ],
       "steps": [
         {

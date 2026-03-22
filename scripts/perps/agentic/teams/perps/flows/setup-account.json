@@ -2,7 +2,9 @@
   "title": "Setup — switch to account {{address}} and verify",
   "validate": {
     "runtime": {
-      "pre_conditions": ["Wallet unlocked"],
+      "pre_conditions": [
+        "wallet.unlocked"
+      ],
       "steps": [
         {
           "id": "switch-account",

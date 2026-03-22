@@ -1,0 +1,172 @@
+{
+  "title": "Trade — market {{side|long}} {{symbol|BTC}} ${{usdAmount|10}}",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.ready_to_trade",
+        "perps.sufficient_balance"
+      ],
+      "steps": [
+        {
+          "id": "nav",
+          "description": "Navigate to {{symbol|BTC}} market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol|BTC}}",
+              "name": "{{symbol|BTC}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for market detail to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "press-side",
+          "description": "Press {{side|long}} button to open order form",
+          "action": "press",
+          "test_id": "perps-market-details-{{side|long}}-button"
+        },
+        {
+          "id": "wait-form",
+          "description": "Wait for order form to render",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "assert-form",
+          "description": "Assert navigated to order form screen",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "RedesignedConfirmations"
+          }
+        },
+        {
+          "id": "press-amount",
+          "description": "Tap amount display to open keypad",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad",
+          "description": "Wait for keypad to appear",
+          "action": "wait",
+          "ms": 500
+        },
+        {
+          "id": "clear-keypad-1",
+          "description": "Clear existing amount (delete ×1)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-2",
+          "description": "Clear existing amount (delete ×2)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-3",
+          "description": "Clear existing amount (delete ×3)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-4",
+          "description": "Clear existing amount (delete ×4)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-5",
+          "description": "Clear existing amount (delete ×5)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-6",
+          "description": "Clear existing amount (delete ×6)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-7",
+          "description": "Clear existing amount (delete ×7)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-8",
+          "description": "Clear existing amount (delete ×8)",
+          "action": "press",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "type-amount",
+          "description": "Type ${{usdAmount|10}} using keypad",
+          "action": "type_keypad",
+          "value": "{{usdAmount|10}}"
+        },
+        {
+          "id": "assert-amount",
+          "description": "Assert amount display shows ${{usdAmount|10}}",
+          "action": "eval_sync",
+          "expression": "JSON.stringify((function(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook)return{v:null}; var found=null; function walk(f){if(!f)return; if(f.memoizedProps&&f.memoizedProps.testID==='perps-amount-display-amount'){found=f;return;} walk(f.child);if(!found)walk(f.sibling);} for(var [id] of hook.renderers){var roots=hook.getFiberRoots?hook.getFiberRoots(id):null;if(roots)roots.forEach(function(r){if(!found)walk(r.current);});} return {v: found&&found.memoizedProps?String(found.memoizedProps.children||''):null}; })())",
+          "assert": {
+            "operator": "contains",
+            "field": "v",
+            "value": "{{usdAmount|10}}"
+          }
+        },
+        {
+          "id": "press-done",
+          "description": "Press Done to close keypad",
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done"
+        },
+        {
+          "id": "wait-summary",
+          "description": "Wait for order summary to update",
+          "action": "wait",
+          "ms": 800
+        },
+        {
+          "id": "place-order",
+          "description": "Press Place Order button",
+          "action": "press",
+          "test_id": "perps-order-view-place-order-button"
+        },
+        {
+          "id": "wait-confirm",
+          "description": "Wait for order confirmation",
+          "action": "wait",
+          "ms": 2000
+        },
+        {
+          "id": "assert-order-placed",
+          "description": "Assert navigated away from order form (order submitted)",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": {
+            "operator": "not_contains",
+            "field": "route",
+            "value": "RedesignedConfirmations"
+          }
+        }
+      ]
+    }
+  }
+}

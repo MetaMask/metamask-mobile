@@ -3,8 +3,11 @@
   "validate": {
     "runtime": {
       "pre_conditions": [
-        "Wallet unlocked",
-        "Open position with TP/SL exists for {{symbol}}"
+        "wallet.unlocked",
+        {
+          "name": "perps.open_position_tpsl",
+          "symbol": "{{symbol}}"
+        }
       ],
       "steps": [
         {
@@ -65,6 +68,17 @@
           "description": "Wait for input to register",
           "action": "wait",
           "ms": 500
+        },
+        {
+          "id": "assert-tpsl-screen-intact",
+          "description": "Assert still on TP/SL screen after edit",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "PerpsTPSL"
+          }
         }
       ]
     }

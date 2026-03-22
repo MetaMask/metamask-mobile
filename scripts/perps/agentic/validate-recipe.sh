@@ -50,11 +50,12 @@ export WATCHER_PORT="${WATCHER_PORT:-8081}"
 SD="scripts/perps/agentic"
 
 # ── Args ──────────────────────────────────────────────────────────────
-RECIPE="" DRY=false SKIP_MANUAL=false SINGLE="" OVERRIDE_ACCOUNT="" OVERRIDE_TESTNET=false
+RECIPE="" DRY=false SKIP_MANUAL=false SINGLE="" OVERRIDE_ACCOUNT="" OVERRIDE_TESTNET=false HUD_ENABLED=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)     DRY=true; shift ;;
     --skip-manual) SKIP_MANUAL=true; shift ;;
+    --hud)         HUD_ENABLED=true; shift ;;
     --step)        SINGLE="$2"; shift 2 ;;
     --account)     OVERRIDE_ACCOUNT="$2"; shift 2 ;;
     --testnet)     OVERRIDE_TESTNET=true; shift ;;
@@ -135,6 +136,31 @@ if [ "$DRY" = false ]; then
   fi
 fi
 
+# ── Pre-condition checks ──────────────────────────────────────────────
+PC_JSON=$(node -p "JSON.stringify(((JSON.parse(require('fs').readFileSync(process.argv[1],'utf8')).validate||{}).runtime||{}).pre_conditions||[])" "$RECIPE")
+if [ "$PC_JSON" != "[]" ] && [ "$DRY" = false ]; then
+  echo "[pre-conditions] Checking: $PC_JSON"
+  PC_RESULT=$(node "$SD/cdp-bridge.js" check-pre-conditions "$PC_JSON" 2>&1)
+  PC_OK=$(node -p "JSON.parse(process.argv[1]).ok" "$PC_RESULT" 2>/dev/null || echo "false")
+  if [ "$PC_OK" != "true" ]; then
+    echo ""
+    echo "PRE-CONDITIONS FAILED ❌"
+    node -e "
+      var r=JSON.parse(process.argv[1]);
+      (r.failures||[]).forEach(function(f){
+        console.log('  • '+f.name+(f.description?' — '+f.description:''));
+        if(f.error)  console.log('    error: '+f.error);
+        if(f.got)    console.log('    got:   '+f.got);
+        if(f.hint)   console.log('    hint:  '+f.hint);
+      });
+    " "$PC_RESULT"
+    echo ""
+    exit 1
+  fi
+  echo "[pre-conditions] ✅ All passed"
+  echo ""
+fi
+
 # ── Counters ──────────────────────────────────────────────────────────
 TOTAL=0 PASSED=0 FAILED=0 SKIPPED=0
 
@@ -143,32 +169,21 @@ fail_recipe() {
   echo ""
   echo "────────────────────────────────────────"
   echo "Results: $PASSED/$TOTAL passed, $FAILED failed"
+  if [ "$HUD_ENABLED" = true ]; then
+    node "$SD/cdp-bridge.js" hide-step 2>/dev/null || true
+  fi
   echo "Recipe: FAIL ❌"
   exit 1
 }
 
 # ── Assertion evaluator ───────────────────────────────────────────────
 # Usage: check_assert <result-json> <assert-json>
-# Output: "PASS" or "FAIL: <reason>"
+# Output: "PASS" or "FAIL"
 check_assert() {
   node -e "
-const raw=process.argv[1],spec=JSON.parse(process.argv[2]);
-let val;try{val=JSON.parse(raw);}catch(e){val=raw;}
-if(typeof val==='string'){try{val=JSON.parse(val);}catch(e){}}
-const f=spec.field||'';
-if(f){for(const p of f.split('.')){if(val&&typeof val==='object')val=Array.isArray(val)&&/^\d+$/.test(p)?val[+p]:val[p];else{val=undefined;break;}}}
-const op=spec.operator||'',exp=spec.value;
-let pass=false,reason='';
-if(op==='not_null'){pass=val!=null;reason='expected not null, got null';}
-else if(op==='eq'){pass=val===exp;reason='expected '+JSON.stringify(exp)+', got '+JSON.stringify(val);}
-else if(op==='gt'){pass=val>exp;reason='expected > '+exp+', got '+val;}
-else if(op==='length_eq'){const n=val!=null?val.length:null;pass=n===exp;reason='expected length=='+exp+', got '+n;}
-else if(op==='length_gt'){const n=val!=null?val.length:null;pass=n!=null&&n>exp;reason='expected length>'+exp+', got '+n;}
-else if(op==='contains'){const t=String(exp);pass=typeof val==='string'?val.includes(t):Array.isArray(val)&&val.map(String).includes(t);reason=JSON.stringify(val)+' does not contain '+t;}
-else if(op==='not_contains'){const t=String(exp);pass=typeof val==='string'?!val.includes(t):Array.isArray(val)&&!val.map(String).includes(t);reason=JSON.stringify(val)+' contains '+t;}
-else{reason='unknown operator: '+op;}
-console.log(pass?'PASS':'FAIL: '+reason);
-" "$1" "$2"
+const { checkAssert } = require(require('path').join(process.argv[3], 'lib/assert'));
+console.log(checkAssert(process.argv[1], JSON.parse(process.argv[2])) ? 'PASS' : 'FAIL');
+" "$1" "$2" "$SD"
 }
 
 # ── Log scanner ───────────────────────────────────────────────────────
@@ -197,6 +212,10 @@ while IFS= read -r sj; do
   [ -n "$SINGLE" ] && [ "$SID" != "$SINGLE" ] && continue
   TOTAL=$((TOTAL + 1))
   echo "[$SID] $SDESC"
+
+  if [ "$HUD_ENABLED" = true ] && [ "$DRY" = false ]; then
+    node "$SD/cdp-bridge.js" show-step "$SID" "$SDESC" 2>/dev/null || true
+  fi
 
   RESULT=""
   case "$ACT" in
@@ -423,6 +442,9 @@ if [ "$DRY" = true ]; then
   echo "Recipe: DRY RUN"
 else
   echo "Results: $PASSED/$TOTAL passed"
+  if [ "$HUD_ENABLED" = true ]; then
+    node "$SD/cdp-bridge.js" hide-step 2>/dev/null || true
+  fi
   [ "$FAILED" -gt 0 ] && { echo "Recipe: FAIL ❌"; exit 1; }
   echo "Recipe: PASS ✅"
 fi

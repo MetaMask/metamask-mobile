@@ -2,7 +2,10 @@
   "title": "Setup — enable testnet and verify market data loads",
   "validate": {
     "runtime": {
-      "pre_conditions": ["Wallet unlocked", "Perps feature enabled"],
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.feature_enabled"
+      ],
       "steps": [
         {
           "id": "enable-testnet",

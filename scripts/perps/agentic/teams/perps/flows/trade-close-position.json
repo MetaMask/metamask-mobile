@@ -3,8 +3,11 @@
   "validate": {
     "runtime": {
       "pre_conditions": [
-        "Wallet unlocked",
-        "Open position exists for {{symbol}}"
+        "wallet.unlocked",
+        {
+          "name": "perps.open_position",
+          "symbol": "{{symbol}}"
+        }
       ],
       "steps": [
         {

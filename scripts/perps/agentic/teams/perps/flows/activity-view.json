@@ -3,8 +3,8 @@
   "validate": {
     "runtime": {
       "pre_conditions": [
-        "Wallet unlocked",
-        "Perps feature enabled"
+        "wallet.unlocked",
+        "perps.feature_enabled"
       ],
       "steps": [
         {
@@ -44,6 +44,17 @@
           "description": "Wait for tab filter to apply",
           "action": "wait",
           "ms": 800
+        },
+        {
+          "id": "assert-tab-active",
+          "description": "Assert still on activity screen after tab change",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "PerpsActivity"
+          }
         }
       ]
     }
