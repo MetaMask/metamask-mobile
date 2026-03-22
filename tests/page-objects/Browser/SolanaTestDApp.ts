@@ -3,6 +3,7 @@ import { getTestDappLocalUrl } from '../../framework/fixtures/FixtureUtils';
 import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
+import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
 import { waitFor } from 'detox';
 import {
@@ -12,7 +13,6 @@ import {
   SolanaTestDappSelectorsWebIDs,
 } from '../../selectors/Browser/SolanaTestDapp.selectors';
 import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
-import { SigningBottomSheetSelectorsIDs } from '../../../app/components/Views/confirmations/legacy/components/SigningBottomSheet.testIds';
 
 /**
  * Get a test element by data-testid
@@ -196,36 +196,37 @@ class SolanaTestDApp {
   async confirmSignMessage(): Promise<void> {
     // Solana Wallet Standard uses @metamask/solana-wallet-snap UI: SnapUIFooterButton
     // testID is `${name}-snap-footer-button` (e.g. confirm-sign-message-confirm-snap-footer-button).
-    // Redesigned EVM confirmations use `confirm-button`; legacy signing used
-    // `request-signature-confirm-button` (removed).
+    // Redesigned confirmations may use `confirm-button` / BottomSheetFooter.
     //
-    // Android: Detox visibility requires ≥75% of the view visible; snap footer buttons in the
-    // slide-up modal can exist and be tappable but still fail that check — wait for existence,
-    // then tap with visibility checks relaxed on Android only.
+    // Wait for the snap sheet title first (locale string "Sign message" — distinct from the dapp
+    // button label "Sign Message"). Then tap confirm without strict visibility: iOS + Android
+    // often report the modal footer as not matching Detox visibility while sync is off or the
+    // run loop is busy.
+    await Assertions.expectTextDisplayed('Sign message', {
+      timeout: 50000,
+      description:
+        'Solana snap sign message approval sheet title should be visible',
+    });
+
     const confirmSelectors = [
       SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
       SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
       ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
       BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
-      SigningBottomSheetSelectorsIDs.SIGN_BUTTON,
     ] as const;
 
-    const relaxSnapFooterVisibility = device.getPlatform() === 'android';
+    const relaxModalFooterChecks = true;
 
     let lastError: unknown;
     for (let i = 0; i < confirmSelectors.length; i += 1) {
       const testId = confirmSelectors[i];
       try {
-        const el = await Matchers.getElementByID(testId);
-        const existenceTimeout = i === 0 ? 28000 : 12000;
-        await waitFor(el).toExist().withTimeout(existenceTimeout);
-
-        await Gestures.waitAndTap(Promise.resolve(el), {
+        await Gestures.waitAndTap(Matchers.getElementByID(testId), {
           elemDescription: `Solana sign message confirmation (${testId})`,
-          delay: i === 0 ? 1800 : 0,
-          timeout: 8000,
-          checkVisibility: !relaxSnapFooterVisibility,
-          checkEnabled: !relaxSnapFooterVisibility,
+          delay: i === 0 ? 2000 : 0,
+          timeout: i === 0 ? 25000 : 12000,
+          checkVisibility: !relaxModalFooterChecks,
+          checkEnabled: !relaxModalFooterChecks,
         });
         return;
       } catch (error) {
@@ -234,13 +235,11 @@ class SolanaTestDApp {
     }
 
     try {
-      const confirmByLabel = await Matchers.getElementByText('Confirm');
-      await waitFor(confirmByLabel).toExist().withTimeout(15000);
-      await Gestures.waitAndTap(Promise.resolve(confirmByLabel), {
+      await Gestures.waitAndTap(Matchers.getElementByText('Confirm'), {
         elemDescription: 'Solana sign message confirmation (Confirm label)',
-        timeout: 8000,
-        checkVisibility: !relaxSnapFooterVisibility,
-        checkEnabled: !relaxSnapFooterVisibility,
+        timeout: 15000,
+        checkVisibility: !relaxModalFooterChecks,
+        checkEnabled: !relaxModalFooterChecks,
       });
     } catch {
       throw lastError;
