@@ -36,7 +36,7 @@ Note: in all usages below, "slashing" is only in the context of HIP-3.&#x20;
 
 To ensure high quality markets and protect users, deployers must maintain 500k staked HYPE. In the event of malicious market operation, validators have the authority to slash the deployer’s stake by conducting a stake-weighted vote. Even if the deployer has unstaked and initiated a staking withdrawal, the stake is still slashable during the 7-day unstaking queue.&#x20;
 
-While slashing is ultimately by validator quorum, the protocol guidelines have been distilled from careful testnet analysis, user feedback, and deployer feedback. The guiding principle is that slashing is to prevent behavior that jeopardizes protocol correctness, uptime, or performance. A useful rule of thumb is that any slashable behavior should be accompanied by a bug fix in the protocol implementation. Therefore, HIP-3 should not require slashing in its final state. However, slashing is an important safety mechanism for a practical rollout of this large feature set.&#x20;
+While slashing is ultimately determined by validator quorum, the protocol guidelines have been distilled from careful testnet analysis, user feedback, and deployer feedback. The guiding principle is that slashing is to prevent behavior that jeopardizes protocol correctness, uptime, or performance. A useful rule of thumb is that any slashable behavior should be accompanied by a bug fix in the protocol implementation. Therefore, HIP-3 should not require slashing in its final state. However, slashing is an important safety mechanism for a practical rollout of this large feature set.&#x20;
 
 Slashing is technical and does not distinguish between malicious and incompetent behavior. Relatedly, slashing does not distinguish between
 
