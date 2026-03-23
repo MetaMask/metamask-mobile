@@ -1,7 +1,6 @@
 import { createApiPlatformClient } from '@metamask/core-backend';
 import {
   AssetsController,
-  AssetsControllerFirstInitFetchMetaMetricsPayload,
   type AssetsControllerOptions,
 } from '@metamask/assets-controller';
 import {
@@ -16,8 +15,7 @@ import {
 } from '../../messengers/assets-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store } from '../../../../store';
-import { MetaMetricsEvents } from '../../../Analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { trace } from '../../../../util/trace';
 
 type QueryApiClient = AssetsControllerOptions['queryApiClient'];
 
@@ -127,28 +125,6 @@ export const assetsControllerInit: ControllerInitFunction<
     }
   };
 
-  // Track first init fetch duration and per-data-source latency when AssetsController
-  // completes initial load after unlock. Uses AnalyticsController:trackEvent (same pattern
-  // as SmartTransactionsController and other controller inits).
-  const trackMetaMetricsEvent = (
-    payload: AssetsControllerFirstInitFetchMetaMetricsPayload,
-  ): void => {
-    try {
-      const event = AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.ASSETS_FIRST_INIT_FETCH_COMPLETED,
-      )
-        .addProperties({
-          duration_ms: payload.durationMs,
-          chain_ids: payload.chainIds,
-          duration_by_data_source: payload.durationByDataSource,
-        })
-        .build();
-      initMessenger.call('AnalyticsController:trackEvent', event);
-    } catch {
-      // AnalyticsController may not be available (e.g. init order); skip tracking.
-    }
-  };
-
   // Create the controller - it now creates all data sources internally
   const controller = new AssetsController({
     messenger: controllerMessenger,
@@ -173,7 +149,8 @@ export const assetsControllerInit: ControllerInitFunction<
       pollInterval: 30_000,
       enabled: true,
     },
-    trackMetaMetricsEvent,
+    // @ts-expect-error: Type of `TraceRequest` is different.
+    trace,
   });
 
   return { controller };
