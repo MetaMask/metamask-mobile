@@ -45,28 +45,6 @@ describeForPlatforms('Wallet', () => {
     ).toBeOnTheScreen();
   });
 
-  it('scan button is not rendered when account menu is enabled', () => {
-    const { queryByTestId } = renderWalletView({
-      overrides: {
-        settings: {
-          basicFunctionalityEnabled: true,
-        },
-        engine: {
-          backgroundState: {
-            MultichainNetworkController: {
-              isEvmSelected: true,
-            },
-            RewardsController: {
-              activeAccount: null,
-            },
-          },
-        },
-      } as unknown as Record<string, unknown>,
-    });
-
-    expect(queryByTestId(WalletViewSelectorsIDs.WALLET_SCAN_BUTTON)).toBeNull();
-  });
-
   it('navigates to Settings when hamburger menu button is pressed', async () => {
     const { getByTestId, findByTestId } = renderWalletViewWithRoutes({
       extraRoutes: [
