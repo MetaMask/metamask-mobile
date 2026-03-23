@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useRef } from 'react';
-import { Image, Pressable, ScrollView } from 'react-native';
+import { Image, Pressable } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,

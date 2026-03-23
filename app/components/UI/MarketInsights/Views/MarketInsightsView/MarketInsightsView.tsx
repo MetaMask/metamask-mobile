@@ -7,13 +7,13 @@ import React, {
   useState,
 } from 'react';
 import {
-  ScrollView,
   Linking,
   Pressable,
   Animated,
   Image,
   useColorScheme,
 } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import Video from 'react-native-video';
 // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');

@@ -5,7 +5,8 @@ import React, {
   useRef,
   useState,
 } from 'react';
-import { Pressable, ScrollView, TextInput } from 'react-native';
+import { Pressable, TextInput } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
