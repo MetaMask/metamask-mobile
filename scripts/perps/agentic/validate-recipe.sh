@@ -161,8 +161,14 @@ while IFS= read -r sj; do
   case "$ACT" in
     navigate)
       TARGET=$(node -p "JSON.parse(process.argv[1]).target||''" "$sj")
-      echo "  -> app-navigate.sh --no-screenshot $TARGET"
-      [ "$DRY" = false ] && bash "$SD/app-navigate.sh" --no-screenshot "$TARGET" >/dev/null 2>&1
+      PARAMS=$(node -p "const p=JSON.parse(process.argv[1]).params;p?JSON.stringify(p):''" "$sj")
+      if [ -n "$PARAMS" ]; then
+        echo "  -> app-navigate.sh --no-screenshot $TARGET '<params>'"
+        [ "$DRY" = false ] && bash "$SD/app-navigate.sh" --no-screenshot "$TARGET" "$PARAMS" >/dev/null 2>&1
+      else
+        echo "  -> app-navigate.sh --no-screenshot $TARGET"
+        [ "$DRY" = false ] && bash "$SD/app-navigate.sh" --no-screenshot "$TARGET" >/dev/null 2>&1
+      fi
       ;;
     eval_sync)
       EXPR=$(node -p "JSON.parse(process.argv[1]).expression||''" "$sj")
@@ -231,6 +237,42 @@ while IFS= read -r sj; do
         echo "  [SKIPPED by user]"; SKIPPED=$((SKIPPED + 1)); echo ""; continue
       fi
       PASSED=$((PASSED + 1)); echo "  ✅ PASS"; echo ""; continue
+      ;;
+    press)
+      TEST_ID=$(node -p "JSON.parse(process.argv[1]).test_id||''" "$sj")
+      if [[ -z "$TEST_ID" ]]; then
+        RESULT='{"ok":false,"error":"press requires test_id"}'
+      else
+        echo "  -> press-test-id $TEST_ID"
+        if [ "$DRY" = false ]; then
+          RESULT=$(node "$SD/cdp-bridge.js" press-test-id "$TEST_ID" 2>/dev/null) || RESULT='{"ok":false,"error":"press-test-id failed"}'
+        fi
+      fi
+      ;;
+    scroll)
+      SCROLL_ARGS=()
+      S_TID=$(node -p "JSON.parse(process.argv[1]).test_id||''" "$sj")
+      S_OFF=$(node -p "JSON.parse(process.argv[1]).offset??300" "$sj")
+      S_ANIM=$(node -p "JSON.parse(process.argv[1]).animated===true?'true':'false'" "$sj")
+      [[ -n "$S_TID" ]] && SCROLL_ARGS+=(--test-id "$S_TID")
+      SCROLL_ARGS+=(--offset "$S_OFF")
+      [[ "$S_ANIM" == "true" ]] && SCROLL_ARGS+=(--animated) || SCROLL_ARGS+=(--no-animated)
+      echo "  -> scroll-view ${SCROLL_ARGS[*]}"
+      if [ "$DRY" = false ]; then
+        RESULT=$(node "$SD/cdp-bridge.js" scroll-view "${SCROLL_ARGS[@]}" 2>/dev/null) || RESULT='{"ok":false,"error":"scroll-view failed"}'
+      fi
+      ;;
+    set_input)
+      SI_TID=$(node -p "JSON.parse(process.argv[1]).test_id||''" "$sj")
+      SI_VAL=$(node -p "JSON.parse(process.argv[1]).value??''" "$sj")
+      if [[ -z "$SI_TID" ]]; then
+        RESULT='{"ok":false,"error":"set_input requires test_id"}'
+      else
+        echo "  -> set-input $SI_TID \"${SI_VAL:0:40}\""
+        if [ "$DRY" = false ]; then
+          RESULT=$(node "$SD/cdp-bridge.js" set-input "$SI_TID" "$SI_VAL" 2>/dev/null) || RESULT='{"ok":false,"error":"set-input failed"}'
+        fi
+      fi
       ;;
     *)
       echo "  ❌ FAIL: unknown action '$ACT'"

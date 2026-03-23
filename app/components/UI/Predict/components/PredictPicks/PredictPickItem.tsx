@@ -10,7 +10,7 @@ import React from 'react';
 import { PredictPosition } from '../../types';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { PREDICT_PICK_ITEM_TEST_IDS } from './PredictPickItem.testIds';
 
 interface PredictPickItemProps {

@@ -27,7 +27,8 @@ import NftGridItemActionSheet from './NftGridItemActionSheet';
 import NftGridHeader from './NftGridHeader';
 import NftGridSkeleton from './NftGridSkeleton';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CollectiblesEmptyState } from '../CollectiblesEmptyState';
 import { WalletViewSelectorsIDs } from '../../Views/Wallet/WalletView.testIds';
 import {
@@ -90,7 +91,7 @@ const NftGridContent = ({
 const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
   ({ isFullView = false }, ref) => {
     const navigation = useNavigation();
-    const { trackEvent, createEventBuilder } = useMetrics();
+    const { trackEvent, createEventBuilder } = useAnalytics();
     const [isAddNFTEnabled, setIsAddNFTEnabled] = useState(true);
     const [longPressedCollectible, setLongPressedCollectible] =
       useState<Nft | null>(null);
@@ -239,7 +240,9 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       setIsAddNFTEnabled(false);
       navigation.navigate('AddAsset', { assetType: 'collectible' });
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES).build(),
+        createEventBuilder(MetaMetricsEvents.WALLET_ADD_COLLECTIBLES)
+          .addProperties({ action: 'Wallet View', name: 'Add Collectibles' })
+          .build(),
       );
       setIsAddNFTEnabled(true);
     }, [navigation, trackEvent, createEventBuilder]);
@@ -270,9 +273,10 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
               />
             </Box>
           )}
-          keyExtractor={(_, index) => `nft-row-${index}`}
+          keyExtractor={(item) =>
+            `${item.chainId}-${item.address}-${item.tokenId}`
+          }
           testID={RefreshTestId}
-          decelerationRate="fast"
           refreshControl={
             <RefreshControl
               colors={[colors.primary.default]}

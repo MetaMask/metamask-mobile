@@ -3275,8 +3275,8 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await jest.runAllTimersAsync();
 
-      // Should not call meta/metaAndAssetCtxs when market data not requested
-      expect(mockInfoClient.meta).not.toHaveBeenCalled();
+      // assetCtxs subscription is always established (lightweight, 1 per DEX)
+      // so meta may be called for the assetCtxs mapping, but metaAndAssetCtxs should not
       expect(mockInfoClient.metaAndAssetCtxs).not.toHaveBeenCalled();
 
       unsubscribe();

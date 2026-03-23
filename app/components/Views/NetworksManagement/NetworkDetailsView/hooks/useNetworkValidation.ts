@@ -40,6 +40,7 @@ export interface UseNetworkValidationReturn extends ValidationState {
   ) => void;
   validateRpcAndChainId: (form: NetworkFormState) => void;
   disabledByChainId: (form: NetworkFormState) => boolean;
+  disabledByName: (form: NetworkFormState) => boolean;
   disabledBySymbol: (form: NetworkFormState) => boolean;
   checkIfChainIdExists: (chainId: string) => boolean;
   checkIfNetworkExists: (rpcUrl: string) => Promise<NetworkConfiguration[]>;
@@ -302,7 +303,15 @@ export const useNetworkValidation = (): UseNetworkValidationReturn => {
   const validateName = useCallback(
     (form: NetworkFormState, chainToMatch: SafeChain | null = null) => {
       const { nickname, chainId } = form;
-      if (!useSafeChainsListValidation) return;
+      const trimmedNickname = nickname?.trim();
+      if (!trimmedNickname) {
+        setWarningName(strings('app_settings.required'));
+        return;
+      }
+      if (!useSafeChainsListValidation) {
+        setWarningName(undefined);
+        return;
+      }
 
       const name =
         NETWORK_TO_NAME_MAP[chainId as keyof typeof NETWORK_TO_NAME_MAP] ||
@@ -310,7 +319,7 @@ export const useNetworkValidation = (): UseNetworkValidationReturn => {
         networkList?.name ||
         null;
 
-      const nameToUse = isValidNetworkName(chainId ?? '', name, nickname ?? '')
+      const nameToUse = isValidNetworkName(chainId ?? '', name, trimmedNickname)
         ? undefined
         : name;
 
@@ -343,6 +352,11 @@ export const useNetworkValidation = (): UseNetworkValidationReturn => {
     [validatedChainId, warningChainId],
   );
 
+  const disabledByName = useCallback(
+    (form: NetworkFormState): boolean => !form.nickname?.trim(),
+    [],
+  );
+
   const disabledBySymbol = useCallback(
     (form: NetworkFormState): boolean => !form.ticker,
     [],
@@ -362,6 +376,7 @@ export const useNetworkValidation = (): UseNetworkValidationReturn => {
     validateName,
     validateRpcAndChainId,
     disabledByChainId,
+    disabledByName,
     disabledBySymbol,
     checkIfChainIdExists,
     checkIfNetworkExists,
