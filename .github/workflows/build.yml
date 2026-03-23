@@ -20,6 +20,11 @@ on:
         required: false
         type: string
         default: ''
+      upload_to_sentry:
+        description: 'If true, enable Sentry CLI upload of JS source maps and native debug symbols during the build'
+        required: false
+        type: boolean
+        default: false
   workflow_dispatch:
     inputs:
       build_name:
@@ -44,6 +49,11 @@ on:
         type: choice
         options: [android, ios, both]
       skip_version_bump:
+        required: false
+        type: boolean
+        default: false
+      upload_to_sentry:
+        description: 'Upload JS source maps and native debug symbols to Sentry during the build (requires Sentry auth in the build environment)'
         required: false
         type: boolean
         default: false
@@ -309,6 +319,19 @@ jobs:
           echo "✅ Created ios/.xcode.env.local"
           cat ios/.xcode.env.local
           node --version
+
+      # Sentry: build.sh defaults SENTRY_DISABLE_AUTO_UPLOAD=true; set false only when opted in.
+      - name: Configure Sentry upload
+        env:
+          UPLOAD_TO_SENTRY: ${{ inputs.upload_to_sentry }}
+        run: |
+          if [ "$UPLOAD_TO_SENTRY" = "true" ]; then
+            echo "SENTRY_DISABLE_AUTO_UPLOAD=false" >> "$GITHUB_ENV"
+            echo "✅ Sentry auto-upload enabled for this build"
+          else
+            echo "SENTRY_DISABLE_AUTO_UPLOAD=true" >> "$GITHUB_ENV"
+            echo "ℹ️ Sentry auto-upload disabled"
+          fi
 
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
