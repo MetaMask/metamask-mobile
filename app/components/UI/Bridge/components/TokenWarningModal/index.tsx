@@ -96,6 +96,7 @@ export const TokenWarningModal = () => {
   }, [activeQuote, bridgeFeatureFlags, confirmBridge, navigation, sourceToken]);
 
   const isMalicious = warningType === TokenFeatureType.MALICIOUS;
+  const iconName = isMalicious ? IconName.Danger : IconName.Warning;
   const iconColor = isMalicious
     ? IconColor.ErrorDefault
     : IconColor.WarningDefault;
@@ -106,7 +107,7 @@ export const TokenWarningModal = () => {
   return (
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader onClose={handleClose}>
-        <Icon name={IconName.Danger} size={IconSize.Xl} color={iconColor} />
+        <Icon name={iconName} size={IconSize.Xl} color={iconColor} />
       </BottomSheetHeader>
       <Box
         alignItems={BoxAlignItems.Center}
