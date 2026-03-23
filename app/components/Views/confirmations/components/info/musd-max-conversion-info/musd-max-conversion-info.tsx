@@ -103,7 +103,7 @@ export const MusdMaxConversionInfo = () => {
       <BlockingAlertMessage />
       <View style={styles.buttonContainer}>
         <Button
-          onPress={onConfirm}
+          onPress={() => onConfirm()}
           variant={ButtonVariant.Primary}
           isFullWidth
           size={ButtonSize.Lg}

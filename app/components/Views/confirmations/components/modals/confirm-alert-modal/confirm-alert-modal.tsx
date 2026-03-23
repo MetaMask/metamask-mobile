@@ -6,8 +6,9 @@ import {
   Button,
   ButtonSize,
   ButtonVariant,
+  IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
-import { ButtonWidthTypes } from '../../../../../../component-library/components/Buttons/Button';
+import { ButtonSize as ButtonLinkSize, ButtonWidthTypes } from '../../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
 import Icon, {
   IconName,
@@ -99,7 +100,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             label={strings('alert_system.confirm_modal.review_alerts')}
             startIconName={IconName.SecuritySearch}
             width={ButtonWidthTypes.Auto}
-            size={ButtonSize.Lg}
+            size={ButtonLinkSize.Lg}
             labelTextVariant={TextVariant.BodyMD}
           />
         )}
@@ -136,7 +137,7 @@ const ConfirmAlertModal: React.FC<ConfirmAlertModalProps> = ({
             variant={ButtonVariant.Primary}
             isFullWidth
             isDisabled={!confirmCheckbox}
-            startIconName={IconName.Danger}
+            startIconName={DesignSystemIconName.Danger}
             isDanger
             testID="confirm-alert-confirm-button"
           >
