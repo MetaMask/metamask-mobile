@@ -13,6 +13,7 @@ import {
   selectIsSubmittingTx,
   selectSourceAmount,
   selectSourceToken,
+  selectDestTokenWarning,
 } from '../../../../../core/redux/slices/bridge';
 import useIsInsufficientBalance from '../../hooks/useInsufficientBalance';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -30,6 +31,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../../../core/AppConstants';
+import type { TokenWarningModalParams } from '../TokenWarningModal';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -50,6 +52,7 @@ export const SwapsConfirmButton = ({
   });
 
   const bridgeFeatureFlags = useSelector(selectBridgeFeatureFlags);
+  const tokenWarning = useSelector(selectDestTokenWarning);
   const updateQuoteParams = useBridgeQuoteRequest();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
@@ -146,6 +149,20 @@ export const SwapsConfirmButton = ({
     !walletAddress;
 
   const handleContinue = async () => {
+    if (tokenWarning) {
+      const params: TokenWarningModalParams = {
+        warningType: tokenWarning.type,
+        description: tokenWarning.description,
+        mode: 'execution',
+        location,
+      };
+      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+        screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+        params,
+      });
+      return;
+    }
+
     const priceImpact = !activeQuote?.quote.priceData?.priceImpact
       ? // Default to zero to bypass swap friction.
         // This callback is always called when active quote exists,

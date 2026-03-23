@@ -32,7 +32,10 @@ import {
   selectBridgeViewMode,
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
+  selectDestTokenWarning,
 } from '../../../../../core/redux/slices/bridge';
+import { TokenFeatureType } from '@metamask/bridge-controller';
+import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   useNavigation,
   useRoute,
@@ -59,6 +62,7 @@ import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
 import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
+  Pressable,
   ScrollView,
   type NativeSyntheticEvent,
   type NativeScrollEvent,
@@ -140,6 +144,7 @@ const BridgeView = () => {
   const isEvmNonEvmBridge = useSelector(selectIsEvmNonEvmBridge);
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const tokenWarning = useSelector(selectDestTokenWarning);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -475,6 +480,51 @@ const BridgeView = () => {
               isQuoteSponsored={isQuoteSponsored}
             />
           </Box>
+
+          {contentMode === 'quote' && tokenWarning ? (
+            <Pressable
+              onPress={() =>
+                navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                  screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+                  params: {
+                    warningType: tokenWarning.type,
+                    description: tokenWarning.description,
+                    mode: 'info',
+                    location,
+                  },
+                })
+              }
+            >
+              <BannerAlert
+                severity={
+                  tokenWarning.type === TokenFeatureType.MALICIOUS
+                    ? BannerAlertSeverity.Error
+                    : BannerAlertSeverity.Warning
+                }
+                description={
+                  tokenWarning.type === TokenFeatureType.MALICIOUS
+                    ? strings('bridge.token_warning_malicious_banner', {
+                        token: destToken?.symbol,
+                      })
+                    : strings('bridge.token_warning_suspicious_banner', {
+                        token: destToken?.symbol,
+                      })
+                }
+                onClose={() =>
+                  navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                    screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+                    params: {
+                      warningType: tokenWarning.type,
+                      description: tokenWarning.description,
+                      mode: 'info',
+                      location,
+                    },
+                  })
+                }
+                closeButtonProps={{ iconName: IconName.ArrowRight }}
+              />
+            </Pressable>
+          ) : null}
 
           <Box style={styles.dynamicContent}>
             {contentMode === 'loading' ? (
