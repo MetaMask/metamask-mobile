@@ -237,6 +237,7 @@ See [PR #25548](https://github.com/MetaMask/metamask-mobile/pull/25548) for refa
 ### Theme Mocking Rules
 
 - **Prefer shared `mockTheme` from `app/util/theme`** instead of hard-coded color literals in tests.
+- **Never hardcode design token hex values** in assertions or theme mocks (enforced by `@metamask/design-tokens/color-no-hex`).
 - **Avoid local hex color objects** for `useTheme`, `useStyles`, or tailwind mock color functions.
 - **If a test only needs a specific theme field**, derive it from `mockTheme` (or spread `mockTheme` and override minimally).
 
@@ -636,46 +637,6 @@ it('hides selector when disabled', () => {
   // Break test: change enabled={false} to enabled={true} and verify test fails
 });
 ```
-
-## Design Token Colors in Tests
-
-**Never hardcode design token hex values in test assertions or theme mocks.**
-
-Design token values change regularly. Hardcoding hex values creates fragile tests that
-break on every token update, triggering unrelated code owners and blocking merges.
-
-### Assertions
-
-```ts
-// ✅ Correct — use the shared mockTheme (real design tokens), survives token updates
-import { mockTheme } from '../../util/theme';
-expect(element.props.style.color).toBe(mockTheme.colors.text.alternative);
-
-// ❌ Wrong — breaks when design tokens change
-expect(element.props.style.color).toBe('#686e7d');
-```
-
-### Theme mocks
-
-```ts
-// ✅ Correct — reuse app-level mockTheme (already based on real design tokens)
-jest.mock('../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
-
-// ✅ Even better — delete the mock entirely and rely on global testSetup.js
-// which already mocks useAppThemeFromContext with mockTheme (real tokens)
-
-// ❌ Wrong — hardcoded hex values will become stale
-jest.mock('../../util/theme', () => ({
-  useTheme: () => ({ colors: { overlay: { default: '#00000099' } } }),
-}));
-```
-
-The ESLint rule `@metamask/design-tokens/color-no-hex` enforces this in CI.
 
 ## Reviewer Responsibilities
 
