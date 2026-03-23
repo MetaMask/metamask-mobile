@@ -175,9 +175,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
     }
   };
 
+  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
+  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
+
   const hasAmounts = Boolean(
-    (order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
-      (order.cryptoAmount != null && Number(order.cryptoAmount) > 0),
+    fiatCurrencyCode &&
+      ((order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
+        (order.cryptoAmount != null && Number(order.cryptoAmount) > 0)),
   );
   const isTerminal = TERMINAL_STATUSES.has(order.status);
   const isLoading = !hasAmounts && !isTerminal;
@@ -218,9 +222,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
     createEventBuilder,
     trackEvent,
   ]);
-
-  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
-  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
   const normalizeChainIdForBadge = (chainId: string): string => {
     if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
