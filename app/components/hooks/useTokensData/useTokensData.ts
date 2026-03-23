@@ -46,9 +46,9 @@ function fetchTokenBatch(assetIds: string[]): Promise<TokenAsset[]> {
         `${TOKEN_API_V3_BASE_URL}/assets?${params}`,
       );
       // Normalize keys to lowercase so they match the locally-constructed
-      // asset IDs (buildAssetId lowercases addresses). The API may return
-      // EIP-55 checksummed addresses (e.g. 0xABc…) which would otherwise
-      // cause every cache lookup and state lookup to miss.
+      // asset IDs (addresses are lowercased before building the CAIP-19 ID).
+      // The API may return EIP-55 checksummed addresses (e.g. 0xABc…) which
+      // would otherwise cause every cache lookup and state lookup to miss.
       data.forEach((t) => {
         tokenCache[t.assetId.toLowerCase()] = t;
       });

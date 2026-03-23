@@ -1,10 +1,11 @@
 import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
 import { Hex } from '@metamask/utils';
+import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { useTokensData } from '../useTokensData/useTokensData';
 
 function buildAssetId(value: string, variation: Hex): string {
-  return `eip155:${parseInt(variation, 16)}/erc20:${value.toLowerCase()}`;
+  return `${toEvmCaipChainId(variation)}/erc20:${value.toLowerCase()}`;
 }
 
 export function useERC20Tokens(requests: UseDisplayNameRequest[]) {
