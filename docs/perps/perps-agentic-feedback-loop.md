@@ -130,8 +130,8 @@ Full schema: `scripts/perps/agentic/schemas/flow.schema.json`
 | `position-add-margin`  | `symbol` (required), `marginAmount` (required)                                | wallet.unlocked, perps.open_position                            |
 | `setup-account`        | `address` (required)                                                          | wallet.unlocked                                                 |
 | `setup-testnet`        | _(none)_                                                                      | wallet.unlocked, perps.feature_enabled                          |
-| `tpsl-create`          | `symbol` (required), `takeProfitPrice` (required), `stopLossPrice` (required) | wallet.unlocked, perps.open_position                            |
-| `tpsl-edit`            | `symbol` (required), `newTakeProfitPrice` (required)                          | wallet.unlocked, perps.open_position_tpsl                       |
+| `tpsl-create`          | `symbol` (required), `tpPreset` ("25"), `slPreset` ("-10")                    | wallet.unlocked, perps.open_position                            |
+| `tpsl-edit`            | `symbol` (required), `tpPreset` ("50"), `slPreset` ("-25")                    | wallet.unlocked, perps.open_position_tpsl                       |
 | `trade-close-position` | `symbol` (required)                                                           | wallet.unlocked, perps.open_position                            |
 | `trade-open-market`    | `side` ("long"), `symbol` ("BTC"), `usdAmount` ("10")                         | wallet.unlocked, perps.ready_to_trade, perps.sufficient_balance |
 
@@ -248,7 +248,7 @@ bash app-state.sh scroll --test-id <testId> --offset 300 # scroll down
 bash app-state.sh set-input <testId> "0.5"               # type into input
 ```
 
-In flows, use `press`, `scroll`, `set_input`, `type_keypad`, and `clear_keypad` actions.
+In flows, use `press`, `scroll`, `set_input`, `type_keypad`, `clear_keypad`, and `wait_for` actions.
 
 **Keypad pattern:** Always clear before typing — use `clear_keypad` (count: 8) before `type_keypad` to wipe any pre-filled value. Assert the displayed amount matches before submitting.
 
@@ -258,11 +258,11 @@ In flows, use `press`, `scroll`, `set_input`, `type_keypad`, and `clear_keypad` 
 
 Gherkin maps naturally to flow JSON:
 
-| Gherkin                     | Flow equivalent                                       |
-| --------------------------- | ----------------------------------------------------- |
-| **Given** (preconditions)   | `pre_conditions` array                                |
-| **When** (user actions)     | `navigate`, `press`, `set_input`, `type_keypad` steps |
-| **Then** (expected outcome) | `eval_sync`/`eval_async` steps with `assert`          |
+| Gherkin                     | Flow equivalent                                                   |
+| --------------------------- | ----------------------------------------------------------------- |
+| **Given** (preconditions)   | `pre_conditions` array                                            |
+| **When** (user actions)     | `navigate`, `press`, `set_input`, `type_keypad`, `wait_for` steps |
+| **Then** (expected outcome) | `eval_sync`/`eval_async` steps with `assert`                      |
 
 **Example:**
 
@@ -303,27 +303,43 @@ Then the close position screen is shown
             }
           }
         },
-        { "id": "wait", "action": "wait", "ms": 1500 },
+        {
+          "id": "wait-market",
+          "action": "wait_for",
+          "route": "PerpsMarketDetails"
+        },
         {
           "id": "press-close",
           "action": "press",
           "test_id": "perps-market-details-close-button"
         },
-        { "id": "wait-screen", "action": "wait", "ms": 1500 },
         {
-          "id": "assert-route",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsClosePosition"
-          }
+          "id": "wait-close-screen",
+          "action": "wait_for",
+          "route": "PerpsClosePosition"
         }
       ]
     }
   }
 }
+```
+
+---
+
+## Recipes
+
+Recipes compose multiple flows via `flow_ref` for integration-level validation. They live in `scripts/perps/agentic/teams/<team>/recipes/` and prove that end-to-end scenarios work across flow boundaries.
+
+See `teams/perps/recipes/full-trade-lifecycle.json` for an example that chains: wallet home → mainnet → perps → testnet → clear position → open market → TP/SL (presets) → close — all via `flow_ref`.
+
+```bash
+# Run a recipe
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json
+
+# Dry-run
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/recipes/full-trade-lifecycle.json --dry-run
 ```
 
 ---

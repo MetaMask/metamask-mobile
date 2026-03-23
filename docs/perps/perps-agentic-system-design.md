@@ -219,9 +219,9 @@ an invisible hand is hard for human reviewers to follow. The **Agent Step HUD**
 (`AgentStepHud.tsx`) solves this by rendering a persistent on-screen overlay during recipe
 execution that shows the current step ID, description, and action type.
 
-`validate-recipe.sh --hud` activates the overlay. Before each step executes, the runner
-sends the step metadata to the app via CDP eval, and `AgentStepHud` renders it as a
-semi-transparent banner. The HUD propagates through `flow_ref` sub-invocations
+The HUD is enabled by default. Use `--no-hud` to disable it. Before each step executes,
+the runner sends the step metadata to the app via CDP eval, and `AgentStepHud` renders it
+as an overlay banner. The HUD propagates through `flow_ref` sub-invocations
 automatically, so nested flow steps are annotated too.
 
 This turns an opaque screen recording into a narrated walkthrough: reviewers see exactly
@@ -271,13 +271,13 @@ An agent is assigned: "TP/SL values don't persist after edit."
 
 1. **Preflight** — wallet restored with funds on testnet (~5s)
 2. **`flow_ref: trade-open-market`** — opens a BTC long position ($10)
-3. **`flow_ref: tpsl-create`** — sets initial TP at $70000, SL at $55000
-4. **Recipe: read TP/SL** — `recipe perps/core/tpsl-orders` → assert TP = 70000 (PASS)
-5. **`flow_ref: tpsl-edit`** — changes TP to $75000
-6. **Recipe: read TP/SL** — assert TP = 75000 (FAIL — bug confirmed, still shows 70000)
+3. **`flow_ref: tpsl-create`** — sets initial TP/SL using percentage presets (TP +25%, SL -10%)
+4. **Recipe: read TP/SL** — `recipe perps/core/tpsl-orders` → assert TP/SL orders exist (PASS)
+5. **`flow_ref: tpsl-edit`** — changes TP/SL presets (TP +50%, SL -25%)
+6. **Recipe: read TP/SL** — assert updated TP/SL values (FAIL — bug confirmed, still shows old values)
 7. **Agent reads code** — finds stale cache in the edit handler, fixes it
 8. **Hot-reload** — Metro picks up changes (~2s)
-9. **Re-run steps 5-6** — assert TP = 75000 (PASS — fix verified)
+9. **Re-run steps 5-6** — assert updated TP/SL values (PASS — fix verified)
 10. **Recipe goes into PR** as `recipe.json` — reviewer runs `validate-recipe.sh` to verify
 
 Total time from bug confirmation to verified fix: under 3 minutes of agent wall time.

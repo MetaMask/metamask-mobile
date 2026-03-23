@@ -9,6 +9,7 @@ The registry auto-discovers and merges all team pre-conditions at load time.
 teams/
   perps/
     flows/              ← flow JSON files (validated by validate-flow-schema.js)
+    recipes/            ← integration-level recipes that compose flows via flow_ref
     evals/              ← named eval collections (core.json, setup.json, ...)
     evals.json          ← quick CDP eval refs (positions, auth, balances, ...)
     pre-conditions.js   ← perps.* checks
@@ -16,6 +17,7 @@ teams/
     pre-conditions.js   ← mobile-platform.* checks
   <your-team>/
     flows/              ← optional: flow JSON files
+    recipes/            ← optional: integration-level recipes
     evals/              ← optional: named eval collections
     evals.json          ← optional: quick CDP eval refs
     pre-conditions.js   ← <your-team>.* checks
@@ -74,6 +76,20 @@ List all available eval refs:
 ```bash
 node scripts/perps/agentic/cdp-bridge.js eval-ref --list
 ```
+
+## Recipes
+
+Recipes live in `teams/<team>/recipes/`. They compose multiple flows via `flow_ref` for integration-level validation — proving that end-to-end scenarios work across flow boundaries.
+
+```bash
+# Run a recipe against the live app
+bash scripts/perps/agentic/validate-recipe.sh teams/perps/recipes/full-trade-lifecycle.json
+
+# Dry-run (prints steps without executing)
+bash scripts/perps/agentic/validate-recipe.sh teams/perps/recipes/full-trade-lifecycle.json --dry-run
+```
+
+See `teams/perps/recipes/full-trade-lifecycle.json` for an example that chains wallet home → mainnet → perps → testnet → open position → TP/SL → close.
 
 ## Validators
 

@@ -50,12 +50,12 @@ export WATCHER_PORT="${WATCHER_PORT:-8081}"
 SD="scripts/perps/agentic"
 
 # ── Args ──────────────────────────────────────────────────────────────
-RECIPE="" DRY=false SKIP_MANUAL=false SINGLE="" OVERRIDE_ACCOUNT="" OVERRIDE_TESTNET=false HUD_ENABLED=false
+RECIPE="" DRY=false SKIP_MANUAL=false SINGLE="" OVERRIDE_ACCOUNT="" OVERRIDE_TESTNET=false HUD_ENABLED=true
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --dry-run)     DRY=true; shift ;;
     --skip-manual) SKIP_MANUAL=true; shift ;;
-    --hud)         HUD_ENABLED=true; shift ;;
+    --no-hud)      HUD_ENABLED=false; shift ;;
     --step)        SINGLE="$2"; shift 2 ;;
     --account)     OVERRIDE_ACCOUNT="$2"; shift 2 ;;
     --testnet)     OVERRIDE_TESTNET=true; shift ;;
@@ -228,7 +228,7 @@ console.log(JSON.stringify(r));
 # ── Main loop ─────────────────────────────────────────────────────────
 while IFS= read -r sj; do
   SID=$(node -p  "JSON.parse(process.argv[1]).id||'?'"          "$sj")
-  SDESC=$(node -p "JSON.parse(process.argv[1]).description||''" "$sj")
+  SDESC=$(node -p "var s=JSON.parse(process.argv[1]);s.description||(function(){var a=s.action||'';if(a==='press')return 'press '+s.test_id;if(a==='wait_for')return 'wait for '+(s.test_id||s.route||s.not_route||'condition');if(a==='navigate')return 'navigate to '+s.target;if(a==='set_input')return 'set '+s.test_id+'='+s.value;if(a==='flow_ref')return 'flow: '+s.ref;if(a==='eval_ref')return 'eval ref: '+s.ref;if(a==='eval_sync'||a==='eval_async')return a;if(a==='type_keypad')return 'type '+s.value;if(a==='toggle_testnet')return 'toggle testnet='+(s.enabled!==undefined?s.enabled:'true');return a}())" "$sj")
   ACT=$(node -p  "JSON.parse(process.argv[1]).action||''"       "$sj")
   HAS_A=$(node -p "'assert' in JSON.parse(process.argv[1])"     "$sj")
   A_JSON=$(node -p "JSON.stringify(JSON.parse(process.argv[1]).assert||{})" "$sj")
@@ -238,7 +238,7 @@ while IFS= read -r sj; do
   echo "[$SID] $SDESC"
 
   if [ "$HUD_ENABLED" = true ] && [ "$DRY" = false ]; then
-    node "$SD/cdp-bridge.js" show-step "$SID" "$SDESC" 2>/dev/null || true
+    node "$SD/cdp-bridge.js" show-step "$SID" "$TITLE — $SDESC" 2>/dev/null || true
   fi
 
   RESULT=""
@@ -395,7 +395,7 @@ while IFS= read -r sj; do
       FLOW_FLAGS=()
       [ "$DRY" = true ]         && FLOW_FLAGS+=(--dry-run)
       [ "$SKIP_MANUAL" = true ] && FLOW_FLAGS+=(--skip-manual)
-      [ "$HUD_ENABLED" = true ] && FLOW_FLAGS+=(--hud)
+      [ "$HUD_ENABLED" = false ] && FLOW_FLAGS+=(--no-hud)
       if bash "$SD/validate-recipe.sh" "$SUBST_FLOW" "${FLOW_FLAGS[@]}"; then
         RESULT='{"ok":true}'
       else
