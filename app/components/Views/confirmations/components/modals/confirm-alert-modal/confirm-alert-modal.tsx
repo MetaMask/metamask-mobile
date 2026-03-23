@@ -8,7 +8,10 @@ import {
   ButtonVariant,
   IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
-import { ButtonSize as ButtonLinkSize, ButtonWidthTypes } from '../../../../../../component-library/components/Buttons/Button';
+import {
+  ButtonSize as ButtonLinkSize,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
 import Icon, {
   IconName,
