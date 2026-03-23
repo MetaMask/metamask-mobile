@@ -1449,9 +1449,7 @@ export class PredictController extends BaseController<
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
     this.update((state) => {
       if (state.activeOrder) {
-        state.activeOrder = {
-          state: ActiveOrderState.PLACING_ORDER,
-        };
+        state.activeOrder.state = ActiveOrderState.PLACING_ORDER;
       }
     });
     const startTime = performance.now();
@@ -2004,7 +2002,6 @@ export class PredictController extends BaseController<
         state.activeOrder.error = params?.errorMessage;
       }
     });
-    this.setSelectedPaymentToken(null);
   }
 
   public onOrderSuccess(): void {

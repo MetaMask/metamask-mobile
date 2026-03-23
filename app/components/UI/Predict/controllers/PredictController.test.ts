@@ -7257,6 +7257,35 @@ describe('PredictController', () => {
         expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
       });
     });
+
+    it('preserves batchId and other activeOrder fields when transitioning to PLACING_ORDER', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+        controller.setActiveOrder({
+          state: ActiveOrderState.PLACE_ORDER,
+          batchId: 'deposit-batch-xyz',
+          error: 'transient',
+        });
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({ preview });
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PLACING_ORDER,
+        );
+        expect(controller.state.activeOrder?.batchId).toBe('deposit-batch-xyz');
+        expect(controller.state.activeOrder?.error).toBe('transient');
+      });
+    });
   });
 
   describe('handleTransactionSideEffects for depositAndOrder', () => {
