@@ -1,0 +1,166 @@
+{
+  "title": "Order — limit {{side}} {{symbol}} ${{usdAmount}} at ${{limitPrice}}",
+  "inputs": {
+    "side": {
+      "type": "string",
+      "default": "long",
+      "description": "Trade side (long/short)"
+    },
+    "symbol": {
+      "type": "string",
+      "default": "BTC",
+      "description": "Market symbol"
+    },
+    "usdAmount": {
+      "type": "string",
+      "default": "10",
+      "description": "USD notional amount"
+    },
+    "limitPrice": {
+      "type": "string",
+      "default": "60000",
+      "description": "Limit price in USD"
+    }
+  },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.ready_to_trade"
+      ],
+      "steps": [
+        {
+          "id": "nav",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "action": "wait_for",
+          "test_id": "perps-market-details-{{side}}-button"
+        },
+        {
+          "id": "press-side",
+          "action": "press",
+          "test_id": "perps-market-details-{{side}}-button"
+        },
+        {
+          "id": "wait-form",
+          "action": "wait_for",
+          "test_id": "perps-order-header-order-type-button"
+        },
+        {
+          "id": "press-order-type",
+          "action": "press",
+          "test_id": "perps-order-header-order-type-button"
+        },
+        {
+          "id": "wait-type-sheet",
+          "action": "wait_for",
+          "test_id": "perps-order-type-limit"
+        },
+        {
+          "id": "press-limit",
+          "action": "press",
+          "test_id": "perps-order-type-limit"
+        },
+        {
+          "id": "wait-limit-form",
+          "action": "wait_for",
+          "test_id": "perps-order-view-limit-price-row"
+        },
+        {
+          "id": "press-limit-price-row",
+          "action": "press",
+          "test_id": "perps-order-view-limit-price-row"
+        },
+        {
+          "id": "wait-price-sheet",
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-limit-keypad",
+          "action": "clear_keypad",
+          "count": 12
+        },
+        {
+          "id": "type-limit-price",
+          "action": "type_keypad",
+          "value": "{{limitPrice}}"
+        },
+        {
+          "id": "press-set",
+          "action": "press",
+          "test_id": "perps-limit-price-confirm-button"
+        },
+        {
+          "id": "wait-price-set",
+          "action": "wait_for",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "press-amount",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad",
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad",
+          "action": "clear_keypad",
+          "count": 8
+        },
+        {
+          "id": "type-amount",
+          "action": "type_keypad",
+          "value": "{{usdAmount}}"
+        },
+        {
+          "id": "assert-amount",
+          "action": "eval_sync",
+          "expression": "JSON.stringify((function(){ var hook=globalThis.__REACT_DEVTOOLS_GLOBAL_HOOK__; if(!hook)return{v:null}; var found=null; function walk(f){if(!f)return; if(f.memoizedProps&&f.memoizedProps.testID==='perps-amount-display-amount'){found=f;return;} walk(f.child);if(!found)walk(f.sibling);} for(var [id] of hook.renderers){var roots=hook.getFiberRoots?hook.getFiberRoots(id):null;if(roots)roots.forEach(function(r){if(!found)walk(r.current);});} return {v: found&&found.memoizedProps?String(found.memoizedProps.children||''):null}; })())",
+          "assert": {
+            "operator": "contains",
+            "field": "v",
+            "value": "{{usdAmount}}"
+          }
+        },
+        {
+          "id": "press-done",
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done"
+        },
+        {
+          "id": "wait-summary",
+          "action": "wait_for",
+          "test_id": "perps-order-view-place-order-button"
+        },
+        {
+          "id": "place-order",
+          "action": "press",
+          "test_id": "perps-order-view-place-order-button"
+        },
+        {
+          "id": "wait-confirm",
+          "action": "wait_for",
+          "not_route": "RedesignedConfirmations"
+        }
+      ]
+    }
+  }
+}

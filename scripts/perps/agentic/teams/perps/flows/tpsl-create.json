@@ -1,0 +1,108 @@
+{
+  "title": "TP/SL — create +{{tpPreset}}% TP / {{slPreset}}% SL for {{symbol}}",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "description": "Market symbol with open position"
+    },
+    "tpPreset": {
+      "type": "string",
+      "default": "25",
+      "description": "Take-profit RoE preset to press (10, 25, 50, 100)"
+    },
+    "slPreset": {
+      "type": "string",
+      "default": "-10",
+      "description": "Stop-loss RoE preset to press (-5, -10, -25, -50)"
+    }
+  },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        {
+          "name": "perps.open_position",
+          "symbol": "{{symbol}}"
+        }
+      ],
+      "steps": [
+        {
+          "id": "nav-market-detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-market-render",
+          "action": "wait_for",
+          "test_id": "position-card-auto-close-toggle"
+        },
+        {
+          "id": "press-auto-close",
+          "action": "press",
+          "test_id": "position-card-auto-close-toggle"
+        },
+        {
+          "id": "wait-tpsl-route",
+          "action": "wait_for",
+          "route": "PerpsTPSL"
+        },
+        {
+          "id": "wait-tp-button",
+          "action": "wait_for",
+          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}"
+        },
+        {
+          "id": "press-tp-preset",
+          "action": "press",
+          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}"
+        },
+        {
+          "id": "wait-sl-button",
+          "action": "wait_for",
+          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}"
+        },
+        {
+          "id": "press-sl-preset",
+          "action": "press",
+          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}"
+        },
+        {
+          "id": "assert-tpsl-screen-intact",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
+          "assert": {
+            "operator": "eq",
+            "field": "route",
+            "value": "PerpsTPSL"
+          }
+        },
+        {
+          "id": "press-set-tpsl",
+          "action": "press",
+          "test_id": "perps-tpsl-bottomsheet"
+        },
+        {
+          "id": "wait-tpsl-created",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({hasTp:!!(p&&p.takeProfitPrice),hasSl:!!(p&&p.stopLossPrice)})})",
+          "assert": {
+            "operator": "eq",
+            "field": "hasTp",
+            "value": true
+          }
+        }
+      ]
+    }
+  }
+}
