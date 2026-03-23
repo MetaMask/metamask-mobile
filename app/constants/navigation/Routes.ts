@@ -389,6 +389,10 @@ const Routes = {
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
     },
   },
+  MONEY: {
+    ROOT: 'MoneyScreens',
+    HOME: 'MoneyHome',
+  },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',
