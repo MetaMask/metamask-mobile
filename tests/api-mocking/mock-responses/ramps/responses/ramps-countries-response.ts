@@ -1,7 +1,8 @@
-// Countries response — used by both V1 and V2 endpoints.
-// Must include `currencies` array (SDK's getDefaultFiatCurrencySync iterates it)
-// and `supported` on countries/states — @metamask/ramps-controller RampsService.getCountries()
-// filters on `supported` (legacy mocks used `support` only, which filtered out every row).
+// Controller countries response for GET .../v2/regions/countries.
+// Must include `currencies` and `supported` on countries/states because
+// @metamask/ramps-controller RampsService.getCountries() filters on
+// `country.supported.buy || country.supported.sell`.
+// Legacy aggregator and native deposit use separate response files.
 export const RAMPS_COUNTRIES_RESPONSE = [
   {
     isoCode: 'PT',
@@ -67,6 +68,21 @@ export const RAMPS_COUNTRIES_RESPONSE = [
     phone: { prefix: '+34', placeholder: '', template: '' },
     currency: 'EUR',
     currencies: ['/currencies/fiat/eur'],
+    supported: {
+      buy: true,
+      sell: true,
+    },
+    defaultAmount: 100,
+    quickAmounts: [50, 100, 200, 400],
+  },
+  {
+    isoCode: 'LC',
+    id: '/regions/lc',
+    emoji: '🇱🇨',
+    name: 'Saint Lucia',
+    phone: { prefix: '+1-758', placeholder: '', template: '' },
+    currency: 'XCD',
+    currencies: ['/currencies/fiat/xcd'],
     supported: {
       buy: true,
       sell: true,
