@@ -279,6 +279,18 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       prevOhlcvDataRef.current = ohlcvData;
     }, [ohlcvData, webViewLoaded, sendOHLCVData, postMessage]);
 
+    // Send initial chartType as soon as WebView loads (before chart is ready)
+    // This prevents the flash of default chart type during initialization
+    useEffect(() => {
+      if (!webViewLoaded || chartType === undefined) return;
+      if (prevChartTypeRef.current !== undefined) return;
+      prevChartTypeRef.current = chartType;
+      postMessage({
+        type: 'SET_CHART_TYPE',
+        payload: { type: chartType },
+      });
+    }, [webViewLoaded, chartType, postMessage]);
+
     // Forward real-time bar updates to WebView
     useEffect(() => {
       if (!isChartReady || !realtimeBar) return;
