@@ -7936,7 +7936,7 @@ __metadata:
 
 "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A68.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-68.1.0-8a2c809398.patch":
   version: 68.1.0
-  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A68.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-68.1.0-8a2c809398.patch::version=68.1.0&hash=a87871"
+  resolution: "@metamask/bridge-status-controller@patch:@metamask/bridge-status-controller@npm%3A68.1.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-68.1.0-8a2c809398.patch::version=68.1.0&hash=358095"
   dependencies:
     "@metamask/accounts-controller": "npm:^37.0.0"
     "@metamask/base-controller": "npm:^9.0.0"
@@ -7953,7 +7953,7 @@ __metadata:
     "@metamask/utils": "npm:^11.9.0"
     bignumber.js: "npm:^9.1.2"
     uuid: "npm:^8.3.2"
-  checksum: 10/0b45e224fcf6f84dda13fa44354f2aa64c106a7590f58c56a030401ab51fbd05fbeade94ae071e01f12a873a5c65971b08c08570b633d695d96e72d164853f23
+  checksum: 10/e2fb1a7667030e5d486e0c70c5f673223a1f48b488490ee4fbcf662116111936596c447bddbcc75b166d58d3c726c5e5892578213db8b9206891e78a4f03c136
   languageName: node
   linkType: hard
 
