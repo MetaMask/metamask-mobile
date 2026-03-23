@@ -538,8 +538,14 @@ export default class MockServerE2E implements Resource {
   /**
    * Removes the lifecycle-wide abort filter. Call this AFTER all cleanup is
    * complete to ensure late async "Aborted" rejections are caught.
+   *
+   * This method is intentionally async: CI logs show abort events firing up to
+   * ~200ms AFTER all cleanup has completed and this method is called. We hold
+   * the filter active for an extra 500ms before restoring Jest's handlers so
+   * those stragglers are still suppressed rather than recorded as test failures.
    */
-  removeAbortFilter(): void {
+  async removeAbortFilter(): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
     this._removeAbortFilter();
   }
 

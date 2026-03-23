@@ -8,13 +8,6 @@ jest.mock('../sdk/CardSDK');
 jest.mock('../../../../util/Logger');
 jest.mock('../../../../util/address');
 
-const mockControllerMessengerCall = jest.fn();
-jest.mock('../../../../core/Engine', () => ({
-  controllerMessenger: {
-    call: (...args: unknown[]) => mockControllerMessengerCall(...args),
-  },
-}));
-
 const MockedCardSDK = CardSDK as jest.MockedClass<typeof CardSDK>;
 const mockedLogger = Logger as jest.Mocked<typeof Logger>;
 const mockedIsValidHexAddress = isValidHexAddress as jest.MockedFunction<
@@ -65,12 +58,10 @@ describe('getCardholder', () => {
     MockedCardSDK.mockImplementation(() => mockCardSDKInstance);
 
     mockedIsValidHexAddress.mockReturnValue(true);
-
-    mockControllerMessengerCall.mockResolvedValue('US');
   });
 
   describe('successful scenarios', () => {
-    it('should return cardholder addresses and geolocation when accounts are cardholders', async () => {
+    it('should return cardholder addresses when accounts are cardholders', async () => {
       const mockResult = [
         'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
         'eip155:59144:0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
@@ -88,7 +79,6 @@ describe('getCardholder', () => {
           '0x1234567890abcdef1234567890abcdef12345678',
           '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
         ],
-        geoLocation: 'US',
       });
       expect(MockedCardSDK).toHaveBeenCalledWith({
         cardFeatureFlag: mockCardFeatureFlag,
@@ -103,7 +93,6 @@ describe('getCardholder', () => {
         'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
       ] as `${string}:${string}:${string}`[];
 
-      mockControllerMessengerCall.mockResolvedValue('GB');
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
 
       const result = await getCardholder({
@@ -113,12 +102,10 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: ['0x1234567890abcdef1234567890abcdef12345678'],
-        geoLocation: 'GB',
       });
     });
 
-    it('should return empty array and geolocation when no accounts are cardholders', async () => {
-      mockControllerMessengerCall.mockResolvedValue('CA');
+    it('should return empty array when no accounts are cardholders', async () => {
       mockCardSDKInstance.isCardHolder.mockResolvedValue([]);
 
       const result = await getCardholder({
@@ -128,13 +115,12 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'CA',
       });
     });
   });
 
   describe('early return scenarios', () => {
-    it('should return empty array and UNKNOWN geolocation when cardFeatureFlag is null', async () => {
+    it('should return empty array when cardFeatureFlag is null', async () => {
       const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: null as unknown as CardFeatureFlag,
@@ -142,13 +128,12 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(MockedCardSDK).not.toHaveBeenCalled();
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
     });
 
-    it('should return empty array and UNKNOWN geolocation when cardFeatureFlag is undefined', async () => {
+    it('should return empty array when cardFeatureFlag is undefined', async () => {
       const result = await getCardholder({
         caipAccountIds: mockFormattedAccounts,
         cardFeatureFlag: undefined as unknown as CardFeatureFlag,
@@ -156,13 +141,12 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(MockedCardSDK).not.toHaveBeenCalled();
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
     });
 
-    it('should return empty array and UNKNOWN geolocation when caipAccountIds is empty', async () => {
+    it('should return empty array when caipAccountIds is empty', async () => {
       const result = await getCardholder({
         caipAccountIds: [],
         cardFeatureFlag: mockCardFeatureFlag,
@@ -170,13 +154,12 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(MockedCardSDK).not.toHaveBeenCalled();
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
     });
 
-    it('should return empty array and UNKNOWN geolocation when caipAccountIds is null', async () => {
+    it('should return empty array when caipAccountIds is null', async () => {
       const result = await getCardholder({
         caipAccountIds: null as unknown as `${string}:${string}:${string}`[],
         cardFeatureFlag: mockCardFeatureFlag,
@@ -184,13 +167,12 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(MockedCardSDK).not.toHaveBeenCalled();
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
     });
 
-    it('should return empty array and UNKNOWN geolocation when caipAccountIds is undefined', async () => {
+    it('should return empty array when caipAccountIds is undefined', async () => {
       const result = await getCardholder({
         caipAccountIds:
           undefined as unknown as `${string}:${string}:${string}`[],
@@ -199,7 +181,6 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(MockedCardSDK).not.toHaveBeenCalled();
       expect(mockCardSDKInstance.isCardHolder).not.toHaveBeenCalled();
@@ -220,7 +201,6 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(mockedLogger.error).toHaveBeenCalledWith(
         mockError,
@@ -239,7 +219,6 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(mockedLogger.error).toHaveBeenCalledWith(
         mockError,
@@ -258,7 +237,6 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error(mockErrorString),
@@ -276,7 +254,6 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error('null'),
@@ -294,7 +271,6 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       });
       expect(mockedLogger.error).toHaveBeenCalledWith(
         new Error('undefined'),
@@ -311,7 +287,6 @@ describe('getCardholder', () => {
         'eip155:59144:0x3333333333333333333333333333333333333333',
       ] as `${string}:${string}:${string}`[];
 
-      mockControllerMessengerCall.mockResolvedValue('DE');
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
 
       const result = await getCardholder({
@@ -325,7 +300,6 @@ describe('getCardholder', () => {
           '0x2222222222222222222222222222222222222222',
           '0x3333333333333333333333333333333333333333',
         ],
-        geoLocation: 'DE',
       });
     });
 
@@ -336,7 +310,6 @@ describe('getCardholder', () => {
         'also:invalid',
       ] as `${string}:${string}:${string}`[];
 
-      mockControllerMessengerCall.mockResolvedValue('FR');
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
 
       const result = await getCardholder({
@@ -346,7 +319,6 @@ describe('getCardholder', () => {
 
       expect(result).toEqual({
         cardholderAddresses: ['0x1111111111111111111111111111111111111111'],
-        geoLocation: 'FR',
       });
     });
 
@@ -357,7 +329,6 @@ describe('getCardholder', () => {
         'eip155:59144:0x2222222222222222222222222222222222222222',
       ] as `${string}:${string}:${string}`[];
 
-      mockControllerMessengerCall.mockResolvedValue('ES');
       mockCardSDKInstance.isCardHolder.mockResolvedValue(mockResult);
       mockedIsValidHexAddress
         .mockReturnValueOnce(true)
@@ -374,42 +345,8 @@ describe('getCardholder', () => {
           '0x1111111111111111111111111111111111111111',
           '0x2222222222222222222222222222222222222222',
         ],
-        geoLocation: 'ES',
       });
       expect(mockedIsValidHexAddress).toHaveBeenCalledTimes(3);
-    });
-  });
-
-  describe('geolocation from controller messenger', () => {
-    it('should await geolocation from GeolocationController:getGeolocation', async () => {
-      mockControllerMessengerCall.mockResolvedValue('JP');
-      mockCardSDKInstance.isCardHolder.mockResolvedValue([
-        'eip155:59144:0x1234567890abcdef1234567890abcdef12345678',
-      ] as `${string}:${string}:${string}`[]);
-
-      const result = await getCardholder({
-        caipAccountIds: mockFormattedAccounts,
-        cardFeatureFlag: mockCardFeatureFlag,
-      });
-
-      expect(result.geoLocation).toBe('JP');
-      expect(mockControllerMessengerCall).toHaveBeenCalledWith(
-        'GeolocationController:getGeolocation',
-      );
-    });
-
-    it('should return UNKNOWN when getGeolocation rejects', async () => {
-      mockControllerMessengerCall.mockRejectedValue(
-        new Error('Controller unavailable'),
-      );
-      mockCardSDKInstance.isCardHolder.mockResolvedValue([]);
-
-      const result = await getCardholder({
-        caipAccountIds: mockFormattedAccounts,
-        cardFeatureFlag: mockCardFeatureFlag,
-      });
-
-      expect(result.geoLocation).toBe('UNKNOWN');
     });
   });
 });

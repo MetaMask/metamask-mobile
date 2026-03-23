@@ -174,11 +174,6 @@ import {
   SubjectMetadataControllerState,
   ///: END:ONLY_INCLUDE_IF
 } from '@metamask/permission-controller';
-import SwapsController, {
-  SwapsControllerState,
-  SwapsControllerActions,
-  SwapsControllerEvents,
-} from '@metamask/swaps-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import {
   SnapController,
@@ -437,6 +432,7 @@ import {
   ComplianceServiceActions,
   ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Controllers that area always instantiated
@@ -490,7 +486,6 @@ type GlobalActions =
   | AccountTrackerControllerActions
   | AssetsControllerActions
   | NftControllerActions
-  | SwapsControllerActions
   | AddressBookControllerActions
   | ApprovalControllerActions
   | ConnectivityControllerActions
@@ -574,7 +569,6 @@ type GlobalEvents =
   | AccountTrackerControllerEvents
   | AssetsControllerEvents
   | NftControllerEvents
-  | SwapsControllerEvents
   | AddressBookControllerEvents
   | ApprovalControllerEvents
   | ConnectivityControllerEvents
@@ -661,6 +655,7 @@ export type RootExtendedMessenger = ExtendedMessenger<
 export const getRootExtendedMessenger = (): RootExtendedMessenger =>
   new ExtendedMessenger<'Root', GlobalActions, GlobalEvents>({
     namespace: 'Root',
+    captureException,
   });
 
 /**
@@ -672,6 +667,7 @@ export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
 export const getRootMessenger = (): RootMessenger =>
   new Messenger<'Root', GlobalActions, GlobalEvents>({
     namespace: 'Root',
+    captureException,
   });
 
 /**
@@ -738,7 +734,6 @@ export type Controllers = {
   ///: END:ONLY_INCLUDE_IF
   BackendWebSocketService: BackendWebSocketService;
   AccountActivityService: AccountActivityService;
-  SwapsController: SwapsController;
   ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
   MultichainBalancesController: MultichainBalancesController;
   MultichainAssetsRatesController: MultichainAssetsRatesController;
@@ -804,7 +799,6 @@ export type EngineState = {
   TransactionController: TransactionControllerState;
   TransactionPayController: TransactionPayControllerState;
   SmartTransactionsController: SmartTransactionsControllerState;
-  SwapsController: SwapsControllerState;
   GasFeeController: GasFeeState;
   TokensController: TokensControllerState;
   DeFiPositionsController: DeFiPositionsControllerState;
@@ -935,7 +929,6 @@ export type ControllersToInitialize =
   | 'SignatureController'
   | 'SeedlessOnboardingController'
   | 'SmartTransactionsController'
-  | 'SwapsController'
   | 'TokenBalancesController'
   | 'TokenDetectionController'
   | 'TokenListController'

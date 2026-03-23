@@ -109,6 +109,8 @@ export interface BuildQuoteParams {
   nativeFlowError?: string;
   /** Which flow the user used to enter the Buy screen. */
   buyFlowOrigin?: BuyFlowOrigin;
+  /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
+  amount?: number;
 }
 
 /**
@@ -148,13 +150,17 @@ function BuildQuote() {
   const { formatCurrency } = useFormatters();
   const cursorOpacity = useBlinkingCursor();
 
-  const [amount, setAmount] = useState<string>(() => String(DEFAULT_AMOUNT));
-  const [amountAsNumber, setAmountAsNumber] = useState<number>(DEFAULT_AMOUNT);
-  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(false);
+  const params = useParams<BuildQuoteParams>();
+  const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
+
+  const [amount, setAmount] = useState<string>(() => String(initialAmount));
+  const [amountAsNumber, setAmountAsNumber] = useState<number>(initialAmount);
+  const [userHasEnteredAmount, setUserHasEnteredAmount] = useState(
+    params?.amount != null,
+  );
   const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
   const [rampsError, setRampsError] = useState<string | null>(null);
-  const params = useParams<BuildQuoteParams>();
 
   useEffect(() => {
     if (params?.nativeFlowError) {
@@ -573,7 +579,7 @@ function BuildQuote() {
         if (!quote) {
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
-        await transakRouteAfterAuth(quote);
+        await transakRouteAfterAuth(quote, amountAsNumber);
       } else {
         navigation.navigate(
           ...createV2VerifyIdentityNavDetails({
