@@ -1,4 +1,5 @@
 import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
+import Device from '../../../util/device';
 import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
@@ -53,6 +54,8 @@ export const AuthServerUrl = CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL;
 export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
   '/api/v1/oauth/marketing_opt_in_status';
 
+export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
+export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
@@ -60,6 +63,26 @@ export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 export const AndroidGoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
+
+export const getIosGoogleConfig = () => {
+  if (Device.isIos() && Device.comparePlatformVersionTo('17.4') < 0) {
+    if (!IosGoogleRedirectUri || !IosGID) {
+      throw new Error('IosGoogleConfig is not set');
+    }
+    return {
+      clientId: IosGID,
+      redirectUri: IosGoogleRedirectUri,
+    };
+  }
+
+  if (!AndroidGoogleWebGID) {
+    throw new Error('AndroidGoogleWebGID is not set');
+  }
+  return {
+    clientId: AndroidGoogleWebGID,
+    redirectUri: AndroidGoogleRedirectUri,
+  };
+};
 
 export enum SupportedPlatforms {
   Android = 'android',

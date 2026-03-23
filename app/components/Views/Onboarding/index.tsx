@@ -110,6 +110,10 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
+import {
+  navigateToSuccessErrorSheet,
+  navigateToSuccessErrorSheetPromise,
+} from '../SuccessErrorSheet/utils';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -575,21 +579,6 @@ const Onboarding = () => {
         ) {
           // QA: do not show error sheet if user cancelled
           return;
-        } else if (error.code === OAuthErrorType.IosGoogleLoginNotSupported) {
-          navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-            screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-            params: {
-              type: 'error',
-              title: strings(
-                `error_sheet.ios_google_login_not_supported_title`,
-              ),
-              description: strings(
-                `error_sheet.ios_google_login_not_supported_description`,
-              ),
-              descriptionAlign: 'center',
-            },
-          });
-          return;
         } else if (
           error.code === OAuthErrorType.GoogleLoginNoCredential ||
           error.code === OAuthErrorType.GoogleLoginNoMatchingCredential ||
@@ -774,6 +763,19 @@ const Onboarding = () => {
       });
 
       const action = async () => {
+        if (
+          Platform.OS === 'ios' &&
+          Device.comparePlatformVersionTo('17.4') < 0
+        ) {
+          await navigateToSuccessErrorSheetPromise(navigation, {
+            type: 'error',
+            title: strings(`error_sheet.ios_google_login_not_supported_title`),
+            description: strings(
+              `error_sheet.ios_google_login_not_supported_description`,
+            ),
+            descriptionAlign: 'center',
+          });
+        }
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
         try {

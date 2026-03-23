@@ -11,6 +11,7 @@ import {
   AndroidGoogleRedirectUri,
   AppleWebClientId,
   web3AuthNetwork,
+  getIosGoogleConfig,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
 import { BaseLoginHandler } from './baseHandler';
@@ -36,13 +37,14 @@ export function createLoginHandler(
   ) {
     throw new Error('Missing environment variables');
   }
+  const iosGoogleConfig = getIosGoogleConfig();
   switch (platformOS) {
     case 'ios':
       switch (provider) {
         case AuthConnection.Google:
           return new IosGoogleLoginHandler({
-            clientId: AndroidGoogleWebGID,
-            redirectUri: AndroidGoogleRedirectUri,
+            clientId: iosGoogleConfig.clientId,
+            redirectUri: iosGoogleConfig.redirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
