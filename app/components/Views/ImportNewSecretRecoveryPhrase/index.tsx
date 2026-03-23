@@ -9,11 +9,6 @@ import React, {
 import { Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../component-library/components/Buttons/Button';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -27,7 +22,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Button,
   ButtonIcon,
+  ButtonSize,
+  ButtonVariant,
   IconName,
   IconColor,
   Text,
@@ -317,15 +315,16 @@ const ImportNewSecretRecoveryPhrase = () => {
       </KeyboardAwareScrollView>
       <Box twClassName="px-4 py-4 bg-default">
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('import_new_secret_recovery_phrase.cta_text')}
+          isFullWidth
           onPress={onSubmit}
           isDisabled={isSRPContinueButtonDisabled || loading}
-          loading={loading}
+          isLoading={loading}
           testID={ImportSRPIDs.IMPORT_BUTTON}
-        />
+        >
+          {strings('import_new_secret_recovery_phrase.cta_text')}
+        </Button>
       </Box>
       {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
         <KeyboardStickyView
