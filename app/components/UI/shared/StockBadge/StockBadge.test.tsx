@@ -10,6 +10,7 @@ const mockStyles = {
   stockBadge: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     backgroundColor: '#f0f0f0',
     borderRadius: 10,
     paddingHorizontal: 6,
