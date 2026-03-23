@@ -65,6 +65,15 @@ export const mockedEngine = {
       setLocked: jest.fn(),
       createNewVaultAndRestore: jest.fn(),
       createNewVaultAndKeychain: jest.fn(),
+      getAccountKeyringType: jest.fn().mockResolvedValue('HD Key Tree'),
+    },
+    PhishingController: {
+      maybeUpdateState: jest.fn(),
+      test: jest.fn(() => ({ result: false })),
+      scanUrl: jest.fn(() => ({ recommendedAction: 'NONE' })),
+    },
+    AssetsContractController: {
+      getERC20BalanceOf: jest.fn().mockResolvedValue('0'),
     },
     MultichainNetworkController: {
       state: {
