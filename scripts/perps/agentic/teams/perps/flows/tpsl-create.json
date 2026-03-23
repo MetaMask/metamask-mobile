@@ -1,17 +1,19 @@
 {
-  "title": "TP/SL — create take-profit {{takeProfitPrice}} stop-loss {{stopLossPrice}} for {{symbol}}",
+  "title": "TP/SL — create +{{tpPreset}}% TP / {{slPreset}}% SL for {{symbol}}",
   "inputs": {
     "symbol": {
       "type": "string",
       "description": "Market symbol with open position"
     },
-    "takeProfitPrice": {
+    "tpPreset": {
       "type": "string",
-      "description": "Take-profit trigger price"
+      "default": "25",
+      "description": "Take-profit RoE preset to press (10, 25, 50, 100)"
     },
-    "stopLossPrice": {
+    "slPreset": {
       "type": "string",
-      "description": "Stop-loss trigger price"
+      "default": "-10",
+      "description": "Stop-loss RoE preset to press (-5, -10, -25, -50)"
     }
   },
   "validate": {
@@ -56,36 +58,24 @@
           "route": "PerpsTPSL"
         },
         {
-          "id": "set-tp",
-          "action": "set_input",
-          "test_id": "perps-tpsl-tp-input",
-          "value": "{{takeProfitPrice}}"
-        },
-        {
-          "id": "wait-tp-input",
+          "id": "wait-tp-button",
           "action": "wait_for",
-          "test_id": "perps-tpsl-sl-input"
+          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}"
         },
         {
-          "id": "set-sl",
-          "action": "set_input",
-          "test_id": "perps-tpsl-sl-input",
-          "value": "{{stopLossPrice}}"
+          "id": "press-tp-preset",
+          "action": "press",
+          "test_id": "perps-tpsl-take-profit-percentage-button-{{tpPreset}}"
         },
         {
-          "id": "wait-sl-input",
+          "id": "wait-sl-button",
           "action": "wait_for",
-          "test_id": "perps-tpsl-bottomsheet"
+          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}"
         },
         {
-          "id": "assert-no-validation-error",
-          "action": "log_watch",
-          "window_seconds": 2,
-          "must_not_appear": [
-            "validation error",
-            "invalid price",
-            "tpsl error"
-          ]
+          "id": "press-sl-preset",
+          "action": "press",
+          "test_id": "perps-tpsl-stop-loss-percentage-button-{{slPreset}}"
         },
         {
           "id": "assert-tpsl-screen-intact",

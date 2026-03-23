@@ -138,7 +138,7 @@
           "enum": [
             "navigate", "eval_sync", "eval_async", "eval_ref",
             "press", "scroll", "set_input", "type_keypad", "clear_keypad",
-            "flow_ref", "log_watch", "wait", "screenshot", "manual",
+            "flow_ref", "log_watch", "wait", "wait_for", "screenshot", "manual",
             "select_account", "toggle_testnet", "switch_provider"
           ]
         },
@@ -296,6 +296,20 @@
               "provider": { "type": "string", "description": "Provider ID (hyperliquid, myx, aggregated)." }
             },
             "required": ["provider"]
+          }
+        },
+        {
+          "if": { "properties": { "action": { "const": "wait_for" } } },
+          "then": {
+            "properties": {
+              "expression": { "type": "string", "description": "ES5 JS expression to poll (sync or async with .then()). Used when route/test_id sugar is not sufficient." },
+              "route": { "type": "string", "description": "Shorthand: poll until current route name equals this value. Expands to a getRoute() expression + eq assert." },
+              "not_route": { "type": "string", "description": "Shorthand: poll until current route name does NOT equal this value (e.g. wait to leave a screen)." },
+              "test_id": { "type": "string", "description": "Shorthand: poll until a component with this testID exists (or disappears if visible=false) in the React fiber tree." },
+              "visible": { "type": "boolean", "default": true, "description": "Used with test_id: true = wait for element to appear, false = wait for element to disappear." },
+              "timeout_ms": { "type": "number", "default": 10000, "description": "Max wait in milliseconds before failing." },
+              "poll_ms": { "type": "number", "default": 500, "description": "Polling interval in milliseconds." }
+            }
           }
         }
       ]

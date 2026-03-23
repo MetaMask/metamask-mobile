@@ -135,6 +135,7 @@ interface AgenticBridge {
   }>;
   showStep: (step: { id: string; description: string }) => void;
   hideStep: () => void;
+  findFiberByTestId: (testId: string) => boolean;
 }
 
 declare global {
@@ -401,6 +402,17 @@ const AgenticService = {
       },
       hideStep: () => {
         _stepHudCallback?.(null);
+      },
+      findFiberByTestId: (testId: string): boolean => {
+        let found = false;
+        walkFiberRoots((rootFiber) => {
+          if (findFiberByTestId(rootFiber, testId)) {
+            found = true;
+            return true;
+          }
+          return false;
+        });
+        return found;
       },
       setupWallet: async (fixture) => {
         try {

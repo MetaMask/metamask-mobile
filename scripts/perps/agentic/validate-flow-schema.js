@@ -52,7 +52,7 @@ const STRUCTURAL = new Set([
 ]);
 
 /** log_watch uses must_not_appear as its assertion — counts as asserting. */
-const SELF_ASSERTING = new Set(['log_watch']);
+const SELF_ASSERTING = new Set(['log_watch', 'wait_for']);
 
 const ALL_KNOWN = new Set([...MUST_ASSERT, ...STRUCTURAL, ...SELF_ASSERTING]);
 
@@ -99,6 +99,13 @@ function validateFlow(filePath) {
     if (MUST_ASSERT.has(action) && !('assert' in step)) {
       issues.push(
         `  [${id}] action="${action}" has no assert — add at minimum {"operator":"not_null"}`,
+      );
+    }
+
+    // Rule 1b: wait_for with expression (no route/not_route/test_id sugar) must have assert
+    if (action === 'wait_for' && !('assert' in step) && !('route' in step) && !('not_route' in step) && !('test_id' in step)) {
+      issues.push(
+        `  [${id}] wait_for with expression requires an assert block (or use route/not_route/test_id sugar)`,
       );
     }
   });

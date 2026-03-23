@@ -455,6 +455,73 @@ while IFS= read -r sj; do
         RESULT="{\"ok\":true,\"deleted\":$CK_COUNT}"
       fi
       ;;
+    wait_for)
+      WF_EXPR=$(node -p "JSON.parse(process.argv[1]).expression||''" "$sj")
+      WF_ROUTE=$(node -p "JSON.parse(process.argv[1]).route||''" "$sj")
+      WF_NROUTE=$(node -p "JSON.parse(process.argv[1]).not_route||''" "$sj")
+      WF_TID=$(node -p "JSON.parse(process.argv[1]).test_id||''" "$sj")
+      WF_TIMEOUT=$(node -p "JSON.parse(process.argv[1]).timeout_ms||10000" "$sj")
+      WF_POLL=$(node -p "JSON.parse(process.argv[1]).poll_ms||500" "$sj")
+
+      # Resolve expression + assertion from sugar (priority: route > not_route > test_id > expression)
+      if [ -n "$WF_ROUTE" ]; then
+        WF_EXPR="JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})"
+        A_JSON=$(printf '{"operator":"eq","field":"route","value":"%s"}' "$WF_ROUTE")
+        HAS_A=true
+        echo "  -> wait_for route=$WF_ROUTE (timeout=${WF_TIMEOUT}ms)"
+      elif [ -n "$WF_NROUTE" ]; then
+        WF_EXPR="JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})"
+        A_JSON=$(printf '{"operator":"not_contains","field":"route","value":"%s"}' "$WF_NROUTE")
+        HAS_A=true
+        echo "  -> wait_for not_route=$WF_NROUTE (timeout=${WF_TIMEOUT}ms)"
+      elif [ -n "$WF_TID" ]; then
+        WF_VISIBLE=$(node -p "JSON.parse(process.argv[1]).visible!==false" "$sj")
+        WF_EXPR="JSON.stringify({visible:globalThis.__AGENTIC__.findFiberByTestId('$WF_TID')})"
+        if [ "$WF_VISIBLE" = "true" ]; then
+          A_JSON='{"operator":"eq","field":"visible","value":true}'
+          echo "  -> wait_for testID=$WF_TID visible=true (timeout=${WF_TIMEOUT}ms)"
+        else
+          A_JSON='{"operator":"eq","field":"visible","value":false}'
+          echo "  -> wait_for testID=$WF_TID visible=false (timeout=${WF_TIMEOUT}ms)"
+        fi
+        HAS_A=true
+      else
+        echo "  -> wait_for expression (timeout=${WF_TIMEOUT}ms, poll=${WF_POLL}ms)"
+      fi
+
+      if [ "$DRY" = true ]; then
+        SKIPPED=$((SKIPPED + 1)); echo "  [DRY RUN - not executed]"; echo ""; continue
+      fi
+
+      # Determine eval mode: async if expression contains .then(
+      WF_EVAL_MODE="eval"
+      case "$WF_EXPR" in *".then("*) WF_EVAL_MODE="eval-async" ;; esac
+
+      # Poll loop
+      WF_DEADLINE=$(node -p "Date.now()+$WF_TIMEOUT")
+      WF_PASSED=false
+      while true; do
+        RESULT=$(node "$SD/cdp-bridge.js" "$WF_EVAL_MODE" "$WF_EXPR" 2>/dev/null) || RESULT=""
+        if [ -n "$RESULT" ] && [ "$HAS_A" = "true" ]; then
+          AR=$(check_assert "$RESULT" "$A_JSON")
+          if [[ "$AR" == PASS* ]]; then
+            WF_PASSED=true
+            break
+          fi
+        fi
+        WF_NOW=$(node -p "Date.now()")
+        [ "$WF_NOW" -ge "$WF_DEADLINE" ] && break
+        sleep "$(node -p "(+process.argv[1]/1000).toFixed(2)" "$WF_POLL")"
+      done
+
+      [ -n "$RESULT" ] && echo "  -> Result: ${RESULT:0:200}"
+      if [ "$WF_PASSED" = true ]; then
+        echo "  ✅ PASS"; PASSED=$((PASSED + 1))
+      else
+        echo "  ❌ FAIL: wait_for timed out after ${WF_TIMEOUT}ms"; fail_recipe
+      fi
+      echo ""; continue
+      ;;
     *)
       echo "  ❌ FAIL: unknown action '$ACT'"
       FAILED=$((FAILED + 1)); echo ""; continue
