@@ -262,14 +262,27 @@ jest.mock('../../../../../component-library/hooks', () => ({
 ```
 
 ```ts
-// ✅ CORRECT: derive tailwind mock colors from mockTheme
+// ✅ CORRECT: mock useTailwind with the right shape
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    // Most components only need tw.style(...)
+    style: jest.fn(() => ({})),
+  }),
+}));
+```
+
+```ts
+// ✅ ALSO CORRECT: match real useTailwind() return type (callable function + helpers)
 import { mockTheme } from '../../util/theme';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-    color: jest.fn(() => mockTheme.colors.text.default),
-  }),
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = jest.fn(() => ({}));
+    // Only add tw.color if the component under test calls it.
+    tw.color = jest.fn(() => mockTheme.colors.text.default);
+    return tw;
+  },
 }));
 ```
 
