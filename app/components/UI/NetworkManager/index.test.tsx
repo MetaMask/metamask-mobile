@@ -1108,6 +1108,9 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
@@ -1143,6 +1146,9 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
@@ -1168,6 +1174,9 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
       });
@@ -1195,6 +1204,9 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
@@ -1226,6 +1238,9 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
