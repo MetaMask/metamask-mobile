@@ -1,6 +1,6 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import {
   useHardwareWallet,
@@ -20,7 +20,7 @@ const LedgerConfirmationModal = ({
   deviceId,
   operationType = 'transaction',
 }: LedgerConfirmationModalProps) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const hasStartedRef = useRef(false);
   const hasRejectedRef = useRef(false);
 

@@ -26,13 +26,30 @@ import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipa
 
 interface CampaignTileProps {
   campaign: CampaignDto;
+  /**
+   * Whether the tile is interactive (pressable). Defaults to true.
+   * When false, the tile is displayed but cannot be tapped.
+   */
+  isInteractive?: boolean;
+  /**
+   * Custom press handler. If provided, this is called instead of the default
+   * navigation to campaign details. Only used when isInteractive is true.
+   */
+  onPress?: () => void;
 }
 
 /**
  * CampaignTile displays campaign information with status.
- * Tapping navigates to the campaign details screen.
+ * Tapping behavior can be customized via props:
+ * - Default: navigates to campaign details screen
+ * - With onPress: executes custom handler
+ * - With isInteractive=false: tile is not pressable
  */
-const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
+const CampaignTile: React.FC<CampaignTileProps> = ({
+  campaign,
+  isInteractive = true,
+  onPress,
+}) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
@@ -58,16 +75,23 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
       : campaign.details?.image?.lightModeUrl;
 
   const handlePress = () => {
-    navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaignId: campaign.id });
+    if (!isInteractive) return;
+
+    if (onPress) {
+      onPress();
+    } else {
+      navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaignId: campaign.id });
+    }
   };
 
   return (
     <Pressable
       onPress={handlePress}
+      disabled={!isInteractive}
       style={({ pressed }) =>
         tw.style(
           'rounded-xl overflow-hidden h-50 bg-muted',
-          pressed && 'opacity-70',
+          pressed && isInteractive && 'opacity-70',
         )
       }
       testID={`campaign-tile-${campaign.id}`}
