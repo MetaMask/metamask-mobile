@@ -7,6 +7,14 @@ import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import Clipboard from '@react-native-clipboard/clipboard';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
 
+type RampsOrderWithPaymentDetails = RampsOrder & {
+  paymentDetails: {
+    fiatCurrency: string;
+    paymentMethod: string;
+    fields: { name: string; id: string; value: string }[];
+  }[];
+};
+
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -177,6 +185,84 @@ describe('OrderContent', () => {
     ).toBeOnTheScreen();
   });
 
+  it('does not render bank details section when paymentDetails is absent', () => {
+    renderOrder(mockOrder);
+
+    expect(screen.queryByText('To complete your order')).toBeNull();
+  });
+
+  it('does not render bank details section when paymentDetails has no matching fields', () => {
+    const orderWithPaymentDetails: RampsOrderWithPaymentDetails = {
+      ...mockOrder,
+      paymentDetails: [
+        {
+          fiatCurrency: 'USD',
+          paymentMethod: 'credit_debit_card',
+          fields: [],
+        },
+      ],
+    };
+
+    renderOrder(orderWithPaymentDetails);
+
+    expect(screen.queryByText('To complete your order')).toBeNull();
+  });
+
+  it('renders bank details section when paymentDetails has bank transfer fields', () => {
+    const orderWithPaymentDetails: RampsOrderWithPaymentDetails = {
+      ...mockOrder,
+      paymentDetails: [
+        {
+          fiatCurrency: 'USD',
+          paymentMethod: 'manual_bank_transfer',
+          fields: [
+            { name: 'Amount', id: 'amount', value: '$100.00' },
+            {
+              name: 'Routing Number',
+              id: 'routingNumber',
+              value: '021000021',
+            },
+            {
+              name: 'Account Number',
+              id: 'accountNumber',
+              value: '1234567890',
+            },
+          ],
+        },
+      ],
+    };
+
+    renderOrder(orderWithPaymentDetails);
+
+    expect(screen.getByText('To complete your order')).toBeOnTheScreen();
+    expect(screen.getByText(/Routing number/i)).toBeOnTheScreen();
+    expect(screen.getByText('021000021')).toBeOnTheScreen();
+  });
+
+  it('renders bank details section when paymentDetails only includes SEPA fields', () => {
+    const orderWithPaymentDetails: RampsOrderWithPaymentDetails = {
+      ...mockOrder,
+      paymentDetails: [
+        {
+          fiatCurrency: 'EUR',
+          paymentMethod: 'sepa_bank_transfer',
+          fields: [
+            { name: 'IBAN', id: 'iban', value: 'DE89370400440532013000' },
+            { name: 'BIC', id: 'bic', value: 'COBADEFFXXX' },
+          ],
+        },
+      ],
+    };
+
+    renderOrder(orderWithPaymentDetails);
+
+    expect(screen.getByText('To complete your order')).toBeOnTheScreen();
+    expect(screen.getByText(/^IBAN$/i)).toBeOnTheScreen();
+    expect(screen.getByText('DE89370400440532013000')).toBeOnTheScreen();
+    expect(screen.getByText(/^BIC$/i)).toBeOnTheScreen();
+    expect(screen.getByText('COBADEFFXXX')).toBeOnTheScreen();
+  });
+
   it('truncates long crypto amounts to 5 decimal places', () => {
     const longDecimalOrder: RampsOrder = {
       ...mockOrder,
@@ -195,7 +281,7 @@ describe('OrderContent', () => {
     };
     renderOrder(tinyAmountOrder);
     const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
-    // 0.00000614 has 5 leading zeros → "0.0₅614"
+    // 0.00000614 has 5 leading zeros -> "0.0₅614"
     expect(tokenAmount).toHaveTextContent('0.0₅614 ETH');
   });
 
