@@ -1,0 +1,367 @@
+name: Generate RC Test Plan
+
+# Trigger when Bitrise posts "RC Builds Ready for Testing" comment
+on:
+  issue_comment:
+    types: [created]
+
+jobs:
+  generate-test-plan:
+    name: Generate AI Test Plan
+    # Only run when:
+    # 1. Comment is on a PR (not an issue)
+    # 2. Comment contains "RC Builds Ready for Testing"
+    # 3. Comment is from github-actions bot (Bitrise posts via this)
+    if: |
+      github.event.issue.pull_request &&
+      contains(github.event.comment.body, 'RC Builds Ready for Testing') &&
+      github.event.comment.user.login == 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    environment: release-ci
+    timeout-minutes: 15
+    permissions:
+      contents: write
+      pull-requests: write
+      issues: write
+    env:
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      E2E_CLAUDE_API_KEY: ${{ secrets.E2E_CLAUDE_API_KEY }}
+      E2E_OPENAI_API_KEY: ${{ secrets.E2E_OPENAI_API_KEY }}
+      E2E_GEMINI_API_KEY: ${{ secrets.E2E_GEMINI_API_KEY }}
+      PR_NUMBER: ${{ github.event.issue.number }}
+
+    steps:
+      - name: Check if release PR
+        id: check-release
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const pr = await github.rest.pulls.get({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              pull_number: process.env.PR_NUMBER
+            });
+
+            const isRelease = pr.data.head.ref.startsWith('release/');
+            console.log(`PR branch: ${pr.data.head.ref}, isRelease: ${isRelease}`);
+
+            if (!isRelease) {
+              console.log('Not a release PR, skipping test plan generation');
+              return;
+            }
+
+            // Extract version from branch name (e.g., release/7.70.0 -> 7.70.0)
+            // Sanitize to prevent shell injection - only allow semver chars
+            const rawVersion = pr.data.head.ref.replace('release/', '');
+            const version = rawVersion.replace(/[^0-9.]/g, '');
+            if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
+              console.log(`Invalid version format: ${rawVersion}`);
+              return;
+            }
+            core.setOutput('version', version);
+            core.setOutput('is_release', 'true');
+            core.setOutput('pr_title', pr.data.title);
+
+      - name: Checkout repository
+        if: steps.check-release.outputs.is_release == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        if: steps.check-release.outputs.is_release == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'yarn'
+
+      - name: Install dependencies
+        if: steps.check-release.outputs.is_release == 'true'
+        run: yarn install --frozen-lockfile
+
+      - name: Extract build number from comment
+        if: steps.check-release.outputs.is_release == 'true'
+        id: extract-build
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const comment = context.payload.comment.body;
+            // Match build number from "RC X.Y.Z (BUILD)" pattern specifically
+            // e.g., "RC 7.65.0 (4025)" captures "4025"
+            const buildMatch = comment.match(/RC\s+\d+\.\d+\.\d+\s*\((\d+)\)/i);
+            if (buildMatch) {
+              const buildNumber = buildMatch[1];
+              console.log(`Extracted build number: ${buildNumber}`);
+              core.setOutput('build_number', buildNumber);
+            } else {
+              console.log('Could not extract build number from comment');
+              core.setOutput('build_number', '');
+            }
+
+      - name: Generate test plan
+        if: steps.check-release.outputs.is_release == 'true'
+        id: generate
+        run: |
+          VERSION="${{ steps.check-release.outputs.version }}"
+          RAW_BUILD="${{ steps.extract-build.outputs.build_number }}"
+          # Sanitize BUILD to only allow digits
+          BUILD=$(echo "$RAW_BUILD" | tr -cd '0-9')
+
+          echo "Generating test plan for version: $VERSION, build: $BUILD"
+
+          # Sanitize PR_NUMBER to only allow digits
+          PR_NUM=$(echo "${{ env.PR_NUMBER }}" | tr -cd '0-9')
+
+          # Run the analyzer
+          if node -r esbuild-register tests/tools/e2e-ai-analyzer \
+            --mode generate-test-plan \
+            --pr "$PR_NUM" \
+            --auto-ff \
+            -v "$VERSION"; then
+
+            echo "test_plan_generated=true" >> "${GITHUB_OUTPUT}"
+          else
+            echo "Warning: Test plan generation failed"
+            echo "test_plan_generated=false" >> "${GITHUB_OUTPUT}"
+          fi
+
+      - name: Generate HTML viewer
+        if: steps.generate.outputs.test_plan_generated == 'true'
+        run: |
+          VERSION="${{ steps.check-release.outputs.version }}"
+          BUILD="${{ steps.extract-build.outputs.build_number }}"
+
+          # Create test-plans directory
+          mkdir -p test-plans
+
+          # Move JSON
+          mv release-test-plan.json "test-plans/test-plan-${VERSION}.json"
+
+          # Generate HTML viewer
+          node -e "
+          const fs = require('fs');
+          const plan = JSON.parse(fs.readFileSync('test-plans/test-plan-${VERSION}.json', 'utf8'));
+
+          // Escape HTML to prevent XSS from LLM-generated content
+          const esc = (s) => (s == null ? '' : String(s)).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/\"/g, '&quot;');
+
+          const html = \`<!DOCTYPE html>
+          <html lang=\"en\">
+          <head>
+            <meta charset=\"UTF-8\">
+            <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">
+            <title>RC \${esc(plan.version) || '${VERSION}'} Test Plan</title>
+            <style>
+              * { box-sizing: border-box; }
+              body {
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                max-width: 900px; margin: 0 auto; padding: 20px;
+                background: #f5f5f5; color: #333;
+              }
+              h1 { color: #1a1a1a; border-bottom: 3px solid #037dd6; padding-bottom: 10px; }
+              h2 { color: #037dd6; margin-top: 30px; }
+              h3 { color: #444; }
+              .summary { background: #fff; padding: 20px; border-radius: 8px; margin: 20px 0; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+              .summary-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 15px; }
+              .stat { text-align: center; padding: 15px; background: #f8f9fa; border-radius: 6px; }
+              .stat-value { font-size: 24px; font-weight: bold; color: #037dd6; }
+              .stat-label { font-size: 12px; color: #666; margin-top: 5px; }
+              .risk-high { border-left: 4px solid #d73a49; }
+              .risk-medium { border-left: 4px solid #f9a825; }
+              .scenario { background: #fff; padding: 20px; margin: 15px 0; border-radius: 8px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+              .scenario h3 { margin-top: 0; }
+              .badge { display: inline-block; padding: 3px 8px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+              .badge-high { background: #ffeef0; color: #d73a49; }
+              .badge-medium { background: #fff8e1; color: #f57c00; }
+              .steps { background: #f8f9fa; padding: 15px; border-radius: 6px; margin-top: 10px; }
+              .steps li { margin: 8px 0; }
+              .preconditions { background: #e3f2fd; padding: 10px 15px; border-radius: 6px; margin: 10px 0; }
+              .outcomes { background: #e8f5e9; padding: 10px 15px; border-radius: 6px; margin: 10px 0; }
+              .executive { background: linear-gradient(135deg, #037dd6 0%, #0260a8 100%); color: white; padding: 25px; border-radius: 8px; margin: 20px 0; }
+              .executive h2 { color: white; margin-top: 0; }
+              .teams { display: flex; flex-wrap: wrap; gap: 8px; margin: 15px 0; }
+              .team { background: #e3f2fd; padding: 5px 12px; border-radius: 20px; font-size: 13px; }
+              .footer { text-align: center; margin-top: 40px; padding: 20px; color: #666; font-size: 13px; }
+              a { color: #037dd6; }
+            </style>
+          </head>
+          <body>
+            <h1>🧪 RC \${esc(plan.version) || '${VERSION}'} Test Plan</h1>
+            <p>Build: \${plan.buildNumber || '${BUILD}'} | Generated: \${new Date(plan.generatedAt).toLocaleString()}</p>
+
+            \${plan.executiveSummary ? \`
+            <div class=\"executive\">
+              <h2>📊 Executive Summary</h2>
+              <p><strong>\${esc(plan.executiveSummary.releaseFocus)}</strong></p>
+              <p><strong>Key Changes:</strong></p>
+              <ul>\${plan.executiveSummary.keyChanges.map(c => '<li>' + esc(c) + '</li>').join('')}</ul>
+              <p><strong>Risk Level:</strong> \${esc(plan.executiveSummary.overallRisk).toUpperCase()}</p>
+              <p><strong>Recommendation:</strong> \${esc(plan.executiveSummary.recommendation)}</p>
+            </div>
+            \` : ''}
+
+            <div class=\"summary\">
+              <h2>📈 Summary</h2>
+              <div class=\"summary-grid\">
+                <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.releaseRiskScore || '0/100'}</div><div class=\"stat-label\">Risk Score</div></div>
+                <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.totalFiles || plan.summary?.totalFilesChanged || 0}</div><div class=\"stat-label\">Files Changed</div></div>
+                <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.highImpactFiles || 0}</div><div class=\"stat-label\">High Impact</div></div>
+                <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.highRiskCount || plan.summary?.highRiskScenarios || 0}</div><div class=\"stat-label\">High Risk</div></div>
+                <div class=\"stat\"><div class=\"stat-value\">\${plan.summary?.mediumRiskCount || plan.summary?.mediumRiskScenarios || 0}</div><div class=\"stat-label\">Medium Risk</div></div>
+              </div>
+            </div>
+
+            \${(plan.signOffs?.needsAttention?.length || plan.teamsNeedingSignOff?.length) ? \`
+            <h2>👥 Teams Needing Sign-off</h2>
+            <div class=\"teams\">\${(plan.signOffs?.needsAttention || plan.teamsNeedingSignOff || []).map(t => '<span class=\"team\">⏳ ' + esc(t) + '</span>').join('')}</div>
+            \` : ''}
+
+            \${plan.testScenarios?.cherryPickScenarios?.length ? \`
+            <h2>🍒 Cherry-Pick Scenarios</h2>
+            \${plan.testScenarios.cherryPickScenarios.map((s, i) => \`
+            <div class=\"scenario risk-high\">
+              <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-high\">CHERRY-PICK</span></h3>
+              <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${(s.testSteps || []).map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+            </div>
+            \`).join('')}
+            \` : ''}
+
+            <h2>🔴 High Risk Areas</h2>
+            \${(plan.scenarios || plan.testScenarios?.initialScenarios || []).filter(s => s.riskLevel === 'high').map((s, i) => \`
+            <div class=\"scenario risk-high\">
+              <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-high\">HIGH</span></h3>
+              <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
+              \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul></div>' : ''}
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${(s.testSteps || []).map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+              \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + esc(o) + '</li>').join('') + '</ul></div>' : ''}
+            </div>
+            \`).join('')}
+
+            <h2>🟡 Medium Risk Areas</h2>
+            \${(plan.scenarios || plan.testScenarios?.initialScenarios || []).filter(s => s.riskLevel === 'medium').map((s, i) => \`
+            <div class=\"scenario risk-medium\">
+              <h3>\${i + 1}. \${esc(s.area)} <span class=\"badge badge-medium\">MEDIUM</span></h3>
+              <p><strong>Why:</strong> \${esc(s.whyThisMatters)}</p>
+              \${s.preconditions?.length ? '<div class=\"preconditions\"><strong>Preconditions:</strong><ul>' + s.preconditions.map(p => '<li>' + esc(p) + '</li>').join('') + '</ul></div>' : ''}
+              <div class=\"steps\"><strong>Test Steps:</strong><ol>\${(s.testSteps || []).map(step => '<li>' + esc(step) + '</li>').join('')}</ol></div>
+              \${s.expectedOutcomes?.length ? '<div class=\"outcomes\"><strong>Expected Outcomes:</strong><ul>' + s.expectedOutcomes.map(o => '<li>✓ ' + esc(o) + '</li>').join('') + '</ul></div>' : ''}
+            </div>
+            \`).join('')}
+
+            <div class=\"footer\">
+              <p>Generated by AI Test Plan Analyzer | <a href=\"https://github.com/MetaMask/metamask-mobile\">MetaMask Mobile</a></p>
+              <p><a href=\"test-plan-${VERSION}.json\">Download JSON</a></p>
+            </div>
+          </body>
+          </html>\`;
+
+          fs.writeFileSync('test-plans/test-plan-${VERSION}.html', html);
+          console.log('Generated HTML viewer');
+          "
+
+      - name: Deploy to GitHub Pages
+        if: steps.generate.outputs.test_plan_generated == 'true'
+        run: |
+          VERSION="${{ steps.check-release.outputs.version }}"
+
+          # Save generated files to temp before switching branches
+          cp test-plans/test-plan-${VERSION}.json /tmp/
+          cp test-plans/test-plan-${VERSION}.html /tmp/
+
+          # Clean up to avoid conflicts when switching branches
+          rm -rf test-plans
+
+          # Configure git
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          # Fetch gh-pages branch or create it
+          git fetch origin gh-pages:gh-pages 2>/dev/null || echo "gh-pages doesn't exist yet"
+
+          # Switch to gh-pages (create orphan if it doesn't exist)
+          if git checkout gh-pages 2>/dev/null; then
+            echo "Switched to existing gh-pages branch"
+          else
+            # Create orphan branch and clear the index to avoid committing entire repo
+            git checkout --orphan gh-pages
+            git rm -rf . 2>/dev/null || true
+            git clean -fd 2>/dev/null || true
+          fi
+
+          # Create test-plans directory
+          mkdir -p test-plans
+
+          # Copy files from temp (overwrites if exists - handles re-runs)
+          cp /tmp/test-plan-${VERSION}.json test-plans/
+          cp /tmp/test-plan-${VERSION}.html test-plans/
+
+          # Add and commit
+          git add test-plans/
+          git commit -m "Add test plan for RC ${VERSION}" || echo "No changes to commit"
+
+          # Push to gh-pages
+          git push origin gh-pages
+
+      - name: Update build comment with test plan links
+        if: steps.generate.outputs.test_plan_generated == 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.check-release.outputs.version }}';
+            const buildNumber = '${{ steps.extract-build.outputs.build_number }}';
+            const commentId = context.payload.comment.id;
+
+            // Fetch latest comment body to avoid race conditions
+            const { data: comment } = await github.rest.issues.getComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId
+            });
+            const currentBody = comment.body;
+
+            const baseUrl = `https://metamask.github.io/metamask-mobile/test-plans`;
+            const htmlUrl = `${baseUrl}/test-plan-${version}.html`;
+            const jsonUrl = `${baseUrl}/test-plan-${version}.json`;
+
+            // Add test plan row to the existing comment
+            const testPlanSection = `
+
+            ---
+            🤖 **AI Test Plan:** [View](${htmlUrl}) | [JSON](${jsonUrl})`;
+
+            // Update the comment
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body: currentBody + testPlanSection
+            });
+
+      - name: Post failure notice
+        if: steps.check-release.outputs.is_release == 'true' && steps.generate.outputs.test_plan_generated != 'true'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const version = '${{ steps.check-release.outputs.version }}';
+            const commentId = context.payload.comment.id;
+            const runId = context.runId;
+            const logsUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${runId}`;
+
+            // Fetch latest comment body to avoid race conditions
+            const { data: comment } = await github.rest.issues.getComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId
+            });
+            const currentBody = comment.body;
+
+            const failureSection = `
+
+            ---
+            ⚠️ **AI Test Plan generation failed** - [View logs](${logsUrl})`;
+
+            await github.rest.issues.updateComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              comment_id: commentId,
+              body: currentBody + failureSection
+            });

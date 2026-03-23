@@ -1,3 +1,4 @@
 export enum TronUnstakedBannerTestIds {
-  BANNER_TEXT = 'tron-unstaked-banner',
+  BANNER_DESCRIPTION = 'tron-unstaked-banner-description',
+  CLAIM_BUTTON = 'tron-unstaked-banner-button',
 }

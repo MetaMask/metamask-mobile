@@ -24,6 +24,7 @@ import { BottomSheetRef } from '../../../../../component-library/components/Bott
 import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { ButtonVariants } from '../../../../../component-library/components/Buttons/Button/Button.types';
+import { PREDICT_UNAVAILABLE_TEST_IDS } from './PredictUnavailable.testIds';
 
 interface PredictUnavailableProps {
   onDismiss?: () => void;
@@ -123,7 +124,7 @@ const PredictUnavailable = forwardRef<
 
       <TouchableOpacity
         onPress={handlePolymarketTermsPress}
-        testID="polymarket-terms-link"
+        testID={PREDICT_UNAVAILABLE_TEST_IDS.POLYMARKET_TERMS_LINK}
         activeOpacity={0.8}
       >
         <Box

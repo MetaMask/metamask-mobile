@@ -22,6 +22,7 @@ import {
   FALLBACK_DAPP_SERVER_PORT,
 } from '../framework/Constants.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
+import { logLiveMetaMetricsPostIfDebug } from '../helpers/analytics/analyticsDebug.ts';
 
 const logger = createLogger({
   name: 'MockServer',
@@ -194,8 +195,10 @@ export default class MockServerE2E implements Resource {
   private _activeRequests = 0;
   private _shuttingDown = false;
   private _abortFilterHandler: ((...args: unknown[]) => void) | null = null;
+  private _abortExceptionHandler: ((...args: unknown[]) => void) | null = null;
   private _abortSuppressCount = 0;
   private _originalRejectionHandlers: ((...args: unknown[]) => void)[] = [];
+  private _originalExceptionHandlers: ((...args: unknown[]) => void)[] = [];
 
   constructor(params: {
     events: MockEventsObject;
@@ -304,6 +307,10 @@ export default class MockServerE2E implements Resource {
             } catch (e) {
               requestBodyText = undefined;
             }
+          }
+
+          if (method === 'POST') {
+            logLiveMetaMetricsPostIfDebug(urlEndpoint, requestBodyJson);
           }
 
           const methodEvents = this._events[method] || [];
@@ -531,8 +538,14 @@ export default class MockServerE2E implements Resource {
   /**
    * Removes the lifecycle-wide abort filter. Call this AFTER all cleanup is
    * complete to ensure late async "Aborted" rejections are caught.
+   *
+   * This method is intentionally async: CI logs show abort events firing up to
+   * ~200ms AFTER all cleanup has completed and this method is called. We hold
+   * the filter active for an extra 500ms before restoring Jest's handlers so
+   * those stragglers are still suppressed rather than recorded as test failures.
    */
-  removeAbortFilter(): void {
+  async removeAbortFilter(): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, 500));
     this._removeAbortFilter();
   }
 
@@ -562,7 +575,8 @@ export default class MockServerE2E implements Resource {
       }
       // Brief drain period: 'aborted' events from destroyed sockets may fire
       // asynchronously on the next event-loop tick after `stop()` resolves.
-      await new Promise((resolve) => setTimeout(resolve, 150));
+      // 500ms is generous for CI environments where event-loop ticks may be delayed.
+      await new Promise((resolve) => setTimeout(resolve, 500));
     } catch (error) {
       logger.error('Error stopping mock server:', error);
     } finally {
@@ -577,19 +591,31 @@ export default class MockServerE2E implements Resource {
   }
 
   /**
-   * Installs a lifecycle-wide filter for mockttp "Aborted" unhandled promise rejections.
+   * Checks whether an error is a mockttp "Aborted" error from streamToBuffer.
+   */
+  private static _isMockttpAbortError(error: unknown): boolean {
+    return (
+      error instanceof Error &&
+      error.message === 'Aborted' &&
+      (error.stack?.includes('mockttp') ?? false)
+    );
+  }
+
+  /**
+   * Installs lifecycle-wide filters for mockttp "Aborted" errors on BOTH
+   * `unhandledRejection` AND `uncaughtException`.
    *
    * When the app unexpectedly drops connections during a test (e.g., UI transitions,
    * RN bridge interruptions), mockttp's internal `streamToBuffer` rejects with
-   * `Error('Aborted')` from `buffer-utils.ts`. Since this happens in mockttp's pipeline
-   * before reaching our handler callback, the rejection is unhandled and Jest catches it
-   * as a test failure.
+   * `Error('Aborted')` from `buffer-utils.ts`. Depending on the Node.js runtime
+   * behaviour and how the error surfaces through mockttp's internals, this can appear
+   * as either an unhandled promise rejection OR an uncaught exception (e.g. from a
+   * stream 'error' event with no listener, or a throw inside a setImmediate callback).
    *
-   * This filter is active for the entire server lifecycle (start → stop), not just
-   * during shutdown. It removes all existing `unhandledRejection` handlers (e.g. Jest's)
-   * and replaces them with a single filter that suppresses mockttp Aborted errors and
-   * forwards everything else to the original handlers. This ensures Jest never sees
-   * the Aborted rejections.
+   * jest-circus installs the same `uncaught` handler on both event types, so we must
+   * intercept both to prevent the error from being recorded as a test failure.
+   *
+   * The filters are active for the entire server lifecycle (start → stop).
    */
   private _installAbortFilter(): void {
     if (this._abortFilterHandler) {
@@ -598,7 +624,7 @@ export default class MockServerE2E implements Resource {
 
     this._abortSuppressCount = 0;
 
-    // Snapshot and remove all existing handlers so Jest never sees Aborted errors.
+    // --- unhandledRejection filter ---
     this._originalRejectionHandlers = process
       .rawListeners('unhandledRejection')
       .slice() as ((...args: unknown[]) => void)[];
@@ -606,15 +632,14 @@ export default class MockServerE2E implements Resource {
 
     this._abortFilterHandler = (reason: unknown, promise: unknown) => {
       const rejectedPromise = promise as Promise<unknown>;
-      if (
-        reason instanceof Error &&
-        reason.message === 'Aborted' &&
-        reason.stack?.includes('mockttp')
-      ) {
+      if (MockServerE2E._isMockttpAbortError(reason)) {
         // Mark the promise as handled so Node.js does not consider it unhandled.
         // eslint-disable-next-line no-empty-function
         rejectedPromise.catch(() => {});
         this._abortSuppressCount++;
+        logger.debug(
+          `Suppressed mockttp Aborted rejection (#${this._abortSuppressCount})`,
+        );
         return;
       }
 
@@ -638,11 +663,50 @@ export default class MockServerE2E implements Resource {
     };
 
     process.on('unhandledRejection', this._abortFilterHandler);
-    logger.debug('Installed lifecycle-wide Aborted error filter');
+
+    // --- uncaughtException filter ---
+    this._originalExceptionHandlers = process
+      .rawListeners('uncaughtException')
+      .slice() as ((...args: unknown[]) => void)[];
+    process.removeAllListeners('uncaughtException');
+
+    this._abortExceptionHandler = (error: unknown, origin: unknown) => {
+      if (MockServerE2E._isMockttpAbortError(error)) {
+        this._abortSuppressCount++;
+        logger.debug(
+          `Suppressed mockttp Aborted exception (#${this._abortSuppressCount})`,
+        );
+        return;
+      }
+
+      // Forward any other exception to the original handlers (e.g. Jest).
+      if (this._originalExceptionHandlers.length === 0) {
+        throw error;
+      }
+      let firstError: unknown;
+      for (const handler of this._originalExceptionHandlers) {
+        try {
+          handler(error, origin);
+        } catch (err) {
+          if (firstError === undefined) {
+            firstError = err;
+          }
+        }
+      }
+      if (firstError !== undefined) {
+        throw firstError;
+      }
+    };
+
+    process.on('uncaughtException', this._abortExceptionHandler);
+
+    logger.info(
+      `Abort filter installed — listeners: unhandledRejection=${process.listenerCount('unhandledRejection')}, uncaughtException=${process.listenerCount('uncaughtException')}`,
+    );
   }
 
   /**
-   * Removes the lifecycle-wide Aborted error filter and restores original handlers.
+   * Removes the lifecycle-wide Aborted error filters and restores original handlers.
    * Any handlers added by other code during the filter's lifetime are preserved.
    */
   private _removeAbortFilter(): void {
@@ -650,10 +714,11 @@ export default class MockServerE2E implements Resource {
       return;
     }
 
-    // Preserve any handlers that were added by other code during the
-    // filter's lifetime so they are not permanently lost.
-    const currentHandlers = process.rawListeners('unhandledRejection').slice();
-    const addedDuringLifecycle = currentHandlers.filter(
+    // --- Restore unhandledRejection handlers ---
+    const currentRejectionHandlers = process
+      .rawListeners('unhandledRejection')
+      .slice();
+    const addedRejectionDuringLifecycle = currentRejectionHandlers.filter(
       (h) =>
         h !== this._abortFilterHandler &&
         !this._originalRejectionHandlers.includes(
@@ -661,23 +726,44 @@ export default class MockServerE2E implements Resource {
         ),
     );
 
-    // Remove all and restore: originals first, then any newly added handlers.
     process.removeAllListeners('unhandledRejection');
     for (const handler of [
       ...this._originalRejectionHandlers,
-      ...(addedDuringLifecycle as ((...args: unknown[]) => void)[]),
+      ...(addedRejectionDuringLifecycle as ((...args: unknown[]) => void)[]),
     ]) {
       process.on('unhandledRejection', handler);
     }
 
-    this._abortFilterHandler = null;
-    this._originalRejectionHandlers = [];
-
-    if (this._abortSuppressCount > 0) {
-      logger.info(
-        `Suppressed ${this._abortSuppressCount} mockttp "Aborted" rejection(s) during server lifecycle`,
+    // --- Restore uncaughtException handlers ---
+    if (this._abortExceptionHandler) {
+      const currentExceptionHandlers = process
+        .rawListeners('uncaughtException')
+        .slice();
+      const addedExceptionDuringLifecycle = currentExceptionHandlers.filter(
+        (h) =>
+          h !== this._abortExceptionHandler &&
+          !this._originalExceptionHandlers.includes(
+            h as (...args: unknown[]) => void,
+          ),
       );
+
+      process.removeAllListeners('uncaughtException');
+      for (const handler of [
+        ...this._originalExceptionHandlers,
+        ...(addedExceptionDuringLifecycle as ((...args: unknown[]) => void)[]),
+      ]) {
+        process.on('uncaughtException', handler);
+      }
     }
+
+    this._abortFilterHandler = null;
+    this._abortExceptionHandler = null;
+    this._originalRejectionHandlers = [];
+    this._originalExceptionHandlers = [];
+
+    logger.info(
+      `Abort filter removed — suppressed ${this._abortSuppressCount} mockttp "Aborted" error(s) during server lifecycle`,
+    );
     this._abortSuppressCount = 0;
   }
 

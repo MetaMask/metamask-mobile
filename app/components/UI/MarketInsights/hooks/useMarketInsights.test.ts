@@ -25,7 +25,7 @@ describe('useMarketInsights', () => {
     jest.useRealTimers();
   });
 
-  it('does not fetch when caip19Id is missing', () => {
+  it('does not fetch when assetIdentifier is missing', () => {
     const { result } = renderHook(() => useMarketInsights(undefined));
 
     expect(mockFetchMarketInsights).not.toHaveBeenCalled();
@@ -98,5 +98,27 @@ describe('useMarketInsights', () => {
     expect(result.current.report).toBeNull();
     expect(result.current.error).toBe('fetch failed');
     expect(result.current.timeAgo).toBe('');
+  });
+
+  it('fetches using a perps market symbol as assetIdentifier', async () => {
+    const report = {
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH perpetuals update',
+      summary: 'Perps funding rates normalizing.',
+      trends: [],
+      sources: [],
+    };
+
+    mockFetchMarketInsights.mockResolvedValue(report);
+
+    const { result } = renderHook(() => useMarketInsights('ETH', true));
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(mockFetchMarketInsights).toHaveBeenCalledWith('ETH');
+    expect(result.current.report).toEqual(report);
+    expect(result.current.error).toBeNull();
   });
 });
