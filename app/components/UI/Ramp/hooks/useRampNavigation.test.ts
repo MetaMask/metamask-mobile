@@ -146,10 +146,37 @@ describe('useRampNavigation', () => {
         expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
+          buyFlowOrigin: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateRampNavigationDetails).not.toHaveBeenCalled();
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
+      });
+
+      it('passes buyFlowOrigin through to BuildQuote params', () => {
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy(intent, { buyFlowOrigin: 'tokenInfo' });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: intent.assetId,
+          buyFlowOrigin: 'tokenInfo',
+        });
+      });
+
+      it('passes homeTokenList buyFlowOrigin through to BuildQuote params', () => {
+        const intent = { assetId: 'eip155:1/erc20:0x123' };
+
+        const { result } = renderHookWithProvider(() => useRampNavigation());
+
+        result.current.goToBuy(intent, { buyFlowOrigin: 'homeTokenList' });
+
+        expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
+          assetId: intent.assetId,
+          buyFlowOrigin: 'homeTokenList',
+        });
       });
 
       it('navigates to TokenSelection when no assetId and V1 is disabled (matches handleRampUrl deeplink)', () => {
@@ -236,6 +263,7 @@ describe('useRampNavigation', () => {
         expect(mockSetSelectedToken).toHaveBeenCalledWith(intent.assetId);
         expect(mockCreateBuildQuoteNavDetails).toHaveBeenCalledWith({
           assetId: intent.assetId,
+          buyFlowOrigin: undefined,
         });
         expect(mockNavigate).toHaveBeenCalledWith(...mockNavDetails);
         expect(mockCreateDepositNavigationDetails).not.toHaveBeenCalled();
