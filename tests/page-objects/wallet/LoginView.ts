@@ -29,9 +29,7 @@ class LoginView {
             LoginViewSelectors.PASSWORD_INPUT,
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByIOSClassChain(
-            LoginViewSelectors.PASSWORD_INPUT,
-          ),
+          PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT),
       },
     });
   }
