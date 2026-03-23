@@ -396,15 +396,18 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
-const mockUseMarketInsights = jest.fn(() => ({
-  report: null,
-  isLoading: false,
-  error: null,
-  timeAgo: '',
-}));
+const mockUseMarketInsights = jest.fn(
+  (_assetId?: string | null, _isEnabled?: boolean) => ({
+    report: null as Record<string, unknown> | null,
+    isLoading: false,
+    error: null,
+    timeAgo: '',
+  }),
+);
 
 jest.mock('../../../MarketInsights', () => ({
-  useMarketInsights: (...args: unknown[]) => mockUseMarketInsights(...args),
+  useMarketInsights: (assetId: string | null | undefined, isEnabled: boolean) =>
+    mockUseMarketInsights(assetId, isEnabled),
   MarketInsightsEntryCard: ({ onPress }: { onPress: () => void }) => {
     const { TouchableOpacity } = jest.requireActual('react-native');
     return (
