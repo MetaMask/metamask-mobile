@@ -199,6 +199,9 @@ class SolanaTestDApp {
     // Dialog type `confirmation` → useFooter is false; BottomSheetFooter maps index 1 (Approve) to
     // `bottomsheetfooter-button-subsequent`, not `confirm-button`.
     // Wait until any known confirm control exists (toExist; avoids flaky title visibility).
+    //
+    // ApprovalModal animates in over ~600ms; a 100ms per-ID timeout can cycle all candidates before
+    // the footer mounts, causing false failures. Allow several seconds per candidate.
     const confirmSelectors = [
       SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
       BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
@@ -206,13 +209,15 @@ class SolanaTestDApp {
       SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
     ] as const;
 
+    const presenceWaitMsPerSelector = 2500;
+
     await Utilities.executeWithRetry(
       async () => {
         let lastError: unknown;
         for (const testId of confirmSelectors) {
           try {
             const el = await Matchers.getElementByID(testId);
-            await waitFor(el).toExist().withTimeout(100);
+            await waitFor(el).toExist().withTimeout(presenceWaitMsPerSelector);
             return;
           } catch (error) {
             lastError = error;
