@@ -47,6 +47,13 @@ function sendToReactNative(type, payload) {
   }
 }
 
+// Log script initialization - try both console and postMessage
+try {
+  console.log('[chartLogic.js] Script loaded and initialized');
+} catch (e) {
+  console.error('[chartLogic.js] Init error:', e);
+}
+
 // ============================================
 // Message Handler
 // ============================================
@@ -184,16 +191,11 @@ function handleSetOHLCVData(payload) {
       try {
         window.chartWidget.activeChart().resetData();
         // Re-apply overrides after resetData (resetData can reset to defaults)
-        // Use setTimeout to ensure overrides apply after resetData completes
         setTimeout(function () {
           if (window.chartWidget && window.isChartReady) {
             applyChartScaleLayout(window.currentChartType);
           }
         }, 0);
-        createLastPriceLine();
-        if (window.currentChartType !== 2) {
-          ensureNoLineChartEndIcons();
-        }
       } catch (e) {
         // resetData can fail if chart is in a transitional state
       }
@@ -241,11 +243,15 @@ function handleRealtimeUpdate(payload) {
     window.realtimeCallbacks[guids[i]](tick);
   }
 
-  createLastPriceLine();
+  // Update price indicators based on current chart type
   if (window.currentChartType === 2) {
+    // Line chart: update end dot, ensure no price line
+    removeLastPriceLine();
     refreshLineEndDot();
-  } else {
+  } else if (window.currentChartType === 1) {
+    // Candlestick: update price line, ensure no end dot
     ensureNoLineChartEndIcons();
+    createLastPriceLine();
   }
 }
 
@@ -457,12 +463,19 @@ function applyChartScaleLayout(type) {
       'scalesProperties.showSymbolLabels': false,
       'scalesProperties.showPriceScaleCrosshairLabel': false,
       'scalesProperties.showTimeScaleCrosshairLabel': !isLineChart,
-      'scalesProperties.textColor': isLineChart ? theme.backgroundColor : theme.textColor,
+      'scalesProperties.textColor': isLineChart
+        ? theme.backgroundColor
+        : theme.textColor,
       // Always off: line has refreshLineEndDot; candle uses createLastPriceLine (no native line/dot).
       'mainSeriesProperties.showPriceLine': false,
       'timeScale.borderColor': axisLineColor,
       'scalesProperties.lineColor': axisLineColor,
-      'paneProperties.separatorColor': isLineChart ? theme.backgroundColor : '#444444',
+      // Separator between main chart and volume panes - cannot be removed, only colored
+      // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ChartPropertiesOverrides/#panepropertiesseparatorcolor
+      'paneProperties.separatorColor': theme.backgroundColor,
+      // Center line chart by adding top/bottom margins since axes are hidden
+      'paneProperties.topMargin': isLineChart ? 15 : 5,
+      'paneProperties.bottomMargin': isLineChart ? 15 : 5,
     });
   } catch (e) {}
 
@@ -471,10 +484,6 @@ function applyChartScaleLayout(type) {
   syncTimeScaleRightMargin(isLineChart);
   if (isLineChart) {
     scheduleLineChartLayoutReflow();
-  } else {
-    ensureNoLineChartEndIcons();
-    setTimeout(ensureNoLineChartEndIcons, 120);
-    setTimeout(ensureNoLineChartEndIcons, 400);
   }
 }
 
@@ -494,9 +503,7 @@ function lineChartRightGapBars(timeScale) {
   try {
     bs = timeScale.barSpacing();
   } catch (e) {}
-  var n = Math.ceil(
-    LINE_END_DOT_PIXEL_BUFFER / Math.max(bs, 0.25),
-  );
+  var n = Math.ceil(LINE_END_DOT_PIXEL_BUFFER / Math.max(bs, 0.25));
   return Math.min(LINE_CHART_RIGHT_GAP_BARS_MAX, Math.max(1, n));
 }
 
@@ -512,16 +519,6 @@ function syncTimeScaleRightMargin(isLineChart) {
     } else {
       ts.defaultRightOffset().setValue(CANDLE_CHART_RIGHT_GAP_BARS);
       ts.setRightOffset(CANDLE_CHART_RIGHT_GAP_BARS);
-    }
-    function repaintDot() {
-      if (window.currentChartType === 2) {
-        refreshLineEndDot();
-      }
-    }
-    if (isLineChart) {
-      setTimeout(repaintDot, 0);
-      setTimeout(repaintDot, 50);
-      setTimeout(repaintDot, 200);
     }
   } catch (e) {}
 }
@@ -568,7 +565,10 @@ function handleSetChartType(payload) {
 
   if (!window.isChartReady) return;
 
-  if (type !== 2) {
+  // Immediately remove old indicators when switching types (don't wait for setTimeout)
+  if (type === 2) {
+    removeLastPriceLine();
+  } else {
     ensureNoLineChartEndIcons();
   }
 
@@ -594,6 +594,19 @@ function handleSetChartType(payload) {
     }
 
     applyChartScaleLayout(type);
+
+    // Update price indicators after chart type change
+    // Capture type to prevent stale updates if user switches again quickly
+    var capturedType = type;
+    setTimeout(function () {
+      if (window.currentChartType !== capturedType) return;
+      
+      if (capturedType === 2) {
+        refreshLineEndDot();
+      } else if (capturedType === 1) {
+        createLastPriceLine();
+      }
+    }, 100);
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
@@ -724,7 +737,7 @@ window.lastPriceShapeId = null;
 function createLastPriceLine() {
   if (!window.chartWidget || !window.isChartReady) return;
   if (window.ohlcvData.length === 0) return;
-  
+
   // Custom shape duplicates the native last-price UI — only for candlesticks (type 1).
   if (window.currentChartType !== 1) {
     removeLastPriceLine();
@@ -736,6 +749,7 @@ function createLastPriceLine() {
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
   var color = window.CONFIG.theme.successColor;
+  var chartTypeAtCreation = window.currentChartType;
 
   chart
     .createShape(
@@ -760,6 +774,7 @@ function createLastPriceLine() {
       },
     )
     .then(function (id) {
+      // If type changed while creating, remove the shape
       if (window.currentChartType !== 1) {
         if (id) {
           try {
@@ -771,11 +786,7 @@ function createLastPriceLine() {
       window.lastPriceShapeId = id;
     })
     .catch(function (e) {
-      sendToReactNative('DEBUG', {
-        message:
-          '[createLastPriceLine] createShape failed: ' +
-          (e && e.message ? e.message : String(e)),
-      });
+      // Silent catch - shape creation can fail if chart state changes
     });
 }
 
@@ -896,7 +907,7 @@ function createVolumeStudy() {
         false,
         {},
         {
-          'volume ma.visible': false,
+          'volume ma.display': 0, // Hide moving average line
           'volume.color.0': theme.errorColor, // Down/bearish bars (red)
           'volume.color.1': theme.successColor, // Up/bullish bars (green)
           'volume.transparency': 0, // No transparency - same shade as candles
@@ -1257,7 +1268,6 @@ function initChart() {
           'scalesProperties.showSymbolLabels': false, // Hides "ASSET" text
           'scalesProperties.showRightScale': true,
           'scalesProperties.showLeftScale': false,
-          'paneProperties.bottomMargin': 5,
           // Hide crosshair labels (price/time labels that appear on long press)
           'scalesProperties.showPriceScaleCrosshairLabel': false,
 
@@ -1290,9 +1300,16 @@ function initChart() {
 
       applySeriesColors();
       applyChartScaleLayout(window.currentChartType);
-      createLastPriceLine();
-      if (window.currentChartType !== 2) {
+
+      // Initialize price indicators based on chart type
+      if (window.currentChartType === 2) {
+        // Line chart: show end dot, no price line
+        removeLastPriceLine();
+        refreshLineEndDot();
+      } else {
+        // Candlestick: show price line, no end dot
         ensureNoLineChartEndIcons();
+        createLastPriceLine();
       }
 
       // Prevent series selection (blue dots) by clearing any selection immediately

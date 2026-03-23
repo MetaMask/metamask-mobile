@@ -200,7 +200,7 @@ export type WebViewToRNMessage =
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
   | { type: 'NEED_MORE_HISTORY'; payload: NeedMoreHistoryPayload }
   | { type: 'ERROR'; payload: ErrorPayload }
-  | { type: 'DEBUG' };
+  | { type: 'DEBUG'; payload: { message: string } };
 
 // ============================================
 // Message parsing / runtime narrowing
@@ -226,8 +226,15 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 
   switch (type) {
     case 'CHART_READY':
-    case 'DEBUG':
       return { type };
+
+    case 'DEBUG':
+      return {
+        type,
+        payload: {
+          message: typeof obj.message === 'string' ? obj.message : String(obj),
+        },
+      };
 
     case 'NEED_MORE_HISTORY':
       return {

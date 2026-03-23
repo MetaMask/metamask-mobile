@@ -1,9 +1,5 @@
 import type { Theme } from '@metamask/design-tokens';
 import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
-import {
-  getFontFamily,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -15,7 +11,7 @@ const styleSheet = (params: {
     theme,
     vars: { priceDiff },
   } = params;
-  const { colors, typography } = theme;
+  const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
       width: '100%',
@@ -49,6 +45,7 @@ const styleSheet = (params: {
     chartContainer: {
       width: '100%',
       alignSelf: 'stretch',
+      marginBottom: 12,
     } as ViewStyle,
     timeRangeContainer: {
       paddingBottom: 16,
@@ -64,24 +61,21 @@ const styleSheet = (params: {
       left: 0,
       zIndex: 0,
     } as ViewStyle,
-    noDataGradientBackground: {
-      ...StyleSheet.absoluteFillObject,
-      zIndex: 1,
-    } as ViewStyle,
     noDataOverlay: {
       ...StyleSheet.absoluteFillObject,
       justifyContent: 'center',
       alignItems: 'center',
-      padding: 96,
+      paddingHorizontal: 40,
+      paddingVertical: 16,
+      gap: 8,
       zIndex: 2,
     } as ViewStyle,
     noDataOverlayTitle: {
-      ...typography.sHeadingMD,
-      fontFamily: getFontFamily(TextVariant.HeadingMD),
       textAlign: 'center',
     } as TextStyle,
     noDataOverlayText: {
       textAlign: 'center',
+      color: theme.colors.text.alternative,
     } as TextStyle,
   });
 };

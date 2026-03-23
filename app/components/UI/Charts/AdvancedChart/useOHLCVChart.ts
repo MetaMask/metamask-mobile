@@ -130,6 +130,7 @@ export const useOHLCVChart = ({
       }
     } catch (e) {
       if (!controller.signal.aborted) {
+        setOhlcvData([]); // Clear data on error to show error state
         setError(e instanceof Error ? e.message : 'Unknown error');
       }
     } finally {
@@ -185,51 +186,23 @@ export const useOHLCVChart = ({
           interval,
           vsCurrency,
         });
-        console.log(
-          '[useOHLCVChart] Polling received',
-          result.data.length,
-          'candles',
-        );
 
         if (result.data.length > 0) {
           const latestCandle = mapCandle(result.data[result.data.length - 1]);
-          console.log(
-            '[useOHLCVChart] Latest candle from API:',
-            JSON.stringify(latestCandle),
-          );
 
           setOhlcvData((prev) => {
             if (prev.length === 0) {
-              console.log(
-                '[useOHLCVChart] No previous data, returning latest candle',
-              );
               return [latestCandle];
             }
 
             const lastCandle = prev[prev.length - 1];
-            console.log(
-              '[useOHLCVChart] Last candle in state:',
-              JSON.stringify(lastCandle),
-            );
 
             // If same candle (same opening time), update it (candle is still forming)
             if (lastCandle.time === latestCandle.time) {
-              const hasChanged =
-                lastCandle.close !== latestCandle.close ||
-                lastCandle.high !== latestCandle.high ||
-                lastCandle.low !== latestCandle.low ||
-                lastCandle.volume !== latestCandle.volume;
-              console.log(
-                '[useOHLCVChart] ✓ Updating existing candle (same time). Data changed:',
-                hasChanged,
-              );
               return [...prev.slice(0, -1), latestCandle];
             }
 
             // New candle — append it
-            console.log(
-              '[useOHLCVChart] ✓ Appending new candle (different time)',
-            );
             return [...prev, latestCandle];
           });
         }
