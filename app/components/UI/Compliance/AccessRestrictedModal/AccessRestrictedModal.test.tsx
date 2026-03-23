@@ -5,18 +5,22 @@ import { AccessRestrictedModalSelectorsIDs } from './AccessRestrictedModal.testI
 
 jest.mock(
   '../../../../component-library/components/BottomSheets/BottomSheet',
-  () => ({
-    __esModule: true,
-    default: jest.fn(({ children, testID }) => (
-      <>
-        {testID ? (
-          <mock-bottomsheet testID={testID}>{children}</mock-bottomsheet>
-        ) : (
-          children
-        )}
-      </>
-    )),
-  }),
+  () => {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const { View } = require('react-native');
+    return {
+      __esModule: true,
+      default: jest.fn(
+        ({
+          children,
+          testID,
+        }: {
+          children: React.ReactNode;
+          testID?: string;
+        }) => <View testID={testID}>{children}</View>,
+      ),
+    };
+  },
 );
 
 jest.mock(
