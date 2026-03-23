@@ -4,7 +4,6 @@ import {
   RampsRegionsEnum,
 } from '../../../framework/Constants.ts';
 import { RAMPS_NETWORKS_RESPONSE } from '../ramps/responses/ramps-networks-response.ts';
-import { RAMPS_COUNTRIES_RESPONSE } from '../ramps/responses/ramps-countries-response.ts';
 import { RAMPS_TOP_TOKENS_RESPONSE } from '../ramps/responses/ramps-tokens-response.ts';
 import { RAMPS_PROVIDERS_RESPONSE } from '../ramps/responses/ramps-providers-response.ts';
 import { RAMPS_PAYMENTS_V2_RESPONSE } from '../ramps/responses/ramps-payments-response.ts';
