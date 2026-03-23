@@ -35,11 +35,11 @@ const MoneySectionHeader = ({ title, onPress }: MoneySectionHeaderProps) => {
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
+      twClassName="gap-1"
     >
       <Text
         variant={TextVariant.HeadingMd}
-        fontWeight={FontWeight.Medium}
+        fontWeight={FontWeight.Regular}
         testID={MoneySectionHeaderTestIds.TITLE}
       >
         {title}
@@ -47,7 +47,7 @@ const MoneySectionHeader = ({ title, onPress }: MoneySectionHeaderProps) => {
       {onPress && (
         <Icon
           name={IconName.ArrowRight}
-          size={IconSize.Sm}
+          size={IconSize.Md}
           color={IconColor.IconAlternative}
           testID={MoneySectionHeaderTestIds.CHEVRON}
         />

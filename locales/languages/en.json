@@ -6152,22 +6152,22 @@
     },
     "your_position": {
       "title": "Your position",
-      "earning_rate": "Earning rate",
-      "lifetime_earnings": "Lifetime earnings"
+      "current_rate": "Current rate",
+      "lifetime_earnings": "Lifetime earnings",
+      "available_balance": "Avail. balance"
     },
     "how_it_works": {
       "title": "How it works",
-      "description_prefix": "Hold mUSD in a Money Account and earn ",
-      "description_suffix": " automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
+      "description": "Hold mUSD in a Money Account and earn automatically. It's dollar-backed, always liquid, and ready to spend, trade, or send anytime.",
       "musd_name": "MetaMask USD",
       "musd_symbol": "mUSD",
-      "get_musd": "Get mUSD"
+      "add": "Add"
     },
     "potential_earnings": {
       "title": "Potential earnings",
       "amount": "+$26,800",
       "description": "See how your money can grow over time by converting your crypto to mUSD.",
-      "add": "Add",
+      "convert": "Convert",
       "no_fee": "No fee",
       "see_earnings": "See potential earnings"
     },

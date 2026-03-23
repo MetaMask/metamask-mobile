@@ -20,8 +20,7 @@ interface MoneyActionButtonRowProps {
   onCardPress?: () => void;
 }
 
-// TODO: See if we have an existing Pill component that already looks like this.
-const ActionPill = ({
+const ActionButton = ({
   iconName,
   label,
   onPress,
@@ -33,7 +32,7 @@ const ActionPill = ({
   testID: string;
 }) => (
   <ButtonBase
-    twClassName="flex-1 rounded-xl bg-muted px-4 py-3"
+    twClassName="flex-1 rounded-xl bg-muted h-auto px-0 py-3"
     onPress={onPress}
     testID={testID}
   >
@@ -66,22 +65,22 @@ const MoneyActionButtonRow = ({
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      twClassName="px-4 pt-4 pb-3 gap-2"
+      twClassName="px-4 pt-4 pb-7 gap-2"
       testID={MoneyActionButtonRowTestIds.CONTAINER}
     >
-      <ActionPill
+      <ActionButton
         iconName={IconName.Add}
         label={strings('money.action.add')}
         onPress={handleAddPress}
         testID={MoneyActionButtonRowTestIds.ADD_BUTTON}
       />
-      <ActionPill
+      <ActionButton
         iconName={IconName.SwapHorizontal}
         label={strings('money.action.transfer')}
         onPress={handleTransferPress}
         testID={MoneyActionButtonRowTestIds.TRANSFER_BUTTON}
       />
-      <ActionPill
+      <ActionButton
         iconName={IconName.Card}
         label={strings('money.action.card')}
         onPress={handleCardPress}

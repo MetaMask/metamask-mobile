@@ -41,22 +41,26 @@ const CardRow = ({
 }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName="py-3"
+    alignItems={BoxAlignItems.Center}
     testID={testID}
+    twClassName="py-3"
   >
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       twClassName="gap-4"
     >
-      <Image source={imageSource} style={styles.cardImage} resizeMode="cover" />
+      <Image source={imageSource} style={styles.cardImage} />
       <Box twClassName="gap-2">
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {cardName}
         </Text>
-        <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Regular}
+          color={TextColor.SuccessDefault}
+        >
           {strings('money.metamask_card.cashback', {
             percentage: cashbackPercentage,
           })}
@@ -67,6 +71,7 @@ const CardRow = ({
       variant={ButtonVariant.Secondary}
       size={ButtonSize.Md}
       onPress={onPress}
+      twClassName="self-center"
     >
       {strings('money.metamask_card.get_now')}
     </Button>
@@ -87,16 +92,19 @@ const MoneyMetaMaskCard = ({
   );
 
   return (
-    <Box twClassName="px-4 py-3" testID={MoneyMetaMaskCardTestIds.CONTAINER}>
+    <Box
+      twClassName="px-4 py-3 gap-3"
+      testID={MoneyMetaMaskCardTestIds.CONTAINER}
+    >
       <MoneySectionHeader
         title={strings('money.metamask_card.title')}
         onPress={onHeaderPress}
       />
 
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Regular}
         color={TextColor.TextAlternative}
-        twClassName="mt-3"
       >
         {strings('money.metamask_card.subtitle')}
       </Text>

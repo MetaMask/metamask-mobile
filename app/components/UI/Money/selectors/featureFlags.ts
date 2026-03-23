@@ -8,7 +8,6 @@ import {
 export const selectMoneyHomeScreenEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    return true;
     const localFlag = process.env.MM_MONEY_HOME_SCREEN_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.moneyHomeScreenEnabled as unknown as VersionGatedFeatureFlag;

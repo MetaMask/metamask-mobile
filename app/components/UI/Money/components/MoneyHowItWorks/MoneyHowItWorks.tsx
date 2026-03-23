@@ -1,5 +1,7 @@
 import React from 'react';
 import {
+  AvatarToken,
+  AvatarTokenSize,
   Box,
   BoxAlignItems,
   BoxFlexDirection,
@@ -15,15 +17,16 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import MoneySectionHeader from '../MoneySectionHeader';
 import { MoneyHowItWorksTestIds } from './MoneyHowItWorks.testIds';
-import { MUSD_CONVERSION_APY, MUSD_TOKEN } from '../../../Earn/constants/musd';
+import { MUSD_TOKEN } from '../../../Earn/constants/musd';
+import type { ImageOrSvgSrc } from '@metamask/design-system-react-native/dist/components/temp-components/ImageOrSvg/ImageOrSvg.types.d.cts';
 
 interface MoneyHowItWorksProps {
-  onGetMusdPress?: () => void;
+  onAddMusdPress?: () => void;
   onHeaderPress?: () => void;
 }
 
 const MoneyHowItWorks = ({
-  onGetMusdPress = () => undefined,
+  onAddMusdPress = () => undefined,
   onHeaderPress,
 }: MoneyHowItWorksProps) => (
   <Box twClassName="px-4 py-3" testID={MoneyHowItWorksTestIds.CONTAINER}>
@@ -33,12 +36,8 @@ const MoneyHowItWorks = ({
     />
 
     <Box twClassName="mt-3">
-      <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-        {strings('money.how_it_works.description_prefix')}
-        <Text variant={TextVariant.BodySm} color={TextColor.SuccessDefault}>
-          {strings('money.apy_label', { percentage: MUSD_CONVERSION_APY })}
-        </Text>
-        {strings('money.how_it_works.description_suffix')}
+      <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+        {strings('money.how_it_works.description')}
       </Text>
     </Box>
 
@@ -53,19 +52,14 @@ const MoneyHowItWorks = ({
         alignItems={BoxAlignItems.Center}
         twClassName="flex-1 gap-4"
       >
-        <Box
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Center}
-          twClassName="h-10 w-10 rounded-full bg-muted"
-        >
-          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
-            m$
-          </Text>
-        </Box>
+        <AvatarToken
+          name={MUSD_TOKEN.symbol}
+          src={MUSD_TOKEN.imageSource as ImageOrSvgSrc}
+          size={AvatarTokenSize.Lg}
+        />
         <Box twClassName="flex-1">
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {/* TODO: Probably don't need to MetaMask USD translated since it's the same across locales. */}
-            {strings('money.how_it_works.musd_name')}
+            {MUSD_TOKEN.name}
           </Text>
           <Text
             variant={TextVariant.BodySm}
@@ -79,10 +73,10 @@ const MoneyHowItWorks = ({
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Md}
-        onPress={onGetMusdPress}
-        testID={MoneyHowItWorksTestIds.GET_MUSD_BUTTON}
+        onPress={onAddMusdPress}
+        testID={MoneyHowItWorksTestIds.ADD_MUSD_BUTTON}
       >
-        {strings('money.how_it_works.get_musd')}
+        {strings('money.how_it_works.add')}
       </Button>
     </Box>
   </Box>

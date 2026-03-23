@@ -27,7 +27,7 @@ interface MoneyWhyMetaMaskMoneyProps {
 const BenefitRow = ({ children }: { children: React.ReactNode }) => (
   <Box
     flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.FlexStart}
+    alignItems={BoxAlignItems.Center}
     twClassName="gap-2"
   >
     <Icon
@@ -49,7 +49,7 @@ const MoneyWhyMetaMaskMoney = ({
       onPress={onHeaderPress}
     />
 
-    <Box twClassName="mt-3 gap-3">
+    <Box twClassName="mt-3 mb-3 gap-3">
       <BenefitRow>
         <Text variant={TextVariant.BodyMd}>
           {strings('money.why_metamask_money.benefit_auto_earn')}
@@ -89,7 +89,7 @@ const MoneyWhyMetaMaskMoney = ({
       </BenefitRow>
     </Box>
 
-    <Box twClassName="mt-3">
+    <Box twClassName="py-3">
       <Button
         variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}

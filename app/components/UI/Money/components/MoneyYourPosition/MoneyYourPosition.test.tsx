@@ -12,11 +12,11 @@ describe('MoneyYourPosition', () => {
     expect(getByText(strings('money.your_position.title'))).toBeOnTheScreen();
   });
 
-  it('renders earning rate with APY value', () => {
+  it('renders current rate with APY value', () => {
     const { getByText } = render(<MoneyYourPosition />);
 
     expect(
-      getByText(strings('money.your_position.earning_rate')),
+      getByText(strings('money.your_position.current_rate')),
     ).toBeOnTheScreen();
     expect(
       getByText(
@@ -25,22 +25,29 @@ describe('MoneyYourPosition', () => {
     ).toBeOnTheScreen();
   });
 
-  it('renders lifetime earnings value', () => {
+  it('renders lifetime earnings label', () => {
     const { getByText } = render(<MoneyYourPosition />);
 
     expect(
       getByText(strings('money.your_position.lifetime_earnings')),
     ).toBeOnTheScreen();
-    expect(getByText('$0.00')).toBeOnTheScreen();
+  });
+
+  it('renders available balance label', () => {
+    const { getByText } = render(<MoneyYourPosition />);
+
+    expect(
+      getByText(strings('money.your_position.available_balance')),
+    ).toBeOnTheScreen();
   });
 
   it('renders with correct test IDs', () => {
-    const { getByTestId } = render(<MoneyYourPosition />);
+    const { getByTestId, getAllByTestId } = render(<MoneyYourPosition />);
 
     expect(getByTestId(MoneyYourPositionTestIds.CONTAINER)).toBeOnTheScreen();
-    expect(
-      getByTestId(MoneyYourPositionTestIds.EARNING_RATE),
-    ).toBeOnTheScreen();
+    expect(getAllByTestId(MoneyYourPositionTestIds.CURRENT_RATE).length).toBe(
+      2,
+    );
     expect(
       getByTestId(MoneyYourPositionTestIds.LIFETIME_EARNINGS),
     ).toBeOnTheScreen();

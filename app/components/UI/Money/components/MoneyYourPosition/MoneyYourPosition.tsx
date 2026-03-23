@@ -18,23 +18,38 @@ import { MoneyYourPositionTestIds } from './MoneyYourPosition.testIds';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 
 const HARDCODED_LIFETIME_EARNINGS = '$0.00';
+const HARDCODED_AVAILABLE_BALANCE = '$0.00';
+
+const handleCurrentRateTooltipPress = () => {
+  // eslint-disable-next-line no-alert
+  alert('Under construction 🚧');
+};
+
+const handleAvailableBalanceTooltipPress = () => {
+  // eslint-disable-next-line no-alert
+  alert('Under construction 🚧');
+};
 
 const MoneyYourPosition = () => (
   <Box twClassName="px-4 py-3" testID={MoneyYourPositionTestIds.CONTAINER}>
     <MoneySectionHeader title={strings('money.your_position.title')} />
 
+    {/* Top Row */}
     <Box
       flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.FlexStart}
+      alignItems={BoxAlignItems.Start}
       twClassName="mt-3"
     >
-      <Box twClassName="flex-1" testID={MoneyYourPositionTestIds.EARNING_RATE}>
+      <Box
+        twClassName="flex-1 gap-0.5"
+        testID={MoneyYourPositionTestIds.CURRENT_RATE}
+      >
         <Text
           variant={TextVariant.BodySm}
           fontWeight={FontWeight.Medium}
           color={TextColor.TextAlternative}
         >
-          {strings('money.your_position.earning_rate')}
+          {strings('money.your_position.current_rate')}
         </Text>
         <Box
           flexDirection={BoxFlexDirection.Row}
@@ -51,6 +66,7 @@ const MoneyYourPosition = () => (
             })}
           </Text>
           <ButtonIcon
+            onPress={handleCurrentRateTooltipPress}
             iconName={IconName.Info}
             size={ButtonIconSize.Sm}
             iconProps={{ color: IconColor.IconAlternative }}
@@ -60,7 +76,7 @@ const MoneyYourPosition = () => (
       </Box>
 
       <Box
-        twClassName="flex-1"
+        twClassName="flex-1 gap-0.5"
         testID={MoneyYourPositionTestIds.LIFETIME_EARNINGS}
       >
         <Text
@@ -73,6 +89,42 @@ const MoneyYourPosition = () => (
         <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
           {HARDCODED_LIFETIME_EARNINGS}
         </Text>
+      </Box>
+    </Box>
+
+    {/* Bottom Row */}
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Start}
+      twClassName="mt-3"
+    >
+      <Box
+        twClassName="flex-1 gap-0.5"
+        testID={MoneyYourPositionTestIds.CURRENT_RATE}
+      >
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={TextColor.TextAlternative}
+        >
+          {strings('money.your_position.available_balance')}
+        </Text>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="gap-1"
+        >
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {HARDCODED_AVAILABLE_BALANCE}
+          </Text>
+          <ButtonIcon
+            onPress={handleAvailableBalanceTooltipPress}
+            iconName={IconName.Info}
+            size={ButtonIconSize.Sm}
+            iconProps={{ color: IconColor.IconAlternative }}
+            accessibilityLabel="APY info"
+          />
+        </Box>
       </Box>
     </Box>
   </Box>
