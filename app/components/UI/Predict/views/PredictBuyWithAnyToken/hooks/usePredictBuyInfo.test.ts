@@ -11,6 +11,7 @@ let mockPayTotals: {
   };
 } | null = null;
 let mockActiveOrder: { error?: string } | null = null;
+let mockPredictBalance = 0;
 
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -33,7 +34,7 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
 
 jest.mock('../../../hooks/usePredictBalance', () => ({
   usePredictBalance: () => ({
-    data: 0,
+    data: mockPredictBalance,
     isLoading: false,
   }),
 }));
@@ -80,6 +81,7 @@ describe('usePredictBuyInfo', () => {
     mockIsPredictBalanceSelected = true;
     mockPayTotals = null;
     mockActiveOrder = null;
+    mockPredictBalance = 0;
   });
 
   describe('depositFee', () => {
@@ -209,6 +211,38 @@ describe('usePredictBuyInfo', () => {
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
       expect(result.current.toWin).toBe(0);
+    });
+  });
+
+  describe('depositAmount', () => {
+    it('returns the remaining amount needed after predict balance is applied', () => {
+      mockPredictBalance = 80;
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.depositAmount).toBe(25);
+    });
+
+    it('returns the full preview total when predict balance already covers the bet', () => {
+      mockPredictBalance = 110;
+      const params = {
+        ...defaultParams,
+        currentValue: 1,
+        preview: createMockPreview({
+          maxAmountSpent: 1,
+          fees: {
+            totalFee: 0.04,
+            metamaskFee: 0.02,
+            providerFee: 0.02,
+            totalFeePercentage: 4,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.depositAmount).toBe(1.04);
     });
   });
 

@@ -28,6 +28,7 @@ export const usePredictBuyInfo = ({
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
   const { activeOrder } = usePredictActiveOrder();
+  const { data: predictBalance = 0 } = usePredictBalance();
 
   const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
 
@@ -86,14 +87,6 @@ export const usePredictBuyInfo = ({
     ],
   );
 
-  const { data: predictBalance = 0 } = usePredictBalance();
-
-  const depositAmount = useMemo(() => {
-    const previewTotal =
-      (preview?.maxAmountSpent ?? 0) + (preview?.fees?.totalFee ?? 0);
-    return Math.max(0, Math.ceil((previewTotal - predictBalance) * 100) / 100);
-  }, [preview?.maxAmountSpent, preview?.fees?.totalFee, predictBalance]);
-
   const errorMessage = useMemo(
     () =>
       isOrderNotFilled || isConfirming
@@ -107,6 +100,19 @@ export const usePredictBuyInfo = ({
       activeOrder?.error,
     ],
   );
+
+  const depositAmount = useMemo(() => {
+    const previewTotal =
+      (preview?.maxAmountSpent ?? 0) + (preview?.fees?.totalFee ?? 0);
+    const remainingAmount = Math.max(
+      0,
+      Math.ceil((previewTotal - predictBalance) * 100) / 100,
+    );
+    if (remainingAmount <= 0) {
+      return previewTotal;
+    }
+    return remainingAmount;
+  }, [preview, predictBalance]);
 
   return {
     toWin,
