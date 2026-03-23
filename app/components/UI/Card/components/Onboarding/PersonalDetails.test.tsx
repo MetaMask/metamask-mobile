@@ -56,6 +56,20 @@ jest.mock('@metamask/design-system-react-native', () => {
     Lg: 'lg',
   };
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
+  const ButtonVariant = {
+    Primary: 'Primary',
+    Secondary: 'Secondary',
+    Link: 'Link',
+  };
+
+  const ButtonSize = {
+    Sm: 'Sm',
+    Md: 'Md',
+    Lg: 'Lg',
+  };
+
   return {
     Box: ({
       children,
@@ -83,9 +97,32 @@ jest.mock('@metamask/design-system-react-native', () => {
       children: React.ReactNode;
       testID?: string;
     }) => React.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+    }) =>
+      React.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        React.createElement(Text, {}, children || label),
+      ),
     TextVariant,
     IconName,
     IconSize,
+    ButtonVariant,
+    ButtonSize,
   };
 });
 
