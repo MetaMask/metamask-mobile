@@ -25,6 +25,36 @@
 1. `.js.env` must have `WATCHER_PORT`, `IOS_SIMULATOR`, `SIM_UDID` (iOS) or `ANDROID_DEVICE` (Android)
 2. `.agent/wallet-fixture.json` must exist (copy from `scripts/perps/agentic/wallet-fixture.example.json`)
 
+## Flows
+
+Flows are parameterized JSON test sequences in `scripts/perps/agentic/teams/<team>/flows/`.
+
+```bash
+# List all flows
+ls scripts/perps/agentic/teams/perps/flows/*.json
+
+# Run a flow
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/flows/market-discovery.json --skip-manual
+
+# Dry-run (prints steps, no execution)
+bash scripts/perps/agentic/validate-recipe.sh \
+  scripts/perps/agentic/teams/perps/flows/trade-open-market.json --dry-run
+
+# Run all flows (dry-run)
+for f in scripts/perps/agentic/teams/perps/flows/*.json; do
+  bash scripts/perps/agentic/validate-recipe.sh "$f" --dry-run --skip-manual
+done
+```
+
+### Parameter Passing
+
+Flows use `{{param}}` tokens. Defaults are declared in the flow's `inputs` block. Override via `flow_ref` params or by editing the JSON.
+
+### Pre-Conditions
+
+Flows can declare `pre_conditions` — named checks that must pass before steps run. If a check fails, the runner aborts with a hint. Available pre-conditions are registered in `teams/perps/pre-conditions.js`.
+
 ## CDP Bridge Commands
 
 ```bash
@@ -41,8 +71,9 @@ $CDP press-test-id <testId>          # Press component by testID
 $CDP scroll-view --test-id <id>      # Scroll a ScrollView/FlatList
 $CDP list-accounts                   # All accounts
 $CDP switch-account <address>        # Switch active account
-$CDP recipe perps/positions          # Run a named recipe
-$CDP recipe --list                   # List all recipes
+$CDP eval-ref perps/positions        # Run a named eval ref
+$CDP eval-ref --list                 # List all eval refs
+$CDP check-pre-conditions '<json>'   # Validate pre-conditions
 ```
 
 ## Other Scripts
@@ -54,6 +85,8 @@ scripts/perps/agentic/screenshot.sh                 # Capture simulator screensh
 scripts/perps/agentic/setup-wallet.sh               # Seed wallet via CDP
 scripts/perps/agentic/unlock-wallet.sh <password>   # Unlock via CDP
 scripts/perps/agentic/validate-recipe.sh <folder>   # Run PR recipe folder
+scripts/perps/agentic/validate-flow-schema.js       # Validate flow authoring rules
+scripts/perps/agentic/validate-pre-conditions.js    # Validate pre-condition registry
 ```
 
 ## Architecture
@@ -68,11 +101,6 @@ CDP Bridge (cdp-bridge.js)
         --> reads globalThis.__AGENTIC__.*
 ```
 
-## Worktree Mapping
+## Worktree / Multi-Device Mapping
 
-| Worktree | Simulator         | Port |
-| -------- | ----------------- | ---- |
-| alpha    | iPhone16Pro-Alpha | 8085 |
-| beta     | iPhone16Pro-Beta  | 8084 |
-| gamma    | iPhone16Pro-Gamma | 8083 |
-| delta    | iPhone16Pro-Delta | 8082 |
+Ports are set per-slot via `.js.env` `WATCHER_PORT`. When both iOS and Android devices are connected, set `PLATFORM=android` or `PLATFORM=ios` to disambiguate screenshot targets. CDP commands are platform-agnostic.
