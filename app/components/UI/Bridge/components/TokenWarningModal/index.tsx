@@ -8,9 +8,6 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { TokenWarningModalMode } from './constants';
@@ -34,6 +31,8 @@ import {
   IconColor,
   IconName,
   IconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 
 export interface TokenWarningModalParams {
@@ -110,8 +109,10 @@ export const TokenWarningModal = () => {
         <Icon name={IconName.Danger} size={IconSize.Xl} color={iconColor} />
       </BottomSheetHeader>
       <Box alignItems={BoxAlignItems.Center} padding={4} gap={3}>
-        <Text variant={TextVariant.HeadingMD}>{title}</Text>
-        <Text variant={TextVariant.BodyMD}>{description}</Text>
+        <Text variant={TextVariant.HeadingMd}>{title}</Text>
+        <Text variant={TextVariant.BodyMd} twClassName="text-center">
+          {description}
+        </Text>
       </Box>
       {mode === TokenWarningModalMode.Swap ? (
         <BottomSheetFooter
