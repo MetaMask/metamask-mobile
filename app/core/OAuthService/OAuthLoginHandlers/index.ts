@@ -37,17 +37,18 @@ export function createLoginHandler(
   ) {
     throw new Error('Missing environment variables');
   }
-  const iosGoogleConfig = getIosGoogleConfig();
   switch (platformOS) {
     case 'ios':
       switch (provider) {
-        case AuthConnection.Google:
+        case AuthConnection.Google: {
+          const { clientId, redirectUri } = getIosGoogleConfig();
           return new IosGoogleLoginHandler({
-            clientId: iosGoogleConfig.clientId,
-            redirectUri: iosGoogleConfig.redirectUri,
+            clientId,
+            redirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
+        }
         case AuthConnection.Apple:
           return new IosAppleLoginHandler({
             clientId: AppleWebClientId,

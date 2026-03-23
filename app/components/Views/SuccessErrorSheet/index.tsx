@@ -78,6 +78,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
         return IconName.CircleX;
       case 'warning':
         return IconName.Warning;
+      default:
+        return IconName.CircleX;
     }
   }, [type]);
 
