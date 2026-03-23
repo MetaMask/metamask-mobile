@@ -24,6 +24,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName,
 } from '@metamask/design-system-react-native';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import ResourceToggle from '../../components/Tron/ResourceToggle';
@@ -45,7 +46,6 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
-import { IconName } from '@metamask/design-system-react-native';
 import ScreenLayout from '../../../Ramp/Aggregator/components/ScreenLayout';
 import QuickAmounts from '../../../Stake/components/QuickAmounts';
 import { EVENT_PROVIDERS } from '../../../Stake/constants/events';
