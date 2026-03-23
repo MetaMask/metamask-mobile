@@ -12,8 +12,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('../../../../util/theme', () => {
   // Use the real mockTheme to avoid circular mock issues
-  // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-  const actual = require('../../../../util/theme');
+  const actual = jest.requireActual('../../../../util/theme');
   return {
     ...actual,
     useTheme: () => actual.mockTheme,

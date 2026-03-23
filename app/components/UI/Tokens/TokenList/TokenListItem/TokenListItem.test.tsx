@@ -610,8 +610,9 @@ describe('TokenListItem - Component Rendering Tests for Coverage', () => {
 
       const percentageText = getByTestId(SECONDARY_BALANCE_TEST_ID);
       expect(percentageText.props.children).toBe('-3.45%');
-      // Negative percentage should NOT have success color
-      expect(percentageText.props.style.color).not.toBe('#457a39');
+      expect(percentageText.props.style.color).toBe(
+        mockTheme.colors.error.default,
+      );
     });
 
     it('hides percentage change on testnet', () => {
