@@ -319,7 +319,7 @@ app/components/UI/Earn/
 
 **Path:** `app/components/UI/Earn/hooks/useMusdMaxConversion.ts`
 
-Creates max-amount transaction and sets payment token. Leverages existing infrastructure:
+Creates a max-amount transaction and sets the payment token. Leverages existing infrastructure:
 
 ```typescript
 export const useMusdMaxConversion = () => {
@@ -537,7 +537,7 @@ const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
 
 ### Token Filtering
 
-Tokens shown in list must meet ALL criteria:
+Tokens shown in the list must meet ALL criteria:
 
 1. User has balance > 0
 2. Token is in `musdConversionPaymentTokensAllowlist`
