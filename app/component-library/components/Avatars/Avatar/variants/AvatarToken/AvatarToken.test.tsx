@@ -10,6 +10,18 @@ import {
   SAMPLE_AVATARTOKEN_IMAGESOURCE_LOCAL,
 } from './AvatarToken.constants';
 
+jest.mock('react-native-svg', () => {
+  const React = require('react');
+  const { View } = require('react-native');
+  const actual = jest.requireActual('react-native-svg');
+  return {
+    ...actual,
+    SvgUri: jest.fn((props) =>
+      React.createElement(View, { testID: props.testID, uri: props.uri }),
+    ),
+  };
+});
+
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -57,17 +69,15 @@ describe('AvatarToken', () => {
     const svgImageSource = {
       uri: 'https://example.com/token.svg',
     };
-    const { toJSON } = render(
+    render(
       <AvatarToken
         {...SAMPLE_AVATARTOKEN_PROPS}
         imageSource={svgImageSource}
       />,
     );
 
-    // SvgUri is used for SVG images - verify it renders (SvgUri mock doesn't forward testID)
-    const tree = toJSON();
-    expect(tree).toBeTruthy();
-    // Verify that the fallback text is NOT shown (meaning SVG path was taken)
-    expect(screen.queryByText('W')).toBeNull();
+    const imageComponent = screen.getByTestId(AVATARTOKEN_IMAGE_TESTID);
+    expect(imageComponent).toBeTruthy();
+    expect(imageComponent.props.uri).toBe(svgImageSource.uri);
   });
 });
