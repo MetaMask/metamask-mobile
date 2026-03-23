@@ -57,8 +57,6 @@ describe(SmokePredictions('Predictions Withdraw'), () => {
       async () => {
         await loginToApp();
 
-        await device.disableSynchronization();
-
         await TabBarComponent.tapActions();
         await WalletActionsBottomSheet.tapPredictButton();
 
