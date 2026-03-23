@@ -687,10 +687,13 @@ const getActionButtons = () =>
     .getAllByTestId('button')
     .filter((button) => getActionButtonText(button).includes('¢'));
 
+const getActionButtonPrice = (button: ReactTestInstance) => {
+  const match = getActionButtonText(button).match(/(\d+(?:\.\d+)?)¢$/);
+  return match ? Number(match[1]) : null;
+};
+
 const findActionButtonByPrice = (price: number) =>
-  getActionButtons().find((button) =>
-    getActionButtonText(button).endsWith(`${price}¢`),
-  );
+  getActionButtons().find((button) => getActionButtonPrice(button) === price);
 
 describe('PredictMarketDetails', () => {
   afterEach(() => {

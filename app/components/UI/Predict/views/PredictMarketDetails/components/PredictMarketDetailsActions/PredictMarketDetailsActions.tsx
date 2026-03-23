@@ -125,14 +125,16 @@ const PredictMarketDetailsActions = memo(
             const useStackedLabels =
               shouldUseStackedActionButtonLabel(yesTitle) ||
               shouldUseStackedActionButtonLabel(noTitle);
-            const actionButtonStyle = [
-              tw.style('flex-1'),
-              useStackedLabels && {
-                height: undefined,
-                minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
-                paddingVertical: 8,
-              },
-            ];
+            const getActionButtonStyle = (backgroundClassName: string) =>
+              tw.style(
+                'flex-1',
+                backgroundClassName,
+                useStackedLabels && {
+                  height: 'auto',
+                  minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
+                  paddingVertical: 8,
+                },
+              );
             return (
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -144,7 +146,7 @@ const PredictMarketDetailsActions = memo(
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  style={[actionButtonStyle, tw.style('bg-success-muted')]}
+                  style={getActionButtonStyle('bg-success-muted')}
                   label={renderActionButtonLabel({
                     title: yesTitle,
                     price: yesPercentage,
@@ -161,7 +163,7 @@ const PredictMarketDetailsActions = memo(
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  style={[actionButtonStyle, tw.style('bg-error-muted')]}
+                  style={getActionButtonStyle('bg-error-muted')}
                   label={renderActionButtonLabel({
                     title: noTitle,
                     price: 100 - yesPercentage,
