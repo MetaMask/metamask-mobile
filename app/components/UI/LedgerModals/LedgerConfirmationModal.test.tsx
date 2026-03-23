@@ -3,20 +3,16 @@ import { render, waitFor } from '@testing-library/react-native';
 import { act } from '@testing-library/react-hooks';
 import LedgerConfirmationModal from './LedgerConfirmationModal';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
-// Mock useMetrics
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 });
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock HardwareWallet hooks
 const mockEnsureDeviceReady = jest.fn();
@@ -44,6 +40,12 @@ describe('LedgerConfirmationModal', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     mockEnsureDeviceReady.mockResolvedValue(true);
     mockIsUserCancellation.mockReturnValue(false);
   });
