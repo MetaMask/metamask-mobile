@@ -214,26 +214,6 @@ export const selectCardSupportedCountries = createSelector(
     (defaultCardSupportedCountries as CardSupportedCountries),
 );
 
-export const selectDisplayCardButtonFeatureFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.displayCardButton as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
-export const selectCardExperimentalSwitch = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    const remoteFlag =
-      remoteFeatureFlags?.cardExperimentalSwitch2 as unknown as GateVersionedFeatureFlag;
-
-    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
-  },
-);
-
 export const selectCardFeatureFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {

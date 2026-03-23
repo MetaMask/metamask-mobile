@@ -4,17 +4,12 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
 import {
+  selectDisplayCardButton,
   selectIsAuthenticatedCard,
   selectOnboardingId,
   selectUserCardLocation,
-  selectAlwaysShowCardButton,
 } from '../../../../redux/slices/card';
-import {
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-  selectCardFeatureFlag,
-} from '../../../../../selectors/featureFlagController/card';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
+import { selectCardFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import { CardSDK } from '../../../../../components/UI/Card/sdk/CardSDK';
 
 jest.mock('../../../../redux', () => ({
@@ -28,7 +23,6 @@ jest.mock('../../../../redux', () => ({
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/featureFlagController/card');
-jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../components/UI/Card/sdk/CardSDK');
 jest.mock('../../../../../components/UI/Card/util/mapCountryToLocation');
@@ -72,12 +66,7 @@ describe('handleCardKycNotification', () => {
     (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
       'international',
     );
-    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
-    (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(false);
-    (
-      selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-    ).mockReturnValue(false);
-    (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({});
+    (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(false);
     (selectCardFeatureFlag as unknown as jest.Mock).mockReturnValue(
       mockCardFeatureFlag,
     );
@@ -95,7 +84,7 @@ describe('handleCardKycNotification', () => {
   });
 
   describe('feature flag checks', () => {
-    it('does not navigate when feature is disabled', async () => {
+    it('does not navigate when selectDisplayCardButton is false', async () => {
       await handleCardKycNotification();
 
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -104,37 +93,19 @@ describe('handleCardKycNotification', () => {
       );
     });
 
-    it('enables navigation when alwaysShowCardButton is enabled', async () => {
-      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+    it('enables navigation when selectDisplayCardButton is true', async () => {
+      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
 
       await handleCardKycNotification();
 
       // Should navigate to fallback (Welcome) since no onboardingId or auth
       expect(mockNavigate).toHaveBeenCalled();
     });
-
-    it('enables navigation when displayCardButtonFeatureFlag and country is supported', async () => {
-      (
-        selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
-      ).mockReturnValue(true);
-      (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('GB');
-      (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
-        GB: true,
-      });
-
-      await handleCardKycNotification();
-
-      expect(mockNavigate).toHaveBeenCalled();
-    });
   });
 
   describe('onboarding flow', () => {
     beforeEach(() => {
-      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(
         'test-onboarding-id',
       );
@@ -305,9 +276,7 @@ describe('handleCardKycNotification', () => {
 
   describe('authenticated flow', () => {
     beforeEach(() => {
-      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
       (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(true);
     });
@@ -457,9 +426,7 @@ describe('handleCardKycNotification', () => {
 
   describe('fallback behavior', () => {
     beforeEach(() => {
-      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
       (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
         false,
@@ -488,9 +455,7 @@ describe('handleCardKycNotification', () => {
 
   describe('error handling', () => {
     beforeEach(() => {
-      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
     });
 
     describe('when getState throws an error', () => {
@@ -612,9 +577,7 @@ describe('handleCardKycNotification', () => {
 
   describe('logging', () => {
     beforeEach(() => {
-      (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(
-        true,
-      );
+      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
     });
 
     it('logs starting message', async () => {

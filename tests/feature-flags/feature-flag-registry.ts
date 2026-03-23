@@ -452,17 +452,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  cardExperimentalSwitch2: {
-    name: 'cardExperimentalSwitch2',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.58.1',
-      enabled: true,
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
   cardFeature: {
     name: 'cardFeature',
     type: FeatureFlagType.Remote,
@@ -2511,17 +2500,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       entrypoints: {
         walletActions: false,
       },
-    },
-    status: FeatureFlagStatus.Active,
-  },
-
-  displayCardButton: {
-    name: 'displayCardButton',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.64.1',
-      enabled: true,
     },
     status: FeatureFlagStatus.Active,
   },

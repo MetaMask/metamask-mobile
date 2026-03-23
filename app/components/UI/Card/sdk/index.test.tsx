@@ -49,9 +49,7 @@ jest.mock('./CardSDK', () => ({
 
 jest.mock('../../../../selectors/featureFlagController/card', () => ({
   selectCardFeatureFlag: jest.fn(),
-  selectCardExperimentalSwitch: jest.fn(() => false),
   selectCardSupportedCountries: jest.fn(() => []),
-  selectDisplayCardButtonFeatureFlag: jest.fn(() => false),
 }));
 
 jest.mock('../../../../core/redux/slices/card', () => ({

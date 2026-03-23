@@ -32,11 +32,6 @@ jest.mock('../../sdk', () => ({
   withCardSDK: (component: React.ComponentType) => component,
 }));
 
-jest.mock('../../hooks/isBaanxLoginEnabled', () => ({
-  __esModule: true,
-  default: jest.fn(() => true),
-}));
-
 // Mock push provisioning hook
 const mockInitiateProvisioning = jest.fn();
 const mockResetProvisioningStatus = jest.fn();

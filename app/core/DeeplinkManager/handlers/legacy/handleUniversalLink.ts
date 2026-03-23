@@ -26,7 +26,6 @@ import { handlePerpsUrl } from './handlePerpsUrl';
 import { handleRewardsUrl } from './handleRewardsUrl';
 import { handlePredictUrl } from './handlePredictUrl';
 import handleFastOnboarding from './handleFastOnboarding';
-import { handleEnableCardButton } from './handleEnableCardButton';
 import { handleCardOnboarding } from './handleCardOnboarding';
 import { handleCardHome } from './handleCardHome';
 import { handleCardKycNotification } from './handleCardKycNotification';
@@ -79,7 +78,6 @@ const SUPPORTED_ACTIONS = {
   PREDICT: ACTIONS.PREDICT,
   WC: ACTIONS.WC,
   ONBOARDING: ACTIONS.ONBOARDING,
-  ENABLE_CARD_BUTTON: ACTIONS.ENABLE_CARD_BUTTON,
   CARD_ONBOARDING: ACTIONS.CARD_ONBOARDING,
   CARD_HOME: ACTIONS.CARD_HOME,
   CARD_KYC_NOTIFICATION: ACTIONS.CARD_KYC_NOTIFICATION,
@@ -102,7 +100,6 @@ type SUPPORTED_ACTIONS =
 const WHITELISTED_ACTIONS: SUPPORTED_ACTIONS[] = [
   SUPPORTED_ACTIONS.DAPP,
   SUPPORTED_ACTIONS.WC,
-  SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON,
   SUPPORTED_ACTIONS.CARD_ONBOARDING,
   SUPPORTED_ACTIONS.CARD_HOME,
   SUPPORTED_ACTIONS.CARD_KYC_NOTIFICATION,
@@ -606,10 +603,6 @@ async function handleUniversalLink({
     }
     case SUPPORTED_ACTIONS.ONBOARDING: {
       handleFastOnboarding({ onboardingPath: actionBasedRampPath });
-      break;
-    }
-    case SUPPORTED_ACTIONS.ENABLE_CARD_BUTTON: {
-      handleEnableCardButton();
       break;
     }
     case SUPPORTED_ACTIONS.CARD_ONBOARDING: {

@@ -6,11 +6,7 @@ import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
 import { CardLocation } from '../../../../components/UI/Card/types';
-import {
-  selectCardExperimentalSwitch,
-  selectCardSupportedCountries,
-  selectDisplayCardButtonFeatureFlag,
-} from '../../../../selectors/featureFlagController/card';
+import { selectCardSupportedCountries } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
 import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
@@ -24,7 +20,6 @@ export interface CardSliceState {
   cardholderAccounts: string[];
   hasViewedCardButton: boolean;
   isLoaded: boolean;
-  alwaysShowCardButton: boolean;
   isAuthenticated: boolean;
   userCardLocation: CardLocation;
   onboarding: OnboardingState;
@@ -35,7 +30,6 @@ export const initialState: CardSliceState = {
   cardholderAccounts: [],
   hasViewedCardButton: false,
   isLoaded: false,
-  alwaysShowCardButton: false,
   isAuthenticated: false,
   userCardLocation: 'international',
   onboarding: {
@@ -67,9 +61,6 @@ const slice = createSlice({
     resetCardState: () => initialState,
     setHasViewedCardButton: (state, action: PayloadAction<boolean>) => {
       state.hasViewedCardButton = action.payload;
-    },
-    setAlwaysShowCardButton: (state, action: PayloadAction<boolean>) => {
-      state.alwaysShowCardButton = action.payload;
     },
     setIsAuthenticatedCard: (state, action: PayloadAction<boolean>) => {
       state.isAuthenticated = action.payload;
@@ -148,22 +139,6 @@ export const selectCardholderAccounts = createSelector(
 const selectedAccount = (rootState: RootState) =>
   selectSelectedInternalAccountByScope(rootState)('eip155:0');
 
-export const selectAlwaysShowCardButton = createSelector(
-  selectCardState,
-  selectCardExperimentalSwitch,
-  (card, cardExperimentalSwitchFlagEnabled) => {
-    // Get the stored value of alwaysShowCardButton from the card state.
-    // That's stored in a persistent storage.
-    // If the feature flag is disabled, we return false.
-    // Otherwise, we return the stored value.
-    const alwaysShowCardButtonStoredValue = card.alwaysShowCardButton;
-
-    return cardExperimentalSwitchFlagEnabled
-      ? alwaysShowCardButtonStoredValue
-      : false;
-  },
-);
-
 export const selectCardIsLoaded = createSelector(
   selectCardState,
   (card) => card.isLoaded,
@@ -217,28 +192,8 @@ export const selectIsUserInSupportedCardCountry = createSelector(
 
 export const selectDisplayCardButton = createSelector(
   selectIsCardholder,
-  selectAlwaysShowCardButton,
-  selectDisplayCardButtonFeatureFlag,
   selectIsAuthenticatedCard,
-  selectIsUserInSupportedCardCountry,
-  (
-    isCardholder,
-    alwaysShowCardButton,
-    displayCardButtonFeatureFlag,
-    isAuthenticated,
-    isUserInSupportedCardCountry,
-  ) => {
-    if (
-      alwaysShowCardButton ||
-      isCardholder ||
-      isAuthenticated ||
-      (isUserInSupportedCardCountry && displayCardButtonFeatureFlag)
-    ) {
-      return true;
-    }
-
-    return false;
-  },
+  (isCardholder, isAuthenticated) => isCardholder || isAuthenticated,
 );
 
 export const selectOnboardingId = createSelector(
@@ -259,7 +214,6 @@ export const selectConsentSetId = createSelector(
 // Actions
 export const {
   resetCardState,
-  setAlwaysShowCardButton,
   setHasViewedCardButton,
   setIsAuthenticatedCard,
   setUserCardLocation,
