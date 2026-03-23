@@ -23,9 +23,9 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { strings } from '../../../../../../locales/i18n';
 import {
-  selectOptinAllowedForGeo,
-  selectOptinAllowedForGeoLoading,
-} from '../../../../../reducers/rewards/selectors';
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../../../../selectors/geolocationController';
 import {
   selectCardIsLoaded,
   selectIsCardholder,
@@ -37,6 +37,8 @@ import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';
 
 const AVATAR_SIZE = 78;
+const UK_COUNTRY_CODE = 'GB';
+const UNKNOWN_LOCATION = 'UNKNOWN';
 
 const styles = StyleSheet.create({
   avatar: { width: AVATAR_SIZE, height: AVATAR_SIZE },
@@ -92,19 +94,24 @@ const EarnCard: React.FC<EarnCardProps> = ({
 /**
  * EarnRewardsPreview shows the "Earn rewards" section on the dashboard.
  *
- * - mUSD calculator card: only shown when geo allows opt-in (not UK)
+ * - mUSD calculator card: only shown when geoLocation is confirmed, known, AND not UK.
+ * Hidden when geoLocation is undefined, 'UNKNOWN', or 'GB' to prevent flash for UK users.
  * - MetaMask Card card: shown when card geo is loaded and country is supported
- * - While geo is loading: skeletons shown in place of cards; title always visible
+ * - While geo is loading (status 'idle' or 'loading'): skeletons shown; title always visible
  */
 const EarnRewardsPreview: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
 
-  // mUSD geo check
-  const optinAllowedForGeo = useSelector(selectOptinAllowedForGeo);
-  const isGeoLoading = useSelector(selectOptinAllowedForGeoLoading);
-  const showMusdCard = optinAllowedForGeo !== false;
+  // mUSD geo check - hide for UK users, require positive geo confirmation to avoid flash
+  const geoLocation = useSelector(selectGeolocationLocation);
+  const geoStatus = useSelector(selectGeolocationStatus);
+  const isMusdGeoLoading = geoStatus === 'loading' || geoStatus === 'idle';
+  const showMusdCard =
+    geoLocation !== undefined &&
+    geoLocation !== UNKNOWN_LOCATION &&
+    geoLocation !== UK_COUNTRY_CODE;
 
   // Card geo check — isCardGeoLoaded flips true when loadCardholderAccounts settles
   const isCardGeoLoaded = useSelector(selectCardIsLoaded);
@@ -120,7 +127,7 @@ const EarnRewardsPreview: React.FC = () => {
       ? strings('rewards.earn_rewards.card_subtitle_cardholder')
       : strings('rewards.earn_rewards.card_subtitle');
 
-  const isAnyGeoLoading = isGeoLoading || isCardGeoLoading;
+  const isAnyGeoLoading = isMusdGeoLoading || isCardGeoLoading;
 
   const handleMusdPress = useCallback(() => {
     navigation.navigate(Routes.MUSD_CALCULATOR_VIEW);

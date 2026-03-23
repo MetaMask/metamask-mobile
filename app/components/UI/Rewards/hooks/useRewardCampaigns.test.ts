@@ -258,8 +258,10 @@ describe('useRewardCampaigns', () => {
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
     });
 
-    it('returns empty list and does not fetch when feature flag is disabled', async () => {
+    it('fetches campaigns even when feature flag is disabled', async () => {
       setupSelectorMocks({ isCampaignsEnabled: false });
+      const mockCampaignsData = [createTestCampaign()];
+      mockEngineCall.mockResolvedValueOnce(mockCampaignsData);
 
       const { result } = renderHook(() => useRewardCampaigns());
 
@@ -267,10 +269,13 @@ describe('useRewardCampaigns', () => {
         await result.current.fetchCampaigns();
       });
 
-      expect(mockEngineCall).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaigns([]));
-      expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
-      expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsError(false));
+      expect(mockEngineCall).toHaveBeenCalledWith(
+        'RewardsController:getCampaigns',
+        'subscription-1',
+      );
+      expect(mockDispatch).toHaveBeenCalledWith(
+        mockSetCampaigns(mockCampaignsData),
+      );
     });
 
     it('does not fetch when subscriptionId is null', async () => {
@@ -470,6 +475,104 @@ describe('useRewardCampaigns', () => {
       expect(result.current.categorizedCampaigns.previous[1].id).toBe(
         'complete-1',
       );
+    });
+
+    it('filters out active and previous campaigns when feature flag is disabled', () => {
+      const activeCampaign = createTestCampaign({
+        id: 'active-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const upcomingCampaign = createTestCampaign({
+        id: 'upcoming-1',
+        startDate: '2099-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const completeCampaign = createTestCampaign({
+        id: 'complete-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
+        isCampaignsEnabled: false,
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.categorizedCampaigns.active).toEqual([]);
+      expect(result.current.categorizedCampaigns.upcoming).toEqual([
+        upcomingCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.previous).toEqual([]);
+    });
+
+    it('returns only upcoming campaigns when feature flag is disabled', () => {
+      const activeCampaign = createTestCampaign({
+        id: 'active-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const upcomingCampaign = createTestCampaign({
+        id: 'upcoming-1',
+        startDate: '2099-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const completeCampaign = createTestCampaign({
+        id: 'complete-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
+        isCampaignsEnabled: false,
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.campaigns).toEqual([upcomingCampaign]);
+    });
+
+    it('returns all campaigns when feature flag is enabled', () => {
+      const activeCampaign = createTestCampaign({
+        id: 'active-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const upcomingCampaign = createTestCampaign({
+        id: 'upcoming-1',
+        startDate: '2099-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const completeCampaign = createTestCampaign({
+        id: 'complete-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
+        isCampaignsEnabled: true,
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.campaigns).toEqual([
+        activeCampaign,
+        upcomingCampaign,
+        completeCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.active).toEqual([
+        activeCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.upcoming).toEqual([
+        upcomingCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.previous).toEqual([
+        completeCampaign,
+      ]);
     });
   });
 });

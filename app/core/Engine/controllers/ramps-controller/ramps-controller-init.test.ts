@@ -67,17 +67,17 @@ jest.mock('react-native-device-info', () => ({
 
 const createMockInitMessenger = (
   overrides: {
-    active?: boolean;
+    enabled?: boolean;
     minimumVersion?: string | null;
   } = {},
 ): RampsControllerInitMessenger => {
-  const { active = false, minimumVersion = null } = overrides;
+  const { enabled = false, minimumVersion = null } = overrides;
 
   return {
     call: jest.fn().mockReturnValue({
       remoteFeatureFlags: {
         rampsUnifiedBuyV2: {
-          active,
+          enabled,
           minimumVersion,
         },
       },
@@ -196,7 +196,7 @@ describe('ramps controller init', () => {
   describe('when V2 feature flag is enabled', () => {
     it('calls init at startup', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
+        enabled: true,
         minimumVersion: '1.0.0',
       });
 
@@ -207,9 +207,43 @@ describe('ramps controller init', () => {
       });
     });
 
+    it('calls init when remote flags were off at startup then V2 enables on RemoteFeatureFlagController:stateChange', async () => {
+      let remoteEnabled = false;
+      const subscribeMock = jest.fn();
+      const initMessenger = {
+        call: jest.fn(() => ({
+          remoteFeatureFlags: {
+            rampsUnifiedBuyV2: remoteEnabled
+              ? { enabled: true, minimumVersion: '1.0.0' }
+              : { enabled: false },
+          },
+        })),
+        subscribe: subscribeMock,
+      } as unknown as RampsControllerInitMessenger;
+
+      initRequestMock.initMessenger = initMessenger;
+
+      rampsControllerInit(initRequestMock);
+
+      expect(mockInit).not.toHaveBeenCalled();
+
+      const stateChangeHandler = subscribeMock.mock.calls.find(
+        (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+      )?.[1] as () => void;
+
+      expect(stateChangeHandler).toBeDefined();
+
+      remoteEnabled = true;
+      stateChangeHandler();
+
+      await waitFor(() => {
+        expect(mockInit).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('handles init failure gracefully', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
+        enabled: true,
         minimumVersion: '1.0.0',
       });
       mockInit.mockRejectedValue(new Error('Network error'));
@@ -225,7 +259,7 @@ describe('ramps controller init', () => {
   describe('when V2 feature flag is disabled', () => {
     it('does not call init at startup', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: false,
+        enabled: false,
       });
 
       rampsControllerInit(initRequestMock);
@@ -235,9 +269,9 @@ describe('ramps controller init', () => {
       });
     });
 
-    it('does not call init when active is true but minimumVersion is missing', async () => {
+    it('does not call init when enabled is true but minimumVersion is missing', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
-        active: true,
+        enabled: true,
         minimumVersion: null,
       });
 
@@ -253,6 +287,7 @@ describe('ramps controller init', () => {
         call: jest.fn().mockImplementation(() => {
           throw new Error('Controller not ready');
         }),
+        subscribe: jest.fn(),
       } as unknown as RampsControllerInitMessenger;
 
       rampsControllerInit(initRequestMock);
@@ -265,7 +300,7 @@ describe('ramps controller init', () => {
 
   it('always returns the controller instance regardless of flag state', () => {
     initRequestMock.initMessenger = createMockInitMessenger({
-      active: false,
+      enabled: false,
     });
 
     const result = rampsControllerInit(initRequestMock);

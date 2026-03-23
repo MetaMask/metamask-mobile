@@ -13,15 +13,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#fff' },
-      border: { muted: '#ccc' },
-      overlay: { default: 'rgba(0,0,0,0.5)' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  // Use the real mockTheme to avoid hardcoded hex literals
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => actual.mockTheme,
+  };
+});
 
 jest.mock(
   '../../../../../component-library/components/Sheet/SheetHeader',
