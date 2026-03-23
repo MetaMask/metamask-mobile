@@ -1,12 +1,7 @@
-import { RouteProp, useRoute } from '@react-navigation/native';
 import { SetStateAction, useCallback, useRef, useState } from 'react';
-
-import { PredictNavigationParamList } from '../../../types/navigation';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 
 export const usePredictBuyInputState = () => {
-  const route =
-    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const { clearOrderError } = usePredictActiveOrder();
 
   const [currentValue, setCurrentValueState] = useState(0);

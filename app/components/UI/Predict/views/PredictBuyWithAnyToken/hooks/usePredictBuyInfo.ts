@@ -53,12 +53,9 @@ export const usePredictBuyInfo = ({
     }
   }, [isConfirming]);
 
+  const fallbackDepositFee = isConfirming ? acceptedDepositFee : 0;
   const depositFee =
-    computedDepositFee > 0
-      ? computedDepositFee
-      : isConfirming
-        ? acceptedDepositFee
-        : 0;
+    computedDepositFee > 0 ? computedDepositFee : fallbackDepositFee;
 
   const rewardsFeeAmount =
     isPlaceOrderLoading || previewError

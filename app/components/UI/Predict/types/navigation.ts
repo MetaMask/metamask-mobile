@@ -4,7 +4,6 @@
 
 import { ParamListBase } from '@react-navigation/native';
 import {
-  OrderPreview,
   PredictActivityItem,
   PredictCategory,
   PredictMarket,
