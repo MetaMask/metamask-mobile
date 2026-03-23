@@ -118,4 +118,3 @@ platform :ios do
     upload_to_testflight(testflight_options)
   end
 end
-
