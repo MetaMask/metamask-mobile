@@ -12,7 +12,7 @@ export interface TabItem {
   label: string;
   content: React.ReactNode;
   isDisabled?: boolean;
-  tabTestID?: string;
+  testID?: string;
 }
 
 /**
