@@ -23,39 +23,7 @@ const { loadPort } = require('./lib/config');
 const { discoverTarget } = require('./lib/target-discovery');
 const { createWSClient } = require('./lib/ws-client');
 const { cdpEval, cdpEvalAsync } = require('./lib/cdp-eval');
-
-// ---------------------------------------------------------------------------
-// Pre-condition assertion helpers
-// ---------------------------------------------------------------------------
-
-// Operator dispatch table — same semantics as validate-recipe.sh check_assert
-const ASSERT_OPERATORS = {
-  not_null: (val) => val != null,
-  eq: (val, exp) => val === exp,
-  gt: (val, exp) => val > exp,
-  length_eq: (val, exp) => val != null && val.length === exp,
-  length_gt: (val, exp) => val != null && val.length > exp,
-  contains: (val, exp) =>
-    typeof val === 'string' ? val.includes(String(exp)) : Array.isArray(val) && val.map(String).includes(String(exp)),
-  not_contains: (val, exp) =>
-    typeof val === 'string' ? !val.includes(String(exp)) : Array.isArray(val) && !val.map(String).includes(String(exp)),
-};
-
-function checkAssert(raw, assertSpec) {
-  let val;
-  try { val = JSON.parse(raw); } catch { val = raw; }
-  if (typeof val === 'string') { try { val = JSON.parse(val); } catch { /* not JSON — keep as string */ } }
-  const field = assertSpec.field || '';
-  if (field) {
-    for (const p of field.split('.')) {
-      val = val != null && typeof val === 'object' ? val[p] : undefined;
-    }
-  }
-  const op = assertSpec.operator || '';
-  const handler = ASSERT_OPERATORS[op];
-  if (!handler) throw new Error(`Unknown operator: ${op}`);
-  return handler(val, assertSpec.value);
-}
+const { checkAssert } = require('./lib/assert');
 
 async function evalSpec(client, entry, params) {
   const expr = typeof entry.expression === 'function' ? entry.expression(params) : entry.expression;

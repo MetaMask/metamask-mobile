@@ -521,7 +521,7 @@ export const PerpsOrderViewSelectorsIDs = {
   FEES_INFO_ICON: 'perps-order-view-fees-info-icon',
   TP_SL_INFO_ICON: 'perps-order-view-tp-sl-info-icon',
   // Buttons present in PerpsOrderView (TouchableOpacity with testID)
-  TAKE_PROFIT_BUTTON: 'perps-order-view-stop-loss-button',
+  TAKE_PROFIT_BUTTON: 'perps-order-view-take-profit-button',
   STOP_LOSS_BUTTON: 'perps-order-view-stop-loss-button',
   PLACE_ORDER_BUTTON: 'perps-order-view-place-order-button',
   KEYPAD: 'perps-order-view-keypad',
