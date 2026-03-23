@@ -59,6 +59,42 @@ const PredictMarketDetailsActions = memo(
   }: PredictMarketDetailsActionsProps) => {
     const tw = useTailwind();
 
+    const renderActionButtonLabel = ({
+      title,
+      price,
+      color,
+      useStackedLabels,
+    }: {
+      title: string;
+      price: number;
+      color: TextColor;
+      useStackedLabels: boolean;
+    }) => {
+      if (useStackedLabels) {
+        return (
+          <Box twClassName="w-full items-center py-0.5">
+            <Text
+              style={tw.style('font-bold text-center')}
+              color={color}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {title}
+            </Text>
+            <Text style={tw.style('font-bold text-center')} color={color}>
+              {price}¢
+            </Text>
+          </Box>
+        );
+      }
+
+      return (
+        <Text style={tw.style('font-bold text-center')} color={color}>
+          {title} • {price}¢
+        </Text>
+      );
+    };
+
     return (
       <>
         {(() => {
@@ -78,14 +114,14 @@ const PredictMarketDetailsActions = memo(
           ) {
             // use openOutcomes for real-time (CLOB) prices
             const firstOpenOutcome = openOutcomes[0];
-            const yesTitle =
-              firstOpenOutcome?.tokens?.[0]?.title ??
-              market?.outcomes?.[0]?.tokens?.[0]?.title ??
-              '';
-            const noTitle =
-              firstOpenOutcome?.tokens?.[1]?.title ??
-              market?.outcomes?.[0]?.tokens?.[1]?.title ??
-              '';
+            const yesToken =
+              firstOpenOutcome?.tokens?.[0] ??
+              market?.outcomes?.[0]?.tokens?.[0];
+            const noToken =
+              firstOpenOutcome?.tokens?.[1] ??
+              market?.outcomes?.[0]?.tokens?.[1];
+            const yesTitle = yesToken?.title ?? '';
+            const noTitle = noToken?.title ?? '';
             const useStackedLabels =
               shouldUseStackedActionButtonLabel(yesTitle) ||
               shouldUseStackedActionButtonLabel(noTitle);
@@ -109,78 +145,34 @@ const PredictMarketDetailsActions = memo(
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
                   style={[actionButtonStyle, tw.style('bg-success-muted')]}
-                  label={
-                    useStackedLabels ? (
-                      <Box twClassName="w-full items-center py-0.5">
-                        <Text
-                          style={tw.style('font-bold text-center')}
-                          color={TextColor.SuccessDefault}
-                          numberOfLines={2}
-                          ellipsizeMode="tail"
-                        >
-                          {yesTitle}
-                        </Text>
-                        <Text
-                          style={tw.style('font-bold text-center')}
-                          color={TextColor.SuccessDefault}
-                        >
-                          {yesPercentage}¢
-                        </Text>
-                      </Box>
-                    ) : (
-                      <Text
-                        style={tw.style('font-bold text-center')}
-                        color={TextColor.SuccessDefault}
-                      >
-                        {yesTitle} • {yesPercentage}¢
-                      </Text>
-                    )
-                  }
-                  onPress={() =>
-                    onBuyPress(
-                      firstOpenOutcome?.tokens[0] ??
-                        market?.outcomes[0].tokens[0],
-                    )
-                  }
+                  label={renderActionButtonLabel({
+                    title: yesTitle,
+                    price: yesPercentage,
+                    color: TextColor.SuccessDefault,
+                    useStackedLabels,
+                  })}
+                  onPress={() => {
+                    if (yesToken) {
+                      onBuyPress(yesToken);
+                    }
+                  }}
                 />
                 <Button
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
                   style={[actionButtonStyle, tw.style('bg-error-muted')]}
-                  label={
-                    useStackedLabels ? (
-                      <Box twClassName="w-full items-center py-0.5">
-                        <Text
-                          style={tw.style('font-bold text-center')}
-                          color={TextColor.ErrorDefault}
-                          numberOfLines={2}
-                          ellipsizeMode="tail"
-                        >
-                          {noTitle}
-                        </Text>
-                        <Text
-                          style={tw.style('font-bold text-center')}
-                          color={TextColor.ErrorDefault}
-                        >
-                          {100 - yesPercentage}¢
-                        </Text>
-                      </Box>
-                    ) : (
-                      <Text
-                        style={tw.style('font-bold text-center')}
-                        color={TextColor.ErrorDefault}
-                      >
-                        {noTitle} • {100 - yesPercentage}¢
-                      </Text>
-                    )
-                  }
-                  onPress={() =>
-                    onBuyPress(
-                      firstOpenOutcome?.tokens[1] ??
-                        market?.outcomes[0].tokens[1],
-                    )
-                  }
+                  label={renderActionButtonLabel({
+                    title: noTitle,
+                    price: 100 - yesPercentage,
+                    color: TextColor.ErrorDefault,
+                    useStackedLabels,
+                  })}
+                  onPress={() => {
+                    if (noToken) {
+                      onBuyPress(noToken);
+                    }
+                  }}
                 />
               </Box>
             );
