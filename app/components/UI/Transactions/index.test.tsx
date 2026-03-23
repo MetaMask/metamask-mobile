@@ -2023,13 +2023,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
     instance.context = {
-      colors: {
-        background: { default: '#fff' },
-        text: { muted: '#999' },
-        primary: { default: '#037dd6' },
-        icon: { default: '#24272a' },
-      },
-      typography: {},
+      colors: mockTheme.colors,
+      typography: mockTheme.typography,
     };
     instance.state = {
       refreshing: false,
