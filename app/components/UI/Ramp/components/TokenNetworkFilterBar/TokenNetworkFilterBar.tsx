@@ -98,7 +98,9 @@ function TokenNetworkFilterBar({
 
                 <Text
                   color={
-                    isSelected ? TextColor.OverlayInverse : TextColor.TextDefault
+                    isSelected
+                      ? TextColor.OverlayInverse
+                      : TextColor.TextDefault
                   }
                   variant={TextVariant.BodyMd}
                 >

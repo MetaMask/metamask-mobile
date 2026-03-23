@@ -42,13 +42,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#ffffff",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         All
@@ -107,13 +111,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Ethereum
@@ -172,13 +180,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Optimism
@@ -237,13 +249,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Polygon
@@ -295,13 +311,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#ffffff",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         All
@@ -360,13 +380,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Ethereum
@@ -425,13 +449,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Optimism
@@ -490,13 +518,17 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Polygon
@@ -550,13 +582,17 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         All
@@ -613,13 +649,17 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#ffffff",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#ffffff",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Ethereum
@@ -678,13 +718,17 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Optimism
@@ -743,13 +787,17 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       <Text
         accessibilityRole="text"
         style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
+          [
+            {
+              "color": "#131416",
+              "fontFamily": "Geist-Regular",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+            },
+            undefined,
+          ]
         }
       >
         Polygon

@@ -39,15 +39,20 @@ exports[`PaymentMethodPill matches snapshot 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#131416",
-        "fontFamily": "Geist-Medium",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginLeft": 8,
-        "marginRight": 4,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Medium",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginLeft": 8,
+          "marginRight": 4,
+        },
+      ]
     }
   >
     Debit card
