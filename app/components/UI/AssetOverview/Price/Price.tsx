@@ -8,7 +8,6 @@ import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
-import { addCurrencySymbol } from '../../../../util/number';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import Text, {
   TextColor,
@@ -129,8 +128,12 @@ const Price = ({
               variant={TextVariant.BodyMDMedium}
               allowFontScaling={false}
             >
-              {diff > 0 ? '+' : ''}
-              {addCurrencySymbol(diff, currentCurrency, true)} (
+              {diff > 0 ? '+' : diff < 0 ? '-' : ''}
+              {formatPriceWithSubscriptNotation(
+                Math.abs(diff),
+                currentCurrency,
+              )}{' '}
+              {'('}
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %){' '}
