@@ -98,4 +98,51 @@ describe('SuccessErrorSheet', () => {
     expect(getByText('Test Description')).toBeTruthy();
     expect(getByText('Custom Button')).toBeTruthy();
   });
+
+  it('renders correctly with warning type and shows warning icon', () => {
+    const mockWarningRoute = {
+      params: {
+        title: 'Warning Title',
+        description: 'Warning description',
+        type: 'warning' as const,
+        primaryButtonLabel: 'Continue',
+        onPrimaryButtonPress: jest.fn(),
+        onClose: jest.fn(),
+        descriptionAlign: 'center' as const,
+      },
+    };
+
+    const { getByText, toJSON } = renderWithProvider(
+      <SuccessErrorSheet route={mockWarningRoute} />,
+    );
+
+    expect(getByText('Warning Title')).toBeTruthy();
+    expect(getByText('Warning description')).toBeTruthy();
+    expect(getByText('Continue')).toBeTruthy();
+
+    // Warning icon should be rendered
+    const tree = JSON.stringify(toJSON());
+    expect(tree).toContain('Warning');
+  });
+
+  it('calls onPrimaryButtonPress when primary button is pressed', () => {
+    const onPrimaryButtonPress = jest.fn();
+    const mockWarningRoute = {
+      params: {
+        title: 'Warning',
+        description: 'Description',
+        type: 'warning' as const,
+        primaryButtonLabel: 'Continue',
+        onPrimaryButtonPress,
+        onClose: jest.fn(),
+      },
+    };
+
+    const { getByRole } = renderWithProvider(
+      <SuccessErrorSheet route={mockWarningRoute} />,
+    );
+
+    fireEvent.press(getByRole('button', { name: 'Continue' }));
+    expect(onPrimaryButtonPress).toHaveBeenCalledTimes(1);
+  });
 });

@@ -12,6 +12,7 @@ const mockExpoAuthSessionPromptAsync = jest.fn().mockResolvedValue({
 });
 const mockDeviceIsIos = jest.fn();
 const mockComparePlatformVersionTo = jest.fn();
+const mockGetIosGoogleConfig = jest.fn();
 
 jest.mock('./constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
@@ -20,6 +21,7 @@ jest.mock('./constants', () => ({
   AndroidGoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
+  getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
 }));
 
 jest.mock('expo-auth-session', () => ({
@@ -31,6 +33,12 @@ jest.mock('expo-auth-session', () => ({
   }),
   CodeChallengeMethod: jest.fn(),
   ResponseType: jest.fn(),
+  Prompt: {
+    SelectAccount: 'select_account',
+    Login: 'login',
+    Consent: 'consent',
+    None: 'none',
+  },
 }));
 
 const mockSignInAsync = jest.fn().mockResolvedValue({
@@ -77,6 +85,10 @@ describe('OAuth login handlers', () => {
     jest.clearAllMocks();
     mockDeviceIsIos.mockReturnValue(false);
     mockComparePlatformVersionTo.mockReturnValue(0);
+    mockGetIosGoogleConfig.mockReturnValue({
+      clientId: 'mock-android-google-client-id',
+      redirectUri: 'https://link.metamask.io/oauth-redirect',
+    });
   });
 
   for (const os of ['ios', 'android']) {
@@ -306,6 +318,10 @@ describe('OAuth login handlers', () => {
         jest.clearAllMocks();
         mockDeviceIsIos.mockReturnValue(true);
         mockComparePlatformVersionTo.mockReturnValue(0);
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-ios-google-client-id',
+          redirectUri: 'mock-ios-google-redirect-uri',
+        });
       });
 
       it('throw UserCancelled error when user cancels', async () => {
@@ -369,24 +385,36 @@ describe('OAuth login handlers', () => {
         await expect(handler.login()).rejects.toThrow('Network error');
       });
 
-      it('throws unsupported error on iOS versions below 17.4', async () => {
+      it('uses iOS-specific config when iOS version is below 17.4', async () => {
         mockDeviceIsIos.mockReturnValue(true);
         mockComparePlatformVersionTo.mockReturnValue(-1);
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-ios-google-client-id',
+          redirectUri: 'mock-ios-google-redirect-uri',
+        });
+        mockExpoAuthSessionPromptAsync.mockResolvedValue({
+          type: 'success',
+          params: {
+            code: 'test-auth-code',
+          },
+        });
 
         const handler = createLoginHandler('ios', AuthConnection.Google);
+        const result = await handler.login();
 
-        await expect(handler.login()).rejects.toMatchObject({
-          code: OAuthErrorType.IosGoogleLoginNotSupported,
-          message: expect.stringContaining(
-            'iOS Google login requires iOS 17.4 or later',
-          ),
-        });
-        expect(mockExpoAuthSessionPromptAsync).not.toHaveBeenCalled();
+        expect(result?.authConnection).toBe(AuthConnection.Google);
+        expect(result?.code).toBe('test-auth-code');
+        expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
+        expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
       });
 
-      it('allows iOS version 17.4', async () => {
+      it('uses web config when iOS version is 17.4 or later', async () => {
         mockDeviceIsIos.mockReturnValue(true);
         mockComparePlatformVersionTo.mockReturnValue(0);
+        mockGetIosGoogleConfig.mockReturnValue({
+          clientId: 'mock-ios-google-client-id',
+          redirectUri: 'mock-ios-google-redirect-uri',
+        });
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'success',
           params: {
@@ -400,6 +428,7 @@ describe('OAuth login handlers', () => {
           authConnection: AuthConnection.Google,
           code: 'test-auth-code',
         });
+        expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
         expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
       });
     });

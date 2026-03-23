@@ -7,7 +7,21 @@ import {
   AppleWebClientId,
   AppleServerRedirectUri,
   AuthConnectionConfig,
+  getIosGoogleConfig,
 } from './constants';
+
+const mockDeviceIsIos = jest.fn();
+const mockComparePlatformVersionTo = jest.fn();
+
+jest.mock('../../../util/device', () => ({
+  __esModule: true,
+  default: {
+    isIos: (...args: unknown[]) => mockDeviceIsIos(...args),
+    isAndroid: jest.fn().mockReturnValue(false),
+    comparePlatformVersionTo: (...args: unknown[]) =>
+      mockComparePlatformVersionTo(...args),
+  },
+}));
 
 const mockAppRedirectUri = 'metamask://oauth-redirect';
 describe('OAuth Constants', () => {
@@ -85,5 +99,55 @@ describe('Error handling with missing environment variables', () => {
     );
     expect(() => validateWithMissingVars()).toThrow(/WEB3AUTH_NETWORK/);
     expect(() => validateWithMissingVars()).toThrow(/AUTH_SERVER_URL/);
+  });
+});
+
+describe('getIosGoogleConfig', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    mockDeviceIsIos.mockReturnValue(false);
+    mockComparePlatformVersionTo.mockReturnValue(0);
+  });
+
+  it('returns iOS-specific config when on iOS < 17.4', () => {
+    mockDeviceIsIos.mockReturnValue(true);
+    mockComparePlatformVersionTo.mockReturnValue(-1);
+
+    const config = getIosGoogleConfig();
+
+    expect(config).toEqual({
+      clientId: 'iosGoogleClientId',
+      redirectUri: 'iosGoogleRedirectUri',
+    });
+  });
+
+  it('returns Android web config when on iOS >= 17.4', () => {
+    mockDeviceIsIos.mockReturnValue(true);
+    mockComparePlatformVersionTo.mockReturnValue(0);
+
+    const config = getIosGoogleConfig();
+
+    expect(config.clientId).toBe('androidGoogleWebClientId');
+    expect(config.redirectUri).toContain('link.metamask.io');
+  });
+
+  it('returns Android web config when on Android', () => {
+    mockDeviceIsIos.mockReturnValue(false);
+    mockComparePlatformVersionTo.mockReturnValue(0);
+
+    const config = getIosGoogleConfig();
+
+    expect(config.clientId).toBe('androidGoogleWebClientId');
+    expect(config.redirectUri).toContain('link.metamask.io');
+  });
+
+  it('calls Device.isIos and Device.comparePlatformVersionTo to determine config', () => {
+    mockDeviceIsIos.mockReturnValue(true);
+    mockComparePlatformVersionTo.mockReturnValue(0);
+
+    getIosGoogleConfig();
+
+    expect(mockDeviceIsIos).toHaveBeenCalledTimes(1);
+    expect(mockComparePlatformVersionTo).toHaveBeenCalledWith('17.4');
   });
 });

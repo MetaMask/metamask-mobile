@@ -132,6 +132,7 @@ jest.mock('../../../util/device', () => ({
   isAndroid: jest.fn(),
   isIos: jest.fn(),
   isMediumDevice: jest.fn(),
+  comparePlatformVersionTo: jest.fn().mockReturnValue(1),
 }));
 
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
@@ -955,10 +956,13 @@ describe('Onboarding', () => {
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+      // Default to iOS >= 17.4 so the proactive version check is skipped
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
     });
 
     afterEach(() => {
       jest.clearAllMocks();
+      mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
@@ -1262,14 +1266,30 @@ describe('Onboarding', () => {
       );
     });
 
-    it('navigates to error sheet when iOS Google login is not supported', async () => {
+    it('shows iOS version warning sheet before Google login on iOS < 17.4', async () => {
       Platform.OS = 'ios';
-      const notSupportedError = new OAuthError(
-        '',
-        OAuthErrorType.IosGoogleLoginNotSupported,
-      );
+      // Simulate iOS version below 17.4
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
-      mockOAuthService.handleOAuthLogin.mockRejectedValue(notSupportedError);
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      // Auto-close the error sheet so the promise resolves and the login continues
+      mockNavigate.mockImplementation(
+        (route: string, params: Record<string, unknown>) => {
+          const screenParams = params?.params as Record<string, unknown>;
+          if (
+            route === Routes.MODAL.ROOT_MODAL_FLOW &&
+            params?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+            typeof screenParams?.onClose === 'function'
+          ) {
+            (screenParams.onClose as () => void)();
+          }
+        },
+      );
 
       const { getByTestId } = renderScreen(
         Onboarding,
@@ -1300,20 +1320,83 @@ describe('Onboarding', () => {
         await flushPromises();
       });
 
+      // Verify the warning sheet was shown with the iOS not-supported message
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
-            type: 'error',
+            type: 'warning',
             title: strings('error_sheet.ios_google_login_not_supported_title'),
             description: strings(
               'error_sheet.ios_google_login_not_supported_description',
             ),
             descriptionAlign: 'center',
+            primaryButtonLabel: strings(
+              'error_sheet.ios_google_login_not_supported_button',
+            ),
           }),
         }),
       );
+
+      // Verify the login flow continued after the sheet was dismissed
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+        false,
+      );
+    });
+
+    it('does not show iOS version warning for Apple login on iOS < 17.4', async () => {
+      Platform.OS = 'ios';
+      // Simulate iOS version below 17.4
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      mockCreateLoginHandler.mockReturnValue('mockAppleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@icloud.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const appleOAuthFunction = navCall[1].params.onPressContinueWithApple;
+
+      await act(async () => {
+        await appleOAuthFunction(true);
+        await flushPromises();
+      });
+
+      // The iOS version warning sheet should NOT be shown for Apple login
+      const warningSheetCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+          call[1]?.params?.type === 'warning',
+      );
+      expect(warningSheetCall).toBeUndefined();
+
+      // Apple login should proceed normally
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'apple');
     });
 
     it('navigates to AccountAlreadyExists for existing user in create wallet flow', async () => {

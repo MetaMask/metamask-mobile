@@ -110,10 +110,7 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
-import {
-  navigateToSuccessErrorSheet,
-  navigateToSuccessErrorSheetPromise,
-} from '../SuccessErrorSheet/utils';
+import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -763,17 +760,25 @@ const Onboarding = () => {
       });
 
       const action = async () => {
+        // prompt for ios google login not supported below iOS 17.4
         if (
           Platform.OS === 'ios' &&
+          provider === AuthConnection.Google &&
           Device.comparePlatformVersionTo('17.4') < 0
         ) {
           await navigateToSuccessErrorSheetPromise(navigation, {
-            type: 'error',
+            type: 'warning',
             title: strings(`error_sheet.ios_google_login_not_supported_title`),
             description: strings(
               `error_sheet.ios_google_login_not_supported_description`,
             ),
             descriptionAlign: 'center',
+            primaryButtonLabel: strings(
+              `error_sheet.ios_google_login_not_supported_button`,
+            ),
+            onPrimaryButtonPress: () => {
+              navigation.goBack();
+            },
           });
         }
         setLoading();
