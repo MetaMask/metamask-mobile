@@ -47,6 +47,7 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import useTooltipModal from '../../../../../components/hooks/useTooltipModal';
 import Routes from '../../../../../constants/navigation/Routes';
+import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName } from '../../../../../util/trace';
@@ -1079,6 +1080,12 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         } else {
           await executeOrder(orderParams);
         }
+
+        // Clear pending trade config after successful submission to prevent
+        // stale TP/SL values from being restored on the next order form visit
+        Engine.context.PerpsController?.clearPendingTradeConfiguration(
+          orderForm.asset,
+        );
       } finally {
         // Always reset submission flag
         isSubmittingRef.current = false;
