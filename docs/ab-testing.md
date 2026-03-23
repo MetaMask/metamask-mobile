@@ -94,7 +94,7 @@ The controller stores `{ name, value }` in `RemoteFeatureFlagController.remoteFe
 
 ## `useABTest` Hook
 
-Generic examples below use template-style keys; see SWAPS4135 section for a concrete implementation.
+Generic examples below use template-style keys; see the SWAPS4135 section for a concrete implementation.
 
 ```typescript
 import { useABTest } from '../hooks';
@@ -210,7 +210,7 @@ Do not add new payloads under `ab_tests`.
 
 ## Segment Schema Contract
 
-Canonical global field is `active_ab_tests` (from `metamask-mobile-globals`):
+The canonical global field is `active_ab_tests` (from `metamask-mobile-globals`):
 
 ```yaml
 active_ab_tests:
@@ -263,7 +263,7 @@ If you must touch a legacy `ab_tests` line before full migration, mark it with `
 
 ## LaunchDarkly Setup
 
-1. Create JSON flag.
+1. Create a JSON flag.
 2. Name format: `{team name}{ticket ID}Abtest{test name}`.
    - Team name prefix: lower camel team token (for example `swaps`).
    - Ticket ID: uppercase project key + number (for example `SWAPS4135`).
@@ -286,7 +286,7 @@ If you must touch a legacy `ab_tests` line before full migration, mark it with `
 ]
 ```
 
-Use default targeting rule to serve this variation value.
+Use the default targeting rule to serve this variation value.
 
 ---
 
