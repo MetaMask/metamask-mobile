@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, userEvent, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { render, userEvent, fireEvent , act } from '@testing-library/react-native';
 import { Metrics, SafeAreaProvider } from 'react-native-safe-area-context';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokensFullView, {
@@ -438,10 +438,10 @@ describe('TrendingTokensFullView', () => {
 
       // Open search and type a query
       const searchToggle = getByTestId('trending-tokens-header-search-toggle');
-      await fireEventAsync.press(searchToggle);
+      fireEvent.press(searchToggle);
 
       const searchInput = getByTestId('trending-tokens-header-search-bar');
-      await fireEventAsync.changeText(searchInput, 'eth');
+      fireEvent.changeText(searchInput, 'eth');
 
       // Tokens should be displayed in original order (relevance), not sorted
       // Even if we select a sort option, search results should maintain relevance order
@@ -562,7 +562,7 @@ describe('TrendingTokensFullView', () => {
       await userEvent.press(searchToggle);
 
       const searchInput = getByTestId('trending-tokens-header-search-bar');
-      await fireEventAsync.changeText(searchInput, 'eth');
+      fireEvent.changeText(searchInput, 'eth');
 
       // Even with volume sort selected, search results should maintain relevance order
       // (Ethereum Classic first because that's the order returned by mock)
@@ -594,13 +594,13 @@ describe('TrendingTokensFullView', () => {
 
       // Type search query
       const searchInput = getByTestId('trending-tokens-header-search-bar');
-      await fireEventAsync.changeText(searchInput, 'token');
+      fireEvent.changeText(searchInput, 'token');
 
       // Verify search is active
       expect(searchInput.props.value).toBe('token');
 
       // Clear search by changing text to empty
-      await fireEventAsync.changeText(searchInput, '');
+      fireEvent.changeText(searchInput, '');
 
       // Results should still be displayed
       expect(getByText('Token X')).toBeOnTheScreen();

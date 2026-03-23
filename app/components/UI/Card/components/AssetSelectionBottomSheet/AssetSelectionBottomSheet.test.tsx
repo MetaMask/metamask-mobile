@@ -140,7 +140,7 @@ jest.mock('react-native-gesture-handler', () => {
 });
 
 import React from 'react';
-import { render, fireEvent, waitFor, act , fireEventAsync } from '@testing-library/react-native';
+import { render, fireEvent, waitFor, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { CaipChainId } from '@metamask/utils';
 import { SolScope } from '@metamask/keyring-api';
@@ -640,7 +640,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        await fireEventAsync.press(tokenElement);
+        fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
@@ -731,7 +731,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        await fireEventAsync.press(tokenElement);
+        fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
@@ -762,7 +762,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        await fireEventAsync.press(tokenElement);
+        fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 
@@ -825,7 +825,7 @@ describe('AssetSelectionBottomSheet', () => {
       const tokenElement = getByText('USDC on Linea');
 
       await act(async () => {
-        await fireEventAsync.press(tokenElement);
+        fireEvent.press(tokenElement);
         await new Promise((resolve) => setTimeout(resolve, 100));
       });
 

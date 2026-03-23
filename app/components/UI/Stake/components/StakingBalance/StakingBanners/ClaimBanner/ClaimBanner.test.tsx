@@ -1,6 +1,6 @@
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { useFocusEffect } from '@react-navigation/native';
-import { act, fireEvent , fireEventAsync } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import Engine from '../../../../../../../core/Engine';
 import { createMockAccountsControllerState } from '../../../../../../../util/test/accountsControllerTestUtils';
@@ -154,7 +154,9 @@ describe('ClaimBanner', () => {
 
     const claimButton = getByTestId('claim-banner-claim-eth-button');
 
-    await fireEventAsync.press(claimButton);
+    await act(async () => {
+      fireEvent.press(claimButton);
+    });
 
     expect(
       Engine.context.MultichainNetworkController.setActiveNetwork,
@@ -173,7 +175,9 @@ describe('ClaimBanner', () => {
 
     const claimButton = getByTestId('claim-banner-claim-eth-button');
 
-    await fireEventAsync.press(claimButton);
+    await act(async () => {
+      fireEvent.press(claimButton);
+    });
 
     expect(claimButton).toBeDisabled();
     expect(

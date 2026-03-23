@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent, act, waitFor , fireEventAsync } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { useNavigation } from '@react-navigation/native';
@@ -206,7 +206,9 @@ describe('SignUp Component', () => {
       );
 
       const emailInput = getByTestId('signup-email-input');
-      await fireEventAsync.changeText(emailInput, 'test@example.com');
+      await act(async () => {
+      fireEvent.changeText(emailInput, 'test@example.com');
+    });
 
       expect(emailInput.props.value).toBe('test@example.com');
     });
@@ -220,7 +222,9 @@ describe('SignUp Component', () => {
       );
 
       const emailInput = getByTestId('signup-email-input');
-      await fireEventAsync.changeText(emailInput, 'invalid-email');
+      await act(async () => {
+      fireEvent.changeText(emailInput, 'invalid-email');
+    });
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
@@ -235,7 +239,9 @@ describe('SignUp Component', () => {
       );
 
       const emailInput = getByTestId('signup-email-input');
-      await fireEventAsync.changeText(emailInput, 'valid@example.com');
+      await act(async () => {
+      fireEvent.changeText(emailInput, 'valid@example.com');
+    });
 
       await waitFor(() => {
         expect(queryByTestId('signup-email-error-text')).toBeNull();
@@ -252,7 +258,9 @@ describe('SignUp Component', () => {
       );
 
       const passwordInput = getByTestId('signup-password-input');
-      await fireEventAsync.changeText(passwordInput, 'password123');
+      await act(async () => {
+      fireEvent.changeText(passwordInput, 'password123');
+    });
 
       expect(passwordInput.props.value).toBe('password123');
     });
@@ -282,11 +290,15 @@ describe('SignUp Component', () => {
       expect(passwordInput).toHaveProp('secureTextEntry', true);
 
       // Press to show password
-      await fireEventAsync.press(visibilityToggle);
+      await act(async () => {
+      fireEvent.press(visibilityToggle);
+    });
       expect(passwordInput).toHaveProp('secureTextEntry', false);
 
       // Press again to hide password
-      await fireEventAsync.press(visibilityToggle);
+      await act(async () => {
+      fireEvent.press(visibilityToggle);
+    });
       expect(passwordInput).toHaveProp('secureTextEntry', true);
     });
 
@@ -315,7 +327,9 @@ describe('SignUp Component', () => {
       );
 
       const passwordInput = getByTestId('signup-password-input');
-      await fireEventAsync.changeText(passwordInput, 'weak');
+      await act(async () => {
+      fireEvent.changeText(passwordInput, 'weak');
+    });
 
       // Error should be visible
       const errorText = await findByTestId('signup-password-error-text');
@@ -338,14 +352,18 @@ describe('SignUp Component', () => {
       const passwordInput = getByTestId('signup-password-input');
 
       // First, enter invalid password
-      await fireEventAsync.changeText(passwordInput, 'weak');
+      await act(async () => {
+      fireEvent.changeText(passwordInput, 'weak');
+    });
 
       // Error should be visible
       await findByTestId('signup-password-error-text');
 
       // Now enter valid password
       (validatePassword as jest.Mock).mockReturnValue(true);
-      await fireEventAsync.changeText(passwordInput, 'ValidPassword123!');
+      await act(async () => {
+      fireEvent.changeText(passwordInput, 'ValidPassword123!');
+    });
 
       // Error should be hidden
       await waitFor(() => {
@@ -379,7 +397,9 @@ describe('SignUp Component', () => {
       );
 
       const countrySelect = getByTestId('signup-country-select');
-      await fireEventAsync.press(countrySelect);
+      await act(async () => {
+      fireEvent.press(countrySelect);
+    });
 
       expect(mockNavigate).toHaveBeenCalled();
     });
@@ -489,8 +509,12 @@ describe('SignUp Component', () => {
 
       // Fill in all form fields
       await act(async () => {
-        await fireEventAsync.changeText(emailInput, 'test@example.com');
-        await fireEventAsync.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+      fireEvent.changeText(emailInput, 'test@example.com');
+    });
+        await act(async () => {
+      fireEvent.changeText(passwordInput, 'Password123!');
+    });
       });
 
       // Now check if the continue button is enabled
@@ -524,8 +548,12 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        await fireEventAsync.changeText(emailInput, 'invalid-email');
-        await fireEventAsync.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+      fireEvent.changeText(emailInput, 'invalid-email');
+    });
+        await act(async () => {
+      fireEvent.changeText(passwordInput, 'Password123!');
+    });
       });
 
       await waitFor(() => {
@@ -555,8 +583,12 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        await fireEventAsync.changeText(emailInput, 'test@example.com');
-        await fireEventAsync.changeText(passwordInput, 'weak');
+        await act(async () => {
+      fireEvent.changeText(emailInput, 'test@example.com');
+    });
+        await act(async () => {
+      fireEvent.changeText(passwordInput, 'weak');
+    });
       });
 
       await waitFor(() => {
@@ -576,8 +608,12 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        await fireEventAsync.changeText(emailInput, 'test@example.com');
-        await fireEventAsync.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+      fireEvent.changeText(emailInput, 'test@example.com');
+    });
+        await act(async () => {
+      fireEvent.changeText(passwordInput, 'Password123!');
+    });
         // Don't select country
       });
 
@@ -609,15 +645,21 @@ describe('SignUp Component', () => {
       const continueButton = getByTestId('signup-continue-button');
 
       await act(async () => {
-        await fireEventAsync.changeText(emailInput, 'test@example.com');
-        await fireEventAsync.changeText(passwordInput, 'Password123!');
+        await act(async () => {
+      fireEvent.changeText(emailInput, 'test@example.com');
+    });
+        await act(async () => {
+      fireEvent.changeText(passwordInput, 'Password123!');
+    });
       });
 
       await waitFor(() => {
         expect(continueButton).toBeEnabled();
       });
 
-      await fireEventAsync.press(continueButton);
+      await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
       expect(mockSendEmailVerification).toHaveBeenCalled();
     });
@@ -631,7 +673,9 @@ describe('SignUp Component', () => {
 
       const continueButton = getByTestId('signup-continue-button');
 
-      await fireEventAsync.press(continueButton);
+      await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
       expect(mockSendEmailVerification).not.toHaveBeenCalled();
     });
@@ -654,7 +698,9 @@ describe('SignUp Component', () => {
       );
 
       const emailInput = getByTestId('signup-email-input');
-      await fireEventAsync.changeText(emailInput, 'test@example.com');
+      await act(async () => {
+      fireEvent.changeText(emailInput, 'test@example.com');
+    });
 
       const errorText = await findByTestId('signup-email-error-text');
       expect(errorText).toBeTruthy();
@@ -672,7 +718,9 @@ describe('SignUp Component', () => {
       const alreadyHaveAccountButton = getByTestId(
         'signup-i-already-have-an-account-text',
       );
-      await fireEventAsync.press(alreadyHaveAccountButton);
+      await act(async () => {
+      fireEvent.press(alreadyHaveAccountButton);
+    });
 
       expect(mockNavigate).toHaveBeenCalledWith('CardAuthentication');
     });

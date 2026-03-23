@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent, act , fireEventAsync } from '@testing-library/react-native';
+import { render, screen, fireEvent, act } from '@testing-library/react-native';
 import PerpsTPSLView from './PerpsTPSLView';
 import { PERPS_EVENT_VALUE, type Position } from '@metamask/perps-controller';
 
@@ -271,7 +271,9 @@ describe('PerpsTPSLView', () => {
       });
 
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      await fireEventAsync.press(clearButtons[0]);
+      await act(async () => {
+      fireEvent.press(clearButtons[0]);
+    });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -295,7 +297,9 @@ describe('PerpsTPSLView', () => {
 
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      await fireEventAsync.press(clearButtons[0]);
+      await act(async () => {
+      fireEvent.press(clearButtons[0]);
+    });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -319,7 +323,9 @@ describe('PerpsTPSLView', () => {
 
       // Now press clear
       const clearButtons = screen.getAllByText('perps.tpsl.clear');
-      await fireEventAsync.press(clearButtons[0]);
+      await act(async () => {
+      fireEvent.press(clearButtons[0]);
+    });
 
       expect(mockHandler).toHaveBeenCalled();
     });
@@ -476,7 +482,9 @@ describe('PerpsTPSLView', () => {
       renderView();
 
       const backButton = screen.getByTestId('back-button');
-      await fireEventAsync.press(backButton);
+      await act(async () => {
+      fireEvent.press(backButton);
+    });
 
       expect(mockNavigation.goBack).toHaveBeenCalled();
     });
@@ -497,7 +505,9 @@ describe('PerpsTPSLView', () => {
       });
 
       const setButton = screen.getByText('perps.tpsl.set');
-      await fireEventAsync.press(setButton);
+      await act(async () => {
+      fireEvent.press(setButton);
+    });
 
       expect(mockOnConfirm).toHaveBeenCalledWith('3150.00', '2850.00', {
         direction: 'long',
@@ -521,7 +531,9 @@ describe('PerpsTPSLView', () => {
       });
 
       const setButton = screen.getByText('perps.tpsl.set');
-      await fireEventAsync.press(setButton);
+      await act(async () => {
+      fireEvent.press(setButton);
+    });
 
       expect(mockOnConfirm).toHaveBeenCalledWith(undefined, undefined, {
         direction: 'long',
@@ -551,10 +563,14 @@ describe('PerpsTPSLView', () => {
       fireEvent(getTakeProfitPriceInput(), 'focus');
 
       const doneButton = screen.getByText('perps.tpsl.done');
-      await fireEventAsync.press(doneButton);
+      await act(async () => {
+      fireEvent.press(doneButton);
+    });
 
       const setButton = screen.getByText('perps.tpsl.set');
-      await fireEventAsync.press(setButton);
+      await act(async () => {
+      fireEvent.press(setButton);
+    });
 
       expect(mockOnConfirm).toHaveBeenCalled();
     });

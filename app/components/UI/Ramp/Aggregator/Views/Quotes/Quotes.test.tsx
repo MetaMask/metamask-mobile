@@ -11,7 +11,6 @@ import {
   fireEvent,
   screen,
   render as renderComponent,
-  fireEventAsync,
 } from '@testing-library/react-native';
 import {
   renderScreen,
@@ -437,13 +436,17 @@ describe('Quotes', () => {
     });
 
     const quoteToSelect = screen.getByLabelText(mockQuoteProviderName);
-    await fireEventAsync.press(quoteToSelect);
+    await act(async () => {
+      fireEvent.press(quoteToSelect);
+    });
 
     const quoteContinueButton = screen.getByRole('button', {
       name: `Continue with ${mockQuoteProviderName}`,
     });
 
-    await fireEventAsync.press(quoteContinueButton);
+    await act(async () => {
+      fireEvent.press(quoteContinueButton);
+    });
 
     return { mockedRecommendedQuote, mockedBuyAction };
   };
@@ -498,13 +501,17 @@ describe('Quotes', () => {
         mockCustomActionProviderName,
       );
 
-      await fireEventAsync.press(customActionToSelect);
+      await act(async () => {
+      fireEvent.press(customActionToSelect);
+    });
 
       const customActionContinueButton = screen.getByRole('button', {
         name: `Continue with ${mockCustomActionProviderName}`,
       });
 
-      await fireEventAsync.press(customActionContinueButton);
+      await act(async () => {
+      fireEvent.press(customActionContinueButton);
+    });
     };
 
     it('renders correctly after animation with the recommended custom action', () => {
@@ -841,7 +848,9 @@ describe('Quotes', () => {
       `${mockRecommendedProvider.name} logo`,
     );
 
-    await fireEventAsync.press(quoteProviderLogo);
+    await act(async () => {
+      fireEvent.press(quoteProviderLogo);
+    });
 
     const description = screen.queryByText(mockRecommendedProvider.description);
     expect(description).toBeTruthy();

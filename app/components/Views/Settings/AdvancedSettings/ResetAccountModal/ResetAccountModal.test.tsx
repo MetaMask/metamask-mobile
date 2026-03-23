@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { fireEvent , act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import { strings } from '../../../../../../locales/i18n';
@@ -87,7 +87,7 @@ describe('ResetAccountModal', () => {
     const confirmButton = getByText(
       strings('app_settings.reset_account_confirm_button'),
     );
-    await fireEventAsync.press(confirmButton);
+    fireEvent.press(confirmButton);
 
     expect(wipeBridgeStatus).toHaveBeenCalledWith(
       '0x123456789abcdef123456789abcdef123456789a',
@@ -113,7 +113,7 @@ describe('ResetAccountModal', () => {
     const confirmButton = getByText(
       strings('app_settings.reset_account_confirm_button'),
     );
-    await fireEventAsync.press(confirmButton);
+    fireEvent.press(confirmButton);
 
     expect(wipeBridgeStatus).not.toHaveBeenCalled();
     expect(wipeTransactions).toHaveBeenCalledWith();

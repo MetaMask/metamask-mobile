@@ -3,7 +3,7 @@ import {
   renderScreen,
   DeepPartial,
 } from '../../../../../util/test/renderWithProvider';
-import { act, fireEvent, waitFor , fireEventAsync } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
@@ -355,7 +355,7 @@ describe('BridgeView', () => {
     // Find and click the token button
     const tokenButton = await findByText('ETH');
     expect(tokenButton).toBeTruthy();
-    await fireEventAsync.press(tokenButton);
+    fireEvent.press(tokenButton);
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
@@ -376,7 +376,7 @@ describe('BridgeView', () => {
     const destTokenArea = getByText('Swap to');
     expect(destTokenArea).toBeTruthy();
 
-    await fireEventAsync.press(destTokenArea);
+    fireEvent.press(destTokenArea);
 
     // Verify navigation to BridgeTokenSelector
     expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.TOKEN_SELECTOR, {
@@ -564,7 +564,7 @@ describe('BridgeView', () => {
     // Find and press the max button
     const maxButton = getByTestId('token-input-area-max-button');
     expect(maxButton).toBeTruthy();
-    await fireEventAsync.press(maxButton);
+    fireEvent.press(maxButton);
 
     const input = getByTestId('source-token-area-input');
     await waitFor(() => {
@@ -609,7 +609,7 @@ describe('BridgeView', () => {
     const wasKeypadOpen = !!keypadBeforeFlip;
 
     const arrowButton = getByTestId('arrow-button');
-    await fireEventAsync.press(arrowButton);
+    fireEvent.press(arrowButton);
 
     expect(setSourceToken).toHaveBeenCalledWith(
       mockStateWithTokens.bridge.destToken,
@@ -1208,7 +1208,7 @@ describe('BridgeView', () => {
 
       // Close the banner by clicking close button
       const closeButton = getByTestId('banner-close-button-icon');
-      await fireEventAsync.press(closeButton);
+      fireEvent.press(closeButton);
 
       // Error banner should be hidden and keypad should be visible
       await waitFor(() => {

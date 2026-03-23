@@ -73,7 +73,7 @@ jest.mock('@tanstack/react-query', () => ({
   })),
 }));
 
-import { fireEvent, screen, waitFor , act , fireEventAsync } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor , act } from '@testing-library/react-native';
 import { Alert } from 'react-native';
 import { useSelector } from 'react-redux';
 import React from 'react';
@@ -866,7 +866,7 @@ describe('CardHome Component', () => {
     const addFundsButton = screen.getByTestId(
       CardHomeSelectors.ADD_FUNDS_BUTTON,
     );
-    await fireEventAsync.press(addFundsButton);
+    fireEvent.press(addFundsButton);
 
     // Then: should navigate to add funds modal, not swaps
     await waitFor(() => {
@@ -898,7 +898,7 @@ describe('CardHome Component', () => {
     const addFundsButton = screen.getByTestId(
       CardHomeSelectors.ADD_FUNDS_BUTTON,
     );
-    await fireEventAsync.press(addFundsButton);
+    fireEvent.press(addFundsButton);
 
     // Then: should navigate to add funds modal for supported token
     await waitFor(() => {
@@ -932,7 +932,7 @@ describe('CardHome Component', () => {
     const addFundsButton = screen.getByTestId(
       CardHomeSelectors.ADD_FUNDS_BUTTON,
     );
-    await fireEventAsync.press(addFundsButton);
+    fireEvent.press(addFundsButton);
 
     // Then: should navigate to swaps
     await waitFor(() => {
@@ -949,7 +949,7 @@ describe('CardHome Component', () => {
     const advancedManagementItem = screen.getByTestId(
       CardHomeSelectors.ADVANCED_CARD_MANAGEMENT_ITEM,
     );
-    await fireEventAsync.press(advancedManagementItem);
+    fireEvent.press(advancedManagementItem);
 
     // Then: should navigate to card page
     await waitFor(() => {
@@ -961,7 +961,7 @@ describe('CardHome Component', () => {
     render();
 
     const travelItem = screen.getByTestId(CardHomeSelectors.TRAVEL_ITEM);
-    await fireEventAsync.press(travelItem);
+    fireEvent.press(travelItem);
 
     await waitFor(() => {
       expect(mockNavigateToTravelPage).toHaveBeenCalled();
@@ -975,7 +975,7 @@ describe('CardHome Component', () => {
     render();
 
     const tosItem = screen.getByTestId(CardHomeSelectors.CARD_TOS_ITEM);
-    await fireEventAsync.press(tosItem);
+    fireEvent.press(tosItem);
 
     await waitFor(() => {
       expect(mockNavigateToCardTosPage).toHaveBeenCalled();
@@ -1038,7 +1038,7 @@ describe('CardHome Component', () => {
     const privacyToggleButton = screen.getByTestId(
       CardHomeSelectors.PRIVACY_TOGGLE_BUTTON,
     );
-    await fireEventAsync.press(privacyToggleButton);
+    fireEvent.press(privacyToggleButton);
 
     // Then: should toggle privacy mode
     await waitFor(() => {
@@ -1077,7 +1077,7 @@ describe('CardHome Component', () => {
     const tryAgainButton = screen.getByTestId(
       CardHomeSelectors.TRY_AGAIN_BUTTON,
     );
-    await fireEventAsync.press(tryAgainButton);
+    fireEvent.press(tryAgainButton);
 
     // Then: should retry fetching all data
     await waitFor(() => {
@@ -1141,7 +1141,7 @@ describe('CardHome Component', () => {
     const addFundsButton = screen.getByTestId(
       CardHomeSelectors.ADD_FUNDS_BUTTON,
     );
-    await fireEventAsync.press(addFundsButton);
+    fireEvent.press(addFundsButton);
 
     // Then: should navigate to swaps
     await waitFor(() => {
@@ -1831,7 +1831,7 @@ describe('CardHome Component', () => {
       expect(addFundsButton).toBeEnabled();
 
       mockTrackEvent.mockClear();
-      await fireEventAsync.press(addFundsButton);
+      fireEvent.press(addFundsButton);
 
       // When: user presses add funds button
       // Then: should track event
@@ -1862,7 +1862,7 @@ describe('CardHome Component', () => {
       const changeAssetButton = screen.getByTestId(
         CardHomeSelectors.CHANGE_ASSET_BUTTON,
       );
-      await fireEventAsync.press(changeAssetButton);
+      fireEvent.press(changeAssetButton);
 
       // Then: should navigate to welcome screen
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
@@ -1878,7 +1878,7 @@ describe('CardHome Component', () => {
       const changeAssetButton = screen.getByTestId(
         CardHomeSelectors.CHANGE_ASSET_BUTTON,
       );
-      await fireEventAsync.press(changeAssetButton);
+      fireEvent.press(changeAssetButton);
 
       // Then: should navigate to asset selection modal
       expect(mockNavigate).toHaveBeenCalledWith(
@@ -1912,7 +1912,7 @@ describe('CardHome Component', () => {
       const manageSpendingLimitItem = screen.getByTestId(
         CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM,
       );
-      await fireEventAsync.press(manageSpendingLimitItem);
+      fireEvent.press(manageSpendingLimitItem);
 
       // Then: should navigate to welcome screen
       expect(mockNavigate).toHaveBeenCalledWith(Routes.CARD.WELCOME);
@@ -1939,7 +1939,7 @@ describe('CardHome Component', () => {
 
       // When: user presses logout button
       const logoutButton = screen.getByText('Logout');
-      await fireEventAsync.press(logoutButton);
+      fireEvent.press(logoutButton);
 
       // Then: should show confirmation alert with correct buttons
       expect(Alert.alert).toHaveBeenCalledWith(
@@ -1965,7 +1965,7 @@ describe('CardHome Component', () => {
 
       // When: user presses logout and confirms the Alert
       const logoutButton = screen.getByText('Logout');
-      await fireEventAsync.press(logoutButton);
+      fireEvent.press(logoutButton);
 
       // Then: should call logout and navigate back
       expect(mockLogoutFromProvider).toHaveBeenCalled();
@@ -1988,7 +1988,7 @@ describe('CardHome Component', () => {
 
       // When: user presses logout but cancels the Alert
       const logoutButton = screen.getByText('Logout');
-      await fireEventAsync.press(logoutButton);
+      fireEvent.press(logoutButton);
 
       // Then: should not call logout or navigate back
       expect(mockLogoutFromProvider).not.toHaveBeenCalled();
@@ -2098,7 +2098,7 @@ describe('CardHome Component', () => {
       const tryAgainButton = screen.getByTestId(
         CardHomeSelectors.TRY_AGAIN_BUTTON,
       );
-      await fireEventAsync.press(tryAgainButton);
+      fireEvent.press(tryAgainButton);
 
       // Then: should retry fetching all data
       await waitFor(() => {
@@ -3624,7 +3624,7 @@ describe('CardHome Component', () => {
         const enableButton = screen.getByTestId(
           CardHomeSelectors.ENABLE_ASSETS_BUTTON,
         );
-        await fireEventAsync.press(enableButton);
+        fireEvent.press(enableButton);
 
         // Then: navigates to spending limit screen (delegation)
         await waitFor(() => {
@@ -3748,7 +3748,7 @@ describe('CardHome Component', () => {
         const button = screen.getByTestId(
           CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
         );
-        await fireEventAsync.press(button);
+        fireEvent.press(button);
 
         // Then: reauthenticate is called first, then fetchCardDetailsToken
         await waitFor(() => {
@@ -3783,7 +3783,7 @@ describe('CardHome Component', () => {
         const button = screen.getByTestId(
           CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
         );
-        await fireEventAsync.press(button);
+        fireEvent.press(button);
 
         // Then: reauthenticate is called first, then fetchCardDetailsToken with METAL type
         await waitFor(() => {
@@ -3823,7 +3823,7 @@ describe('CardHome Component', () => {
         const button = screen.getByTestId(
           CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
         );
-        await fireEventAsync.press(button);
+        fireEvent.press(button);
 
         // Then: clearImageUrl is called instead of fetch
         await waitFor(() => {
@@ -3886,7 +3886,7 @@ describe('CardHome Component', () => {
           const button = screen.getByTestId(
             CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
           );
-          await fireEventAsync.press(button);
+          fireEvent.press(button);
 
           // Then: reauthenticate is called but fetchCardDetailsToken is NOT called
           await waitFor(() => {
@@ -3917,7 +3917,7 @@ describe('CardHome Component', () => {
           const button = screen.getByTestId(
             CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
           );
-          await fireEventAsync.press(button);
+          fireEvent.press(button);
 
           // Then: navigation to password bottom sheet is triggered
           await waitFor(() => {
@@ -3963,7 +3963,7 @@ describe('CardHome Component', () => {
           const button = screen.getByTestId(
             CardHomeSelectors.VIEW_CARD_DETAILS_BUTTON,
           );
-          await fireEventAsync.press(button);
+          fireEvent.press(button);
 
           // Then: clearImageUrl is called without requiring reauthentication
           await waitFor(() => {
@@ -4127,7 +4127,7 @@ describe('CardHome Component', () => {
         // When: component renders and button is pressed
         render();
         const button = screen.getByTestId(CardHomeSelectors.VIEW_PIN_BUTTON);
-        await fireEventAsync.press(button);
+        fireEvent.press(button);
 
         // Then: reauthenticate is called first, then generatePinToken, then navigation
         await waitFor(() => {
@@ -4962,7 +4962,7 @@ describe('CardHome Component', () => {
       const orderMetalCardItem = screen.getByTestId(
         CardHomeSelectors.ORDER_METAL_CARD_ITEM,
       );
-      await fireEventAsync.press(orderMetalCardItem);
+      fireEvent.press(orderMetalCardItem);
 
       // Then: should navigate with mailing address (not physical)
       await waitFor(() => {
@@ -5010,7 +5010,7 @@ describe('CardHome Component', () => {
       const orderMetalCardItem = screen.getByTestId(
         CardHomeSelectors.ORDER_METAL_CARD_ITEM,
       );
-      await fireEventAsync.press(orderMetalCardItem);
+      fireEvent.press(orderMetalCardItem);
 
       // Then: should navigate with physical address
       await waitFor(() => {
@@ -5112,7 +5112,7 @@ describe('CardHome Component', () => {
       const orderMetalCardItem = screen.getByTestId(
         CardHomeSelectors.ORDER_METAL_CARD_ITEM,
       );
-      await fireEventAsync.press(orderMetalCardItem);
+      fireEvent.press(orderMetalCardItem);
 
       // Then: should navigate with complete physical address (not mixing mailing line1 with physical city/zip)
       await waitFor(() => {
@@ -5262,7 +5262,7 @@ describe('CardHome Component', () => {
       const orderMetalCardItem = screen.getByTestId(
         CardHomeSelectors.ORDER_METAL_CARD_ITEM,
       );
-      await fireEventAsync.press(orderMetalCardItem);
+      fireEvent.press(orderMetalCardItem);
 
       // Then: should navigate with line2 as undefined
       await waitFor(() => {
@@ -5324,7 +5324,7 @@ describe('CardHome Component', () => {
       const orderMetalCardItem = screen.getByTestId(
         CardHomeSelectors.ORDER_METAL_CARD_ITEM,
       );
-      await fireEventAsync.press(orderMetalCardItem);
+      fireEvent.press(orderMetalCardItem);
 
       // Then: should navigate with state as empty string
       await waitFor(() => {

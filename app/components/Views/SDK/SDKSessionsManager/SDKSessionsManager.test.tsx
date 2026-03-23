@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { render, fireEvent , act } from '@testing-library/react-native';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -153,7 +153,7 @@ describe('SDKSessionsManager', () => {
       );
 
       const disconnectAllButton = getByText('sdk.disconnect_all');
-      await fireEventAsync.press(disconnectAllButton);
+      fireEvent.press(disconnectAllButton);
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SDK_DISCONNECT,

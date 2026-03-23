@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { render, screen, fireEvent , act } from '@testing-library/react-native';
 import PerpsMarketRowItem from './PerpsMarketRowItem';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 import { getPerpsMarketRowItemSelector } from '../../Perps.testIds';
@@ -102,7 +102,7 @@ describe('PerpsMarketRowItem', () => {
       const rowItem = screen.getByTestId(
         getPerpsMarketRowItemSelector.rowItem('BTC'),
       );
-      await fireEventAsync.press(rowItem);
+      fireEvent.press(rowItem);
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
@@ -281,9 +281,9 @@ describe('PerpsMarketRowItem', () => {
         getPerpsMarketRowItemSelector.rowItem('BTC'),
       );
 
-      await fireEventAsync.press(rowItem);
-      await fireEventAsync.press(rowItem);
-      await fireEventAsync.press(rowItem);
+      fireEvent.press(rowItem);
+      fireEvent.press(rowItem);
+      fireEvent.press(rowItem);
 
       expect(mockOnPress).toHaveBeenCalledTimes(3);
       expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
@@ -477,7 +477,7 @@ describe('PerpsMarketRowItem', () => {
       const rowItem = screen.getByTestId(
         getPerpsMarketRowItemSelector.rowItem('BTC'),
       );
-      await fireEventAsync.press(rowItem);
+      fireEvent.press(rowItem);
 
       // Should pass the updated market data with live prices
       expect(mockOnPress).toHaveBeenCalledTimes(1);
@@ -810,7 +810,7 @@ describe('PerpsMarketRowItem', () => {
       const rowItem = screen.getByTestId(
         getPerpsMarketRowItemSelector.rowItem('BTC'),
       );
-      await fireEventAsync.press(rowItem);
+      fireEvent.press(rowItem);
 
       // Should pass the updated market data with live funding rate
       expect(mockOnPress).toHaveBeenCalledTimes(1);

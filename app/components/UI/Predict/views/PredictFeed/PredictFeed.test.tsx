@@ -1,4 +1,4 @@
-import { fireEvent, render , fireEventAsync } from '@testing-library/react-native';
+import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
 import { findNodeHandle } from 'react-native';
 import { PredictMarketListSelectorsIDs } from '../../Predict.testIds';
@@ -461,7 +461,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'bitcoin');
+      fireEvent.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
       expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
@@ -482,7 +482,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'bitcoin');
+      fireEvent.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
     });
@@ -494,7 +494,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'test query');
+      fireEvent.changeText(searchInput, 'test query');
       fireEvent.press(getByTestId('clear-button'));
 
       // After clearing search, the clear button should no longer be visible
@@ -583,7 +583,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'nonexistent');
+      fireEvent.changeText(searchInput, 'nonexistent');
 
       expect(getByText(/No results found/i)).toBeOnTheScreen();
     });
@@ -605,7 +605,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'test');
+      fireEvent.changeText(searchInput, 'test');
 
       const offlineElements = getAllByTestId('predict-offline-mock');
       expect(offlineElements.length).toBeGreaterThan(0);
@@ -671,7 +671,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'bitcoin');
+      fireEvent.changeText(searchInput, 'bitcoin');
 
       const searchCalls = mockUsePredictMarketData.mock.calls.filter(
         (call: [{ q?: string }]) => call[0].q !== undefined,
@@ -694,7 +694,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'bitcoin');
+      fireEvent.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('search-skeleton-1')).toBeOnTheScreen();
     });
@@ -717,7 +717,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'bitcoin');
+      fireEvent.changeText(searchInput, 'bitcoin');
 
       expect(getByTestId('predict-search-result-0')).toBeOnTheScreen();
       expect(getByTestId('predict-search-result-1')).toBeOnTheScreen();
@@ -728,7 +728,7 @@ describe('PredictFeed', () => {
 
       fireEvent.press(getByTestId('predict-search-button'));
       const searchInput = getByPlaceholderText('Search prediction markets');
-      await fireEventAsync.changeText(searchInput, 'test');
+      fireEvent.changeText(searchInput, 'test');
 
       expect(mockUseDebouncedValue).toHaveBeenCalledWith('test', 200);
     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { render, screen, fireEvent , act } from '@testing-library/react-native';
 import PerpsSlider from './PerpsSlider';
 
 // react-native-reanimated is already mocked globally via setUpTests() in testSetup.js
@@ -226,7 +226,7 @@ describe('PerpsSlider', () => {
       );
 
       const button25 = screen.getByText('25%');
-      await fireEventAsync.press(button25);
+      fireEvent.press(button25);
 
       // Assert - 25% of range (0-100) = 25
       expect(mockOnValueChange).toHaveBeenCalledWith(25);
@@ -247,7 +247,7 @@ describe('PerpsSlider', () => {
       );
 
       const button50 = screen.getByText('50%');
-      await fireEventAsync.press(button50);
+      fireEvent.press(button50);
 
       // Assert - 50% of range (20-80) = 50
       expect(mockOnValueChange).toHaveBeenCalledWith(50);
@@ -267,7 +267,7 @@ describe('PerpsSlider', () => {
       );
 
       const button25 = screen.getByText('25%');
-      await fireEventAsync.press(button25);
+      fireEvent.press(button25);
 
       // Assert
       expect(mockOnValueChange).not.toHaveBeenCalled();
@@ -291,7 +291,7 @@ describe('PerpsSlider', () => {
         );
 
         const button = screen.getByText(`${percent}%`);
-        await fireEventAsync.press(button);
+        fireEvent.press(button);
 
         // Assert
         expect(mockOnValueChange).toHaveBeenCalledWith(expectedValue);
@@ -315,7 +315,7 @@ describe('PerpsSlider', () => {
       );
 
       const button5x = screen.getByText('5x');
-      await fireEventAsync.press(button5x);
+      fireEvent.press(button5x);
 
       // Assert
       expect(mockOnValueChange).toHaveBeenCalledWith(5);

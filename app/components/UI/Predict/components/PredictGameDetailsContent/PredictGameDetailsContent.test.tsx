@@ -1,6 +1,6 @@
 import React from 'react';
 import { TEST_HEX_COLORS } from '../../testUtils/mockColors';
-import { render, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { render, fireEvent , act } from '@testing-library/react-native';
 import PredictGameDetailsContent from './PredictGameDetailsContent';
 import { PredictMarket, PredictMarketStatus } from '../../types';
 
@@ -303,7 +303,7 @@ describe('PredictGameDetailsContent', () => {
       );
 
       const backButton = getByRole('button');
-      await fireEventAsync.press(backButton);
+      fireEvent.press(backButton);
 
       expect(mockOnBack).toHaveBeenCalledTimes(1);
     });

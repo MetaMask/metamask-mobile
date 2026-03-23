@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent, screen, waitFor, act , fireEventAsync } from '@testing-library/react-native';
+import { fireEvent, screen, waitFor, act } from '@testing-library/react-native';
 import EnterAddress, { AddressFormData } from './EnterAddress';
 import Routes from '../../../../../../constants/navigation/Routes';
 
@@ -193,7 +193,7 @@ describe('EnterAddress Component', () => {
       () => new Promise((resolve) => setTimeout(resolve, 100)),
     );
 
-    await fireEventAsync.press(button);
+    fireEvent.press(button);
 
     expect(button).toBeDisabled();
   });

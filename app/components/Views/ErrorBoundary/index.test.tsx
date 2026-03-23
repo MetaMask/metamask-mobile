@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { View, Alert } from 'react-native';
-import { act, fireEvent, waitFor , fireEventAsync } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
@@ -138,7 +138,9 @@ describe('ErrorBoundary', () => {
     );
 
     const describeButton = getByText('Describe what happened');
-    await fireEventAsync.press(describeButton);
+    await act(async () => {
+      fireEvent.press(describeButton);
+    });
 
     await waitFor(() => {
       expect(
@@ -159,7 +161,9 @@ describe('ErrorBoundary', () => {
 
     // Open modal
     const describeButton = getByText('Describe what happened');
-    await fireEventAsync.press(describeButton);
+    await act(async () => {
+      fireEvent.press(describeButton);
+    });
 
     await waitFor(() => {
       expect(getByText('Cancel')).toBeTruthy();
@@ -167,7 +171,9 @@ describe('ErrorBoundary', () => {
 
     // Close modal
     const cancelButton = getByText('Cancel');
-    await fireEventAsync.press(cancelButton);
+    await act(async () => {
+      fireEvent.press(cancelButton);
+    });
 
     // Verify modal is closed
     await waitFor(() => {
@@ -183,7 +189,9 @@ describe('ErrorBoundary', () => {
     // Open modal
     const describeButton = getByText('Describe what happened');
 
-    await fireEventAsync.press(describeButton);
+    await act(async () => {
+      fireEvent.press(describeButton);
+    });
 
     await waitFor(() => {
       const submitButton = getByText('Submit');
@@ -200,7 +208,9 @@ describe('ErrorBoundary', () => {
     });
 
     const copyButton = getByText('Copy');
-    await fireEventAsync.press(copyButton);
+    await act(async () => {
+      fireEvent.press(copyButton);
+    });
 
     expect(mockProps.copyErrorToClipboard).toHaveBeenCalledTimes(1);
   });
@@ -213,7 +223,9 @@ describe('ErrorBoundary', () => {
     const seedphraseLink = getAllByText(
       strings('error_screen.save_seedphrase_2'),
     )[0];
-    await fireEventAsync.press(seedphraseLink);
+    await act(async () => {
+      fireEvent.press(seedphraseLink);
+    });
 
     expect(mockProps.showExportSeedphrase).toHaveBeenCalledTimes(1);
   });
@@ -228,7 +240,9 @@ describe('ErrorBoundary', () => {
 
     const describeButton = getByText('Describe what happened');
 
-    await fireEventAsync.press(describeButton);
+    await act(async () => {
+      fireEvent.press(describeButton);
+    });
 
     const textInput = await waitFor(() =>
       getByPlaceholderText(
@@ -236,10 +250,14 @@ describe('ErrorBoundary', () => {
       ),
     );
 
-    await fireEventAsync.changeText(textInput, 'Test feedback');
+    await act(async () => {
+      fireEvent.changeText(textInput, 'Test feedback');
+    });
 
     const submitButton = getByText('Submit');
-    await fireEventAsync.press(submitButton);
+    await act(async () => {
+      fireEvent.press(submitButton);
+    });
 
     expect(captureSentryFeedback).toHaveBeenCalledWith({
       sentryId: mockProps.sentryId,
@@ -321,7 +339,9 @@ describe('ErrorBoundary', () => {
       );
 
       const sendReportButton = getByText('Send report');
-      await fireEventAsync.press(sendReportButton);
+      await act(async () => {
+      fireEvent.press(sendReportButton);
+    });
 
       await waitFor(() => {
         expect(mockCaptureExceptionForced).toHaveBeenCalledWith(
@@ -344,7 +364,9 @@ describe('ErrorBoundary', () => {
       );
 
       const tryAgainButton = getByText('Try again');
-      await fireEventAsync.press(tryAgainButton);
+      await act(async () => {
+      fireEvent.press(tryAgainButton);
+    });
 
       expect(mockNavigation.reset).toHaveBeenCalledWith({
         routes: [{ name: 'OnboardingRootNav' }],

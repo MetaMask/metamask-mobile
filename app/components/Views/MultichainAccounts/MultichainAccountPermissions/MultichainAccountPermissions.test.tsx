@@ -1,5 +1,5 @@
 import React from 'react';
-import { act, fireEvent , fireEventAsync, waitFor } from '@testing-library/react-native';
+import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider, {
   DeepPartial,
 } from '../../../../util/test/renderWithProvider';
@@ -303,7 +303,9 @@ describe('MultichainAccountPermissions', () => {
       );
 
       const cancelButton = getByTestId('cancel-button');
-      await fireEventAsync.press(cancelButton);
+      await act(async () => {
+      fireEvent.press(cancelButton);
+    });
 
       expect(mockedGoBack).toHaveBeenCalledTimes(1);
     });
@@ -325,7 +327,9 @@ describe('MultichainAccountPermissions', () => {
       const editButton = getByTestId('account-list-bottom-sheet');
       expect(editButton).toBeDefined();
 
-      await fireEventAsync.press(editButton);
+      await act(async () => {
+      fireEvent.press(editButton);
+    });
 
       // After pressing edit, the screen should show the EditAccountsPermissions screen
       // We can verify this by checking for the "Edit accounts" title
@@ -349,7 +353,9 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await fireEventAsync.press(editNetworksButton);
+      await act(async () => {
+      fireEvent.press(editNetworksButton);
+    });
 
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
       expect(getByTestId(`${MAINNET_DISPLAY_NAME}-not-selected`)).toBeDefined();
@@ -375,7 +381,9 @@ describe('MultichainAccountPermissions', () => {
 
       const confirmButton = getByTestId('connect-button');
 
-      await fireEventAsync.press(confirmButton);
+      await act(async () => {
+      fireEvent.press(confirmButton);
+    });
 
       await waitFor(() => {
         expect(mockUpdateCaveat).toHaveBeenCalledWith(
@@ -425,7 +433,9 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await fireEventAsync.press(editNetworksButton);
+      await act(async () => {
+      fireEvent.press(editNetworksButton);
+    });
 
       // Check that we're in the network selection screen
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
@@ -451,15 +461,21 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await fireEventAsync.press(editNetworksButton);
+      await act(async () => {
+      fireEvent.press(editNetworksButton);
+    });
 
       // Act - Select Sepolia
       const sepoliaNetwork = getByText('Sepolia');
-      await fireEventAsync.press(sepoliaNetwork);
+      await act(async () => {
+      fireEvent.press(sepoliaNetwork);
+    });
 
       const updateButton = getByTestId('multiconnect-connect-network-button');
       await act(async () => {
-        await fireEventAsync.press(updateButton);
+        await act(async () => {
+      fireEvent.press(updateButton);
+    });
       });
 
       // Assert - The component renders correctly and handles network selection
@@ -540,12 +556,16 @@ describe('MultichainAccountPermissions', () => {
       const editNetworksButton = getByTestId(
         'navigate_to_edit_networks_permissions_button',
       );
-      await fireEventAsync.press(editNetworksButton);
+      await act(async () => {
+      fireEvent.press(editNetworksButton);
+    });
 
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
 
       const backButton = getByTestId('sheet-header-back-button');
-      await fireEventAsync.press(backButton);
+      await act(async () => {
+      fireEvent.press(backButton);
+    });
 
       expect(getByTestId('cancel-button')).toBeDefined();
     });

@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { render, screen, fireEvent , act } from '@testing-library/react-native';
 import PerpsMarketTileCard from './PerpsMarketTileCard';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 
@@ -182,7 +182,7 @@ describe('PerpsMarketTileCard', () => {
     );
 
     const touchable = screen.getByTestId('perps-market-tile-card');
-    await fireEventAsync.press(touchable);
+    fireEvent.press(touchable);
 
     expect(mockOnPress).toHaveBeenCalledTimes(1);
     expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);

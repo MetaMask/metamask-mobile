@@ -6,7 +6,7 @@ import useBluetooth from '../../hooks/Ledger/useBluetooth';
 import useBluetoothDevices, {
   BluetoothDevice,
 } from '../../hooks/Ledger/useBluetoothDevices';
-import { fireEvent, waitFor , act , fireEventAsync } from '@testing-library/react-native';
+import { fireEvent, waitFor , act } from '@testing-library/react-native';
 import {
   useNavigation,
   NavigationProp,
@@ -217,7 +217,7 @@ describe('LedgerConnect', () => {
     );
 
     const continueButton = getByTestId('add-network-button');
-    await fireEventAsync.press(continueButton);
+    fireEvent.press(continueButton);
 
     expect(ledgerLogicToRun).toHaveBeenCalled();
   });
@@ -348,7 +348,7 @@ describe('LedgerConnect', () => {
     const installInstructionsLink = getByText(
       strings('ledger.how_to_install_eth_app'),
     );
-    await fireEventAsync.press(installInstructionsLink);
+    fireEvent.press(installInstructionsLink);
 
     expect(navigate).toHaveBeenCalledWith('Webview', {
       screen: 'SimpleWebview',
@@ -376,7 +376,7 @@ describe('LedgerConnect', () => {
     );
 
     const retryButton = getByTestId('add-network-button');
-    await fireEventAsync.press(retryButton);
+    fireEvent.press(retryButton);
 
     expect(ledgerLogicToRun).toHaveBeenCalled();
   });

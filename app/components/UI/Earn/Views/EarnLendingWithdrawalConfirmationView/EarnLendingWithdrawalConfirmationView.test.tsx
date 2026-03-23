@@ -1,7 +1,7 @@
 import { LendingMarketWithPosition } from '@metamask/earn-controller';
 import { mockTheme } from '../../../../../util/theme';
 import { useRoute } from '@react-navigation/native';
-import { act, fireEvent , fireEventAsync } from '@testing-library/react-native';
+import { act, fireEvent } from '@testing-library/react-native';
 import React from 'react';
 import { Linking } from 'react-native';
 import EarnLendingWithdrawalConfirmationView, {
@@ -293,7 +293,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     );
 
-    await fireEventAsync.press(footerCancelButton);
+    await act(async () => {
+      fireEvent.press(footerCancelButton);
+    });
 
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
@@ -312,7 +314,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CANCEL_BUTTON,
     );
 
-    await fireEventAsync.press(footerCancelButton);
+    await act(async () => {
+      fireEvent.press(footerCancelButton);
+    });
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -336,7 +340,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
-    await fireEventAsync.press(footerConfirmationButton);
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
 
     expect(
       Engine.context.EarnController.executeLendingWithdraw,
@@ -398,7 +404,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       CONFIRMATION_FOOTER_LINK_TEST_IDS.TERMS_OF_USE_BUTTON,
     );
 
-    await fireEventAsync.press(footerTermsOfUseLink);
+    await act(async () => {
+      fireEvent.press(footerTermsOfUseLink);
+    });
 
     expect(Linking.openURL).toHaveBeenLastCalledWith(
       AppConstants.URLS.TERMS_OF_USE,
@@ -417,7 +425,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       CONFIRMATION_FOOTER_LINK_TEST_IDS.RISK_DISCLOSURE_BUTTON,
     );
 
-    await fireEventAsync.press(footerRiskDisclosureButton);
+    await act(async () => {
+      fireEvent.press(footerRiskDisclosureButton);
+    });
 
     expect(Linking.openURL).toHaveBeenLastCalledWith(
       AppConstants.URLS.EARN_RISK_DISCLOSURE,
@@ -460,7 +470,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       };
     });
 
-    await fireEventAsync.press(footerConfirmationButton);
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
 
     // Simulate transaction submission
     await act(async () => {
@@ -544,7 +556,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       };
     });
 
-    await fireEventAsync.press(footerConfirmationButton);
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
 
     // Simulate transaction submission
     await act(async () => {
@@ -608,7 +622,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
-    await fireEventAsync.press(footerConfirmationButton);
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
 
     // Verify that MaxUint256 was used instead of the actual amount
     expect(
@@ -652,7 +668,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
       CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
     );
 
-    await fireEventAsync.press(footerConfirmationButton);
+    await act(async () => {
+      fireEvent.press(footerConfirmationButton);
+    });
 
     // Verify that the actual amount was used
     expect(
@@ -721,7 +739,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
-      await fireEventAsync.press(confirmButton);
+      await act(async () => {
+      fireEvent.press(confirmButton);
+    });
 
       // Check that EARN_ACTION_SUBMITTED was tracked
       expect(mockTrackEvent).toHaveBeenNthCalledWith(
@@ -796,7 +816,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
-      await fireEventAsync.press(confirmButton);
+      await act(async () => {
+      fireEvent.press(confirmButton);
+    });
 
       // Clear previous tracking calls
       mockTrackEvent.mockClear();
@@ -902,7 +924,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
-      await fireEventAsync.press(confirmButton);
+      await act(async () => {
+      fireEvent.press(confirmButton);
+    });
 
       // Clear previous tracking calls
       mockTrackEvent.mockClear();
@@ -1097,7 +1121,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
-      await fireEventAsync.press(confirmButton);
+      await act(async () => {
+      fireEvent.press(confirmButton);
+    });
 
       expect(mockTrace).toHaveBeenCalledWith({
         name: TraceName.EarnWithdrawConfirmationScreen,
@@ -1150,7 +1176,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
-      await fireEventAsync.press(confirmButton);
+      await act(async () => {
+      fireEvent.press(confirmButton);
+    });
 
       mockTrace.mockClear();
 
@@ -1221,7 +1249,9 @@ describe('EarnLendingWithdrawalConfirmationView', () => {
         CONFIRMATION_FOOTER_BUTTON_TEST_IDS.CONFIRM_BUTTON,
       );
 
-      await fireEventAsync.press(confirmButton);
+      await act(async () => {
+      fireEvent.press(confirmButton);
+    });
 
       mockEndTrace.mockClear();
 

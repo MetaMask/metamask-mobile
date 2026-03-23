@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { fireEvent , act } from '@testing-library/react-native';
 import { Text } from 'react-native';
 
 import AddToAddressBookWrapper from './AddToAddressBookWrapper';
@@ -115,7 +115,7 @@ describe('AddToAddressBookWrapper', () => {
     const aliasInput = getByTestId(
       AddAddressModalSelectorsIDs.ENTER_ALIAS_INPUT,
     );
-    await fireEventAsync.changeText(aliasInput, 'New Alias');
+    fireEvent.changeText(aliasInput, 'New Alias');
     expect(aliasInput.props.value).toBe('New Alias');
 
     await act(async () => {

@@ -2,7 +2,7 @@ import React from 'react';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
 import ConnectQRHardware from './index';
-import { fireEvent, act , fireEventAsync, waitFor } from '@testing-library/react-native';
+import { fireEvent, act, waitFor } from '@testing-library/react-native';
 import { QR_CONTINUE_BUTTON } from '../../../../wdio/screen-objects/testIDs/Components/ConnectQRHardware.testIds';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import {
@@ -228,7 +228,9 @@ describe('ConnectQRHardware', () => {
 
     expect(button).toBeDefined();
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockQrKeyring.getFirstPage).toHaveBeenCalledTimes(1);
 
@@ -248,11 +250,15 @@ describe('ConnectQRHardware', () => {
     const button = getByTestId(QR_CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     const nextButton = getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON);
     expect(nextButton).toBeDefined();
-    await fireEventAsync.press(nextButton);
+    await act(async () => {
+      fireEvent.press(nextButton);
+    });
 
     expect(mockQrKeyring.getNextPage).toHaveBeenCalledTimes(1);
 
@@ -272,15 +278,21 @@ describe('ConnectQRHardware', () => {
     const button = getByTestId(QR_CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     const nextButton = getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON);
     expect(nextButton).toBeDefined();
-    await fireEventAsync.press(nextButton);
+    await act(async () => {
+      fireEvent.press(nextButton);
+    });
 
     const prevButton = getByTestId(ACCOUNT_SELECTOR_PREVIOUS_BUTTON);
     expect(prevButton).toBeDefined();
-    await fireEventAsync.press(prevButton);
+    await act(async () => {
+      fireEvent.press(prevButton);
+    });
 
     expect(mockQrKeyring.getPreviousPage).toHaveBeenCalledTimes(1);
 
@@ -301,11 +313,15 @@ describe('ConnectQRHardware', () => {
     const button = getByTestId(QR_CONTINUE_BUTTON);
     expect(button).toBeDefined();
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
     expect(forgetButton).toBeDefined();
-    await fireEventAsync.press(forgetButton);
+    await act(async () => {
+      fireEvent.press(forgetButton);
+    });
 
     expect(withKeyringSpy).toHaveBeenCalled();
     expect(MockRemoveAccountsFromPermissions).toHaveBeenCalledWith([
@@ -325,7 +341,9 @@ describe('ConnectQRHardware', () => {
 
     const button = getByTestId(QR_CONTINUE_BUTTON);
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.HARDWARE_WALLET_CONTINUE_CONNECTION,
@@ -344,15 +362,21 @@ describe('ConnectQRHardware', () => {
 
     const button = getByTestId(QR_CONTINUE_BUTTON);
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     const checkbox = getByText(mockPage0Accounts[0].shortenedAddress);
 
-    await fireEventAsync.press(checkbox);
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
 
     const unlockButton = getByText('Unlock');
 
-    await fireEventAsync.press(unlockButton);
+    await act(async () => {
+      fireEvent.press(unlockButton);
+    });
 
     // Wait for async onUnlock flow to complete
     await waitFor(() => {
@@ -375,11 +399,15 @@ describe('ConnectQRHardware', () => {
 
     const button = getByTestId(QR_CONTINUE_BUTTON);
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
 
-    await fireEventAsync.press(forgetButton);
+    await act(async () => {
+      fireEvent.press(forgetButton);
+    });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(
       MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN,
@@ -404,7 +432,9 @@ describe('ConnectQRHardware', () => {
 
     const button = getByTestId(QR_CONTINUE_BUTTON);
 
-    await fireEventAsync.press(button);
+    await act(async () => {
+      fireEvent.press(button);
+    });
 
     expect(mockAddProperties).toHaveBeenCalledWith({
       device_type: HardwareDeviceTypes.QR,

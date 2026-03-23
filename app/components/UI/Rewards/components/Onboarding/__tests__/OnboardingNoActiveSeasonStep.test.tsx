@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen, fireEvent , act , fireEventAsync } from '@testing-library/react-native';
+import { screen, fireEvent , act } from '@testing-library/react-native';
 import { Linking } from 'react-native';
 import { renderWithProviders, createMockDispatch } from '../testUtils';
 import OnboardingNoActiveSeasonStep from '../OnboardingNoActiveSeasonStep';
@@ -632,7 +632,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
       );
 
       const termsLink = screen.getByTestId('terms-link');
-      await fireEventAsync.press(termsLink);
+      fireEvent.press(termsLink);
 
       expect(mockOpenURL).toHaveBeenCalledWith(REWARDS_ONBOARD_TERMS_URL);
     });
@@ -645,7 +645,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
       );
 
       const learnMoreLink = screen.getByTestId('learn-more-link');
-      await fireEventAsync.press(learnMoreLink);
+      fireEvent.press(learnMoreLink);
 
       expect(mockOpenURL).toHaveBeenCalledWith(
         REWARDS_ONBOARD_OPTIN_LEGAL_LEARN_MORE_URL,
@@ -662,7 +662,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
       );
 
       const nextButton = screen.getByTestId('next-button');
-      await fireEventAsync.press(nextButton);
+      fireEvent.press(nextButton);
 
       expect(mockCanContinue).toHaveBeenCalled();
       expect(mockOptin).toHaveBeenCalledWith({ bulkLink: false });
@@ -677,11 +677,11 @@ describe('OnboardingNoActiveSeasonStep', () => {
 
       // Toggle the checkbox to check it
       const checkbox = screen.getByTestId('bulk-link-checkbox');
-      await fireEventAsync.press(checkbox);
+      fireEvent.press(checkbox);
 
       // Press next button
       const nextButton = screen.getByTestId('next-button');
-      await fireEventAsync.press(nextButton);
+      fireEvent.press(nextButton);
 
       expect(mockCanContinue).toHaveBeenCalled();
       expect(mockOptin).toHaveBeenCalledWith({ bulkLink: true });
@@ -695,7 +695,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
       );
 
       const nextButton = screen.getByTestId('next-button');
-      await fireEventAsync.press(nextButton);
+      fireEvent.press(nextButton);
 
       expect(mockCanContinue).toHaveBeenCalled();
       expect(mockOptin).not.toHaveBeenCalled();
@@ -726,7 +726,7 @@ describe('OnboardingNoActiveSeasonStep', () => {
       );
 
       const checkbox = screen.getByTestId('bulk-link-checkbox');
-      await fireEventAsync.press(checkbox);
+      fireEvent.press(checkbox);
 
       const checkedState = screen.getByTestId('checkbox-checked-state');
       expect(checkedState.props.children).toBe('checked');
@@ -738,8 +738,8 @@ describe('OnboardingNoActiveSeasonStep', () => {
       );
 
       const checkbox = screen.getByTestId('bulk-link-checkbox');
-      await fireEventAsync.press(checkbox);
-      await fireEventAsync.press(checkbox);
+      fireEvent.press(checkbox);
+      fireEvent.press(checkbox);
 
       const checkedState = screen.getByTestId('checkbox-checked-state');
       expect(checkedState.props.children).toBe('unchecked');
@@ -853,8 +853,8 @@ describe('OnboardingNoActiveSeasonStep', () => {
       );
 
       const nextButton = screen.getByTestId('next-button');
-      await fireEventAsync.press(nextButton);
-      await fireEventAsync.press(nextButton);
+      fireEvent.press(nextButton);
+      fireEvent.press(nextButton);
 
       expect(mockCanContinue).toHaveBeenCalledTimes(2);
     });

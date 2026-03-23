@@ -295,7 +295,7 @@ jest.mock('../../types', () => ({
 }));
 
 import React from 'react';
-import { render, fireEvent, act, waitFor , fireEventAsync } from '@testing-library/react-native';
+import { render, fireEvent, act, waitFor } from '@testing-library/react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useDispatch, useSelector } from 'react-redux';
 import PersonalDetails from './PersonalDetails';
@@ -463,7 +463,9 @@ describe('PersonalDetails Component', () => {
       const { getByTestId } = render(<PersonalDetails />);
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
-      await fireEventAsync.changeText(firstNameInput, 'John');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
 
       expect(firstNameInput.props.value).toBe('John');
     });
@@ -472,7 +474,9 @@ describe('PersonalDetails Component', () => {
       const { getByTestId } = render(<PersonalDetails />);
 
       const lastNameInput = getByTestId('personal-details-last-name-input');
-      await fireEventAsync.changeText(lastNameInput, 'Doe');
+      await act(async () => {
+      fireEvent.changeText(lastNameInput, 'Doe');
+    });
 
       expect(lastNameInput.props.value).toBe('Doe');
     });
@@ -516,7 +520,9 @@ describe('PersonalDetails Component', () => {
       const { getByTestId } = render(<PersonalDetails />);
 
       const ssnInput = getByTestId('personal-details-ssn-input');
-      await fireEventAsync.changeText(ssnInput, 'abc123def456ghi789');
+      await act(async () => {
+      fireEvent.changeText(ssnInput, 'abc123def456ghi789');
+    });
 
       expect(ssnInput.props.value).toBe('123456789');
     });
@@ -566,12 +572,16 @@ describe('PersonalDetails Component', () => {
       const ssnInput = getByTestId('personal-details-ssn-input');
 
       // Type invalid SSN and blur to trigger error
-      await fireEventAsync.changeText(ssnInput, '123');
+      await act(async () => {
+      fireEvent.changeText(ssnInput, '123');
+    });
       fireEvent(ssnInput, 'onBlur');
       expect(getByTestId('personal-details-ssn-error')).toBeTruthy();
 
       // Type again - error should be cleared
-      await fireEventAsync.changeText(ssnInput, '1234');
+      await act(async () => {
+      fireEvent.changeText(ssnInput, '1234');
+    });
       expect(queryByTestId('personal-details-ssn-error')).toBeNull();
     });
   });
@@ -886,15 +896,23 @@ describe('PersonalDetails Component', () => {
       );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
-      await fireEventAsync.changeText(firstNameInput, 'John');
-      await fireEventAsync.changeText(lastNameInput, 'Doe');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
+      await act(async () => {
+      fireEvent.changeText(lastNameInput, 'Doe');
+    });
       fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
       fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
-      await fireEventAsync.changeText(ssnInput, '123456789');
+      await act(async () => {
+      fireEvent.changeText(ssnInput, '123456789');
+    });
 
       const continueButton = getByTestId('personal-details-continue-button');
 
-      await fireEventAsync.press(continueButton);
+      await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
       expect(mockRegisterPersonalDetails).toHaveBeenCalledWith(
         expect.objectContaining({
@@ -922,15 +940,23 @@ describe('PersonalDetails Component', () => {
       );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
-      await fireEventAsync.changeText(firstNameInput, 'John');
-      await fireEventAsync.changeText(lastNameInput, 'Doe');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
+      await act(async () => {
+      fireEvent.changeText(lastNameInput, 'Doe');
+    });
       fireEvent.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
       fireEvent.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
-      await fireEventAsync.changeText(ssnInput, '123456789');
+      await act(async () => {
+      fireEvent.changeText(ssnInput, '123456789');
+    });
 
       const continueButton = getByTestId('personal-details-continue-button');
 
-      await fireEventAsync.press(continueButton);
+      await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
       expect(mockSetUser).toHaveBeenCalledWith(mockUser);
       expect(mockReset).toHaveBeenCalled();
@@ -948,7 +974,9 @@ describe('PersonalDetails Component', () => {
       const { getByTestId } = render(<PersonalDetails />);
 
       const firstNameInput = getByTestId('personal-details-first-name-input');
-      await fireEventAsync.changeText(firstNameInput, 'John');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
 
       const continueButton = getByTestId('personal-details-continue-button');
 
@@ -979,12 +1007,20 @@ describe('PersonalDetails Component', () => {
       const lastNameInput = getByTestId('personal-details-last-name-input');
       const ssnInput = getByTestId('personal-details-ssn-input');
 
-      await fireEventAsync.changeText(firstNameInput, 'John');
-      await fireEventAsync.changeText(lastNameInput, 'Doe');
-      await fireEventAsync.changeText(ssnInput, '123456789');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
+      await act(async () => {
+      fireEvent.changeText(lastNameInput, 'Doe');
+    });
+      await act(async () => {
+      fireEvent.changeText(ssnInput, '123456789');
+    });
 
       const continueButton = getByTestId('personal-details-continue-button');
-      await fireEventAsync.press(continueButton);
+      await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
       expect(mockRegisterPersonalDetails).not.toHaveBeenCalled();
     });
@@ -1045,7 +1081,9 @@ describe('PersonalDetails Component', () => {
         expect(continueButton).toBeEnabled();
       });
 
-      await fireEventAsync.press(continueButton);
+      await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
       await waitFor(() => {
         expect(mockDispatch).toHaveBeenCalled();
@@ -1060,8 +1098,12 @@ describe('PersonalDetails Component', () => {
       const lastNameInput = getByTestId('personal-details-last-name-input');
       const ssnInput = getByTestId('personal-details-ssn-input');
 
-      await fireEventAsync.changeText(firstNameInput, 'John');
-      await fireEventAsync.changeText(lastNameInput, 'Doe');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
+      await act(async () => {
+      fireEvent.changeText(lastNameInput, 'Doe');
+    });
       fireEvent.changeText(ssnInput, '123'); // Invalid SSN (less than 9 digits)
 
       const continueButton = getByTestId('personal-details-continue-button');
@@ -1085,15 +1127,27 @@ describe('PersonalDetails Component', () => {
       );
       const ssnInput = getByTestId('personal-details-ssn-input');
 
-      await fireEventAsync.changeText(firstNameInput, 'John');
-      await fireEventAsync.changeText(lastNameInput, 'Doe');
-      await fireEventAsync.changeText(dateOfBirthInput, '631152000000'); // Valid timestamp for 1990-01-01
-      await fireEventAsync.press(nationalitySelect); // Triggers setOnValueChange which sets nationalityKey
-      await fireEventAsync.changeText(ssnInput, '123456789');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
+      await act(async () => {
+      fireEvent.changeText(lastNameInput, 'Doe');
+    });
+      await act(async () => {
+      fireEvent.changeText(dateOfBirthInput, '631152000000');
+    }); // Valid timestamp for 1990-01-01
+      await act(async () => {
+      fireEvent.press(nationalitySelect);
+    }); // Triggers setOnValueChange which sets nationalityKey
+      await act(async () => {
+      fireEvent.changeText(ssnInput, '123456789');
+    });
 
       const continueButton = getByTestId('personal-details-continue-button');
 
-      await fireEventAsync.press(continueButton);
+      await act(async () => {
+      fireEvent.press(continueButton);
+    });
 
       await waitFor(() => {
         expect(mockRegisterPersonalDetails).toHaveBeenCalledWith(
@@ -1130,8 +1184,12 @@ describe('PersonalDetails Component', () => {
       const firstNameInput = getByTestId('personal-details-first-name-input');
       const lastNameInput = getByTestId('personal-details-last-name-input');
 
-      await fireEventAsync.changeText(firstNameInput, 'John');
-      await fireEventAsync.changeText(lastNameInput, 'Doe');
+      await act(async () => {
+      fireEvent.changeText(firstNameInput, 'John');
+    });
+      await act(async () => {
+      fireEvent.changeText(lastNameInput, 'Doe');
+    });
 
       expect(queryByTestId('personal-details-ssn-input')).toBeNull();
     });
