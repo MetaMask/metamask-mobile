@@ -102,7 +102,7 @@ const completedProperties: Record<
  *
  * Note: these expectations are run against events captured during the first swap only.
  * The `validate` callback handles the Input Changed events which require advanced checks
- * (count = 6, specific `input` values like chain_source, token_destination, slippage).
+ * (count = 12, specific `input` values like chain_source, token_destination, slippage).
  */
 export const swapActionExpectations: AnalyticsExpectations = {
   eventNames: expectedEventNames,
@@ -126,7 +126,7 @@ export const swapActionExpectations: AnalyticsExpectations = {
   validate: async ({ events }) => {
     const inputChanged = filterEvents(events, INPUT_CHANGED);
 
-    await Assertions.checkIfArrayHasLength(inputChanged, 6);
+    await Assertions.checkIfArrayHasLength(inputChanged, 12);
 
     for (const event of inputChanged) {
       await Assertions.checkIfValueIsDefined(event.properties.input);

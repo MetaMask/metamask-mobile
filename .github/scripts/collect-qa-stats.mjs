@@ -69,7 +69,6 @@ const LEGACY_INLINE_METAMETRICS_PATHS = [
   'tests/smoke/predict/predict-claim-positions.spec.ts',
   'tests/smoke/predict/predict-geo-restriction.spec.ts',
   'tests/smoke/predict/predict-open-position.spec.ts',
-  'tests/smoke/ramps/onramp-unified-buy.spec.ts',
   'tests/smoke/snaps/test-snap-preinstalled.spec.ts',
   'tests/smoke/swap/bridge-action-smoke.spec.ts',
   'tests/regression/ramps/onramp-parameters.spec.ts',
