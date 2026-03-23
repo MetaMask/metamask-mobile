@@ -1,10 +1,11 @@
 import React from 'react';
+import { useSelector } from 'react-redux';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import CampaignTile from './CampaignTile';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import PreviousSeasonTile from '../PreviousSeason/PreviousSeasonTile';
 import { selectSeasonName } from '../../../../../reducers/rewards/selectors';
-import { useSelector } from 'react-redux';
+import { selectCampaignsRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
 
 interface CampaignsGroupProps {
   title: string;
@@ -23,6 +24,7 @@ const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
   displayPreviousSeason = false,
 }) => {
   const seasonName = useSelector(selectSeasonName);
+  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
   const showPreviousSeason = displayPreviousSeason && !!seasonName;
 
   if (campaigns.length === 0 && !showPreviousSeason) {
@@ -35,7 +37,11 @@ const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
         {title}
       </Text>
       {campaigns.map((campaign) => (
-        <CampaignTile key={campaign.id} campaign={campaign} />
+        <CampaignTile
+          key={campaign.id}
+          campaign={campaign}
+          isInteractive={isCampaignsEnabled}
+        />
       ))}
       {showPreviousSeason && <PreviousSeasonTile />}
     </Box>

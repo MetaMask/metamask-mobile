@@ -3390,9 +3390,6 @@ export class RewardsController extends BaseController<
     if (!rewardsEnabled) {
       return [];
     }
-    if (!this.#isCampaignsEnabled()) {
-      return [];
-    }
     const result = await wrapWithCache<CampaignDto[]>({
       key: subscriptionId,
       ttl: CAMPAIGNS_CACHE_THRESHOLD_MS,
