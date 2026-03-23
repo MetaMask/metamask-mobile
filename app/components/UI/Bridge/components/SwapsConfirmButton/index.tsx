@@ -32,6 +32,7 @@ import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
 import AppConstants from '../../../../../core/AppConstants';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
+import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -151,9 +152,10 @@ export const SwapsConfirmButton = ({
   const handleContinue = async () => {
     if (tokenWarning) {
       const params: TokenWarningModalParams = {
-        warningType: tokenWarning.type,
+        warningType:
+          tokenWarning.type as TokenWarningModalParams['warningType'],
         description: tokenWarning.description,
-        mode: 'execution',
+        mode: TokenWarningModalMode.Swap,
         location,
       };
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {

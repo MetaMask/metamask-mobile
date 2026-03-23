@@ -36,6 +36,7 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { TokenFeatureType } from '@metamask/bridge-controller';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import { TokenWarningModalMode } from '../../components/TokenWarningModal/constants';
 import {
   useNavigation,
   useRoute,
@@ -489,7 +490,7 @@ const BridgeView = () => {
                   params: {
                     warningType: tokenWarning.type,
                     description: tokenWarning.description,
-                    mode: 'info',
+                    mode: TokenWarningModalMode.Info,
                     location,
                   },
                 })
@@ -516,7 +517,7 @@ const BridgeView = () => {
                     params: {
                       warningType: tokenWarning.type,
                       description: tokenWarning.description,
-                      mode: 'info',
+                      mode: TokenWarningModalMode.Info,
                       location,
                     },
                   })

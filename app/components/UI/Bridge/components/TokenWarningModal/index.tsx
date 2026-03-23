@@ -19,6 +19,7 @@ import {
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
+import { TokenWarningModalMode } from './constants';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useBridgeConfirm } from '../../hooks/useBridgeConfirm';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
@@ -34,7 +35,7 @@ import { Box } from '@metamask/design-system-react-native';
 export interface TokenWarningModalParams {
   warningType: TokenFeatureType.WARNING | TokenFeatureType.MALICIOUS;
   description: string;
-  mode: 'info' | 'execution';
+  mode: TokenWarningModalMode;
   location: MetaMetricsSwapsEventSource;
 }
 
@@ -97,7 +98,7 @@ export const TokenWarningModal = () => {
     : strings('bridge.token_warning_modal_suspicious_title');
 
   const footerButtonProps =
-    mode === 'execution'
+    mode === TokenWarningModalMode.Swap
       ? [
           {
             label: strings('bridge.proceed'),
