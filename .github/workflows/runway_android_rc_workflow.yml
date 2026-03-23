@@ -14,8 +14,10 @@ name: Runway Android RC
 on:
   workflow_dispatch:
     inputs:
-      ref:
-        description: 'Optional git ref (branch) to run against. Defaults to the branch selected in the UI.'
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA (Build workflow source_branch).
+          Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
 
@@ -39,7 +41,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-          ref: ${{ inputs.ref || github.ref }}
+          ref: ${{ inputs.source_branch || github.ref }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -49,7 +51,7 @@ jobs:
       - name: Resolve PR number for current branch
         id: resolve-pr
         run: |
-          BRANCH="${{ inputs.ref || github.ref_name }}"
+          BRANCH="${{ inputs.source_branch || github.ref_name }}"
           # Strip refs/heads/ if present
           BRANCH="${BRANCH#refs/heads/}"
           echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
@@ -119,7 +121,7 @@ jobs:
         with:
           github-token: ${{ secrets.GITHUB_TOKEN }}
           script: |
-            const ref = '${{ inputs.ref || github.ref_name }}'.replace(/^refs\/heads\//, '');
+            const ref = '${{ inputs.source_branch || github.ref_name }}'.replace(/^refs\/heads\//, '');
             await github.rest.actions.createWorkflowDispatch({
               owner: context.repo.owner,
               repo: context.repo.repo,
@@ -144,6 +146,6 @@ jobs:
       build_name: main-rc
       platform: android
       skip_version_bump: false
-      source_branch: ${{ inputs.ref || github.ref_name }}
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
       upload_to_sentry: true
     secrets: inherit
