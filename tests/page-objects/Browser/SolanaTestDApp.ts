@@ -194,33 +194,38 @@ class SolanaTestDApp {
   }
 
   async confirmSignMessage(): Promise<void> {
-    // Solana Wallet Standard uses @metamask/solana-wallet-snap UI: SnapUIFooterButton
-    // testID is `${name}-snap-footer-button` (e.g. confirm-sign-message-confirm-snap-footer-button).
-    // Redesigned confirmations may use `confirm-button` / BottomSheetFooter.
-    //
-    // Wait for the primary snap confirm control with toExist (not title text + toBeVisible):
-    // on Android, expectTextDisplayed uses strict visibility (75% area) and often flakes for
-    // sheet headers while sync is disabled; the footer testID is stable and matches tap targets.
+    // SnapDialogApproval: dialog type `default` → snap Footer in JSX →
+    // `confirm-sign-message-confirm-snap-footer-button`.
+    // Dialog type `confirmation` → useFooter is false; BottomSheetFooter maps index 1 (Approve) to
+    // `bottomsheetfooter-button-subsequent`, not `confirm-button`.
+    // Wait until any known confirm control exists (toExist; avoids flaky title visibility).
+    const confirmSelectors = [
+      SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
+      BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
+      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+      SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
+    ] as const;
+
     await Utilities.executeWithRetry(
       async () => {
-        const confirmEl = await Matchers.getElementByID(
-          SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
-        );
-        await waitFor(confirmEl).toExist().withTimeout(100);
+        let lastError: unknown;
+        for (const testId of confirmSelectors) {
+          try {
+            const el = await Matchers.getElementByID(testId);
+            await waitFor(el).toExist().withTimeout(100);
+            return;
+          } catch (error) {
+            lastError = error;
+          }
+        }
+        throw lastError;
       },
       {
         timeout: 50000,
         description:
-          'Solana snap sign message confirm control should be present',
+          'Solana sign message confirmation (confirm-button or snap footer) should be present',
       },
     );
-
-    const confirmSelectors = [
-      SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
-      SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
-      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-      BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
-    ] as const;
 
     const relaxModalFooterChecks = true;
 
@@ -249,7 +254,17 @@ class SolanaTestDApp {
         checkEnabled: !relaxModalFooterChecks,
       });
     } catch {
-      throw lastError;
+      try {
+        await Gestures.waitAndTap(Matchers.getElementByText('Approve'), {
+          elemDescription:
+            'Solana sign message confirmation (Approve — SnapDialog confirmation)',
+          timeout: 15000,
+          checkVisibility: !relaxModalFooterChecks,
+          checkEnabled: !relaxModalFooterChecks,
+        });
+      } catch {
+        throw lastError;
+      }
     }
   }
 
