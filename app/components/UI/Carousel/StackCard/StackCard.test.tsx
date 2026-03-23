@@ -8,8 +8,11 @@ import { CarouselSlide } from '../types';
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({
     style: jest.fn(() => ({})),
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    color: jest.fn(() => '#000000'),
+    color: jest.fn(
+      () =>
+        jest.requireActual('../../../../util/theme').mockTheme.colors.text
+          .default,
+    ),
   }),
 }));
 

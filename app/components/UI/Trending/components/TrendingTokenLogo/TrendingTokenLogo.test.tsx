@@ -4,33 +4,35 @@ import { Image } from 'expo-image';
 import TrendingTokenLogo from './TrendingTokenLogo';
 
 jest.mock('../../../../hooks/useTokenLogo', () => ({
-  useTokenLogo: jest.fn(() => ({
-    isLoading: false,
-    hasError: false,
-    containerStyle: {
-      width: 44,
-      height: 44,
-      borderRadius: 22,
-    },
-    loadingContainerStyle: {
-      position: 'absolute',
-      width: 44,
-      height: 44,
-    },
-    imageStyle: {
-      width: 44,
-      height: 44,
-    },
-    fallbackTextStyle: {
-      fontSize: 18,
-      fontWeight: '600',
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      color: '#000000',
-    },
-    handleLoadStart: jest.fn(),
-    handleLoadEnd: jest.fn(),
-    handleError: jest.fn(),
-  })),
+  useTokenLogo: jest.fn(() => {
+    const { mockTheme } = jest.requireActual('../../../../../util/theme');
+    return {
+      isLoading: false,
+      hasError: false,
+      containerStyle: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+      },
+      loadingContainerStyle: {
+        position: 'absolute',
+        width: 44,
+        height: 44,
+      },
+      imageStyle: {
+        width: 44,
+        height: 44,
+      },
+      fallbackTextStyle: {
+        fontSize: 18,
+        fontWeight: '600',
+        color: mockTheme.colors.text.default,
+      },
+      handleLoadStart: jest.fn(),
+      handleLoadEnd: jest.fn(),
+      handleError: jest.fn(),
+    };
+  }),
 }));
 
 jest.mock('../../../../../util/theme', () => {

@@ -57,25 +57,17 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      container: {},
-      addNetworkButtonContainer: {},
-      iconContainer: {},
-    },
-    theme: {
-      colors: {
-        icon: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          alternative: '#666666',
-        },
-        text: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-          alternative: '#999999',
-        },
+  useStyles: jest.fn(() => {
+    const { mockTheme } = jest.requireActual('../../../util/theme');
+    return {
+      styles: {
+        container: {},
+        addNetworkButtonContainer: {},
+        iconContainer: {},
       },
-    },
-  })),
+      theme: mockTheme,
+    };
+  }),
 }));
 
 jest.mock('../../../util/networks', () => ({

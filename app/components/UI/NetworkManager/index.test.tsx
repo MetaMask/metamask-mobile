@@ -104,28 +104,27 @@ jest.mock('../../../util/theme', () => {
 });
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      sheet: { backgroundColor: '#FFFFFF' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      notch: { backgroundColor: '#CCCCCC' },
-      networkTabsSelectorTitle: { fontSize: 18 },
-      networkTabsSelectorWrapper: { flex: 1 },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      tabUnderlineStyle: { backgroundColor: '#0066CC' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      tabStyle: { backgroundColor: '#FFFFFF' },
-      textStyle: { fontSize: 16 },
-      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-      tabBar: { backgroundColor: '#F8F9FA' },
-      editNetworkMenu: { padding: 16 },
-      containerDeleteText: { padding: 16 },
-      textCentred: { textAlign: 'center' },
-    },
-  }),
+  useStyles: () => {
+    const { mockTheme } = jest.requireActual('../../../util/theme');
+    return {
+      styles: {
+        sheet: { backgroundColor: mockTheme.colors.background.default },
+        notch: { backgroundColor: mockTheme.colors.border.muted },
+        networkTabsSelectorTitle: { fontSize: 18 },
+        networkTabsSelectorWrapper: { flex: 1 },
+        tabUnderlineStyle: { backgroundColor: mockTheme.colors.text.default },
+        inactiveUnderlineStyle: {
+          backgroundColor: mockTheme.colors.text.alternative,
+        },
+        tabStyle: {},
+        textStyle: { fontSize: 16 },
+        tabBar: { borderColor: mockTheme.colors.border.muted },
+        editNetworkMenu: { padding: 16 },
+        containerDeleteText: { padding: 16 },
+        textCentred: { textAlign: 'center' },
+      },
+    };
+  },
 }));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
@@ -607,26 +606,25 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
 
 jest.mock('./index.styles', () => ({
   __esModule: true,
-  default: () => ({
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    sheet: { backgroundColor: '#FFFFFF' },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    notch: { backgroundColor: '#CCCCCC' },
-    networkTabsSelectorTitle: { fontSize: 18 },
-    networkTabsSelectorWrapper: { flex: 1 },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    tabUnderlineStyle: { backgroundColor: '#0066CC' },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    tabStyle: { backgroundColor: '#FFFFFF' },
-    textStyle: { fontSize: 16 },
-    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-    tabBar: { backgroundColor: '#F8F9FA' },
-    editNetworkMenu: { padding: 16 },
-    containerDeleteText: { padding: 16 },
-    textCentred: { textAlign: 'center' },
-  }),
+  default: () => {
+    const { mockTheme } = jest.requireActual('../../../util/theme');
+    return {
+      sheet: { backgroundColor: mockTheme.colors.background.default },
+      notch: { backgroundColor: mockTheme.colors.border.muted },
+      networkTabsSelectorTitle: { fontSize: 18 },
+      networkTabsSelectorWrapper: { flex: 1 },
+      tabUnderlineStyle: { backgroundColor: mockTheme.colors.text.default },
+      inactiveUnderlineStyle: {
+        backgroundColor: mockTheme.colors.text.alternative,
+      },
+      tabStyle: {},
+      textStyle: { fontSize: 16 },
+      tabBar: { borderColor: mockTheme.colors.border.muted },
+      editNetworkMenu: { padding: 16 },
+      containerDeleteText: { padding: 16 },
+      textCentred: { textAlign: 'center' },
+    };
+  },
 }));
 
 jest.mock('../../../component-library/components/Texts/Text', () => {

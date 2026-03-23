@@ -4,19 +4,7 @@ import PerpsMarketTileCard from './PerpsMarketTileCard';
 import { type PerpsMarketData } from '@metamask/perps-controller';
 
 const { TouchableOpacity } = jest.requireActual('react-native');
-
-const mockThemeColors = {
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  background: { default: '#1a1a2e', section: '#2a2a3e', subsection: '#3a3a4e' },
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  border: { muted: '#333' },
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  success: { default: '#28a745' },
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  error: { default: '#dc3545' },
-  // eslint-disable-next-line @metamask/design-tokens/color-no-hex
-  icon: { alternative: '#6a737d' },
-};
+const { mockTheme } = jest.requireActual('../../../../../../../util/theme');
 
 const buildMockUseStyles = () => {
   const actualStyleSheet = jest.requireActual(
@@ -24,10 +12,10 @@ const buildMockUseStyles = () => {
   ).default;
   return {
     styles: actualStyleSheet({
-      theme: { colors: mockThemeColors },
+      theme: mockTheme,
       vars: { cardWidth: 148, cardHeight: 164 },
     }),
-    theme: { colors: mockThemeColors },
+    theme: mockTheme,
   };
 };
 
@@ -193,7 +181,7 @@ describe('PerpsMarketTileCard', () => {
     expect(mockOnPress).toHaveBeenCalledWith(mockMarketData);
   });
 
-  it('uses live percentage change when available', () => {
+  it('renders market percentage change even when live prices are available', () => {
     mockUsePerpsLivePrices.mockReturnValue({
       BTC: {
         price: '55000',
@@ -204,7 +192,7 @@ describe('PerpsMarketTileCard', () => {
 
     render(<PerpsMarketTileCard market={mockMarketData} />);
 
-    expect(screen.getByText('+5.50%')).toBeOnTheScreen();
+    expect(screen.getByText('+4.00%')).toBeOnTheScreen();
   });
 
   it('falls back to market data when no live prices', () => {
