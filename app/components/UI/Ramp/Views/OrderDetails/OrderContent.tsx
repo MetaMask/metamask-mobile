@@ -40,7 +40,7 @@ import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow'
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
-const AMOUNT_PLACEHOLDER = '—';
+const AMOUNT_PLACEHOLDER = '...';
 const TERMINAL_STATUSES = new Set([
   RampsOrderStatus.Completed,
   RampsOrderStatus.Failed,

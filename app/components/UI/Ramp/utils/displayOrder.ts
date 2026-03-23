@@ -5,7 +5,7 @@ import {
 } from '../../../../reducers/fiatOrders';
 import { FIAT_ORDER_PROVIDERS } from '../../../../constants/on-ramp';
 
-const AMOUNT_PLACEHOLDER = '—';
+const AMOUNT_PLACEHOLDER = '...';
 
 export interface DisplayOrder {
   id: string;

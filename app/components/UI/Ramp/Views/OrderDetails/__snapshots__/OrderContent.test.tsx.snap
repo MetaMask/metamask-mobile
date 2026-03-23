@@ -769,7 +769,7 @@ exports[`OrderContent renders loading state when order has no amount 1`] = `
       }
       testID="ramps-order-details-token-amount"
     >
-      —
+      ...
        
       ETH
     </Text>
@@ -1264,7 +1264,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
       }
       testID="ramps-order-details-token-amount"
     >
-      —
+      ...
        
       ETH
     </Text>

@@ -79,11 +79,11 @@ describe('displayOrder', () => {
         fiatOrderToDisplayOrder(
           createMockFiatOrder({ cryptoAmount: undefined }),
         ).cryptoAmount,
-      ).toBe('—');
+      ).toBe('...');
       expect(
         fiatOrderToDisplayOrder(createMockFiatOrder({ cryptoAmount: 0 }))
           .cryptoAmount,
-      ).toBe('—');
+      ).toBe('...');
     });
   });
 
@@ -152,17 +152,17 @@ describe('displayOrder', () => {
       expect(
         rampsOrderToDisplayOrder(createMockRampsOrder({ cryptoAmount: 0 }))
           .cryptoAmount,
-      ).toBe('—');
+      ).toBe('...');
       expect(
         rampsOrderToDisplayOrder(
           createMockRampsOrder({ cryptoAmount: undefined }),
         ).cryptoAmount,
-      ).toBe('—');
+      ).toBe('...');
       expect(
         rampsOrderToDisplayOrder(
           createMockRampsOrder({ cryptoAmount: null as unknown as string }),
         ).cryptoAmount,
-      ).toBe('—');
+      ).toBe('...');
     });
   });
 
