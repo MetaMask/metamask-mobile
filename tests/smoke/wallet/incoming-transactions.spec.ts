@@ -1,5 +1,6 @@
 import { TransactionType } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
+import { merge } from 'lodash';
 
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
@@ -9,7 +10,10 @@ import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
   ENTROPY_WALLET_1_ID,
 } from '../../framework/fixtures/FixtureBuilder';
-import type { AccountTreeControllerState } from '../../framework/fixtures/types';
+import type {
+  AccountTreeControllerState,
+  Fixture,
+} from '../../framework/fixtures/types';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ToastModal from '../../page-objects/wallet/ToastModal';
 import { MockApiEndpoint, TestSpecificMock } from '../../framework/types';
@@ -41,6 +45,9 @@ const EVM_ONLY_ACCOUNT_TREE = {
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
 
+/** Sender for mocked incoming native txs; must be trusted (address book) to appear in activity. */
+const INCOMING_NATIVE_SENDER_ADDRESS = '0x2';
+
 const RESPONSE_STANDARD_MOCK = {
   hash: '0x123456',
   timestamp: new Date().toISOString(),
@@ -56,7 +63,7 @@ const RESPONSE_STANDARD_MOCK = {
   methodId: null,
   value: '1230000000000000000',
   to: DEFAULT_FIXTURE_ACCOUNT,
-  from: '0x2',
+  from: INCOMING_NATIVE_SENDER_ADDRESS,
   isError: false,
   valueTransfers: [],
 };
@@ -76,7 +83,7 @@ const RESPONSE_TOKEN_TRANSFER_MOCK = {
       contractAddress: TOKEN_ADDRESS_MOCK,
       decimal: 18,
       symbol: TOKEN_SYMBOL_MOCK,
-      from: '0x2',
+      from: INCOMING_NATIVE_SENDER_ADDRESS,
       to: DEFAULT_FIXTURE_ACCOUNT,
       amount: '4560000000000000000',
     },
@@ -85,7 +92,7 @@ const RESPONSE_TOKEN_TRANSFER_MOCK = {
 
 const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
   ...RESPONSE_STANDARD_MOCK,
-  to: '0x2',
+  to: INCOMING_NATIVE_SENDER_ADDRESS,
   from: DEFAULT_FIXTURE_ACCOUNT,
 };
 
@@ -122,21 +129,49 @@ function createAccountsTestSpecificMock(
   };
 }
 
+/**
+ * Incoming native coin from non-trusted senders is hidden (address poisoning).
+ * Merge a contact for the mocked sender so the activity row still appears.
+ */
+function mergeTrustedSenderForIncomingNativeFixture(fixture: Fixture): void {
+  const addressBookController = (
+    fixture.state.engine.backgroundState as unknown as {
+      AddressBookController: Record<string, unknown>;
+    }
+  ).AddressBookController;
+  merge(addressBookController, {
+    addressBook: {
+      '0x1': {
+        [INCOMING_NATIVE_SENDER_ADDRESS]: {
+          address: INCOMING_NATIVE_SENDER_ADDRESS,
+          name: 'E2E trusted incoming sender',
+          chainId: '0x1',
+          memo: '',
+          isEns: false,
+        },
+      },
+    },
+  });
+}
+
 describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
 
-  it('displays standard incoming transaction', async () => {
+  it('displays incoming native transfer from trusted sender', async () => {
+    const fixture = new FixtureBuilder()
+      .withAccountTreeController(
+        EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+      )
+      .withNetworkEnabledMap({ eip155: { '0x1': true } })
+      .withPrivacyModePreferences(false)
+      .build();
+    mergeTrustedSenderForIncomingNativeFixture(fixture);
+
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
-          .withNetworkEnabledMap({ eip155: { '0x1': true } })
-          .withPrivacyModePreferences(false)
-          .build(),
+        fixture,
         restartDevice: true,
         testSpecificMock: createAccountsTestSpecificMock(),
       },
