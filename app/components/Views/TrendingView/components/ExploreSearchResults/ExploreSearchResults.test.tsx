@@ -111,10 +111,10 @@ describe('ExploreSearchResults', () => {
       <ExploreSearchResults searchQuery="btc" />,
     );
 
-    expect(getByTestId('trending-search-results-list')).toBeDefined();
-    expect(getByText('Trending tokens')).toBeDefined();
-    expect(getByText('Perps')).toBeDefined();
-    expect(getByText('Predictions')).toBeDefined();
+    expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(getByText('Predictions')).toBeOnTheScreen();
   });
 
   it('only shows sections with data or loading state', () => {
@@ -140,7 +140,7 @@ describe('ExploreSearchResults', () => {
       <ExploreSearchResults searchQuery="btc" />,
     );
 
-    expect(getByText('Trending tokens')).toBeDefined();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
     expect(queryByText('Perps')).toBeNull();
     expect(queryByText('Predictions')).toBeNull();
   });
@@ -200,8 +200,8 @@ describe('ExploreSearchResults', () => {
       );
 
       // Assert - FlashList renders with data and search query is passed to hook
-      expect(getByTestId('trending-search-results-list')).toBeDefined();
-      expect(getByText('Trending tokens')).toBeDefined();
+      expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
+      expect(getByText('Trending tokens')).toBeOnTheScreen();
       expect(mockUseExploreSearch).toHaveBeenCalledWith('bitcoin');
     });
 
@@ -229,7 +229,7 @@ describe('ExploreSearchResults', () => {
       const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
 
       // Assert - list renders, empty query means footer won't render
-      expect(getByTestId('trending-search-results-list')).toBeDefined();
+      expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
       expect(mockUseExploreSearch).toHaveBeenCalledWith('');
     });
   });
@@ -261,7 +261,7 @@ describe('ExploreSearchResults', () => {
       );
 
       // Assert - shows header for loading section
-      expect(getByText('Trending tokens')).toBeDefined();
+      expect(getByText('Trending tokens')).toBeOnTheScreen();
     });
 
     it('hides section when not loading and has no data', () => {
@@ -364,7 +364,7 @@ describe('ExploreSearchResults', () => {
 
       // Act & Assert - should not throw
       const { getByText } = render(<ExploreSearchResults searchQuery="btc" />);
-      expect(getByText('Trending tokens')).toBeDefined();
+      expect(getByText('Trending tokens')).toBeOnTheScreen();
     });
   });
 
@@ -395,7 +395,7 @@ describe('ExploreSearchResults', () => {
 
       const { getByText } = render(<ExploreSearchResults searchQuery="test" />);
 
-      expect(getByText('View all')).toBeDefined();
+      expect(getByText('View all')).toBeOnTheScreen();
     });
 
     it('does not show "View all" when a section has 3 or fewer items', () => {

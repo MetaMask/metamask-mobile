@@ -77,7 +77,7 @@ describe('ExploreSectionResultsFullView', () => {
   it('renders the title from route params', () => {
     const { getByText } = render(<ExploreSectionResultsFullView />);
 
-    expect(getByText('Trending tokens')).toBeDefined();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
   });
 
   it('navigates back when back button is pressed', () => {
@@ -99,10 +99,10 @@ describe('ExploreSectionResultsFullView', () => {
   it('renders all items from the section data', () => {
     const { getByTestId } = render(<ExploreSectionResultsFullView />);
 
-    expect(getByTestId('row-item-1')).toBeDefined();
-    expect(getByTestId('row-item-2')).toBeDefined();
-    expect(getByTestId('row-item-3')).toBeDefined();
-    expect(getByTestId('row-item-4')).toBeDefined();
+    expect(getByTestId('row-item-1')).toBeOnTheScreen();
+    expect(getByTestId('row-item-2')).toBeOnTheScreen();
+    expect(getByTestId('row-item-3')).toBeOnTheScreen();
+    expect(getByTestId('row-item-4')).toBeOnTheScreen();
   });
 
   it('renders empty list when section data is empty', () => {
