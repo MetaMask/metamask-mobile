@@ -120,7 +120,6 @@ jest.mock('../components/Onboarding/KYCPending', () => 'KYCPending');
 jest.mock('../components/Onboarding/PersonalDetails', () => 'PersonalDetails');
 jest.mock('../components/Onboarding/PhysicalAddress', () => 'PhysicalAddress');
 jest.mock('../components/Onboarding/Complete', () => 'Complete');
-jest.mock('../components/Onboarding/KYCWebview', () => 'KYCWebview');
 
 // Mock navigation options
 jest.mock('.', () => ({
@@ -187,7 +186,6 @@ jest.mock('../../../../constants/navigation/Routes', () => ({
       PERSONAL_DETAILS: 'PERSONAL_DETAILS',
       PHYSICAL_ADDRESS: 'PHYSICAL_ADDRESS',
       COMPLETE: 'COMPLETE',
-      WEBVIEW: 'WEBVIEW',
     },
     MODALS: {
       ID: 'CARD_MODALS',

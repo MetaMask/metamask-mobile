@@ -6,6 +6,13 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../hooks/useNetworkEnablement/useNetworkEnablement',
+  () => ({
+    useNetworkEnablement: () => ({ popularNetworks: [] }),
+  }),
+);
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const createMockNft = (
@@ -20,13 +27,33 @@ const createMockNft = (
   image: `https://example.com/nft-${tokenId}.png`,
 });
 
+/**
+ * Hook calls useSelector 3 times: selectedAccountGroupInternalAccounts,
+ * selectHomepageSectionsV1Enabled, then multichainCollectiblesByEnabledNetworksSelector result.
+ */
+const mockSelectors = (
+  nftsByChain: Record<string, unknown[]>,
+  overrides?: {
+    selectedGroupAccounts?: { address: string }[];
+    isHomepageSectionsV1Enabled?: boolean;
+  },
+) => {
+  let callCount = 0;
+  mockUseSelector.mockImplementation(() => {
+    callCount += 1;
+    if (callCount === 1) return overrides?.selectedGroupAccounts ?? [];
+    if (callCount === 2) return overrides?.isHomepageSectionsV1Enabled ?? false;
+    return nftsByChain;
+  });
+};
+
 describe('useOwnedNfts', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
   it('returns empty array when no NFTs exist', () => {
-    mockUseSelector.mockReturnValue({});
+    mockSelectors({});
 
     const { result } = renderHook(() => useOwnedNfts());
 
@@ -35,9 +62,7 @@ describe('useOwnedNfts', () => {
 
   it('returns owned NFTs from a single chain', () => {
     const ownedNft = createMockNft('0x123', '1', true);
-    mockUseSelector.mockReturnValue({
-      '0x1': [ownedNft],
-    });
+    mockSelectors({ '0x1': [ownedNft] });
 
     const { result } = renderHook(() => useOwnedNfts());
 
@@ -47,7 +72,7 @@ describe('useOwnedNfts', () => {
   it('returns owned NFTs from multiple chains', () => {
     const nft1 = createMockNft('0x123', '1', true);
     const nft2 = createMockNft('0x456', '2', true);
-    mockUseSelector.mockReturnValue({
+    mockSelectors({
       '0x1': [nft1],
       '0x89': [nft2],
     });
@@ -62,7 +87,7 @@ describe('useOwnedNfts', () => {
   it('filters out NFTs that are not currently owned', () => {
     const ownedNft = createMockNft('0x123', '1', true);
     const notOwnedNft = createMockNft('0x456', '2', false);
-    mockUseSelector.mockReturnValue({
+    mockSelectors({
       '0x1': [ownedNft, notOwnedNft],
     });
 
@@ -75,7 +100,7 @@ describe('useOwnedNfts', () => {
   it('returns empty array when all NFTs are not currently owned', () => {
     const notOwned1 = createMockNft('0x123', '1', false);
     const notOwned2 = createMockNft('0x456', '2', false);
-    mockUseSelector.mockReturnValue({
+    mockSelectors({
       '0x1': [notOwned1, notOwned2],
     });
 
@@ -93,7 +118,7 @@ describe('useOwnedNfts', () => {
       createMockNft('0x333', '3', true),
       createMockNft('0x444', '4', false), // Not owned, should be filtered
     ];
-    mockUseSelector.mockReturnValue({
+    mockSelectors({
       '0x1': chain1Nfts,
       '0x89': chain2Nfts,
     });
@@ -104,5 +129,40 @@ describe('useOwnedNfts', () => {
     expect(result.current).toContainEqual(chain1Nfts[0]);
     expect(result.current).toContainEqual(chain1Nfts[1]);
     expect(result.current).toContainEqual(chain2Nfts[0]);
+  });
+
+  it('returns owned NFTs when homepage sections V1 is enabled', () => {
+    const ownedNft = createMockNft('0x123', '1', true);
+    mockSelectors({ '0x1': [ownedNft] }, { isHomepageSectionsV1Enabled: true });
+
+    const { result } = renderHook(() => useOwnedNfts());
+
+    expect(result.current).toEqual([ownedNft]);
+  });
+
+  it('returns owned NFTs when homepage sections V1 is disabled', () => {
+    const ownedNft = createMockNft('0x123', '1', true);
+    mockSelectors(
+      { '0x1': [ownedNft] },
+      { isHomepageSectionsV1Enabled: false },
+    );
+
+    const { result } = renderHook(() => useOwnedNfts());
+
+    expect(result.current).toEqual([ownedNft]);
+  });
+
+  it('uses selected group accounts when provided for addressesOverride', () => {
+    const ownedNft = createMockNft('0x123', '1', true);
+    mockSelectors(
+      { '0x1': [ownedNft] },
+      {
+        selectedGroupAccounts: [{ address: '0xaaa' }, { address: '0xbbb' }],
+      },
+    );
+
+    const { result } = renderHook(() => useOwnedNfts());
+
+    expect(result.current).toEqual([ownedNft]);
   });
 });

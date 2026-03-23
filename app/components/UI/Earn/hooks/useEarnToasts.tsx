@@ -155,7 +155,7 @@ const useEarnToasts = (): {
             <Icon
               name={IconName.CircleX}
               color={theme.colors.error.default}
-              size={IconSize.Xl}
+              size={IconSize.Lg}
             />
           </View>
         ),

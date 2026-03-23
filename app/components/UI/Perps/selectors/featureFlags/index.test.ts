@@ -5,6 +5,7 @@ import {
   selectPerpsOrderBookEnabledFlag,
   selectPerpsButtonColorTestVariant,
   selectHip3ConfigVersion,
+  selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
   selectPerpsFeedbackEnabledFlag,
   selectPerpsTradeWithAnyTokenEnabledFlag,
   selectPerpsPayWithAnyTokenAllowlistAssets,
@@ -891,6 +892,99 @@ describe('Perps Feature Flag Selectors', () => {
         );
         expect(result).toBe(false);
       });
+    });
+  });
+
+  describe('selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag', () => {
+    const createEmptyFlagsState = () => ({
+      engine: {
+        backgroundState: {
+          RemoteFeatureFlagController: {
+            remoteFeatureFlags: {},
+            cacheTimestamp: 0,
+          },
+        },
+      },
+    });
+
+    it('returns true when remote flag is not set (default)', () => {
+      const result = selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag(
+        createEmptyFlagsState(),
+      );
+      expect(result).toBe(true);
+    });
+
+    it('uses remote flag when valid and enabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithEnabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsDefaultPayTokenWhenNoBalanceEnabled: {
+                  enabled: true,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag(
+        stateWithEnabledRemoteFlag,
+      );
+      expect(result).toBe(true);
+    });
+
+    it('uses remote flag when valid but disabled', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const stateWithDisabledRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsDefaultPayTokenWhenNoBalanceEnabled: {
+                  enabled: false,
+                  minimumVersion: '1.0.0',
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag(
+        stateWithDisabledRemoteFlag,
+      );
+      expect(result).toBe(false);
+    });
+
+    it('returns true when remote flag is invalid (default fallback)', () => {
+      const stateWithInvalidRemoteFlag = {
+        engine: {
+          backgroundState: {
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                perpsDefaultPayTokenWhenNoBalanceEnabled: {
+                  enabled: 'invalid',
+                  minimumVersion: 123,
+                },
+              },
+              cacheTimestamp: 0,
+            },
+          },
+        },
+      };
+
+      const result = selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag(
+        stateWithInvalidRemoteFlag,
+      );
+      expect(result).toBe(true);
     });
   });
 

@@ -13,6 +13,9 @@ export { Logger, createLogger, LogLevel, logger } from './logger.ts';
 export { default as PortManager, ResourceType } from './PortManager.ts';
 export * from './types.ts';
 
+// Mock server utilities
+export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
+
 // Dapp server exports for standalone usage (e.g., Appwright tests)
 export { default as DappServer } from './DappServer.ts';
 export { DappVariants, TestDapps } from './Constants.ts';
