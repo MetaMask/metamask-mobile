@@ -240,7 +240,7 @@ if [ "$PLAT" = "ios" ]; then
     echo "  Running pod install via bundler..."
     (cd ios && bundle exec pod install --repo-update --ansi 2>&1 | tail -3) || warn "pod install had issues"
 
-    EXPO_CMD="yarn expo run:ios --no-install --no-bundler --port $PORT --configuration Debug --scheme MetaMask"
+    EXPO_CMD="yarn expo run:ios --no-install --no-bundler --configuration Debug --scheme MetaMask"
     [ -n "${IOS_SIMULATOR:-}" ] && EXPO_CMD="$EXPO_CMD --device $IOS_SIMULATOR"
 
     set +e

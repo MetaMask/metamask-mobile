@@ -1,7 +1,5 @@
 import React, { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
-import { useTheme } from '../../util/theme';
-import { Theme } from '../../util/theme/models';
 import { registerStepHudCallback } from './AgenticService';
 
 interface Step {
@@ -9,32 +7,37 @@ interface Step {
   description: string;
 }
 
-const createStyles = (colors: Theme['colors']) =>
-  StyleSheet.create({
-    container: {
-      position: 'absolute',
-      top: 110,
-      left: 0,
-      right: 0,
-      backgroundColor: colors.overlay.default,
-      paddingVertical: 8,
-      paddingHorizontal: 12,
-    },
-    stepId: {
-      color: colors.text.alternative,
-      fontFamily: 'Courier',
-      fontSize: 11,
-      marginBottom: 2,
-    },
-    description: {
-      color: colors.text.default,
-      fontSize: 13,
-    },
-  });
+// Debug-only overlay — intentionally uses hardcoded colors for guaranteed
+// contrast on both light and dark themes. Design tokens would defeat the purpose.
+/* eslint-disable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
+const styles = StyleSheet.create({
+  container: {
+    position: 'absolute',
+    bottom: 90,
+    left: 0,
+    right: 0,
+    zIndex: 9999,
+    backgroundColor: '#000000',
+    paddingVertical: 10,
+    paddingHorizontal: 16,
+  },
+  stepId: {
+    color: '#00FF88',
+    fontFamily: 'Courier',
+    fontSize: 15,
+    fontWeight: '700',
+    marginBottom: 2,
+  },
+  description: {
+    color: '#FFFFFF',
+    fontSize: 14,
+    fontWeight: '500',
+  },
+});
+/* eslint-enable react-native/no-color-literals, @metamask/design-tokens/color-no-hex */
 
 // Inner component — hooks always called unconditionally, per rules of React.
 const AgentStepHudInner = () => {
-  const { colors } = useTheme();
   const [step, setStep] = useState<Step | null>(null);
 
   useEffect(() => {
@@ -45,8 +48,6 @@ const AgentStepHudInner = () => {
   }, []);
 
   if (!step) return null;
-
-  const styles = createStyles(colors);
 
   return (
     <View style={styles.container} pointerEvents="none">
