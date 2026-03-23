@@ -60,7 +60,9 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
-const mockUseParams = jest.fn(() => ({ orderId: 'test-order-123' }));
+const mockUseParams = jest.fn<Record<string, string | undefined>, []>(() => ({
+  orderId: 'test-order-123',
+}));
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   ...jest.requireActual('../../../../../util/navigation/navUtils'),
   useParams: () => mockUseParams(),
