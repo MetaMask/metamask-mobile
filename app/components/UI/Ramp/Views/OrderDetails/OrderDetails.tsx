@@ -93,55 +93,69 @@ const OrderDetails = () => {
   const [isRefreshing, setIsRefreshing] = useState(false);
   const hasFetchedFromCallback = useRef(false);
 
+  const executeCallbackFetch = useCallback(
+    async (
+      providerCode: string,
+      callbackUrl: string,
+      walletAddress: string,
+      logContext: string,
+    ) => {
+      try {
+        setError(null);
+        const fetchedOrder = await getOrderFromCallback(
+          providerCode,
+          callbackUrl,
+          walletAddress,
+        );
+        if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
+          navigation.reset({
+            index: 0,
+            routes: getNavigateAfterExternalBrowserRoutes({
+              returnDestination: 'buildQuote',
+            }),
+          });
+          return;
+        }
+        addOrder(fetchedOrder);
+        navigation.setParams({
+          orderId: fetchedOrder.providerOrderId,
+          callbackUrl: undefined,
+          providerCode: undefined,
+          walletAddress: undefined,
+        });
+      } catch (fetchError) {
+        Logger.error(fetchError as Error, {
+          message: `RampsOrderDetails: error fetching order from callback URL${logContext}`,
+          callbackUrl,
+        });
+        setError(
+          fetchError instanceof Error && fetchError.message
+            ? fetchError.message
+            : strings('ramps_order_details.error_message'),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [getOrderFromCallback, addOrder, navigation],
+  );
+
   const handleRetryCallbackFetch = useCallback(async () => {
     if (!params.callbackUrl || !params.providerCode || !params.walletAddress) {
       return;
     }
-    try {
-      setError(null);
-      setIsLoading(true);
-      const fetchedOrder = await getOrderFromCallback(
-        params.providerCode,
-        params.callbackUrl,
-        params.walletAddress,
-      );
-      if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
-        navigation.reset({
-          index: 0,
-          routes: getNavigateAfterExternalBrowserRoutes({
-            returnDestination: 'buildQuote',
-          }),
-        });
-        return;
-      }
-      addOrder(fetchedOrder);
-      navigation.setParams({
-        orderId: fetchedOrder.providerOrderId,
-        callbackUrl: undefined,
-        providerCode: undefined,
-        walletAddress: undefined,
-      });
-    } catch (fetchError) {
-      Logger.error(fetchError as Error, {
-        message:
-          'RampsOrderDetails: error fetching order from callback URL (retry)',
-        callbackUrl: params.callbackUrl,
-      });
-      setError(
-        fetchError instanceof Error && fetchError.message
-          ? fetchError.message
-          : strings('ramps_order_details.error_message'),
-      );
-    } finally {
-      setIsLoading(false);
-    }
+    setIsLoading(true);
+    await executeCallbackFetch(
+      params.providerCode,
+      params.callbackUrl,
+      params.walletAddress,
+      ' (retry)',
+    );
   }, [
     params.callbackUrl,
     params.providerCode,
     params.walletAddress,
-    getOrderFromCallback,
-    addOrder,
-    navigation,
+    executeCallbackFetch,
   ]);
 
   useEffect(() => {
@@ -227,59 +241,18 @@ const OrderDetails = () => {
     }
     hasFetchedFromCallback.current = true;
 
-    const providerCode = params.providerCode;
-    const callbackUrl = params.callbackUrl;
-    const walletAddress = params.walletAddress;
-    if (!providerCode || !callbackUrl || !walletAddress) return;
-
-    const fetchFromCallback = async () => {
-      try {
-        setError(null);
-        const fetchedOrder = await getOrderFromCallback(
-          providerCode,
-          callbackUrl,
-          walletAddress,
-        );
-        if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
-          navigation.reset({
-            index: 0,
-            routes: getNavigateAfterExternalBrowserRoutes({
-              returnDestination: 'buildQuote',
-            }),
-          });
-          return;
-        }
-        addOrder(fetchedOrder);
-        navigation.setParams({
-          orderId: fetchedOrder.providerOrderId,
-          callbackUrl: undefined,
-          providerCode: undefined,
-          walletAddress: undefined,
-        });
-      } catch (fetchError) {
-        Logger.error(fetchError as Error, {
-          message: 'RampsOrderDetails: error fetching order from callback URL',
-          callbackUrl,
-        });
-        setError(
-          fetchError instanceof Error && fetchError.message
-            ? fetchError.message
-            : strings('ramps_order_details.error_message'),
-        );
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchFromCallback();
+    executeCallbackFetch(
+      params.providerCode,
+      params.callbackUrl,
+      params.walletAddress,
+      '',
+    );
   }, [
     hasCallbackParams,
     params.callbackUrl,
     params.providerCode,
     params.walletAddress,
-    getOrderFromCallback,
-    addOrder,
-    navigation,
+    executeCallbackFetch,
   ]);
 
   if (isLoading) {
