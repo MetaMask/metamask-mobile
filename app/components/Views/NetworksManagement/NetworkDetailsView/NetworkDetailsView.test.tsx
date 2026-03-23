@@ -175,6 +175,7 @@ const createMockValidation = () => ({
   validateName: jest.fn(),
   validateRpcAndChainId: jest.fn(),
   disabledByChainId: jest.fn(() => false),
+  disabledByName: jest.fn(() => false),
   disabledBySymbol: jest.fn(() => false),
   checkIfChainIdExists: jest.fn(() => false),
   checkIfNetworkExists: jest.fn().mockResolvedValue([]),
@@ -443,6 +444,20 @@ describe('NetworkDetailsView', () => {
     mockValidation.mockReturnValue({
       ...createMockValidation(),
       disabledByChainId: jest.fn(() => true),
+    });
+
+    const { getByTestId } = render(<NetworkDetailsView />);
+
+    const saveButton = getByTestId(
+      NetworkDetailsViewSelectorsIDs.ADD_CUSTOM_NETWORK_BUTTON,
+    );
+    expect(saveButton.props.disabled).toBe(true);
+  });
+
+  it('disables save button when validation disables network name', () => {
+    mockValidation.mockReturnValue({
+      ...createMockValidation(),
+      disabledByName: jest.fn(() => true),
     });
 
     const { getByTestId } = render(<NetworkDetailsView />);

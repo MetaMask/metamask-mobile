@@ -325,7 +325,7 @@ export const useTokenActions = ({
         .build(),
     );
 
-    goToBuy({ assetId });
+    goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
   }, [
     trackEvent,
     createEventBuilder,
@@ -434,7 +434,7 @@ export const useTokenActions = ({
         assetId = undefined;
       }
 
-      goToBuy({ assetId });
+      goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
       return;
     }
 
