@@ -37,4 +37,7 @@ export const NETWORK_TO_SHORT_NETWORK_NAME_MAP: Record<
   [TrxScope.Mainnet]: 'Tron',
 };
 
-export const BRIDGE_API_BASE_URL = "https://bridge.dev-api.cx.metamask.io";
+export const BRIDGE_API_BASE_URL =
+  process.env.BRIDGE_USE_DEV_APIS === 'true'
+    ? BRIDGE_DEV_API_BASE_URL
+    : BRIDGE_PROD_API_BASE_URL;
