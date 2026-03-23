@@ -3,6 +3,8 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
+import { TokenOverviewSelectorsIDs } from '../../../app/components/UI/AssetOverview/TokenOverview.testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
   PredictTabViewSelectorsIDs,
@@ -1058,23 +1060,84 @@ class WalletView {
    * container as the Asset/Transactions screen (transactions-container).
    */
   async scrollDownToAssetOverviewMusdCta(): Promise<void> {
-    const assetOverviewScrollContainer = Matchers.getIdentifier(
-      'transactions-container',
-    );
-    await Gestures.scrollToElement(
-      this.assetOverviewMusdCta as unknown as DetoxElement,
-      assetOverviewScrollContainer,
+    // TokenDetails shows a loader until useTokenTransactions finishes; the FlatList
+    // (transactions-container) and header (token-asset-overview) mount only after.
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(TokenOverviewSelectorsIDs.CONTAINER),
       {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Asset Overview mUSD CTA',
-        timeout: 15000,
+        timeout: 20000,
+        description:
+          'Token asset overview should be visible after opening token details',
       },
     );
-    await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
-      timeout: 5000,
-      description: 'Asset Overview mUSD CTA should be visible after scroll',
-    });
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER),
+      {
+        timeout: 20000,
+        description:
+          'Transactions list should be mounted before scrolling to mUSD CTA',
+      },
+    );
+
+    const assetOverviewScrollContainer = Matchers.getIdentifier(
+      ActivitiesViewSelectorsIDs.CONTAINER,
+    );
+    const transactionsList = Matchers.getElementByID(
+      ActivitiesViewSelectorsIDs.CONTAINER,
+    );
+
+    try {
+      await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
+        timeout: 3000,
+        description:
+          'mUSD asset overview CTA already in view without scrolling',
+      });
+      return;
+    } catch {
+      // CTA is below the fold in a tall header; scroll the FlatList.
+    }
+
+    await Utilities.executeWithRetry(
+      async () => {
+        try {
+          await Gestures.scrollToElement(
+            this.assetOverviewMusdCta as unknown as DetoxElement,
+            assetOverviewScrollContainer,
+            {
+              direction: 'down',
+              scrollAmount: 480,
+              elemDescription: 'Asset Overview mUSD CTA',
+              timeout: 10000,
+              delay: 400,
+            },
+          );
+        } catch {
+          await Gestures.swipe(transactionsList, 'up', {
+            percentage: 0.22,
+            speed: 'slow',
+            elemDescription:
+              'Recovery swipe when scrollToElement did not reach mUSD CTA',
+          });
+        }
+        // CTA can sit at the bottom edge (sticky footer / safe area) and fail Detox's
+        // visibility threshold; one slow swipe scrolls content up so the CTA clears it.
+        await Gestures.swipe(transactionsList, 'up', {
+          percentage: 0.18,
+          speed: 'slow',
+          elemDescription:
+            'Nudge token details scroll so mUSD CTA clears bottom inset',
+        });
+        await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
+          timeout: 8000,
+          description: 'Asset Overview mUSD CTA should be visible after scroll',
+        });
+      },
+      {
+        timeout: 28000,
+        description: 'Scroll to Asset Overview mUSD CTA',
+        elemDescription: 'Asset Overview mUSD CTA',
+      },
+    );
   }
 
   async tapAssetOverviewMusdCta(): Promise<void> {
