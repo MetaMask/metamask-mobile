@@ -116,9 +116,12 @@ const AccountActions = () => {
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
       trackEvent(
-        createEventBuilder(
-          MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
-        ).build(),
+        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN)
+          .addProperties({
+            action: 'Navigation Drawer',
+            name: 'View on Etherscan',
+          })
+          .build(),
       );
     });
   };
@@ -138,7 +141,12 @@ const AccountActions = () => {
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
-        ).build(),
+        )
+          .addProperties({
+            action: 'Navigation Drawer',
+            name: 'Share my Public address',
+          })
+          .build(),
       );
     });
   };

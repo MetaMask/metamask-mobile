@@ -9,6 +9,8 @@ import { selectUseSafeChainsListValidation } from '../../../selectors/preference
 import { NetworkApprovalBottomSheetSelectorsIDs } from './NetworkApprovalBottomSheet.testIds';
 import { NetworkAddedBottomSheetSelectorsIDs } from './NetworkAddedBottomSheet.testIds';
 import { selectNetworkConfigurations } from '../../../selectors/networkController';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 jest.mock('../../../util/networks', () => ({
   ...jest.requireActual('../../../util/networks'),
@@ -46,16 +48,10 @@ const mockNetworkControllerAddNetwork = jest.mocked(
 );
 
 const mockIdentify = jest.fn();
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnThis(),
-    }),
-    identify: mockIdentify,
-  }),
-}));
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
+jest
+  .mocked(useAnalytics)
+  .mockReturnValue(createMockUseAnalyticsHook({ identify: mockIdentify }));
 
 interface NetworkProps {
   isVisible: boolean;
@@ -118,6 +114,9 @@ describe('NetworkDetails', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(createMockUseAnalyticsHook({ identify: mockIdentify }));
     (useSelector as jest.Mock).mockImplementation((selector) => {
       if (selector === selectNetworkName) return 'Ethereum Main Network';
       if (selector === selectUseSafeChainsListValidation) return true;
@@ -329,6 +328,11 @@ describe('NetworkDetails', () => {
   describe('closeModal', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest
+        .mocked(useAnalytics)
+        .mockReturnValue(
+          createMockUseAnalyticsHook({ identify: mockIdentify }),
+        );
     });
 
     it('should handle adding new network correctly', async () => {
@@ -388,6 +392,11 @@ describe('NetworkDetails', () => {
 
     beforeEach(() => {
       jest.clearAllMocks();
+      jest
+        .mocked(useAnalytics)
+        .mockReturnValue(
+          createMockUseAnalyticsHook({ identify: mockIdentify }),
+        );
 
       mockSelectNetwork = jest.fn();
       const useNetworkSelectionModule = jest.requireMock(

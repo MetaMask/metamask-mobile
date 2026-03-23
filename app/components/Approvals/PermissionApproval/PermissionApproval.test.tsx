@@ -9,6 +9,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import { render } from '@testing-library/react-native';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useOriginSource from '../../hooks/useOriginSource';
 import {
   Caip25EndowmentPermissionName,
@@ -116,24 +117,22 @@ const mockAccountsLength = (accountsLength: number) => {
 
 const mockTrackEvent = jest.fn();
 
-jest.mocked(useAnalytics).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  identify: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getAnalyticsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 
 describe('PermissionApproval', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     (useOriginSource as jest.Mock).mockImplementation(() => 'IN_APP_BROWSER');
     (
       getAllScopesFromPermission as jest.MockedFn<

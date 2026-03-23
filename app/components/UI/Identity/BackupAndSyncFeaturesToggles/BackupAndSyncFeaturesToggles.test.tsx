@@ -9,6 +9,7 @@ import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-s
 import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 jest.mock('../../../../components/hooks/useAnalytics/useAnalytics');
 
@@ -40,20 +41,12 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 );
 
 const mockTrackEvent = jest.fn();
-jest.mocked(useAnalytics).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  identify: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getAnalyticsId: jest.fn(),
-});
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 
 const mockSetIsBackupAndSyncFeatureEnabled = jest.fn();
 jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({
@@ -66,6 +59,12 @@ jest.mock('../../../../util/identity/hooks/useBackupAndSync', () => ({
 describe('BackupAndSyncToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('renders correctly', () => {

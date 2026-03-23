@@ -19,6 +19,7 @@ import { MultichainNetwork } from '@metamask/multichain-transactions-controller'
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { TrxScope } from '@metamask/keyring-api';
 
 const mockedNavigate = jest.fn();
@@ -64,10 +65,12 @@ describe('AddAccountActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    jest.mocked(useAnalytics).mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-    } as unknown as ReturnType<typeof useAnalytics>);
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('renders correctly', () => {
