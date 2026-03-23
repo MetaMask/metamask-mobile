@@ -8,15 +8,9 @@ import {
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import BottomSheetFooter from '../../../../../component-library/components/BottomSheets/BottomSheetFooter';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { TokenWarningModalMode } from './constants';
@@ -30,7 +24,17 @@ import {
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
 import AppConstants from '../../../../../core/AppConstants';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  BottomSheetFooter,
+  BottomSheetHeader,
+  Box,
+  BoxAlignItems,
+  ButtonsAlignment,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 
 export interface TokenWarningModalParams {
   warningType: TokenFeatureType.WARNING | TokenFeatureType.MALICIOUS;
@@ -93,45 +97,45 @@ export const TokenWarningModal = () => {
   }, [activeQuote, bridgeFeatureFlags, confirmBridge, navigation, sourceToken]);
 
   const isMalicious = warningType === TokenFeatureType.MALICIOUS;
+  const iconColor = isMalicious
+    ? IconColor.ErrorDefault
+    : IconColor.WarningDefault;
   const title = isMalicious
     ? strings('bridge.token_warning_modal_malicious_title')
     : strings('bridge.token_warning_modal_suspicious_title');
 
-  const footerButtonProps =
-    mode === TokenWarningModalMode.Swap
-      ? [
-          {
-            label: strings('bridge.proceed'),
-            variant: ButtonVariants.Secondary,
-            size: ButtonSize.Lg,
-            onPress: handleProceed,
-            isDisabled: loading,
-            loading,
-          },
-          {
-            label: strings('bridge.cancel'),
-            variant: ButtonVariants.Primary,
-            size: ButtonSize.Lg,
-            onPress: handleClose,
-            isDisabled: loading,
-          },
-        ]
-      : [
-          {
-            label: strings('bridge.got_it'),
-            variant: ButtonVariants.Primary,
-            size: ButtonSize.Lg,
-            onPress: handleClose,
-          },
-        ];
-
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onClose={handleClose}>{title}</BottomSheetHeader>
-      <Box padding={4}>
+      <BottomSheetHeader onClose={handleClose}>
+        <Icon name={IconName.Danger} size={IconSize.Xl} color={iconColor} />
+      </BottomSheetHeader>
+      <Box alignItems={BoxAlignItems.Center} padding={4} gap={3}>
+        <Text variant={TextVariant.HeadingMD}>{title}</Text>
         <Text variant={TextVariant.BodyMD}>{description}</Text>
       </Box>
-      <BottomSheetFooter buttonPropsArray={footerButtonProps} />
+      {mode === TokenWarningModalMode.Swap ? (
+        <BottomSheetFooter
+          buttonsAlignment={ButtonsAlignment.Horizontal}
+          secondaryButtonProps={{
+            children: strings('bridge.proceed'),
+            onPress: handleProceed,
+            isDisabled: loading,
+            isLoading: loading,
+          }}
+          primaryButtonProps={{
+            children: strings('bridge.cancel'),
+            onPress: handleClose,
+            isDisabled: loading,
+          }}
+        />
+      ) : (
+        <BottomSheetFooter
+          primaryButtonProps={{
+            children: strings('bridge.got_it'),
+            onPress: handleClose,
+          }}
+        />
+      )}
     </BottomSheet>
   );
 };
