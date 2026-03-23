@@ -71,6 +71,7 @@ describe('V2AdditionalVerification', () => {
 
     expect(mockNavigateToKycWebview).toHaveBeenCalledWith({
       kycUrl: 'https://kyc.example.com',
+      amount: 100,
     });
   });
 

@@ -432,6 +432,7 @@ import {
   ComplianceServiceActions,
   ComplianceServiceEvents,
 } from '@metamask/compliance-controller';
+import { captureException } from '@sentry/react-native';
 
 /**
  * Controllers that area always instantiated
@@ -654,6 +655,7 @@ export type RootExtendedMessenger = ExtendedMessenger<
 export const getRootExtendedMessenger = (): RootExtendedMessenger =>
   new ExtendedMessenger<'Root', GlobalActions, GlobalEvents>({
     namespace: 'Root',
+    captureException,
   });
 
 /**
@@ -665,6 +667,7 @@ export type RootMessenger = Messenger<'Root', GlobalActions, GlobalEvents>;
 export const getRootMessenger = (): RootMessenger =>
   new Messenger<'Root', GlobalActions, GlobalEvents>({
     namespace: 'Root',
+    captureException,
   });
 
 /**

@@ -14,6 +14,15 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
+jest.mock('../../../../../selectors/featureFlagController/rewards', () => ({
+  selectCampaignsRewardsEnabledFlag: jest.fn(() => true),
+}));
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: (state: unknown) => unknown) => selector({}),
+}));
+
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return { ...actual };
@@ -38,6 +47,20 @@ jest.mock('./CampaignTile', () => {
         Text,
         { testID: `campaign-tile-${campaign.id}` },
         campaign.name,
+      ),
+  };
+});
+
+jest.mock('../PreviousSeason/PreviousSeasonTile', () => {
+  const ReactActual = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(
+        Text,
+        { testID: 'previous-season-tile' },
+        'Previous Season Tile',
       ),
   };
 });
@@ -82,10 +105,27 @@ describe('CampaignsPreview', () => {
     mockUseRewardCampaigns.mockReturnValue(mockHookDefaults);
   });
 
-  it('returns null when there are no campaigns in any category', () => {
-    const { queryByTestId } = render(<CampaignsPreview />);
+  it('renders PreviousSeasonTile when there are no campaigns in any category', () => {
+    const { getByTestId } = render(<CampaignsPreview />);
 
-    expect(queryByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW)).toBeNull();
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
+    ).toBeOnTheScreen();
+    expect(getByTestId('previous-season-tile')).toBeOnTheScreen();
+  });
+
+  it('renders PreviousSeasonTile when there is an error and no campaigns', () => {
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      hasError: true,
+    });
+
+    const { getByTestId } = render(<CampaignsPreview />);
+
+    expect(
+      getByTestId(REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW),
+    ).toBeOnTheScreen();
+    expect(getByTestId('previous-season-tile')).toBeOnTheScreen();
   });
 
   it('renders the section title when an active campaign exists', () => {
@@ -247,5 +287,14 @@ describe('CampaignsPreview', () => {
     fireEvent.press(getByText('Campaigns'));
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGNS_VIEW);
+  });
+
+  it('navigates to previous season view when title header is pressed and no campaigns exist', () => {
+    mockUseRewardCampaigns.mockReturnValue(mockHookDefaults);
+
+    const { getByText } = render(<CampaignsPreview />);
+    fireEvent.press(getByText('Campaigns'));
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREVIOUS_SEASON_VIEW);
   });
 });
