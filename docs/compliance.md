@@ -49,7 +49,7 @@ Compliance is gated behind the `complianceEnabled` remote feature flag. When the
 To enable compliance:
 
 1. Set `complianceEnabled: true` in LaunchDarkly (or via the local feature flag override screen in dev builds).
-2. The controller will fetch the blocked wallets list on next app launch.
+2. The controller will fetch the blocked wallets list on the next app launch.
 
 ### Feature flag selector
 
@@ -141,7 +141,7 @@ await Engine.context.ComplianceController.updateBlockedWallets();
 1. On app launch (when compliance is enabled), `ComplianceController.init()` fetches the full blocked wallets list from the API if the cached list is stale (older than 1 hour by default).
 2. The list is persisted to Redux state at `engine.backgroundState.ComplianceController.blockedWallets`.
 3. `selectIsWalletBlocked(address)` performs a **synchronous** lookup against this cached list -- no API call at check time.
-4. If the address is not in the cached blocklist, the selector falls back to the `walletComplianceStatusMap` which stores results from on-demand `checkWalletCompliance()` calls.
+4. If the address is not in the cached blocklist, the selector falls back to the `walletComplianceStatusMap`, which stores results from on-demand `checkWalletCompliance()` calls.
 
 ## State Shape
 

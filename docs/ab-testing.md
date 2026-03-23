@@ -70,8 +70,8 @@ Required agent response sections:
 MetaMask Mobile does not use LaunchDarkly native percentage rollout rules for assignment. The app buckets users from a JSON array value:
 
 1. LaunchDarkly returns an array where each item has `scope.value` (0-1).
-2. App computes `sha256(metametricsId + flagName)` to get deterministic threshold 0-1.
-3. App picks first variant where `userThreshold <= scope.value`.
+2. App computes `sha256(metametricsId + flagName)` to get a deterministic threshold 0-1.
+3. App picks the first variant where `userThreshold <= scope.value`.
 
 Flag value example:
 
@@ -94,7 +94,7 @@ The controller stores `{ name, value }` in `RemoteFeatureFlagController.remoteFe
 
 ## `useABTest` Hook
 
-Generic examples below use template-style keys; see SWAPS4135 section for a concrete implementation.
+Generic examples below use template-style keys; see the SWAPS4135 section for a concrete implementation.
 
 ```typescript
 import { useABTest } from '../hooks';
@@ -134,7 +134,7 @@ function useABTest<T extends { control: unknown } & Record<string, unknown>>(
 
 Behavior:
 
-- Fallback is always `control` when flag is missing/invalid.
+- Fallback is always `control` when flag is missing or invalid.
 - `isActive` is `true` only when flag value matches a defined variant.
 - When active, the hook emits `Experiment Viewed` once per `experiment_id + variation_id` per app session.
 
@@ -210,7 +210,7 @@ Do not add new payloads under `ab_tests`.
 
 ## Segment Schema Contract
 
-Canonical global field is `active_ab_tests` (from `metamask-mobile-globals`):
+The canonical global field is `active_ab_tests` (from `metamask-mobile-globals`):
 
 ```yaml
 active_ab_tests:
@@ -238,7 +238,7 @@ Implication:
 1. Remove per-test `ab_tests.*` emits from business events.
 2. Emit `active_ab_tests: [{ key, value }]` only when assignment is active.
 3. Keep `Experiment Viewed` exposure sourced from `useABTest` (do not manually emit duplicates).
-4. Validate no payload contains `ab_tests.<experiment_key>`.
+4. Validate that no payload contains `ab_tests.<experiment_key>`.
 5. Validate each `active_ab_tests` item always contains both `key` and `value` strings.
 
 Before/after payload example:
@@ -286,7 +286,7 @@ If you must touch a legacy `ab_tests` line before full migration, mark it with `
 ]
 ```
 
-Use default targeting rule to serve this variation value.
+Use the default targeting rule to serve this variation value.
 
 ---
 
