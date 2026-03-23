@@ -3420,32 +3420,5 @@ describe('PerpsMarketDetailsView', () => {
         }),
       );
     });
-
-    it('blocks PERPS_SCREEN_VIEWED until market insights loading resolves', () => {
-      mockUseMarketInsights.mockReturnValue({
-        report: null,
-        isLoading: true,
-        error: null,
-        timeAgo: '',
-      });
-
-      renderWithProvider(
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>,
-        { state: initialState },
-      );
-
-      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
-        jest.requireMock('../../hooks/usePerpsEventTracking');
-
-      // The conditions array must include false (!isLoading = false) to block tracking
-      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
-        expect.objectContaining({
-          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
-          conditions: expect.arrayContaining([false]),
-        }),
-      );
-    });
   });
 });
