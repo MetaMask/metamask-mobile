@@ -117,7 +117,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       return React.createElement(
         TouchableOpacity,
         { testID, onPress, disabled: disabled || isDisabled, ...props },
-        React.createElement(Text, {}, children || label),
+        React.createElement(
+          Text,
+          { testID: 'button-label' },
+          children || label,
+        ),
       );
     },
     TextVariant: {

@@ -5,7 +5,7 @@ import {
   TextVariant,
   Text,
   Button,
-  ButtonVariant
+  ButtonVariant,
 } from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
