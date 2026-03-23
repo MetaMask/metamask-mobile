@@ -71,8 +71,8 @@ $CDP press-test-id <testId>          # Press component by testID
 $CDP scroll-view --test-id <id>      # Scroll a ScrollView/FlatList
 $CDP list-accounts                   # All accounts
 $CDP switch-account <address>        # Switch active account
-$CDP recipe perps/positions          # Run a named recipe
-$CDP recipe --list                   # List all recipes
+$CDP eval-ref perps/positions        # Run a named eval ref
+$CDP eval-ref --list                 # List all eval refs
 $CDP check-pre-conditions '<json>'   # Validate pre-conditions
 ```
 

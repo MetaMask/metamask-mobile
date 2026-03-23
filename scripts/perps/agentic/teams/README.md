@@ -9,15 +9,15 @@ The registry auto-discovers and merges all team pre-conditions at load time.
 teams/
   perps/
     flows/              ← flow JSON files (validated by validate-flow-schema.js)
-    recipes/            ← named recipe collections (core.json, setup.json, ...)
-    snippets.json       ← quick CDP eval snippets (positions, auth, balances, ...)
+    evals/              ← named eval collections (core.json, setup.json, ...)
+    evals.json          ← quick CDP eval refs (positions, auth, balances, ...)
     pre-conditions.js   ← perps.* checks
   mobile-platform/
     pre-conditions.js   ← mobile-platform.* checks
   <your-team>/
     flows/              ← optional: flow JSON files
-    recipes/            ← optional: named recipe collections
-    snippets.json       ← optional: quick CDP eval snippets
+    evals/              ← optional: named eval collections
+    evals.json          ← optional: quick CDP eval refs
     pre-conditions.js   ← <your-team>.* checks
 ```
 
@@ -26,7 +26,7 @@ teams/
 1. Create `teams/<your-team>/pre-conditions.js` exporting a `Record<string, PreCondition>`.
 2. Key naming convention: `<your-team>.<check_name>` — e.g. `swap.has_quote`, `nft.owns_token`.
 3. Duplicate keys across teams cause a load-time error, so namespacing is enforced by convention.
-4. Optionally add `flows/`, `recipes/`, and `snippets.json` for team-specific automation.
+4. Optionally add `flows/`, `evals/`, and `evals.json` for team-specific automation.
 
 ## Pre-condition shape
 
@@ -57,24 +57,22 @@ node scripts/perps/agentic/validate-flow-schema.js
 node scripts/perps/agentic/validate-flow-schema.js teams/perps/flows/trade-open-market.json
 ```
 
-## Recipes
+## Evals
 
-Named recipe collections live in `teams/<team>/recipes/<file>.json`.
-Run them via: `node cdp-bridge.js recipe <team>/<file>/<name>`
+Named eval collections live in `teams/<team>/evals/<file>.json`.
+Run them via: `node cdp-bridge.js eval-ref <team>/<file>/<name>`
 
-Example: `node cdp-bridge.js recipe perps/core/pump-market`
+Example: `node cdp-bridge.js eval-ref perps/core/pump-market`
 
-## Snippets
+Quick CDP eval refs live in `teams/<team>/evals.json`.
+Run them via: `node cdp-bridge.js eval-ref <team>/<name>`
 
-Quick CDP eval snippets live in `teams/<team>/snippets.json`.
-Run them via: `node cdp-bridge.js recipe <team>/<name>`
+Example: `node cdp-bridge.js eval-ref perps/positions`
 
-Example: `node cdp-bridge.js recipe perps/positions`
-
-List all available snippets and recipes:
+List all available eval refs:
 
 ```bash
-node scripts/perps/agentic/cdp-bridge.js recipe --list
+node scripts/perps/agentic/cdp-bridge.js eval-ref --list
 ```
 
 ## Validators

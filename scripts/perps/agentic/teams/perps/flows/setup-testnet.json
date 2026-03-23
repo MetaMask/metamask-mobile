@@ -29,7 +29,7 @@
         },
         {
           "id": "verify-markets",
-          "action": "recipe_ref",
+          "action": "eval_ref",
           "ref": "markets",
           "assert": {
             "operator": "not_null",

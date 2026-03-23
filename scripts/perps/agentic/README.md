@@ -23,7 +23,7 @@ product team owning their slice under `teams/<team>/`.
 
 ```
 agentic/
-  cdp-bridge.js              — CDP client: eval, navigate, recipe, press, scroll, …
+  cdp-bridge.js              — CDP client: eval, navigate, eval-ref, press, scroll, …
   validate-recipe.sh         — Run a flow JSON against the live app
   validate-flow-schema.js    — Offline: enforce flow authoring rules
   validate-pre-conditions.js — Offline: verify pre-condition assertion logic
@@ -31,10 +31,10 @@ agentic/
     assert.js                — Shared assertion evaluator
     registry.js              — Auto-discovers and merges all team pre-conditions
   teams/
-    perps/                   — Perps team flows, recipes, snippets, pre-conditions
+    perps/                   — Perps team flows, evals, pre-conditions
     mobile-platform/         — Mobile platform team pre-conditions (placeholder)
     <team>/                  — Add your team here (see teams/README.md)
-  app-state.sh               — Convenience wrapper: status, eval, press, recipe, …
+  app-state.sh               — Convenience wrapper: status, eval, press, eval-ref, …
   app-navigate.sh            — Navigate to any registered screen
   screenshot.sh              — Capture simulator/device screenshot
   start-metro.sh             — Start Metro bundler for a given platform/slot

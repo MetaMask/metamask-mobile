@@ -96,8 +96,8 @@ JSON-based recipes and flows executed via `validate-recipe.sh`, organized by tea
 `scripts/perps/agentic/teams/`. Each team directory follows the same structure:
 
 - `teams/<team>/flows/` — flow JSONs validated by `validate-flow-schema.js`
-- `teams/<team>/snippets.json` — quick eval recipes (e.g. `perps/positions`, `swap/quote-status`)
-- `teams/<team>/recipes/` — named recipe collections
+- `teams/<team>/evals.json` — quick eval refs (e.g. `perps/positions`, `swap/quote-status`)
+- `teams/<team>/evals/` — named eval ref collections
 - `teams/<team>/pre-conditions.js` — namespaced checks (e.g. `perps.ready_to_trade`, `swap.has_valid_quote`)
 
 `lib/registry.js` auto-discovers all team directories and merges their pre-conditions at load
@@ -105,18 +105,18 @@ time. Duplicate keys across teams cause a load-time error — namespace enforcem
 A new team adds a directory and immediately gets access to all shared infrastructure.
 
 **Recipes** are single CDP eval expressions — state snapshots that run in <1 second.
-The path `<team>/<name>` is the team boundary — `recipe perps/positions` is a perps team
-recipe, `recipe swap/quote-status` would be a swap team recipe.
+The path `<team>/<name>` is the team boundary — `eval-ref perps/positions` is a perps team
+eval ref, `eval-ref swap/quote-status` would be a swap team eval ref.
 
 **Flows** are multi-step UI sequences — navigate, press, type, wait, assert. They run in
-10-30 seconds. Parameterized with `{{symbol}}`, composable via `flow_ref` and `recipe_ref`.
+10-30 seconds. Parameterized with `{{symbol}}`, composable via `flow_ref` and `eval_ref`.
 
 | Dimension     | E2E (Detox)                 | Recipes/Flows                             |
 | ------------- | --------------------------- | ----------------------------------------- |
 | Speed         | 90-300s/test                | 1-30s/flow                                |
 | Flakiness     | High (animations, timing)   | Low (explicit waits, direct fiber access) |
 | Output        | Screenshots (vision tokens) | JSON text (cheap)                         |
-| Composability | Copy entire test files      | `flow_ref` + `recipe_ref` + params        |
+| Composability | Copy entire test files      | `flow_ref` + `eval_ref` + params          |
 
 Flows declare their requirements via pre-conditions. If the wallet isn't unlocked or no
 position exists, the runner aborts with a clear error before wasting time on doomed steps.
@@ -211,6 +211,24 @@ cheapest one:
 
 **Rule of thumb:** if you can verify with a log line, don't take a screenshot. If you can
 verify with a recipe, don't write custom CDP eval. Always start at level 1.
+
+### HUD overlay — making videos reviewable
+
+Agents produce video recordings as PR evidence, but raw video of an app being tapped by
+an invisible hand is hard for human reviewers to follow. The **Agent Step HUD**
+(`AgentStepHud.tsx`) solves this by rendering a persistent on-screen overlay during recipe
+execution that shows the current step ID, description, and action type.
+
+`validate-recipe.sh --hud` activates the overlay. Before each step executes, the runner
+sends the step metadata to the app via CDP eval, and `AgentStepHud` renders it as a
+semi-transparent banner. The HUD propagates through `flow_ref` sub-invocations
+automatically, so nested flow steps are annotated too.
+
+This turns an opaque screen recording into a narrated walkthrough: reviewers see exactly
+what the agent is testing at each moment, which assertion is running, and what the
+expected outcome is — without needing to cross-reference the recipe JSON. The result is a
+tighter feedback loop between autonomous agents and human reviewers: the video itself
+communicates intent.
 
 ### The compounding effect
 

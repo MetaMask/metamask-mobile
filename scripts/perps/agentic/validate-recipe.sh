@@ -264,10 +264,10 @@ while IFS= read -r sj; do
       echo "  -> eval-async \"${EXPR:0:80}\"..."
       [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-async "$EXPR" 2>/dev/null)
       ;;
-    recipe_ref)
+    eval_ref)
       REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
-      echo "  -> recipe perps/$REF"
-      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" recipe "perps/$REF" 2>/dev/null)
+      echo "  -> eval-ref perps/$REF"
+      [ "$DRY" = false ] && RESULT=$(node "$SD/cdp-bridge.js" eval-ref "perps/$REF" 2>/dev/null)
       ;;
     log_watch)
       WS=$(node -p "JSON.parse(process.argv[1]).window_seconds||10" "$sj")
@@ -395,6 +395,7 @@ while IFS= read -r sj; do
       FLOW_FLAGS=()
       [ "$DRY" = true ]         && FLOW_FLAGS+=(--dry-run)
       [ "$SKIP_MANUAL" = true ] && FLOW_FLAGS+=(--skip-manual)
+      [ "$HUD_ENABLED" = true ] && FLOW_FLAGS+=(--hud)
       if bash "$SD/validate-recipe.sh" "$SUBST_FLOW" "${FLOW_FLAGS[@]}"; then
         RESULT='{"ok":true}'
       else

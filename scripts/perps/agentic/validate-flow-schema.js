@@ -41,7 +41,7 @@ function parsePrecondSpec(spec) {
 // --- Rules ------------------------------------------------------------------
 
 /** Actions that produce a meaningful result and MUST have an assert. */
-const MUST_ASSERT = new Set(['eval_sync', 'eval_async', 'recipe_ref']);
+const MUST_ASSERT = new Set(['eval_sync', 'eval_async', 'eval_ref']);
 
 /** Actions that are structural bookkeeping — assert is optional. */
 const STRUCTURAL = new Set([

@@ -136,7 +136,7 @@
         "action": {
           "type": "string",
           "enum": [
-            "navigate", "eval_sync", "eval_async", "recipe_ref",
+            "navigate", "eval_sync", "eval_async", "eval_ref",
             "press", "scroll", "set_input", "type_keypad", "clear_keypad",
             "flow_ref", "log_watch", "wait", "screenshot", "manual",
             "select_account", "toggle_testnet", "switch_provider"
@@ -174,10 +174,10 @@
           }
         },
         {
-          "if": { "properties": { "action": { "const": "recipe_ref" } } },
+          "if": { "properties": { "action": { "const": "eval_ref" } } },
           "then": {
             "properties": {
-              "ref": { "type": "string", "description": "Recipe name (e.g. 'positions', 'core/tpsl-orders')." }
+              "ref": { "type": "string", "description": "Eval ref name (e.g. 'positions', 'core/tpsl-orders')." }
             },
             "required": ["ref", "assert"]
           }

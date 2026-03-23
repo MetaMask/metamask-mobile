@@ -590,48 +590,48 @@ const COMMANDS = {
     return { ok: true };
   },
 
-  async recipe(client, args) {
+  async 'eval-ref'(client, args) {
     const arg = args[0];
     if (!arg || arg === '--help') {
-      console.error('Usage: recipe <team/name> | recipe --list');
+      console.error('Usage: eval-ref <team/name> | eval-ref --list');
       process.exit(1);
     }
 
     const teamsDir = path.resolve(__dirname, 'teams');
 
     if (arg === '--list') {
-      return listRecipes(teamsDir);
+      return listEvalRefs(teamsDir);
     }
 
     // Parse "team/name" (2-part) or "team/subfile/name" (3-part)
     const parts = arg.split('/');
     if (parts.length < 2 || parts.length > 3) {
-      throw new Error('Recipe must be "team/name" or "team/subfile/name" (e.g. perps/positions or perps/core/pump-market)');
+      throw new Error('Eval ref must be "team/name" or "team/subfile/name" (e.g. perps/positions or perps/core/pump-market)');
     }
-    let recipeFile, recipeName;
+    let evalFile, evalName;
     if (parts.length === 3) {
       const [team, subfile, name] = parts;
-      recipeFile = path.join(teamsDir, team, 'recipes', `${subfile}.json`);
-      recipeName = name;
+      evalFile = path.join(teamsDir, team, 'evals', `${subfile}.json`);
+      evalName = name;
     } else {
       const [team, name] = parts;
-      recipeFile = path.join(teamsDir, team, 'snippets.json');
-      recipeName = name;
+      evalFile = path.join(teamsDir, team, 'evals.json');
+      evalName = name;
     }
-    if (!fs.existsSync(recipeFile)) {
-      throw new Error(`No recipe file found: ${path.relative(path.dirname(teamsDir), recipeFile)}`);
+    if (!fs.existsSync(evalFile)) {
+      throw new Error(`No eval file found: ${path.relative(path.dirname(teamsDir), evalFile)}`);
     }
-    const recipes = JSON.parse(fs.readFileSync(recipeFile, 'utf8'));
-    const recipe = recipes[recipeName];
-    if (!recipe) {
-      const available = Object.keys(recipes).join(', ');
-      throw new Error(`Recipe "${recipeName}" not found. Available: ${available}`);
+    const evals = JSON.parse(fs.readFileSync(evalFile, 'utf8'));
+    const entry = evals[evalName];
+    if (!entry) {
+      const available = Object.keys(evals).join(', ');
+      throw new Error(`Eval ref "${evalName}" not found. Available: ${available}`);
     }
 
-    const raw = recipe.async
-      ? await cdpEvalAsync(client, recipe.expression)
-      : await cdpEval(client, recipe.expression);
-    // Recipe expressions typically JSON.stringify their result.
+    const raw = entry.async
+      ? await cdpEvalAsync(client, entry.expression)
+      : await cdpEval(client, entry.expression);
+    // Eval expressions typically JSON.stringify their result.
     // Parse it so main()'s JSON.stringify produces clean output
     // instead of double-encoded strings.
     if (typeof raw === 'string') {
@@ -642,18 +642,18 @@ const COMMANDS = {
 };
 
 // ---------------------------------------------------------------------------
-// Recipe helpers
+// Eval-ref helpers
 // ---------------------------------------------------------------------------
 
-/** List all recipes from teams/<team>/snippets.json and teams/<team>/recipes/*.json */
-function listRecipes(teamsDir) {
+/** List all eval refs from teams/<team>/evals.json and teams/<team>/evals/*.json */
+function listEvalRefs(teamsDir) {
   const all = {};
   const teamDirs = fs.readdirSync(teamsDir, { withFileTypes: true })
     .filter((d) => d.isDirectory())
     .map((d) => d.name);
-  // Top-level snippets: teams/<team>/snippets.json → keyed as <team>
+  // Top-level evals: teams/<team>/evals.json → keyed as <team>
   for (const team of teamDirs) {
-    const f = path.join(teamsDir, team, 'snippets.json');
+    const f = path.join(teamsDir, team, 'evals.json');
     if (fs.existsSync(f)) {
       const data = JSON.parse(fs.readFileSync(f, 'utf8'));
       all[team] = Object.fromEntries(
@@ -661,14 +661,14 @@ function listRecipes(teamsDir) {
       );
     }
   }
-  // Sub-collections: teams/<team>/recipes/<file>.json → keyed as <team>/<file>
+  // Sub-collections: teams/<team>/evals/<file>.json → keyed as <team>/<file>
   for (const team of teamDirs) {
-    const recipesDir = path.join(teamsDir, team, 'recipes');
-    if (!fs.existsSync(recipesDir)) continue;
-    const subFiles = fs.readdirSync(recipesDir).filter((f) => f.endsWith('.json'));
+    const evalsDir = path.join(teamsDir, team, 'evals');
+    if (!fs.existsSync(evalsDir)) continue;
+    const subFiles = fs.readdirSync(evalsDir).filter((f) => f.endsWith('.json'));
     for (const file of subFiles) {
       const key = `${team}/${path.basename(file, '.json')}`;
-      const data = JSON.parse(fs.readFileSync(path.join(recipesDir, file), 'utf8'));
+      const data = JSON.parse(fs.readFileSync(path.join(evalsDir, file), 'utf8'));
       all[key] = Object.fromEntries(
         Object.entries(data).map(([name, r]) => [name, r.description || ''])
       );
@@ -709,8 +709,8 @@ Commands:
   set-input <testId> <value>           Set text input value by testID (calls onChangeText)
   sentry-debug [enable|disable]          Patch Sentry to log errors to console with [SENTRY-DEBUG] prefix
   unlock <password>                      Unlock wallet (inject password + press login button via fiber tree)
-  recipe <team/name>                   Run a recipe (e.g. perps/positions)
-  recipe --list                        List all available recipes
+  eval-ref <team/name>                 Run an eval ref (e.g. perps/positions)
+  eval-ref --list                      List all available eval refs
 
 Environment:
   WATCHER_PORT    Metro port (default: 8081)
@@ -727,8 +727,8 @@ Environment:
     process.exit(1);
   }
 
-  // `recipe --list` only reads local JSON files — skip CDP connection entirely.
-  if (command === 'recipe' && args[1] === '--list') {
+  // `eval-ref --list` only reads local JSON files — skip CDP connection entirely.
+  if (command === 'eval-ref' && args[1] === '--list') {
     const result = await handler(null, args.slice(1), {});
     console.log(JSON.stringify(result, null, 2));
     return;
