@@ -230,8 +230,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
   // Feature flag for Market Insights in Perps
   const isPerpsInsightsEnabled = useSelector(selectMarketInsightsPerpsEnabled);
-  const { report: perpsInsightsReport, timeAgo: perpsInsightsTimeAgo } =
-    useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
+  const {
+    report: perpsInsightsReport,
+    timeAgo: perpsInsightsTimeAgo,
+    isLoading: isPerpsInsightsLoading,
+  } = useMarketInsights(market?.symbol, isPerpsInsightsEnabled);
 
   // Check if current market is in watchlist
   const selectIsWatchlist = useMemo(
@@ -543,6 +546,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   });
 
   // Track asset screen viewed event - declarative (main's event name)
+  // Waits for market insights to finish loading so market_insights_displayed
+  // reflects the actual display state rather than a loading-time snapshot.
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     conditions: [
@@ -550,6 +555,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       !!marketStats,
       !isLoadingHistory,
       !isLoadingPosition,
+      !isPerpsInsightsLoading,
     ],
     properties: {
       [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
@@ -559,6 +565,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
         source || PERPS_EVENT_VALUE.SOURCE.PERP_MARKETS,
       [PERPS_EVENT_PROPERTY.OPEN_POSITION]: existingPosition ? 1 : 0,
       [PERPS_EVENT_PROPERTY.OPEN_ORDER]: openOrders.length,
+      market_insights_displayed:
+        isPerpsInsightsEnabled && Boolean(perpsInsightsReport),
       // A/B Test context (TAT-1937) - for baseline exposure tracking
       ...(isButtonColorTestEnabled && {
         [PERPS_EVENT_PROPERTY.AB_TEST_BUTTON_COLOR]: buttonColorVariant,
@@ -1022,6 +1030,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   // Handler for market insights card tap - navigates to full market insights view
   const handleMarketInsightsPress = useCallback(() => {
     if (!market?.symbol) return;
+    track(MetaMetricsEvents.MARKET_INSIGHTS_OPENED, {
+      perps_market: market.symbol,
+    });
     trace({
       name: TraceName.MarketInsightsViewLoad,
       op: TraceOperation.MarketInsightsLoad,
@@ -1031,7 +1042,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       assetIdentifier: market.symbol,
       isPerps: true,
     });
-  }, [market?.symbol, navigation]);
+  }, [market?.symbol, navigation, track]);
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
