@@ -7,6 +7,7 @@ import { useHomepageScrollContext } from '../context/HomepageScrollContext';
 export const HomeSectionNames = {
   CASH: 'cash',
   TOKENS: 'tokens',
+  WHATS_HAPPENING: 'whats_happening',
   PERPS: 'perps',
   DEFI: 'defi',
   PREDICT: 'predict',

@@ -223,14 +223,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampBasicInfo',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -267,7 +273,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -281,7 +290,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'Checkout',
               params: expect.objectContaining({
@@ -328,7 +340,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockTransakCreateOrder).toHaveBeenCalledWith(
@@ -361,14 +376,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampKycProcessing',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -389,7 +410,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockLogoutFromProvider).toHaveBeenCalledWith(false);
@@ -423,7 +447,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockSubmitPurposeOfUsageForm).toHaveBeenCalledWith([
@@ -455,14 +482,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampAdditionalVerification',
               params: expect.objectContaining({
@@ -493,7 +526,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -515,7 +551,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -537,7 +576,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -560,7 +602,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -586,7 +631,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -606,7 +654,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -622,7 +673,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -643,14 +697,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: mockQuote.fiatAmount },
+            }),
             expect.objectContaining({
               name: 'RampKycProcessing',
             }),
@@ -670,7 +730,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -693,7 +756,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -717,7 +783,10 @@ describe('useTransakRouting', () => {
 
       await expect(
         act(async () => {
-          await result.current.routeAfterAuthentication(mockQuote as never);
+          await result.current.routeAfterAuthentication(
+            mockQuote as never,
+            mockQuote.fiatAmount,
+          );
         }),
       ).rejects.toThrow();
     });
@@ -740,7 +809,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       expect(mockRequestOtt).toHaveBeenCalled();
@@ -752,14 +824,20 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       act(() => {
-        result.current.navigateToVerifyIdentity({ quote: mockQuote as never });
+        result.current.navigateToVerifyIdentity({
+          quote: mockQuote as never,
+          amount: 30,
+        });
       });
 
       expect(mockReset).toHaveBeenCalledWith(
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: 30 },
+            }),
             expect.objectContaining({
               name: 'RampVerifyIdentity',
               params: expect.objectContaining({ quote: mockQuote }),
@@ -771,12 +849,13 @@ describe('useTransakRouting', () => {
   });
 
   describe('navigateToKycWebview', () => {
-    it('resets navigation stack to the KYC webview', () => {
+    it('resets navigation stack to the KYC webview with amount preserved', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       act(() => {
         result.current.navigateToKycWebview({
           kycUrl: 'https://kyc.example.com',
+          amount: 30,
         });
       });
 
@@ -784,7 +863,10 @@ describe('useTransakRouting', () => {
         expect.objectContaining({
           index: 1,
           routes: [
-            expect.objectContaining({ name: 'RampAmountInput' }),
+            expect.objectContaining({
+              name: 'RampAmountInput',
+              params: { amount: 30 },
+            }),
             expect.objectContaining({
               name: 'Checkout',
               params: expect.objectContaining({
@@ -822,7 +904,10 @@ describe('useTransakRouting', () => {
       const { result } = renderHook(() => useTransakRouting());
 
       await act(async () => {
-        await result.current.routeAfterAuthentication(mockQuote as never);
+        await result.current.routeAfterAuthentication(
+          mockQuote as never,
+          mockQuote.fiatAmount,
+        );
       });
 
       return capturedHandleNavigationStateChange;
