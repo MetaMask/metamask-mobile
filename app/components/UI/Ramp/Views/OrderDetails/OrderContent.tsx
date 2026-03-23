@@ -293,6 +293,18 @@ const OrderContent: React.FC<OrderContentProps> = ({
     const iban = getFieldValue('IBAN');
     const bic = getFieldValue('BIC');
 
+    const hasAnyField =
+      amount ||
+      accountName ||
+      accountType ||
+      bankName ||
+      routingNumber ||
+      accountNumber ||
+      iban ||
+      bic;
+
+    if (!hasAnyField) return null;
+
     return {
       amount,
       accountName,
