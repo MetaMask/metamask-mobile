@@ -8025,7 +8025,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.15.0, @metamask/controller-utils@npm:^11.16.0, @metamask/controller-utils@npm:^11.18.0, @metamask/controller-utils@npm:^11.19.0, @metamask/controller-utils@npm:^11.3.0":
+"@metamask/controller-utils@npm:^11.0.0, @metamask/controller-utils@npm:^11.14.1, @metamask/controller-utils@npm:^11.15.0, @metamask/controller-utils@npm:^11.16.0, @metamask/controller-utils@npm:^11.18.0, @metamask/controller-utils@npm:^11.19.0":
   version: 11.19.0
   resolution: "@metamask/controller-utils@npm:11.19.0"
   dependencies:
@@ -8694,9 +8694,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0":
-  version: 21.5.0
-  resolution: "@metamask/keyring-api@npm:21.5.0"
+"@metamask/keyring-api@npm:^21.0.0, @metamask/keyring-api@npm:^21.2.0, @metamask/keyring-api@npm:^21.4.0, @metamask/keyring-api@npm:^21.5.0, @metamask/keyring-api@npm:^21.6.0":
+  version: 21.6.0
+  resolution: "@metamask/keyring-api@npm:21.6.0"
   dependencies:
     "@ethereumjs/tx": "npm:^5.4.0"
     "@metamask/eth-sig-util": "npm:^8.2.0"
@@ -8707,7 +8707,7 @@ __metadata:
     async-mutex: "npm:^0.5.0"
     bitcoin-address-validation: "npm:^2.2.3"
     uuid: "npm:^9.0.1"
-  checksum: 10/a7f2a8c66bc76edabde15b66b80904208b71fd62406ebb91579db4c65d74a8f66db6c610afe265823313df7423b6727a4de03cb1f43e41d840d51a5039f9ef4d
+  checksum: 10/ecd482ec83fbdb16da5f0c548db29931edd4718c57550547aed9f3532c8e60ec39a6894571c96a819e5f205e53ec149e6b52710194ac0610960aa51834f15dd8
   languageName: node
   linkType: hard
 
@@ -9926,28 +9926,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/swaps-controller@npm:^15.0.0":
-  version: 15.0.0
-  resolution: "@metamask/swaps-controller@npm:15.0.0"
-  dependencies:
-    "@ethersproject/contracts": "npm:^5.7.0"
-    "@ethersproject/providers": "npm:^5.7.0"
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/controller-utils": "npm:^11.3.0"
-    "@metamask/eth-query": "npm:^4.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-    "@metamask/utils": "npm:^10.0.0"
-    async-mutex: "npm:^0.5.0"
-    bignumber.js: "npm:^9.0.1"
-    bn.js: "npm:^5.2.1"
-    human-standard-token-abi: "npm:^2.0.0"
-  peerDependencies:
-    "@metamask/gas-fee-controller": ^25.0.0
-    "@metamask/network-controller": ^25.0.0
-  checksum: 10/6f6e6dd71dd1e50cba08695aea5c88008d68b64436050efdae55ed15032543a115c54e0f3b93e4df99fcff7bf0b055c9addd84055964fe96ce89846582acf540
-  languageName: node
-  linkType: hard
-
 "@metamask/test-dapp-multichain@npm:^0.17.1":
   version: 0.17.1
   resolution: "@metamask/test-dapp-multichain@npm:0.17.1"
@@ -10188,23 +10166,6 @@ __metadata:
   version: 1.24.0
   resolution: "@metamask/tron-wallet-snap@npm:1.24.0"
   checksum: 10/a081a52b24da36cd060413d07549e28ab3222a869e8a7c4a3e41cf0b09b89d7f90a482fd9d154a837afe1c07f229f931ebdc31f9fc307bbf7b1bfa97581a9bd8
-  languageName: node
-  linkType: hard
-
-"@metamask/utils@npm:^10.0.0":
-  version: 10.0.1
-  resolution: "@metamask/utils@npm:10.0.1"
-  dependencies:
-    "@ethereumjs/tx": "npm:^4.2.0"
-    "@metamask/superstruct": "npm:^3.1.0"
-    "@noble/hashes": "npm:^1.3.1"
-    "@scure/base": "npm:^1.1.3"
-    "@types/debug": "npm:^4.1.7"
-    debug: "npm:^4.3.4"
-    pony-cause: "npm:^2.1.10"
-    semver: "npm:^7.5.4"
-    uuid: "npm:^9.0.1"
-  checksum: 10/c8e3d7578d05a1da4abb6c6712ec78ef6990801269f6529f4bb237b7d6e228d10a40738ccab81ad554f2fd51670267d086dc5be1a31c6d1f7040d4c0469d9d13
   languageName: node
   linkType: hard
 
@@ -31820,13 +31781,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"human-standard-token-abi@npm:^2.0.0":
-  version: 2.0.0
-  resolution: "human-standard-token-abi@npm:2.0.0"
-  checksum: 10/24e2d9c265cf461f9f270f10470e04783942f57d6521614ce3eae9c720a4133a263ea21a871bd6675d4544e35f48ef5055ad2b2cc3ea498854db2054b6491d45
-  languageName: node
-  linkType: hard
-
 "humanize-duration@npm:^3.27.2":
   version: 3.27.3
   resolution: "humanize-duration@npm:3.27.3"
@@ -35567,7 +35521,7 @@ __metadata:
     "@metamask/json-rpc-engine": "npm:^10.2.3"
     "@metamask/json-rpc-middleware-stream": "npm:^8.0.7"
     "@metamask/key-tree": "patch:@metamask/key-tree@npm%3A10.1.1#~/.yarn/patches/@metamask-key-tree-npm-10.1.1-0bfab435ac.patch"
-    "@metamask/keyring-api": "npm:^21.5.0"
+    "@metamask/keyring-api": "npm:^21.6.0"
     "@metamask/keyring-controller": "npm:^25.0.0"
     "@metamask/keyring-internal-api": "npm:^10.0.0"
     "@metamask/keyring-snap-client": "npm:^8.1.0"
@@ -35626,7 +35580,6 @@ __metadata:
     "@metamask/storage-service": "npm:^1.0.0"
     "@metamask/superstruct": "npm:^3.2.1"
     "@metamask/swappable-obj-proxy": "npm:^2.1.0"
-    "@metamask/swaps-controller": "npm:^15.0.0"
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
