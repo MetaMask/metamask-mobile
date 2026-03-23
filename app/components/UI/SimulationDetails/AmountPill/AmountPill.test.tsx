@@ -141,14 +141,14 @@ describe('AmountPill', () => {
       {
         props: { amount: new BigNumber(-1) },
         expected: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#2748" is a token-id display suffix, not a color literal
           text: '- #2748',
         },
       },
       {
         props: { amount: new BigNumber(1) },
         expected: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#2748" is a token-id display suffix, not a color literal
           text: '+ #2748',
         },
       },
@@ -167,21 +167,21 @@ describe('AmountPill', () => {
       {
         props: { amount: new BigNumber(-3) },
         expected: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#2748" is a token-id display suffix, not a color literal
           text: '- 3 #2748',
         },
       },
       {
         props: { amount: new BigNumber(8) },
         expected: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#2748" is a token-id display suffix, not a color literal
           text: '+ 8 #2748',
         },
       },
       {
         props: { amount: new BigNumber(-12) },
         expected: {
-          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#2748" is a token-id display suffix, not a color literal
           text: '- 12 #2748',
         },
       },
