@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`OrderContent does not render bank details section for order without paymentDetails 1`] = `
+exports[`OrderContent renders completed state correctly 1`] = `
 <View
   style={
     [
@@ -135,7 +135,11 @@ exports[`OrderContent does not render bank details section for order without pay
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={1}
+              source={
+                {
+                  "uri": "https://example.com/eth.png",
+                }
+              }
               style={
                 {
                   "height": 32,
@@ -167,7 +171,7 @@ exports[`OrderContent does not render bank details section for order without pay
       }
       testID="ramps-order-details-token-amount"
     >
-      0.00663
+      0.05
        
       ETH
     </Text>
@@ -220,7 +224,7 @@ exports[`OrderContent does not render bank details section for order without pay
         style={
           [
             {
-              "color": "#9a6300",
+              "color": "#457a39",
               "fontFamily": "Geist-Medium",
               "fontSize": 16,
               "fontWeight": 400,
@@ -231,7 +235,7 @@ exports[`OrderContent does not render bank details section for order without pay
           ]
         }
       >
-        Processing
+        Complete
       </Text>
       <TouchableOpacity
         onPress={[Function]}
@@ -350,7 +354,7 @@ exports[`OrderContent does not render bank details section for order without pay
             ]
           }
         >
-          ...c12345
+          ...abc123
         </Text>
         <SvgMock
           fill="currentColor"
@@ -417,7 +421,7 @@ exports[`OrderContent does not render bank details section for order without pay
         ]
       }
     >
-      Mar 20 at 8:02 am
+      Nov 14 at 5:13 pm
     </Text>
   </View>
   <View
@@ -469,7 +473,7 @@ exports[`OrderContent does not render bank details section for order without pay
       }
     >
       $
-      1.93 USD
+      2.5 USD
     </Text>
   </View>
   <View
@@ -521,7 +525,7 @@ exports[`OrderContent does not render bank details section for order without pay
       }
     >
       $
-      16.84 USD
+      100 USD
     </Text>
   </View>
   <View
@@ -536,551 +540,67 @@ exports[`OrderContent does not render bank details section for order without pay
         undefined,
       ]
     }
-  />
-</View>
-`;
-
-exports[`OrderContent does not render bank details section when paymentDetails exists but has no matching fields 1`] = `
-<View
-  style={
-    [
-      {
-        "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "width": "100%",
-      },
-      undefined,
-    ]
-  }
->
-  <View
-    style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "paddingBottom": 24,
-          "paddingTop": 32,
-        },
-        undefined,
-      ]
-    }
   >
     <View
-      onLayout={[Function]}
-      style={
-        {
-          "alignSelf": "center",
-          "position": "relative",
-        }
-      }
-      testID="badge-wrapper-badge"
-    >
-      <View>
-        <View
-          style={
-            {
-              "backgroundColor": "#ffffff",
-              "borderRadius": 20,
-              "height": 40,
-              "overflow": "hidden",
-              "width": 40,
-            }
-          }
-        >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={
-              {
-                "uri": "https://example.com/eth.png",
-              }
-            }
-            style={
-              {
-                "flex": 1,
-                "height": undefined,
-                "width": undefined,
-              }
-            }
-            testID="token-avatar-image"
-          />
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "aspectRatio": 1,
-            "bottom": 0,
-            "height": 0,
-            "justifyContent": "center",
-            "position": "absolute",
-            "right": 0,
-            "transform": [
-              {
-                "translateX": 0,
-              },
-              {
-                "translateY": 0,
-              },
-            ],
-          }
-        }
-      >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "aspectRatio": 1,
-              "height": "50%",
-              "justifyContent": "center",
-              "maxHeight": 24,
-              "minHeight": 8,
-              "opacity": 0,
-            }
-          }
-          testID="badgenetwork"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#ffffff",
-                "borderRadius": 8,
-                "borderWidth": 2,
-                "height": 32,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "shadowColor": "#0000001a",
-                "shadowOffset": {
-                  "height": 2,
-                  "width": 0,
-                },
-                "shadowOpacity": 1,
-                "shadowRadius": 4,
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-                "width": 32,
-              }
-            }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 32,
-                  "width": 32,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-        </View>
-      </View>
-    </View>
-    <Text
-      accessibilityRole="text"
       style={
         [
           {
-            "color": "#131416",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 40,
-            "fontWeight": 700,
-            "letterSpacing": 0,
-            "lineHeight": 50,
-            "marginTop": 24,
-            "textAlign": "center",
-          },
-          undefined,
-        ]
-      }
-      testID="ramps-order-details-token-amount"
-    >
-      0.00663
-       
-      ETH
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Status
-    </Text>
-    <View
-      style={
-        [
-          {
-            "alignItems": "flex-end",
             "display": "flex",
           },
           undefined,
         ]
       }
     >
-      <Text
-        accessibilityRole="text"
-        style={
-          [
-            {
-              "color": "#9a6300",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "fontWeight": 400,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            },
-            undefined,
-          ]
-        }
-      >
-        Processing
-      </Text>
       <TouchableOpacity
         onPress={[Function]}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "marginTop": 4,
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                  "marginRight": 4,
-                },
-                undefined,
-              ]
-            }
-          >
-            View on Transak
-          </Text>
-          <SvgMock
-            fill="currentColor"
-            name="Export"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "height": 16,
-                  "width": 16,
-                },
-                undefined,
-              ]
-            }
-          />
-        </View>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Order ID
-    </Text>
-    <TouchableOpacity
-      onPress={[Function]}
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-            },
-            undefined,
-          ]
-        }
       >
         <Text
           accessibilityRole="text"
           style={
             [
               {
-                "color": "#131416",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 14,
                 "fontWeight": 400,
                 "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginRight": 8,
+                "lineHeight": 22,
+                "textAlign": "center",
               },
               undefined,
             ]
           }
         >
-          ...c12345
+          Card purchases typically take a few minutes
+           
+          <SvgMock
+            fill="currentColor"
+            name="Info"
+            style={
+              [
+                {
+                  "color": "#66676a",
+                  "height": 16,
+                  "width": 16,
+                },
+                {
+                  "transform": [
+                    {
+                      "translateY": 4,
+                    },
+                  ],
+                },
+              ]
+            }
+          />
         </Text>
-        <SvgMock
-          fill="currentColor"
-          name="Copy"
-          style={
-            [
-              {
-                "color": "#131416",
-                "height": 20,
-                "width": 20,
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
+      </TouchableOpacity>
+    </View>
   </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Date and time
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Mar 20 at 8:02 am
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Fees
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      1.93 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Total
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      16.84 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "paddingBottom": 16,
-          "paddingTop": 16,
-          "width": "100%",
-        },
-        undefined,
-      ]
-    }
-  />
 </View>
 `;
 
-exports[`OrderContent renders a standard debit/credit order 1`] = `
+exports[`OrderContent renders loading state when order has no amount 1`] = `
 <View
   style={
     [
@@ -1215,7 +735,11 @@ exports[`OrderContent renders a standard debit/credit order 1`] = `
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={1}
+              source={
+                {
+                  "uri": "https://example.com/eth.png",
+                }
+              }
               style={
                 {
                   "height": 32,
@@ -1247,2332 +771,7 @@ exports[`OrderContent renders a standard debit/credit order 1`] = `
       }
       testID="ramps-order-details-token-amount"
     >
-      0.00663
-       
-      ETH
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Status
-    </Text>
-    <View
-      style={
-        [
-          {
-            "alignItems": "flex-end",
-            "display": "flex",
-          },
-          undefined,
-        ]
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          [
-            {
-              "color": "#9a6300",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "fontWeight": 400,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            },
-            undefined,
-          ]
-        }
-      >
-        Processing
-      </Text>
-      <TouchableOpacity
-        onPress={[Function]}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "marginTop": 4,
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                  "marginRight": 4,
-                },
-                undefined,
-              ]
-            }
-          >
-            View on Transak
-          </Text>
-          <SvgMock
-            fill="currentColor"
-            name="Export"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "height": 16,
-                  "width": 16,
-                },
-                undefined,
-              ]
-            }
-          />
-        </View>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Order ID
-    </Text>
-    <TouchableOpacity
-      onPress={[Function]}
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-            },
-            undefined,
-          ]
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            [
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "fontWeight": 400,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginRight": 8,
-              },
-              undefined,
-            ]
-          }
-        >
-          ...c12345
-        </Text>
-        <SvgMock
-          fill="currentColor"
-          name="Copy"
-          style={
-            [
-              {
-                "color": "#131416",
-                "height": 20,
-                "width": 20,
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Date and time
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Mar 20 at 8:02 am
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Fees
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      1.93 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Total
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      16.84 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "paddingBottom": 16,
-          "paddingTop": 16,
-          "width": "100%",
-        },
-        undefined,
-      ]
-    }
-  />
-</View>
-`;
-
-exports[`OrderContent renders bank details section when paymentDetails has bank transfer fields 1`] = `
-<View
-  style={
-    [
-      {
-        "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "width": "100%",
-      },
-      undefined,
-    ]
-  }
->
-  <View
-    style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "paddingBottom": 24,
-          "paddingTop": 32,
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "alignSelf": "center",
-          "position": "relative",
-        }
-      }
-      testID="badge-wrapper-badge"
-    >
-      <View>
-        <View
-          style={
-            {
-              "backgroundColor": "#ffffff",
-              "borderRadius": 20,
-              "height": 40,
-              "overflow": "hidden",
-              "width": 40,
-            }
-          }
-        >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={
-              {
-                "uri": "https://example.com/eth.png",
-              }
-            }
-            style={
-              {
-                "flex": 1,
-                "height": undefined,
-                "width": undefined,
-              }
-            }
-            testID="token-avatar-image"
-          />
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "aspectRatio": 1,
-            "bottom": 0,
-            "height": 0,
-            "justifyContent": "center",
-            "position": "absolute",
-            "right": 0,
-            "transform": [
-              {
-                "translateX": 0,
-              },
-              {
-                "translateY": 0,
-              },
-            ],
-          }
-        }
-      >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "aspectRatio": 1,
-              "height": "50%",
-              "justifyContent": "center",
-              "maxHeight": 24,
-              "minHeight": 8,
-              "opacity": 0,
-            }
-          }
-          testID="badgenetwork"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#ffffff",
-                "borderRadius": 8,
-                "borderWidth": 2,
-                "height": 32,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "shadowColor": "#0000001a",
-                "shadowOffset": {
-                  "height": 2,
-                  "width": 0,
-                },
-                "shadowOpacity": 1,
-                "shadowRadius": 4,
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-                "width": 32,
-              }
-            }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 32,
-                  "width": 32,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-        </View>
-      </View>
-    </View>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 40,
-            "fontWeight": 700,
-            "letterSpacing": 0,
-            "lineHeight": 50,
-            "marginTop": 24,
-            "textAlign": "center",
-          },
-          undefined,
-        ]
-      }
-      testID="ramps-order-details-token-amount"
-    >
-      0.00663
-       
-      ETH
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Status
-    </Text>
-    <View
-      style={
-        [
-          {
-            "alignItems": "flex-end",
-            "display": "flex",
-          },
-          undefined,
-        ]
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          [
-            {
-              "color": "#9a6300",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "fontWeight": 400,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            },
-            undefined,
-          ]
-        }
-      >
-        Processing
-      </Text>
-      <TouchableOpacity
-        onPress={[Function]}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "marginTop": 4,
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                  "marginRight": 4,
-                },
-                undefined,
-              ]
-            }
-          >
-            View on Transak
-          </Text>
-          <SvgMock
-            fill="currentColor"
-            name="Export"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "height": 16,
-                  "width": 16,
-                },
-                undefined,
-              ]
-            }
-          />
-        </View>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Order ID
-    </Text>
-    <TouchableOpacity
-      onPress={[Function]}
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-            },
-            undefined,
-          ]
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            [
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "fontWeight": 400,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginRight": 8,
-              },
-              undefined,
-            ]
-          }
-        >
-          ...c12345
-        </Text>
-        <SvgMock
-          fill="currentColor"
-          name="Copy"
-          style={
-            [
-              {
-                "color": "#131416",
-                "height": 20,
-                "width": 20,
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Date and time
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Mar 20 at 8:02 am
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Fees
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      1.93 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Total
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      16.84 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "borderTopWidth": 1,
-          "display": "flex",
-          "marginTop": 16,
-          "paddingTop": 16,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 16,
-            "fontWeight": 700,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginBottom": 16,
-          },
-          undefined,
-        ]
-      }
-    >
-      To complete your order
-    </Text>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Transfer amount
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          $100.00
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Account holder name
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          John Doe
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Routing number
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          021000021
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Account number
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          1234567890
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "paddingBottom": 16,
-          "paddingTop": 16,
-          "width": "100%",
-        },
-        undefined,
-      ]
-    }
-  />
-</View>
-`;
-
-exports[`OrderContent renders bank details with IBAN and BIC for SEPA transfers 1`] = `
-<View
-  style={
-    [
-      {
-        "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "width": "100%",
-      },
-      undefined,
-    ]
-  }
->
-  <View
-    style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "paddingBottom": 24,
-          "paddingTop": 32,
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "alignSelf": "center",
-          "position": "relative",
-        }
-      }
-      testID="badge-wrapper-badge"
-    >
-      <View>
-        <View
-          style={
-            {
-              "backgroundColor": "#ffffff",
-              "borderRadius": 20,
-              "height": 40,
-              "overflow": "hidden",
-              "width": 40,
-            }
-          }
-        >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={
-              {
-                "uri": "https://example.com/eth.png",
-              }
-            }
-            style={
-              {
-                "flex": 1,
-                "height": undefined,
-                "width": undefined,
-              }
-            }
-            testID="token-avatar-image"
-          />
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "aspectRatio": 1,
-            "bottom": 0,
-            "height": 0,
-            "justifyContent": "center",
-            "position": "absolute",
-            "right": 0,
-            "transform": [
-              {
-                "translateX": 0,
-              },
-              {
-                "translateY": 0,
-              },
-            ],
-          }
-        }
-      >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "aspectRatio": 1,
-              "height": "50%",
-              "justifyContent": "center",
-              "maxHeight": 24,
-              "minHeight": 8,
-              "opacity": 0,
-            }
-          }
-          testID="badgenetwork"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#ffffff",
-                "borderRadius": 8,
-                "borderWidth": 2,
-                "height": 32,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "shadowColor": "#0000001a",
-                "shadowOffset": {
-                  "height": 2,
-                  "width": 0,
-                },
-                "shadowOpacity": 1,
-                "shadowRadius": 4,
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-                "width": 32,
-              }
-            }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 32,
-                  "width": 32,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-        </View>
-      </View>
-    </View>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 40,
-            "fontWeight": 700,
-            "letterSpacing": 0,
-            "lineHeight": 50,
-            "marginTop": 24,
-            "textAlign": "center",
-          },
-          undefined,
-        ]
-      }
-      testID="ramps-order-details-token-amount"
-    >
-      0.00663
-       
-      ETH
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Status
-    </Text>
-    <View
-      style={
-        [
-          {
-            "alignItems": "flex-end",
-            "display": "flex",
-          },
-          undefined,
-        ]
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          [
-            {
-              "color": "#9a6300",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "fontWeight": 400,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            },
-            undefined,
-          ]
-        }
-      >
-        Processing
-      </Text>
-      <TouchableOpacity
-        onPress={[Function]}
-      >
-        <View
-          style={
-            [
-              {
-                "alignItems": "center",
-                "display": "flex",
-                "flexDirection": "row",
-                "marginTop": 4,
-              },
-              undefined,
-            ]
-          }
-        >
-          <Text
-            accessibilityRole="text"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "fontFamily": "Geist-Regular",
-                  "fontSize": 14,
-                  "fontWeight": 400,
-                  "letterSpacing": 0,
-                  "lineHeight": 22,
-                  "marginRight": 4,
-                },
-                undefined,
-              ]
-            }
-          >
-            View on Transak
-          </Text>
-          <SvgMock
-            fill="currentColor"
-            name="Export"
-            style={
-              [
-                {
-                  "color": "#4459ff",
-                  "height": 16,
-                  "width": 16,
-                },
-                undefined,
-              ]
-            }
-          />
-        </View>
-      </TouchableOpacity>
-    </View>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Order ID
-    </Text>
-    <TouchableOpacity
-      onPress={[Function]}
-    >
-      <View
-        style={
-          [
-            {
-              "alignItems": "center",
-              "display": "flex",
-              "flexDirection": "row",
-            },
-            undefined,
-          ]
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            [
-              {
-                "color": "#131416",
-                "fontFamily": "Geist-Medium",
-                "fontSize": 16,
-                "fontWeight": 400,
-                "letterSpacing": 0,
-                "lineHeight": 24,
-                "marginRight": 8,
-              },
-              undefined,
-            ]
-          }
-        >
-          ...c12345
-        </Text>
-        <SvgMock
-          fill="currentColor"
-          name="Copy"
-          style={
-            [
-              {
-                "color": "#131416",
-                "height": 20,
-                "width": 20,
-              },
-              undefined,
-            ]
-          }
-        />
-      </View>
-    </TouchableOpacity>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Date and time
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Mar 20 at 8:02 am
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Fees
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      1.93 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-          "paddingBottom": 12,
-          "paddingTop": 12,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      Total
-    </Text>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "fontWeight": 400,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          },
-          undefined,
-        ]
-      }
-    >
-      $
-      16.84 USD
-    </Text>
-  </View>
-  <View
-    style={
-      [
-        {
-          "borderTopWidth": 1,
-          "display": "flex",
-          "marginTop": 16,
-          "paddingTop": 16,
-        },
-        undefined,
-      ]
-    }
-  >
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 16,
-            "fontWeight": 700,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-            "marginBottom": 16,
-          },
-          undefined,
-        ]
-      }
-    >
-      To complete your order
-    </Text>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Transfer amount
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          €85.00
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Account holder name
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          Hans Mueller
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        IBAN
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          DE89370400440532013000
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        BIC
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          COBADEFFXXX
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-    <View
-      style={
-        {
-          "flexDirection": "row",
-          "justifyContent": "space-between",
-        }
-      }
-    >
-      <Text
-        accessibilityRole="text"
-        style={
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Regular",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
-      >
-        Bank name
-      </Text>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "flex": 1,
-            "flexDirection": "row",
-            "gap": 8,
-            "justifyContent": "flex-end",
-            "marginLeft": 16,
-          }
-        }
-      >
-        <Text
-          accessibilityRole="text"
-          style={
-            {
-              "color": "#66676a",
-              "flex": 1,
-              "flexWrap": "wrap",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-              "textAlign": "right",
-            }
-          }
-        >
-          Commerzbank
-        </Text>
-        <TouchableOpacity
-          onPress={[Function]}
-          testID="copy-button"
-        >
-          <SvgMock
-            color="#66676a"
-            fill="currentColor"
-            height={16}
-            name="Copy"
-            style={
-              {
-                "height": 16,
-                "width": 16,
-              }
-            }
-            width={16}
-          />
-        </TouchableOpacity>
-      </View>
-    </View>
-  </View>
-  <View
-    style={
-      [
-        {
-          "display": "flex",
-          "paddingBottom": 16,
-          "paddingTop": 16,
-          "width": "100%",
-        },
-        undefined,
-      ]
-    }
-  />
-</View>
-`;
-
-exports[`OrderContent renders loading state when fiatAmount is missing 1`] = `
-<View
-  style={
-    [
-      {
-        "display": "flex",
-        "flexBasis": "0%",
-        "flexGrow": 1,
-        "flexShrink": 1,
-        "width": "100%",
-      },
-      undefined,
-    ]
-  }
->
-  <View
-    style={
-      [
-        {
-          "alignItems": "center",
-          "display": "flex",
-          "paddingBottom": 24,
-          "paddingTop": 32,
-        },
-        undefined,
-      ]
-    }
-  >
-    <View
-      onLayout={[Function]}
-      style={
-        {
-          "alignSelf": "center",
-          "position": "relative",
-        }
-      }
-      testID="badge-wrapper-badge"
-    >
-      <View>
-        <View
-          style={
-            {
-              "backgroundColor": "#ffffff",
-              "borderRadius": 20,
-              "height": 40,
-              "overflow": "hidden",
-              "width": 40,
-            }
-          }
-        >
-          <Image
-            onError={[Function]}
-            resizeMode="contain"
-            source={
-              {
-                "uri": "https://example.com/eth.png",
-              }
-            }
-            style={
-              {
-                "flex": 1,
-                "height": undefined,
-                "width": undefined,
-              }
-            }
-            testID="token-avatar-image"
-          />
-        </View>
-      </View>
-      <View
-        style={
-          {
-            "alignItems": "center",
-            "aspectRatio": 1,
-            "bottom": 0,
-            "height": 0,
-            "justifyContent": "center",
-            "position": "absolute",
-            "right": 0,
-            "transform": [
-              {
-                "translateX": 0,
-              },
-              {
-                "translateY": 0,
-              },
-            ],
-          }
-        }
-      >
-        <View
-          onLayout={[Function]}
-          style={
-            {
-              "alignItems": "center",
-              "aspectRatio": 1,
-              "height": "50%",
-              "justifyContent": "center",
-              "maxHeight": 24,
-              "minHeight": 8,
-              "opacity": 0,
-            }
-          }
-          testID="badgenetwork"
-        >
-          <View
-            style={
-              {
-                "alignItems": "center",
-                "backgroundColor": "#ffffff",
-                "borderColor": "#ffffff",
-                "borderRadius": 8,
-                "borderWidth": 2,
-                "height": 32,
-                "justifyContent": "center",
-                "overflow": "hidden",
-                "shadowColor": "#0000001a",
-                "shadowOffset": {
-                  "height": 2,
-                  "width": 0,
-                },
-                "shadowOpacity": 1,
-                "shadowRadius": 4,
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-                "width": 32,
-              }
-            }
-          >
-            <Image
-              onError={[Function]}
-              resizeMode="contain"
-              source={1}
-              style={
-                {
-                  "height": 32,
-                  "width": 32,
-                }
-              }
-              testID="network-avatar-image"
-            />
-          </View>
-        </View>
-      </View>
-    </View>
-    <Text
-      accessibilityRole="text"
-      style={
-        [
-          {
-            "color": "#131416",
-            "fontFamily": "Geist-Bold",
-            "fontSize": 40,
-            "fontWeight": 700,
-            "letterSpacing": 0,
-            "lineHeight": 50,
-            "marginTop": 24,
-            "textAlign": "center",
-          },
-          undefined,
-        ]
-      }
-      testID="ramps-order-details-token-amount"
-    >
-      0.00663
+      0.05
        
       ETH
     </Text>
@@ -3836,11 +1035,67 @@ exports[`OrderContent renders loading state when fiatAmount is missing 1`] = `
         undefined,
       ]
     }
-  />
+  >
+    <View
+      style={
+        [
+          {
+            "display": "flex",
+          },
+          undefined,
+        ]
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
+      >
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 14,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          Card purchases typically take a few minutes
+           
+          <SvgMock
+            fill="currentColor"
+            name="Info"
+            style={
+              [
+                {
+                  "color": "#66676a",
+                  "height": 16,
+                  "width": 16,
+                },
+                {
+                  "transform": [
+                    {
+                      "translateY": 4,
+                    },
+                  ],
+                },
+              ]
+            }
+          />
+        </Text>
+      </TouchableOpacity>
+    </View>
+  </View>
 </View>
 `;
 
-exports[`OrderContent renders with close button when showCloseButton is true 1`] = `
+exports[`OrderContent shows ellipsis for token amount when cryptoAmount is 0 or missing 1`] = `
 <View
   style={
     [
@@ -3975,7 +1230,11 @@ exports[`OrderContent renders with close button when showCloseButton is true 1`]
             <Image
               onError={[Function]}
               resizeMode="contain"
-              source={1}
+              source={
+                {
+                  "uri": "https://example.com/eth.png",
+                }
+              }
               style={
                 {
                   "height": 32,
@@ -4007,7 +1266,7 @@ exports[`OrderContent renders with close button when showCloseButton is true 1`]
       }
       testID="ramps-order-details-token-amount"
     >
-      0.00663
+      0
        
       ETH
     </Text>
@@ -4190,7 +1449,7 @@ exports[`OrderContent renders with close button when showCloseButton is true 1`]
             ]
           }
         >
-          ...c12345
+          ...abc123
         </Text>
         <SvgMock
           fill="currentColor"
@@ -4257,7 +1516,7 @@ exports[`OrderContent renders with close button when showCloseButton is true 1`]
         ]
       }
     >
-      Mar 20 at 8:02 am
+      Nov 14 at 5:13 pm
     </Text>
   </View>
   <View
@@ -4309,7 +1568,7 @@ exports[`OrderContent renders with close button when showCloseButton is true 1`]
       }
     >
       $
-      1.93 USD
+      2.5 USD
     </Text>
   </View>
   <View
@@ -4361,7 +1620,7 @@ exports[`OrderContent renders with close button when showCloseButton is true 1`]
       }
     >
       $
-      16.84 USD
+      100 USD
     </Text>
   </View>
   <View
@@ -4369,51 +1628,69 @@ exports[`OrderContent renders with close button when showCloseButton is true 1`]
       [
         {
           "display": "flex",
-          "marginTop": "auto",
           "paddingBottom": 16,
+          "paddingTop": 16,
           "width": "100%",
         },
         undefined,
       ]
     }
   >
-    <TouchableOpacity
-      accessibilityRole="button"
-      accessible={true}
-      activeOpacity={1}
-      onPress={[Function]}
-      onPressIn={[Function]}
-      onPressOut={[Function]}
+    <View
       style={
-        {
-          "alignItems": "center",
-          "alignSelf": "stretch",
-          "backgroundColor": "#131416",
-          "borderRadius": 12,
-          "flexDirection": "row",
-          "height": 48,
-          "justifyContent": "center",
-          "overflow": "hidden",
-          "paddingHorizontal": 16,
-        }
-      }
-      testID="ramps-order-details-close-button"
-    >
-      <Text
-        accessibilityRole="text"
-        style={
+        [
           {
-            "color": "#ffffff",
-            "fontFamily": "Geist-Medium",
-            "fontSize": 16,
-            "letterSpacing": 0,
-            "lineHeight": 24,
-          }
-        }
+            "display": "flex",
+          },
+          undefined,
+        ]
+      }
+    >
+      <TouchableOpacity
+        onPress={[Function]}
       >
-        Close
-      </Text>
-    </TouchableOpacity>
+        <Text
+          accessibilityRole="text"
+          style={
+            [
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 14,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+                "textAlign": "center",
+              },
+              undefined,
+            ]
+          }
+        >
+          Card purchases typically take a few minutes
+           
+          <SvgMock
+            fill="currentColor"
+            name="Info"
+            style={
+              [
+                {
+                  "color": "#66676a",
+                  "height": 16,
+                  "width": 16,
+                },
+                {
+                  "transform": [
+                    {
+                      "translateY": 4,
+                    },
+                  ],
+                },
+              ]
+            }
+          />
+        </Text>
+      </TouchableOpacity>
+    </View>
   </View>
 </View>
 `;
