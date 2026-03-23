@@ -39,6 +39,18 @@ import {
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
 
+/**
+ * Renders a short fingerprint: 5th–8th characters (1-based) and the last 3 characters.
+ */
+function maskSecretEnvFragment(value) {
+  if (value == null || typeof value !== 'string' || value.length < 8) {
+    return '—';
+  }
+  const mid = value.slice(4, 8);
+  const end = value.slice(-3);
+  return `\u2026${mid}\u2026${end}`;
+}
+
 const createStyles = (colors) =>
   StyleSheet.create({
     wrapper: {
@@ -249,6 +261,12 @@ class AppInformation extends PureComponent {
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_BRANCH_KEY_LIVE: ${maskSecretEnvFragment(process.env.MM_BRANCH_KEY_LIVE)}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_BRANCH_KEY_TEST: ${maskSecretEnvFragment(process.env.MM_BRANCH_KEY_TEST)}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}
