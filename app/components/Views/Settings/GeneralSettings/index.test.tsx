@@ -12,34 +12,21 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { UserProfileProperty } from '../../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 jest.mock('../../../../core/Analytics');
 
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics');
+
 const mockWithAnalyticsCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
+  addSensitiveProperties: jest.fn().mockReturnThis(),
+  removeProperties: jest.fn().mockReturnThis(),
+  removeSensitiveProperties: jest.fn().mockReturnThis(),
+  setSaveDataRecording: jest.fn().mockReturnThis(),
   build: jest.fn(),
 }));
-
-jest.mock(
-  '../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => ({
-    withAnalyticsAwareness:
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (Component: React.ComponentType<any>) =>
-        (props: Record<string, unknown>) => (
-          <Component
-            {...props}
-            analytics={{
-              isEnabled: jest.fn().mockReturnValue(true),
-              enable: jest.fn(),
-              addTraitsToUser: jest.fn(),
-              createEventBuilder: mockWithAnalyticsCreateEventBuilder,
-              trackEvent: jest.fn(),
-            }}
-          />
-        ),
-  }),
-);
 jest.mock(
   '../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount',
   () => ({
@@ -86,6 +73,11 @@ const renderComponent = () =>
 describe('GeneralSettings', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        createEventBuilder: mockWithAnalyticsCreateEventBuilder,
+      }),
+    );
   });
 
   it('should render correctly', () => {
@@ -115,7 +107,7 @@ const mockUpdateCreateEventBuilder = jest.fn().mockReturnValue({
 });
 
 const mockAnalytics = {
-  addTraitsToUser: jest.fn(),
+  identify: jest.fn(),
   trackEvent: jest.fn(),
   createEventBuilder: mockUpdateCreateEventBuilder,
 };
@@ -130,7 +122,7 @@ describe('updateUserTraitsWithCurrentCurrency', () => {
 
     updateUserTraitsWithCurrentCurrency(mockCurrency, mockAnalytics);
 
-    expect(mockAnalytics.addTraitsToUser).toHaveBeenCalledWith({
+    expect(mockAnalytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.CURRENT_CURRENCY]: mockCurrency,
     });
   });
@@ -169,7 +161,7 @@ describe('updateUserTraitsWithCurrencyType', () => {
 
     updateUserTraitsWithCurrencyType(primaryCurrency, mockAnalytics);
 
-    expect(mockAnalytics.addTraitsToUser).toHaveBeenCalledWith({
+    expect(mockAnalytics.identify).toHaveBeenCalledWith({
       [UserProfileProperty.PRIMARY_CURRENCY]: primaryCurrency,
     });
   });

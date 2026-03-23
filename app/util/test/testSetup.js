@@ -217,10 +217,6 @@ jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => mockUseAnalytics),
 }));
 
-jest.mock('../../components/hooks/useAnalytics/withAnalyticsAwareness', () => ({
-  withAnalyticsAwareness: jest.fn((Component) => Component),
-}));
-
 let mockState = {};
 
 jest.mock('../../store', () => ({

@@ -25,7 +25,7 @@ import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
-import { withAnalyticsAwareness } from '../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 import protectWalletImage from '../../../images/explain-backup-seedphrase.png';
@@ -171,7 +171,14 @@ const mapDispatchToProps = (dispatch) => ({
   protectWalletModalNotVisible: () => dispatch(protectWalletModalNotVisible()),
 });
 
-export default connect(
+const ConnectedProtectYourWalletModal = connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withAnalyticsAwareness(ProtectYourWalletModal));
+)(ProtectYourWalletModal);
+
+const ProtectYourWalletModalWithAnalytics = (props) => {
+  const analytics = useAnalytics();
+  return <ConnectedProtectYourWalletModal {...props} analytics={analytics} />;
+};
+
+export default ProtectYourWalletModalWithAnalytics;

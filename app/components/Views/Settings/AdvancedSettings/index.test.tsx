@@ -6,6 +6,8 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Device from '../../../../util/device';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 const originalFetch = global.fetch;
 
@@ -36,6 +38,7 @@ beforeEach(() => {
   mockNavigate.mockClear();
   mockGoBack.mockClear();
   mockSetSmartTransactionsOptInStatus.mockClear();
+  jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
 });
 
 jest.mock('@react-navigation/native', () => {
@@ -68,29 +71,7 @@ jest.mock('../../../../core/Engine', () => {
   };
 });
 
-// HOC mock must inject metrics; mock factory runs before imports so React is not in scope (hence require).
-jest.mock(
-  '../../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires -- hoisted mock factory
-    const ReactModule = require('react');
-    return {
-      withAnalyticsAwareness:
-        (Component: unknown) => (props: Record<string, unknown>) =>
-          ReactModule.createElement(Component, {
-            ...props,
-            analytics: {
-              trackEvent: jest.fn(),
-              createEventBuilder: jest.fn(() => ({
-                addProperties: jest.fn().mockReturnThis(),
-                build: jest.fn(),
-              })),
-              addTraitsToUser: jest.fn(),
-            },
-          }),
-    };
-  },
-);
+jest.mock('../../../../components/hooks/useAnalytics/useAnalytics');
 
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {

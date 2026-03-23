@@ -7,8 +7,13 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
-const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
+}));
+
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
   addProperties: jest.fn().mockReturnThis(),
@@ -19,53 +24,6 @@ const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
     sensitiveProperties: {},
   }),
 }));
-
-// Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../../../util/analytics/whenEngineReady', () => ({
-  whenEngineReady: jest.fn().mockResolvedValue(undefined),
-}));
-
-// Mock analytics module
-jest.mock('../../../util/analytics/analytics', () => ({
-  analytics: {
-    isEnabled: jest.fn(() => false),
-    trackEvent: jest.fn(),
-    optIn: jest.fn().mockResolvedValue(undefined),
-    optOut: jest.fn().mockResolvedValue(undefined),
-    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
-    identify: jest.fn(),
-    trackView: jest.fn(),
-    isOptedIn: jest.fn().mockResolvedValue(false),
-  },
-}));
-
-// Mock useAnalytics hook which is used by withAnalyticsAwareness HOC
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-    isEnabled: mockMetricsIsEnabled,
-  }),
-}));
-
-jest.mock(
-  '../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => ({
-    withAnalyticsAwareness:
-      (Component: React.ComponentType) => (props: Record<string, unknown>) => (
-        <Component
-          {...props}
-          {...({
-            analytics: {
-              trackEvent: mockTrackEvent,
-              createEventBuilder: mockCreateEventBuilder,
-              isEnabled: mockMetricsIsEnabled,
-            },
-          } as Record<string, unknown>)}
-        />
-      ),
-  }),
-);
 
 const mockStore = configureMockStore();
 
@@ -102,6 +60,13 @@ const renderModal = (storeOverride?: ReturnType<typeof mockStore>) => {
 describe('ProtectYourWalletModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+        isEnabled: jest.fn().mockReturnValue(true),
+      }),
+    );
   });
 
   describe('rendering', () => {

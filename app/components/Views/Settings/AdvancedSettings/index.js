@@ -39,7 +39,7 @@ import Button, {
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../../component-library/components/Buttons/Button';
-import { withAnalyticsAwareness } from '../../../../components/hooks/useAnalytics/withAnalyticsAwareness';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import AppConstants from '../../../../../app/core/AppConstants';
 import { downloadStateLogs } from '../../../../util/logs';
 import AutoDetectTokensSettings from '../AutoDetectTokensSettings';
@@ -219,9 +219,6 @@ class AdvancedSettings extends PureComponent {
      * Object that represents the current route info like params passed to it
      */
     route: PropTypes.object,
-    /**
-     * Analytics injected by withAnalyticsAwareness HOC
-     */
     analytics: PropTypes.object,
     /**
      * Boolean that checks if smart transactions is enabled
@@ -495,7 +492,12 @@ const mapDispatchToProps = (dispatch) => ({
     dispatch(setShowFiatOnTestnets(showFiatOnTestnets)),
 });
 
+const AdvancedSettingsWithAnalytics = (props) => {
+  const analytics = useAnalytics();
+  return <AdvancedSettings {...props} analytics={analytics} />;
+};
+
 export default connect(
   mapStateToProps,
   mapDispatchToProps,
-)(withAnalyticsAwareness(AdvancedSettings));
+)(AdvancedSettingsWithAnalytics);

@@ -3,33 +3,20 @@ import { View, Alert } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = MetricsEventBuilder.createEventBuilder;
+const mockCreateEventBuilder = AnalyticsEventBuilder.createEventBuilder;
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  ...jest.requireActual('../../../components/hooks/useMetrics'),
-  withMetricsAwareness: jest
-    .fn()
-    // TODO: Replace "any" with type
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    .mockImplementation((Children) => (props: any) => (
-      <Children
-        {...props}
-        metrics={{
-          trackEvent: mockTrackEvent,
-          createEventBuilder: mockCreateEventBuilder,
-        }}
-      />
-    )),
-}));
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -77,6 +64,12 @@ describe('ErrorBoundary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   afterEach(() => {

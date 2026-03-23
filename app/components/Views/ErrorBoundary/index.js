@@ -33,10 +33,8 @@ import { BannerAlertSeverity } from '../../../component-library/components/Banne
 import Text, {
   TextVariant,
 } from '../../../component-library/components/Texts/Text';
-import {
-  MetaMetricsEvents,
-  withMetricsAwareness,
-} from '../../../components/hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import AppConstants from '../../../core/AppConstants';
 import { useSelector } from 'react-redux';
 import { isTest } from '../../../util/test/utils';
@@ -519,4 +517,9 @@ class ErrorBoundary extends Component {
 
 ErrorBoundary.contextType = ThemeContext;
 
-export default withMetricsAwareness(ErrorBoundary);
+const ErrorBoundaryWithAnalytics = (props) => {
+  const analytics = useAnalytics();
+  return <ErrorBoundary {...props} metrics={analytics} />;
+};
+
+export default ErrorBoundaryWithAnalytics;
