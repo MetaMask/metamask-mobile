@@ -92,7 +92,8 @@ jstr()  { node -p "JSON.parse(process.argv[1])[process.argv[2]]||''" "$1" "$2"; 
 # Pass 1: apply defaults declared in the "inputs" block (single source of truth).
 # Pass 2: fallback — replace remaining {{key|default}} with inline defaults (backward compat).
 _RECIPE_SUBST=$(mktemp /tmp/perps-recipe-XXXXXXXXXXXX).json
-trap 'rm -f "$_RECIPE_SUBST"' EXIT
+_FLOW_TEMPS=()
+trap 'rm -f "$_RECIPE_SUBST" "${_FLOW_TEMPS[@]}"' EXIT
 node -e "
   var fs=require('fs');
   var src=fs.readFileSync(process.argv[1],'utf8');
@@ -228,7 +229,22 @@ console.log(JSON.stringify(r));
 # ── Main loop ─────────────────────────────────────────────────────────
 while IFS= read -r sj; do
   SID=$(node -p  "JSON.parse(process.argv[1]).id||'?'"          "$sj")
-  SDESC=$(node -p "var s=JSON.parse(process.argv[1]);s.description||(function(){var a=s.action||'';if(a==='press')return 'press '+s.test_id;if(a==='wait_for')return 'wait for '+(s.test_id||s.route||s.not_route||'condition');if(a==='navigate')return 'navigate to '+s.target;if(a==='set_input')return 'set '+s.test_id+'='+s.value;if(a==='flow_ref')return 'flow: '+s.ref;if(a==='eval_ref')return 'eval ref: '+s.ref;if(a==='eval_sync'||a==='eval_async')return a;if(a==='type_keypad')return 'type '+s.value;if(a==='toggle_testnet')return 'toggle testnet='+(s.enabled!==undefined?s.enabled:'true');return a}())" "$sj")
+  SDESC=$(node -p "
+    var s = JSON.parse(process.argv[1]);
+    s.description || (function() {
+      var a = s.action || '';
+      if (a === 'press')          return 'press ' + s.test_id;
+      if (a === 'wait_for')       return 'wait for ' + (s.test_id || s.route || s.not_route || 'condition');
+      if (a === 'navigate')       return 'navigate to ' + s.target;
+      if (a === 'set_input')      return 'set ' + s.test_id + '=' + s.value;
+      if (a === 'flow_ref')       return 'flow: ' + s.ref;
+      if (a === 'eval_ref')       return 'eval ref: ' + s.ref;
+      if (a === 'eval_sync' || a === 'eval_async') return a;
+      if (a === 'type_keypad')    return 'type ' + s.value;
+      if (a === 'toggle_testnet') return 'toggle testnet=' + (s.enabled !== undefined ? s.enabled : 'true');
+      return a;
+    }())
+  " "$sj")
   ACT=$(node -p  "JSON.parse(process.argv[1]).action||''"       "$sj")
   HAS_A=$(node -p "'assert' in JSON.parse(process.argv[1])"     "$sj")
   A_JSON=$(node -p "JSON.stringify(JSON.parse(process.argv[1]).assert||{})" "$sj")
@@ -374,6 +390,7 @@ while IFS= read -r sj; do
       fi
       echo "  -> flow: $FL_REF (params: ${FL_PARAMS:0:80})"
       SUBST_FLOW=$(mktemp /tmp/perps-flow-XXXXXXXXXXXX).json
+      _FLOW_TEMPS+=("$SUBST_FLOW")
       node -e "
         var fs=require('fs');
         var src=fs.readFileSync(process.argv[1],'utf8');
@@ -399,10 +416,8 @@ while IFS= read -r sj; do
       if bash "$SD/validate-recipe.sh" "$SUBST_FLOW" "${FLOW_FLAGS[@]}"; then
         RESULT='{"ok":true}'
       else
-        rm -f "$SUBST_FLOW"
         echo "  ❌ FAIL: flow failed: $FL_REF"; fail_recipe
       fi
-      rm -f "$SUBST_FLOW"
       ;;
     select_account)
       ADDR=$(node -p "JSON.parse(process.argv[1]).address||''" "$sj")
@@ -497,8 +512,10 @@ while IFS= read -r sj; do
       WF_EVAL_MODE="eval"
       case "$WF_EXPR" in *".then("*) WF_EVAL_MODE="eval-async" ;; esac
 
-      # Poll loop
-      WF_DEADLINE=$(node -p "Date.now()+$WF_TIMEOUT")
+      # Poll loop (use perl for ms timestamps — avoids spawning node per iteration)
+      _ms_now() { perl -MTime::HiRes=time -e 'printf "%d\n", time*1000'; }
+      WF_DEADLINE=$(( $(_ms_now) + WF_TIMEOUT ))
+      WF_SLEEP=$(awk "BEGIN{printf \"%.2f\", $WF_POLL/1000}")
       WF_PASSED=false
       while true; do
         RESULT=$(node "$SD/cdp-bridge.js" "$WF_EVAL_MODE" "$WF_EXPR" 2>/dev/null) || RESULT=""
@@ -509,9 +526,8 @@ while IFS= read -r sj; do
             break
           fi
         fi
-        WF_NOW=$(node -p "Date.now()")
-        [ "$WF_NOW" -ge "$WF_DEADLINE" ] && break
-        sleep "$(node -p "(+process.argv[1]/1000).toFixed(2)" "$WF_POLL")"
+        [ "$(_ms_now)" -ge "$WF_DEADLINE" ] && break
+        sleep "$WF_SLEEP"
       done
 
       [ -n "$RESULT" ] && echo "  -> Result: ${RESULT:0:200}"
