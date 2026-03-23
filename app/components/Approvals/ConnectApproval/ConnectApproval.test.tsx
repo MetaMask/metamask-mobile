@@ -8,38 +8,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
-jest.mock('../../../core/Engine', () => {
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../util/test/accountsControllerTestUtils');
-  return {
-    context: {
-      PhishingController: {
-        maybeUpdateState: jest.fn(),
-        test: jest.fn(() => ({ result: false })),
-        scanUrl: jest.fn(() => ({ recommendedAction: 'NONE' })),
-      },
-      KeyringController: {
-        getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
-        state: {
-          keyrings: [
-            {
-              accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
-              metadata: {
-                id: '01JNG71B7GTWH0J1TSJY9891S0',
-                name: '',
-              },
-            },
-          ],
-        },
-      },
-      AccountsController: {
-        ...mockAccountsControllerState,
-        state: mockAccountsControllerState,
-      },
-    },
-  };
-});
-
 const mockInitialState = {
   engine: {
     backgroundState: {
