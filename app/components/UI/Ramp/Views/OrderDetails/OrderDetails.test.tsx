@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { fireEvent, waitFor } from '@testing-library/react-native';
+import { fireEvent, waitFor, act } from '@testing-library/react-native';
 import OrderDetails, {
   createRampsOrderDetailsNavDetails,
 } from './OrderDetails';
@@ -177,7 +177,9 @@ describe('OrderDetails', () => {
       expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
     });
 
-    fireEvent.press(getByText('ramps_order_details.try_again'));
+    await act(async () => {
+      fireEvent.press(getByText('ramps_order_details.try_again'));
+    });
     expect(mockRefreshOrder).toHaveBeenCalled();
   });
 
@@ -216,7 +218,9 @@ describe('OrderDetails', () => {
     });
     expect(getByText('ramps_order_details.try_again')).toBeOnTheScreen();
 
-    fireEvent.press(getByText('ramps_order_details.try_again'));
+    await act(async () => {
+      fireEvent.press(getByText('ramps_order_details.try_again'));
+    });
     expect(mockGetOrderFromCallback).toHaveBeenCalledTimes(2);
     expect(mockGetOrderFromCallback).toHaveBeenNthCalledWith(
       2,

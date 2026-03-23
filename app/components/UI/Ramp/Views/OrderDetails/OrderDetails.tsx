@@ -17,7 +17,10 @@ import {
 } from '@metamask/ramps-controller';
 import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
 import { extractOrderCode } from '../../utils/extractOrderCode';
-import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
+import {
+  getNavigateAfterExternalBrowserRoutes,
+  type RampsOrderDetailsParams,
+} from '../../utils/rampsNavigation';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -38,13 +41,6 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
-interface RampsOrderDetailsParams {
-  orderId?: string;
-  showCloseButton?: boolean;
-  callbackUrl?: string;
-  providerCode?: string;
-  walletAddress?: string;
-}
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
