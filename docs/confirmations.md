@@ -2,19 +2,19 @@
 
 ## Overview
 
-Given the security focused nature of self-custody, confirmations and approvals form a pivotal aspect of MetaMask Mobile.
+Given the security-focused nature of self-custody, confirmations and approvals form a pivotal aspect of MetaMask Mobile.
 
 Confirmations can be triggered by dApps and the UI itself, and are used to approve a variety of operations such as:
 
 - Connecting to dApps
 - Giving permissions to dApps
 - Sending Eth
-- Transfering tokens
+- Transferring tokens
 - Signing data
 - Interacting with Snaps
 - Adding Ethereum networks
 
-It is vital any new confirmations are implemented using best practices and consistent patterns, to avoid adding complexity to the code, and to minimise the maintenance cost of many alternate confirmations.
+It is vital that any new confirmations are implemented using best practices and consistent patterns, to avoid adding complexity to the code, and to minimise the maintenance cost of many alternate confirmations.
 
 ## Steps
 
