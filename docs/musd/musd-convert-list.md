@@ -197,8 +197,8 @@ export enum TransactionType {
 | `destinationTokenAmount`   | `string`            | Expected mUSD amount                                                                          |
 | `destinationTokenDecimals` | `number`            | mUSD decimals                                                                                 |
 | `time`                     | `number`            | Transaction creation timestamp (ms)                                                           |
-| `submittedTime`            | `number`            | When submitted to network (ms)                                                                |
-| `blockTimestamp`           | `string`            | When included in block                                                                        |
+| `submittedTime`            | `number`            | When submitted to the network (ms)                                                                |
+| `blockTimestamp`           | `string`            | When included in a block                                                                        |
 | `txParams.from`            | `string`            | User's account address                                                                        |
 
 ### TransactionStatus Enum
@@ -319,7 +319,7 @@ app/components/UI/Earn/
 
 **Path:** `app/components/UI/Earn/hooks/useMusdMaxConversion.ts`
 
-Creates max-amount transaction and sets payment token. Leverages existing infrastructure:
+Creates a max-amount transaction and sets the payment token. Leverages existing infrastructure:
 
 ```typescript
 export const useMusdMaxConversion = () => {
@@ -537,7 +537,7 @@ const getOutputChainId = (paymentTokenChainId: Hex): Hex => {
 
 ### Token Filtering
 
-Tokens shown in list must meet ALL criteria:
+Tokens shown in the list must meet ALL criteria:
 
 1. User has balance > 0
 2. Token is in `musdConversionPaymentTokensAllowlist`
@@ -738,7 +738,7 @@ export const selectMusdConversionStatuses = createSelector(
     );
 
     for (const tx of sorted) {
-      // Use metamaskPay data which contains the payment token info
+      // Use metamaskPay data, which contains the payment token info
       const tokenAddress = tx.metamaskPay?.tokenAddress?.toLowerCase();
       const chainId = tx.metamaskPay?.chainId;
 

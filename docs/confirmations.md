@@ -2,19 +2,19 @@
 
 ## Overview
 
-Given the security focused nature of self-custody, confirmations and approvals form a pivotal aspect of MetaMask Mobile.
+Given the security-focused nature of self-custody, confirmations and approvals form a pivotal aspect of MetaMask Mobile.
 
 Confirmations can be triggered by dApps and the UI itself, and are used to approve a variety of operations such as:
 
 - Connecting to dApps
 - Giving permissions to dApps
 - Sending Eth
-- Transfering tokens
+- Transferring tokens
 - Signing data
 - Interacting with Snaps
 - Adding Ethereum networks
 
-It is vital any new confirmations are implemented using best practices and consistent patterns, to avoid adding complexity to the code, and to minimise the maintenance cost of many alternate confirmations.
+It is vital that any new confirmations are implemented using best practices and consistent patterns, to avoid adding complexity to the code, and to minimise the maintenance cost of many alternate confirmations.
 
 ## Steps
 
@@ -35,8 +35,8 @@ The available arguments are:
 | opts.id | The ID of the approval request.<br>Assigned to a random value if not provided. | `"f81f5c8a-33bb-4f31-a4e2-52f8b94c393b"` |
 | opts.origin | The origin of the request.<br>Either the dApp host or "metamask" if internal. | `"metamask.github.io"` |
 | opts.type | A string identifying the type of confirmation. | `"eth_signTypedData"` |
-| opts.requestData | Additional fixed data for the request.<br>Must be a JSON compatible object.| `{ transactionId: '123' }` |
-| opts.requestState | Additional mutable data for the request.<br>Must be a JSON compatible object.<br>Can be updated using the `updateRequestState` method. | `{ status: 'pending' }` |
+| opts.requestData | Additional fixed data for the request.<br>Must be a JSON-compatible object.| `{ transactionId: '123' }` |
+| opts.requestState | Additional mutable data for the request.<br>Must be a JSON-compatible object.<br>Can be updated using the `updateRequestState` method. | `{ status: 'pending' }` |
 
 #### Example
 
