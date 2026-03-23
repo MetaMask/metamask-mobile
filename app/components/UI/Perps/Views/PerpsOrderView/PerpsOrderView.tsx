@@ -140,6 +140,8 @@ import { willFlipPosition } from '../../utils/orderUtils';
 import {
   calculateRoEForPrice,
   isStopLossSafeFromLiquidation,
+  isValidStopLossPrice,
+  isValidTakeProfitPrice,
 } from '../../utils/tpslValidation';
 import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
@@ -673,7 +675,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       );
       const absRoE = Math.abs(parseFloat(tpRoE || '0'));
       tpDisplay =
-        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
+        absRoE > 0
+          ? `${absRoE.toFixed(0)}%`
+          : formatPerpsFiat(orderForm.takeProfitPrice, {
+              ranges: PRICE_RANGES_UNIVERSAL,
+            });
     }
 
     if (orderForm.stopLossPrice && price > 0 && orderForm.leverage) {
@@ -690,7 +696,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       );
       const absRoE = Math.abs(parseFloat(slRoE || '0'));
       slDisplay =
-        absRoE > 0 ? `${absRoE.toFixed(0)}%` : strings('perps.order.off');
+        absRoE > 0
+          ? `${absRoE.toFixed(0)}%`
+          : formatPerpsFiat(orderForm.stopLossPrice, {
+              ranges: PRICE_RANGES_UNIVERSAL,
+            });
     }
 
     return `${strings('perps.order.tp')} ${tpDisplay}, ${strings(
@@ -1211,6 +1221,26 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ),
   );
 
+  const isTakeProfitPriceInvalid = Boolean(
+    orderForm.takeProfitPrice?.trim() &&
+      assetData.price > 0 &&
+      !isValidTakeProfitPrice(orderForm.takeProfitPrice, {
+        currentPrice: assetData.price,
+        direction: orderForm.direction,
+      }),
+  );
+
+  const isStopLossPriceInvalid = Boolean(
+    orderForm.stopLossPrice?.trim() &&
+      assetData.price > 0 &&
+      !isValidStopLossPrice(orderForm.stopLossPrice, {
+        currentPrice: assetData.price,
+        direction: orderForm.direction,
+      }),
+  );
+
+  const hasInvalidTPSL = isTakeProfitPriceInvalid || isStopLossPriceInvalid;
+
   let rewardAnimationState = RewardAnimationState.Idle;
   if (rewardsState.isLoading) {
     rewardAnimationState = RewardAnimationState.Loading;
@@ -1420,6 +1450,30 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               <View style={styles.stopLossLiquidationWarning}>
                 <Text variant={TextVariant.BodySM} color={TextColor.Error}>
                   {strings('perps.tpsl.stop_loss_order_view_warning', {
+                    direction:
+                      orderForm.direction === 'long'
+                        ? strings('perps.tpsl.below')
+                        : strings('perps.tpsl.above'),
+                  })}
+                </Text>
+              </View>
+            )}
+            {!hideTPSL && isTakeProfitPriceInvalid && (
+              <View style={styles.stopLossLiquidationWarning}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings('perps.tpsl.take_profit_wrong_side_warning', {
+                    direction:
+                      orderForm.direction === 'long'
+                        ? strings('perps.tpsl.above')
+                        : strings('perps.tpsl.below'),
+                  })}
+                </Text>
+              </View>
+            )}
+            {!hideTPSL && isStopLossPriceInvalid && (
+              <View style={styles.stopLossLiquidationWarning}>
+                <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  {strings('perps.tpsl.stop_loss_wrong_side_warning', {
                     direction:
                       orderForm.direction === 'long'
                         ? strings('perps.tpsl.below')
@@ -1659,6 +1713,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
+                hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading
               }
@@ -1679,6 +1734,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 !orderValidation.isValid ||
                 isPlacingOrder ||
                 doesStopLossRiskLiquidation ||
+                hasInvalidTPSL ||
                 isAtOICap ||
                 shouldBlockBecauseOfFeesLoading
               }
