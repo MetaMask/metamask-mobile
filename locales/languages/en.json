@@ -6439,7 +6439,8 @@
       "approve": "Approve request",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add Prediction funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "Withdraw",
+      "perps_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -6565,6 +6566,7 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available balance: ",
+    "available_perps_balance": "Available Perps balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
