@@ -546,7 +546,7 @@ const mockUsePerpsABTest = jest.fn(() => ({
   isEnabled: false,
 }));
 jest.mock('../../utils/abTesting/usePerpsABTest', () => ({
-  usePerpsABTest: (...args: unknown[]) => mockUsePerpsABTest(...args),
+  usePerpsABTest: () => mockUsePerpsABTest(),
 }));
 
 // Mock useTooltipModal hook
