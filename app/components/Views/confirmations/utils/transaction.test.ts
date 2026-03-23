@@ -248,9 +248,12 @@ describe('hasGasFeeTokenSelected', () => {
 });
 
 describe('isTransactionPayWithdraw', () => {
-  it('returns true for predictWithdraw transaction type', () => {
+  it.each([
+    TransactionType.predictWithdraw,
+    TransactionType.perpsWithdraw,
+  ])('returns true for %s transaction type', (transactionType) => {
     const txMeta = {
-      type: TransactionType.predictWithdraw,
+      type: transactionType,
     } as TransactionMeta;
 
     expect(isTransactionPayWithdraw(txMeta)).toBe(true);
@@ -272,10 +275,13 @@ describe('isTransactionPayWithdraw', () => {
     expect(isTransactionPayWithdraw(txMeta)).toBe(false);
   });
 
-  it('returns true when nested transaction is a withdrawal type', () => {
+  it.each([
+    TransactionType.predictWithdraw,
+    TransactionType.perpsWithdraw,
+  ])('returns true when nested transaction is %s', (transactionType) => {
     const txMeta = {
       type: TransactionType.batch,
-      nestedTransactions: [{ type: TransactionType.predictWithdraw }],
+      nestedTransactions: [{ type: transactionType }],
     } as TransactionMeta;
 
     expect(isTransactionPayWithdraw(txMeta)).toBe(true);

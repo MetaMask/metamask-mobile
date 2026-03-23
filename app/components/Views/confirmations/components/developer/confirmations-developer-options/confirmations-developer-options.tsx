@@ -23,6 +23,7 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
+import { ConfirmationsDeveloperOptionsTestIds } from './confirmations-developer-options.testIds';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
@@ -60,6 +61,7 @@ function PerpsWithdraw() {
       description="Trigger a Perps withdraw confirmation."
       buttonLabel="Withdraw"
       onPress={handleWithdraw}
+      testID={ConfirmationsDeveloperOptionsTestIds.PERPS_WITHDRAW_BUTTON}
     />
   );
 }
@@ -246,11 +248,13 @@ function DeveloperButton({
   buttonLabel,
   description,
   onPress,
+  testID,
   title,
 }: {
   buttonLabel: string;
   description: string;
   onPress: () => void;
+  testID?: string;
   title: string;
 }) {
   const theme = useTheme();
@@ -277,6 +281,7 @@ function DeveloperButton({
         size={ButtonSize.Lg}
         label={buttonLabel}
         onPress={onPress}
+        testID={testID}
         width={ButtonWidthTypes.Full}
         style={styles.accessory}
       />
