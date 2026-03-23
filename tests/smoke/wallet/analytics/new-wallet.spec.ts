@@ -11,6 +11,12 @@ import {
 import SoftAssert from '../../../framework/SoftAssert';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import {
+  AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
+  collectSeenProxiedRequests,
+  filterProxiedRequests,
+  waitForProxiedRequestsMatching,
+} from '../../../api-mocking/helpers/mockHelpers';
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -38,13 +44,22 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         restartDevice: true,
       },
       async ({ mockServer }) => {
-        await CreateNewWallet();
-
         if (!mockServer) {
           throw new Error(
             'Mock server is not defined, check testSpecificMock setup',
           );
         }
+
+        const profileAccountsMatcher = {
+          method: 'PUT' as const,
+          urlSubstring: AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
+        };
+        const profileAccountsBaseline = filterProxiedRequests(
+          await collectSeenProxiedRequests(mockServer),
+          profileAccountsMatcher,
+        ).length;
+
+        await CreateNewWallet();
 
         const events = await getEventsPayloads(mockServer, eventNames);
 
@@ -135,6 +150,18 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         ]);
 
         softAssert.throwIfErrors();
+
+        // MMQA-1384: address collection — PUT profile/accounts after new wallet
+        // (same proxy observation pattern as MetaMetrics above).
+        await waitForProxiedRequestsMatching(
+          mockServer,
+          profileAccountsMatcher,
+          {
+            minCount: profileAccountsBaseline + 1,
+            description:
+              'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet creation',
+          },
+        );
       },
     );
   });

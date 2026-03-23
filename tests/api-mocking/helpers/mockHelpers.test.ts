@@ -1,6 +1,8 @@
 import {
+  filterProxiedRequests,
   processPostRequestBody,
   PostRequestMatchingOptions,
+  type SeenProxiedRequest,
 } from './mockHelpers.ts';
 
 describe('processPostRequestBody', () => {
@@ -428,5 +430,38 @@ describe('processPostRequestBody', () => {
       expect(result.matches).toBe(false);
       expect(result.error).toBe('Request body validation failed');
     });
+  });
+});
+
+describe('filterProxiedRequests', () => {
+  const sample: SeenProxiedRequest[] = [
+    {
+      method: 'GET',
+      proxiedUrl:
+        'https://accounts.api.cx.metamask.io/v2/supportedNetworks?foo=1',
+    },
+    {
+      method: 'PUT',
+      proxiedUrl:
+        'https://authentication.api.cx.metamask.io/api/v2/profile/accounts',
+    },
+    { method: 'POST', proxiedUrl: 'https://example.com/other' },
+  ];
+
+  it('filters by method and url substring', () => {
+    const matches = filterProxiedRequests(sample, {
+      method: 'GET',
+      urlSubstring: 'accounts.api.cx.metamask.io/v2/supportedNetworks',
+    });
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.method).toBe('GET');
+  });
+
+  it('filters by url regex', () => {
+    const matches = filterProxiedRequests(sample, {
+      urlRegex: /profile\/accounts$/,
+    });
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.method).toBe('PUT');
   });
 });

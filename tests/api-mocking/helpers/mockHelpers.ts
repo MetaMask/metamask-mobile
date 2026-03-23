@@ -1,4 +1,4 @@
-import { Mockttp } from 'mockttp';
+import type { Mockttp, MockttpServer } from 'mockttp';
 import _ from 'lodash';
 import {
   createLogger,
@@ -6,6 +6,7 @@ import {
   MockApiEndpoint,
   MockEventsObject,
 } from '../../framework';
+import Utilities from '../../framework/Utilities.ts';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
 import { safeGetBodyText } from '../MockServerE2E.ts';
 
@@ -461,4 +462,109 @@ export async function setupAccountsV2SupportedNetworksMock(
     },
     responseCode: 200,
   });
+}
+
+// --- Proxied traffic observation (same source as getEventsPayloads: getMockedEndpoints + getSeenRequests) ---
+
+/** Substring match for GET supported networks (see setupAccountsV2SupportedNetworksMock). */
+export const ACCOUNTS_API_SUPPORTED_NETWORKS_URL_MARKER =
+  'accounts.api.cx.metamask.io/v2/supportedNetworks';
+
+/**
+ * MMQA-1384: user profile / address collection — `PUT …/api/v2/profile/accounts`
+ * (default mock: tests/api-mocking/mock-responses/defaults/index.ts).
+ */
+export const AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER =
+  'authentication.api.cx.metamask.io/api/v2/profile/accounts';
+
+export interface SeenProxiedRequest {
+  method: string;
+  proxiedUrl: string;
+}
+
+export interface ProxiedRequestMatcher {
+  method?: string;
+  urlSubstring?: string;
+  urlRegex?: RegExp;
+}
+
+/**
+ * Completed requests seen by mockttp rules, with the real target URL decoded from `/proxy?url=…`.
+ * Same pattern as `getEventsPayloads` in tests/helpers/analytics/helpers.ts (without MetaMetrics filtering).
+ */
+export async function collectSeenProxiedRequests(
+  mockServer: Mockttp | MockttpServer,
+): Promise<SeenProxiedRequest[]> {
+  const mockedEndpoints = await mockServer.getMockedEndpoints();
+  const requests = (
+    await Promise.all(
+      mockedEndpoints.map((endpoint) => endpoint.getSeenRequests()),
+    )
+  ).flat();
+
+  return requests.map((request) => ({
+    method: request.method,
+    proxiedUrl: getDecodedProxiedURL(request.url),
+  }));
+}
+
+export function filterProxiedRequests(
+  seen: SeenProxiedRequest[],
+  matcher: ProxiedRequestMatcher,
+): SeenProxiedRequest[] {
+  return seen.filter((r) => {
+    if (matcher.method !== undefined && r.method !== matcher.method) {
+      return false;
+    }
+    if (
+      matcher.urlSubstring !== undefined &&
+      !r.proxiedUrl.includes(matcher.urlSubstring)
+    ) {
+      return false;
+    }
+    if (
+      matcher.urlRegex !== undefined &&
+      !matcher.urlRegex.test(r.proxiedUrl)
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
+/**
+ * Polls until at least `minCount` proxied requests match, or throws after timeout.
+ */
+export async function waitForProxiedRequestsMatching(
+  mockServer: Mockttp | MockttpServer,
+  matcher: ProxiedRequestMatcher,
+  options: {
+    minCount?: number;
+    timeout?: number;
+    description: string;
+  },
+): Promise<SeenProxiedRequest[]> {
+  const { minCount = 1, timeout = 20000, description } = options;
+
+  return Utilities.executeWithRetry(
+    async () => {
+      const seen = await collectSeenProxiedRequests(mockServer);
+      const matches = filterProxiedRequests(seen, matcher);
+      if (matches.length < minCount) {
+        throw new Error(
+          `Expected at least ${String(minCount)} proxied request(s) matching ${JSON.stringify(
+            matcher,
+          )}, got ${String(matches.length)} (total proxied rows: ${String(
+            seen.length,
+          )})`,
+        );
+      }
+      return matches;
+    },
+    {
+      timeout,
+      interval: 500,
+      description,
+    },
+  );
 }
