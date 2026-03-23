@@ -181,15 +181,7 @@ module.exports = {
     },
     {
       files: [
-<<<<<<< HEAD
-        'app/components/hooks/useIsOriginalNativeTokenSymbol/**/*.{js,jsx,ts,tsx}',
-        'app/components/hooks/useTokenBalancesController/**/*.{js,jsx,ts,tsx}',
-        'app/components/hooks/useTokenBalance.tsx',
-        'app/components/hooks/useTokensData/**/*.{js,jsx,ts,tsx}',
-        'app/components/hooks/useSafeChains.ts',
-=======
         // @MetaMask/card
->>>>>>> cdd9d46b1d (chore: annotate color-no-hex codeowners)
         'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
         // @MetaMask/core-platform
         'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
