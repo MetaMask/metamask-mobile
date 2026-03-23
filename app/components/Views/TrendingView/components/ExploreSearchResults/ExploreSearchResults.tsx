@@ -17,6 +17,8 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Pressable } from 'react-native';
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { TapView, trackExploreEvent } from '../../utils/exploreSearch';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
@@ -64,8 +66,14 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
+  const hasScrollTracked = useRef(false);
+
   const handleViewMore = useCallback(
     (sectionId: SectionId, title: string) => {
+      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_VIEW_ALL_CLICKED, {
+        searchQuery,
+        sectionName: title,
+      });
       (
         navigation as never as {
           navigate: (
@@ -85,6 +93,18 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     },
     [navigation, searchQuery],
   );
+
+  const handleScroll = useCallback(() => {
+    if (hasScrollTracked.current) return;
+    hasScrollTracked.current = true;
+    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_SCROLLED, {
+      searchQuery,
+    });
+  }, [searchQuery]);
+
+  useEffect(() => {
+    hasScrollTracked.current = false;
+  }, [searchQuery]);
 
   const renderSectionHeader = useCallback(
     (item: ListItemHeader) => (
@@ -213,25 +233,29 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return <section.Skeleton />;
       }
 
-      if (section.OverrideRowItemSearch) {
-        return (
-          <section.OverrideRowItemSearch
+      const RowComponent = section.OverrideRowItemSearch ?? section.RowItem;
+      const { getItemIdentifier } = section;
+      const handleItemTouch = getItemIdentifier
+        ? () => {
+            trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_RESULT_CLICKED, {
+              searchQuery,
+              sectionName: section.title,
+              itemClicked: getItemIdentifier(item.data),
+            });
+          }
+        : undefined;
+
+      return (
+        <TapView onTap={handleItemTouch}>
+          <RowComponent
             item={item.data}
             index={index}
             navigation={navigation}
           />
-        );
-      }
-
-      return (
-        <section.RowItem
-          item={item.data}
-          index={index}
-          navigation={navigation}
-        />
+        </TapView>
       );
     },
-    [navigation, renderSectionHeader],
+    [navigation, renderSectionHeader, searchQuery],
   );
 
   const keyExtractor = useCallback((item: FlatListItem, index: number) => {
@@ -256,6 +280,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         keyboardShouldPersistTaps="handled"
         testID="trending-search-results-list"
         ListFooterComponent={renderFooter}
+        onScroll={handleScroll}
+        scrollEventThrottle={400}
       />
     </Box>
   );

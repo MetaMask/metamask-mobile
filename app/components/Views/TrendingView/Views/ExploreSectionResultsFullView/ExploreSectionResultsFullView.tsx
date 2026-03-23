@@ -1,4 +1,4 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
@@ -16,6 +16,8 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
+import { TapView, trackExploreEvent } from '../../utils/exploreSearch';
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 type ExploreSectionResultsFullViewParams = {
@@ -38,21 +40,47 @@ const SectionContent: React.FC<SectionContentProps> = ({
   const tw = useTailwind();
   const navigation = useNavigation();
   const section = SECTIONS_CONFIG[sectionId];
+  const hasScrollTracked = useRef(false);
 
   const { data, isLoading } = section.useSectionData(searchQuery);
+
+  const handleScroll = useCallback(() => {
+    if (hasScrollTracked.current) return;
+    hasScrollTracked.current = true;
+    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_VIEW_ALL_SCROLLED, {
+      searchQuery,
+      sectionName: section.title,
+    });
+  }, [searchQuery, section.title]);
 
   const renderItem: ListRenderItem<unknown> = useCallback(
     ({ item, index }) => {
       const RowItemComponent = section.OverrideRowItemSearch ?? section.RowItem;
+      const { getItemIdentifier } = section;
+      const handleItemTouch = getItemIdentifier
+        ? () => {
+            trackExploreEvent(
+              MetaMetricsEvents.EXPLORE_SEARCH_VIEW_ALL_ITEM_CLICKED,
+              {
+                searchQuery,
+                sectionName: section.title,
+                itemClicked: getItemIdentifier(item),
+              },
+            );
+          }
+        : undefined;
+
       return (
-        <RowItemComponent
-          item={item}
-          index={index}
-          navigation={navigation as never}
-        />
+        <TapView onTap={handleItemTouch}>
+          <RowItemComponent
+            item={item}
+            index={index}
+            navigation={navigation as never}
+          />
+        </TapView>
       );
     },
-    [section, navigation],
+    [section, navigation, searchQuery],
   );
 
   const keyExtractor = useCallback(
@@ -79,6 +107,8 @@ const SectionContent: React.FC<SectionContentProps> = ({
       keyExtractor={keyExtractor}
       contentContainerStyle={tw.style('px-4')}
       showsVerticalScrollIndicator={false}
+      onScroll={handleScroll}
+      scrollEventThrottle={400}
     />
   );
 };
