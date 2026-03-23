@@ -1,18 +1,14 @@
 import { NameType } from '../../UI/Name/Name.types';
 import { UseDisplayNameRequest } from './useDisplayName';
 import { Hex } from '@metamask/utils';
-import { toEvmCaipChainId } from '@metamask/multichain-network-controller';
 import { useTokensData } from '../useTokensData/useTokensData';
-
-function buildAssetId(value: string, variation: Hex): string {
-  return `${toEvmCaipChainId(variation)}/erc20:${value.toLowerCase()}`;
-}
+import { buildEvmCaip19AssetId } from '../../../util/multichain/buildEvmCaip19AssetId';
 
 export function useERC20Tokens(requests: UseDisplayNameRequest[]) {
   const assetIds = requests
     .filter(({ type, value }) => type === NameType.EthereumAddress && value)
     .map(({ value, variation }) =>
-      buildAssetId(value as string, variation as Hex),
+      buildEvmCaip19AssetId(value as string, variation as Hex),
     );
 
   const tokensByAssetId = useTokensData(assetIds);
@@ -23,7 +19,7 @@ export function useERC20Tokens(requests: UseDisplayNameRequest[]) {
     }
 
     const token =
-      tokensByAssetId[buildAssetId(value as string, variation as Hex)];
+      tokensByAssetId[buildEvmCaip19AssetId(value as string, variation as Hex)];
     const name =
       preferContractSymbol && token?.symbol ? token.symbol : token?.name;
 
