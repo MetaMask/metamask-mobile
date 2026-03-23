@@ -1,6 +1,7 @@
 // Countries response — used by both V1 and V2 endpoints.
 // Must include `currencies` array (SDK's getDefaultFiatCurrencySync iterates it)
-// and `support` object (not `supported` — the aggregator SDK checks `support.buy/sell`).
+// and `supported` on countries/states — @metamask/ramps-controller RampsService.getCountries()
+// filters on `supported` (legacy mocks used `support` only, which filtered out every row).
 export const RAMPS_COUNTRIES_RESPONSE = [
   {
     isoCode: 'PT',
@@ -10,7 +11,7 @@ export const RAMPS_COUNTRIES_RESPONSE = [
     phone: { prefix: '+351', placeholder: '', template: '' },
     currency: 'EUR',
     currencies: ['/currencies/fiat/eur'],
-    support: {
+    supported: {
       buy: true,
       sell: true,
     },
@@ -25,7 +26,7 @@ export const RAMPS_COUNTRIES_RESPONSE = [
     phone: { prefix: '+33', placeholder: '', template: '' },
     currency: 'EUR',
     currencies: ['/currencies/fiat/eur'],
-    support: {
+    supported: {
       buy: true,
       sell: true,
     },
@@ -45,13 +46,13 @@ export const RAMPS_COUNTRIES_RESPONSE = [
         id: '/regions/us-ca',
         name: 'California',
         stateId: 'ca',
-        support: {
+        supported: {
           buy: true,
           sell: true,
         },
       },
     ],
-    support: {
+    supported: {
       buy: false,
       sell: false,
     },
@@ -66,7 +67,7 @@ export const RAMPS_COUNTRIES_RESPONSE = [
     phone: { prefix: '+34', placeholder: '', template: '' },
     currency: 'EUR',
     currencies: ['/currencies/fiat/eur'],
-    support: {
+    supported: {
       buy: true,
       sell: true,
     },
