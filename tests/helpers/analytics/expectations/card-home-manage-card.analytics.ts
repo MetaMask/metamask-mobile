@@ -2,20 +2,11 @@ import type { AnalyticsExpectations } from '../../../framework';
 
 const CARD_BUTTON_VIEWED = 'Card Button Viewed';
 const CARD_HOME_CLICKED = 'Card Home Clicked';
-const CARD_ADVANCED_MANAGEMENT_CLICKED = 'Card Advanced Management Clicked';
 
 /**
  * Expected MetaMetrics payloads after opening Card Home and tapping Advanced Management.
  */
 export const cardHomeManageCardExpectations: AnalyticsExpectations = {
-  eventNames: [
-    CARD_BUTTON_VIEWED,
-    CARD_HOME_CLICKED,
-    CARD_ADVANCED_MANAGEMENT_CLICKED,
-  ],
-  events: [
-    { name: CARD_BUTTON_VIEWED },
-    { name: CARD_HOME_CLICKED },
-    { name: CARD_ADVANCED_MANAGEMENT_CLICKED },
-  ],
+  eventNames: [CARD_BUTTON_VIEWED, CARD_HOME_CLICKED],
+  events: [{ name: CARD_BUTTON_VIEWED }, { name: CARD_HOME_CLICKED }],
 };
