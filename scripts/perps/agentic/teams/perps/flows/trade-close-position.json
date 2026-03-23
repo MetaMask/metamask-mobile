@@ -49,8 +49,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "perps-market-details-close-button"
         },
         {
           "id": "press-close",
@@ -59,18 +59,8 @@
         },
         {
           "id": "wait-close-screen",
-          "action": "wait",
-          "ms": 1500
-        },
-        {
-          "id": "assert-close-route",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsClosePosition"
-          }
+          "action": "wait_for",
+          "route": "PerpsClosePosition"
         },
         {
           "id": "press-confirm-close",
@@ -78,13 +68,8 @@
           "test_id": "close-position-confirm-button"
         },
         {
-          "id": "wait-close-execute",
-          "action": "wait",
-          "ms": 3000
-        },
-        {
-          "id": "assert-position-closed",
-          "action": "eval_async",
+          "id": "wait-position-closed",
+          "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
           "assert": {
             "operator": "eq",

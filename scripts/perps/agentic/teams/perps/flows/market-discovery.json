@@ -5,6 +5,16 @@
       "type": "string",
       "default": "BTC",
       "description": "Market symbol to look up"
+    },
+    "category": {
+      "type": "string",
+      "default": "",
+      "description": "Optional category filter: crypto, stocks, commodities, forex. If empty, no chip is pressed (shows all)."
+    },
+    "search": {
+      "type": "string",
+      "default": "",
+      "description": "Optional search query to type into the search bar. If empty, search is skipped."
     }
   },
   "validate": {
@@ -21,12 +31,28 @@
         },
         {
           "id": "wait-market-data",
-          "action": "wait",
-          "ms": 2000
+          "action": "wait_for",
+          "route": "PerpsTrendingView"
         },
         {
-          "id": "assert-markets-loaded",
-          "action": "eval_async",
+          "id": "select-category",
+          "action": "eval_sync",
+          "expression": "(function(){var cat='{{category}}';if(!cat)return JSON.stringify({skipped:true,category:'all'});var r=globalThis.__AGENTIC__.pressTestId('perps-market-list-sort-filters-categories-'+cat);return JSON.stringify({selected:true,category:cat})})()",
+          "assert": {
+            "operator": "not_null"
+          }
+        },
+        {
+          "id": "search-symbol",
+          "action": "eval_sync",
+          "expression": "(function(){var q='{{search}}';if(!q)return JSON.stringify({skipped:true});globalThis.__AGENTIC__.setInput('perps-market-list-search-bar',q);return JSON.stringify({searched:true,query:q})})()",
+          "assert": {
+            "operator": "not_null"
+          }
+        },
+        {
+          "id": "wait-filter",
+          "action": "wait_for",
           "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
           "assert": {
             "operator": "gt",
@@ -62,12 +88,7 @@
         },
         {
           "id": "wait-price-load",
-          "action": "wait",
-          "ms": 2000
-        },
-        {
-          "id": "assert-price-loaded",
-          "action": "eval_async",
+          "action": "wait_for",
           "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){var m=ms.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({price:m?m.price:'0'})})",
           "assert": {
             "operator": "not_null",

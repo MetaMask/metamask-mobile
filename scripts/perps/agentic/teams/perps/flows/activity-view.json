@@ -25,18 +25,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 2000
-        },
-        {
-          "id": "assert-activity-route",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsActivity"
-          }
+          "action": "wait_for",
+          "route": "PerpsActivity"
         },
         {
           "id": "press-tab",
@@ -46,18 +36,8 @@
         },
         {
           "id": "wait-filter",
-          "action": "wait",
-          "ms": 800
-        },
-        {
-          "id": "assert-tab-active",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsActivity"
-          }
+          "action": "wait_for",
+          "route": "PerpsActivity"
         }
       ]
     }

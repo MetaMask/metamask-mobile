@@ -46,8 +46,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "perps-market-header-favorite-button"
         },
         {
           "id": "press-favorite-add",
@@ -57,12 +57,7 @@
         },
         {
           "id": "wait-state-update",
-          "action": "wait",
-          "ms": 1000
-        },
-        {
-          "id": "assert-added",
-          "action": "eval_sync",
+          "action": "wait_for",
           "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
           "assert": {
             "operator": "eq",
@@ -78,12 +73,7 @@
         },
         {
           "id": "wait-state-update-2",
-          "action": "wait",
-          "ms": 1000
-        },
-        {
-          "id": "assert-removed",
-          "action": "eval_sync",
+          "action": "wait_for",
           "expression": "JSON.stringify({inWatchlist:(Engine.context.PerpsController.state.watchlistMarkets.mainnet||[]).indexOf('{{symbol}}')>=0||(Engine.context.PerpsController.state.watchlistMarkets.testnet||[]).indexOf('{{symbol}}')>=0})",
           "assert": {
             "operator": "eq",

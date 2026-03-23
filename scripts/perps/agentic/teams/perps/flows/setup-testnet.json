@@ -14,12 +14,7 @@
         },
         {
           "id": "wait-reload",
-          "action": "wait",
-          "ms": 2000
-        },
-        {
-          "id": "verify-testnet",
-          "action": "eval_sync",
+          "action": "wait_for",
           "expression": "JSON.stringify({isTestnet:Engine.context.PerpsController.state.isTestnet})",
           "assert": {
             "operator": "eq",

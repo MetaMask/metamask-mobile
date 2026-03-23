@@ -47,8 +47,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "perps-market-details-{{side}}-button"
         },
         {
           "id": "press-side",
@@ -57,8 +57,8 @@
         },
         {
           "id": "wait-form",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "perps-order-header-order-type-button"
         },
         {
           "id": "press-order-type",
@@ -67,8 +67,8 @@
         },
         {
           "id": "wait-type-sheet",
-          "action": "wait",
-          "ms": 800
+          "action": "wait_for",
+          "test_id": "perps-order-type-limit"
         },
         {
           "id": "press-limit",
@@ -77,8 +77,8 @@
         },
         {
           "id": "wait-limit-form",
-          "action": "wait",
-          "ms": 800
+          "action": "wait_for",
+          "test_id": "perps-order-view-limit-price-row"
         },
         {
           "id": "press-limit-price-row",
@@ -87,8 +87,8 @@
         },
         {
           "id": "wait-price-sheet",
-          "action": "wait",
-          "ms": 800
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
         },
         {
           "id": "clear-limit-keypad",
@@ -107,8 +107,8 @@
         },
         {
           "id": "wait-price-set",
-          "action": "wait",
-          "ms": 500
+          "action": "wait_for",
+          "test_id": "perps-amount-display-touchable"
         },
         {
           "id": "press-amount",
@@ -117,8 +117,8 @@
         },
         {
           "id": "wait-keypad",
-          "action": "wait",
-          "ms": 500
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
         },
         {
           "id": "clear-keypad",
@@ -147,8 +147,8 @@
         },
         {
           "id": "wait-summary",
-          "action": "wait",
-          "ms": 800
+          "action": "wait_for",
+          "test_id": "perps-order-view-place-order-button"
         },
         {
           "id": "place-order",
@@ -157,18 +157,8 @@
         },
         {
           "id": "wait-confirm",
-          "action": "wait",
-          "ms": 5000
-        },
-        {
-          "id": "assert-order-placed",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "not_contains",
-            "field": "route",
-            "value": "RedesignedConfirmations"
-          }
+          "action": "wait_for",
+          "not_route": "RedesignedConfirmations"
         }
       ]
     }

@@ -47,8 +47,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "position-card-margin-chevron"
         },
         {
           "id": "press-margin-chevron",
@@ -57,8 +57,8 @@
         },
         {
           "id": "wait-action-sheet",
-          "action": "wait",
-          "ms": 1000
+          "action": "wait_for",
+          "test_id": "perps-adjust-margin-add-btn"
         },
         {
           "id": "press-add-margin-option",
@@ -67,18 +67,8 @@
         },
         {
           "id": "wait-margin-screen",
-          "action": "wait",
-          "ms": 1500
-        },
-        {
-          "id": "assert-margin-route",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsAdjustMargin"
-          }
+          "action": "wait_for",
+          "route": "PerpsAdjustMargin"
         },
         {
           "id": "press-amount-display",
@@ -87,8 +77,8 @@
         },
         {
           "id": "wait-keypad",
-          "action": "wait",
-          "ms": 500
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
         },
         {
           "id": "clear-keypad",
@@ -107,8 +97,8 @@
         },
         {
           "id": "wait-done",
-          "action": "wait",
-          "ms": 500
+          "action": "wait_for",
+          "test_id": "perps-adjust-margin-confirm-button"
         },
         {
           "id": "press-confirm",
@@ -117,12 +107,7 @@
         },
         {
           "id": "wait-confirm",
-          "action": "wait",
-          "ms": 3000
-        },
-        {
-          "id": "assert-margin-changed",
-          "action": "eval_async",
+          "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.marginUsed:null})})",
           "assert": {
             "operator": "not_null",

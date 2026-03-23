@@ -48,8 +48,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "perps-market-details-{{side}}-button"
         },
         {
           "id": "press-side",
@@ -58,18 +58,8 @@
         },
         {
           "id": "wait-form",
-          "action": "wait",
-          "ms": 1500
-        },
-        {
-          "id": "assert-form",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "RedesignedConfirmations"
-          }
+          "action": "wait_for",
+          "route": "RedesignedConfirmations"
         },
         {
           "id": "press-amount",
@@ -78,8 +68,8 @@
         },
         {
           "id": "wait-keypad",
-          "action": "wait",
-          "ms": 500
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
         },
         {
           "id": "clear-keypad",
@@ -108,8 +98,8 @@
         },
         {
           "id": "wait-summary",
-          "action": "wait",
-          "ms": 800
+          "action": "wait_for",
+          "test_id": "perps-order-view-place-order-button"
         },
         {
           "id": "place-order",
@@ -117,19 +107,9 @@
           "test_id": "perps-order-view-place-order-button"
         },
         {
-          "id": "wait-confirm",
-          "action": "wait",
-          "ms": 2000
-        },
-        {
-          "id": "assert-order-placed",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "not_contains",
-            "field": "route",
-            "value": "RedesignedConfirmations"
-          }
+          "id": "wait-order-placed",
+          "action": "wait_for",
+          "not_route": "RedesignedConfirmations"
         }
       ]
     }

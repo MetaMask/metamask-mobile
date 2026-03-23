@@ -42,8 +42,8 @@
         },
         {
           "id": "wait-market-render",
-          "action": "wait",
-          "ms": 2000
+          "action": "wait_for",
+          "test_id": "position-card-auto-close-toggle"
         },
         {
           "id": "press-auto-close",
@@ -51,19 +51,9 @@
           "test_id": "position-card-auto-close-toggle"
         },
         {
-          "id": "wait-render",
-          "action": "wait",
-          "ms": 1500
-        },
-        {
-          "id": "assert-tpsl-route",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsTPSL"
-          }
+          "id": "wait-tpsl-route",
+          "action": "wait_for",
+          "route": "PerpsTPSL"
         },
         {
           "id": "set-tp",
@@ -73,8 +63,8 @@
         },
         {
           "id": "wait-tp-input",
-          "action": "wait",
-          "ms": 500
+          "action": "wait_for",
+          "test_id": "perps-tpsl-sl-input"
         },
         {
           "id": "set-sl",
@@ -84,8 +74,8 @@
         },
         {
           "id": "wait-sl-input",
-          "action": "wait",
-          "ms": 500
+          "action": "wait_for",
+          "test_id": "perps-tpsl-bottomsheet"
         },
         {
           "id": "assert-no-validation-error",
@@ -113,13 +103,8 @@
           "test_id": "perps-tpsl-bottomsheet"
         },
         {
-          "id": "wait-submit",
-          "action": "wait",
-          "ms": 3000
-        },
-        {
-          "id": "assert-tpsl-created",
-          "action": "eval_async",
+          "id": "wait-tpsl-created",
+          "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({hasTp:!!(p&&p.takeProfitPrice),hasSl:!!(p&&p.stopLossPrice)})})",
           "assert": {
             "operator": "eq",

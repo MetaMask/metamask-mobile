@@ -44,8 +44,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 2000
+          "action": "wait_for",
+          "test_id": "perps-compact-order-row-first"
         },
         {
           "id": "press-first-order",
@@ -55,8 +55,8 @@
         },
         {
           "id": "wait-order-details",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "perps-order-details-cancel-button"
         },
         {
           "id": "press-cancel-button",
@@ -65,12 +65,7 @@
         },
         {
           "id": "wait-cancel",
-          "action": "wait",
-          "ms": 2000
-        },
-        {
-          "id": "assert-order-removed",
-          "action": "eval_async",
+          "action": "wait_for",
           "expression": "Engine.context.PerpsController.getOpenOrders().then(function(os){var filtered=os.filter(function(o){return o.symbol==='{{symbol}}'&&!o.isTrigger});return JSON.stringify({count:filtered.length})})",
           "assert": {
             "operator": "eq",

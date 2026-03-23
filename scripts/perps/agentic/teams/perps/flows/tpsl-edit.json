@@ -38,8 +38,8 @@
         },
         {
           "id": "wait-render",
-          "action": "wait",
-          "ms": 1500
+          "action": "wait_for",
+          "test_id": "position-card-auto-close-toggle"
         },
         {
           "id": "press-modify-tpsl",
@@ -48,18 +48,8 @@
         },
         {
           "id": "wait-tpsl-screen",
-          "action": "wait",
-          "ms": 1500
-        },
-        {
-          "id": "assert-tpsl-route",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsTPSL"
-          }
+          "action": "wait_for",
+          "route": "PerpsTPSL"
         },
         {
           "id": "set-new-tp",
@@ -69,18 +59,8 @@
         },
         {
           "id": "wait-input",
-          "action": "wait",
-          "ms": 500
-        },
-        {
-          "id": "assert-tpsl-screen-intact",
-          "action": "eval_sync",
-          "expression": "JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})",
-          "assert": {
-            "operator": "eq",
-            "field": "route",
-            "value": "PerpsTPSL"
-          }
+          "action": "wait_for",
+          "route": "PerpsTPSL"
         },
         {
           "id": "press-set-tpsl",
@@ -89,12 +69,7 @@
         },
         {
           "id": "wait-submit",
-          "action": "wait",
-          "ms": 3000
-        },
-        {
-          "id": "assert-tp-updated",
-          "action": "eval_async",
+          "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({tp:p?String(p.takeProfitPrice):null})})",
           "assert": {
             "operator": "not_null",
