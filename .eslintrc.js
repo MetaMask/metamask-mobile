@@ -181,20 +181,30 @@ module.exports = {
     },
     {
       files: [
+<<<<<<< HEAD
         'app/components/hooks/useIsOriginalNativeTokenSymbol/**/*.{js,jsx,ts,tsx}',
         'app/components/hooks/useTokenBalancesController/**/*.{js,jsx,ts,tsx}',
         'app/components/hooks/useTokenBalance.tsx',
         'app/components/hooks/useTokensData/**/*.{js,jsx,ts,tsx}',
         'app/components/hooks/useSafeChains.ts',
+=======
+        // @MetaMask/card
+>>>>>>> cdd9d46b1d (chore: annotate color-no-hex codeowners)
         'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/core-platform
         'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/predict
         'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/ramp
         'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/rewards
         'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/perps
         'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/metamask-earn
         'app/components/UI/Earn/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/Stake/**/*.{js,jsx,ts,tsx}',
-        // Assets team has a large number of folder ownership areas,
+        // @MetaMask/metamask-assets
         'app/components/UI/Assets/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/Tokens/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/AssetOverview/**/*.{js,jsx,ts,tsx}',
@@ -220,7 +230,7 @@ module.exports = {
         'app/components/Views/DetectedTokens/**/*.{js,jsx,ts,tsx}',
         'app/components/Views/NFTAutoDetectionModal/**/*.{js,jsx,ts,tsx}',
         'app/components/Views/NftDetails/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/core-mobile-ux
+        // @MetaMask/mobile-core-ux
         'app/components/Views/AccountActions/**/*.{js,jsx,ts,tsx}',
         'app/components/Views/AccountSelector/**/*.{js,jsx,ts,tsx}',
         'app/components/Views/AccountsMenu/**/*.{js,jsx,ts,tsx}',
