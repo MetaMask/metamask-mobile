@@ -647,9 +647,9 @@ break on every token update, triggering unrelated code owners and blocking merge
 ### Assertions
 
 ```ts
-// ✅ Correct — uses token reference, survives token updates
-import { lightTheme } from '@metamask/design-tokens';
-expect(element.props.style.color).toBe(lightTheme.colors.text.alternative);
+// ✅ Correct — use the shared mockTheme (real design tokens), survives token updates
+import { mockTheme } from '../../util/theme';
+expect(element.props.style.color).toBe(mockTheme.colors.text.alternative);
 
 // ❌ Wrong — breaks when design tokens change
 expect(element.props.style.color).toBe('#686e7d');
@@ -658,11 +658,11 @@ expect(element.props.style.color).toBe('#686e7d');
 ### Theme mocks
 
 ```ts
-// ✅ Correct — spread real tokens via jest.requireActual, always up to date
+// ✅ Correct — reuse app-level mockTheme (already based on real design tokens)
 jest.mock('../../util/theme', () => {
-  const { lightTheme: lt } = jest.requireActual('@metamask/design-tokens');
+  const { mockTheme } = jest.requireActual('../../util/theme');
   return {
-    useTheme: () => ({ colors: lt.colors }),
+    useTheme: () => mockTheme,
   };
 });
 
