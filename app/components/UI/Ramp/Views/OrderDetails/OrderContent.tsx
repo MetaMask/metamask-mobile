@@ -26,7 +26,6 @@ import BadgeWrapper, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { renderFiat } from '../../../../../util/number';
 import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -41,7 +40,7 @@ import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow'
 import Routes from '../../../../../constants/navigation/Routes';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
 
-const AMOUNT_PLACEHOLDER = '—';
+const AMOUNT_PLACEHOLDER = '...';
 const TERMINAL_STATUSES = new Set([
   RampsOrderStatus.Completed,
   RampsOrderStatus.Failed,
@@ -176,9 +175,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
     }
   };
 
+  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
+  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
+
   const hasAmounts = Boolean(
-    (order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
-      (order.cryptoAmount != null && Number(order.cryptoAmount) > 0),
+    fiatCurrencyCode &&
+      ((order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
+        (order.cryptoAmount != null && Number(order.cryptoAmount) > 0)),
   );
   const isTerminal = TERMINAL_STATUSES.has(order.status);
   const isLoading = !hasAmounts && !isTerminal;
@@ -219,10 +222,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
     createEventBuilder,
     trackEvent,
   ]);
-
-  const fiatDenomSymbol = order.fiatCurrency?.denomSymbol ?? '';
-  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
-  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
   const normalizeChainIdForBadge = (chainId: string): string => {
     if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
@@ -489,11 +488,17 @@ const OrderContent: React.FC<OrderContentProps> = ({
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {hasAmounts
-              ? `${fiatDenomSymbol}${renderFiat(
+              ? formatWithThreshold(
                   Number(order.totalFeesFiat ?? 0),
-                  fiatCurrencyCode,
-                  fiatDecimals,
-                )}`
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
               : AMOUNT_PLACEHOLDER}
           </Text>
         )}
@@ -516,11 +521,17 @@ const OrderContent: React.FC<OrderContentProps> = ({
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {hasAmounts
-              ? `${fiatDenomSymbol}${renderFiat(
+              ? formatWithThreshold(
                   Number(order.fiatAmount ?? 0),
-                  fiatCurrencyCode,
-                  fiatDecimals,
-                )}`
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
               : AMOUNT_PLACEHOLDER}
           </Text>
         )}

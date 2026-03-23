@@ -293,7 +293,7 @@ describe('OrderContent', () => {
     };
     renderOrder(noAmountOrder);
     const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
-    expect(tokenAmount).toHaveTextContent('— ETH');
+    expect(tokenAmount).toHaveTextContent('... ETH');
   });
 
   it('shows placeholder when cryptoAmount is zero', () => {
@@ -303,7 +303,7 @@ describe('OrderContent', () => {
     };
     renderOrder(zeroAmountOrder);
     const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
-    expect(tokenAmount).toHaveTextContent('— ETH');
+    expect(tokenAmount).toHaveTextContent('... ETH');
   });
 
   it('shows placeholder amounts for terminal orders with no amounts', () => {
@@ -320,8 +320,8 @@ describe('OrderContent', () => {
     expect(screen.getByText('Failed')).toBeOnTheScreen();
     expect(
       screen.getByTestId('ramps-order-details-token-amount'),
-    ).toHaveTextContent('— ETH');
-    expect(screen.getAllByText('—')).toHaveLength(3);
+    ).toHaveTextContent('... ETH');
+    expect(screen.getAllByText('...')).toHaveLength(2);
   });
 
   it('does not render info row when statusDescription is absent', () => {
