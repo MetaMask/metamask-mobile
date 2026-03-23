@@ -15,20 +15,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add a Contact Support button on CardHome (#27421)
 - Added an mUSD bonus calculator to the Rewards tab (#27398)
 - Add Monad integration on Card delegation (#27392)
-- Added a Cash section on the homepage that shows aggregated mUSD balance, annualized bonus copy for stablecoin holders, (#27123)
-  and a dedicated Cash token list view with network filter.
-- Homepage tokens and DeFi now always sort by balance/value; View all keeps your sort preference. Popular networks are (#27339)
-  selected when opening the Wallet so View all shows all popular networks
-  by default.
+- Added a Cash section on the homepage that shows aggregated mUSD balance, annualized bonus copy for stablecoin holders, and a dedicated Cash token list view with network filter (#27123)
+- Homepage tokens and DeFi now always sort by balance/value; View all keeps your sort preference. Popular networks are selected when opening the Wallet so View all shows all popular networks by default (#27339)
 - Include nfts on manual refresh (#27272)
 - Added a remote feature flag to control default pay token preselection when users have no Perps balance. (#27289)
 - Added a banner to display TRX that is ready for withdrawal on the token details view (#27075)
 - Add campaign opt-in and participant status hooks/controller actions (#27121)
 - Added a banner to display TRX in the 14-day unstaking lock period on the token details view (#27074)
 - Add select quotes functionality (#26640)
-- When users have no perps balance, the app now preselects the allowlist token with the highest balance for payment when (#26281)
-  available, and shows an "Add funds" button on the market details screen
-  when no token can be preselected.
+- When users have no perps balance, the app now preselects the allowlist token with the highest balance for payment when available, and shows an "Add funds" button on the market details screen when no token can be preselected (#26281)
 - Expose GET /campaigns endpoint through RewardsController with 5-minute cache (#27108)
 - Always display popular networks assets on the token section of the home page (#27009)
 - Added Trending tokens to the mobile Swap zero state with filter controls and improved Bridge quote/loading state handling (#26620)
@@ -62,35 +57,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fixed Card Onboarding name issues (#27291)
 - fix(homepage): fix session summary section tracking and visibility detection (#27402)
 - Disable slide-to-dismiss behavior of swaps keypad (#26770)
-- Remove thrown exceptions in migration 121 when `NetworkEnablementController` is absent or (#27275)
-  `NetworkEnablementController.nativeAssetIdentifiers` is missing.
+- Remove thrown exceptions in migration 121 when `NetworkEnablementController` is absent or `NetworkEnablementController.nativeAssetIdentifiers` is missing (#27275)
 - Fixed Android Google sign-in errors not falling back to browser-based login for unrecognized credential manager failures (#26964)
 - Fixed a visual inconsistency where bridge token selector ticker text appeared thinner than other token lists. (#27357)
 - fix: scanning verbiage only shows when actually scanning (#27319)
 - Fixed a bug where switching to a non-EVM network caused EVM transaction details to display the wrong block explorer link (#27321)
-- Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the (#27297)
-  token selection screen.
-- Fixed a bug where the "Change provider" link in the payment selection modal was not clickable while payment methods were (#27288)
-  loading.
+- Fixed a bug where closing the "Token not available" modal left the user in a stuck state instead of navigating back to the token selection screen (#27297)
+- Fixed a bug where the "Change provider" link in the payment selection modal was not clickable while payment methods were loading (#27288)
 - fix: increase touchable area of select quotes entry (#27267)
 - Fixed OTP error messages to show the actual error from the server instead of a generic fallback (#26727)
 - fix: pin seed phrase font size to prevent shrinking on large font devices (#27238)
 - Fix issue related to info icon press navigating to select quotes rather than opening info modal (#27249)
-- Long/Short from Asset Details now ensures Arbitrum network exists (adds it if missing) before creating the deposit (#27213)
-  transaction, fixing "Transaction creation failed" when the user has no
-  Arbitrum network (#26756)
-- Fixed a race condition causing CLIENT_NOT_INITIALIZED errors when navigating to Perps before controller initialization (#27178)
-  completes
+- Long/Short from Asset Details now ensures Arbitrum network exists (adds it if missing) before creating the deposit transaction, fixing "Transaction creation failed" when the user has no Arbitrum network (#27213, #26756)
+- Fixed a race condition causing CLIENT_NOT_INITIALIZED errors when navigating to Perps before controller initialization completes (#27178)
 - Fixed a bug where hiding balances on the wallet home screen was not reflected in the account list (#27190)
-- Fixed BottomSheet dismissing the wrong screen when rapidly opened and closed, which could leave mUSD conversion (#27026)
-  confirmation flows in a blocked state with unrejected pending approvals
-- Fixed layout issues in Ramp Order Details — inline info icon, centered status text, sticky footer, stripped redundant order (#27025)
-  prefix, adjusted toast offset, and centered text in processing info
-  modal.
+- Fixed BottomSheet dismissing the wrong screen when rapidly opened and closed, which could leave mUSD conversion confirmation flows in a blocked state with unrejected pending approvals (#27026)
+- Fixed layout issues in Ramp Order Details — inline info icon, centered status text, sticky footer, stripped redundant order prefix, adjusted toast offset, and centered text in processing info modal (#27025)
 - Fix avoid O(n) api calls to on-ramp endpoint (#26900)
 - Fixed mUSD conversion confirmation no longer gets stuck when tapping external links that briefly background the app (#27155)
-- Fixed a bug in the asset picker where token and balance text could wrap incorrectly by aligning mobile layout and truncation (#27069)
-  behavior with extension.
+- Fixed a bug in the asset picker where token and balance text could wrap incorrectly by aligning mobile layout and truncation behavior with extension (#27069)
 - Fixed privacy mode not hiding financial values on Perps screens (#27128)
 - Fix Ledger transaction not displayed after opening ETH app (#26322)
 - Fixed issue of confirmation not rejecting when app locks (#26905)
