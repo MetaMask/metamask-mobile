@@ -20,6 +20,7 @@ import PerpsTokenLogo from '../../../../../../UI/Perps/components/PerpsTokenLogo
 import SparklineChart from '../SparklineChart';
 import styleSheet from './PerpsMarketTileCard.styles';
 import type { PerpsMarketTileCardProps } from './PerpsMarketTileCard.types';
+import { usePerpsLivePrices } from '../../../../../../UI/Perps/hooks/stream';
 
 const DEFAULT_CARD_WIDTH = 180;
 const DEFAULT_CARD_HEIGHT = 180;
@@ -31,7 +32,7 @@ const SPARKLINE_MARGIN = 16;
 
 /**
  * PerpsMarketTileCard — compact card for horizontal carousels.
- * Uses static market data only (no live price subscription).
+ * Uses live percentage change when available, falls back to static market data.
  */
 const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
   market,
@@ -44,13 +45,30 @@ const PerpsMarketTileCard: React.FC<PerpsMarketTileCardProps> = ({
 }) => {
   const { styles, theme } = useStyles(styleSheet, { cardWidth, cardHeight });
 
-  const { changePercent, isPositive } = useMemo(
-    () => ({
+  // Subscribe to live prices for this symbol (throttled internally by the hook)
+  const livePrices = usePerpsLivePrices({ symbols: [market.symbol] });
+  const livePercentRaw = livePrices?.[market.symbol]?.percentChange24h;
+
+  const { changePercent, isPositive } = useMemo(() => {
+    if (livePercentRaw !== undefined && livePercentRaw !== null && livePercentRaw !== '') {
+      // Normalize to always include explicit sign and trailing '%'
+      const withoutPercent =
+        typeof livePercentRaw === 'string' && livePercentRaw.endsWith('%')
+          ? livePercentRaw.slice(0, -1)
+          : String(livePercentRaw);
+      const hasSign = withoutPercent.startsWith('+') || withoutPercent.startsWith('-');
+      const signed = hasSign ? withoutPercent : `+${withoutPercent}`;
+      const display = `${signed}%`;
+      return {
+        changePercent: display,
+        isPositive: !signed.startsWith('-'),
+      };
+    }
+    return {
       changePercent: market.change24hPercent,
       isPositive: !market.change24hPercent.startsWith('-'),
-    }),
-    [market.change24hPercent],
-  );
+    };
+  }, [livePercentRaw, market.change24hPercent]);
 
   const sparklineColor = isPositive
     ? theme.colors.success.default
