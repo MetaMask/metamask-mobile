@@ -23,6 +23,12 @@ import {
   type PredictOutcomeToken,
 } from '../../../../types';
 
+const LONG_OUTCOME_LABEL_THRESHOLD = 12;
+const TALL_ACTION_BUTTON_MIN_HEIGHT = 48;
+
+const shouldUseStackedActionButtonLabel = (title?: string) =>
+  Boolean(title && title.length > LONG_OUTCOME_LABEL_THRESHOLD);
+
 export interface PredictMarketDetailsActionsProps {
   isClaimablePositionsLoading: boolean;
   hasPositivePnl: boolean;
@@ -72,6 +78,25 @@ const PredictMarketDetailsActions = memo(
           ) {
             // use openOutcomes for real-time (CLOB) prices
             const firstOpenOutcome = openOutcomes[0];
+            const yesTitle =
+              firstOpenOutcome?.tokens?.[0]?.title ??
+              market?.outcomes?.[0]?.tokens?.[0]?.title ??
+              '';
+            const noTitle =
+              firstOpenOutcome?.tokens?.[1]?.title ??
+              market?.outcomes?.[0]?.tokens?.[1]?.title ??
+              '';
+            const useStackedLabels =
+              shouldUseStackedActionButtonLabel(yesTitle) ||
+              shouldUseStackedActionButtonLabel(noTitle);
+            const actionButtonStyle = [
+              tw.style('flex-1'),
+              useStackedLabels && {
+                height: undefined,
+                minHeight: TALL_ACTION_BUTTON_MIN_HEIGHT,
+                paddingVertical: 8,
+              },
+            ];
             return (
               <Box
                 flexDirection={BoxFlexDirection.Row}
@@ -83,14 +108,33 @@ const PredictMarketDetailsActions = memo(
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  style={tw.style('flex-1 bg-success-muted')}
+                  style={[actionButtonStyle, tw.style('bg-success-muted')]}
                   label={
-                    <Text
-                      style={tw.style('font-bold')}
-                      color={TextColor.SuccessDefault}
-                    >
-                      {firstOpenOutcome?.tokens[0].title} • {yesPercentage}¢
-                    </Text>
+                    useStackedLabels ? (
+                      <Box twClassName="w-full items-center py-0.5">
+                        <Text
+                          style={tw.style('font-bold text-center')}
+                          color={TextColor.SuccessDefault}
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
+                        >
+                          {yesTitle}
+                        </Text>
+                        <Text
+                          style={tw.style('font-bold text-center')}
+                          color={TextColor.SuccessDefault}
+                        >
+                          {yesPercentage}¢
+                        </Text>
+                      </Box>
+                    ) : (
+                      <Text
+                        style={tw.style('font-bold text-center')}
+                        color={TextColor.SuccessDefault}
+                      >
+                        {yesTitle} • {yesPercentage}¢
+                      </Text>
+                    )
                   }
                   onPress={() =>
                     onBuyPress(
@@ -103,15 +147,33 @@ const PredictMarketDetailsActions = memo(
                   variant={ButtonVariants.Secondary}
                   size={ButtonSize.Lg}
                   width={ButtonWidthTypes.Full}
-                  style={tw.style('flex-1 bg-error-muted')}
+                  style={[actionButtonStyle, tw.style('bg-error-muted')]}
                   label={
-                    <Text
-                      style={tw.style('font-bold')}
-                      color={TextColor.ErrorDefault}
-                    >
-                      {firstOpenOutcome?.tokens[1].title} •{' '}
-                      {100 - yesPercentage}¢
-                    </Text>
+                    useStackedLabels ? (
+                      <Box twClassName="w-full items-center py-0.5">
+                        <Text
+                          style={tw.style('font-bold text-center')}
+                          color={TextColor.ErrorDefault}
+                          numberOfLines={2}
+                          ellipsizeMode="tail"
+                        >
+                          {noTitle}
+                        </Text>
+                        <Text
+                          style={tw.style('font-bold text-center')}
+                          color={TextColor.ErrorDefault}
+                        >
+                          {100 - yesPercentage}¢
+                        </Text>
+                      </Box>
+                    ) : (
+                      <Text
+                        style={tw.style('font-bold text-center')}
+                        color={TextColor.ErrorDefault}
+                      >
+                        {noTitle} • {100 - yesPercentage}¢
+                      </Text>
+                    )
                   }
                   onPress={() =>
                     onBuyPress(
