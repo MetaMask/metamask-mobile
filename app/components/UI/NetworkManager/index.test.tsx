@@ -96,31 +96,30 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#000000',
-        alternative: '#666666',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
   useStyles: () => ({
     styles: {
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       sheet: { backgroundColor: '#FFFFFF' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       notch: { backgroundColor: '#CCCCCC' },
       networkTabsSelectorTitle: { fontSize: 18 },
       networkTabsSelectorWrapper: { flex: 1 },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       tabUnderlineStyle: { backgroundColor: '#0066CC' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       tabStyle: { backgroundColor: '#FFFFFF' },
       textStyle: { fontSize: 16 },
+      // eslint-disable-next-line @metamask/design-tokens/color-no-hex
       tabBar: { backgroundColor: '#F8F9FA' },
       editNetworkMenu: { padding: 16 },
       containerDeleteText: { padding: 16 },
@@ -609,14 +608,20 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
 jest.mock('./index.styles', () => ({
   __esModule: true,
   default: () => ({
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     sheet: { backgroundColor: '#FFFFFF' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     notch: { backgroundColor: '#CCCCCC' },
     networkTabsSelectorTitle: { fontSize: 18 },
     networkTabsSelectorWrapper: { flex: 1 },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     tabUnderlineStyle: { backgroundColor: '#0066CC' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     tabStyle: { backgroundColor: '#FFFFFF' },
     textStyle: { fontSize: 16 },
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
     tabBar: { backgroundColor: '#F8F9FA' },
     editNetworkMenu: { padding: 16 },
     containerDeleteText: { padding: 16 },
@@ -1111,9 +1116,6 @@ describe('NetworkManager Component', () => {
           '0x89': true,
           '0xa': false,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       // The component internally processes enabledNetworksByNamespace
@@ -1149,9 +1151,6 @@ describe('NetworkManager Component', () => {
           '0x89': false,
           '0xa': false,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       // The component should handle nested namespace structures
@@ -1173,9 +1172,6 @@ describe('NetworkManager Component', () => {
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       const { getByTestId } = renderComponent();
@@ -1208,9 +1204,6 @@ describe('NetworkManager Component', () => {
           '0xa': false,
           '0xa4b1': true,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       // Component should only include enabled (true) networks
@@ -1240,9 +1233,6 @@ describe('NetworkManager Component', () => {
           '0x1': true,
           '0x89': true,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       const { getByTestId } = renderComponent();

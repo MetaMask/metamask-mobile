@@ -128,6 +128,7 @@ describe('SparklineChart', () => {
         data={[10, 20, 15, 25, 30]}
         width={120}
         height={48}
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
         color="#00FF00"
         testID="test-sparkline"
       />,

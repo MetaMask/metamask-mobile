@@ -33,19 +33,13 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  ...jest.requireActual('../../../util/theme'),
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-      },
-      primary: {
-        default: '#037DD6',
-      },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    ...jest.requireActual('../../../util/theme'),
+    useAppThemeFromContext: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
