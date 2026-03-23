@@ -108,7 +108,7 @@ export const TokenWarningModal = () => {
       <BottomSheetHeader onClose={handleClose}>
         <Icon name={IconName.Danger} size={IconSize.Xl} color={iconColor} />
       </BottomSheetHeader>
-      <Box alignItems={BoxAlignItems.Center} padding={4} gap={3}>
+      <Box alignItems={BoxAlignItems.Center} paddingBottom={4} gap={3}>
         <Text variant={TextVariant.HeadingMd}>{title}</Text>
         <Text variant={TextVariant.BodyMd} twClassName="text-center">
           {description}
