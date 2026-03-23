@@ -210,7 +210,7 @@
     "@metamask/account-tree-controller": "^5.0.0",
     "@metamask/accounts-controller": "^37.0.0",
     "@metamask/address-book-controller": "^7.1.0",
-    "@metamask/ai-controllers": "^0.4.0",
+    "@metamask/ai-controllers": "^0.5.0",
     "@metamask/analytics-controller": "^1.0.0",
     "@metamask/app-metadata-controller": "^2.0.0",
     "@metamask/approval-controller": "^9.0.0",
