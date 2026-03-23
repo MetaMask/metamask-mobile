@@ -14,7 +14,7 @@ import {
   TokenInputAreaType,
 } from '../../components/TokenInputArea';
 import { useStyles } from '../../../../../component-library/hooks';
-import { Box } from '../../../Box/Box';
+import { Box } from '@metamask/design-system-react-native';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import { useLatestBalance } from '../../hooks/useLatestBalance';
 import {
@@ -483,35 +483,9 @@ const BridgeView = () => {
           </Box>
 
           {contentMode === 'quote' && tokenWarning ? (
-            <Pressable
-              onPress={() =>
-                navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-                  screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
-                  params: {
-                    warningType: tokenWarning.type,
-                    description: tokenWarning.description,
-                    mode: TokenWarningModalMode.Info,
-                    location,
-                  },
-                })
-              }
-            >
-              <BannerAlert
-                severity={
-                  tokenWarning.type === TokenFeatureType.MALICIOUS
-                    ? BannerAlertSeverity.Error
-                    : BannerAlertSeverity.Warning
-                }
-                description={
-                  tokenWarning.type === TokenFeatureType.MALICIOUS
-                    ? strings('bridge.token_warning_malicious_banner', {
-                        token: destToken?.symbol,
-                      })
-                    : strings('bridge.token_warning_suspicious_banner', {
-                        token: destToken?.symbol,
-                      })
-                }
-                onClose={() =>
+            <Box twClassName="mx-4">
+              <Pressable
+                onPress={() =>
                   navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
                     screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
                     params: {
@@ -522,9 +496,37 @@ const BridgeView = () => {
                     },
                   })
                 }
-                closeButtonProps={{ iconName: IconName.ArrowRight }}
-              />
-            </Pressable>
+              >
+                <BannerAlert
+                  severity={
+                    tokenWarning.type === TokenFeatureType.MALICIOUS
+                      ? BannerAlertSeverity.Error
+                      : BannerAlertSeverity.Warning
+                  }
+                  description={
+                    tokenWarning.type === TokenFeatureType.MALICIOUS
+                      ? strings('bridge.token_warning_malicious_banner', {
+                          token: destToken?.symbol,
+                        })
+                      : strings('bridge.token_warning_suspicious_banner', {
+                          token: destToken?.symbol,
+                        })
+                  }
+                  onClose={() =>
+                    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                      screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+                      params: {
+                        warningType: tokenWarning.type,
+                        description: tokenWarning.description,
+                        mode: TokenWarningModalMode.Info,
+                        location,
+                      },
+                    })
+                  }
+                  closeButtonProps={{ iconName: IconName.ArrowRight }}
+                />
+              </Pressable>
+            </Box>
           ) : null}
 
           <Box style={styles.dynamicContent}>
