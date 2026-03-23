@@ -116,7 +116,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Center}
       gap={1}
-      twClassName="py-2 px-4"
+      twClassName="px-4"
     >
       {ranges.map((range) => {
         const isSelected = selected === range;

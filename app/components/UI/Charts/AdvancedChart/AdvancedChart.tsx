@@ -60,7 +60,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   ) => {
     const { styles, theme } = useStyles(styleSheet, {
       height,
-    } as { height: number });
+    });
     const webViewRef = useRef<WebView>(null);
     const [chartReadyCount, setChartReadyCount] = useState(0);
     const isChartReady = chartReadyCount > 0;
@@ -244,10 +244,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       if (ohlcvData.length === 0 || !webViewLoaded) return;
 
       const prevData = prevOhlcvDataRef.current;
-      
+
       // If this is the first load or data length changed significantly, send full dataset
-      if (prevData.length === 0 || Math.abs(ohlcvData.length - prevData.length) > 1) {
-        console.log('[AdvancedChart] Sending full dataset:', ohlcvData.length, 'candles');
+      if (
+        prevData.length === 0 ||
+        Math.abs(ohlcvData.length - prevData.length) > 1
+      ) {
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
         return;
@@ -256,14 +258,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       // If only the last candle changed (polling update), use REALTIME_UPDATE instead
       const lastCandle = ohlcvData[ohlcvData.length - 1];
       const prevLastCandle = prevData[prevData.length - 1];
-      
-      if (lastCandle && prevLastCandle && 
-          (lastCandle.time !== prevLastCandle.time ||
-           lastCandle.close !== prevLastCandle.close ||
-           lastCandle.high !== prevLastCandle.high ||
-           lastCandle.low !== prevLastCandle.low ||
-           lastCandle.volume !== prevLastCandle.volume)) {
-        console.log('[AdvancedChart] Sending realtime update for last candle:', JSON.stringify(lastCandle));
+
+      if (
+        lastCandle &&
+        prevLastCandle &&
+        (lastCandle.time !== prevLastCandle.time ||
+          lastCandle.close !== prevLastCandle.close ||
+          lastCandle.high !== prevLastCandle.high ||
+          lastCandle.low !== prevLastCandle.low ||
+          lastCandle.volume !== prevLastCandle.volume)
+      ) {
         postMessage({
           type: 'REALTIME_UPDATE',
           payload: { bar: lastCandle },

@@ -32,6 +32,8 @@ window.libraryLoaded = false;
 window.libraryError = null;
 window.realtimeCallbacks = {};
 window.pendingGetBarsCallback = null;
+// Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
+window.currentChartType = 2;
 
 // ============================================
 // Communication with React Native
@@ -171,25 +173,27 @@ function handleSetOHLCVData(payload) {
         window.activeStudies = {};
         window.volumeStudyId = null;
         window.lastPriceShapeId = null;
+        window.lineEndDotShapeId = null;
         window.positionShapeIds = [];
         window.realtimeCallbacks = {};
         window.pendingGetBarsCallback = null;
+        window.currentChartType = 2;
         initChart();
       }
     } else {
       try {
         window.chartWidget.activeChart().resetData();
-        // Re-apply axis line overrides after resetData (resetData can reset to defaults)
+        // Re-apply overrides after resetData (resetData can reset to defaults)
         // Use setTimeout to ensure overrides apply after resetData completes
         setTimeout(function () {
           if (window.chartWidget && window.isChartReady) {
-            window.chartWidget.applyOverrides({
-              'scalesProperties.lineColor': '#444444',
-              'timeScale.borderColor': '#444444',
-            });
+            applyChartScaleLayout(window.currentChartType);
           }
         }, 0);
         createLastPriceLine();
+        if (window.currentChartType !== 2) {
+          ensureNoLineChartEndIcons();
+        }
       } catch (e) {
         // resetData can fail if chart is in a transitional state
       }
@@ -238,6 +242,11 @@ function handleRealtimeUpdate(payload) {
   }
 
   createLastPriceLine();
+  if (window.currentChartType === 2) {
+    refreshLineEndDot();
+  } else {
+    ensureNoLineChartEndIcons();
+  }
 }
 
 // ============================================
@@ -373,19 +382,13 @@ function getSeriesColorOverrides(color) {
 // ============================================
 
 /**
- * Re-apply series color overrides + style properties for line/baseline.
- * Called once in onChartReady as a safety net on top of constructor overrides.
+ * Series stroke colors only (no scale chrome). Scale layout is applyChartScaleLayout.
  */
 function applySeriesColors() {
   if (!window.chartWidget) return;
   var color = window.CONFIG.theme.successColor;
   try {
-    // Apply series color overrides AND axis line overrides
-    var overrides = Object.assign({}, getSeriesColorOverrides(color), {
-      'scalesProperties.lineColor': '#444444',
-      'timeScale.borderColor': '#444444',
-    });
-    window.chartWidget.applyOverrides(overrides);
+    window.chartWidget.applyOverrides(getSeriesColorOverrides(color));
     var series = window.chartWidget.activeChart().getSeries();
     series.setChartStyleProperties(2, {
       color: color,
@@ -401,10 +404,173 @@ function applySeriesColors() {
   } catch (e) {}
 }
 
-function handleSetChartType(payload) {
+/**
+ * Line: detach main series from price scale so the plot uses full width; candle: pin to right scale.
+ * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ISeriesApi/
+ */
+function syncMainSeriesPriceScaleAttachment(isLineChart) {
   if (!window.chartWidget || !window.isChartReady) return;
+  try {
+    var series = window.chartWidget.activeChart().getSeries();
+    if (isLineChart) {
+      series.detachNoScale();
+    } else {
+      series.detachToRight();
+    }
+  } catch (e) {}
+}
+
+/**
+ * setChartType() can reset scale attachment after our first layout pass — re-apply line-only
+ * scale + markup + time gap shortly after so the series actually expands into the axis gutter.
+ */
+function scheduleLineChartLayoutReflow() {
+  if (window.currentChartType !== 2 || !window.chartWidget) return;
+  function run() {
+    if (!window.chartWidget || window.currentChartType !== 2) return;
+    try {
+      syncMainSeriesPriceScaleAttachment(true);
+      applyLineChartMarkupAdjustments(true);
+      syncTimeScaleRightMargin(true);
+    } catch (e) {}
+  }
+  setTimeout(run, 0);
+  setTimeout(run, 50);
+  setTimeout(run, 150);
+}
+
+function applyChartScaleLayout(type) {
+  if (!window.chartWidget) return;
+
+  var theme = window.CONFIG.theme;
+  var isLineChart = type === 2;
+  var axisLineColor = isLineChart ? theme.backgroundColor : '#444444';
+
+  try {
+    window.chartWidget.applyOverrides({
+      'scalesProperties.showRightScale': !isLineChart,
+      'scalesProperties.showLeftScale': false,
+      // Always off: candle last price uses createLastPriceLine only; native last-value pill/dot
+      // duplicates that UI and looked like the line-chart end marker bleeding into candles.
+      'scalesProperties.showSeriesLastValue': false,
+      'scalesProperties.showStudyLastValue': false,
+      'scalesProperties.showSymbolLabels': false,
+      'scalesProperties.showPriceScaleCrosshairLabel': false,
+      'scalesProperties.showTimeScaleCrosshairLabel': !isLineChart,
+      'scalesProperties.textColor': isLineChart ? theme.backgroundColor : theme.textColor,
+      // Always off: line has refreshLineEndDot; candle uses createLastPriceLine (no native line/dot).
+      'mainSeriesProperties.showPriceLine': false,
+      'timeScale.borderColor': axisLineColor,
+      'scalesProperties.lineColor': axisLineColor,
+      'paneProperties.separatorColor': isLineChart ? theme.backgroundColor : '#444444',
+    });
+  } catch (e) {}
+
+  syncMainSeriesPriceScaleAttachment(isLineChart);
+  applyLineChartMarkupAdjustments(isLineChart);
+  syncTimeScaleRightMargin(isLineChart);
+  if (isLineChart) {
+    scheduleLineChartLayoutReflow();
+  } else {
+    ensureNoLineChartEndIcons();
+    setTimeout(ensureNoLineChartEndIcons, 120);
+    setTimeout(ensureNoLineChartEndIcons, 400);
+  }
+}
+
+/**
+ * Line chart: small bar gap past the last bar so the 16px end icon is not clipped at the pane
+ * edge. Candle: 0 (price scale already consumes right gutter). Slight x-shift vs candle is the
+ * trade-off for a full visible dot.
+ * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi/
+ */
+var LINE_END_DOT_PIXEL_BUFFER = 20;
+var LINE_CHART_RIGHT_GAP_BARS_MAX = 6;
+/** Room before the Y-axis so createLastPriceLine’s label/anchor isn’t clipped on candles. */
+var CANDLE_CHART_RIGHT_GAP_BARS = 1;
+
+function lineChartRightGapBars(timeScale) {
+  var bs = 4;
+  try {
+    bs = timeScale.barSpacing();
+  } catch (e) {}
+  var n = Math.ceil(
+    LINE_END_DOT_PIXEL_BUFFER / Math.max(bs, 0.25),
+  );
+  return Math.min(LINE_CHART_RIGHT_GAP_BARS_MAX, Math.max(1, n));
+}
+
+function syncTimeScaleRightMargin(isLineChart) {
+  if (!window.chartWidget) return;
+  try {
+    var ts = window.chartWidget.activeChart().getTimeScale();
+    ts.usePercentageRightOffset().setValue(false);
+    if (isLineChart) {
+      var gap = lineChartRightGapBars(ts);
+      ts.defaultRightOffset().setValue(gap);
+      ts.setRightOffset(gap);
+    } else {
+      ts.defaultRightOffset().setValue(CANDLE_CHART_RIGHT_GAP_BARS);
+      ts.setRightOffset(CANDLE_CHART_RIGHT_GAP_BARS);
+    }
+    function repaintDot() {
+      if (window.currentChartType === 2) {
+        refreshLineEndDot();
+      }
+    }
+    if (isLineChart) {
+      setTimeout(repaintDot, 0);
+      setTimeout(repaintDot, 50);
+      setTimeout(repaintDot, 200);
+    }
+  } catch (e) {}
+}
+
+/**
+ * Line-only: collapse the *main pane* price-scale column (first chart row). Avoid targeting every
+ * tr > td:last-child so the time-scale row layout stays intact. Candlestick path removes this style.
+ */
+function applyLineChartMarkupAdjustments(isLineChart) {
+  var id = 'tv-line-chart-markup';
+  var existing = document.getElementById(id);
+  if (existing) {
+    existing.remove();
+  }
+  if (!isLineChart) {
+    return;
+  }
+  var bg = window.CONFIG.theme.backgroundColor;
+  var style = document.createElement('style');
+  style.id = id;
+  style.textContent =
+    '#tv_chart_container{overflow:visible!important;}' +
+    '#tv_chart_container .chart-markup-table{width:100%!important;table-layout:fixed!important;}' +
+    '#tv_chart_container .chart-markup-table tr:first-child>td:first-child{' +
+    'width:100%!important;overflow:visible!important;box-sizing:border-box!important;}' +
+    '#tv_chart_container .chart-markup-table tr:first-child>td:last-child{' +
+    'display:none!important;width:0!important;min-width:0!important;max-width:0!important;' +
+    'padding:0!important;margin:0!important;overflow:hidden!important;' +
+    'border-color:' +
+    bg +
+    '!important;border-right:none!important;}' +
+    '#tv_chart_container .chart-markup-table tr:last-child td{' +
+    'border-bottom-color:' +
+    bg +
+    '!important;}';
+  document.head.appendChild(style);
+}
+
+function handleSetChartType(payload) {
+  if (!window.chartWidget) return;
 
   var type = payload.type;
+  window.currentChartType = type;
+
+  if (!window.isChartReady) return;
+
+  if (type !== 2) {
+    ensureNoLineChartEndIcons();
+  }
 
   try {
     var ac = window.chartWidget.activeChart();
@@ -426,6 +592,8 @@ function handleSetChartType(payload) {
         bottomLineWidth: 2,
       });
     }
+
+    applyChartScaleLayout(type);
   } catch (error) {
     sendToReactNative('ERROR', { message: error.message });
   }
@@ -556,6 +724,12 @@ window.lastPriceShapeId = null;
 function createLastPriceLine() {
   if (!window.chartWidget || !window.isChartReady) return;
   if (window.ohlcvData.length === 0) return;
+  
+  // Custom shape duplicates the native last-price UI — only for candlesticks (type 1).
+  if (window.currentChartType !== 1) {
+    removeLastPriceLine();
+    return;
+  }
 
   removeLastPriceLine();
 
@@ -568,6 +742,7 @@ function createLastPriceLine() {
       { price: lastBar.close },
       {
         shape: 'horizontal_line',
+        lock: true,
         overrides: {
           linecolor: color,
           linestyle: 2,
@@ -585,6 +760,14 @@ function createLastPriceLine() {
       },
     )
     .then(function (id) {
+      if (window.currentChartType !== 1) {
+        if (id) {
+          try {
+            chart.removeEntity(id);
+          } catch (e) {}
+        }
+        return;
+      }
       window.lastPriceShapeId = id;
     })
     .catch(function (e) {
@@ -603,6 +786,95 @@ function removeLastPriceLine() {
     } catch (e) {}
     window.lastPriceShapeId = null;
   }
+}
+
+// ============================================
+// Line chart end dot (~16px design): native line has no marker size API
+// ============================================
+window.lineEndDotShapeId = null;
+
+function removeLineEndDot() {
+  if (!window.lineEndDotShapeId || !window.chartWidget) return;
+  try {
+    window.chartWidget.activeChart().removeEntity(window.lineEndDotShapeId);
+  } catch (e) {}
+  window.lineEndDotShapeId = null;
+}
+
+/**
+ * Line end marker is a Drawing API \`icon\` shape. Remove by id and sweep getAllShapes — pending
+ * createShape promises can leave orphan icons on candle mode after fast toggles.
+ */
+function ensureNoLineChartEndIcons() {
+  if (window.currentChartType === 2) return;
+  removeLineEndDot();
+  window.lineEndDotShapeId = null;
+  if (!window.chartWidget || !window.isChartReady) return;
+  try {
+    var chart = window.chartWidget.activeChart();
+    var shapes = chart.getAllShapes();
+    if (!shapes || !shapes.length) return;
+    for (var i = 0; i < shapes.length; i++) {
+      var name = String(shapes[i].name || '');
+      if (/icon/i.test(name)) {
+        try {
+          chart.removeEntity(shapes[i].id);
+        } catch (err) {}
+      }
+    }
+  } catch (e) {}
+}
+
+function refreshLineEndDot() {
+  removeLineEndDot();
+  if (
+    window.currentChartType !== 2 ||
+    !window.chartWidget ||
+    !window.isChartReady ||
+    window.ohlcvData.length === 0
+  ) {
+    return;
+  }
+
+  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+  var chart = window.chartWidget.activeChart();
+  var color = window.CONFIG.theme.successColor;
+  var t = Math.floor(lastBar.time / 1000);
+
+  // Drawings API: icon + size matches design (16px); circle tool has no radius override.
+  // https://www.tradingview.com/charting-library-docs/latest/customization/overrides/Drawings-Overrides/
+  chart
+    .createShape(
+      { time: t, price: lastBar.close },
+      {
+        shape: 'icon',
+        icon: 0xf111,
+        lock: true,
+        overrides: {
+          color: color,
+          size: 16,
+        },
+        disableSelection: true,
+        disableSave: true,
+        disableUndo: true,
+        showInObjectsTree: false,
+        zOrder: 'top',
+      },
+    )
+    .then(function (id) {
+      if (window.currentChartType !== 2) {
+        if (id) {
+          try {
+            chart.removeEntity(id);
+          } catch (e) {}
+        }
+        return;
+      }
+      if (id) {
+        window.lineEndDotShapeId = id;
+      }
+    })
+    .catch(function () {});
 }
 
 // ============================================
@@ -1009,14 +1281,19 @@ function initChart() {
       window.isChartReady = true;
       document.getElementById('loading-overlay').classList.add('hidden');
 
-      try {
-        var timeScale = window.chartWidget.activeChart().getTimeScale();
-        timeScale.defaultRightOffset().setValue(0);
-        timeScale.setRightOffset(0);
-      } catch (e) {}
+      // Apply RN messages (e.g. SET_CHART_TYPE) before drawing last-price shape so
+      // currentChartType and TradingView overrides stay in sync.
+      window.pendingMessages.forEach(function (msg) {
+        handleMessage({ data: msg });
+      });
+      window.pendingMessages = [];
 
       applySeriesColors();
+      applyChartScaleLayout(window.currentChartType);
       createLastPriceLine();
+      if (window.currentChartType !== 2) {
+        ensureNoLineChartEndIcons();
+      }
 
       // Prevent series selection (blue dots) by clearing any selection immediately
       try {
@@ -1026,6 +1303,35 @@ function initChart() {
           .onChanged()
           .subscribe(null, function () {
             window.chartWidget.activeChart().selection().clear();
+          });
+      } catch (e) {}
+
+      // After zoom, re-apply small line-only right gap + repaint end dot (syncTimeScaleRightMargin).
+      var lineChartBarGapDebounce = null;
+      try {
+        window.chartWidget
+          .activeChart()
+          .getTimeScale()
+          .barSpacingChanged()
+          .subscribe(null, function () {
+            if (window.currentChartType !== 2) return;
+            if (lineChartBarGapDebounce) {
+              clearTimeout(lineChartBarGapDebounce);
+            }
+            lineChartBarGapDebounce = setTimeout(function () {
+              lineChartBarGapDebounce = null;
+              if (window.currentChartType !== 2 || !window.chartWidget) return;
+              try {
+                var tsGap = window.chartWidget.activeChart().getTimeScale();
+                tsGap.usePercentageRightOffset().setValue(false);
+                var g = lineChartRightGapBars(tsGap);
+                tsGap.defaultRightOffset().setValue(g);
+                tsGap.setRightOffset(g);
+                setTimeout(function () {
+                  refreshLineEndDot();
+                }, 0);
+              } catch (err) {}
+            }, 80);
           });
       } catch (e) {}
 
@@ -1107,12 +1413,6 @@ function initChart() {
       } catch (e) {
         // Crosshair subscription not critical
       }
-
-      // Process pending messages
-      window.pendingMessages.forEach(function (msg) {
-        handleMessage({ data: msg });
-      });
-      window.pendingMessages = [];
     });
   } catch (error) {
     sendToReactNative('ERROR', {

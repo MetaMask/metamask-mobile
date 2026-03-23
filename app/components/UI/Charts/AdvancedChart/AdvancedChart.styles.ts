@@ -9,10 +9,12 @@ const styleSheet = (params: { theme: Theme; vars: { height: number } }) =>
       width: '100%',
       height: params.vars.height,
       backgroundColor: params.theme.colors.background.default,
+      overflow: 'visible',
     },
     webview: {
       flex: 1,
       backgroundColor: params.theme.colors.background.default,
+      overflow: 'visible',
     },
     loadingContainer: {
       position: 'absolute',

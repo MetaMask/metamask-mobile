@@ -96,6 +96,7 @@ export const createAdvancedChartTemplate = (
             width: 100%;
             height: 100%;
             position: relative;
+            box-sizing: border-box;
         }
         .loading-overlay {
             position: absolute;
