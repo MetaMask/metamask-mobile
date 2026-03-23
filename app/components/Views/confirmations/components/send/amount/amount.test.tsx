@@ -27,7 +27,9 @@ jest.mock('../../../context/send-context', () => ({
 
 jest.mock('../../../hooks/send/useCurrencyConversions');
 
-jest.mock('../../../hooks/send/useRouteParams');
+jest.mock('../../../hooks/send/useRouteParams', () => ({
+  useRouteParams: jest.fn().mockReturnValue({ isLoading: false }),
+}));
 
 jest.mock('../../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn().mockReturnValue({}),

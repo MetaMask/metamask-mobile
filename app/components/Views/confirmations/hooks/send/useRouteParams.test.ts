@@ -59,7 +59,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -87,7 +87,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -119,7 +119,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -149,7 +149,7 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -179,7 +179,7 @@ describe('useRouteParams', () => {
         return { '0x1': [assetToken] };
       }
     });
-    mockUseNfts.mockReturnValue([]);
+    mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 
@@ -209,7 +209,10 @@ describe('useRouteParams', () => {
         return { '0x1': [] };
       }
     });
-    mockUseNfts.mockReturnValue([assetNft as unknown as Nft]);
+    mockUseNfts.mockReturnValue({
+      nfts: [assetNft as unknown as Nft],
+      isLoading: false,
+    });
 
     renderHookWithProvider(() => useRouteParams(), mockState);
 

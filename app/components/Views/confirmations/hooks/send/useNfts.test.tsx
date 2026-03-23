@@ -258,7 +258,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current.nfts).toEqual([]);
     });
   });
 
@@ -278,7 +278,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current.nfts).toEqual([]);
     });
   });
 
@@ -296,7 +296,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current.nfts).toEqual([]);
     });
   });
 
@@ -320,8 +320,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0]).toEqual({
+      expect(result.current.nfts).toHaveLength(1);
+      expect(result.current.nfts[0]).toEqual({
         address: mockNft.address,
         standard: 'ERC721',
         name: mockNft.name,
@@ -361,9 +361,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].standard).toBe('ERC1155');
-      expect(result.current[0].balance).toBe('1');
+      expect(result.current.nfts).toHaveLength(1);
+      expect(result.current.nfts[0].standard).toBe('ERC1155');
+      expect(result.current.nfts[0].balance).toBe('1');
     });
   });
 
@@ -396,8 +396,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].name).toBe('Test NFT');
+      expect(result.current.nfts).toHaveLength(1);
+      expect(result.current.nfts[0].name).toBe('Test NFT');
     });
   });
 
@@ -427,7 +427,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].image).toBe('https://example.com/fallback.png');
+      expect(result.current.nfts[0].image).toBe(
+        'https://example.com/fallback.png',
+      );
     });
   });
 
@@ -457,7 +459,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].image).toBe('https://example.com/valid.png');
+      expect(result.current.nfts[0].image).toBe(
+        'https://example.com/valid.png',
+      );
     });
   });
 
@@ -471,7 +475,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current.nfts).toEqual([]);
     });
   });
 
@@ -489,7 +493,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toEqual([]);
+      expect(result.current.nfts).toEqual([]);
     });
   });
 
@@ -522,8 +526,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].accountId).toBe(mockAccount.id);
+      expect(result.current.nfts).toHaveLength(1);
+      expect(result.current.nfts[0].accountId).toBe(mockAccount.id);
     });
   });
 
@@ -551,9 +555,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(2);
-      expect(result.current[0].chainId).toBe('0x1');
-      expect(result.current[1].chainId).toBe('0x89');
+      expect(result.current.nfts).toHaveLength(2);
+      expect(result.current.nfts[0].chainId).toBe('0x1');
+      expect(result.current.nfts[1].chainId).toBe('0x89');
     });
   });
 
@@ -583,8 +587,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current).toHaveLength(1);
-      expect(result.current[0].name).toBe('Test NFT');
+      expect(result.current.nfts).toHaveLength(1);
+      expect(result.current.nfts[0].name).toBe('Test NFT');
     });
   });
 
@@ -622,7 +626,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].image).toBe('https://example.com/sample1.png');
+      expect(result.current.nfts[0].image).toBe(
+        'https://example.com/sample1.png',
+      );
     });
   });
 
@@ -657,7 +663,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].image).toBeUndefined();
+      expect(result.current.nfts[0].image).toBeUndefined();
     });
   });
 
@@ -688,7 +694,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].image).toBe(
+      expect(result.current.nfts[0].image).toBe(
         'https://example.com/valid-fallback.png',
       );
     });
@@ -725,7 +731,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].image).toBe(
+      expect(result.current.nfts[0].image).toBe(
         'https://example.com/collection-fallback.png',
       );
     });
@@ -756,8 +762,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].name).toBeUndefined();
-      expect(result.current[0].collectionName).toBe('Test Collection');
+      expect(result.current.nfts[0].name).toBeUndefined();
+      expect(result.current.nfts[0].collectionName).toBe('Test Collection');
     });
   });
 
@@ -789,7 +795,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current[0].collectionName).toBeUndefined();
+      expect(result.current.nfts[0].collectionName).toBeUndefined();
     });
   });
 });
