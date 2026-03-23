@@ -1,8 +1,11 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
+  FontWeight,
   IconColor as DsIconColor,
   IconSize as DsIconSize,
+  Text,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 
@@ -11,9 +14,6 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 
 import styleSheet from './PaymentMethodPill.styles';
@@ -63,7 +63,11 @@ const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
           color={IconColor.Default}
         />
       </View>
-      <Text variant={TextVariant.BodyMDMedium} style={styles.label}>
+      <Text
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+        style={styles.label}
+      >
         {label}
       </Text>
       <View style={styles.arrowWrapper}>

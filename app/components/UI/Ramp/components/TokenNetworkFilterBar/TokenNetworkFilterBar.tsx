@@ -8,10 +8,11 @@ import Button, {
   ButtonSize,
   ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
-import Text, {
+import {
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 
 import styleSheet from './TokenNetworkFilterBar.styles';
 
@@ -63,8 +64,10 @@ function TokenNetworkFilterBar({
         size={ButtonSize.Sm}
         label={
           <Text
-            color={isAllSelected ? TextColor.Inverse : TextColor.Default}
-            variant={TextVariant.BodyMD}
+            color={
+              isAllSelected ? TextColor.OverlayInverse : TextColor.TextDefault
+            }
+            variant={TextVariant.BodyMd}
           >
             {strings('unified_ramp.networks_filter_bar.all_networks')}
           </Text>
@@ -94,8 +97,10 @@ function TokenNetworkFilterBar({
                 />
 
                 <Text
-                  color={isSelected ? TextColor.Inverse : TextColor.Default}
-                  variant={TextVariant.BodyMD}
+                  color={
+                    isSelected ? TextColor.OverlayInverse : TextColor.TextDefault
+                  }
+                  variant={TextVariant.BodyMd}
                 >
                   {displayName}
                 </Text>
