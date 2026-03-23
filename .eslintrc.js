@@ -189,6 +189,11 @@ module.exports = {
         'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/Earn/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/Stake/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Tokens/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/AssetOverview/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleContractOverview/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleModal/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/DetectedTokens/**/*.{js,jsx,ts,tsx}',
       ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
