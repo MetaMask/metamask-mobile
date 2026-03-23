@@ -242,6 +242,12 @@ module.exports = {
         'app/components/UI/TransactionActionModal/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/TransactionElement/**/*.{js,jsx,ts,tsx}',
         'app/components/UI/Transactions/**/*.{js,jsx,ts,tsx}',
+        // Shared hooks (restored enforcement)
+        'app/components/hooks/useIsOriginalNativeTokenSymbol/**/*.{js,jsx,ts,tsx}',
+        'app/components/hooks/useTokenBalancesController/**/*.{js,jsx,ts,tsx}',
+        'app/components/hooks/useTokensData/**/*.{js,jsx,ts,tsx}',
+        'app/components/hooks/useSafeChains*.{js,jsx,ts,tsx}',
+        'app/components/hooks/useTokenBalance*.{js,jsx,ts,tsx}',
       ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
