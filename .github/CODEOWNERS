@@ -164,6 +164,7 @@ app/selectors/featureFlagController/rewards @MetaMask/rewards
 **/rewards/**                        @MetaMask/rewards
 
 # Perps Team
+scripts/perps/agentic/teams/perps/   @MetaMask/perps
 app/components/UI/Perps/             @MetaMask/perps
 app/components/UI/WalletAction/*perps* @MetaMask/perps
 app/core/Engine/controllers/perps-controller @MetaMask/perps

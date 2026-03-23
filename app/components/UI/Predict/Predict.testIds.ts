@@ -244,6 +244,7 @@ export const PredictBalanceSelectorsIDs = {
 
 export const PredictBalanceSelectorsText = {
   AVAILABLE_BALANCE: enContent.predict.available_balance,
+  WITHDRAW: enContent.predict.deposit.withdraw,
 } as const;
 
 // ========================================
