@@ -33,23 +33,23 @@ describe('useCardAuthenticationVerification', () => {
 
   /**
    * Sets up mocks for the hook's dependencies.
-   * useSelector is called 3 times in order: userLoggedIn, isAuthenticated, cardGeoLocation
+   * useSelector is called 3 times in order: userLoggedIn, isAuthenticated, geolocationLocation
    */
   const setupMocks = ({
     userLoggedIn,
     isBaanxLoginEnabled,
     isAuthenticated = false,
-    cardGeoLocation = 'UNKNOWN',
+    geolocationLocation = 'UNKNOWN',
   }: {
     userLoggedIn: boolean;
     isBaanxLoginEnabled: boolean;
     isAuthenticated?: boolean;
-    cardGeoLocation?: string;
+    geolocationLocation?: string;
   }) => {
     mockUseSelector
       .mockReturnValueOnce(userLoggedIn)
       .mockReturnValueOnce(isAuthenticated)
-      .mockReturnValueOnce(cardGeoLocation);
+      .mockReturnValueOnce(geolocationLocation);
     mockUseIsBaanxLoginEnabled.mockReturnValue(isBaanxLoginEnabled);
   };
 
@@ -69,7 +69,7 @@ describe('useCardAuthenticationVerification', () => {
     setupMocks({
       userLoggedIn: true,
       isBaanxLoginEnabled: false,
-      cardGeoLocation: 'UNKNOWN',
+      geolocationLocation: 'UNKNOWN',
     });
 
     renderHook(() => useCardAuthenticationVerification());
@@ -172,12 +172,12 @@ describe('useCardAuthenticationVerification', () => {
   });
 
   describe('session clearing when isBaanxLoginEnabled is false', () => {
-    it('does not reset auth when geoLocation is UNKNOWN (transient geo failure)', () => {
+    it('does not reset auth when geolocationLocation is UNKNOWN (transient geo failure)', () => {
       setupMocks({
         userLoggedIn: true,
         isBaanxLoginEnabled: false,
         isAuthenticated: true,
-        cardGeoLocation: 'UNKNOWN',
+        geolocationLocation: 'UNKNOWN',
       });
 
       renderHook(() => useCardAuthenticationVerification());
@@ -185,12 +185,25 @@ describe('useCardAuthenticationVerification', () => {
       expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('resets auth when geoLocation is resolved and feature is disabled for that region', () => {
+    it('does not reset auth when geolocationLocation is undefined (geo not loaded yet)', () => {
       setupMocks({
         userLoggedIn: true,
         isBaanxLoginEnabled: false,
         isAuthenticated: true,
-        cardGeoLocation: 'FR',
+        geolocationLocation: undefined,
+      });
+
+      renderHook(() => useCardAuthenticationVerification());
+
+      expect(mockDispatch).not.toHaveBeenCalled();
+    });
+
+    it('resets auth when geolocationLocation is resolved and feature is disabled for that region', () => {
+      setupMocks({
+        userLoggedIn: true,
+        isBaanxLoginEnabled: false,
+        isAuthenticated: true,
+        geolocationLocation: 'FR',
       });
 
       renderHook(() => useCardAuthenticationVerification());
@@ -203,7 +216,7 @@ describe('useCardAuthenticationVerification', () => {
         userLoggedIn: true,
         isBaanxLoginEnabled: false,
         isAuthenticated: false,
-        cardGeoLocation: 'FR',
+        geolocationLocation: 'FR',
       });
 
       renderHook(() => useCardAuthenticationVerification());
@@ -217,7 +230,7 @@ describe('useCardAuthenticationVerification', () => {
         userLoggedIn: true,
         isBaanxLoginEnabled: true,
         isAuthenticated: true,
-        cardGeoLocation: 'US',
+        geolocationLocation: 'US',
       });
       const { rerender } = renderHook(() =>
         useCardAuthenticationVerification(),
@@ -232,7 +245,7 @@ describe('useCardAuthenticationVerification', () => {
         userLoggedIn: true,
         isBaanxLoginEnabled: false,
         isAuthenticated: true,
-        cardGeoLocation: 'UNKNOWN',
+        geolocationLocation: 'UNKNOWN',
       });
       rerender();
 
@@ -245,7 +258,7 @@ describe('useCardAuthenticationVerification', () => {
         userLoggedIn: true,
         isBaanxLoginEnabled: false,
         isAuthenticated: true,
-        cardGeoLocation: 'UNKNOWN',
+        geolocationLocation: 'UNKNOWN',
       });
       const { rerender } = renderHook(() =>
         useCardAuthenticationVerification(),
@@ -258,7 +271,7 @@ describe('useCardAuthenticationVerification', () => {
         userLoggedIn: true,
         isBaanxLoginEnabled: false,
         isAuthenticated: true,
-        cardGeoLocation: 'FR',
+        geolocationLocation: 'FR',
       });
       rerender();
 

@@ -5,8 +5,9 @@ import configureMockStore from 'redux-mock-store';
 import NftGrid from './NftGrid';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { Nft } from '@metamask/assets-controllers';
-import { useMetrics } from '../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { isNftFetchingProgressSelector } from '../../../reducers/collectibles';
 import { selectHomepageRedesignV1Enabled } from '../../../selectors/featureFlagController/homepage';
 import { selectSelectedAccountGroupInternalAccounts } from '../../../selectors/multichainAccounts/accountTreeController';
@@ -38,21 +39,14 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-// Mock metrics
-jest.mock('../../hooks/useMetrics');
-(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
-  trackEvent: mockTrackEvent,
-  createEventBuilder: MetricsEventBuilder.createEventBuilder,
-  enable: jest.fn(),
-  addTraitsToUser: jest.fn(),
-  createDataDeletionTask: jest.fn(),
-  checkDataDeleteStatus: jest.fn(),
-  getDeleteRegulationCreationDate: jest.fn(),
-  getDeleteRegulationId: jest.fn(),
-  isDataRecorded: jest.fn(),
-  isEnabled: jest.fn(),
-  getMetaMetricsId: jest.fn(),
-});
+// Mock analytics
+jest.mock('../../hooks/useAnalytics/useAnalytics');
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+  }),
+);
 
 // Mock useNftDetection
 const mockDetectNfts = jest.fn();
