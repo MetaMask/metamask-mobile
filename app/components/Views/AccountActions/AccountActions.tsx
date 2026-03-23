@@ -27,7 +27,7 @@ import Logger from '../../../util/Logger';
 import { protectWalletModalVisible } from '../../../actions/user';
 import Routes from '../../../constants/navigation/Routes';
 import { AccountActionsBottomSheetSelectorsIDs } from './AccountActionsBottomSheet.testIds';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import {
   isHardwareAccount,
   isHDOrFirstPartySnapAccount,
@@ -65,7 +65,7 @@ const AccountActions = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
   const { navigate } = useNavigation();
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { networkSupporting7702Present } = useEIP7702Networks(
     selectedAccount.address,
   );
@@ -116,12 +116,9 @@ const AccountActions = () => {
         goToBrowserUrl(blockExplorer.url, blockExplorer.title);
       }
       trackEvent(
-        createEventBuilder(MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN)
-          .addProperties({
-            action: 'Navigation Drawer',
-            name: 'View on Etherscan',
-          })
-          .build(),
+        createEventBuilder(
+          MetaMetricsEvents.NAVIGATION_TAPS_VIEW_ETHERSCAN,
+        ).build(),
       );
     });
   };
@@ -141,12 +138,7 @@ const AccountActions = () => {
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.NAVIGATION_TAPS_SHARE_PUBLIC_ADDRESS,
-        )
-          .addProperties({
-            action: 'Navigation Drawer',
-            name: 'Share my Public address',
-          })
-          .build(),
+        ).build(),
       );
     });
   };
