@@ -279,8 +279,6 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
     const tw = () => ({});
     tw.style = jest.fn(() => ({}));
-    // Only add tw.color if the component under test calls it.
-    tw.color = jest.fn(() => mockTheme.colors.text.default);
     return tw;
   },
 }));
