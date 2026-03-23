@@ -472,7 +472,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $2.5 USD
+      $2.50
     </Text>
   </View>
   <View
@@ -523,7 +523,7 @@ exports[`OrderContent renders completed state correctly 1`] = `
         ]
       }
     >
-      $100 USD
+      $100.00
     </Text>
   </View>
   <View
@@ -1565,7 +1565,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
         ]
       }
     >
-      $2.5 USD
+      $2.50
     </Text>
   </View>
   <View
@@ -1616,7 +1616,7 @@ exports[`OrderContent shows placeholder for token amount when cryptoAmount is 0 
         ]
       }
     >
-      $100 USD
+      $100.00
     </Text>
   </View>
   <View

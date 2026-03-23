@@ -26,7 +26,6 @@ import BadgeWrapper, {
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import I18n, { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { renderFiat } from '../../../../../util/number';
 import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
@@ -220,7 +219,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
     trackEvent,
   ]);
 
-  const fiatDenomSymbol = order.fiatCurrency?.denomSymbol ?? '';
   const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
   const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
@@ -477,11 +475,17 @@ const OrderContent: React.FC<OrderContentProps> = ({
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {hasAmounts
-              ? `${fiatDenomSymbol}${renderFiat(
+              ? formatWithThreshold(
                   Number(order.totalFeesFiat ?? 0),
-                  fiatCurrencyCode,
-                  fiatDecimals,
-                )}`
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
               : AMOUNT_PLACEHOLDER}
           </Text>
         )}
@@ -504,11 +508,17 @@ const OrderContent: React.FC<OrderContentProps> = ({
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
             {hasAmounts
-              ? `${fiatDenomSymbol}${renderFiat(
+              ? formatWithThreshold(
                   Number(order.fiatAmount ?? 0),
-                  fiatCurrencyCode,
-                  fiatDecimals,
-                )}`
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
               : AMOUNT_PLACEHOLDER}
           </Text>
         )}
