@@ -109,7 +109,7 @@
       "properties": {
         "operator": {
           "type": "string",
-          "enum": ["not_null", "eq", "gt", "length_eq", "length_gt", "contains", "not_contains"],
+          "enum": ["not_null", "eq", "neq", "gt", "length_eq", "length_gt", "contains", "not_contains"],
           "description": "Comparison operator."
         },
         "field": {

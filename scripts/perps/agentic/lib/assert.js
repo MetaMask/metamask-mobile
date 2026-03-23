@@ -27,11 +27,12 @@ function checkAssert(raw, assertSpec) {
   const expected = assertSpec.value;
   if (op === 'not_null')     return actual != null;
   if (op === 'eq')           return actual === expected;
+  if (op === 'neq')          return actual !== expected;
   if (op === 'gt')           return typeof actual === 'number' && actual > expected;
-  if (op === 'length_eq')    return Array.isArray(actual) ? actual.length === expected : (actual && actual.length === expected);
-  if (op === 'length_gt')    return Array.isArray(actual) ? actual.length > expected  : (actual && actual.length > expected);
+  if (op === 'length_eq')    return Array.isArray(actual) ? actual.length === expected : (actual != null && actual.length === expected);
+  if (op === 'length_gt')    return Array.isArray(actual) ? actual.length > expected  : (actual != null && actual.length > expected);
   if (op === 'contains')     return Array.isArray(actual) ? actual.includes(expected) : (typeof actual === 'string' && actual.includes(expected));
-  if (op === 'not_contains') return Array.isArray(actual) ? !actual.includes(expected) : (typeof actual === 'string' && !actual.includes(expected));
+  if (op === 'not_contains') return Array.isArray(actual) ? !actual.includes(expected) : (typeof actual !== 'string' || !actual.includes(expected));
   throw new Error('Unknown operator: ' + op);
 }
 module.exports = { checkAssert };

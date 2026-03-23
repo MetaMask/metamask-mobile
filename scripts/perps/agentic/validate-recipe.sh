@@ -471,7 +471,7 @@ while IFS= read -r sj; do
         echo "  -> wait_for route=$WF_ROUTE (timeout=${WF_TIMEOUT}ms)"
       elif [ -n "$WF_NROUTE" ]; then
         WF_EXPR="JSON.stringify({route:globalThis.__AGENTIC__.getRoute().name})"
-        A_JSON=$(printf '{"operator":"not_contains","field":"route","value":"%s"}' "$WF_NROUTE")
+        A_JSON=$(printf '{"operator":"neq","field":"route","value":"%s"}' "$WF_NROUTE")
         HAS_A=true
         echo "  -> wait_for not_route=$WF_NROUTE (timeout=${WF_TIMEOUT}ms)"
       elif [ -n "$WF_TID" ]; then
