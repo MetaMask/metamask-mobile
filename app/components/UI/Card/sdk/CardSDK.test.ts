@@ -4057,18 +4057,31 @@ describe('CardSDK', () => {
     });
   });
 
-  describe('completeSolanaDelegation', () => {
+  describe('completeDelegation', () => {
     const validSolanaAddress = 'HN7cABqLq46Es1jh92dQQisAq662SmxELLLsHHe4YWrH';
     const validTxSignature =
       '5VERv8NMvzbJMEkV8xnrLkEaWRtSz9CosKDYjCJjBRnbJLgp8uirBgmQpjKhoR4tjF3ZpRzrFmBV6UjKdiSZkQUW';
+    const validEVMAddress = '0x1234567890123456789012345678901234567890';
+    const validEVMSigHash = `0x${'a'.repeat(130)}`;
 
-    const validParams = {
+    const validSolanaParams = {
       address: validSolanaAddress,
       network: 'solana' as const,
       currency: 'usdc',
       amount: '1000000',
       txHash: validTxSignature,
       sigHash: 'mock-sig-hash',
+      sigMessage: 'mock-sig-message',
+      token: 'mock-delegation-token',
+    };
+
+    const validEVMParams = {
+      address: validEVMAddress,
+      network: 'linea' as const,
+      currency: 'usdc',
+      amount: '1000000',
+      txHash: '0xabcdef1234',
+      sigHash: validEVMSigHash,
       sigMessage: 'mock-sig-message',
       token: 'mock-delegation-token',
     };
@@ -4087,16 +4100,37 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue({ success: true }),
       });
 
-      // When: completeSolanaDelegation is called
-      const result = await cardSDK.completeSolanaDelegation(validParams);
+      // When: completeDelegation is called with Solana params
+      const result = await cardSDK.completeDelegation(validSolanaParams);
 
-      // Then: Returns success response
+      // Then: Returns success response and calls Solana endpoint
       expect(result).toEqual({ success: true });
       expect(global.fetch).toHaveBeenCalledWith(
         expect.stringContaining('/v1/delegation/solana/post-approval'),
         expect.objectContaining({
           method: 'POST',
-          body: JSON.stringify(validParams),
+          body: JSON.stringify(validSolanaParams),
+        }),
+      );
+    });
+
+    it('completes EVM delegation successfully', async () => {
+      // Given: API returns success response
+      (global.fetch as jest.Mock).mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValue({ success: true }),
+      });
+
+      // When: completeDelegation is called with EVM params
+      const result = await cardSDK.completeDelegation(validEVMParams);
+
+      // Then: Returns success response and calls EVM endpoint
+      expect(result).toEqual({ success: true });
+      expect(global.fetch).toHaveBeenCalledWith(
+        expect.stringContaining('/v1/delegation/evm/post-approval'),
+        expect.objectContaining({
+          method: 'POST',
+          body: JSON.stringify(validEVMParams),
         }),
       );
     });
@@ -4104,13 +4138,13 @@ describe('CardSDK', () => {
     it('throws VALIDATION_ERROR for invalid Solana address format', async () => {
       // Given: Invalid Solana address (contains invalid characters)
       const invalidParams = {
-        ...validParams,
+        ...validSolanaParams,
         address: '0x1234567890123456789012345678901234567890', // EVM address, not Solana
       };
 
       // When/Then: Throws VALIDATION_ERROR
       await expect(
-        cardSDK.completeSolanaDelegation(invalidParams),
+        cardSDK.completeDelegation(invalidParams),
       ).rejects.toMatchObject({
         type: CardErrorType.VALIDATION_ERROR,
         message: 'Invalid Solana address format',
@@ -4120,48 +4154,64 @@ describe('CardSDK', () => {
     it('throws VALIDATION_ERROR for short Solana address', async () => {
       // Given: Too short address
       const invalidParams = {
-        ...validParams,
+        ...validSolanaParams,
         address: 'HN7cABqLq46Es1jh92dQQ', // Too short (< 32 chars)
       };
 
       // When/Then: Throws VALIDATION_ERROR
       await expect(
-        cardSDK.completeSolanaDelegation(invalidParams),
+        cardSDK.completeDelegation(invalidParams),
       ).rejects.toMatchObject({
         type: CardErrorType.VALIDATION_ERROR,
         message: 'Invalid Solana address format',
       });
     });
 
-    it('throws VALIDATION_ERROR for invalid transaction signature format', async () => {
+    it('throws VALIDATION_ERROR for invalid Solana transaction signature format', async () => {
       // Given: Invalid transaction signature (too short)
       const invalidParams = {
-        ...validParams,
+        ...validSolanaParams,
         txHash: 'invalid-short-signature',
       };
 
       // When/Then: Throws VALIDATION_ERROR
       await expect(
-        cardSDK.completeSolanaDelegation(invalidParams),
+        cardSDK.completeDelegation(invalidParams),
       ).rejects.toMatchObject({
         type: CardErrorType.VALIDATION_ERROR,
         message: 'Invalid Solana transaction signature format',
       });
     });
 
-    it('throws VALIDATION_ERROR for non-solana network', async () => {
-      // Given: Non-solana network
+    it('throws VALIDATION_ERROR for invalid Ethereum address format', async () => {
+      // Given: Invalid EVM address
       const invalidParams = {
-        ...validParams,
-        network: 'linea' as const,
+        ...validEVMParams,
+        address: 'not-an-evm-address',
       };
 
       // When/Then: Throws VALIDATION_ERROR
       await expect(
-        cardSDK.completeSolanaDelegation(invalidParams),
+        cardSDK.completeDelegation(invalidParams),
       ).rejects.toMatchObject({
         type: CardErrorType.VALIDATION_ERROR,
-        message: 'Invalid network for Solana delegation',
+        message: 'Invalid Ethereum address format',
+      });
+    });
+
+    it('throws VALIDATION_ERROR for invalid EVM signature format', async () => {
+      // Given: Invalid EVM signature (not 0x-prefixed hex of correct length)
+      const invalidParams = {
+        ...validEVMParams,
+        sigHash: 'not-a-valid-signature',
+      };
+
+      // When/Then: Throws VALIDATION_ERROR
+      await expect(
+        cardSDK.completeDelegation(invalidParams),
+      ).rejects.toMatchObject({
+        type: CardErrorType.VALIDATION_ERROR,
+        message: 'Invalid signature format',
       });
     });
 
@@ -4174,10 +4224,10 @@ describe('CardSDK', () => {
 
       // When/Then: Throws SERVER_ERROR
       await expect(
-        cardSDK.completeSolanaDelegation(validParams),
+        cardSDK.completeDelegation(validSolanaParams),
       ).rejects.toMatchObject({
         type: CardErrorType.SERVER_ERROR,
-        message: 'Failed to complete Solana delegation. Please try again.',
+        message: 'Failed to complete delegation. Please try again.',
       });
     });
 
@@ -4188,8 +4238,8 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue({ success: true }),
       });
 
-      // When: completeSolanaDelegation is called
-      await cardSDK.completeSolanaDelegation(validParams);
+      // When: completeDelegation is called
+      await cardSDK.completeDelegation(validSolanaParams);
 
       // Then: Request includes authorization header
       expect(global.fetch).toHaveBeenCalledWith(
@@ -4215,12 +4265,12 @@ describe('CardSDK', () => {
         json: jest.fn().mockResolvedValue({ success: true }),
       });
 
-      // When: completeSolanaDelegation is called
-      await sdkWithLogs.completeSolanaDelegation(validParams);
+      // When: completeDelegation is called
+      await sdkWithLogs.completeDelegation(validSolanaParams);
 
       // Then: Debug info is logged
       expect(Logger.log).toHaveBeenCalledWith(
-        expect.stringContaining('completeSolanaDelegation'),
+        expect.stringContaining('completeDelegation'),
         expect.any(String),
       );
     });

@@ -139,8 +139,7 @@ describe('useCardDelegation', () => {
   let mockSDK: {
     generateDelegationToken: jest.Mock;
     encodeApproveTransaction: jest.Mock;
-    completeEVMDelegation: jest.Mock;
-    completeSolanaDelegation: jest.Mock;
+    completeDelegation: jest.Mock;
   };
   let mockTrackEvent: jest.Mock;
   let mockCreateEventBuilder: jest.Mock;
@@ -164,8 +163,7 @@ describe('useCardDelegation', () => {
     mockSDK = {
       generateDelegationToken: jest.fn(),
       encodeApproveTransaction: jest.fn(),
-      completeEVMDelegation: jest.fn(),
-      completeSolanaDelegation: jest.fn(),
+      completeDelegation: jest.fn(),
     };
 
     mockUseCardSDK.mockReturnValue({
@@ -236,8 +234,7 @@ describe('useCardDelegation', () => {
       nonce: mockNonce,
     });
     mockSDK.encodeApproveTransaction.mockReturnValue('0xencodedData');
-    mockSDK.completeEVMDelegation.mockResolvedValue({});
-    mockSDK.completeSolanaDelegation.mockResolvedValue({});
+    mockSDK.completeDelegation.mockResolvedValue({});
 
     // Reset Solana snap mock
     mockHandleSnapRequest.mockReset();
@@ -301,7 +298,7 @@ describe('useCardDelegation', () => {
       expect(
         Engine.context.TransactionController.addTransaction,
       ).toHaveBeenCalled();
-      expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
+      expect(mockSDK.completeDelegation).toHaveBeenCalled();
     });
 
     it('completes delegation flow for full allowance', async () => {
@@ -440,7 +437,7 @@ describe('useCardDelegation', () => {
       expect(mockToTokenMinimalUnit).toHaveBeenCalledWith(params.amount, 18);
     });
 
-    it('calls completeEVMDelegation with correct parameters', async () => {
+    it('calls completeDelegation with correct parameters', async () => {
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
 
@@ -450,7 +447,7 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockSDK.completeEVMDelegation).toHaveBeenCalledWith({
+      expect(mockSDK.completeDelegation).toHaveBeenCalledWith({
         address: mockAddress,
         network: params.network,
         currency: params.currency.toLowerCase(),
@@ -597,7 +594,7 @@ describe('useCardDelegation', () => {
 
     it('handles error during delegation completion', async () => {
       const error = new Error('Delegation completion failed');
-      mockSDK.completeEVMDelegation.mockRejectedValue(error);
+      mockSDK.completeDelegation.mockRejectedValue(error);
 
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
@@ -619,7 +616,7 @@ describe('useCardDelegation', () => {
 
     it('handles delegation completion failure after transaction confirmation', async () => {
       const completionError = new Error('API delegation completion failed');
-      mockSDK.completeEVMDelegation.mockRejectedValue(completionError);
+      mockSDK.completeDelegation.mockRejectedValue(completionError);
 
       const mockToken = createMockToken();
       const params = createMockDelegationParams();
@@ -650,7 +647,7 @@ describe('useCardDelegation', () => {
         'Failed to complete EVM delegation',
       );
       // Transaction was confirmed but completion failed
-      expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
+      expect(mockSDK.completeDelegation).toHaveBeenCalled();
     });
 
     it('handles non-Error objects thrown during delegation', async () => {
@@ -976,8 +973,8 @@ describe('useCardDelegation', () => {
         },
       );
 
-      // Mock completeSolanaDelegation
-      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
+      // Mock completeDelegation
+      mockSDK.completeDelegation = jest.fn().mockResolvedValue({});
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1152,8 +1149,8 @@ describe('useCardDelegation', () => {
       // Wait a bit to ensure subscription is set up
       await new Promise((resolve) => setTimeout(resolve, 100));
 
-      // completeEVMDelegation should not be called yet
-      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
+      // completeDelegation should not be called yet
+      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
 
       // Simulate transaction confirmation
       await act(async () => {
@@ -1168,7 +1165,7 @@ describe('useCardDelegation', () => {
       });
 
       // Now it should be called
-      expect(mockSDK.completeEVMDelegation).toHaveBeenCalled();
+      expect(mockSDK.completeDelegation).toHaveBeenCalled();
     });
 
     it('handles transaction failure in confirmation listener', async () => {
@@ -1203,7 +1200,7 @@ describe('useCardDelegation', () => {
         expect.any(Error),
         'Transaction failed',
       );
-      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
+      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
     });
 
     it('handles transaction failure with generic message when error details not provided', async () => {
@@ -1232,7 +1229,7 @@ describe('useCardDelegation', () => {
       });
 
       expect(result.current.error).toBe('Transaction failed');
-      expect(mockSDK.completeEVMDelegation).not.toHaveBeenCalled();
+      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
     });
   });
 
@@ -1290,8 +1287,8 @@ describe('useCardDelegation', () => {
         },
       );
 
-      // Mock completeSolanaDelegation
-      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
+      // Mock completeDelegation
+      mockSDK.completeDelegation = jest.fn().mockResolvedValue({});
 
       const { result } = renderHook(() => useCardDelegation(mockToken));
 
@@ -1418,7 +1415,7 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      expect(mockSDK.completeEVMDelegation).toHaveBeenCalledWith(
+      expect(mockSDK.completeDelegation).toHaveBeenCalledWith(
         expect.objectContaining({
           currency: 'usdc',
         }),
@@ -1557,13 +1554,13 @@ describe('useCardDelegation', () => {
         .mockResolvedValueOnce({ signature: 'mock-solana-signature' }) // signCardMessage
         .mockResolvedValueOnce({ signature: mockTxSignature }); // approveCardAmount
 
-      // Mock completeSolanaDelegation
-      mockSDK.completeSolanaDelegation = jest.fn().mockResolvedValue({});
+      // Mock completeDelegation
+      mockSDK.completeDelegation = jest.fn().mockResolvedValue({});
 
       return { mockToken, params };
     };
 
-    it('waits for transaction confirmation before calling completeSolanaDelegation', async () => {
+    it('waits for transaction confirmation before calling completeDelegation', async () => {
       const { mockToken, params } = setupSolanaTest();
 
       // Mock subscribe to simulate confirmed transaction
@@ -1600,7 +1597,7 @@ describe('useCardDelegation', () => {
         'MultichainTransactionsController:stateChange',
         expect.any(Function),
       );
-      expect(mockSDK.completeSolanaDelegation).toHaveBeenCalledWith({
+      expect(mockSDK.completeDelegation).toHaveBeenCalledWith({
         address: mockSolanaAddress,
         network: 'solana',
         currency: 'usdc',
@@ -1647,8 +1644,8 @@ describe('useCardDelegation', () => {
         );
       });
 
-      // completeSolanaDelegation should NOT be called when transaction fails
-      expect(mockSDK.completeSolanaDelegation).not.toHaveBeenCalled();
+      // completeDelegation should NOT be called when transaction fails
+      expect(mockSDK.completeDelegation).not.toHaveBeenCalled();
     });
 
     it('subscribes to MultichainTransactionsController stateChange event', async () => {
@@ -1735,7 +1732,7 @@ describe('useCardDelegation', () => {
       });
 
       // Should have completed successfully after our transaction was confirmed
-      expect(mockSDK.completeSolanaDelegation).toHaveBeenCalled();
+      expect(mockSDK.completeDelegation).toHaveBeenCalled();
     });
 
     it('handles transaction in submitted status by continuing to wait for confirmation', async () => {
@@ -1783,8 +1780,8 @@ describe('useCardDelegation', () => {
         await result.current.submitDelegation(params);
       });
 
-      // completeSolanaDelegation should be called after confirmation
-      expect(mockSDK.completeSolanaDelegation).toHaveBeenCalled();
+      // completeDelegation should be called after confirmation
+      expect(mockSDK.completeDelegation).toHaveBeenCalled();
     });
 
     it('unsubscribes from state changes after transaction confirmation to prevent memory leaks', async () => {

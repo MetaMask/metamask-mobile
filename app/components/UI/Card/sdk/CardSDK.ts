@@ -58,6 +58,7 @@ import {
   CashbackWithdrawRequest,
   CashbackWithdrawResponse,
   CashbackWithdrawEstimationResponse,
+  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
@@ -1542,135 +1543,81 @@ export class CardSDK {
   };
 
   /**
-   * Complete EVM wallet delegation for spending limit increase
-   * This is Step 3 of the delegation process (after user completes blockchain transaction)
+   * Complete wallet delegation for spending limit increase.
+   * This is Step 3 of the delegation process (after user completes the blockchain transaction).
+   * Routes to the EVM or Solana endpoint based on params.network.
    */
-  completeEVMDelegation = async (params: {
-    address: string;
-    network: CardNetwork;
-    currency: string;
-    amount: string;
-    txHash: string;
-    sigHash: string;
-    sigMessage: string;
-    token: string;
-  }): Promise<{ success: boolean }> => {
-    // Validate address format (must be valid Ethereum address)
-    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-    if (!addressRegex.test(params.address)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid Ethereum address format',
-      );
+  completeDelegation = async (
+    params: DelegationPostApprovalParams,
+  ): Promise<{ success: boolean }> => {
+    const isSolana = params.network === 'solana';
+
+    if (isSolana) {
+      // Validate Solana address format (Base58, 32-44 characters)
+      const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+      if (!solanaAddressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana address format',
+        );
+      }
+
+      // Validate Solana transaction signature format (Base58, 87-88 characters)
+      const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+      if (!solanaTxHashRegex.test(params.txHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana transaction signature format',
+        );
+      }
+    } else {
+      // Validate EVM address format
+      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+      if (!addressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Ethereum address format',
+        );
+      }
+
+      // Validate EVM signature format
+      const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
+      if (!sigHashRegex.test(params.sigHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid signature format',
+        );
+      }
+
+      if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
+        throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
+      }
     }
 
-    // Validate signature format (must be valid EVM signature)
-    const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
-    if (!sigHashRegex.test(params.sigHash)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid signature format',
-      );
-    }
+    const endpointSuffix = isSolana ? 'solana' : 'evm';
+    const endpoint = `delegation/${endpointSuffix}/post-approval`;
 
-    // Validate network
-    if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
-      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
-    }
-
-    const response = await this.makeRequest(
-      '/v1/delegation/evm/post-approval',
-      {
-        fetchOptions: {
-          method: 'POST',
-          body: JSON.stringify(params),
-        },
-        authenticated: true,
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify(params),
       },
-    );
+      authenticated: true,
+    });
 
     if (!response.ok) {
       throw this.logAndCreateError(
         CardErrorType.SERVER_ERROR,
         'Failed to complete delegation. Please try again.',
-        'completeEVMDelegation',
-        'delegation/evm/post-approval',
+        'completeDelegation',
+        endpoint,
         response.status,
         { network: params.network, currency: params.currency },
       );
     }
 
     const result = await response.json();
-    this.logDebugInfo('completeEVMDelegation', result);
-
-    return result;
-  };
-
-  /**
-   * Complete Solana wallet delegation for spending limit increase
-   * This is Step 3 of the delegation process (after user completes SPL Token approve transaction)
-   * Uses the Solana-specific endpoint: /v1/delegation/solana/post-approval
-   */
-  completeSolanaDelegation = async (params: {
-    address: string;
-    network: CardNetwork;
-    currency: string;
-    amount: string;
-    txHash: string;
-    sigHash: string;
-    sigMessage: string;
-    token: string;
-  }): Promise<{ success: boolean }> => {
-    // Validate address format (must be valid Solana address - Base58, 32-44 characters)
-    const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
-    if (!solanaAddressRegex.test(params.address)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid Solana address format',
-      );
-    }
-
-    // Validate transaction signature format (Base58, 87-88 characters)
-    const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
-    if (!solanaTxHashRegex.test(params.txHash)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid Solana transaction signature format',
-      );
-    }
-
-    // Validate network is solana
-    if (params.network !== 'solana') {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid network for Solana delegation',
-      );
-    }
-
-    const response = await this.makeRequest(
-      '/v1/delegation/solana/post-approval',
-      {
-        fetchOptions: {
-          method: 'POST',
-          body: JSON.stringify(params),
-        },
-        authenticated: true,
-      },
-    );
-
-    if (!response.ok) {
-      throw this.logAndCreateError(
-        CardErrorType.SERVER_ERROR,
-        'Failed to complete Solana delegation. Please try again.',
-        'completeSolanaDelegation',
-        'delegation/solana/post-approval',
-        response.status,
-        { network: params.network, currency: params.currency },
-      );
-    }
-
-    const result = await response.json();
-    this.logDebugInfo('completeSolanaDelegation', result);
+    this.logDebugInfo('completeDelegation', result);
 
     return result;
   };

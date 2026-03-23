@@ -194,7 +194,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
             async (transactionMeta) => {
               if (transactionMeta.status === TransactionStatus.confirmed) {
                 try {
-                  await sdk.completeEVMDelegation({
+                  await sdk.completeDelegation({
                     address,
                     network: params.network,
                     currency: params.currency.toLowerCase(),
@@ -372,7 +372,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         });
 
         // Complete the delegation with the backend API after confirmation
-        await sdk.completeSolanaDelegation({
+        await sdk.completeDelegation({
           address,
           network: params.network,
           currency: params.currency.toLowerCase(),
