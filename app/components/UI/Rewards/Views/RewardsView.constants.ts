@@ -62,6 +62,10 @@ export const REWARDS_VIEW_SELECTORS = {
   ACTIVITY_EVENT_ROW_DETAILS: 'activity-event-row-details',
   ACTIVITY_EVENT_ROW_DATE: 'activity-event-row-date',
   ACTIVITY_EVENT_ROW_BONUS: 'activity-event-row-bonus',
+  // Earn rewards section
+  EARN_REWARDS_PREVIEW: 'rewards-view-earn-rewards-preview',
+  EARN_REWARDS_MUSD_CARD: 'rewards-view-earn-rewards-musd-card',
+  EARN_REWARDS_CARD_CARD: 'rewards-view-earn-rewards-card-card',
   // Campaigns
   CAMPAIGNS_PREVIEW: 'rewards-view-campaigns-preview',
   CAMPAIGNS_PREVIEW_ACTIVE_TILE: 'rewards-view-campaigns-preview-active-tile',
