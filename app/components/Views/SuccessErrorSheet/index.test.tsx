@@ -125,6 +125,27 @@ describe('SuccessErrorSheet', () => {
     expect(tree).toContain('Warning');
   });
 
+  it('renders custom icon when icon prop is provided, overriding type-based icon', () => {
+    const mockErrorRouteWithCustomIcon = {
+      params: {
+        title: 'Custom Icon Title',
+        description: 'Custom Icon Description',
+        type: 'error' as const,
+        icon: IconName.Confirmation,
+        onClose: jest.fn(),
+      },
+    };
+
+    const { toJSON } = renderWithProvider(
+      <SuccessErrorSheet route={mockErrorRouteWithCustomIcon} />,
+    );
+
+    // The rendered icon should be Confirmation (custom icon), not CircleX (error type default)
+    const tree = JSON.stringify(toJSON());
+    expect(tree).toContain('Confirmation');
+    expect(tree).not.toContain('CircleX');
+  });
+
   it('calls onPrimaryButtonPress when primary button is pressed', () => {
     const onPrimaryButtonPress = jest.fn();
     const mockWarningRoute = {

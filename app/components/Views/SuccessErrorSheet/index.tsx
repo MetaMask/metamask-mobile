@@ -71,6 +71,10 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
   };
 
   const getIcon = useMemo(() => {
+    if (icon) {
+      return icon;
+    }
+
     switch (type) {
       case 'success':
         return IconName.Confirmation;
@@ -81,7 +85,7 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
       default:
         return IconName.CircleX;
     }
-  }, [type]);
+  }, [type, icon]);
 
   const getIconColor =
     iconColor ||
