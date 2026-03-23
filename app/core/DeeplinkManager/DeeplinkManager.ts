@@ -9,6 +9,235 @@ import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 
+const BRANCH_DOMAIN_HOSTS: readonly string[] = [
+  AppConstants.MM_UNIVERSAL_LINK_HOST,
+  AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+];
+
+/**
+ * Strips Branch Deepview query params from a URL to recover the original
+ * short link. The Deepview page appends __branch_* and _referrer params
+ * that can confuse the Branch SDK's link resolution.
+ */
+export function stripBranchDeepviewParams(url: string): string {
+  try {
+    const parsed = new URL(url);
+    const paramsToStrip = [
+      '__branch_flow_type',
+      '__branch_flow_id',
+      '__branch_mobile_deepview_type',
+      '_referrer',
+    ];
+    for (const p of paramsToStrip) {
+      parsed.searchParams.delete(p);
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+}
+
+/**
+ * Branch Deepview pages embed the app launch URL in two places:
+ * 1. `<a class="action" href="{scheme}{path}?_branch_referrer=...">`
+ * 2. `window.top.location = validateProtocol("{scheme}{path}?...")`
+ *
+ * The scheme may be "metamask://", "https://link.metamask.io/", or literally
+ * "null" (when the Branch link has no URI scheme configured). This function
+ * extracts the deeplink path from these patterns.
+ */
+function extractDeepviewPath(html: string): string | undefined {
+  const launchHref =
+    html.match(/<a[^>]*class="action"[^>]*href="([^"?]+)/)?.[1] ??
+    html.match(/window\.top\.location\s*=\s*validateProtocol\("([^"?]+)/)?.[1];
+
+  if (!launchHref) return undefined;
+
+  if (launchHref.startsWith('null') && launchHref.length > 4) {
+    return launchHref.substring(4);
+  }
+
+  if (launchHref.startsWith('metamask://')) {
+    return launchHref.replace('metamask://', '');
+  }
+
+  try {
+    const parsed = new URL(launchHref);
+    if (
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+    ) {
+      return parsed.pathname.replace(/^\//, '');
+    }
+  } catch {
+    // not a full URL — treat it as a raw path
+    if (/^[a-zA-Z0-9]/.test(launchHref)) {
+      return launchHref;
+    }
+  }
+
+  return undefined;
+}
+
+/**
+ * Extracts the original deep link URL from Branch Deepview HTML by decoding the
+ * `link_click_id` parameter embedded in the `al:ios:url` meta tag. The
+ * `link_click_id` value has the format `link-{digits}-{base64_json}`, where the
+ * base64 JSON payload contains `+url` — the full original URL configured in the
+ * Branch dashboard for this link.
+ */
+export function extractBranchUrlFromDeepview(html: string): string | undefined {
+  const metaMatch = html.match(
+    /<meta\s+property="al:ios:url"\s+content="([^"]+)"/,
+  );
+  if (!metaMatch?.[1]) return undefined;
+
+  const content = metaMatch[1].replace(/&#x3D;/g, '=').replace(/&amp;/g, '&');
+
+  const linkClickIdMatch = content.match(/link_click_id=([^&]+)/);
+  if (!linkClickIdMatch?.[1]) return undefined;
+
+  const linkClickId = decodeURIComponent(linkClickIdMatch[1]);
+  const b64Match = linkClickId.match(/^link-\d+-(.+)/);
+  if (!b64Match?.[1]) return undefined;
+
+  try {
+    let b64 = b64Match[1].replace(/-/g, '+').replace(/_/g, '/');
+    const padding = (4 - (b64.length % 4)) % 4;
+    b64 += '='.repeat(padding);
+
+    const data = JSON.parse(atob(b64));
+    const url = data['+url'];
+    if (typeof url !== 'string') return undefined;
+
+    const parsed = new URL(url);
+    if (
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+      parsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+    ) {
+      return url;
+    }
+  } catch {
+    // base64 decode or JSON parse failure
+  }
+
+  return undefined;
+}
+
+/**
+ * When the Branch SDK fails to resolve a short link (returns +non_branch_link),
+ * fetch the short link URL directly and follow redirects. Resolution order:
+ *
+ * 1. If the redirect lands on a MetaMask host, use it directly.
+ * 2. Decode `link_click_id` from the Deepview HTML `al:ios:url` meta tag to get
+ * the full `+url`, then merge query params from the original Branch URL.
+ * 3. Fall back to `$deeplink_path` regex extraction from the HTML body.
+ * 4. Fall back to `extractDeepviewPath` for CTA button/window.top.location.
+ */
+export async function resolveBranchShortLink(
+  shortLinkUrl: string,
+): Promise<string | undefined> {
+  try {
+    const cleanUrl = stripBranchDeepviewParams(shortLinkUrl);
+
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+
+    try {
+      const response = await fetch(cleanUrl, {
+        redirect: 'follow',
+        headers: {
+          'User-Agent': 'facebookexternalhit/1.1 (MetaMask-LinkResolver)',
+        },
+        signal: controller.signal,
+      });
+
+      const finalUrl = response.url;
+
+      try {
+        const finalParsed = new URL(finalUrl);
+        if (
+          finalParsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_HOST ||
+          finalParsed.hostname === AppConstants.MM_IO_UNIVERSAL_LINK_TEST_HOST
+        ) {
+          const cleanParsed = new URL(cleanUrl);
+          cleanParsed.searchParams.forEach((value, key) => {
+            if (!finalParsed.searchParams.has(key)) {
+              finalParsed.searchParams.set(key, value);
+            }
+          });
+          return finalParsed.toString();
+        }
+      } catch {
+        // ignore URL parse errors on finalUrl
+      }
+
+      const body = await response.text();
+
+      const mergeCleanParams = (resolvedUrl: string): string => {
+        try {
+          const resolved = new URL(resolvedUrl);
+          const cleanParsed = new URL(cleanUrl);
+          cleanParsed.searchParams.forEach((value, key) => {
+            if (!resolved.searchParams.has(key)) {
+              resolved.searchParams.set(key, value);
+            }
+          });
+          return resolved.toString();
+        } catch {
+          return resolvedUrl;
+        }
+      };
+
+      const branchUrl = extractBranchUrlFromDeepview(body);
+      if (branchUrl) {
+        return mergeCleanParams(branchUrl);
+      }
+
+      const deepLinkPathMatch =
+        body.match(/\$deeplink_path['":\s]+['"]([^'"]+)['"]/) ??
+        body.match(/deeplink_path['":\s]+['"]([^'"]+)['"]/);
+
+      if (deepLinkPathMatch?.[1]) {
+        const path = deepLinkPathMatch[1];
+        return mergeCleanParams(
+          `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`,
+        );
+      }
+
+      const deepviewPath = extractDeepviewPath(body);
+      if (deepviewPath) {
+        return mergeCleanParams(
+          `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${deepviewPath.replace(/^\//, '')}`,
+        );
+      }
+      return undefined;
+    } finally {
+      clearTimeout(timeout);
+    }
+  } catch (error) {
+    Logger.error(
+      error as Error,
+      `Error resolving Branch short link: ${shortLinkUrl}`,
+    );
+    return undefined;
+  }
+}
+
+/**
+ * Branch domain URLs (metamask.app.link, metamask-alternate.app.link) are handled
+ * by the Branch SDK. Returns true if the URL belongs to a Branch domain so that
+ * the Linking API can skip it and avoid duplicate processing.
+ */
+export function isBranchDomainUrl(url: string): boolean {
+  try {
+    const hostname = new URL(url).hostname;
+    return BRANCH_DOMAIN_HOSTS.includes(hostname);
+  } catch {
+    return false;
+  }
+}
+
 /**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
@@ -20,28 +249,28 @@ export function rewriteBranchUri(
   params: BranchParams | undefined,
 ): string | undefined {
   try {
-    if (!uri || !params?.['+clicked_branch_link']) return uri;
+    if (!uri || !params?.['+clicked_branch_link']) return undefined;
     const rawPath = params.$deeplink_path;
-    if (typeof rawPath !== 'string') return uri;
+    if (typeof rawPath !== 'string') return undefined;
 
     const parsed = new URL(uri);
     parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
-    // Set the pathname to the sanitized $deeplink_path
     parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
     return parsed.toString();
   } catch (error) {
     Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
-    return uri;
+    return undefined;
   }
 }
 
 export class DeeplinkManager {
-  // singleton instance
   private static _instance: DeeplinkManager | null = null;
   public pendingDeeplink: string | null;
+  public cachedBranchParams: BranchParams | undefined;
 
   constructor() {
     this.pendingDeeplink = null;
+    this.cachedBranchParams = undefined;
   }
 
   static getInstance(): DeeplinkManager {
@@ -83,7 +312,15 @@ export class DeeplinkManager {
   }
 
   static start() {
-    DeeplinkManager.getInstance();
+    const instance = DeeplinkManager.getInstance();
+
+    const cacheBranchParams = (params: Record<string, unknown> | undefined) => {
+      if (params && typeof params === 'object' && Object.keys(params).length) {
+        instance.cachedBranchParams = params as BranchParams;
+      } else {
+        instance.cachedBranchParams = undefined;
+      }
+    };
 
     const getBranchDeeplink = async (uri?: string) => {
       if (uri) {
@@ -93,20 +330,24 @@ export class DeeplinkManager {
 
       try {
         const latestParams = await branch.getLatestReferringParams();
+        cacheBranchParams(latestParams as Record<string, unknown> | undefined);
 
-        // Cold start: params may contain a resolved Branch link with $deeplink_path.
         const rewritten = rewriteBranchUri(
           latestParams?.['~referring_link'] as string | undefined,
           latestParams as Record<string, unknown> | undefined,
         );
         if (rewritten) {
           handleDeeplink({ uri: rewritten });
-          return;
-        }
-
-        const deeplink = latestParams?.['+non_branch_link'] as string;
-        if (deeplink) {
-          handleDeeplink({ uri: deeplink });
+        } else {
+          const nonBranchLink = latestParams?.['+non_branch_link'] as
+            | string
+            | undefined;
+          if (nonBranchLink && isBranchDomainUrl(nonBranchLink)) {
+            const resolved = await resolveBranchShortLink(nonBranchLink);
+            if (resolved) {
+              handleDeeplink({ uri: resolved });
+            }
+          }
         }
       } catch (error) {
         Logger.error(error as Error, 'Error getting Branch deeplink');
@@ -135,12 +376,17 @@ export class DeeplinkManager {
       if (!url) {
         return;
       }
-      Logger.log(`handleDeeplink:: got initial URL ${url}`);
+      if (isBranchDomainUrl(url)) {
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
+      if (isBranchDomainUrl(url)) {
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 
@@ -155,11 +401,36 @@ export class DeeplinkManager {
         const branchError = new Error(error);
         Logger.error(branchError, 'Error subscribing to branch.');
       }
+      cacheBranchParams(opts.params as Record<string, unknown> | undefined);
       const rewritten = rewriteBranchUri(
         opts.uri,
         opts.params as Record<string, unknown> | undefined,
       );
-      getBranchDeeplink(rewritten ?? opts.uri);
+
+      if (rewritten) {
+        getBranchDeeplink(rewritten);
+      } else if (opts.uri && !isBranchDomainUrl(opts.uri)) {
+        getBranchDeeplink(opts.uri);
+      } else if (
+        opts.uri &&
+        isBranchDomainUrl(opts.uri) &&
+        opts.params?.['+non_branch_link'] &&
+        isBranchDomainUrl(opts.params['+non_branch_link'] as string)
+      ) {
+        const nonBranchLink = opts.params['+non_branch_link'] as string;
+        resolveBranchShortLink(nonBranchLink)
+          .then((resolved) => {
+            if (resolved) {
+              getBranchDeeplink(resolved);
+            }
+          })
+          .catch((err) => {
+            Logger.error(
+              err as Error,
+              'Error resolving Branch short link in subscribe',
+            );
+          });
+      }
     });
   }
 }
