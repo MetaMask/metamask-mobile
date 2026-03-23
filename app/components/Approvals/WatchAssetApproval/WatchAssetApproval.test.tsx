@@ -8,33 +8,6 @@ import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 
-jest.mock('../../../core/Engine', () => {
-  const { MOCK_ACCOUNTS_CONTROLLER_STATE: mockAccountsControllerState } =
-    jest.requireActual('../../../util/test/accountsControllerTestUtils');
-  return {
-    context: {
-      KeyringController: {
-        getAccountKeyringType: () => Promise.resolve('HD Key Tree'),
-        state: {
-          keyrings: [
-            {
-              accounts: ['0xC4966c0D659D99699BFD7EB54D8fafEE40e4a756'],
-              metadata: { id: '01JNG71B7GTWH0J1TSJY9891S0', name: '' },
-            },
-          ],
-        },
-      },
-      AccountsController: {
-        ...mockAccountsControllerState,
-        state: mockAccountsControllerState,
-      },
-      AssetsContractController: {
-        getERC20BalanceOf: jest.fn().mockResolvedValue('0'),
-      },
-    },
-  };
-});
-
 const mockInitialState = {
   engine: {
     backgroundState: {

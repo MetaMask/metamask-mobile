@@ -17,14 +17,6 @@ jest.mock('../../../actions/onboardNetwork', () => ({
   networkSwitched: jest.fn(() => ({ type: 'NETWORK_SWITCHED' })),
 }));
 
-jest.mock('../../../core/Engine', () => ({
-  context: {
-    PreferencesController: {
-      setTokenNetworkFilter: jest.fn(),
-    },
-  },
-}));
-
 const initialState = {
   engine: {
     backgroundState: {

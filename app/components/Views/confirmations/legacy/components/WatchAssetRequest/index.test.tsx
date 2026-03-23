@@ -3,26 +3,6 @@ import WatchAssetRequest from '.';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 
-jest.mock('../../../../../../core/Engine', () => ({
-  context: {
-    AccountsController: {
-      state: {
-        internalAccounts: {
-          accounts: {},
-          selectedAccount: '',
-        },
-      },
-    },
-    AssetsContractController: {
-      getERC20BalanceOf: jest.fn().mockResolvedValue('0'),
-    },
-    TokensController: {
-      addToken: jest.fn(),
-      ignoreTokens: jest.fn(),
-    },
-  },
-}));
-
 const initialState = {
   settings: {},
   engine: {
