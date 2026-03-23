@@ -9,8 +9,6 @@ export const usePredictBuyInputState = () => {
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const { clearOrderError } = usePredictActiveOrder();
 
-  const { isConfirming: initialIsConfirmingFromRoute = false } = route.params;
-
   const [currentValue, setCurrentValueState] = useState(0);
 
   const currentValueRef = useRef(currentValue);
@@ -31,9 +29,7 @@ export const usePredictBuyInputState = () => {
   }, []);
 
   const [isUserInputChange, setIsUserInputChange] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(
-    initialIsConfirmingFromRoute,
-  );
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const setCurrentValue = useCallback(
     (value: SetStateAction<number>) => {
