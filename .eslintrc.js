@@ -183,7 +183,6 @@ module.exports = {
       files: [
         'app/components/**/*.{js,jsx,ts,tsx}',
         'app/component-library/**/*.{js,jsx,ts,tsx}',
-        'app/vi',
       ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
