@@ -37,7 +37,7 @@ const AccessRestrictedModal: React.FC<AccessRestrictedModalProps> = ({
       <Box twClassName="px-4 pb-6">
         <Text
           variant={TextVariant.BodyMd}
-          color={TextColor.Alternative}
+          color={TextColor.TextAlternative}
           testID={AccessRestrictedModalSelectorsIDs.DESCRIPTION}
         >
           {strings('access_restricted.description_line1')}
