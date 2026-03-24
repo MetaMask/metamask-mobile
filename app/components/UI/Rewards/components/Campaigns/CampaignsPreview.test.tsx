@@ -31,23 +31,29 @@ const mockUseRewardCampaigns = useRewardCampaigns as jest.MockedFunction<
 jest.mock('./CampaignTile', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
+  const { isCampaignTypeSupported } = jest.requireActual(
+    './CampaignTile.utils',
+  );
   return {
     __esModule: true,
     default: ({
       campaign,
-      isInteractive,
+      onPress,
     }: {
       campaign: CampaignDto;
-      isInteractive: boolean;
-    }) =>
-      ReactActual.createElement(
+      onPress?: () => void;
+    }) => {
+      const isInteractive =
+        onPress != null || isCampaignTypeSupported(campaign.type);
+      return ReactActual.createElement(
         Text,
         {
           testID: `campaign-tile-${campaign.id}`,
           accessibilityState: { disabled: !isInteractive },
         },
         campaign.name,
-      ),
+      );
+    },
   };
 });
 
@@ -62,9 +68,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 const now = new Date();
 const futureDate = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
-const farFutureDate = new Date(now.getTime() + 365 * 24 * 60 * 60 * 1000);
 const pastDate = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-const farPastDate = new Date(now.getTime() - 365 * 24 * 60 * 60 * 1000);
 
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
@@ -201,41 +205,35 @@ describe('CampaignsPreview', () => {
     expect(queryByTestId('campaign-tile-non-featured')).toBeNull();
   });
 
-  it('renders multiple featured campaigns in order: active, upcoming, past', () => {
-    const activeCampaign = createTestCampaign({
-      id: 'active-1',
-      name: 'Active Campaign',
+  it('renders only the first featured campaign when multiple exist', () => {
+    const firstCampaign = createTestCampaign({
+      id: 'first-1',
+      name: 'First Campaign',
       startDate: pastDate.toISOString(),
       endDate: futureDate.toISOString(),
       featured: true,
     });
-    const upcomingCampaign = createTestCampaign({
-      id: 'upcoming-1',
-      name: 'Upcoming Campaign',
-      startDate: futureDate.toISOString(),
-      endDate: farFutureDate.toISOString(),
-      featured: true,
-    });
-    const pastCampaign = createTestCampaign({
-      id: 'past-1',
-      name: 'Past Campaign',
-      startDate: farPastDate.toISOString(),
-      endDate: pastDate.toISOString(),
+    const secondCampaign = createTestCampaign({
+      id: 'second-1',
+      name: 'Second Campaign',
+      startDate: pastDate.toISOString(),
+      endDate: futureDate.toISOString(),
       featured: true,
     });
     mockUseRewardCampaigns.mockReturnValue({
       ...mockHookDefaults,
-      campaigns: [pastCampaign, upcomingCampaign, activeCampaign],
+      campaigns: [firstCampaign, secondCampaign],
     });
 
-    const { getByTestId, getAllByTestId } = render(<CampaignsPreview />);
+    const { getByTestId, queryByTestId, getAllByTestId } = render(
+      <CampaignsPreview />,
+    );
 
-    expect(getByTestId('campaign-tile-active-1')).toBeOnTheScreen();
-    expect(getByTestId('campaign-tile-upcoming-1')).toBeOnTheScreen();
-    expect(getByTestId('campaign-tile-past-1')).toBeOnTheScreen();
+    expect(getByTestId('campaign-tile-first-1')).toBeOnTheScreen();
+    expect(queryByTestId('campaign-tile-second-1')).toBeNull();
 
     const tiles = getAllByTestId(/^campaign-tile-/);
-    expect(tiles).toHaveLength(3);
+    expect(tiles).toHaveLength(1);
   });
 
   it('renders SEASON_1 campaign type as interactive', () => {
@@ -306,7 +304,7 @@ describe('CampaignsPreview', () => {
     const { getByText } = render(<CampaignsPreview />);
     fireEvent.press(getByText('Campaigns'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGNS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
   });
 
   it('navigates to campaigns view even when no featured campaigns exist', () => {
@@ -315,6 +313,6 @@ describe('CampaignsPreview', () => {
     const { getByText } = render(<CampaignsPreview />);
     fireEvent.press(getByText('Campaigns'));
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGNS_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
   });
 });

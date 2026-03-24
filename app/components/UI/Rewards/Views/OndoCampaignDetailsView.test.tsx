@@ -1,8 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import CampaignDetailsView, {
+import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
-} from './CampaignDetailsView';
+} from './OndoCampaignDetailsView';
+import { CAMPAIGN_JOIN_CTA_TEST_IDS } from '../components/Campaigns/CampaignJoinCTA';
 import {
   type CampaignDto,
   CampaignType,
@@ -120,18 +121,6 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
   };
 });
 
-jest.mock('../components/PreviousSeason/PreviousSeasonSummary', () => {
-  const ReactActual = jest.requireActual('react');
-  const { View } = jest.requireActual('react-native');
-  return {
-    __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, {
-        testID: 'previous-season-summary',
-      }),
-  };
-});
-
 jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -234,7 +223,7 @@ const hookDefaults = {
   fetchCampaigns: mockFetchCampaigns,
 };
 
-describe('CampaignDetailsView', () => {
+describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
@@ -251,7 +240,7 @@ describe('CampaignDetailsView', () => {
       ...hookDefaults,
       campaigns: [createTestCampaign()],
     });
-    const { getByTestId } = render(<CampaignDetailsView />);
+    const { getByTestId } = render(<OndoCampaignDetailsView />);
     expect(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CONTAINER)).toBeDefined();
   });
 
@@ -260,7 +249,7 @@ describe('CampaignDetailsView', () => {
       ...hookDefaults,
       campaigns: [createTestCampaign({ name: 'My Special Campaign' })],
     });
-    const { getAllByText } = render(<CampaignDetailsView />);
+    const { getAllByText } = render(<OndoCampaignDetailsView />);
     // Name appears in both the header title and the CampaignStatus mock
     expect(getAllByText('My Special Campaign').length).toBeGreaterThan(0);
   });
@@ -272,7 +261,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [],
         isLoading: true,
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('error-banner')).toBeNull();
       expect(queryByTestId('campaign-status')).toBeNull();
     });
@@ -285,7 +274,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [],
         hasError: true,
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('error-banner')).toBeDefined();
     });
 
@@ -295,7 +284,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [],
         hasError: true,
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       fireEvent.press(getByTestId('error-retry-button'));
       expect(mockFetchCampaigns).toHaveBeenCalledTimes(1);
     });
@@ -306,7 +295,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
         hasError: true,
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('error-banner')).toBeNull();
     });
   });
@@ -317,7 +306,7 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('campaign-status')).toBeDefined();
     });
 
@@ -340,7 +329,7 @@ describe('CampaignDetailsView', () => {
           }),
         ],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('campaign-how-it-works')).toBeDefined();
     });
 
@@ -349,85 +338,8 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign({ details: null })],
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('campaign-how-it-works')).toBeNull();
-    });
-
-    it('does not render CampaignHowItWorks for SEASON_1 campaigns', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            type: CampaignType.SEASON_1,
-            details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
-              howItWorks: {
-                title: 'How it works',
-                description: 'Description',
-                phases: [],
-              },
-            },
-          }),
-        ],
-      });
-      const { queryByTestId } = render(<CampaignDetailsView />);
-      expect(queryByTestId('campaign-how-it-works')).toBeNull();
-    });
-
-    it('renders PreviousSeasonSummary for complete SEASON_1 campaigns', () => {
-      const lastMonth = new Date();
-      lastMonth.setMonth(lastMonth.getMonth() - 1);
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            type: CampaignType.SEASON_1,
-            startDate: lastMonth.toISOString(),
-            endDate: yesterday.toISOString(),
-          }),
-        ],
-      });
-      const { getByTestId } = render(<CampaignDetailsView />);
-      expect(getByTestId('previous-season-summary')).toBeDefined();
-    });
-
-    it('does not render PreviousSeasonSummary for active SEASON_1 campaigns', () => {
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const nextMonth = new Date();
-      nextMonth.setMonth(nextMonth.getMonth() + 1);
-
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            type: CampaignType.SEASON_1,
-            startDate: yesterday.toISOString(),
-            endDate: nextMonth.toISOString(),
-          }),
-        ],
-      });
-      const { queryByTestId } = render(<CampaignDetailsView />);
-      expect(queryByTestId('previous-season-summary')).toBeNull();
-    });
-
-    it('redirects to campaigns view for unsupported campaign types', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            type: 'UNSUPPORTED_TYPE' as CampaignType,
-          }),
-        ],
-      });
-      render(<CampaignDetailsView />);
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGNS_VIEW);
     });
   });
 
@@ -438,8 +350,8 @@ describe('CampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
       });
       // status null → participantStatus?.optedIn !== true
-      const { getByTestId } = render(<CampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
     });
 
     it('renders the join CTA when participant is not opted in', () => {
@@ -453,8 +365,8 @@ describe('CampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
     });
 
     it('does not render the CTA when participant is already opted in', () => {
@@ -468,8 +380,8 @@ describe('CampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeNull();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
     it('renders the CTA as disabled and loading when participant status is loading', () => {
@@ -483,8 +395,8 @@ describe('CampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { getByTestId, getByText } = render(<CampaignDetailsView />);
-      const cta = getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON);
+      const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
+      const cta = getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON);
       expect(cta).toBeDefined();
       expect(
         cta.props.isDisabled ?? cta.props.accessibilityState?.disabled,
@@ -493,8 +405,8 @@ describe('CampaignDetailsView', () => {
     });
 
     it('does not render CTA when no campaign is loaded', () => {
-      const { queryByTestId } = render(<CampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeNull();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
     it('opens the opt-in sheet when CTA is pressed', () => {
@@ -502,8 +414,8 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
-      fireEvent.press(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON));
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      fireEvent.press(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON));
       expect(getByTestId('campaign-opt-in-sheet')).toBeDefined();
     });
 
@@ -522,8 +434,8 @@ describe('CampaignDetailsView', () => {
           }),
         ],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
-      const cta = getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      const cta = getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON);
       expect(cta).toBeDefined();
       expect(
         cta.props.isDisabled ?? cta.props.accessibilityState?.disabled,
@@ -545,8 +457,8 @@ describe('CampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeNull();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
   });
 
@@ -556,7 +468,7 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       fireEvent.press(getByTestId('header-back-button'));
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -566,11 +478,14 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       fireEvent.press(getByTestId('campaign-details-mechanics-button'));
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGN_MECHANICS, {
-        campaignId: 'campaign-1',
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_CAMPAIGN_MECHANICS,
+        {
+          campaignId: 'campaign-1',
+        },
+      );
     });
   });
 });

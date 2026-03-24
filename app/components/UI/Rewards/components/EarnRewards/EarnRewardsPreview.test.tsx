@@ -204,14 +204,11 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides mUSD card when geoLocation is UNKNOWN (error case) to prevent flash', () => {
+    it('shows mUSD card when geoLocation is UNKNOWN (treated as non-UK)', () => {
       setupSelectors({ geoLocation: 'UNKNOWN' });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      const { getByTestId } = render(<EarnRewardsPreview />);
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeNull();
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeOnTheScreen();
     });
 
@@ -315,6 +312,20 @@ describe('EarnRewardsPreview', () => {
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
       ).toBeNull();
     });
+
+    it('hides card card when geoLocation is UNKNOWN (not a supported card country)', () => {
+      setupSelectors({
+        geoLocation: 'UNKNOWN',
+        isUserInSupportedCardCountry: false,
+      });
+      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeNull();
+    });
   });
 
   describe('navigation', () => {
@@ -324,7 +335,9 @@ describe('EarnRewardsPreview', () => {
       fireEvent.press(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MUSD_CALCULATOR_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MUSD_CALCULATOR_VIEW,
+      );
     });
 
     it('triggers card-onboarding deeplink when card card is pressed', () => {

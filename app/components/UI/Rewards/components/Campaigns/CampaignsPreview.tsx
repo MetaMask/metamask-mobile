@@ -21,16 +21,10 @@ import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import {
-  getCampaignSortComparator,
-  getCampaignStatus,
-  isCampaignTypeSupported,
-} from './CampaignTile.utils';
 
 /**
  * CampaignsPreview shows featured campaigns on the dashboard.
- * Campaigns are ordered by status: active first, then upcoming, then past (complete).
- * Only campaigns marked as featured are displayed.
+ * Only campaigns marked as featured are displayed, in the order returned by the API.
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
@@ -39,45 +33,15 @@ const CampaignsPreview: React.FC = () => {
   const { campaigns, isLoading, hasError, hasLoaded, fetchCampaigns } =
     useRewardCampaigns();
 
-  /**
-   * Get featured campaigns ordered by status priority:
-   * 1. Active campaigns (sorted by start date ascending)
-   * 2. Upcoming campaigns (sorted by start date ascending)
-   * 3. Past/complete campaigns (sorted by end date descending - most recent first)
-   */
-  const featuredCampaigns = useMemo((): CampaignDto[] => {
-    const featured = (campaigns ?? []).filter((c) => c.featured);
+  const featuredCampaign = useMemo(
+    (): CampaignDto | undefined => (campaigns ?? []).find((c) => c.featured),
+    [campaigns],
+  );
 
-    const active: CampaignDto[] = [];
-    const upcoming: CampaignDto[] = [];
-    const past: CampaignDto[] = [];
-
-    featured.forEach((campaign) => {
-      const status = getCampaignStatus(campaign);
-      switch (status) {
-        case 'active':
-          active.push(campaign);
-          break;
-        case 'upcoming':
-          upcoming.push(campaign);
-          break;
-        case 'complete':
-          past.push(campaign);
-          break;
-      }
-    });
-
-    active.sort(getCampaignSortComparator('active'));
-    upcoming.sort(getCampaignSortComparator('upcoming'));
-    past.sort(getCampaignSortComparator('complete'));
-
-    return [...active, ...upcoming, ...past];
-  }, [campaigns]);
-
-  const hasFeaturedCampaigns = featuredCampaigns.length > 0;
+  const hasFeaturedCampaigns = Boolean(featuredCampaign);
 
   const handleNavigateToCampaigns = useCallback(() => {
-    navigation.navigate(Routes.CAMPAIGNS_VIEW);
+    navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW);
   }, [navigation]);
 
   return (
@@ -114,13 +78,7 @@ const CampaignsPreview: React.FC = () => {
         />
       )}
 
-      {featuredCampaigns.map((campaign) => (
-        <CampaignTile
-          key={campaign.id}
-          campaign={campaign}
-          isInteractive={isCampaignTypeSupported(campaign.type)}
-        />
-      ))}
+      {featuredCampaign && <CampaignTile campaign={featuredCampaign} />}
     </Box>
   );
 };

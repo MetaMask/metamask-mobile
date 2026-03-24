@@ -388,20 +388,20 @@ describe('useRewardCampaigns', () => {
       });
     });
 
-    it('sorts active by startDate ascending', () => {
-      const activeLater = createTestCampaign({
-        id: 'active-2',
+    it('preserves API order for active campaigns', () => {
+      const activeFirst = createTestCampaign({
+        id: 'active-1',
         startDate: '2022-06-01T00:00:00.000Z',
         endDate: '2099-12-31T23:59:59.999Z',
       });
-      const activeEarlier = createTestCampaign({
-        id: 'active-1',
+      const activeSecond = createTestCampaign({
+        id: 'active-2',
         startDate: '2021-01-01T00:00:00.000Z',
         endDate: '2099-12-31T23:59:59.999Z',
       });
 
       setupSelectorMocks({
-        campaigns: [activeLater, activeEarlier],
+        campaigns: [activeFirst, activeSecond],
       });
 
       const { result } = renderHook(() => useRewardCampaigns());
@@ -410,20 +410,20 @@ describe('useRewardCampaigns', () => {
       expect(result.current.categorizedCampaigns.active[1].id).toBe('active-2');
     });
 
-    it('sorts upcoming by startDate ascending', () => {
-      const upcomingLater = createTestCampaign({
-        id: 'upcoming-2',
+    it('preserves API order for upcoming campaigns', () => {
+      const upcomingFirst = createTestCampaign({
+        id: 'upcoming-1',
         startDate: '2099-09-01T00:00:00.000Z',
         endDate: '2099-12-31T23:59:59.999Z',
       });
-      const upcomingEarlier = createTestCampaign({
-        id: 'upcoming-1',
+      const upcomingSecond = createTestCampaign({
+        id: 'upcoming-2',
         startDate: '2099-06-01T00:00:00.000Z',
         endDate: '2099-12-31T23:59:59.999Z',
       });
 
       setupSelectorMocks({
-        campaigns: [upcomingLater, upcomingEarlier],
+        campaigns: [upcomingFirst, upcomingSecond],
       });
 
       const { result } = renderHook(() => useRewardCampaigns());
@@ -436,29 +436,29 @@ describe('useRewardCampaigns', () => {
       );
     });
 
-    it('sorts previous by endDate descending', () => {
-      const completeOlder = createTestCampaign({
+    it('preserves API order for previous campaigns', () => {
+      const completeFirst = createTestCampaign({
         id: 'complete-1',
-        startDate: '2020-01-01T00:00:00.000Z',
-        endDate: '2020-06-30T23:59:59.999Z',
-      });
-      const completeNewer = createTestCampaign({
-        id: 'complete-2',
         startDate: '2020-07-01T00:00:00.000Z',
         endDate: '2020-12-31T23:59:59.999Z',
       });
+      const completeSecond = createTestCampaign({
+        id: 'complete-2',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-06-30T23:59:59.999Z',
+      });
 
       setupSelectorMocks({
-        campaigns: [completeOlder, completeNewer],
+        campaigns: [completeFirst, completeSecond],
       });
 
       const { result } = renderHook(() => useRewardCampaigns());
 
       expect(result.current.categorizedCampaigns.previous[0].id).toBe(
-        'complete-2',
+        'complete-1',
       );
       expect(result.current.categorizedCampaigns.previous[1].id).toBe(
-        'complete-1',
+        'complete-2',
       );
     });
 

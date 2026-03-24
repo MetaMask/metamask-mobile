@@ -18,8 +18,14 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatusInfo } from './CampaignTile.utils';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  getCampaignStatusInfo,
+  isCampaignTypeSupported,
+} from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
@@ -27,29 +33,24 @@ import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipa
 interface CampaignTileProps {
   campaign: CampaignDto;
   /**
-   * Whether the tile is interactive (pressable). Defaults to true.
-   * When false, the tile is displayed but cannot be tapped.
-   */
-  isInteractive?: boolean;
-  /**
    * Custom press handler. If provided, this is called instead of the default
-   * navigation to campaign details. Only used when isInteractive is true.
+   * type-based navigation. Unsupported campaign types are only interactive
+   * when an onPress handler is provided.
    */
   onPress?: () => void;
 }
 
 /**
  * CampaignTile displays campaign information with status.
- * Tapping behavior can be customized via props:
- * - Default: navigates to campaign details screen
- * - With onPress: executes custom handler
- * - With isInteractive=false: tile is not pressable
+ * Tapping behavior is determined by campaign type:
+ * - ONDO_HOLDING: navigates to Ondo campaign details
+ * - SEASON_1: navigates to season one campaign details
+ * - Unsupported types: non-interactive unless onPress is provided
+ * - With onPress: executes custom handler regardless of type
  */
-const CampaignTile: React.FC<CampaignTileProps> = ({
-  campaign,
-  isInteractive = true,
-  onPress,
-}) => {
+const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
+  const isInteractive =
+    onPress != null || isCampaignTypeSupported(campaign.type);
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
@@ -79,8 +80,14 @@ const CampaignTile: React.FC<CampaignTileProps> = ({
 
     if (onPress) {
       onPress();
-    } else {
-      navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaignId: campaign.id });
+    } else if (campaign.type === CampaignType.ONDO_HOLDING) {
+      navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
+    } else if (campaign.type === CampaignType.SEASON_1) {
+      navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
     }
   };
 

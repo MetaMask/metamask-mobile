@@ -83,8 +83,9 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
     }
   }, [dispatch, subscriptionId]);
 
+  const campaignsList = useMemo(() => campaigns ?? [], [campaigns]);
+
   const categorizedCampaigns = useMemo((): CategorizedCampaigns => {
-    const campaignsList = campaigns ?? [];
     const active: CampaignDto[] = [];
     const upcoming: CampaignDto[] = [];
     const previous: CampaignDto[] = [];
@@ -104,22 +105,8 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       }
     });
 
-    active.sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
-
-    upcoming.sort(
-      (a, b) =>
-        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
-    );
-
-    previous.sort(
-      (a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
-    );
-
     return { active, upcoming, previous };
-  }, [campaigns]);
+  }, [campaignsList]);
 
   useFocusEffect(
     useCallback(() => {
@@ -139,7 +126,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   useInvalidateByRewardEvents(invalidateEvents, fetchCampaigns);
 
   return {
-    campaigns: campaigns ?? [],
+    campaigns: campaignsList,
     categorizedCampaigns,
     isLoading,
     hasError,

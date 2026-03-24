@@ -176,22 +176,3 @@ export function getCampaignStatusInfo(
     dateLabelIcon: getStatusIcon(status),
   };
 }
-
-/**
- * Returns a comparator function for sorting campaigns based on status.
- * - Active/Upcoming: sorted by start date ascending (earliest first)
- * - Complete: sorted by end date descending (most recent first)
- *
- * @param status - The campaign status to get the sort comparator for
- * @returns Comparator function suitable for Array.prototype.sort()
- */
-export function getCampaignSortComparator(
-  status: CampaignStatus,
-): (a: CampaignDto, b: CampaignDto) => number {
-  if (status === 'complete') {
-    return (a, b) =>
-      new Date(b.endDate).getTime() - new Date(a.endDate).getTime();
-  }
-  return (a, b) =>
-    new Date(a.startDate).getTime() - new Date(b.startDate).getTime();
-}

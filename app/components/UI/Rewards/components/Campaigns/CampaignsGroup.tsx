@@ -2,7 +2,6 @@ import React from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import CampaignTile from './CampaignTile';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { isCampaignTypeSupported } from './CampaignTile.utils';
 
 interface CampaignsGroupProps {
   title: string;
@@ -29,11 +28,7 @@ const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
         {title}
       </Text>
       {campaigns.map((campaign) => (
-        <CampaignTile
-          key={campaign.id}
-          campaign={campaign}
-          isInteractive={isCampaignTypeSupported(campaign.type)}
-        />
+        <CampaignTile key={campaign.id} campaign={campaign} />
       ))}
     </Box>
   );
