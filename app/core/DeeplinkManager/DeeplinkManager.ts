@@ -22,6 +22,46 @@ async function writeBranchDebug(label: string, data: unknown) {
 }
 
 /**
+ * Calls the Branch Deep Link API directly to read the metadata for a short
+ * link. This bypasses the Branch SDK entirely and shows what the Branch
+ * backend actually returns for a given URL.
+ */
+async function fetchBranchLinkData(shortUrl: string) {
+  const branchKey =
+    process.env.MM_BRANCH_KEY_LIVE ?? process.env.MM_BRANCH_KEY_TEST;
+  if (!branchKey) {
+    await writeBranchDebug('NETWORK fetchBranchLinkData', {
+      error: 'No Branch key available (MM_BRANCH_KEY_LIVE / _TEST)',
+    });
+    return;
+  }
+  try {
+    const response = await fetch('https://api2.branch.io/v1/url', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ branch_key: branchKey, url: shortUrl }),
+    });
+    const body = await response.text();
+    await writeBranchDebug('NETWORK fetchBranchLinkData', {
+      shortUrl,
+      httpStatus: response.status,
+      body: (() => {
+        try {
+          return JSON.parse(body);
+        } catch {
+          return body;
+        }
+      })(),
+    });
+  } catch (err) {
+    await writeBranchDebug('NETWORK fetchBranchLinkData', {
+      shortUrl,
+      error: String(err),
+    });
+  }
+}
+
+/**
  * Branch short-link domains carry a link ID (e.g. /1WkF6GmE40b), NOT an
  * in-app route. React Native Linking must never attempt to route these;
  * the Branch SDK resolves them and provides the actual route via $deeplink_path.
@@ -166,6 +206,7 @@ export class DeeplinkManager {
       if (!url) return;
       if (isBranchShortLinkUrl(url)) {
         writeBranchDebug('Linking.getInitialURL SKIPPED (Branch)', { url });
+        fetchBranchLinkData(url);
         return;
       }
       handleDeeplink({ uri: url });
@@ -174,6 +215,7 @@ export class DeeplinkManager {
     Linking.addEventListener('url', ({ url }) => {
       if (isBranchShortLinkUrl(url)) {
         writeBranchDebug('Linking.addEventListener SKIPPED (Branch)', { url });
+        fetchBranchLinkData(url);
         return;
       }
       handleDeeplink({ uri: url });
@@ -185,10 +227,12 @@ export class DeeplinkManager {
     (async () => {
       try {
         const params = await branch.getLatestReferringParams();
-        writeBranchDebug('getLatestReferringParams (cold start)', params);
-
         const uri = resolveRouteFromBranchParams(params);
-        writeBranchDebug('cold-start resolvedRoute', { uri: uri ?? 'NONE' });
+        // Single write to avoid race with concurrent writeBranchDebug calls
+        await writeBranchDebug('COLD START', {
+          resolvedRoute: uri ?? 'NONE',
+          rawParams: params,
+        });
         if (uri) {
           handleDeeplink({ uri });
           return;
@@ -203,19 +247,19 @@ export class DeeplinkManager {
       }
     })();
 
-    branch.subscribe((opts) => {
+    branch.subscribe(async (opts) => {
       if (opts.error) {
         Logger.error(new Error(opts.error), 'Error subscribing to branch.');
         return;
       }
 
-      writeBranchDebug('branch.subscribe', {
-        uri: opts.uri,
-        params: opts.params,
-      });
-
       const uri = resolveRouteFromBranchParams(opts.params);
-      writeBranchDebug('subscribe resolvedRoute', { uri: uri ?? 'NONE' });
+      // Single write to avoid race with concurrent writeBranchDebug calls
+      await writeBranchDebug('SUBSCRIBE', {
+        resolvedRoute: uri ?? 'NONE',
+        uri: opts.uri,
+        rawParams: opts.params,
+      });
       if (uri) {
         handleDeeplink({ uri });
         return;
