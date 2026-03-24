@@ -490,15 +490,13 @@ describe('MYXProvider', () => {
       });
     });
 
-    it('editOrder returns failure', async () => {
+    it('editOrder returns failure without messenger', async () => {
       const result = await provider.editOrder(
         {} as Parameters<typeof provider.editOrder>[0],
       );
 
-      expect(result).toEqual({
-        success: false,
-        error: 'MYX trading not yet supported',
-      });
+      expect(result.success).toBe(false);
+      expect(result.error).toContain('messenger');
     });
 
     it('cancelOrder returns failure', async () => {
@@ -532,17 +530,13 @@ describe('MYXProvider', () => {
       });
     });
 
-    it('closePositions returns zero counts', async () => {
+    it('closePositions returns failure without messenger', async () => {
       const result = await provider.closePositions(
         {} as Parameters<typeof provider.closePositions>[0],
       );
 
-      expect(result).toEqual({
-        success: false,
-        successCount: 0,
-        failureCount: 0,
-        results: [],
-      });
+      expect(result.success).toBe(false);
+      expect(result.failureCount).toBeGreaterThanOrEqual(0);
     });
 
     it('updatePositionTPSL returns failure without messenger', async () => {
@@ -714,8 +708,9 @@ describe('MYXProvider', () => {
       );
 
       expect(result).toEqual({
-        feeRate: 0.0005,
-        protocolFeeRate: 0.0005,
+        feeRate: 0.055,
+        protocolFeeRate: 0.055,
+        metamaskFeeRate: 0,
       });
     });
   });

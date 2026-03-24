@@ -40,6 +40,40 @@ Per-pool fields only diverge from zero when positions/orders exist in that pool.
 | Mainnet (BSC 56) | USDT | 18 | `25731940913776519597` → 25.7319 |
 | Testnet (Linea Sepolia 59141) | USDC | 6 | `488935694` → 488.9356 |
 
+## Fee Model
+
+### Fee rate precision
+All fee rates use **1e6** precision (on-chain `RATE_PRECISION`).
+- `55000` = 55000 / 1,000,000 = **0.055%** (standard taker fee)
+- `-5000` = -5000 / 1,000,000 = **-0.005%** (negative = maker rebate)
+
+### Getting fee rates
+```typescript
+const result = await client.utils.getUserTradingFeeRate(assetClass, riskTier, chainId, userAddress?);
+// result.data: { takerFeeRate, makerFeeRate, baseTakerFeeRate, baseMakerFeeRate }
+```
+
+Parameters:
+- `assetClass` (number): Asset classification (0 = standard perpetuals). Set per-broker at creation.
+- `riskTier` (number, 0-255): Per-pool risk parameter. Not exposed in pool API responses.
+- `userAddress` (optional): When passed, returns user-specific rates (tier discounts). Currently not used.
+
+### Trading fee calculation
+```
+tradingFee = (collateralAmount * takerFeeRate) / 1,000,000
+```
+Passed as separate arg to `createIncreaseOrder(params, tradingFee, marketId)`.
+The SDK adds `tradingFee` to `collateralAmount` before sending to the contract.
+
+### Broker revenue model
+MYX brokers earn through **referral rebates**, not a separate fee line:
+1. Broker address is passed at `MyxClient({ brokerAddress })` — tags all trades
+2. `setUserFeeData(address, chainId, deadline, { tier, referrer, totalReferralRebatePct, referrerRebatePct, nonce }, signature)` — links user to broker, sets rebate split (requires backend EIP-712 signature from MYX)
+3. `referrals.claimRebate(tokenAddress)` — broker claims accumulated rebates
+4. Trade data includes `referrerRebate`, `referralRebate`, `rebateClaimedAmount`
+
+**Current status**: We pass `brokerAddress` (step 1) but have not set up referral relationships (step 2) or rebate claiming (step 3). This requires MYX team coordination.
+
 ## Value Format Inconsistency (read vs write)
 
 The SDK returns **human-readable** values from read APIs but expects **scaled integers** for write APIs. This is the single biggest source of bugs.

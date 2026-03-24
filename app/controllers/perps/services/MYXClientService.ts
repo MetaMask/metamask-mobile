@@ -21,6 +21,8 @@ import { MyxClient } from '@myx-trade/sdk';
 
 import {
   MYX_PRICE_POLLING_INTERVAL_MS,
+  MYX_COLLATERAL_TOKEN_MAINNET,
+  MYX_COLLATERAL_TOKEN_TESTNET,
   getMYXChainId,
   getMYXHttpEndpoint,
 } from '../constants/myxConfig';
@@ -36,6 +38,7 @@ import type {
   MYXPositionHistoryItem,
   MYXTradeFlowItem,
   MYXGetHistoryOrdersParams,
+  MYXUpdateOrderParams,
 } from '../types/myx-types';
 import { ensureError } from '../utils/errorUtils';
 
@@ -812,10 +815,14 @@ export class MYXClientService {
   ): Promise<{ code: number; data: string }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting wallet balance');
-      const result = await this.#myxClient.account.getWalletQuoteTokenBalance(
+      const tokenAddress = this.#isTestnet
+        ? MYX_COLLATERAL_TOKEN_TESTNET
+        : MYX_COLLATERAL_TOKEN_MAINNET;
+      const result = await this.#myxClient.account.getWalletQuoteTokenBalance({
         chainId,
         address,
-      );
+        tokenAddress,
+      });
       return result as { code: number; data: string };
     } catch (caughtError) {
       const wrappedError = ensureError(
@@ -1256,6 +1263,55 @@ export class MYXClientService {
         wrappedError,
         this.#getErrorContext('createPositionTpSlOrder', {
           poolId: params.poolId,
+        }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Update an existing order's size, price, TP/SL.
+   *
+   * @param params - SDK UpdateOrderParams (orderId, size, price, tp/sl fields).
+   * @param quoteAddress - Quote token address.
+   * @param chainId - Numeric chain ID.
+   * @param address - User wallet address.
+   * @param marketId - Market ID from getMarketDetail.
+   * @param isTpSlOrder - Whether this is a TP/SL order (optional).
+   * @returns SDK response with code, message, and optional data.
+   */
+  async updateOrderTpSl(
+    params: MYXUpdateOrderParams,
+    quoteAddress: string,
+    chainId: number,
+    address: string,
+    marketId: string,
+    isTpSlOrder?: boolean,
+  ): Promise<{ code: number; message?: string; data?: unknown }> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Updating order', {
+        orderId: params.orderId,
+        marketId,
+      });
+
+      const result = await this.#myxClient.order.updateOrderTpSl(
+        params,
+        quoteAddress,
+        chainId,
+        address,
+        marketId,
+        isTpSlOrder,
+      );
+      return result as { code: number; message?: string; data?: unknown };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.updateOrderTpSl',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('updateOrderTpSl', {
+          orderId: params.orderId,
         }),
       );
       throw wrappedError;

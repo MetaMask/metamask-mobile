@@ -18,7 +18,7 @@ import type { PositionType, HistoryOrderItem, PoolSymbolAllResponse, TickerDataI
 import { ethers } from 'ethers';
 import { createWalletClient as viemCreateWalletClient, http } from 'viem';
 import { privateKeyToAccount } from 'viem/accounts';
-import { bsc, lineaSepolia } from 'viem/chains';
+import { bsc, lineaSepolia, arbitrumSepolia } from 'viem/chains';
 
 // Re-export SDK types for use in scripts
 export type { PositionType, HistoryOrderItem, PoolSymbolAllResponse, TickerDataItem };
@@ -89,13 +89,27 @@ const NETWORK_CONFIGS = {
   },
   testnet: {
     chainId: 59141,
-    brokerAddress: '0x0FB08D3A1Ea6bE515fe78D3e0CaEb6990b468Cf3',
+    brokerAddress: '0x30b1bc9234fea72daba5253bf96d56a91483cbc0',
     collateralToken: '0xD984fd34f91F92DA0586e1bE82E262fF27DC431b',
     collateralSymbol: 'USDC',
     collateralDecimals: 6,
     apiBase: 'https://api-test.myx.cash',
     rpcUrl: 'https://rpc.sepolia.linea.build',
     viemChain: lineaSepolia,
+    isTestnet: true,
+    appId: ENV.MYX_APP_ID_TESTNET || '',
+    apiSecret: ENV.MYX_API_SECRET_TESTNET || '',
+  },
+  // Arbitrum Sepolia testnet — most active testnet pools (ARB, BTC, WWE) live here
+  'testnet-arb': {
+    chainId: 421614,
+    brokerAddress: '0xc777bf4cdd0afc3d2b4d0f46d23a1c1c25c39176',
+    collateralToken: '0x7E248Ec1721639413A280d9E82e2862Cae2E6E28',
+    collateralSymbol: 'USDC',
+    collateralDecimals: 6,
+    apiBase: 'https://api-test.myx.cash',
+    rpcUrl: 'https://sepolia-rollup.arbitrum.io/rpc',
+    viemChain: arbitrumSepolia,
     isTestnet: true,
     appId: ENV.MYX_APP_ID_TESTNET || '',
     apiSecret: ENV.MYX_API_SECRET_TESTNET || '',
@@ -110,10 +124,11 @@ export type NetworkConfig = (typeof NETWORK_CONFIGS)[keyof typeof NETWORK_CONFIG
 
 export function getNetworkConfig(): NetworkConfig {
   const env = (process.env.NETWORK || 'mainnet').toLowerCase();
-  if (env !== 'mainnet' && env !== 'testnet') {
-    throw new Error(`Invalid NETWORK="${env}". Use "mainnet" or "testnet".`);
+  const valid = Object.keys(NETWORK_CONFIGS);
+  if (!valid.includes(env)) {
+    throw new Error(`Invalid NETWORK="${env}". Use one of: ${valid.join(', ')}`);
   }
-  return NETWORK_CONFIGS[env];
+  return NETWORK_CONFIGS[env as keyof typeof NETWORK_CONFIGS];
 }
 
 // ============================================================================
@@ -276,9 +291,20 @@ export const MYX_PRICE_DECIMALS = COMMON_PRICE_DECIMALS; // 30
  */
 export const MYX_SIZE_DECIMALS = COMMON_LP_AMOUNT_DECIMALS; // 18
 
-/** Fee rate precision: 1e6 (on-chain RATE_PRECISION). e.g. 55000 = 0.055%.
- *  Not exported by SDK — no constant available. */
+/**
+ * Fee rate precision: 1e6 (on-chain RATE_PRECISION).
+ * All fee rates from getUserTradingFeeRate() use this precision.
+ * Example: 55000 = 55000/1e6 = 0.055%
+ * Not exported by SDK — no constant available.
+ */
 export const MYX_RATE_PRECISION = 1000000n;
+
+/**
+ * Default taker fee rate (in 1e6 precision).
+ * Observed from getUserTradingFeeRate(0, 0, chainId) on both mainnet and testnet.
+ * 55000 / 1e6 = 0.055%
+ */
+export const MYX_DEFAULT_TAKER_FEE_RATE = 55000n;
 
 // ============================================================================
 // Decimal Helpers (native BigInt)

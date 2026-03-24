@@ -62,6 +62,20 @@ export type { PlaceOrderParams as MYXPlaceOrderParams } from '@myx-trade/sdk';
 export type { PositionTpSlOrderParams as MYXPositionTpSlOrderParams } from '@myx-trade/sdk';
 export type { GetHistoryOrdersParams as MYXGetHistoryOrdersParams } from '@myx-trade/sdk';
 
+// UpdateOrderParams is declared in the SDK but not exported — define locally.
+// Matches the SDK's `updateOrderTpSl` first parameter signature.
+export type MYXUpdateOrderParams = {
+  orderId: string;
+  size: string;
+  price: string;
+  tpSize: string;
+  tpPrice: string;
+  slSize: string;
+  slPrice: string;
+  useOrderCollateral: boolean;
+  executionFeeToken: string;
+};
+
 // ============================================================================
 // Network Configuration Types
 // ============================================================================

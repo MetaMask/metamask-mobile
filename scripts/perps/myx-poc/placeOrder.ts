@@ -20,6 +20,7 @@ import {
   toSize,
   toCollateral,
   MYX_RATE_PRECISION,
+  MYX_DEFAULT_TAKER_FEE_RATE,
 } from './common';
 
 async function main() {
@@ -78,20 +79,28 @@ async function main() {
   }
 
   const poolId = pool.poolId;
-  console.log(`Resolved: ${symbol} -> poolId=${poolId}`);
+  // Use the pool's own chainId — testnet spans multiple chains (e.g. 421614, 59141)
+  const poolChainId = pool.chainId ?? config.chainId;
+  console.log(`Resolved: ${symbol} -> poolId=${poolId} (chainId=${poolChainId})`);
 
   // Get market detail (for marketId)
   const detail = await client.markets.getMarketDetail({
-    chainId: config.chainId,
+    chainId: poolChainId,
     poolId,
   });
   const marketId = detail.marketId;
   console.log(`MarketId: ${marketId}`);
 
-  // Get fee rate
-  const feeResult = await client.utils.getUserTradingFeeRate(0, 0, config.chainId);
-  if (feeResult.code !== 0) throw new Error(`Fee rate API error: ${feeResult.message}`);
-  const takerFeeRate = BigInt(feeResult.data?.takerFeeRate || '1000');
+  // Get fee rate — may fail if broker contract isn't active on this chainId
+  let takerFeeRate: bigint;
+  try {
+    const feeResult = await client.utils.getUserTradingFeeRate(0, 0, poolChainId);
+    if (feeResult.code !== 0) throw new Error(`code=${feeResult.code}`);
+    takerFeeRate = BigInt(feeResult.data?.takerFeeRate || String(MYX_DEFAULT_TAKER_FEE_RATE));
+  } catch {
+    takerFeeRate = MYX_DEFAULT_TAKER_FEE_RATE;
+    console.log(`  (getUserTradingFeeRate failed, using default ${MYX_DEFAULT_TAKER_FEE_RATE})`);
+  }
   console.log(`Taker fee rate: ${takerFeeRate}`);
 
   // Determine price
@@ -101,7 +110,7 @@ async function main() {
   } else {
     // Fetch current price
     const tickers = await client.markets.getTickerList({
-      chainId: config.chainId,
+      chainId: poolChainId,
       poolIds: [poolId],
     });
     const tickerPrice = parseFloat(tickers[0]?.price ?? '0');
@@ -146,7 +155,7 @@ async function main() {
   const sdkOrderType = orderType === 'limit' ? 1 : 0;
 
   const sdkParams: PlaceOrderParams = {
-    chainId: config.chainId,
+    chainId: poolChainId,
     address: ADDRESS,
     poolId,
     positionId: '',

@@ -383,10 +383,25 @@ export const MYX_MINIMUM_ORDER_SIZE_USD = 100;
 export const MYX_MIN_ORDER_SIZE_BUFFER = 1.1;
 
 /**
- * MYX fee rates (placeholder — will be replaced with per-market rates)
+ * MYX fee rate precision: 1e6 (on-chain RATE_PRECISION).
+ * All fee rates from getUserTradingFeeRate() use this precision.
+ * Example: 55000 = 55000/1e6 = 0.055%
  */
-export const MYX_FEE_RATE = 0.0005; // 0.05% total fee rate
-export const MYX_PROTOCOL_FEE_RATE = 0.0005; // Protocol taker fee
+export const MYX_FEE_RATE_PRECISION = 1_000_000;
+
+/**
+ * Default MYX taker fee rate (in 1e6 precision).
+ * Observed from getUserTradingFeeRate(0, 0, chainId) on both mainnet and testnet.
+ * Used as fallback when the API call fails.
+ * 55000 / 1e6 = 0.055%
+ */
+export const MYX_DEFAULT_TAKER_FEE_RATE = 55000;
+
+/**
+ * MYX fee rates as decimals (derived from the above for UI display).
+ */
+export const MYX_FEE_RATE = MYX_DEFAULT_TAKER_FEE_RATE / MYX_FEE_RATE_PRECISION; // 0.055%
+export const MYX_PROTOCOL_FEE_RATE = MYX_FEE_RATE; // Protocol takes the full fee (broker rebate is separate)
 
 /**
  * USDT execution fee token address per network (used for order execution fees)

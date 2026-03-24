@@ -22,7 +22,8 @@ import { calculateCandleCount } from '../constants/chartConfig';
 import {
   MYX_MAX_LEVERAGE,
   MYX_FEE_RATE,
-  MYX_PROTOCOL_FEE_RATE,
+  MYX_FEE_RATE_PRECISION,
+  MYX_DEFAULT_TAKER_FEE_RATE,
   MYX_ACCOUNT_CONTRACTS,
   MYX_COLLATERAL_ASSET_IDS,
   MYX_DEFAULT_SLIPPAGE_BPS,
@@ -104,6 +105,7 @@ import type {
   MYXNetwork,
   MYXPoolSymbol,
   MYXTicker,
+  MYXUpdateOrderParams,
 } from '../types/myx-types';
 import { MYXOrderStatusEnum } from '../types/myx-types';
 import type { CandleData } from '../types/perps-types';
@@ -237,6 +239,21 @@ export class MYXProvider implements PerpsProvider {
         },
       },
     };
+  }
+
+  /**
+   * Reverse-lookup poolId from symbol via poolSymbolMap.
+   *
+   * @param symbol - The trading pair symbol to resolve.
+   * @returns The poolId if found, otherwise undefined.
+   */
+  #resolvePoolId(symbol: string): string | undefined {
+    for (const [pid, sym] of this.#poolSymbolMap) {
+      if (sym === symbol) {
+        return pid;
+      }
+    }
+    return undefined;
   }
 
   // ============================================================================
@@ -701,14 +718,8 @@ export class MYXProvider implements PerpsProvider {
         network,
       });
 
-      // Resolve symbol → poolId (poolSymbolMap is poolId→symbol, so reverse lookup)
-      let poolId: string | undefined;
-      for (const [pid, sym] of this.#poolSymbolMap) {
-        if (sym === params.symbol) {
-          poolId = pid;
-          break;
-        }
-      }
+      // Resolve symbol → poolId
+      const poolId = this.#resolvePoolId(params.symbol);
       if (!poolId) {
         this.#deps.debugLogger.log('[MYXProvider.placeOrder] Unknown symbol', {
           symbol: params.symbol,
@@ -772,7 +783,9 @@ export class MYXProvider implements PerpsProvider {
       const collateralAmount = toMYXCollateral(usdAmount, network);
 
       // Compute trading fee: collateral * takerFeeRate / 1e6
-      const takerFeeRate = BigInt(feeRates.takerFeeRate || '1000');
+      const takerFeeRate = BigInt(
+        feeRates.takerFeeRate || String(MYX_DEFAULT_TAKER_FEE_RATE),
+      );
       const tradingFee = (
         (BigInt(collateralAmount) * takerFeeRate) /
         BigInt(1e6)
@@ -894,11 +907,92 @@ export class MYXProvider implements PerpsProvider {
     }
   }
 
-  async editOrder(_params: EditOrderParams): Promise<OrderResult> {
-    return {
-      success: false,
-      error: MYX_NOT_SUPPORTED_ERROR,
-    };
+  async editOrder(params: EditOrderParams): Promise<OrderResult> {
+    try {
+      await this.#ensureAuthenticated();
+      const walletService = this.#getWalletService();
+      const address = walletService.getUserAddress();
+      const chainId = this.#clientService.getChainId();
+      const network = this.#clientService.getNetwork();
+
+      // Resolve symbol → poolId
+      const poolId = this.#resolvePoolId(params.newOrder.symbol);
+      if (!poolId) {
+        return {
+          success: false,
+          error: `Unknown symbol: ${params.newOrder.symbol}`,
+        };
+      }
+
+      // Get marketId (required by SDK updateOrderTpSl)
+      const marketDetail = await this.#clientService.getMarketDetail(poolId);
+      const quoteToken = MYX_ACCOUNT_CONTRACTS[network].contractAddress;
+
+      // Build SDK UpdateOrderParams
+      const sdkParams: MYXUpdateOrderParams = {
+        orderId: String(params.orderId),
+        size: toMYXSize(params.newOrder.size),
+        price: toMYXContractPrice(params.newOrder.price ?? '0'),
+        tpSize: '0',
+        tpPrice: params.newOrder.takeProfitPrice
+          ? toMYXContractPrice(params.newOrder.takeProfitPrice)
+          : '0',
+        slSize: '0',
+        slPrice: params.newOrder.stopLossPrice
+          ? toMYXContractPrice(params.newOrder.stopLossPrice)
+          : '0',
+        useOrderCollateral: true,
+        executionFeeToken: MYX_EXECUTION_FEE_TOKEN[network],
+      };
+
+      this.#deps.debugLogger.log('[MYXProvider.editOrder] SDK params', {
+        orderId: sdkParams.orderId,
+        poolId,
+        marketId: marketDetail.marketId,
+      });
+
+      const result = await this.#clientService.updateOrderTpSl(
+        sdkParams,
+        quoteToken,
+        chainId,
+        address,
+        marketDetail.marketId,
+      );
+
+      this.#deps.debugLogger.log('[MYXProvider.editOrder] SDK result', {
+        code: result.code,
+        message: result.message,
+      });
+
+      if (result.code !== 0) {
+        return {
+          success: false,
+          error:
+            `MYX edit failed: code=${result.code} ${result.message ?? ''}`.trim(),
+        };
+      }
+
+      return {
+        success: true,
+        orderId: String(params.orderId),
+        providerId: 'myx',
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(caughtError, 'MYXProvider.editOrder');
+      this.#deps.debugLogger.log('[MYXProvider.editOrder] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('editOrder', {
+          orderId: String(params.orderId),
+        }),
+      );
+      return {
+        success: false,
+        error: wrappedError.message,
+      };
+    }
   }
 
   async cancelOrder(params: CancelOrderParams): Promise<CancelOrderResult> {
@@ -1021,13 +1115,7 @@ export class MYXProvider implements PerpsProvider {
       const network = this.#clientService.getNetwork();
 
       // Resolve symbol → poolId
-      let poolId: string | undefined;
-      for (const [pid, sym] of this.#poolSymbolMap) {
-        if (sym === params.symbol) {
-          poolId = pid;
-          break;
-        }
-      }
+      const poolId = this.#resolvePoolId(params.symbol);
       if (!poolId) {
         return {
           success: false,
@@ -1168,14 +1256,72 @@ export class MYXProvider implements PerpsProvider {
   }
 
   async closePositions(
-    _params: ClosePositionsParams,
+    params: ClosePositionsParams,
   ): Promise<ClosePositionsResult> {
-    return {
-      success: false,
-      successCount: 0,
-      failureCount: 0,
-      results: [],
-    };
+    try {
+      await this.#ensureAuthenticated();
+      const positions = await this.getPositions();
+
+      // Filter: closeAll or specific symbols
+      const toClose =
+        params.closeAll || !params.symbols?.length
+          ? positions
+          : positions.filter((pos) => params.symbols?.includes(pos.symbol));
+
+      if (toClose.length === 0) {
+        return { success: true, successCount: 0, failureCount: 0, results: [] };
+      }
+
+      const results: ClosePositionsResult['results'] = [];
+      let successCount = 0;
+      let failureCount = 0;
+
+      // Sequential close — each is an on-chain tx, parallel would flood the nonce
+      for (const position of toClose) {
+        const result = await this.closePosition({
+          symbol: position.symbol,
+          size: position.size,
+        });
+        if (result.success) {
+          successCount += 1;
+          results.push({ symbol: position.symbol, success: true });
+        } else {
+          failureCount += 1;
+          results.push({
+            symbol: position.symbol,
+            success: false,
+            error: result.error,
+          });
+        }
+      }
+
+      return {
+        success: failureCount === 0,
+        successCount,
+        failureCount,
+        results,
+      };
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXProvider.closePositions',
+      );
+      this.#deps.debugLogger.log('[MYXProvider.closePositions] ERROR', {
+        message: wrappedError.message,
+      });
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('closePositions'),
+      );
+      return {
+        success: false,
+        successCount: 0,
+        failureCount: 1,
+        results: [
+          { symbol: 'unknown', success: false, error: wrappedError.message },
+        ],
+      };
+    }
   }
 
   async updatePositionTPSL(
@@ -1195,13 +1341,7 @@ export class MYXProvider implements PerpsProvider {
       const network = this.#clientService.getNetwork();
 
       // Resolve symbol → poolId
-      let poolId: string | undefined;
-      for (const [pid, sym] of this.#poolSymbolMap) {
-        if (sym === params.symbol) {
-          poolId = pid;
-          break;
-        }
-      }
+      const poolId = this.#resolvePoolId(params.symbol);
       if (!poolId) {
         return {
           success: false,
@@ -1310,13 +1450,7 @@ export class MYXProvider implements PerpsProvider {
       const network = this.#clientService.getNetwork();
 
       // Resolve symbol → poolId
-      let poolId: string | undefined;
-      for (const [pid, sym] of this.#poolSymbolMap) {
-        if (sym === params.symbol) {
-          poolId = pid;
-          break;
-        }
-      }
+      const poolId = this.#resolvePoolId(params.symbol);
       if (!poolId) {
         return {
           success: false,
@@ -1685,13 +1819,7 @@ export class MYXProvider implements PerpsProvider {
       // Fetch per-pool minimum order size, fall back to static constant
       let minimumOrderSize = MYX_MINIMUM_ORDER_SIZE_USD;
       try {
-        let poolId: string | undefined;
-        for (const [pid, sym] of this.#poolSymbolMap) {
-          if (sym === params.symbol) {
-            poolId = pid;
-            break;
-          }
-        }
+        const poolId = this.#resolvePoolId(params.symbol);
         if (poolId) {
           const poolConfig =
             await this.#clientService.getPoolLevelConfig(poolId);
@@ -1822,13 +1950,7 @@ export class MYXProvider implements PerpsProvider {
         if (orderValueUSD !== undefined) {
           let minimumOrderSize = MYX_MINIMUM_ORDER_SIZE_USD;
           try {
-            let poolId: string | undefined;
-            for (const [pid, sym] of this.#poolSymbolMap) {
-              if (sym === params.symbol) {
-                poolId = pid;
-                break;
-              }
-            }
+            const poolId = this.#resolvePoolId(params.symbol);
             if (poolId) {
               const poolConfig =
                 await this.#clientService.getPoolLevelConfig(poolId);
@@ -1950,17 +2072,34 @@ export class MYXProvider implements PerpsProvider {
   async calculateFees(
     params: FeeCalculationParams,
   ): Promise<FeeCalculationResult> {
+    // Fetch dynamic fee rate from MYX API, fall back to default constant
+    let feeRateDecimal = MYX_FEE_RATE;
+    try {
+      const chainId = this.#clientService.getChainId();
+      const rates = await this.#clientService.getUserTradingFeeRate(
+        0,
+        0,
+        chainId,
+      );
+      const rateNum = Number.parseInt(rates.takerFeeRate, 10);
+      if (rateNum > 0) {
+        feeRateDecimal = rateNum / MYX_FEE_RATE_PRECISION;
+      }
+    } catch {
+      // Non-fatal: use static fallback
+    }
+
     const result: FeeCalculationResult = {
-      feeRate: MYX_FEE_RATE,
-      protocolFeeRate: MYX_PROTOCOL_FEE_RATE,
-      metamaskFeeRate: 0, // Broker contract fee TBD
+      feeRate: feeRateDecimal,
+      protocolFeeRate: feeRateDecimal,
+      metamaskFeeRate: 0, // Broker revenue comes via referral rebates, not a separate fee line
     };
 
     if (params.amount) {
       const parsedAmount = parseFloat(params.amount);
       if (isFinite(parsedAmount) && parsedAmount > 0) {
-        result.feeAmount = parsedAmount * MYX_FEE_RATE;
-        result.protocolFeeAmount = parsedAmount * MYX_PROTOCOL_FEE_RATE;
+        result.feeAmount = parsedAmount * feeRateDecimal;
+        result.protocolFeeAmount = parsedAmount * feeRateDecimal;
         result.metamaskFeeAmount = 0;
       }
     }

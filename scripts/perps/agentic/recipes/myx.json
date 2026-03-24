@@ -38,5 +38,45 @@
     "description": "Open MYX limit/stop orders",
     "expression": "(function(){var c=Engine.context.PerpsController;return c.getOpenOrders().then(function(r){var myx=r.filter(function(o){return o.providerId==='myx'});return JSON.stringify(myx)})})()",
     "async": true
+  },
+  "place-order": {
+    "description": "Place a market buy on first MYX market (0.05 size, 10x leverage)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getMarketDataWithPrices().then(function(markets){var myx=markets.filter(function(m){return m.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX markets'});var m=myx[0];return c.placeOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:'0.05',leverage:10,usdAmount:'120',maxSlippageBps:500,currentPrice:parseFloat(m.price)}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "close-position": {
+    "description": "Close first open MYX position (full close)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getPositions().then(function(positions){var myx=positions.filter(function(p){return p.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX positions'});var p=myx[0];return c.closePosition({symbol:p.symbol,size:p.size}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "close-all-positions": {
+    "description": "Batch close all MYX positions",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.closePositions({closeAll:true}).then(function(r){return JSON.stringify(r)})})()",
+    "async": true
+  },
+  "cancel-order": {
+    "description": "Cancel first open MYX order",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getOpenOrders().then(function(orders){var myx=orders.filter(function(o){return o.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX open orders'});var o=myx[0];return c.cancelOrder({orderId:o.orderId,symbol:o.symbol}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "cancel-all-orders": {
+    "description": "Batch cancel all open MYX orders",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getOpenOrders().then(function(orders){var myx=orders.filter(function(o){return o.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX open orders'});return c.cancelOrders({orders:myx.map(function(o){return{orderId:o.orderId,symbol:o.symbol}})}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "update-tpsl": {
+    "description": "Set TP/SL on first MYX position (TP=+10%, SL=-5% from entry)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getPositions().then(function(positions){var myx=positions.filter(function(p){return p.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX positions'});var p=myx[0];var entry=parseFloat(p.entryPrice);var tp=String(entry*1.10);var sl=String(entry*0.95);return c.updatePositionTPSL({symbol:p.symbol,takeProfitPrice:tp,stopLossPrice:sl}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "add-margin": {
+    "description": "Add $10 margin to first MYX position",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getPositions().then(function(positions){var myx=positions.filter(function(p){return p.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX positions'});var p=myx[0];return c.updateMargin({symbol:p.symbol,amount:'10'}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "edit-order": {
+    "description": "Edit first open MYX order (update price by +1%)",
+    "expression": "(function(){var c=Engine.context.PerpsController;return c.getOpenOrders().then(function(orders){var myx=orders.filter(function(o){return o.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX open orders'});var o=myx[0];var newPrice=String(parseFloat(o.price)*1.01);return c.editOrder({orderId:o.orderId,newOrder:{symbol:o.symbol,isBuy:o.side==='buy',orderType:o.isTrigger?'stop':'limit',size:o.size,price:newPrice}}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
   }
 }

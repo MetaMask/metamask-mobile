@@ -1,10 +1,10 @@
 /**
- * MYX PoC — Edit an existing open order (change price, size, TP/SL)
+ * MYX PoC — Edit an existing open order (change price)
  *
  * Usage:
  *   npx tsx editOrder.ts --price 50000                   # Edit first order's price
  *   npx tsx editOrder.ts --orderId <id> --price 50000    # Edit specific order
- *   npx tsx editOrder.ts --price-pct 1                   # Bump price by +1%
+ *   npx tsx editOrder.ts --price-pct 1                   # Bump price by +1% (uses triggerPrice)
  *   NETWORK=testnet npx tsx editOrder.ts --price-pct 1
  *
  * This calls the same SDK path as MYXProvider.editOrder / MYXClientService.updateOrderTpSl:
@@ -22,6 +22,7 @@ import {
   ADDRESS,
   parseArgs,
   toContractPrice,
+  MYX_PRICE_DECIMALS,
 } from './common';
 
 async function main() {
@@ -31,12 +32,12 @@ async function main() {
   const priceArg = args.price ? parseFloat(args.price) : undefined;
   const pricePctArg = args['price-pct'] ? parseFloat(args['price-pct']) : undefined;
 
-  if (!priceArg && pricePctArg === undefined) {
+  if (priceArg === undefined && pricePctArg === undefined) {
     console.error('Usage: npx tsx editOrder.ts --price <newPrice>');
     console.error('       npx tsx editOrder.ts --price-pct <percent>  # e.g. 1 = +1%');
     console.error('  --orderId    Order to edit (default: first open order)');
     console.error('  --price      New absolute price');
-    console.error('  --price-pct  Price change percentage (e.g. 1 = +1%, -5 = -5%)');
+    console.error('  --price-pct  Price change percentage relative to triggerPrice');
     process.exit(1);
   }
 
@@ -61,35 +62,36 @@ async function main() {
   }
 
   const order = args.orderId
-    ? orders.find((o: Record<string, unknown>) => o.orderId === args.orderId)
+    ? orders.find((o) => String(o.orderId) === args.orderId)
     : orders[0];
 
   if (!order) {
     console.error(`Order "${args.orderId}" not found`);
-    console.error('Available:', orders.map((o: Record<string, unknown>) => String(o.orderId)).join(', '));
+    console.error('Available:', orders.map((o) => String(o.orderId)).join(', '));
     process.exit(1);
   }
 
-  // Extract order fields — SDK types are loose, use defensive access
   const orderId = String(order.orderId);
-  const currentPrice = parseFloat(String(order.price ?? '0'));
-  const currentSize = String(order.size ?? '0');
-  const poolId = String(order.poolId ?? '');
+  const poolId = order.poolId;
+
+  // triggerPrice is in 30-decimal format — convert to human-readable for display/pct calc
+  const triggerPriceRaw = BigInt(order.triggerPrice ?? '0');
+  const currentPriceHuman = Number(triggerPriceRaw) / 10 ** MYX_PRICE_DECIMALS;
 
   console.log(`Order: ${orderId}`);
   console.log(`  Pool: ${poolId}`);
-  console.log(`  Current price: $${currentPrice}`);
-  console.log(`  Size: ${currentSize}`);
+  console.log(`  Trigger price (raw): ${order.triggerPrice}`);
+  console.log(`  Trigger price (human): $${currentPriceHuman.toFixed(4)}`);
+  console.log(`  Amount: ${order.amount}`);
 
   // Compute new price
   let newPrice: number;
   if (priceArg !== undefined) {
     newPrice = priceArg;
   } else {
-    // pricePctArg is defined (checked above)
-    newPrice = currentPrice * (1 + pricePctArg! / 100);
+    newPrice = currentPriceHuman * (1 + pricePctArg! / 100);
   }
-  console.log(`  New price: $${newPrice.toFixed(6)}`);
+  console.log(`  New price: $${newPrice.toFixed(4)}`);
 
   // Get market detail for marketId
   const detail = await client.markets.getMarketDetail({
@@ -99,10 +101,10 @@ async function main() {
   const marketId = detail.marketId;
   console.log(`  MarketId: ${marketId}`);
 
-  // Build update params matching MYXUpdateOrderParams
+  // Build update params — size is set to '0' since we're only changing price
   const updateParams = {
     orderId,
-    size: currentSize,
+    size: '0',
     price: toContractPrice(newPrice),
     tpSize: '0',
     tpPrice: '0',
