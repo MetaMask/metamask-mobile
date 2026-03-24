@@ -220,4 +220,87 @@ describe('useRouteParams', () => {
       expect(mockUpdateAsset).toHaveBeenCalledWith(assetNft);
     });
   });
+
+  describe('isLoading', () => {
+    it('returns true while NFTs are loading and NFT asset is not resolved yet', async () => {
+      const asset = {
+        id: '123',
+        address: 'dummy_address',
+        chainId: 'dummy_chainId',
+        tokenId: '42',
+      };
+      mockUseParams.mockReturnValue({ asset });
+      mockUseSendContext.mockReturnValue({
+        asset: undefined,
+        updateAsset: jest.fn(),
+      } as unknown as ReturnType<typeof useSendContext>);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return { '0x1': [] };
+        }
+      });
+      mockUseNfts.mockReturnValue({ nfts: [], isLoading: true });
+
+      const { result } = renderHookWithProvider(
+        () => useRouteParams(),
+        mockState,
+      );
+
+      expect(result.current.isLoading).toBe(true);
+    });
+
+    it('returns false when NFTs finish loading and the asset is resolved', async () => {
+      const asset = {
+        id: '123',
+        address: 'dummy_address',
+        chainId: 'dummy_chainId',
+        tokenId: '42',
+      };
+      mockUseParams.mockReturnValue({ asset });
+      mockUseSendContext.mockReturnValue({
+        asset,
+        updateAsset: jest.fn(),
+      } as unknown as ReturnType<typeof useSendContext>);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return { '0x1': [] };
+        }
+      });
+      mockUseNfts.mockReturnValue({ nfts: [], isLoading: false });
+
+      const { result } = renderHookWithProvider(
+        () => useRouteParams(),
+        mockState,
+      );
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
+    it('returns false when the params asset has no tokenId (non-NFT flow)', async () => {
+      const asset = {
+        id: '123',
+        address: 'dummy_address',
+        chainId: 'dummy_chainId',
+        symbol: 'ETH',
+      };
+      mockUseParams.mockReturnValue({ asset });
+      mockUseSendContext.mockReturnValue({
+        asset: undefined,
+        updateAsset: jest.fn(),
+      } as unknown as ReturnType<typeof useSendContext>);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return { '0x1': [] };
+        }
+      });
+      mockUseNfts.mockReturnValue({ nfts: [], isLoading: true });
+
+      const { result } = renderHookWithProvider(
+        () => useRouteParams(),
+        mockState,
+      );
+
+      expect(result.current.isLoading).toBe(false);
+    });
+  });
 });

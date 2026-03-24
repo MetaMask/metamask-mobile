@@ -15,6 +15,9 @@ import {
 import BigNumber from 'bignumber.js';
 
 import Engine from '../../../../../core/Engine';
+import Logger from '../../../../../util/Logger';
+
+jest.mock('../../../../../util/Logger');
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAllNfts } from '../../../../../selectors/nftController';
@@ -796,6 +799,40 @@ describe('useEVMNfts', () => {
 
     await waitFor(() => {
       expect(result.current.nfts[0].collectionName).toBeUndefined();
+    });
+  });
+
+  describe('isLoading', () => {
+    it('settles to false and logs error when processNfts throws', async () => {
+      mockSelectSelectedAccountGroup.mockReturnValue(
+        createMockAccountGroup(['account-1']),
+      );
+      mockSelectInternalAccountsById.mockReturnValue(
+        createMockInternalAccountsById({
+          'account-1': mockAccount,
+        }),
+      );
+      mockSelectAllNfts.mockReturnValue(
+        createMockAllNfts({
+          [mockAccount.address]: { '0x1': [mockNft] },
+        }),
+      );
+      const processingError = new Error('transform failed');
+      // getNetworkBadgeSource is called inside transformNft without a try-catch,
+      // so throwing here propagates out of processNfts to the .catch() handler.
+      mockGetNetworkBadgeSource.mockImplementation(() => {
+        throw processingError;
+      });
+
+      const { result } = renderHookWithStore(() => useEVMNfts());
+
+      await waitFor(() => {
+        expect(result.current.isLoading).toBe(false);
+      });
+      expect(Logger.error).toHaveBeenCalledWith(
+        processingError,
+        'useEVMNfts: processNfts failed',
+      );
     });
   });
 });
