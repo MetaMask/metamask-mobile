@@ -55,6 +55,7 @@ import {
   isEthAppNotOpenErrorMessage,
 } from '../../../core/Ledger/ledgerErrors';
 
+import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
@@ -135,17 +136,10 @@ const LedgerSelectAccount = () => {
   );
 
   const {
-    isSendingLedgerCommands,
     isAppLaunchConfirmationNeeded,
-    ledgerLogicToRun,
     error: ledgerError,
     clearError: clearLedgerError,
-  } = useLedgerBluetooth(selectedDevice?.id);
-
-  const ledgerLogicToRunRef = useRef(ledgerLogicToRun);
-  useEffect(() => {
-    ledgerLogicToRunRef.current = ledgerLogicToRun;
-  }, [ledgerLogicToRun]);
+  } = useLedgerBluetooth(deviceId ?? '');
 
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
@@ -203,7 +197,7 @@ const LedgerSelectAccount = () => {
       );
       setAccounts(_accounts);
     } catch (e) {
-      setErrorMsg((e as Error).message);
+      setErrorMsg(getDisplayErrorMessage((e as Error).message));
     }
   }, []);
 
@@ -265,7 +259,7 @@ const LedgerSelectAccount = () => {
           setAccounts(_accounts);
         })
         .catch((e) => {
-          setErrorMsg((e as Error).message);
+          setErrorMsg(getDisplayErrorMessage((e as Error).message));
         })
         .finally(() => {
           setBlockingModalVisible(false);
@@ -283,7 +277,7 @@ const LedgerSelectAccount = () => {
       );
       setAccounts(_accounts);
     } catch (e) {
-      setErrorMsg((e as Error).message);
+      setErrorMsg(getDisplayErrorMessage((e as Error).message));
     } finally {
       setBlockingModalVisible(false);
     }
@@ -297,7 +291,7 @@ const LedgerSelectAccount = () => {
       );
       setAccounts(_accounts);
     } catch (e) {
-      setErrorMsg((e as Error).message);
+      setErrorMsg(getDisplayErrorMessage((e as Error).message));
     } finally {
       setBlockingModalVisible(false);
     }
@@ -379,7 +373,7 @@ const LedgerSelectAccount = () => {
             .build(),
         );
         setBlockingModalVisible(false);
-        setErrorMsg((err as Error).message);
+        setErrorMsg(getDisplayErrorMessage((err as Error).message));
         isUnlockingRef.current = false;
         return;
       }
@@ -439,17 +433,6 @@ const LedgerSelectAccount = () => {
     [ledgerPathOptions],
   );
 
-  return accounts.length <= 0 ? (
-    <LedgerConnect
-      onConnectLedger={onConnectHardware}
-      selectedDevice={selectedDevice}
-      setSelectedDevice={setSelectedDevice}
-      ledgerLogicToRun={ledgerLogicToRun}
-      isAppLaunchConfirmationNeeded={isAppLaunchConfirmationNeeded}
-      isSendingLedgerCommands={isSendingLedgerCommands}
-      ledgerError={ledgerError}
-    />
-  ) : (
   if (accounts.length <= 0) {
     return (
       <View style={[styles.container, styles.loadingContainer]}>

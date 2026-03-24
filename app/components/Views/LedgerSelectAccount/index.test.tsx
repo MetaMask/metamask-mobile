@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor, act } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import LedgerSelectAccount from './index';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import Engine from '../../../core/Engine';
@@ -28,9 +29,13 @@ import {
 import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
+import { BluetoothInterface } from '../../hooks/Ledger/useBluetoothDevices';
+import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
+import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
 const mockedGoBack = jest.fn();
 const mockedNavDispatch = jest.fn();
+const mockedPop = jest.fn();
 const mockedDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -54,6 +59,8 @@ jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
     error: undefined,
     clearError: jest.fn(),
   })),
+}));
+
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
 
@@ -331,6 +338,8 @@ describe('LedgerSelectAccount', () => {
     return result;
   };
 
+  const renderAndConnect = renderAndWaitForAccounts;
+
   const triggerModalAnimation = async () => {
     await act(async () => {
       capturedOnAnimationCompleted?.();
@@ -338,8 +347,8 @@ describe('LedgerSelectAccount', () => {
   };
 
   const selectAccountAndUnlock = async (
-    getByText: (text: string) => ReturnType<typeof getByText>,
-    getAllByTestId: (testId: string) => ReturnType<typeof getAllByTestId>,
+    getByText: (text: string) => ReactTestInstance,
+    getAllByTestId: (testId: string) => ReactTestInstance[],
   ) => {
     const checkboxes = getAllByTestId('account-checkbox');
     await act(async () => {
@@ -407,6 +416,8 @@ describe('LedgerSelectAccount', () => {
 
       expect(getByTestId('ledger-connect-mock')).toBeTruthy();
       expect(getByTestId('ledger-error')).toBeTruthy();
+    });
+
     it('navigates back when ensureDeviceReady throws on mount', async () => {
       mockEnsureDeviceReady.mockRejectedValue(
         new Error('Bluetooth adapter failed'),
@@ -465,7 +476,9 @@ describe('LedgerSelectAccount', () => {
 
   describe('Error Handling', () => {
     it('hides blocking modal when ledger error occurs', async () => {
-      const { rerender } = renderWithProvider(<LedgerSelectAccount />);
+      const { rerender, queryByText } = renderWithProvider(
+        <LedgerSelectAccount />,
+      );
 
       (
         useLedgerBluetooth as unknown as jest.MockedFunction<
@@ -479,6 +492,11 @@ describe('LedgerSelectAccount', () => {
         clearError: jest.fn(),
         cleanupBluetoothConnection: jest.fn(),
       }));
+
+      rerender(<LedgerSelectAccount />);
+
+      expect(queryByText('Please wait')).toBeFalsy();
+    });
 
     it('renders account selector after accounts are loaded', async () => {
       const { queryByText } = await renderAndWaitForAccounts();
@@ -541,6 +559,9 @@ describe('LedgerSelectAccount', () => {
 
       await waitFor(() => {
         expect(getByTestId('ledger-connect-mock')).toBeTruthy();
+      });
+    });
+
     it('shows inline error when account fetching fails', async () => {
       mockGetLedgerAccountsByOperation.mockRejectedValue(
         new Error('Fetch failed'),
