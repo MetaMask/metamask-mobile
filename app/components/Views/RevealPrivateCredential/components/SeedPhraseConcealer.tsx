@@ -23,7 +23,10 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 const FILL_STYLE =
   'absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1';
 
-const SeedPhraseConcealer = ({ onReveal }: SeedPhraseConcealerProps) => {
+const SeedPhraseConcealer = ({
+  onReveal,
+  testID = RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID,
+}: SeedPhraseConcealerProps) => {
   const { themeAppearance } = useTheme();
   const tw = useTailwind();
 
@@ -32,7 +35,7 @@ const SeedPhraseConcealer = ({ onReveal }: SeedPhraseConcealerProps) => {
       <TouchableOpacity
         onPress={onReveal}
         style={tw.style(FILL_STYLE)}
-        testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
+        testID={testID}
       >
         <ImageBackground
           source={

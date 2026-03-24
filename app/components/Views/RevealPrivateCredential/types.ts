@@ -45,6 +45,7 @@ export interface SeedPhraseDisplayProps {
 
 export interface SeedPhraseConcealerProps {
   onReveal: () => void;
+  testID?: string;
 }
 
 export interface PasswordEntryProps {
