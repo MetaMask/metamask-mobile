@@ -7,16 +7,13 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
-import { BranchParams } from './types/deepLinkAnalytics.types';
 
 /**
- * Returns true when the URL belongs to a Branch.io domain that the Branch SDK
- * will resolve (e.g. metamask.app.link, metamask-alternate.app.link).
- * These URLs must NOT be handled by React Native Linking because the path
- * segment is a Branch link ID (e.g. /1WkF6GmE40b), not an in-app route.
- * The Branch SDK will resolve the link and provide the actual $deeplink_path.
+ * Branch short-link domains carry a link ID (e.g. /1WkF6GmE40b), NOT an
+ * in-app route. React Native Linking must never attempt to route these;
+ * the Branch SDK resolves them and provides the actual route via $deeplink_path.
  */
-export function isBranchUrl(url: string): boolean {
+export function isBranchShortLinkUrl(url: string): boolean {
   try {
     const { hostname } = new URL(url);
     return (
@@ -29,33 +26,14 @@ export function isBranchUrl(url: string): boolean {
 }
 
 /**
- * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
- * the URI path may be link ID, not an in-app route. If the resolved params indicate
- * a clicked Branch link with a $deeplink_path, replace the host and path segment
- * with link.metamask.io/$deeplink_path while preserving the original query string.
+ * Builds a canonical deep link URL from a Branch $deeplink_path value.
+ * e.g. "trending" → "https://link.metamask.io/trending"
  */
-export function rewriteBranchUri(
-  uri: string | undefined,
-  params: BranchParams | undefined,
-): string | undefined {
-  try {
-    if (!uri || !params?.['+clicked_branch_link']) return uri;
-    const rawPath = params.$deeplink_path;
-    if (typeof rawPath !== 'string') return uri;
-
-    const parsed = new URL(uri);
-    parsed.host = AppConstants.MM_IO_UNIVERSAL_LINK_HOST;
-    // Set the pathname to the sanitized $deeplink_path
-    parsed.pathname = `/${rawPath.replace(/^\//, '')}`;
-    return parsed.toString();
-  } catch (error) {
-    Logger.error(error as Error, `Error rewriting Branch URI: ${uri}`);
-    return uri;
-  }
+export function buildDeepLinkFromPath(path: string): string {
+  return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
 }
 
 export class DeeplinkManager {
-  // singleton instance
   private static _instance: DeeplinkManager | null = null;
   public pendingDeeplink: string | null;
 
@@ -104,34 +82,6 @@ export class DeeplinkManager {
   static start() {
     DeeplinkManager.getInstance();
 
-    const getBranchDeeplink = async (uri?: string) => {
-      if (uri) {
-        handleDeeplink({ uri });
-        return;
-      }
-
-      try {
-        const latestParams = await branch.getLatestReferringParams();
-
-        // Cold start: params may contain a resolved Branch link with $deeplink_path.
-        const rewritten = rewriteBranchUri(
-          latestParams?.['~referring_link'] as string | undefined,
-          latestParams as Record<string, unknown> | undefined,
-        );
-        if (rewritten) {
-          handleDeeplink({ uri: rewritten });
-          return;
-        }
-
-        const deeplink = latestParams?.['+non_branch_link'] as string;
-        if (deeplink) {
-          handleDeeplink({ uri: deeplink });
-        }
-      } catch (error) {
-        Logger.error(error as Error, 'Error getting Branch deeplink');
-      }
-    };
-
     FCMService.onClickPushNotificationWhenAppClosed().then((deeplink) => {
       if (deeplink) {
         handleDeeplink({
@@ -150,44 +100,60 @@ export class DeeplinkManager {
       }
     });
 
+    // Branch short-link URLs must be skipped here — they contain a link ID,
+    // not an in-app route. The Branch SDK (below) will resolve them.
     Linking.getInitialURL().then((url) => {
-      if (!url) {
-        return;
-      }
-      if (isBranchUrl(url)) {
-        Logger.log(
-          `handleDeeplink:: skipping Branch URL from Linking (Branch SDK will handle): ${url}`,
-        );
-        return;
-      }
-      Logger.log(`handleDeeplink:: got initial URL ${url}`);
+      if (!url || isBranchShortLinkUrl(url)) return;
       handleDeeplink({ uri: url });
     });
 
-    Linking.addEventListener('url', (params) => {
-      const { url } = params;
-      if (isBranchUrl(url)) {
-        return;
-      }
+    Linking.addEventListener('url', ({ url }) => {
+      if (isBranchShortLinkUrl(url)) return;
       handleDeeplink({ uri: url });
     });
 
-    // branch.subscribe is not called for iOS cold start after the new RN architecture upgrade.
-    // This is a workaround to ensure that the deeplink is processed for iOS cold start.
-    // TODO: Remove this once branch.subscribe is called for iOS cold start.
-    getBranchDeeplink();
+    // branch.subscribe may not fire on iOS cold start after the RN architecture upgrade.
+    // This workaround reads getLatestReferringParams directly.
+    // TODO: Remove once branch.subscribe fires reliably on iOS cold start.
+    (async () => {
+      try {
+        const params = await branch.getLatestReferringParams();
+
+        const deepLinkPath = params?.$deeplink_path;
+        if (typeof deepLinkPath === 'string') {
+          handleDeeplink({ uri: buildDeepLinkFromPath(deepLinkPath) });
+          return;
+        }
+
+        const nonBranchLink = params?.['+non_branch_link'] as string;
+        if (nonBranchLink) {
+          handleDeeplink({ uri: nonBranchLink });
+        }
+      } catch (error) {
+        Logger.error(error as Error, 'Error getting Branch deeplink');
+      }
+    })();
 
     branch.subscribe((opts) => {
-      const { error } = opts;
-      if (error) {
-        const branchError = new Error(error);
-        Logger.error(branchError, 'Error subscribing to branch.');
+      if (opts.error) {
+        Logger.error(new Error(opts.error), 'Error subscribing to branch.');
+        return;
       }
-      const rewritten = rewriteBranchUri(
-        opts.uri,
-        opts.params as Record<string, unknown> | undefined,
-      );
-      getBranchDeeplink(rewritten ?? opts.uri);
+
+      // $deeplink_path is set in the Branch dashboard for each short link.
+      // It works regardless of +clicked_branch_link, which is false under
+      // NativeLink (pasteboard-based deferred deep linking).
+      const deepLinkPath = opts.params?.$deeplink_path;
+      if (typeof deepLinkPath === 'string') {
+        handleDeeplink({ uri: buildDeepLinkFromPath(deepLinkPath) });
+        return;
+      }
+
+      // Non-Branch URIs (e.g. link.metamask.io/trending) can be routed directly.
+      // Branch short-link URIs without $deeplink_path cannot be routed.
+      if (opts.uri && !isBranchShortLinkUrl(opts.uri)) {
+        handleDeeplink({ uri: opts.uri });
+      }
     });
   }
 }
