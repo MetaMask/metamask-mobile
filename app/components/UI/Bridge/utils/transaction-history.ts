@@ -27,6 +27,7 @@ import { toFormattedAddress } from '../../../../util/address';
 import Routes from '../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import Engine from '../../../../core/Engine';
+import { getSourceAmountBaseUnitFromBridgeSwapQuote } from './quoteUtils';
 
 export const getSwapBridgeTxActivityTitle = (
   bridgeTxHistoryItem: BridgeHistoryItem,
@@ -74,10 +75,11 @@ export const decodeBridgeTx = (args: {
 
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const rawSourceAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeTxHistoryItem.quote.srcTokenAmount,
-      quote.srcAsset.decimals,
-    ),
+    bridgeTxHistoryItem.pricingData?.amountSent ||
+      ethers.utils.formatUnits(
+        getSourceAmountBaseUnitFromBridgeSwapQuote(quote),
+        quote.srcAsset.decimals,
+      ),
   );
   const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
 
@@ -141,10 +143,11 @@ export const decodeSwapsTx = (args: {
   const sourceTokenSymbol = quote.srcAsset?.symbol;
   const destTokenSymbol = quote.destAsset?.symbol;
   const rawSourceAmount = parseFloat(
-    ethers.utils.formatUnits(
-      bridgeTxHistoryItem.quote.srcTokenAmount,
-      quote.srcAsset.decimals,
-    ),
+    bridgeTxHistoryItem.pricingData?.amountSent ||
+      ethers.utils.formatUnits(
+        getSourceAmountBaseUnitFromBridgeSwapQuote(quote),
+        quote.srcAsset.decimals,
+      ),
   );
   const sourceAmountSent = formatAmountWithThreshold(rawSourceAmount, 5);
 
