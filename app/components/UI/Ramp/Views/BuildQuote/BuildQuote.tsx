@@ -20,7 +20,6 @@ import {
   getWidgetRedirectConfig,
 } from '../../utils/buildQuoteWithRedirectUrl';
 import { computeAmountUpdate } from '../../utils/computeAmountUpdate';
-import { extractOrderCode } from '../../utils/extractOrderCode';
 import { getRampCallbackBaseUrl } from '../../utils/getRampCallbackBaseUrl';
 import { getNavigateAfterExternalBrowserRoutes } from '../../utils/rampsNavigation';
 import { reportRampsError } from '../../utils/reportRampsError';
@@ -176,8 +175,6 @@ function BuildQuote() {
     paymentMethods,
     getBuyWidgetData,
     addPrecreatedOrder,
-    addOrder,
-    getOrderFromCallback,
     paymentMethodsLoading,
     paymentMethodsFetching,
     paymentMethodsStatus,
@@ -683,36 +680,17 @@ function BuildQuote() {
             return;
           }
 
-          try {
-            const order = await getOrderFromCallback(
-              providerCode,
-              result.url,
-              effectiveWallet,
-            );
-
-            if (!order || isBailedOrderStatus(order.status)) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            addOrder(order);
-
-            const rawOrderId = order.providerOrderId ?? effectiveOrderId;
-            if (!rawOrderId) {
-              navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
-              return;
-            }
-
-            const orderCode = extractOrderCode(rawOrderId);
-            navigateAfterExternalBrowser({
-              returnDestination: 'order',
-              orderCode,
-              providerCode,
-              walletAddress: effectiveWallet || undefined,
-            });
-          } catch {
+          if (!effectiveWallet) {
             navigateAfterExternalBrowser({ returnDestination: 'buildQuote' });
+            return;
           }
+
+          navigateAfterExternalBrowser({
+            returnDestination: 'order',
+            callbackUrl: result.url,
+            providerCode,
+            walletAddress: effectiveWallet,
+          });
         } finally {
           InAppBrowser.closeAuth();
         }
@@ -757,8 +735,6 @@ function BuildQuote() {
     navigation,
     getBuyWidgetData,
     addPrecreatedOrder,
-    getOrderFromCallback,
-    addOrder,
     navigateAfterExternalBrowser,
   ]);
 
