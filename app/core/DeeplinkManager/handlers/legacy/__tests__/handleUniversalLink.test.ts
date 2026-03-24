@@ -799,6 +799,33 @@ describe('handleUniversalLink', () => {
       expect(handled).toHaveBeenCalled();
     });
 
+    it('calls _handleTrending with query path when screen=stocks', async () => {
+      const trendingUrl = `${PROTOCOLS.HTTPS}://${AppConstants.MM_UNIVERSAL_LINK_HOST}/${ACTIONS.TRENDING}?screen=stocks`;
+      const trendingUrlObj = {
+        ...urlObj,
+        hostname: AppConstants.MM_UNIVERSAL_LINK_HOST,
+        href: trendingUrl,
+        pathname: `/${ACTIONS.TRENDING}`,
+      };
+
+      await handleUniversalLink({
+        instance,
+        handled,
+        urlObj: trendingUrlObj,
+        browserCallBack: mockBrowserCallBack,
+        url: trendingUrl,
+        source: 'test-source',
+      });
+
+      const mockHandleTrendingUrl = jest.requireMock('../handleTrendingUrl')
+        .handleTrendingUrl as jest.Mock;
+
+      expect(mockHandleTrendingUrl).toHaveBeenCalledWith({
+        actionPath: '?screen=stocks',
+      });
+      expect(handled).toHaveBeenCalled();
+    });
+
     it('calls _handleTrending with different deeplink domains', async () => {
       const testCases = [
         AppConstants.MM_UNIVERSAL_LINK_HOST,
