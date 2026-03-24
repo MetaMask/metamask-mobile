@@ -1,3 +1,4 @@
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import { Mockttp } from 'mockttp';
 import { merge } from 'lodash';
@@ -8,6 +9,7 @@ import Assertions from '../../framework/Assertions';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT,
+  DEFAULT_FIXTURE_ACCOUNT_2,
   ENTROPY_WALLET_1_ID,
 } from '../../framework/fixtures/FixtureBuilder';
 import type {
@@ -45,8 +47,15 @@ const EVM_ONLY_ACCOUNT_TREE = {
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
 
-/** Sender for mocked incoming native txs; must be trusted (address book) to appear in activity. */
-const INCOMING_NATIVE_SENDER_ADDRESS = '0x2';
+/**
+ * Incoming native from an untrusted address is hidden. User-storage mocks return an empty remote
+ * address book, which can wipe fixture contacts—so use Account 2 (same wallet) as sender; own
+ * accounts are always trusted.
+ */
+const SECOND_HD_ACCOUNT_ID = '5e8c6f1a-c372-5bed-9237-1f03c3d4e5b2';
+const TRUSTED_INCOMING_SENDER_CHECKSUM = toChecksumHexAddress(
+  DEFAULT_FIXTURE_ACCOUNT_2,
+);
 
 const RESPONSE_STANDARD_MOCK = {
   hash: '0x123456',
@@ -63,7 +72,7 @@ const RESPONSE_STANDARD_MOCK = {
   methodId: null,
   value: '1230000000000000000',
   to: DEFAULT_FIXTURE_ACCOUNT,
-  from: INCOMING_NATIVE_SENDER_ADDRESS,
+  from: TRUSTED_INCOMING_SENDER_CHECKSUM,
   isError: false,
   valueTransfers: [],
 };
@@ -77,13 +86,13 @@ const RESPONSE_STANDARD_2_MOCK = {
 
 const RESPONSE_TOKEN_TRANSFER_MOCK = {
   ...RESPONSE_STANDARD_MOCK,
-  to: '0x2',
+  to: DEFAULT_FIXTURE_ACCOUNT,
   valueTransfers: [
     {
       contractAddress: TOKEN_ADDRESS_MOCK,
       decimal: 18,
       symbol: TOKEN_SYMBOL_MOCK,
-      from: INCOMING_NATIVE_SENDER_ADDRESS,
+      from: TRUSTED_INCOMING_SENDER_CHECKSUM,
       to: DEFAULT_FIXTURE_ACCOUNT,
       amount: '4560000000000000000',
     },
@@ -92,7 +101,7 @@ const RESPONSE_TOKEN_TRANSFER_MOCK = {
 
 const RESPONSE_OUTGOING_TRANSACTION_MOCK = {
   ...RESPONSE_STANDARD_MOCK,
-  to: INCOMING_NATIVE_SENDER_ADDRESS,
+  to: TRUSTED_INCOMING_SENDER_CHECKSUM,
   from: DEFAULT_FIXTURE_ACCOUNT,
 };
 
@@ -130,27 +139,55 @@ function createAccountsTestSpecificMock(
 }
 
 /**
- * Incoming native coin from non-trusted senders is hidden (address poisoning).
- * Merge a contact for the mocked sender so the activity row still appears.
+ * Ensures Account 2 exists on the HD keyring + AccountsController so its address is in the trusted
+ * set (same as address-book trust, without relying on contacts surviving user-storage sync mocks).
  */
-function mergeTrustedSenderForIncomingNativeFixture(fixture: Fixture): void {
-  const addressBookController = (
-    fixture.state.engine.backgroundState as unknown as {
-      AddressBookController: Record<string, unknown>;
-    }
-  ).AddressBookController;
-  merge(addressBookController, {
-    addressBook: {
-      '0x1': {
-        [INCOMING_NATIVE_SENDER_ADDRESS]: {
-          address: INCOMING_NATIVE_SENDER_ADDRESS,
-          name: 'E2E trusted incoming sender',
-          chainId: '0x1',
-          memo: '',
-          isEns: false,
+function mergeSecondHdAccountForTrustedIncomingNative(fixture: Fixture): void {
+  merge(fixture.state.engine.backgroundState.KeyringController, {
+    keyrings: [
+      {
+        type: 'HD Key Tree',
+        accounts: [
+          toChecksumHexAddress(DEFAULT_FIXTURE_ACCOUNT),
+          TRUSTED_INCOMING_SENDER_CHECKSUM,
+        ],
+      },
+    ],
+  });
+
+  merge(fixture.state.engine.backgroundState.AccountsController, {
+    accountIdByAddress: {
+      [DEFAULT_FIXTURE_ACCOUNT_2]: SECOND_HD_ACCOUNT_ID,
+    },
+    internalAccounts: {
+      accounts: {
+        [SECOND_HD_ACCOUNT_ID]: {
+          address: TRUSTED_INCOMING_SENDER_CHECKSUM,
+          id: SECOND_HD_ACCOUNT_ID,
+          metadata: {
+            name: 'Account 2',
+            importTime: 1684232000457,
+            keyring: { type: 'HD Key Tree' },
+          },
+          options: {},
+          methods: [
+            'personal_sign',
+            'eth_signTransaction',
+            'eth_signTypedData_v1',
+            'eth_signTypedData_v3',
+            'eth_signTypedData_v4',
+          ],
+          type: 'eip155:eoa',
+          scopes: ['eip155:0'],
         },
       },
     },
+  });
+
+  merge(fixture.state.engine.backgroundState.UserStorageController, {
+    isBackupAndSyncEnabled: false,
+    isAccountSyncingEnabled: false,
+    isContactSyncingEnabled: false,
   });
 }
 
@@ -159,7 +196,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
     jest.setTimeout(2500000);
   });
 
-  it('displays incoming native transfer from trusted sender', async () => {
+  it('displays incoming native transfer from another own account', async () => {
     const fixture = new FixtureBuilder()
       .withAccountTreeController(
         EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
@@ -167,7 +204,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       .withNetworkEnabledMap({ eip155: { '0x1': true } })
       .withPrivacyModePreferences(false)
       .build();
-    mergeTrustedSenderForIncomingNativeFixture(fixture);
+    mergeSecondHdAccountForTrustedIncomingNative(fixture);
 
     await withFixtures(
       {
