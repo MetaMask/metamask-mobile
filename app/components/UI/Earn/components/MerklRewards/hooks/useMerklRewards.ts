@@ -57,6 +57,7 @@ interface UseMerklRewardsOptions {
 
 interface UseMerklRewardsReturn {
   claimableReward: string | null;
+  hasClaimedBefore: boolean;
   refetch: () => void;
 }
 
@@ -67,6 +68,7 @@ export const useMerklRewards = ({
   asset,
 }: UseMerklRewardsOptions): UseMerklRewardsReturn => {
   const [claimableReward, setClaimableReward] = useState<string | null>(null);
+  const [hasClaimedBefore, setHasClaimedBefore] = useState(false);
 
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -77,6 +79,7 @@ export const useMerklRewards = ({
       // Guard against undefined asset (can happen when selector returns undefined)
       if (!asset) {
         setClaimableReward(null);
+        setHasClaimedBefore(false);
         return;
       }
 
@@ -87,6 +90,7 @@ export const useMerklRewards = ({
 
       if (!isEligible || !selectedAddress) {
         setClaimableReward(null);
+        setHasClaimedBefore(false);
         return;
       }
 
@@ -107,6 +111,7 @@ export const useMerklRewards = ({
         }
 
         if (!matchingReward) {
+          setHasClaimedBefore(false);
           return;
         }
 
@@ -127,6 +132,10 @@ export const useMerklRewards = ({
           claimedFromContract !== null
             ? claimedFromContract
             : matchingReward.claimed;
+
+        if (!controller.signal.aborted) {
+          setHasClaimedBefore(BigInt(claimedAmount) > 0n);
+        }
 
         // Use unclaimed amount as it represents claimable rewards in the Merkle tree
         // Use token decimals from API response, fallback to asset decimals
@@ -184,6 +193,7 @@ export const useMerklRewards = ({
 
   return {
     claimableReward,
+    hasClaimedBefore,
     refetch,
   };
 };

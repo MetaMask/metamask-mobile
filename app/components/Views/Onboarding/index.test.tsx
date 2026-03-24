@@ -41,6 +41,15 @@ jest.mock('react-native-elevated-view', () => ({
   default: jest.requireActual('react-native').View,
 }));
 
+const MOCK_APP_VERSION = '7.0.0';
+const MOCK_BUILD_NUMBER = '1234';
+const MOCK_ONBOARDING_VERSION = `${MOCK_APP_VERSION} (${MOCK_BUILD_NUMBER})`;
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => MOCK_APP_VERSION),
+  getBuildNumber: jest.fn(() => MOCK_BUILD_NUMBER),
+}));
+
 import React from 'react';
 import {
   InteractionManager,
@@ -65,6 +74,8 @@ import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
+import { AccountType } from '../../../constants/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -634,6 +645,38 @@ describe('Onboarding', () => {
           onboardingTraceCtx: expect.any(Object),
         }),
       );
+    });
+
+    it('stores the onboarding version on the first create wallet press', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId, store } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      await waitFor(() => {
+        expect(store.getState().onboarding).toEqual(
+          expect.objectContaining({
+            accountType: AccountType.Metamask,
+            onboardingVersion: MOCK_ONBOARDING_VERSION,
+          }),
+        );
+      });
     });
 
     it('navigates to offline error sheet when there is no internet', async () => {
@@ -1310,6 +1353,56 @@ describe('Onboarding', () => {
       );
     });
 
+    it('does not navigate when OAuth login result type is not success', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'error',
+        existingUser: false,
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.anything(),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        expect.anything(),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'AccountAlreadyExists',
+        expect.anything(),
+      );
+    });
+
     it('attempts browser fallback when no credential is available in Android', async () => {
       Platform.OS = 'android';
       const noCredentialError = new OAuthError(
@@ -1898,6 +1991,13 @@ describe('Onboarding', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.optIn).toHaveBeenCalled();
+        expect(
+          mockCreateEventBuilder.mock.calls.some(
+            (call) =>
+              (call[0] as { category: string }).category ===
+              MetaMetricsEvents.METRICS_OPT_IN.category,
+          ),
+        ).toBe(true);
       });
     });
   });

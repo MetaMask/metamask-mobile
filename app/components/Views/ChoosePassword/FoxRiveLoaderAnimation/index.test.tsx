@@ -1,19 +1,18 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { brandColor } from '@metamask/design-tokens';
+import { mockTheme } from '../../../../util/theme';
 
 // Mock useTheme hook
-const mockUseTheme = jest.fn().mockReturnValue({
-  colors: {
-    background: { default: '#FFFFFF' },
-    text: { default: '#000000' },
-  },
-  themeAppearance: 'light',
-});
+const mockUseTheme = jest.fn().mockReturnValue(mockTheme);
 
-// Mock dependencies
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => mockUseTheme(),
-}));
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => mockUseTheme(),
+  };
+});
 
 // Mock ActivityIndicator
 jest.mock('react-native', () => ({
@@ -125,8 +124,8 @@ describe('FoxRiveLoaderAnimation', () => {
     // Arrange
     mockUseTheme.mockReturnValueOnce({
       colors: {
-        background: { default: '#000000' },
-        text: { default: '#FFFFFF' },
+        background: { default: brandColor.black },
+        text: { default: brandColor.white },
       },
       themeAppearance: 'dark',
     });

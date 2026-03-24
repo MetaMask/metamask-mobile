@@ -23,7 +23,7 @@ import BottomSheet, {
 } from '../../../component-library/components/BottomSheets/BottomSheet';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 
-/* eslint-disable import/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+/* eslint-disable import-x/no-commonjs, @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
 const foxLogo = require('../../../images/branding/fox.png');
 const metamaskNameLightMode = require('../../../images/branding/metamask-name.png');
 const metamaskNameDarkMode = require('../../../images/branding/metamask-name-white.png');

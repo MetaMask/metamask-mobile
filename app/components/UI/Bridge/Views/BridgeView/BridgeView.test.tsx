@@ -98,11 +98,6 @@ jest.mock('../../../../../core/Engine', () => {
       unsubscribe: jest.fn(),
     },
     context: {
-      SwapsController: {
-        fetchAggregatorMetadataWithCache: jest.fn(),
-        fetchTopAssetsWithCache: jest.fn(),
-        fetchTokenWithCache: jest.fn(),
-      },
       KeyringController: {
         state: {
           keyrings: [
@@ -158,6 +153,7 @@ jest.mock('../../../../../core/Engine', () => {
         resetState: jest.fn(),
         setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
         updateBridgeQuoteRequestParams: jest.fn(),
+        trackUnifiedSwapBridgeEvent: jest.fn(),
       },
     },
     getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -489,6 +485,43 @@ describe('BridgeView', () => {
 
     // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
     expect(getByText('$19,000.00')).toBeTruthy();
+  });
+
+  it('should update source token amount when selecting a quick-pick preset', async () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: null,
+        bestQuote: null,
+        sourceAmount: undefined,
+        isLoading: false,
+        destTokenAmount: undefined,
+        formattedQuoteData: undefined,
+      }));
+
+    const { getByTestId, getByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    const sourceInput = getByTestId('source-token-area-input');
+    await act(async () => {
+      sourceInput.props.onPressIn();
+    });
+
+    await waitFor(() => {
+      expect(getByText('25%')).toBeTruthy();
+    });
+
+    fireEvent.press(getByText('25%'));
+
+    await waitFor(() => {
+      expect(getByTestId('source-token-area-input').props.value).toBe('0.5');
+    });
   });
 
   it('should display source token symbol and balance', async () => {
@@ -1030,14 +1063,17 @@ describe('BridgeView', () => {
       expect(queryByTestId('edit-slippage-button')).toBeNull();
     });
 
-    it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
+    it('does not navigate to QuoteExpiredModal when quote expires without refresh', async () => {
+      // useRenderQuoteExpireModal was removed; the expired-quote modal no longer
+      // exists. Instead, the cached quote stays visible and "Get new quote"
+      // appears in the footer.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
-          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
+          needsNewQuote: true,
         }));
 
       renderScreen(
@@ -1049,9 +1085,12 @@ describe('BridgeView', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+          },
+        );
       });
     });
 
@@ -1076,7 +1115,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
@@ -1103,7 +1142,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
@@ -1139,13 +1178,15 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
     });
 
-    it('navigates to QuoteExpiredModal when quote expires and leaves quote content hidden', async () => {
+    it('shows cached quote content when quote expires', async () => {
+      // When quotes expire the cached quote (still in Redux) is shown in the
+      // QuoteDetailsCard. The slippage button must remain visible.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1153,23 +1194,33 @@ describe('BridgeView', () => {
           isExpired: true,
           willRefresh: false,
           isLoading: false,
-          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
+          needsNewQuote: true,
+          // activeQuote remains the cached quote — not cleared on expiry
         }));
+
+      // createBridgeTestState provides source/dest tokens so QuoteDetailsCard
+      // passes its early-return guard and renders the slippage button.
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: { sourceAmount: '1.0' },
+      });
 
       const { queryByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
+        { state: testState },
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+          },
+        );
       });
-      expect(queryByTestId('edit-slippage-button')).toBeNull();
+      expect(queryByTestId('edit-slippage-button')).not.toBeNull();
     });
   });
 

@@ -25,17 +25,20 @@ jest.mock('../../../../../../locales/i18n', () => ({
 
 // Mock hooks
 jest.mock('../../hooks/useEmailVerificationSend');
-jest.mock('../../hooks/useRegistrationSettings', () => ({
+const mockSignUpRegions = [
+  { key: 'US', name: 'United States', emoji: '🇺🇸', canSignUp: true },
+  { key: 'CA', name: 'Canada', emoji: '🇨🇦', canSignUp: true },
+  { key: 'GB', name: 'United Kingdom', emoji: '🇬🇧', canSignUp: false },
+  { key: 'DE', name: 'Germany', emoji: '🇩🇪', canSignUp: true },
+];
+const mockGetRegionByCode = (code: string) =>
+  mockSignUpRegions.find((r) => r.key === code) ?? null;
+jest.mock('../../hooks/useRegions', () => ({
   __esModule: true,
   default: jest.fn(() => ({
-    data: {
-      countries: [
-        { iso3166alpha2: 'US', name: 'United States', canSignUp: true },
-        { iso3166alpha2: 'CA', name: 'Canada', canSignUp: true },
-        { iso3166alpha2: 'GB', name: 'United Kingdom', canSignUp: false },
-        { iso3166alpha2: 'DE', name: 'Germany', canSignUp: true },
-      ],
-    },
+    signUpRegions: mockSignUpRegions,
+    getRegionByCode: mockGetRegionByCode,
+    isLoading: false,
   })),
 }));
 jest.mock('../../../../hooks/useDebouncedValue');
@@ -82,9 +85,25 @@ jest.mock('./OnboardingStep', () => {
 });
 
 // Create test store
-const createTestStore = (initialState = {}) =>
-  configureStore({
+// SignUp reads geoLocation from state.engine.backgroundState.GeolocationController.location
+// via selectGeolocationLocation. Pass { geoLocation: 'US' } etc. to control it.
+const createTestStore = (initialState: Record<string, unknown> = {}) => {
+  const { geoLocation, ...cardState } = initialState;
+  const engineState = {
+    backgroundState: {
+      GeolocationController:
+        typeof geoLocation === 'string' ? { location: geoLocation } : undefined,
+    },
+  };
+
+  return configureStore({
     reducer: {
+      engine: (state = engineState, action = { type: '', payload: null }) => {
+        switch (action.type) {
+          default:
+            return state;
+        }
+      },
       card: (
         state = {
           onboarding: {
@@ -94,20 +113,11 @@ const createTestStore = (initialState = {}) =>
             user: null,
           },
           userCardLocation: 'international',
-          geoLocation: 'UNKNOWN',
-          ...initialState,
+          ...cardState,
         },
         action = { type: '', payload: null },
       ) => {
         switch (action.type) {
-          case 'card/setSelectedCountry':
-            return {
-              ...state,
-              onboarding: {
-                ...state.onboarding,
-                selectedCountry: action.payload,
-              },
-            };
           case 'card/setUserCardLocation':
             return {
               ...state,
@@ -119,6 +129,7 @@ const createTestStore = (initialState = {}) =>
       },
     },
   });
+};
 
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -406,13 +417,10 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(storeWithGeo.getState().card.onboarding.selectedCountry).toEqual(
-        expect.objectContaining({ key: 'US', name: 'United States' }),
-      );
       expect(storeWithGeo.getState().card.userCardLocation).toBe('us');
     });
 
-    it('does not prefill country when geoLocation is UNKNOWN', () => {
+    it('does not set userCardLocation when geoLocation is UNKNOWN', () => {
       const storeWithUnknown = createTestStore({ geoLocation: 'UNKNOWN' });
 
       render(
@@ -421,12 +429,12 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(
-        storeWithUnknown.getState().card.onboarding.selectedCountry,
-      ).toBeNull();
+      expect(storeWithUnknown.getState().card.userCardLocation).toBe(
+        'international',
+      );
     });
 
-    it('does not prefill country when geoLocation does not match any available region', () => {
+    it('does not set userCardLocation when geoLocation does not match any available region', () => {
       const storeWithUnsupported = createTestStore({ geoLocation: 'JP' });
 
       render(
@@ -435,48 +443,79 @@ describe('SignUp Component', () => {
         </Provider>,
       );
 
-      expect(
-        storeWithUnsupported.getState().card.onboarding.selectedCountry,
-      ).toBeNull();
+      expect(storeWithUnsupported.getState().card.userCardLocation).toBe(
+        'international',
+      );
     });
 
-    it('does not override an already selected country with geoLocation', () => {
-      const storeWithExisting = createTestStore({
-        geoLocation: 'US',
-        onboarding: {
-          selectedCountry: { key: 'DE', name: 'Germany' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+    it('does not pre-select country when geoLocation matches a canSignUp: false country', () => {
+      // GB exists in allRegions but has canSignUp: false — must not be pre-selected
+      const storeWithGB = createTestStore({ geoLocation: 'GB' });
 
-      render(
-        <Provider store={storeWithExisting}>
+      const { queryByText, getByTestId } = render(
+        <Provider store={storeWithGB}>
           <SignUp />
         </Provider>,
       );
 
-      expect(
-        storeWithExisting.getState().card.onboarding.selectedCountry,
-      ).toEqual(expect.objectContaining({ key: 'DE', name: 'Germany' }));
+      expect(queryByText('United Kingdom')).toBeNull();
+      // Continue button must remain disabled — no eligible country was selected
+      expect(getByTestId('signup-continue-button').props.disabled).toBe(true);
+      expect(storeWithGB.getState().card.userCardLocation).toBe(
+        'international',
+      );
+    });
+
+    it('does not re-run auto-selection when getRegionByCode reference changes after initial selection', () => {
+      // Simulates a background re-fetch of registrationSettings that produces a
+      // new getRegionByCode reference without changing the actual data.
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+      const mockUseRegions = jest.requireMock('../../hooks/useRegions').default;
+
+      const firstGetRegionByCode = jest.fn(mockGetRegionByCode);
+      mockUseRegions.mockReturnValue({
+        signUpRegions: mockSignUpRegions,
+        getRegionByCode: firstGetRegionByCode,
+        isLoading: false,
+      });
+
+      const { getByText, rerender } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // US was auto-selected on first render
+      expect(getByText('United States')).toBeOnTheScreen();
+      expect(firstGetRegionByCode).toHaveBeenCalledTimes(1);
+
+      // Simulate background refetch: new function identity, same data
+      const secondGetRegionByCode = jest.fn(mockGetRegionByCode);
+      mockUseRegions.mockReturnValue({
+        signUpRegions: mockSignUpRegions,
+        getRegionByCode: secondGetRegionByCode,
+        isLoading: false,
+      });
+
+      rerender(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      // hasAutoSelectedCountry ref must have blocked the second run
+      expect(secondGetRegionByCode).not.toHaveBeenCalled();
+      expect(getByText('United States')).toBeOnTheScreen();
     });
   });
 
   describe('Form Validation', () => {
     it('enables continue button when all fields are valid', async () => {
-      // Create store with pre-selected country
-      const storeWithCountry = createTestStore({
-        onboarding: {
-          selectedCountry: { key: 'US', name: 'United States' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+      // useRegions is mocked to return signUpRegions; geoLocation US prefills country via effect
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByTestId } = render(
-        <Provider store={storeWithCountry}>
+        <Provider store={storeWithGeo}>
           <SignUp />
         </Provider>,
       );
@@ -502,17 +541,10 @@ describe('SignUp Component', () => {
 
     it('keeps continue button disabled when email is invalid', async () => {
       (validateEmail as jest.Mock).mockReturnValue(false);
-      const storeWithCountry = createTestStore({
-        onboarding: {
-          selectedCountry: { key: 'US', name: 'United States' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByTestId } = render(
-        <Provider store={storeWithCountry}>
+        <Provider store={storeWithGeo}>
           <SignUp />
         </Provider>,
       );
@@ -587,17 +619,10 @@ describe('SignUp Component', () => {
 
   describe('Form Submission', () => {
     it('calls sendEmailVerification when continue button is pressed', async () => {
-      const storeWithCountry = createTestStore({
-        onboarding: {
-          selectedCountry: { key: 'US', name: 'United States' },
-          onboardingId: null,
-          contactVerificationId: null,
-          user: null,
-        },
-      });
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
 
       const { getByTestId } = render(
-        <Provider store={storeWithCountry}>
+        <Provider store={storeWithGeo}>
           <SignUp />
         </Provider>,
       );
@@ -620,6 +645,42 @@ describe('SignUp Component', () => {
       });
 
       expect(mockSendEmailVerification).toHaveBeenCalled();
+    });
+
+    it('passes countryKey to ConfirmEmail navigation params', async () => {
+      const storeWithGeo = createTestStore({ geoLocation: 'US' });
+
+      const { getByTestId } = render(
+        <Provider store={storeWithGeo}>
+          <SignUp />
+        </Provider>,
+      );
+
+      const emailInput = getByTestId('signup-email-input');
+      const passwordInput = getByTestId('signup-password-input');
+      const continueButton = getByTestId('signup-continue-button');
+
+      await act(async () => {
+        fireEvent.changeText(emailInput, 'test@example.com');
+        fireEvent.changeText(passwordInput, 'Password123!');
+      });
+
+      await waitFor(() => {
+        expect(continueButton.props.disabled).toBe(false);
+      });
+
+      await act(async () => {
+        fireEvent.press(continueButton);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        expect.anything(),
+        expect.objectContaining({
+          email: 'test@example.com',
+          password: 'Password123!',
+          countryKey: 'US',
+        }),
+      );
     });
 
     it('does not call sendEmailVerification when continue button is disabled', async () => {
