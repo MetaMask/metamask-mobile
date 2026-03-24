@@ -2888,6 +2888,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyHomeScreenEnabled: {
+    name: 'moneyHomeScreenEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   nonZeroUnusedApprovals: {
     name: 'nonZeroUnusedApprovals',
     type: FeatureFlagType.Remote,
