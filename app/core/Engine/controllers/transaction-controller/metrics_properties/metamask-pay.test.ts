@@ -490,11 +490,24 @@ describe('Metamask Pay Metrics', () => {
       jest.restoreAllMocks();
     });
 
-    it('adds mm_pay_time_to_complete_s for finalized parent MM Pay transaction', () => {
+    it('adds mm_pay_time_to_complete_s for finalized parent MM Pay transaction using latest child submittedTime', () => {
       jest.spyOn(Date, 'now').mockReturnValue(1060500);
 
       request.transactionMeta.type = TransactionType.perpsDeposit;
-      request.transactionMeta.submittedTime = 1000000;
+      request.transactionMeta.requiredTransactionIds = ['child-a', 'child-b'];
+
+      request.allTransactions = [
+        {
+          id: 'child-a',
+          submittedTime: 900000,
+          txParams: {},
+        } as TransactionMeta,
+        {
+          id: 'child-b',
+          submittedTime: 1000000,
+          txParams: {},
+        } as TransactionMeta,
+      ];
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
@@ -505,7 +518,7 @@ describe('Metamask Pay Metrics', () => {
       );
     });
 
-    it('adds mm_pay_time_to_complete_s for finalized child transaction using parent submittedTime', () => {
+    it('does not add mm_pay_time_to_complete_s for finalized child transaction with parent', () => {
       jest.spyOn(Date, 'now').mockReturnValue(2045123);
 
       request.allTransactions = [
@@ -519,11 +532,7 @@ describe('Metamask Pay Metrics', () => {
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
-      expect(result.properties).toStrictEqual(
-        expect.objectContaining({
-          mm_pay_time_to_complete_s: 45.123,
-        }),
-      );
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
     });
 
     it('does not add mm_pay_time_to_complete_s for non-finalized events', () => {

@@ -61,7 +61,11 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     addFallbackProperties(properties, transactionMeta, getState());
 
     if (hasTransactionType(transactionMeta, PAY_TYPES) || properties.mm_pay) {
-      addTimeToComplete(properties, eventType, transactionMeta.submittedTime);
+      addTimeToComplete(
+        properties,
+        eventType,
+        getLatestChildSubmittedTime(transactionMeta, allTransactions),
+      );
     }
 
     return {
@@ -133,13 +137,29 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     }
   }
 
-  addTimeToComplete(properties, eventType, parentTransaction.submittedTime);
-
   return {
     properties,
     sensitiveProperties,
   };
 };
+
+function getLatestChildSubmittedTime(
+  transactionMeta: TransactionMeta,
+  allTransactions: TransactionMeta[],
+): number | undefined {
+  const { batchId, requiredTransactionIds } = transactionMeta;
+
+  const submittedTimes = allTransactions
+    .filter(
+      (tx) =>
+        requiredTransactionIds?.includes(tx.id) ||
+        (batchId && tx.batchId === batchId && tx.id !== transactionMeta.id),
+    )
+    .map((tx) => tx.submittedTime)
+    .filter((t): t is number => typeof t === 'number');
+
+  return submittedTimes.length > 0 ? Math.max(...submittedTimes) : undefined;
+}
 
 function addTimeToComplete(
   properties: JsonMap,
