@@ -465,23 +465,12 @@ export async function setupAccountsV2SupportedNetworksMock(
 
 // --- Proxied traffic observation (same source as getEventsPayloads: getMockedEndpoints + getSeenRequests) ---
 
-/** Substring match for GET supported networks (see setupAccountsV2SupportedNetworksMock). */
-export const ACCOUNTS_API_SUPPORTED_NETWORKS_URL_MARKER =
-  'accounts.api.cx.metamask.io/v2/supportedNetworks';
-
 /**
  * MMQA-1384: user profile / address collection — `PUT …/api/v2/profile/accounts`
  * (default mock: tests/api-mocking/mock-responses/defaults/index.ts).
  */
 export const AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER =
   'authentication.api.cx.metamask.io/api/v2/profile/accounts';
-
-/**
- * MMQA-1384: backup-and-sync — `PUT` to user-storage (multichain account tree /
- * address book; see USER_STORAGE_MOCK). Used in new-wallet analytics E2E where applicable.
- */
-export const USER_STORAGE_ACCOUNT_SYNC_PUT_URL_MARKER =
-  'user-storage.api.cx.metamask.io/api/v1/userstorage';
 
 export interface SeenProxiedRequest {
   method: string;
@@ -492,6 +481,26 @@ export interface ProxiedRequestMatcher {
   method?: string;
   urlSubstring?: string;
   urlRegex?: RegExp;
+}
+
+/**
+ * Stable string for logs and errors for {@link ProxiedRequestMatcher}.
+ * Unlike `JSON.stringify(matcher)`, serializes `urlRegex` as `/source/flags` instead of `{}`.
+ */
+export function formatProxiedRequestMatcher(
+  matcher: ProxiedRequestMatcher,
+): string {
+  const record: Record<string, string> = {};
+  if (matcher.method !== undefined) {
+    record.method = matcher.method;
+  }
+  if (matcher.urlSubstring !== undefined) {
+    record.urlSubstring = matcher.urlSubstring;
+  }
+  if (matcher.urlRegex !== undefined) {
+    record.urlRegex = String(matcher.urlRegex);
+  }
+  return JSON.stringify(record);
 }
 
 /**
@@ -557,6 +566,7 @@ export interface WaitForAdditionalProxiedRequestsOptions {
   interval?: number;
   /**
    * After a successful wait, logs `label: new count=<delta>` at INFO on `logger`.
+   * Delta is `matches.length - baselineMatchCount` from the same snapshot as the wait.
    */
   successLog?: {
     logger: { info: (message: string) => void };
@@ -584,8 +594,9 @@ export async function waitForAdditionalProxiedRequestsMatching(
   });
 
   if (options.successLog) {
-    const afterCount = await countProxiedRequestsMatching(mockServer, matcher);
-    const delta = afterCount - baselineMatchCount;
+    // Derive delta from `matches` (same snapshot as wait success) — avoids a second
+    // collectSeenProxiedRequests pass and TOCTOU inflation from requests after return.
+    const delta = matches.length - baselineMatchCount;
     options.successLog.logger.info(
       `${options.successLog.label}: new count=${String(delta)}`,
     );
@@ -620,7 +631,7 @@ export async function waitForProxiedRequestsMatching(
   const startMs = Date.now();
 
   logger.info(
-    `Polling proxied requests for "${description}" (matcher ${JSON.stringify(
+    `Polling proxied requests for "${description}" (matcher ${formatProxiedRequestMatcher(
       matcher,
     )}, minCount ${String(minCount)}, every ${String(
       pollIntervalMs,
@@ -654,7 +665,7 @@ export async function waitForProxiedRequestsMatching(
         .join('\n');
 
       logger.debug(
-        `Proxied requests mismatch for "${description}": expected >= ${String(minCount)} matching ${JSON.stringify(
+        `Proxied requests mismatch for "${description}": expected >= ${String(minCount)} matching ${formatProxiedRequestMatcher(
           matcher,
         )}, got ${String(matches.length)} (total proxied rows: ${String(
           seen.length,
@@ -662,7 +673,7 @@ export async function waitForProxiedRequestsMatching(
       );
 
       throw new Error(
-        `Expected at least ${String(minCount)} proxied request(s) matching ${JSON.stringify(
+        `Expected at least ${String(minCount)} proxied request(s) matching ${formatProxiedRequestMatcher(
           matcher,
         )}, got ${String(matches.length)} (total proxied rows: ${String(
           seen.length,

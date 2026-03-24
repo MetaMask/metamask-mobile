@@ -1,5 +1,6 @@
 import {
   filterProxiedRequests,
+  formatProxiedRequestMatcher,
   processPostRequestBody,
   PostRequestMatchingOptions,
   type SeenProxiedRequest,
@@ -430,6 +431,26 @@ describe('processPostRequestBody', () => {
       expect(result.matches).toBe(false);
       expect(result.error).toBe('Request body validation failed');
     });
+  });
+});
+
+describe('formatProxiedRequestMatcher', () => {
+  it('includes regex source and flags instead of empty object', () => {
+    const urlRegex = /profile\/accounts$/i;
+    const formatted = formatProxiedRequestMatcher({
+      method: 'GET',
+      urlRegex,
+    });
+    expect(formatted).toBe(
+      JSON.stringify({ method: 'GET', urlRegex: String(urlRegex) }),
+    );
+    expect(formatted).not.toContain('"urlRegex":{}');
+  });
+
+  it('omits undefined matcher fields', () => {
+    expect(formatProxiedRequestMatcher({ urlSubstring: 'x' })).toBe(
+      '{"urlSubstring":"x"}',
+    );
   });
 });
 
