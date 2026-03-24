@@ -1176,27 +1176,26 @@ class AuthenticationService {
           await SeedlessOnboardingController.fetchAllSecretData(password);
         fetchSrpsSuccess = true;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+        const err = ensureError(error, 'Fetch SRPs failed');
 
         // trace only if error is not an incorrect password error
         if (
           !containsErrorMessage(
-            error as Error,
+            err,
             SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
           )
         ) {
           trace({
             name: TraceName.OnboardingFetchSrpsError,
             op: TraceOperation.OnboardingError,
-            tags: { errorMessage },
+            tags: { errorMessage: err.message },
           });
           endTrace({
             name: TraceName.OnboardingFetchSrpsError,
           });
         }
 
-        throw ensureError(error, 'Fetch SRPs failed');
+        throw err;
       } finally {
         endTrace({
           name: TraceName.OnboardingFetchSrps,
