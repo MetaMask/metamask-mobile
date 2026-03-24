@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { useSelector } from 'react-redux';
+import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectCampaignParticipantStatusById } from '../../../../reducers/rewards/selectors';
+import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
@@ -27,15 +29,13 @@ export const useGetCampaignParticipantStatus = (
 ): UseGetCampaignParticipantStatusResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
-  const [status, setStatus] = useState<CampaignParticipantStatusDto | null>(
-    null,
-  );
+  const status = useSelector(selectCampaignParticipantStatusById(campaignId));
+  const dispatch = useDispatch();
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   const fetchStatus = useCallback(async (): Promise<void> => {
     if (!isCampaignsEnabled || !subscriptionId || !campaignId) {
-      setStatus(null);
       return;
     }
 
@@ -47,13 +47,13 @@ export const useGetCampaignParticipantStatus = (
         campaignId,
         subscriptionId,
       );
-      setStatus(result);
+      dispatch(setCampaignParticipantStatus({ campaignId, status: result }));
     } catch {
       setHasError(true);
     } finally {
       setIsLoading(false);
     }
-  }, [subscriptionId, isCampaignsEnabled, campaignId]);
+  }, [dispatch, subscriptionId, isCampaignsEnabled, campaignId]);
 
   useEffect(() => {
     fetchStatus();

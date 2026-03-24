@@ -99,8 +99,14 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  CAMPAIGNS_VIEW: 'CampaignsView',
+  MUSD_CALCULATOR_VIEW: 'MusdCalculatorView',
+  PREVIOUS_SEASON_VIEW: 'PreviousSeasonView',
+  CAMPAIGN_DETAILS: 'CampaignDetails',
+  CAMPAIGN_MECHANICS: 'CampaignMechanics',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
+  WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
@@ -123,6 +129,7 @@ const Routes = {
     TRADE_WALLET_ACTIONS: 'TradeWalletActions',
     FUND_ACTION_MENU: 'FundActionMenu',
     MORE_TOKEN_ACTIONS_MENU: 'MoreTokenActionsMenu',
+    SECURITY_BADGE_BOTTOM_SHEET: 'SecurityBadgeBottomSheet',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
@@ -470,6 +477,7 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  SECURITY_TRUST: 'SecurityTrust',
 };
 
 export default Routes;

@@ -57,7 +57,6 @@ const TIME_RANGE_LABELS: Record<TimeRange, string> = {
 
 interface PriceProps {
   asset: TokenI;
-  prices: TokenPrice[];
   priceDiff: number;
   currentPrice: number;
   currentCurrency: string;

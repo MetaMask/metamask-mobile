@@ -1,11 +1,7 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import Price from './Price';
-import { TokenI } from '../../Tokens/types';
-import {
-  TimePeriod,
-  TokenPrice,
-} from '../../../../components/hooks/useTokenHistoricalPrices';
+import { TimePeriod } from '../../../../components/hooks/useTokenHistoricalPrices';
 
 jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -24,36 +20,14 @@ jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
   }),
 }));
 
-jest.mock('../../Bridge/hooks/useRWAToken', () => ({
-  useRWAToken: () => ({
-    isStockToken: jest.fn().mockReturnValue(false),
-    isTokenTradingOpen: jest.fn().mockResolvedValue(true),
-  }),
-}));
-
-const mockAsset: TokenI = {
-  name: 'Ethereum',
-  ticker: 'ETH',
-  symbol: 'Ethereum',
-  address: '0x0',
-  aggregators: [],
-  decimals: 18,
-  image: '',
-  balance: '100',
-  balanceFiat: '$100',
-  logo: '',
-  isETH: true,
-  isNative: true,
-};
-
-const mockPrices: TokenPrice[] = [
-  ['1736761237983', 100],
-  ['1736761237986', 105],
-];
-
 const mockProps: {
-  asset: TokenI;
-  prices: TokenPrice[];
+  asset: {
+    address: string;
+    chainId: string;
+    name: string;
+    symbol: string;
+    ticker?: string;
+  };
   priceDiff: number;
   currentPrice: number;
   currentCurrency: string;
@@ -61,8 +35,13 @@ const mockProps: {
   isLoading: boolean;
   timePeriod: TimePeriod;
 } = {
-  asset: mockAsset,
-  prices: mockPrices,
+  asset: {
+    address: '0x1234567890123456789012345678901234567890',
+    chainId: '0x1',
+    name: 'Test Token',
+    symbol: 'TST',
+    ticker: 'TST',
+  },
   priceDiff: 5,
   currentPrice: 105,
   currentCurrency: 'USD',

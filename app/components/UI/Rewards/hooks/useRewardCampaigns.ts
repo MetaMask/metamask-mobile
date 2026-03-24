@@ -16,10 +16,19 @@ import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+
+interface CategorizedCampaigns {
+  active: CampaignDto[];
+  upcoming: CampaignDto[];
+  previous: CampaignDto[];
+}
 
 interface UseRewardCampaignsReturn {
-  /** Campaigns fetched from the API, or empty array when flag is disabled */
+  /** Campaigns fetched from the API. When campaigns flag is disabled, only upcoming campaigns are returned */
   campaigns: CampaignDto[];
+  /** Campaigns categorized by status */
+  categorizedCampaigns: CategorizedCampaigns;
   /** Whether campaigns are loading */
   isLoading: boolean;
   /** Whether there was an error fetching campaigns */
@@ -30,7 +39,9 @@ interface UseRewardCampaignsReturn {
 
 /**
  * Custom hook to fetch and manage campaigns data from the rewards API.
- * Returns an empty list when the rewards-campaigns-enabled feature flag is off.
+ * Categorizes campaigns into active, upcoming, and previous (complete).
+ * When the campaigns feature flag is disabled, only upcoming campaigns are returned
+ * (active and previous are filtered out).
  */
 export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
@@ -42,7 +53,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   const isLoadingRef = useRef(false);
 
   const fetchCampaigns = useCallback(async (): Promise<void> => {
-    if (!subscriptionId || !isCampaignsEnabled) {
+    if (!subscriptionId) {
       dispatch(setCampaigns([]));
       dispatch(setCampaignsLoading(false));
       dispatch(setCampaignsError(false));
@@ -70,7 +81,50 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       isLoadingRef.current = false;
       dispatch(setCampaignsLoading(false));
     }
-  }, [dispatch, subscriptionId, isCampaignsEnabled]);
+  }, [dispatch, subscriptionId]);
+
+  const categorizedCampaigns = useMemo((): CategorizedCampaigns => {
+    const campaignsList = campaigns ?? [];
+    const active: CampaignDto[] = [];
+    const upcoming: CampaignDto[] = [];
+    const previous: CampaignDto[] = [];
+
+    campaignsList.forEach((campaign) => {
+      const status = getCampaignStatus(campaign);
+      switch (status) {
+        case 'active':
+          active.push(campaign);
+          break;
+        case 'upcoming':
+          upcoming.push(campaign);
+          break;
+        case 'complete':
+          previous.push(campaign);
+          break;
+      }
+    });
+
+    active.sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
+
+    upcoming.sort(
+      (a, b) =>
+        new Date(a.startDate).getTime() - new Date(b.startDate).getTime(),
+    );
+
+    previous.sort(
+      (a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime(),
+    );
+
+    // When campaigns feature is disabled, only show upcoming campaigns
+    if (!isCampaignsEnabled) {
+      return { active: [], upcoming, previous: [] };
+    }
+
+    return { active, upcoming, previous };
+  }, [campaigns, isCampaignsEnabled]);
 
   useFocusEffect(
     useCallback(() => {
@@ -89,8 +143,16 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
   useInvalidateByRewardEvents(invalidateEvents, fetchCampaigns);
 
+  // When campaigns feature is disabled, only return upcoming campaigns
+  const filteredCampaigns = useMemo(
+    () =>
+      isCampaignsEnabled ? (campaigns ?? []) : categorizedCampaigns.upcoming,
+    [isCampaignsEnabled, campaigns, categorizedCampaigns.upcoming],
+  );
+
   return {
-    campaigns: campaigns ?? [],
+    campaigns: filteredCampaigns,
+    categorizedCampaigns,
     isLoading,
     hasError,
     fetchCampaigns,
