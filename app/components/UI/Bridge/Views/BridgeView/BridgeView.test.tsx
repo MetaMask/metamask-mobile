@@ -403,11 +403,14 @@ describe('BridgeView', () => {
     const destInput = getByTestId('dest-token-area-input');
 
     // Call the onPressIn handler directly to trigger keypad close
-    fireEvent(destInput, 'pressIn');
+    await act(async () => {
+      destInput.props.onPressIn();
+    });
 
-    // Verify keypad close was triggered by the pressIn event
-    // In React 19, the element may still be in the tree but hidden
-    expect(destInput).toBeTruthy();
+    // Verify keypad is closed
+    await waitFor(() => {
+      expect(queryByTestId('keypad-delete-button')).toBeNull();
+    });
   });
 
   it('should update source token amount when typing', async () => {
