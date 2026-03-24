@@ -18655,27 +18655,10 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns empty array when campaigns feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => false,
-      });
-
-      const result = await disabledController.getCampaigns(mockSubscriptionId);
-
-      expect(result).toEqual([]);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getCampaigns',
-        expect.anything(),
-      );
-    });
-
-    it('fetches campaigns when campaigns feature flag is enabled', async () => {
+    it('fetches campaigns when rewards is enabled', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       const mockCampaigns = [createTestCampaign({ id: 'campaign-flag-test' })];
@@ -18694,7 +18677,6 @@ describe('RewardsController', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       const mockCampaigns = [
@@ -18735,7 +18717,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       const result = await controller.getCampaigns(mockSubscriptionId);
@@ -18760,7 +18741,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(freshCampaigns);
@@ -18778,7 +18758,6 @@ describe('RewardsController', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue([]);
@@ -19070,6 +19049,61 @@ describe('RewardsController', () => {
 
       expect(mockLogger.log).toHaveBeenCalledWith(
         'RewardsController: Fetching fresh campaign participant status via API call',
+      );
+    });
+  });
+
+  describe('getClientVersionRequirements', () => {
+    it('fetches version requirements from the data service', async () => {
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+        minimumExtensionVersion: '12.0.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const result = await controller.getClientVersionRequirements();
+
+      expect(result).toEqual(mockRequirements);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+    });
+
+    it('returns cached result on subsequent calls', async () => {
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const firstResult = await controller.getClientVersionRequirements();
+
+      jest.clearAllMocks();
+
+      const secondResult = await controller.getClientVersionRequirements();
+
+      expect(secondResult).toEqual(firstResult);
+      expect(mockMessenger.call).not.toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
+      );
+    });
+
+    it('does not require rewards feature to be enabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const mockRequirements = {
+        minimumMobileVersion: '7.72.0',
+      };
+      mockMessenger.call.mockResolvedValue(mockRequirements);
+
+      const result = await disabledController.getClientVersionRequirements();
+
+      expect(result).toEqual(mockRequirements);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getClientVersionRequirements',
       );
     });
   });
