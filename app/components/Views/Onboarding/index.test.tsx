@@ -271,10 +271,13 @@ jest.mock(
 );
 
 const mockSeedlessOnboardingEnabled = jest.fn();
+const mockShouldUseLegacyIosGoogleConfig = jest.fn();
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   get SEEDLESS_ONBOARDING_ENABLED() {
     return mockSeedlessOnboardingEnabled();
   },
+  shouldUseLegacyIosGoogleConfig: (...args: unknown[]) =>
+    mockShouldUseLegacyIosGoogleConfig(...args),
 }));
 
 const mockNavigate = jest.fn();
@@ -958,6 +961,7 @@ describe('Onboarding', () => {
 
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
+      mockShouldUseLegacyIosGoogleConfig.mockReturnValue(false);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
       // Default to iOS >= 17.4 so the proactive version check is skipped
       (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
@@ -967,6 +971,7 @@ describe('Onboarding', () => {
       jest.clearAllMocks();
       mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
+      mockShouldUseLegacyIosGoogleConfig.mockReset();
     });
 
     it('calls Google OAuth login for create wallet flow on iOS and navigates to SocialLoginSuccessNewUser', async () => {
@@ -1273,6 +1278,7 @@ describe('Onboarding', () => {
       Platform.OS = 'ios';
       // Simulate iOS version below 17.4
       (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      mockShouldUseLegacyIosGoogleConfig.mockReturnValue(false);
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
         type: 'success',
@@ -1353,6 +1359,116 @@ describe('Onboarding', () => {
       );
     });
 
+    it('does not show iOS version warning for Google login on iOS < 17.4 when the legacy config flag is enabled', async () => {
+      Platform.OS = 'ios';
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      mockShouldUseLegacyIosGoogleConfig.mockReturnValue(true);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+        await flushPromises();
+      });
+
+      const warningSheetCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+          call[1]?.params?.title ===
+            strings('error_sheet.ios_google_login_not_supported_title'),
+      );
+
+      expect(warningSheetCall).toBeUndefined();
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+        false,
+      );
+    });
+
+    it('does not show iOS version warning for Google login on iOS 17.4 or later when the legacy config flag is disabled', async () => {
+      Platform.OS = 'ios';
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(0);
+      mockShouldUseLegacyIosGoogleConfig.mockReturnValue(false);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+        await flushPromises();
+      });
+
+      const warningSheetCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+          call[1]?.params?.title ===
+            strings('error_sheet.ios_google_login_not_supported_title'),
+      );
+
+      expect(warningSheetCall).toBeUndefined();
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+        false,
+      );
+    });
+
     it('does not show iOS version warning for Apple login on iOS < 17.4', async () => {
       Platform.OS = 'ios';
       // Simulate iOS version below 17.4
@@ -1392,12 +1508,13 @@ describe('Onboarding', () => {
         await flushPromises();
       });
 
-      // The iOS version warning sheet should NOT be shown for Apple login
+      // The Google-specific iOS warning sheet should NOT be shown for Apple login
       const warningSheetCall = mockNavigate.mock.calls.find(
         (call) =>
           call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
           call[1]?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
-          call[1]?.params?.type === 'warning',
+          call[1]?.params?.title ===
+            strings('error_sheet.ios_google_login_not_supported_title'),
       );
       expect(warningSheetCall).toBeUndefined();
 

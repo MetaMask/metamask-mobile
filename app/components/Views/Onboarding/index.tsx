@@ -80,7 +80,10 @@ import {
   ITrackingEvent,
 } from '../../../core/Analytics/MetaMetrics.types';
 import { JsonMap } from '@segment/analytics-react-native';
-import { SEEDLESS_ONBOARDING_ENABLED } from '../../../core/OAuthService/OAuthLoginHandlers/constants';
+import {
+  SEEDLESS_ONBOARDING_ENABLED,
+  shouldUseLegacyIosGoogleConfig,
+} from '../../../core/OAuthService/OAuthLoginHandlers/constants';
 import OAuthLoginService from '../../../core/OAuthService/OAuthService';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
 import { createLoginHandler } from '../../../core/OAuthService/OAuthLoginHandlers';
@@ -763,6 +766,7 @@ const Onboarding = () => {
       const action = async () => {
         // prompt for ios google login not supported below iOS 17.4
         if (
+          !shouldUseLegacyIosGoogleConfig() &&
           Platform.OS === 'ios' &&
           provider === AuthConnection.Google &&
           Device.comparePlatformVersionTo('17.4') < 0

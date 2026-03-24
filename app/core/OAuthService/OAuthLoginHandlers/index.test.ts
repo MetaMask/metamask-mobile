@@ -389,9 +389,7 @@ describe('OAuth login handlers', () => {
         await expect(handler.login()).rejects.toThrow('Network error');
       });
 
-      it('uses iOS-specific config when iOS version is below 17.4', async () => {
-        mockDeviceIsIos.mockReturnValue(true);
-        mockComparePlatformVersionTo.mockReturnValue(-1);
+      it('uses the legacy iOS Google config returned by the shared config helper', async () => {
         mockGetIosGoogleConfig.mockReturnValue({
           clientId: 'mock-ios-google-client-id',
           redirectUri: 'mock-ios-google-redirect-uri',
@@ -408,16 +406,20 @@ describe('OAuth login handlers', () => {
 
         expect(result?.authConnection).toBe(AuthConnection.Google);
         expect((result as LoginHandlerCodeResult)?.code).toBe('test-auth-code');
+        expect((result as LoginHandlerCodeResult)?.clientId).toBe(
+          'mock-ios-google-client-id',
+        );
+        expect((result as LoginHandlerCodeResult)?.redirectUri).toBe(
+          'mock-ios-google-redirect-uri',
+        );
         expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
         expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
       });
 
-      it('uses web config when iOS version is 17.4 or later', async () => {
-        mockDeviceIsIos.mockReturnValue(true);
-        mockComparePlatformVersionTo.mockReturnValue(0);
+      it('uses the web Google config returned by the shared config helper', async () => {
         mockGetIosGoogleConfig.mockReturnValue({
-          clientId: 'mock-ios-google-client-id',
-          redirectUri: 'mock-ios-google-redirect-uri',
+          clientId: 'mock-android-google-client-id',
+          redirectUri: 'https://link.metamask.io/oauth-redirect',
         });
         mockExpoAuthSessionPromptAsync.mockResolvedValue({
           type: 'success',
@@ -431,6 +433,8 @@ describe('OAuth login handlers', () => {
         await expect(handler.login()).resolves.toMatchObject({
           authConnection: AuthConnection.Google,
           code: 'test-auth-code',
+          clientId: 'mock-android-google-client-id',
+          redirectUri: 'https://link.metamask.io/oauth-redirect',
         });
         expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
         expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
