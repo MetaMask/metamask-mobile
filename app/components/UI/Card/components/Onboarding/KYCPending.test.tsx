@@ -318,12 +318,11 @@ describe('KYCPending Component', () => {
     });
 
     it('displays the correct button label', () => {
-      const { getByTestId } = render(<KYCPending />);
+      const { getByTestId, getByText } = render(<KYCPending />);
 
-      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
-
-      expect(buttonLabel).toBeTruthy();
-      expect(buttonLabel.props.children).toBe('Got it');
+      const button = getByTestId('kyc-pending-got-it-button');
+      expect(button).toBeTruthy();
+      expect(getByText('Got it')).toBeTruthy();
     });
 
     it('navigates to wallet home when Got it button is pressed', () => {
@@ -421,11 +420,9 @@ describe('KYCPending Component', () => {
     });
 
     it('uses correct i18n key for Got it button', () => {
-      const { getByTestId } = render(<KYCPending />);
+      const { getByText } = render(<KYCPending />);
 
-      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
-
-      expect(buttonLabel.props.children).toBe('Got it');
+      expect(getByText('Got it')).toBeTruthy();
     });
   });
 
