@@ -17,6 +17,7 @@
 		<string>applinks:link-test.metamask.io</string>
 		<string>applinks:metamask.test-app.link</string>
 		<string>applinks:metamask-alternate.test-app.link</string>
+		<string>webcredentials:link.metamask.io</string>
 	</array>
 	<key>com.apple.developer.in-app-payments</key>
 	<array>

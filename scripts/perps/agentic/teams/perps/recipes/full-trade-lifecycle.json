@@ -1,0 +1,124 @@
+{
+  "title": "Full BTC trade lifecycle — mainnet start, testnet switch, open, TP/SL, close",
+  "description": "Starts from wallet home on mainnet, navigates to Perps, switches to testnet, then chains 4 flow_refs: market open, TP/SL creation, position close. Proves full end-to-end composability.",
+  "validate": {
+    "runtime": {
+      "steps": [
+        {
+          "id": "nav-wallet-home",
+          "action": "navigate",
+          "target": "WalletView"
+        },
+        {
+          "id": "switch-mainnet",
+          "action": "toggle_testnet",
+          "enabled": false
+        },
+        {
+          "id": "wait-mainnet",
+          "action": "wait_for",
+          "expression": "JSON.stringify({isTestnet:Engine.context.PerpsController.state.isTestnet})",
+          "assert": {
+            "operator": "eq",
+            "field": "isTestnet",
+            "value": false
+          }
+        },
+        {
+          "id": "nav-perps-home",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        },
+        {
+          "id": "wait-perps-home",
+          "action": "wait_for",
+          "route": "PerpsMarketListView"
+        },
+        {
+          "id": "ensure-testnet",
+          "action": "flow_ref",
+          "ref": "setup-testnet"
+        },
+        {
+          "id": "verify-provider",
+          "action": "eval_ref",
+          "ref": "providers",
+          "assert": {
+            "operator": "contains",
+            "value": "hyperliquid"
+          }
+        },
+        {
+          "id": "clear-btc-position",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});if(!p)return JSON.stringify({cleared:true});return Engine.context.PerpsController.closePosition({symbol:'BTC'}).then(function(){return JSON.stringify({cleared:true})})})",
+          "assert": {
+            "operator": "eq",
+            "field": "cleared",
+            "value": true
+          }
+        },
+        {
+          "id": "wait-no-btc",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": false
+          },
+          "timeout_ms": 10000
+        },
+        {
+          "id": "open-long-btc",
+          "action": "flow_ref",
+          "ref": "trade-open-market",
+          "params": {
+            "symbol": "BTC",
+            "side": "long",
+            "usdAmount": "10",
+            "leverage": "2"
+          }
+        },
+        {
+          "id": "wait-position",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({found:!!p,side:p?p.side:null})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": true
+          },
+          "timeout_ms": 10000
+        },
+        {
+          "id": "create-tpsl",
+          "action": "flow_ref",
+          "ref": "tpsl-create",
+          "params": {
+            "symbol": "BTC"
+          }
+        },
+        {
+          "id": "close-position",
+          "action": "flow_ref",
+          "ref": "trade-close-position",
+          "params": {
+            "symbol": "BTC"
+          }
+        },
+        {
+          "id": "wait-closed",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='BTC'});return JSON.stringify({found:!!p})})",
+          "assert": {
+            "operator": "eq",
+            "field": "found",
+            "value": false
+          },
+          "timeout_ms": 10000
+        }
+      ]
+    }
+  }
+}

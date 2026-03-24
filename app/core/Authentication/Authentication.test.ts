@@ -2126,6 +2126,54 @@ describe('Authentication', () => {
         name: TraceName.OnboardingFetchSrpsError,
       });
     });
+
+    it('wraps a non-Error string from fetchAllSecretData into a proper Error instance', async () => {
+      // Simulate an SDK rejecting with a plain string (not an Error instance).
+      // null cannot be used here because containsErrorMessage calls .toString() on the value
+      // before ensureError runs, which would itself throw for null.
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockRejectedValueOnce('sdk fetch failure');
+
+      const thrown = await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      }).catch((e) => e);
+
+      // ensureError in fetchSRPs converts the string to a proper Error so callers
+      // always receive an Error instance with a non-empty message.
+      expect(thrown).toBeInstanceOf(Error);
+      expect(thrown.message).toBe('sdk fetch failure');
+    });
+
+    it('wraps a non-Error thrown after fetchSRPs into a proper Error with Rehydrate seed phrase failed context', async () => {
+      // fetchAllSecretData resolves normally so fetchSRPs succeeds.
+      (
+        Engine.context.SeedlessOnboardingController
+          .fetchAllSecretData as jest.Mock
+      ).mockResolvedValueOnce([
+        { data: mockSeedPhrase1, type: SecretType.Mnemonic },
+      ]);
+
+      // newWalletVaultAndRestore (called after fetchSRPs) rejects with null.
+      jest
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        .spyOn(Authentication as any, 'newWalletVaultAndRestore')
+        .mockRejectedValueOnce(null);
+
+      const thrown = await Authentication.unlockWallet({
+        password: mockPassword,
+        authPreference: mockAuthData,
+      }).catch((e) => e);
+
+      // ensureError in the outer rehydrateSeedPhrase catch must wrap the null into an Error
+      // with the 'Rehydrate seed phrase failed' context.
+      expect(thrown).toBeInstanceOf(Error);
+      expect(thrown.message).toBe(
+        'Unknown error (no details provided) [Rehydrate seed phrase failed]',
+      );
+    });
   });
 
   describe('submitLatestGlobalSeedlessPassword', () => {
@@ -4755,6 +4803,28 @@ describe('Authentication', () => {
       expect(trackErrorAsAnalytics).toHaveBeenCalledWith(
         'Unlock Wallet Error',
         'Failed to rehydrate seed phrase',
+      );
+    });
+
+    it('wraps a non-Error rejection into a proper Error instance via ensureError', async () => {
+      // Simulate a third-party SDK or native module rejecting with null instead of an Error.
+      jest
+        .spyOn(Authentication, 'rehydrateSeedPhrase')
+        .mockRejectedValueOnce(null);
+
+      const thrown = await Authentication.unlockWallet({
+        password: passwordToUse,
+        authPreference: {
+          currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
+          oauth2Login: true,
+        },
+      }).catch((e) => e);
+
+      // ensureError must convert the null rejection to a proper Error so callers always
+      // receive an Error instance whose message includes the context passed to ensureError.
+      expect(thrown).toBeInstanceOf(Error);
+      expect(thrown.message).toBe(
+        'Unknown error (no details provided) [Unlock wallet failed]',
       );
     });
 
