@@ -35,6 +35,8 @@ export function useEVMNfts(): UseEVMNftsResult {
     .filter((account) => isEvmAddress(account.address))?.[0];
 
   useEffect(() => {
+    let cancelled = false;
+
     setIsLoading(true);
     if (!evmAccount || !allNFTS) {
       setTransformedNfts([]);
@@ -81,14 +83,22 @@ export function useEVMNfts(): UseEVMNftsResult {
         }
       }
 
-      setTransformedNfts(transformedResults);
-      setIsLoading(false);
+      if (!cancelled) {
+        setTransformedNfts(transformedResults);
+        setIsLoading(false);
+      }
     };
 
     processNfts().catch((error) => {
-      Logger.error(error, 'useEVMNfts: processNfts failed');
-      setIsLoading(false);
+      if (!cancelled) {
+        Logger.error(error, 'useEVMNfts: processNfts failed');
+        setIsLoading(false);
+      }
     });
+
+    return () => {
+      cancelled = true;
+    };
   }, [
     ipfsGateway,
     evmAccount,

@@ -193,11 +193,13 @@ describe('useRouteParams', () => {
       id: '123',
       address: 'dummy_address',
       chainId: 'summy_chainId',
+      tokenId: '1',
     };
     const assetNft = {
       id: '123',
       address: 'dummy_address',
       chainId: 'summy_chainId',
+      tokenId: '1',
     };
     mockUseParams.mockReturnValue({ asset });
     const mockUpdateAsset = jest.fn();
@@ -218,6 +220,50 @@ describe('useRouteParams', () => {
 
     await waitFor(() => {
       expect(mockUpdateAsset).toHaveBeenCalledWith(assetNft);
+    });
+  });
+
+  it('matches ERC1155 token by tokenId when multiple tokens share the same contract and chain', async () => {
+    const targetTokenId = '42';
+    const paramsAsset = {
+      address: '0xcontract',
+      chainId: '0x1',
+      tokenId: targetTokenId,
+    };
+    const wrongNft = {
+      address: '0xcontract',
+      chainId: '0x1',
+      tokenId: '1',
+      standard: 'ERC1155',
+      balance: '5',
+    };
+    const correctNft = {
+      address: '0xcontract',
+      chainId: '0x1',
+      tokenId: targetTokenId,
+      standard: 'ERC1155',
+      balance: '2',
+    };
+    mockUseParams.mockReturnValue({ asset: paramsAsset });
+    const mockUpdateAsset = jest.fn();
+    mockUseSendContext.mockReturnValue({
+      updateAsset: mockUpdateAsset,
+    } as unknown as ReturnType<typeof useSendContext>);
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectAssetsBySelectedAccountGroup) {
+        return { '0x1': [] };
+      }
+    });
+    mockUseNfts.mockReturnValue({
+      nfts: [wrongNft, correctNft] as unknown as Nft[],
+      isLoading: false,
+    });
+
+    renderHookWithProvider(() => useRouteParams(), mockState);
+
+    await waitFor(() => {
+      expect(mockUpdateAsset).toHaveBeenCalledWith(correctNft);
+      expect(mockUpdateAsset).not.toHaveBeenCalledWith(wrongNft);
     });
   });
 

@@ -803,6 +803,55 @@ describe('useEVMNfts', () => {
   });
 
   describe('isLoading', () => {
+    it('does not update state when the effect is cancelled before processNfts completes', async () => {
+      // Simulate a slow async transform so the effect cleanup fires mid-flight.
+      let resolveTransform: () => void;
+      const transformStarted = new Promise<void>((res) => {
+        resolveTransform = res;
+      });
+      let resolveSlowTransform: ((value: string) => void) | undefined;
+      const slowTransformPromise = new Promise<string>((res) => {
+        resolveSlowTransform = res;
+      });
+
+      mockGetFormattedIpfsUrl.mockImplementation(async () => {
+        resolveTransform();
+        return slowTransformPromise;
+      });
+
+      const ipfsNft = {
+        ...mockNft,
+        image: 'ipfs://QmTest/image.png',
+      };
+
+      mockSelectSelectedAccountGroup.mockReturnValue(
+        createMockAccountGroup(['account-1']),
+      );
+      mockSelectInternalAccountsById.mockReturnValue(
+        createMockInternalAccountsById({ 'account-1': mockAccount }),
+      );
+      mockSelectAllNfts.mockReturnValue(
+        createMockAllNfts({
+          [mockAccount.address]: { '0x1': [ipfsNft] },
+        }),
+      );
+
+      const { unmount, result } = renderHookWithStore(() => useEVMNfts());
+
+      // Wait until processNfts has started the async transform, then unmount
+      // (simulates a dependency change that re-fires the effect).
+      await transformStarted;
+      unmount();
+
+      // Unblock the slow transform after the cleanup has run.
+      resolveSlowTransform?.('https://gateway/QmTest/image.png');
+
+      // State must not have been updated — isLoading stays true (initial value)
+      // and nfts stays empty because the cancelled run's setters were skipped.
+      expect(result.current.isLoading).toBe(true);
+      expect(result.current.nfts).toEqual([]);
+    });
+
     it('settles to false and logs error when processNfts throws', async () => {
       mockSelectSelectedAccountGroup.mockReturnValue(
         createMockAccountGroup(['account-1']),

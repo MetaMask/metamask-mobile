@@ -49,9 +49,10 @@ export const useRouteParams = () => {
 
       if (!filteredAsset && nfts.length) {
         filteredAsset = nfts.find(
-          ({ address, chainId }) =>
+          ({ address, chainId, tokenId }) =>
             address === paramsAsset.address &&
-            chainId?.toLowerCase() === paramChainId,
+            chainId?.toLowerCase() === paramChainId &&
+            tokenId === paramsAsset.tokenId,
         );
       }
 
