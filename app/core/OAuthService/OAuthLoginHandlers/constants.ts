@@ -1,8 +1,14 @@
 import { ACTIONS, PREFIXES, PROTOCOLS } from '../../../constants/deeplinks';
+import Device from '../../../util/device';
+import ReduxService from '../../redux';
 import { isQa } from '../../../util/test/utils';
 import AppConstants from '../../AppConstants';
 import { AuthConnection } from '../OAuthInterface';
 import { OAUTH_CONFIG } from './config';
+import {
+  DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
+  selectLegacyIosGoogleConfigEnabled,
+} from '../../../selectors/featureFlagController/legacyIosGoogleConfig';
 
 export const SEEDLESS_ONBOARDING_ENABLED =
   process.env.SEEDLESS_ONBOARDING_ENABLED === 'true';
@@ -62,6 +68,41 @@ export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 export const AndroidGoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
+
+export const shouldUseLegacyIosGoogleConfig = () => {
+  if (!Device.isIos()) {
+    return false;
+  }
+
+  try {
+    return selectLegacyIosGoogleConfigEnabled(ReduxService.store.getState());
+  } catch {
+    return DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED;
+  }
+};
+
+export const getIosGoogleConfig = () => {
+  if (
+    shouldUseLegacyIosGoogleConfig() ||
+    (Device.isIos() && Device.comparePlatformVersionTo('17.4') < 0)
+  ) {
+    if (!IosGoogleRedirectUri || !IosGID) {
+      throw new Error('IosGoogleConfig is not set');
+    }
+    return {
+      clientId: IosGID,
+      redirectUri: IosGoogleRedirectUri,
+    };
+  }
+
+  if (!AndroidGoogleWebGID) {
+    throw new Error('AndroidGoogleWebGID is not set');
+  }
+  return {
+    clientId: AndroidGoogleWebGID,
+    redirectUri: AndroidGoogleRedirectUri,
+  };
+};
 
 export enum SupportedPlatforms {
   Android = 'android',

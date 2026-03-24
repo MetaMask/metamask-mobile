@@ -7,12 +7,11 @@ import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallb
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import {
   AuthServerUrl,
-  IosGID,
-  IosGoogleRedirectUri,
   AndroidGoogleWebGID,
   AndroidGoogleRedirectUri,
   AppleWebClientId,
   web3AuthNetwork,
+  getIosGoogleConfig,
 } from './constants';
 import { OAuthErrorType, OAuthError } from '../error';
 import { BaseLoginHandler } from './baseHandler';
@@ -32,23 +31,24 @@ export function createLoginHandler(
 ): BaseLoginHandler {
   if (
     !AuthServerUrl ||
-    !IosGID ||
-    !IosGoogleRedirectUri ||
     !AndroidGoogleWebGID ||
-    !AppleWebClientId
+    !AppleWebClientId ||
+    !AndroidGoogleRedirectUri
   ) {
     throw new Error('Missing environment variables');
   }
   switch (platformOS) {
     case 'ios':
       switch (provider) {
-        case AuthConnection.Google:
+        case AuthConnection.Google: {
+          const { clientId, redirectUri } = getIosGoogleConfig();
           return new IosGoogleLoginHandler({
-            clientId: IosGID,
-            redirectUri: IosGoogleRedirectUri,
+            clientId,
+            redirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
+        }
         case AuthConnection.Apple:
           return new IosAppleLoginHandler({
             clientId: AppleWebClientId,
