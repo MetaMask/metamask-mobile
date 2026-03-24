@@ -102,24 +102,29 @@ export async function setLocale(locale) {
   I18nEvents.emit('localeChanged', locale);
 }
 
-// Get languages
+/**
+ * Human-readable language names for the settings language selector only.
+ * Labels use each language's native form (endonyms); keys are unchanged locale codes.
+ *
+ * @returns {Record<string, string>} locale code → display label
+ */
 export function getLanguages() {
   return {
-    de: 'German',
-    el: 'Greek',
+    de: 'Deutsch',
+    el: 'Ελληνικά',
     en: 'English',
-    es: 'Spanish',
-    fr: 'French',
-    hi: 'Hindi',
-    id: 'Bahasa Indonesian',
-    ja: 'Japanese',
-    ko: 'Korean',
-    pt: 'Portuguese - Brazil',
-    ru: 'Russian',
+    es: 'Español',
+    fr: 'Français',
+    hi: 'हिन्दी',
+    id: 'Bahasa Indonesia',
+    ja: '日本語',
+    ko: '한국어',
+    pt: 'Português (Brasil)',
+    ru: 'Русский',
     tl: 'Filipino',
-    tr: 'Turkish',
-    vi: 'Vietnamese',
-    zh: 'Chinese - China',
+    tr: 'Türkçe',
+    vi: 'Tiếng Việt',
+    zh: '简体中文',
   };
 }
 

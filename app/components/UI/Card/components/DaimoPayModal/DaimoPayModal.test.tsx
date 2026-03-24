@@ -53,6 +53,41 @@ jest.mock('../../services/DaimoPayService', () => ({
   },
 }));
 
+jest.mock('../../../../../../locales/i18n', () => ({
+  strings: (key: string) => {
+    const map: Record<string, string> = {
+      'card.daimo_pay_modal.load_error':
+        'Failed to load payment page. Please try again.',
+      'card.daimo_pay_modal.timeout_error':
+        'Payment verification timed out. Please check your transaction status.',
+      'card.daimo_pay_modal.payment_bounced_error':
+        'Payment failed. Please try again with a different payment method.',
+      'card.daimo_pay_modal.close': 'Close',
+      'card.daimo_pay_modal.try_again': 'Try again',
+    };
+    return map[key] || key;
+  },
+}));
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
+}));
+
+jest.mock('../../../../../core/EntryScriptWeb3', () => ({
+  __esModule: true,
+  default: {
+    get: jest.fn().mockResolvedValue(''),
+  },
+}));
+
+jest.mock('../../../../../util/browserScripts', () => ({
+  SPA_urlChangeListener: '',
+}));
+
 jest.mock('../../../../../core/BackgroundBridge/BackgroundBridge', () =>
   jest.fn(() => ({
     sendNotificationEip1193: jest.fn(),
@@ -61,10 +96,6 @@ jest.mock('../../../../../core/BackgroundBridge/BackgroundBridge', () =>
     url: 'https://pay.daimo.com',
   })),
 );
-
-jest.mock('../../../../../core/EntryScriptWeb3', () => ({
-  get: jest.fn().mockResolvedValue('// mock entry script'),
-}));
 
 jest.mock('../../../../../core/RPCMethods/RPCMethodMiddleware', () => ({
   getRpcMethodMiddleware: jest.fn(() => ({})),
