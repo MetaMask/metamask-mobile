@@ -7264,7 +7264,8 @@
         "close_spending_limit": {
           "title": "You're close to your spending limit",
           "description": "Update to avoid declines",
-          "confirm_button_label": "Set new limit"
+          "confirm_button_label": "Set new limit",
+          "dismiss_button_label": "Dismiss"
         },
         "need_delegation": {
           "title": "You need to enable your card",
@@ -7364,7 +7365,6 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Enable Solana tokens on card.metamask.io",
       "select_token": "Select token",
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
@@ -7406,9 +7406,7 @@
       "limited": "Limited",
       "not_enabled": "Not enabled",
       "update_success": "Spend priority updated successfully",
-      "update_error": "Failed to update spend priority",
-      "solana_not_supported_button_title": "Others tokens on Solana",
-      "solana_not_supported_button_description": "Enable on card.metamask.io"
+      "update_error": "Failed to update spend priority"
     },
     "card_authentication": {
       "title": "Log in to your card account",
