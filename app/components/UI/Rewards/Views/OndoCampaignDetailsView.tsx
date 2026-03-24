@@ -1,21 +1,15 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import {
-  Box,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  IconName,
-  Skeleton,
-} from '@metamask/design-system-react-native';
+import { Box, IconName, Skeleton } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
-import CampaignOptInSheet from '../components/Campaigns/CampaignOptInSheet';
+import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
@@ -24,23 +18,20 @@ import Routes from '../../../../constants/navigation/Routes';
 
 // ParamListBase requires an index signature, which interfaces don't support
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type CampaignDetailsRouteParams = {
+type OndoCampaignDetailsRouteParams = {
   CampaignDetails: { campaignId: string };
 };
 
 export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
-  CTA_BUTTON: 'campaign-details-cta-button',
 } as const;
 
-const CampaignDetailsView: React.FC = () => {
+const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const route =
-    useRoute<RouteProp<CampaignDetailsRouteParams, 'CampaignDetails'>>();
+    useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
-
-  const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
 
   const { campaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
@@ -50,11 +41,16 @@ const CampaignDetailsView: React.FC = () => {
     [campaigns, campaignId],
   );
 
-  const { status: participantStatus, isLoading: isStatusLoading } =
-    useGetCampaignParticipantStatus(campaignId);
+  const participantStatus = useGetCampaignParticipantStatus(campaignId);
+
+  useEffect(() => {
+    if (campaign && getCampaignStatus(campaign) === 'upcoming') {
+      navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW as never);
+    }
+  }, [campaign, navigation]);
 
   return (
-    <ErrorBoundary navigation={navigation} view="CampaignDetailsView">
+    <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
       <SafeAreaView
         edges={{ bottom: 'additive' }}
         style={tw.style('flex-1 bg-default')}
@@ -70,7 +66,7 @@ const CampaignDetailsView: React.FC = () => {
                   {
                     iconName: IconName.Question,
                     onPress: () =>
-                      navigation.navigate(Routes.CAMPAIGN_MECHANICS, {
+                      navigation.navigate(Routes.REWARDS_CAMPAIGN_MECHANICS, {
                         campaignId,
                       }),
                     testID: 'campaign-details-mechanics-button',
@@ -110,7 +106,6 @@ const CampaignDetailsView: React.FC = () => {
           {campaign && (
             <>
               <CampaignStatus campaign={campaign} />
-
               {campaign.details?.howItWorks && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
@@ -125,28 +120,10 @@ const CampaignDetailsView: React.FC = () => {
           )}
         </ScrollView>
 
-        {campaign && participantStatus?.optedIn !== true && (
-          <Box twClassName="px-4 pb-4 pt-2">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={() => setIsOptInSheetOpen(true)}
-              isLoading={isStatusLoading}
-              isDisabled={isStatusLoading}
-              testID={CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON}
-            >
-              {isStatusLoading
-                ? strings('rewards.campaign_details.checking_opt_in_status')
-                : strings('rewards.campaign_details.join_campaign')}
-            </Button>
-          </Box>
-        )}
-
-        {isOptInSheetOpen && campaign && (
-          <CampaignOptInSheet
+        {campaign && (
+          <CampaignJoinCTA
             campaign={campaign}
-            onClose={() => setIsOptInSheetOpen(false)}
+            participantStatus={participantStatus}
           />
         )}
       </SafeAreaView>
@@ -154,4 +131,4 @@ const CampaignDetailsView: React.FC = () => {
   );
 };
 
-export default CampaignDetailsView;
+export default OndoCampaignDetailsView;
