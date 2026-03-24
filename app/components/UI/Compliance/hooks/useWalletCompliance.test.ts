@@ -253,6 +253,30 @@ describe('useAccountGroupCompliance', () => {
     expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
   });
 
+  it('hides modal when blocked status changes from true to false on rerender', () => {
+    // Initial render: blocked
+    mockUseSelector
+      .mockReturnValueOnce(['0xEVM']) // group addresses
+      .mockReturnValueOnce(true) // selectComplianceEnabled
+      .mockReturnValueOnce(true) // selectIsWalletBlocked -> blocked
+      .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+    const { rerender } = renderHook(() => useAccountGroupCompliance());
+
+    expect(mockShowAccessRestrictedModal).toHaveBeenCalledTimes(1);
+
+    // Rerender: no longer blocked (e.g. switched to a non-blocked account group)
+    mockUseSelector
+      .mockReturnValueOnce(['0xSAFE']) // group addresses
+      .mockReturnValueOnce(true) // selectComplianceEnabled
+      .mockReturnValueOnce(false) // selectIsWalletBlocked -> not blocked
+      .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+    rerender();
+
+    expect(mockHideAccessRestrictedModal).toHaveBeenCalledTimes(1);
+  });
+
   it('shows modal when blocked status changes from false to true on rerender', () => {
     // Initial render: not blocked
     mockUseSelector

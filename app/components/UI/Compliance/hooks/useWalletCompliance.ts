@@ -128,13 +128,20 @@ export function useAccountGroupCompliance() {
     filteredAddresses.length > 0 ? filteredAddresses : [],
   );
 
-  const { showAccessRestrictedModal } = useAccessRestrictedModal();
+  const { showAccessRestrictedModal, hideAccessRestrictedModal } =
+    useAccessRestrictedModal();
 
   useEffect(() => {
     if (complianceGate.isBlocked) {
       showAccessRestrictedModal();
+    } else {
+      hideAccessRestrictedModal();
     }
-  }, [complianceGate.isBlocked, showAccessRestrictedModal]);
+  }, [
+    complianceGate.isBlocked,
+    showAccessRestrictedModal,
+    hideAccessRestrictedModal,
+  ]);
 
   return complianceGate;
 }
