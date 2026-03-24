@@ -36,6 +36,7 @@ import {
   getCheckoutCallback,
   removeCheckoutCallback,
 } from '../../utils/checkoutCallbackRegistry';
+import { trackHeadlessBuyOrder } from '../../utils/headlessBuySessionRegistry';
 import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
@@ -66,6 +67,8 @@ interface CheckoutParams {
   callbackKey?: string;
   /** Optional callback invoked on every navigation state change (e.g. to intercept redirect URLs). */
   onNavigationStateChange?: (navState: { url: string }) => void;
+  /** Optional headless-buy session used to scope order updates back to the caller. */
+  headlessSessionId?: string;
 }
 
 export const createCheckoutNavDetails = createNavigationDetails<CheckoutParams>(
@@ -100,6 +103,7 @@ const Checkout = () => {
     userAgent,
     onNavigationStateChange,
     callbackKey,
+    headlessSessionId,
   } = params ?? {};
   const effectiveOrderId = (orderIdParam ?? customOrderId)?.trim() || null;
 
@@ -177,6 +181,7 @@ const Checkout = () => {
     if (!canRegister) return;
     if (registeredOrderIdsRef.current.has(effectiveOrderId)) return;
     registeredOrderIdsRef.current.add(effectiveOrderId);
+    trackHeadlessBuyOrder(headlessSessionId, effectiveOrderId);
     addPrecreatedOrder({
       orderId: effectiveOrderId,
       providerCode: normalizeProviderCode(providerCode),
@@ -190,6 +195,7 @@ const Checkout = () => {
     network,
     providerCode,
     addPrecreatedOrder,
+    headlessSessionId,
   ]);
 
   const handleNavigationStateChange = useCallback(
@@ -227,6 +233,7 @@ const Checkout = () => {
         }
 
         addOrder(rampsOrder);
+        trackHeadlessBuyOrder(headlessSessionId, rampsOrder.providerOrderId);
         dispatch(protectWalletModalVisible());
 
         if (isV2Enabled) {
@@ -268,6 +275,7 @@ const Checkout = () => {
       getOrderFromCallback,
       isV2Enabled,
       params?.cryptocurrency,
+      headlessSessionId,
     ],
   );
 

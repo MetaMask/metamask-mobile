@@ -15,6 +15,7 @@ import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
 import { AddressFormData } from '../Deposit/Views/EnterAddress/EnterAddress';
 import { createCheckoutNavDetails } from '../Views/Checkout';
 import { registerCheckoutCallback } from '../utils/checkoutCallbackRegistry';
+import { trackHeadlessBuyOrder } from '../utils/headlessBuySessionRegistry';
 import useAnalytics from './useAnalytics';
 import { showV2OrderToast } from '../utils/v2OrderToast';
 import Logger from '../../../../util/Logger';
@@ -267,7 +268,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const handleNavigationStateChange = useCallback(
-    async ({ url }: { url: string }) => {
+    async ({ url }: { url: string }, headlessSessionId?: string) => {
       if (!url.startsWith(REDIRECTION_URL)) return;
 
       let orderId: string | null = null;
@@ -305,6 +306,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           ...rampsOrder,
           paymentDetails: depositOrder.paymentDetails,
         });
+        trackHeadlessBuyOrder(headlessSessionId, rampsOrder.providerOrderId);
 
         showV2OrderToast({
           orderId: rampsOrder.providerOrderId,
@@ -354,12 +356,24 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const navigateToWebviewModalCallback = useCallback(
-    ({ paymentUrl, amount }: { paymentUrl: string; amount?: number }) => {
-      const callbackKey = registerCheckoutCallback(handleNavigationStateChange);
+    ({
+      paymentUrl,
+      amount,
+      headlessSessionId,
+    }: {
+      paymentUrl: string;
+      amount?: number;
+      headlessSessionId?: string;
+    }) => {
+      const callbackKey = registerCheckoutCallback(
+        (navState) =>
+          void handleNavigationStateChange(navState, headlessSessionId),
+      );
       const [routeName, routeParams] = createCheckoutNavDetails({
         url: paymentUrl,
         providerName: 'Transak',
         callbackKey,
+        headlessSessionId,
       });
       navigation.reset({
         index: 1,
@@ -412,7 +426,12 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
   );
 
   const routeAfterAuthentication = useCallback(
-    async (quote: TransakBuyQuote, amount?: number, depth = 0) => {
+    async (
+      quote: TransakBuyQuote,
+      amount?: number,
+      depth = 0,
+      options?: { headlessSessionId?: string },
+    ) => {
       try {
         const userDetails = await getUserDetails();
         const previousFormData = {
@@ -465,6 +484,10 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   ...rampsOrder,
                   paymentDetails: depositOrder.paymentDetails,
                 });
+                trackHeadlessBuyOrder(
+                  options?.headlessSessionId,
+                  rampsOrder.providerOrderId,
+                );
 
                 showV2OrderToast({
                   orderId: rampsOrder.providerOrderId,
@@ -498,6 +521,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 navigateToWebviewModalCallback({
                   paymentUrl,
                   amount,
+                  headlessSessionId: options?.headlessSessionId,
                 });
               }
               return true;
@@ -536,7 +560,12 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                 await submitPurposeOfUsageForm([
                   'Buying/selling crypto for investments',
                 ]);
-                await routeAfterAuthentication(quote, amount, depth + 1);
+                await routeAfterAuthentication(
+                  quote,
+                  amount,
+                  depth + 1,
+                  options,
+                );
               } else {
                 Logger.error(
                   new Error(`Submit of purpose depth exceeded: ${depth}`),

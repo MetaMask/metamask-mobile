@@ -83,6 +83,8 @@ import {
 import Device from '../../../../../util/device';
 import TruncatedError from '../../components/TruncatedError';
 import { PROVIDER_LINKS } from '../../Aggregator/types';
+import { trackHeadlessBuyOrder } from '../../utils/headlessBuySessionRegistry';
+
 const BAILED_ORDER_STATUSES = new Set<RampsOrderStatus>([
   RampsOrderStatus.Precreated,
   RampsOrderStatus.IdExpired,
@@ -103,6 +105,11 @@ export function isBailedOrderStatus(
  */
 export type BuyFlowOrigin = 'tokenInfo' | 'homeTokenList';
 
+interface HeadlessBuyParams {
+  paymentMethodId: string;
+  sessionId: string;
+}
+
 export interface BuildQuoteParams {
   assetId?: string;
   nativeFlowError?: string;
@@ -110,6 +117,8 @@ export interface BuildQuoteParams {
   buyFlowOrigin?: BuyFlowOrigin;
   /** Pre-fill the amount input (e.g. when restoring state after a navigation reset). */
   amount?: number;
+  /** Optional headless flow bootstrap. Reuses BuildQuote orchestration without rendering the full UI. */
+  headlessBuy?: HeadlessBuyParams;
 }
 
 /**
@@ -151,6 +160,9 @@ function BuildQuote() {
 
   const params = useParams<BuildQuoteParams>();
   const initialAmount = params?.amount ?? DEFAULT_AMOUNT;
+  const isHeadlessBuy = Boolean(params?.headlessBuy);
+  const headlessBuy = params?.headlessBuy;
+  const headlessSessionId = headlessBuy?.sessionId;
 
   const [amount, setAmount] = useState<string>(() => String(initialAmount));
   const [amountAsNumber, setAmountAsNumber] = useState<number>(initialAmount);
@@ -160,6 +172,7 @@ function BuildQuote() {
   const [keyboardIsDirty, setKeyboardIsDirty] = useState(false);
   const [isContinueLoading, setIsContinueLoading] = useState(false);
   const [rampsError, setRampsError] = useState<string | null>(null);
+  const autoContinueSignatureRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (params?.nativeFlowError) {
@@ -179,6 +192,7 @@ function BuildQuote() {
     paymentMethodsFetching,
     paymentMethodsStatus,
     selectedPaymentMethod,
+    setSelectedPaymentMethod,
   } = useRampsController();
 
   const { trackEvent, createEventBuilder } = useAnalytics();
@@ -576,13 +590,20 @@ function BuildQuote() {
         if (!quote) {
           throw new Error(strings('deposit.buildQuote.unexpectedError'));
         }
-        await transakRouteAfterAuth(quote, amountAsNumber);
+        if (headlessSessionId) {
+          await transakRouteAfterAuth(quote, amountAsNumber, 0, {
+            headlessSessionId,
+          });
+        } else {
+          await transakRouteAfterAuth(quote, amountAsNumber);
+        }
       } else {
         navigation.navigate(
           ...createV2VerifyIdentityNavDetails({
             amount: String(amountAsNumber),
             currency,
             assetId: selectedToken?.assetId,
+            headlessSessionId,
           }),
         );
       }
@@ -607,6 +628,7 @@ function BuildQuote() {
     transakGetBuyQuote,
     transakRouteAfterAuth,
     navigation,
+    headlessSessionId,
   ]);
 
   /**
@@ -651,6 +673,7 @@ function BuildQuote() {
 
       if (useExternalBrowser) {
         if (effectiveOrderId && effectiveWallet) {
+          trackHeadlessBuyOrder(headlessSessionId, effectiveOrderId);
           addPrecreatedOrder({
             orderId: effectiveOrderId,
             providerCode,
@@ -710,6 +733,7 @@ function BuildQuote() {
           currency,
           cryptocurrency: selectedToken?.symbol || '',
           orderId: buyWidget.orderId?.trim() || undefined,
+          headlessSessionId,
         }),
       );
     } catch (error) {
@@ -736,6 +760,7 @@ function BuildQuote() {
     getBuyWidgetData,
     addPrecreatedOrder,
     navigateAfterExternalBrowser,
+    headlessSessionId,
   ]);
 
   const handleContinuePress = useCallback(async () => {
@@ -797,6 +822,134 @@ function BuildQuote() {
         provider: selectedProvider.name,
       })
     : strings('fiat_on_ramp.no_quotes_available');
+
+  useEffect(() => {
+    if (
+      !isHeadlessBuy ||
+      !headlessBuy?.paymentMethodId ||
+      paymentMethodsLoading ||
+      paymentMethodsStatus !== 'success'
+    ) {
+      return;
+    }
+
+    const matchingPaymentMethod =
+      paymentMethods.find(
+        (method) => method.id === headlessBuy.paymentMethodId,
+      ) ?? null;
+
+    if (!matchingPaymentMethod) {
+      setRampsError(strings('deposit.buildQuote.unexpectedError'));
+      return;
+    }
+
+    if (selectedPaymentMethod?.id !== matchingPaymentMethod.id) {
+      setSelectedPaymentMethod(matchingPaymentMethod);
+    }
+  }, [
+    isHeadlessBuy,
+    headlessBuy?.paymentMethodId,
+    paymentMethods,
+    paymentMethodsLoading,
+    paymentMethodsStatus,
+    selectedPaymentMethod?.id,
+    setSelectedPaymentMethod,
+  ]);
+
+  useEffect(() => {
+    if (!isHeadlessBuy || !canContinue || rampsError || isContinueLoading) {
+      return;
+    }
+
+    const signature = [
+      selectedProvider?.id ?? '',
+      selectedPaymentMethod?.id ?? '',
+      selectedToken?.assetId ?? '',
+      amountAsNumber,
+      selectedQuote?.provider ?? '',
+    ].join('|');
+
+    if (autoContinueSignatureRef.current === signature) {
+      return;
+    }
+
+    autoContinueSignatureRef.current = signature;
+    void handleContinuePress();
+  }, [
+    isHeadlessBuy,
+    canContinue,
+    rampsError,
+    isContinueLoading,
+    selectedProvider?.id,
+    selectedPaymentMethod?.id,
+    selectedToken?.assetId,
+    amountAsNumber,
+    selectedQuote?.provider,
+    handleContinuePress,
+  ]);
+
+  const handleHeadlessRetry = useCallback(() => {
+    autoContinueSignatureRef.current = null;
+    setRampsError(null);
+  }, []);
+
+  const headlessError =
+    rampsError ||
+    (quoteFetchError
+      ? parseUserFacingError(
+          quoteFetchError,
+          strings('deposit.buildQuote.quoteFetchError'),
+        )
+      : null);
+
+  if (isHeadlessBuy) {
+    return (
+      <ScreenLayout>
+        <ScreenLayout.Body>
+          <ScreenLayout.Content style={styles.content}>
+            <View style={styles.actionSection}>
+              {headlessError ? (
+                <>
+                  <TruncatedError
+                    error={strings('fiat_on_ramp.encountered_error')}
+                    errorDetails={headlessError}
+                  />
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={handleHeadlessRetry}
+                    isFullWidth
+                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                  >
+                    {strings('fiat_on_ramp_aggregator.try_again')}
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Text
+                    variant={TextVariant.BodySM}
+                    style={styles.poweredByText}
+                  >
+                    {strings('fiat_on_ramp.fetching_quotes')}
+                  </Text>
+                  <Button
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSize.Lg}
+                    onPress={() => undefined}
+                    isFullWidth
+                    isLoading
+                    testID={BuildQuoteSelectors.CONTINUE_BUTTON}
+                  >
+                    {strings('fiat_on_ramp.please_wait')}
+                  </Button>
+                </>
+              )}
+            </View>
+          </ScreenLayout.Content>
+        </ScreenLayout.Body>
+      </ScreenLayout>
+    );
+  }
 
   return (
     <>
