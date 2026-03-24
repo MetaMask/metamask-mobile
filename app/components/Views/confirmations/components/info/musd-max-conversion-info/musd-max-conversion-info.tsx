@@ -97,7 +97,7 @@ export const MusdMaxConversionInfo = () => {
       <View style={styles.detailsSection}>
         <TokenConversionRateRow />
         <BridgeFeeRow />
-        <TotalRow />
+        <TotalRow excludeFees />
         <PercentageRow />
       </View>
       <BlockingAlertMessage />

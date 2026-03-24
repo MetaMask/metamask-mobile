@@ -15,8 +15,8 @@ jest.mock('../../../hooks/pay/useTransactionPayData');
 
 const TOTAL_FIAT_MOCK = '$123.46';
 
-function render() {
-  return renderWithProvider(<TotalRow />, {
+function render({ excludeFees }: { excludeFees?: boolean } = {}) {
+  return renderWithProvider(<TotalRow excludeFees={excludeFees} />, {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -53,5 +53,15 @@ describe('TotalRow', () => {
     const { getByTestId } = render();
 
     expect(getByTestId('total-row-skeleton')).toBeDefined();
+  });
+
+  it('renders targetAmount when excludeFees is true', () => {
+    useTransactionPayTotalsMock.mockReturnValue({
+      total: { usd: '100.456' },
+      targetAmount: { usd: '200.456' },
+    } as TransactionPayTotals);
+
+    const { getByText } = render({ excludeFees: true });
+    expect(getByText('$200.46')).toBeDefined();
   });
 });

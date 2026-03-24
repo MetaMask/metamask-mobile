@@ -19,15 +19,16 @@ import { ConfirmationRowComponentIDs } from '../../../ConfirmationView.testIds';
  * Row component that displays the total cost for deposit/payment transactions.
  * For withdrawal transactions, use ReceiveRow instead.
  */
-export function TotalRow() {
+export function TotalRow({ excludeFees }: { excludeFees?: boolean } = {}) {
   const formatFiat = useFiatFormatter({ currency: 'usd' });
   const isLoading = useIsTransactionPayLoading();
   const totals = useTransactionPayTotals();
 
   const totalUsd = useMemo(() => {
-    if (!totals?.total) return '';
-    return formatFiat(new BigNumber(totals.total.usd));
-  }, [totals, formatFiat]);
+    const rawUsd = excludeFees ? totals?.targetAmount?.usd : totals?.total?.usd;
+    if (!rawUsd) return '';
+    return formatFiat(new BigNumber(rawUsd));
+  }, [totals, excludeFees, formatFiat]);
 
   if (isLoading) {
     return <InfoRowSkeleton testId="total-row-skeleton" />;
