@@ -114,11 +114,12 @@ jest.mock('@shopify/flash-list', () => ({
   },
 }));
 
-// Mock ActionSheet - simplified since we don't test the action sheet behavior in this component
-jest.mock('@metamask/react-native-actionsheet', () => () => null);
-
 // Mock child components with minimal complexity
-jest.mock('./NftGridItemActionSheet', () => () => null);
+jest.mock('./NftGridItemBottomSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ isVisible }: { isVisible: boolean }) =>
+    isVisible ? <View testID="nft-grid-item-bottom-sheet" /> : null;
+});
 jest.mock('./NftGridHeader', () => {
   const { View, Text } = jest.requireActual('react-native');
   return () => (
@@ -1234,6 +1235,32 @@ describe('NftGrid', () => {
           call[0]?.properties?.location === 'homepage',
       );
       expect(positionScreenViewedCalls).toHaveLength(0);
+    });
+  });
+
+  it('shows bottom sheet when an NFT item is long-pressed', async () => {
+    const mockCollectibles = { '0x1': [mockNft] };
+    setupSelectorMocks({
+      isHomepageRedesignEnabled: false,
+      collectibles: mockCollectibles,
+      isNftFetching: false,
+    });
+    const store = mockStore(initialState);
+
+    const { getByTestId } = render(
+      <Provider store={store}>
+        <NftGrid />
+      </Provider>,
+    );
+
+    act(() => {
+      jest.advanceTimersByTime(100);
+    });
+
+    await waitFor(() => {
+      const nftItem = getByTestId('collectible-Test NFT-456');
+      fireEvent(nftItem, 'longPress');
+      expect(getByTestId('nft-grid-item-bottom-sheet')).toBeOnTheScreen();
     });
   });
 

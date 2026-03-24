@@ -455,6 +455,17 @@ export interface DelegationSettingsResponse {
   };
 }
 
+export interface DelegationPostApprovalParams {
+  address: string;
+  network: CardNetwork;
+  currency: string;
+  amount: string;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
+}
+
 /**
  * Request body for generating card details token
  * Used to customize the visual appearance of the card details image
