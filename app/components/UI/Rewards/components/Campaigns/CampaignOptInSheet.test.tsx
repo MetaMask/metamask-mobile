@@ -1,12 +1,31 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
+import { useSelector } from 'react-redux';
 import CampaignOptInSheet from './CampaignOptInSheet';
 import {
   type CampaignDto,
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { useOptInToCampaign } from '../../hooks/useOptInToCampaign';
+import { getDetectedGeolocation } from '../../../../../reducers/fiatOrders';
+import { selectGeolocationStatus } from '../../../../../selectors/geolocationController';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+
+// Per-selector state controlled by individual tests
+let mockGeolocation: string | undefined = 'AU';
+let mockGeoStatus: string | undefined = 'complete';
+
+const setupSelectorMock = () => {
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === getDetectedGeolocation) return mockGeolocation;
+    if (selector === selectGeolocationStatus) return mockGeoStatus;
+    return undefined;
+  });
+};
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -16,6 +35,31 @@ jest.mock('@metamask/design-system-react-native', () => {
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
+
+const mockNavigate = jest.fn();
+jest.mock('@react-navigation/native', () => ({
+  ...jest.requireActual('@react-navigation/native'),
+  useNavigation: () => ({ navigate: mockNavigate }),
+}));
+
+jest.mock('../ContentfulRichText/ContentfulRichText', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text: RNText } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    isDocument: (val: unknown) =>
+      val !== null &&
+      typeof val === 'object' &&
+      'nodeType' in (val as Record<string, unknown>) &&
+      (val as Record<string, unknown>).nodeType === 'document',
+    default: ({ testID }: { testID?: string }) =>
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(RNText, null, 'Rich text content'),
+      ),
+  };
+});
 
 jest.mock('../../hooks/useOptInToCampaign');
 const mockUseOptInToCampaign = useOptInToCampaign as jest.MockedFunction<
@@ -39,6 +83,29 @@ jest.mock(
     };
   },
 );
+
+jest.mock('../RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      title,
+      description,
+      testID,
+    }: {
+      title: string;
+      description: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID: testID ?? 'info-banner' },
+        ReactActual.createElement(Text, null, title),
+        ReactActual.createElement(Text, null, description),
+      ),
+  };
+});
 
 jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
@@ -78,6 +145,11 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'You can opt out at any time.',
       'rewards.campaign_details.opt_in_error': 'Failed to join campaign',
       'rewards.campaign.opt_in_cta': 'Join',
+      'rewards.campaign.geo_restriction_banner_title':
+        'Not available in your region',
+      'rewards.campaign.geo_restriction_banner_description':
+        'This campaign is not available in your region due to local regulations.',
+      'rewards.onboarding.intro_confirm_geo_loading': 'Checking region...',
     };
     return translations[key] || key;
   },
@@ -103,7 +175,10 @@ const mockOptInToCampaign = jest.fn();
 describe('CampaignOptInSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
+    // Default: geo complete, non-restricted country — keeps non-geo tests clean.
+    mockGeolocation = 'AU';
+    mockGeoStatus = 'complete';
+    setupSelectorMock();
     mockUseOptInToCampaign.mockReturnValue({
       optInToCampaign: mockOptInToCampaign,
       isOptingIn: false,
@@ -137,14 +212,17 @@ describe('CampaignOptInSheet', () => {
     );
   });
 
-  it('opens the terms URL when terms link is pressed', () => {
+  it('navigates to the terms URL when terms link is pressed', () => {
     const { getByTestId } = render(
       <CampaignOptInSheet campaign={createTestCampaign()} />,
     );
     fireEvent.press(getByTestId('campaign-opt-in-sheet-terms-link'));
-    expect(Linking.openURL).toHaveBeenCalledWith(
-      'https://go.metamask.io/rewards-terms',
-    );
+    expect(mockNavigate).toHaveBeenCalledWith('BrowserTabHome', {
+      screen: 'BrowserView',
+      params: expect.objectContaining({
+        newTabUrl: 'https://go.metamask.io/rewards-terms',
+      }),
+    });
   });
 
   it('renders the CTA button', () => {
@@ -233,5 +311,156 @@ describe('CampaignOptInSheet', () => {
     );
     // Button still renders while loading
     expect(getByTestId('campaign-opt-in-cta')).toBeDefined();
+  });
+
+  describe('geo loading state', () => {
+    it('shows geo loading text on the CTA while geo status is loading', () => {
+      mockGeoStatus = 'loading';
+      setupSelectorMock();
+      const { getByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(getByTestId('campaign-opt-in-cta')).toHaveTextContent(
+        'Checking region...',
+      );
+    });
+
+    it('disables the CTA while geo status is loading', () => {
+      mockGeoStatus = 'loading';
+      setupSelectorMock();
+      render(<CampaignOptInSheet campaign={createTestCampaign()} />);
+      // CTA is disabled — pressing should not call optInToCampaign
+      // (fireEvent.press on a disabled button is a no-op in RNTL)
+      expect(mockOptInToCampaign).not.toHaveBeenCalled();
+    });
+
+    it('does not show geo-restriction banner while geo status is loading', () => {
+      mockGeoStatus = 'loading';
+      mockGeolocation = undefined;
+      setupSelectorMock();
+      const { queryByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(
+        queryByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeNull();
+    });
+
+    it('shows opt-in CTA text once geo status is complete', () => {
+      mockGeoStatus = 'complete';
+      mockGeolocation = 'AU';
+      setupSelectorMock();
+      const { getByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(getByTestId('campaign-opt-in-cta')).toHaveTextContent('Join');
+    });
+  });
+
+  describe('geo-restriction (ONDO_HOLDING)', () => {
+    // ONDO_HOLDING uses ONDO_RESTRICTED_COUNTRIES via the same check as the
+    // RWA Trending feature. __DEV__ bypasses restriction; we set it to false
+    // in this block to test production behaviour.
+    beforeEach(() => {
+      (global as Record<string, unknown>).__DEV__ = false;
+      mockGeoStatus = 'complete';
+      setupSelectorMock();
+    });
+    afterEach(() => {
+      (global as Record<string, unknown>).__DEV__ = true;
+    });
+
+    it('shows geo-restriction banner when user is in a restricted country', () => {
+      mockGeolocation = 'US';
+      setupSelectorMock();
+      const { getByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(
+        getByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeDefined();
+    });
+
+    it('shows geo-restriction banner when sub-region resolves to a restricted country', () => {
+      mockGeolocation = 'US-CA';
+      setupSelectorMock();
+      const { getByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(
+        getByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeDefined();
+    });
+
+    it('shows geo-restriction banner when geolocation is undefined after fetch completes', () => {
+      mockGeolocation = undefined;
+      setupSelectorMock();
+      const { getByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(
+        getByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeDefined();
+    });
+
+    it('does not show geo-restriction banner when user is in an allowed country', () => {
+      // AU (Australia) is not in ONDO_RESTRICTED_COUNTRIES
+      mockGeolocation = 'AU';
+      setupSelectorMock();
+      const { queryByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(
+        queryByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeNull();
+    });
+
+    it('does not show geo-restriction banner in DEV mode regardless of country', () => {
+      (global as Record<string, unknown>).__DEV__ = true;
+      mockGeolocation = 'US';
+      setupSelectorMock();
+      const { queryByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      expect(
+        queryByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeNull();
+    });
+
+    it('ignores excludedRegions for ONDO_HOLDING (uses ONDO_RESTRICTED_COUNTRIES instead)', () => {
+      // AU is not in ONDO_RESTRICTED_COUNTRIES — banner should NOT show
+      // even if AU is in the campaign's excludedRegions
+      mockGeolocation = 'AU';
+      setupSelectorMock();
+      const { queryByTestId } = render(
+        <CampaignOptInSheet
+          campaign={createTestCampaign({ excludedRegions: ['AU'] })}
+        />,
+      );
+      expect(
+        queryByTestId('campaign-opt-in-geo-restriction-banner'),
+      ).toBeNull();
+    });
+
+    it('disables the CTA when user is geo-restricted', () => {
+      mockGeolocation = 'GB';
+      setupSelectorMock();
+      const { getByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      fireEvent.press(getByTestId('campaign-opt-in-cta'));
+      expect(mockOptInToCampaign).not.toHaveBeenCalled();
+    });
+
+    it('does not disable the CTA when user is in an allowed country', () => {
+      mockGeolocation = 'AU';
+      setupSelectorMock();
+      mockOptInToCampaign.mockResolvedValue({ optedIn: true });
+      const { getByTestId } = render(
+        <CampaignOptInSheet campaign={createTestCampaign()} />,
+      );
+      fireEvent.press(getByTestId('campaign-opt-in-cta'));
+      expect(mockOptInToCampaign).toHaveBeenCalledWith('campaign-1');
+    });
   });
 });

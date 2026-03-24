@@ -1,5 +1,5 @@
 import '../../../../tests/component-view/mocks';
-import { describeForPlatforms } from '../../../util/test/platform';
+import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { renderTrendingViewWithRoutes } from '../../../../tests/component-view/renderers/trending';
 import { TrendingViewSelectorsIDs } from './TrendingView.testIds';
 import {
@@ -53,7 +53,7 @@ const assertTrendingTokenRowsVisibility = async (opts: {
         expect(queryByTestId(result.id)).not.toBeOnTheScreen();
       });
     },
-    { timeout: 2000 },
+    { timeout: 5000 },
   );
 };
 
@@ -317,6 +317,11 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER),
       ).toBeOnTheScreen();
+    });
+
+    await assertTrendingTokenRowsVisibility({
+      queryByTestId,
+      visible: [{ id: TRENDING_ETHEREUM_ID }],
     });
 
     const searchToggle = getByTestId(

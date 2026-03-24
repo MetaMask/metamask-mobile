@@ -27,8 +27,12 @@ import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../../core/Analytics';
 import { TOKEN_NOT_AVAILABLE_MODAL_TEST_IDS } from './TokenNotAvailableModal.testIds';
 
+import type { BuyFlowOrigin } from '../../BuildQuote/BuildQuote';
+
 export interface TokenNotAvailableModalParams {
   assetId: string;
+  /** Which flow the user used to enter the Buy screen. */
+  buyFlowOrigin?: BuyFlowOrigin;
 }
 
 export const createTokenNotAvailableModalNavigationDetails =
@@ -39,7 +43,7 @@ export const createTokenNotAvailableModalNavigationDetails =
 
 function TokenNotAvailableModal() {
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { assetId } = useParams<TokenNotAvailableModalParams>();
+  const { assetId, buyFlowOrigin } = useParams<TokenNotAvailableModalParams>();
   const navigation = useNavigation();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { styles } = useStyles(styleSheet, {});
@@ -71,11 +75,25 @@ function TokenNotAvailableModal() {
         .build(),
     );
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-        screen: Routes.RAMP.TOKEN_SELECTION,
-      });
+      if (buyFlowOrigin === 'tokenInfo') {
+        // Token Info buy flow: return to the Tokens Full View screen
+        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW as never);
+      } else if (buyFlowOrigin === 'homeTokenList') {
+        // Home token list buy flow: return to home screen
+        navigation.navigate(Routes.WALLET.HOME as never);
+      } else {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION,
+        });
+      }
     });
-  }, [navigation, selectedProvider?.name, trackEvent, createEventBuilder]);
+  }, [
+    navigation,
+    buyFlowOrigin,
+    selectedProvider?.name,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   const handleChangeProvider = useCallback(() => {
     trackEvent(
@@ -118,12 +136,22 @@ function TokenNotAvailableModal() {
   const handleDismiss = useCallback(
     (hasPendingAction?: boolean) => {
       if (!hasPendingAction) {
-        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
-          screen: Routes.RAMP.TOKEN_SELECTION,
-        });
+        if (buyFlowOrigin === 'tokenInfo') {
+          // Token Info buy flow: pop back through the ramp flow to the
+          // existing Asset screen. BottomSheet already performs one goBack
+          // when shouldNavigateBack is true; we need one more to exit ramp.
+          navigation.goBack();
+        } else if (buyFlowOrigin === 'homeTokenList') {
+          // Home token list buy flow: return to home screen
+          navigation.navigate(Routes.WALLET.HOME as never);
+        } else {
+          navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+            screen: Routes.RAMP.TOKEN_SELECTION,
+          });
+        }
       }
     },
-    [navigation],
+    [navigation, buyFlowOrigin],
   );
 
   return (

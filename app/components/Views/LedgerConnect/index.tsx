@@ -41,7 +41,8 @@ import {
 } from '../../hooks/Ledger/useBluetoothDevices';
 import { getDeviceId } from '../../../core/Ledger/Ledger';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { HARDWARE_WALLET_BUTTON_TYPE } from '../../../core/Analytics/MetaMetrics.events';
 import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
 
@@ -79,7 +80,7 @@ const LedgerConnect = ({
   const [retryTimes, setRetryTimes] = useState(0);
   const dispatch = useDispatch();
   const deviceOSVersion = Number(getSystemVersion()) || 0;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const ledgerModelName = useMemo(() => {
     if (selectedDevice) {

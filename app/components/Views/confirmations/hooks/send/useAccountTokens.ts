@@ -13,8 +13,10 @@ import { AssetType, TokenStandard } from '../../types/token';
 
 export function useAccountTokens({
   includeNoBalance = false,
+  tokenFilter,
 }: {
   includeNoBalance?: boolean;
+  tokenFilter?: (chainId: string, address: string) => boolean;
 } = {}): AssetType[] {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
@@ -23,6 +25,17 @@ export function useAccountTokens({
     const flatAssets = Object.values(assets).flat();
 
     const assetsWithBalance = flatAssets.filter((asset) => {
+      if (tokenFilter) {
+        const address = asset.assetId;
+        if (
+          !asset.chainId ||
+          !address ||
+          !tokenFilter(asset.chainId, address)
+        ) {
+          return false;
+        }
+      }
+
       if (includeNoBalance) {
         return true;
       }
@@ -70,5 +83,10 @@ export function useAccountTokens({
             new BigNumber(a.fiat?.balance || 0),
           ) || 0,
       );
-  }, [assets, includeNoBalance, fiatCurrency]) as unknown as AssetType[];
+  }, [
+    assets,
+    includeNoBalance,
+    fiatCurrency,
+    tokenFilter,
+  ]) as unknown as AssetType[];
 }

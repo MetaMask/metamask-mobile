@@ -1,39 +1,23 @@
-import { act, waitFor } from '@testing-library/react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
-import { handleFetch } from '@metamask/controller-utils';
 import { NameType } from '../../UI/Name/Name.types';
 import { useERC20Tokens } from './useERC20Tokens';
 import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 
-jest.mock('@metamask/controller-utils', () => ({
-  ...jest.requireActual('@metamask/controller-utils'),
-  handleFetch: jest.fn(),
-}));
-
-const mockHandleFetch = handleFetch as jest.Mock;
-
 const TOKEN_NAME_MOCK = 'Test Token';
 const TOKEN_SYMBOL_MOCK = 'TT';
 const TOKEN_ICON_URL_MOCK = 'https://example.com/icon.png';
+const TOKEN_DECIMALS_MOCK = 6;
+const TOKEN_ADDRESS_MOCK = '0x0439e60f02a8900a951603950d8d4527f400c3f1';
 const CHAIN_ID_MOCK = CHAIN_IDS.MAINNET;
+const ASSET_ID_MOCK = `eip155:1/erc20:${TOKEN_ADDRESS_MOCK}`;
 
-// Each test gets a unique address to avoid module-level cache pollution.
-let addressCounter = 0;
-const makeAddress = () =>
-  `0x${(++addressCounter).toString().padStart(40, '0')}`;
-const makeAssetId = (address: string) =>
-  `eip155:1/erc20:${address.toLowerCase()}`;
+jest.mock('../useTokensData/useTokensData', () => ({
+  useTokensData: jest.fn(),
+}));
 
-function makeTokenResponse(address: string) {
-  return [
-    {
-      assetId: makeAssetId(address),
-      name: TOKEN_NAME_MOCK,
-      symbol: TOKEN_SYMBOL_MOCK,
-      iconUrl: TOKEN_ICON_URL_MOCK,
-    },
-  ];
-}
+import { useTokensData } from '../useTokensData/useTokensData';
+
+const mockUseTokensData = useTokensData as jest.Mock;
 
 function renderHook(requests: Parameters<typeof useERC20Tokens>[0]) {
   return renderHookWithProvider(() => useERC20Tokens(requests), { state: {} });
@@ -42,72 +26,14 @@ function renderHook(requests: Parameters<typeof useERC20Tokens>[0]) {
 describe('useERC20Tokens', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('returns undefined initially before fetch resolves', () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
-
-    const { result } = renderHook([
-      {
-        type: NameType.EthereumAddress,
-        value: address,
-        variation: CHAIN_ID_MOCK,
+    mockUseTokensData.mockReturnValue({
+      [ASSET_ID_MOCK]: {
+        assetId: ASSET_ID_MOCK,
+        name: TOKEN_NAME_MOCK,
+        symbol: TOKEN_SYMBOL_MOCK,
+        iconUrl: TOKEN_ICON_URL_MOCK,
+        decimals: TOKEN_DECIMALS_MOCK,
       },
-    ]);
-
-    expect(result.current[0]).toEqual({ name: undefined, image: undefined });
-  });
-
-  it('returns name after fetch resolves', async () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
-
-    const { result } = renderHook([
-      {
-        type: NameType.EthereumAddress,
-        value: address,
-        variation: CHAIN_ID_MOCK,
-      },
-    ]);
-
-    await waitFor(() => {
-      expect(result.current[0]?.name).toBe(TOKEN_NAME_MOCK);
-    });
-  });
-
-  it('returns symbol when preferContractSymbol is true', async () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
-
-    const { result } = renderHook([
-      {
-        preferContractSymbol: true,
-        type: NameType.EthereumAddress,
-        value: address,
-        variation: CHAIN_ID_MOCK,
-      },
-    ]);
-
-    await waitFor(() => {
-      expect(result.current[0]?.name).toBe(TOKEN_SYMBOL_MOCK);
-    });
-  });
-
-  it('returns image after fetch resolves', async () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
-
-    const { result } = renderHook([
-      {
-        type: NameType.EthereumAddress,
-        value: address,
-        variation: CHAIN_ID_MOCK,
-      },
-    ]);
-
-    await waitFor(() => {
-      expect(result.current[0]?.image).toBe(TOKEN_ICON_URL_MOCK);
     });
   });
 
@@ -115,7 +41,7 @@ describe('useERC20Tokens', () => {
     const { result } = renderHook([
       {
         type: 'alternateType' as NameType,
-        value: makeAddress(),
+        value: TOKEN_ADDRESS_MOCK,
         variation: CHAIN_ID_MOCK,
       },
     ]);
@@ -123,116 +49,84 @@ describe('useERC20Tokens', () => {
     expect(result.current[0]).toBeUndefined();
   });
 
-  it('normalizes addresses to lowercase', async () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
+  it('returns name when token is found', () => {
+    const { result } = renderHook([
+      {
+        type: NameType.EthereumAddress,
+        value: TOKEN_ADDRESS_MOCK,
+        variation: CHAIN_ID_MOCK,
+      },
+    ]);
+
+    expect(result.current[0]?.name).toBe(TOKEN_NAME_MOCK);
+  });
+
+  it('returns symbol when preferContractSymbol is true', () => {
+    const { result } = renderHook([
+      {
+        preferContractSymbol: true,
+        type: NameType.EthereumAddress,
+        value: TOKEN_ADDRESS_MOCK,
+        variation: CHAIN_ID_MOCK,
+      },
+    ]);
+
+    expect(result.current[0]?.name).toBe(TOKEN_SYMBOL_MOCK);
+  });
+
+  it('returns image when token is found', () => {
+    const { result } = renderHook([
+      {
+        type: NameType.EthereumAddress,
+        value: TOKEN_ADDRESS_MOCK,
+        variation: CHAIN_ID_MOCK,
+      },
+    ]);
+
+    expect(result.current[0]?.image).toBe(TOKEN_ICON_URL_MOCK);
+  });
+
+  it('returns symbol and decimals when token is found', () => {
+    const { result } = renderHook([
+      {
+        type: NameType.EthereumAddress,
+        value: TOKEN_ADDRESS_MOCK,
+        variation: CHAIN_ID_MOCK,
+      },
+    ]);
+
+    expect(result.current[0]?.symbol).toBe(TOKEN_SYMBOL_MOCK);
+    expect(result.current[0]?.decimals).toBe(TOKEN_DECIMALS_MOCK);
+  });
+
+  it('returns name and image as undefined when token is not found', () => {
+    mockUseTokensData.mockReturnValue({});
 
     const { result } = renderHook([
       {
         type: NameType.EthereumAddress,
-        value: address.toUpperCase(),
+        value: TOKEN_ADDRESS_MOCK,
         variation: CHAIN_ID_MOCK,
       },
     ]);
 
-    await waitFor(() => {
-      expect(result.current[0]?.name).toBe(TOKEN_NAME_MOCK);
+    expect(result.current[0]).toEqual({
+      name: undefined,
+      image: undefined,
+      symbol: undefined,
+      decimals: undefined,
     });
   });
 
-  it('returns undefined if fetch fails', async () => {
-    mockHandleFetch.mockRejectedValue(new Error('Network error'));
-
+  it('normalizes addresses to lowercase when building the asset ID', () => {
     const { result } = renderHook([
       {
         type: NameType.EthereumAddress,
-        value: makeAddress(),
+        value: TOKEN_ADDRESS_MOCK.toUpperCase(),
         variation: CHAIN_ID_MOCK,
       },
     ]);
 
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 50));
-    });
-
-    expect(result.current[0]).toEqual({ name: undefined, image: undefined });
-  });
-
-  it('uses correct API URL with comma-separated assetIds', async () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
-
-    renderHook([
-      {
-        type: NameType.EthereumAddress,
-        value: address,
-        variation: CHAIN_ID_MOCK,
-      },
-    ]);
-
-    await waitFor(() => {
-      expect(mockHandleFetch).toHaveBeenCalledTimes(1);
-    });
-
-    const calledUrl = mockHandleFetch.mock.calls[0][0] as string;
-    expect(calledUrl).toContain('tokens.api.cx.metamask.io/v3/assets');
-    expect(calledUrl).toContain(encodeURIComponent(makeAssetId(address)));
-    expect(calledUrl).toContain('includeIconUrl=true');
-  });
-
-  // Note: this test produces one act() warning because each renderHook call creates
-  // an independent React tree. When the shared in-flight promise resolves, all three
-  // trees update simultaneously, but only the one observed by waitFor is wrapped in act.
-  // This is a known RNTL limitation when testing cross-hook module-level state sharing.
-  it('deduplicates concurrent requests for the same token', async () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
-
-    const request = [
-      {
-        type: NameType.EthereumAddress,
-        value: address,
-        variation: CHAIN_ID_MOCK,
-      },
-    ];
-
-    const { result: r1 } = renderHook(request);
-    const { result: r2 } = renderHook(request);
-    const { result: r3 } = renderHook(request);
-
-    await waitFor(() => {
-      expect(r1.current[0]?.name).toBe(TOKEN_NAME_MOCK);
-      expect(r2.current[0]?.name).toBe(TOKEN_NAME_MOCK);
-      expect(r3.current[0]?.name).toBe(TOKEN_NAME_MOCK);
-    });
-
-    expect(mockHandleFetch).toHaveBeenCalledTimes(1);
-  });
-
-  it('returns cached data synchronously on second mount without re-fetching', async () => {
-    const address = makeAddress();
-    mockHandleFetch.mockResolvedValue(makeTokenResponse(address));
-
-    const request = [
-      {
-        type: NameType.EthereumAddress,
-        value: address,
-        variation: CHAIN_ID_MOCK,
-      },
-    ];
-
-    const { result: result1 } = renderHook(request);
-    await waitFor(() => {
-      expect(result1.current[0]?.name).toBe(TOKEN_NAME_MOCK);
-    });
-
-    mockHandleFetch.mockClear();
-    const { result: result2 } = renderHook(request);
-
-    expect(result2.current[0]?.name).toBe(TOKEN_NAME_MOCK);
-    await act(async () => {
-      await new Promise((r) => setTimeout(r, 50));
-    });
-    expect(mockHandleFetch).not.toHaveBeenCalled();
+    expect(result.current[0]?.name).toBe(TOKEN_NAME_MOCK);
   });
 });

@@ -270,11 +270,12 @@ export class BaanxProvider implements ICardProvider {
     throw new Error(`Unsupported credential type: ${credentials.type}`);
   }
 
-  async sendOtp(session: CardAuthSession): Promise<void> {
+  async executeStepAction(session: CardAuthSession): Promise<void> {
     const userId = session._metadata.otpUserId as string | undefined;
     if (!userId) {
-      throw new Error(
-        'No userId in session — initiateAuth or login must be called first',
+      throw new CardProviderError(
+        CardProviderErrorCode.Unknown,
+        'executeStepAction: session missing otpUserId',
       );
     }
     await this.service.post('/v1/auth/login/otp', { userId });

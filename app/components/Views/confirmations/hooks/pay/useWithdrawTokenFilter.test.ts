@@ -114,6 +114,7 @@ function runHook({
 
 describe('useWithdrawTokenFilter', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
     mockUseSendTokens.mockReturnValue(ALL_TOKENS_MOCK);
     // Return empty by default; tests that need API data override this.
     mockUseERC20Tokens.mockReturnValue([]);
