@@ -86,6 +86,7 @@ import {
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
 import { containsErrorMessage } from '../../util/errorHandling';
+import { ensureError } from '../../util/errorUtils';
 
 /**
  * Holds auth data used to determine auth configuration
@@ -837,7 +838,7 @@ class AuthenticationService {
         // Track unlockWallet error as analytics.
         trackErrorAsAnalytics('Unlock Wallet Error', error.message);
       }
-      throw error;
+      throw ensureError(error, 'Unlock wallet failed');
     } finally {
       // Wipe sensitive data.
       password = this.wipeSensitiveData();
@@ -1174,27 +1175,26 @@ class AuthenticationService {
           await SeedlessOnboardingController.fetchAllSecretData(password);
         fetchSrpsSuccess = true;
       } catch (error) {
-        const errorMessage =
-          error instanceof Error ? error.message : 'Unknown error';
+        const err = ensureError(error, 'Fetch SRPs failed');
 
         // trace only if error is not an incorrect password error
         if (
           !containsErrorMessage(
-            error as Error,
+            err,
             SeedlessOnboardingControllerErrorMessage.IncorrectPassword,
           )
         ) {
           trace({
             name: TraceName.OnboardingFetchSrpsError,
             op: TraceOperation.OnboardingError,
-            tags: { errorMessage },
+            tags: { errorMessage: err.message },
           });
           endTrace({
             name: TraceName.OnboardingFetchSrpsError,
           });
         }
 
-        throw error;
+        throw err;
       } finally {
         endTrace({
           name: TraceName.OnboardingFetchSrps,
@@ -1253,7 +1253,7 @@ class AuthenticationService {
     } catch (error) {
       this.lockApp({ reset: false, navigateToLogin: false });
       Logger.log(error);
-      throw error;
+      throw ensureError(error, 'Rehydrate seed phrase failed');
     }
   };
 

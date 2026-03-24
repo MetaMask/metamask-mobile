@@ -12,7 +12,8 @@ import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTest
 import { testSpecificMock } from '../../helpers/swap/bridge-mocks';
 import SoftAssert from '../../framework/SoftAssert';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
-import { AnvilManager } from '../../seeder/anvil-manager';
+import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
 enum eventsToCheck {
@@ -57,7 +58,6 @@ describe(SmokeTrade('Bridge functionality'), () => {
               nickname: 'Localhost',
               ticker: 'ETH',
             })
-            .withDisabledSmartTransactions()
             .build();
         },
         localNodeOptions: [
@@ -68,7 +68,10 @@ describe(SmokeTrade('Bridge functionality'), () => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
       },
       async () => {
