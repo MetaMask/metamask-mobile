@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import {
@@ -16,9 +16,15 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import CampaignOptInSheet from '../components/Campaigns/CampaignOptInSheet';
+import PreviousSeasonSummary from '../components/PreviousSeason/PreviousSeasonSummary';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
+import {
+  getCampaignStatus,
+  isCampaignTypeSupported,
+} from '../components/Campaigns/CampaignTile.utils';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -52,6 +58,48 @@ const CampaignDetailsView: React.FC = () => {
 
   const { status: participantStatus, isLoading: isStatusLoading } =
     useGetCampaignParticipantStatus(campaignId);
+
+  const campaignStatus = campaign ? getCampaignStatus(campaign) : null;
+  const isCampaignActive = campaignStatus === 'active';
+  const isCampaignComplete = campaignStatus === 'complete';
+
+  // Redirect to campaigns overview if campaign type is not supported
+  useEffect(() => {
+    if (campaign && !isCampaignTypeSupported(campaign.type)) {
+      navigation.navigate(Routes.CAMPAIGNS_VIEW);
+    }
+  }, [campaign, navigation]);
+
+  const campaignDetailsContent = useMemo(() => {
+    if (!campaign) return null;
+
+    // For ONDO_HOLDING campaigns, show How It Works section
+    if (
+      campaign.type === CampaignType.ONDO_HOLDING &&
+      campaign.details?.howItWorks
+    ) {
+      return (
+        <>
+          <Box twClassName="border-b border-border-muted" />
+          <Box twClassName="px-4 py-4">
+            <CampaignHowItWorks howItWorks={campaign.details.howItWorks} />
+          </Box>
+        </>
+      );
+    }
+
+    // For SEASON_1 campaigns that are complete, show PreviousSeasonSummary
+    if (campaign.type === CampaignType.SEASON_1 && isCampaignComplete) {
+      return (
+        <>
+          <Box twClassName="border-b border-border-muted" />
+          <PreviousSeasonSummary />
+        </>
+      );
+    }
+
+    return null;
+  }, [campaign, isCampaignComplete]);
 
   return (
     <ErrorBoundary navigation={navigation} view="CampaignDetailsView">
@@ -110,38 +158,30 @@ const CampaignDetailsView: React.FC = () => {
           {campaign && (
             <>
               <CampaignStatus campaign={campaign} />
-
-              {campaign.details?.howItWorks && (
-                <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="px-4 py-4">
-                    <CampaignHowItWorks
-                      howItWorks={campaign.details.howItWorks}
-                    />
-                  </Box>
-                </>
-              )}
+              {campaignDetailsContent}
             </>
           )}
         </ScrollView>
 
-        {campaign && participantStatus?.optedIn !== true && (
-          <Box twClassName="px-4 pb-4 pt-2">
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              isFullWidth
-              onPress={() => setIsOptInSheetOpen(true)}
-              isLoading={isStatusLoading}
-              isDisabled={isStatusLoading}
-              testID={CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON}
-            >
-              {isStatusLoading
-                ? strings('rewards.campaign_details.checking_opt_in_status')
-                : strings('rewards.campaign_details.join_campaign')}
-            </Button>
-          </Box>
-        )}
+        {campaign &&
+          participantStatus?.optedIn !== true &&
+          !isCampaignComplete && (
+            <Box twClassName="px-4 pb-4 pt-2">
+              <Button
+                variant={ButtonVariant.Primary}
+                size={ButtonSize.Lg}
+                isFullWidth
+                onPress={() => setIsOptInSheetOpen(true)}
+                isLoading={isStatusLoading}
+                isDisabled={isStatusLoading || !isCampaignActive}
+                testID={CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON}
+              >
+                {isStatusLoading
+                  ? strings('rewards.campaign_details.checking_opt_in_status')
+                  : strings('rewards.campaign_details.join_campaign')}
+              </Button>
+            </Box>
+          )}
 
         {isOptInSheetOpen && campaign && (
           <CampaignOptInSheet

@@ -120,6 +120,18 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
   };
 });
 
+jest.mock('../components/PreviousSeason/PreviousSeasonSummary', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'previous-season-summary',
+      }),
+  };
+});
+
 jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -190,18 +202,27 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
-): CampaignDto => ({
-  id: 'campaign-1',
-  type: CampaignType.ONDO_HOLDING,
-  name: 'Test Campaign',
-  startDate: '2027-01-01T00:00:00.000Z',
-  endDate: '2027-12-31T23:59:59.999Z',
-  termsAndConditions: null,
-  excludedRegions: [],
-  statusLabel: 'Active',
-  details: null,
-  ...overrides,
-});
+): CampaignDto => {
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const nextMonth = new Date(now);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+  return {
+    id: 'campaign-1',
+    type: CampaignType.ONDO_HOLDING,
+    name: 'Test Campaign',
+    startDate: yesterday.toISOString(),
+    endDate: nextMonth.toISOString(),
+    termsAndConditions: null,
+    excludedRegions: [],
+    statusLabel: 'Active',
+    details: null,
+    featured: true,
+    ...overrides,
+  };
+};
 
 const mockFetchCampaigns = jest.fn();
 const emptyCategorized = { active: [], upcoming: [], previous: [] };
@@ -331,6 +352,83 @@ describe('CampaignDetailsView', () => {
       const { queryByTestId } = render(<CampaignDetailsView />);
       expect(queryByTestId('campaign-how-it-works')).toBeNull();
     });
+
+    it('does not render CampaignHowItWorks for SEASON_1 campaigns', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            type: CampaignType.SEASON_1,
+            details: {
+              image: {
+                lightModeUrl: 'https://example.com/light.png',
+                darkModeUrl: 'https://example.com/dark.png',
+              },
+              howItWorks: {
+                title: 'How it works',
+                description: 'Description',
+                phases: [],
+              },
+            },
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<CampaignDetailsView />);
+      expect(queryByTestId('campaign-how-it-works')).toBeNull();
+    });
+
+    it('renders PreviousSeasonSummary for complete SEASON_1 campaigns', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            type: CampaignType.SEASON_1,
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { getByTestId } = render(<CampaignDetailsView />);
+      expect(getByTestId('previous-season-summary')).toBeDefined();
+    });
+
+    it('does not render PreviousSeasonSummary for active SEASON_1 campaigns', () => {
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            type: CampaignType.SEASON_1,
+            startDate: yesterday.toISOString(),
+            endDate: nextMonth.toISOString(),
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<CampaignDetailsView />);
+      expect(queryByTestId('previous-season-summary')).toBeNull();
+    });
+
+    it('redirects to campaigns view for unsupported campaign types', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            type: 'UNSUPPORTED_TYPE' as CampaignType,
+          }),
+        ],
+      });
+      render(<CampaignDetailsView />);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGNS_VIEW);
+    });
   });
 
   describe('opt-in CTA', () => {
@@ -407,6 +505,48 @@ describe('CampaignDetailsView', () => {
       const { getByTestId } = render(<CampaignDetailsView />);
       fireEvent.press(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON));
       expect(getByTestId('campaign-opt-in-sheet')).toBeDefined();
+    });
+
+    it('renders the CTA as disabled when campaign is upcoming', () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: tomorrow.toISOString(),
+            endDate: nextMonth.toISOString(),
+          }),
+        ],
+      });
+      const { getByTestId } = render(<CampaignDetailsView />);
+      const cta = getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON);
+      expect(cta).toBeDefined();
+      expect(
+        cta.props.isDisabled ?? cta.props.accessibilityState?.disabled,
+      ).toBeTruthy();
+    });
+
+    it('does not render the CTA when campaign is complete', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<CampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
   });
 

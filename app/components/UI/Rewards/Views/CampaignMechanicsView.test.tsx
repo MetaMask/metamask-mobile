@@ -142,6 +142,7 @@ const createTestCampaign = (
   excludedRegions: [],
   statusLabel: 'Active',
   details: null,
+  featured: true,
   ...overrides,
 });
 
