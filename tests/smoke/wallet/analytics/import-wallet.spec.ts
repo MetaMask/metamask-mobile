@@ -6,7 +6,19 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetails } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureMultichainAccountsAccountDetails,
+  remoteFeaturePredictGtmOnboardingModalDisabled,
+} from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  createLogger,
+  countProxiedRequestsMatching,
+  waitForAdditionalProxiedRequestsMatching,
+} from '../../../framework';
+import {
+  AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
+  PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
+} from './constants';
 import {
   importWalletMetricsOptOutExpectations,
   importWalletWithMetricsOptInExpectations,
@@ -15,6 +27,10 @@ import {
   IDENTITY_TEAM_PASSWORD,
   IDENTITY_TEAM_SEED_PHRASE,
 } from '../../identity/utils/constants';
+
+const logger = createLogger({
+  name: 'ImportWalletAnalyticsSpec',
+});
 
 describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
   beforeAll(async () => {
@@ -27,19 +43,50 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetails(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetails(),
+            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
+          });
         },
         analyticsExpectations: importWalletWithMetricsOptInExpectations,
       },
-      async () => {
+      async ({ mockServer }) => {
+        if (!mockServer) {
+          throw new Error(
+            'Mock server is not defined, check testSpecificMock setup',
+          );
+        }
+
+        const profileAccountsMatcher = {
+          method: 'PUT' as const,
+          urlSubstring: AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
+        };
+        const profileAccountsBaseline = await countProxiedRequestsMatching(
+          mockServer,
+          profileAccountsMatcher,
+        );
+
         await importWalletWithRecoveryPhrase({
           seedPhrase: IDENTITY_TEAM_SEED_PHRASE,
           password: IDENTITY_TEAM_PASSWORD,
           optInToMetrics: true,
         });
+
+        await waitForAdditionalProxiedRequestsMatching(
+          mockServer,
+          profileAccountsMatcher,
+          profileAccountsBaseline,
+          {
+            description:
+              'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet import',
+            timeout: PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
+            successLog: {
+              logger,
+              label:
+                'PUT authentication.api.cx.metamask.io/api/v2/profile/accounts after import',
+            },
+          },
+        );
       },
     );
   });
@@ -50,10 +97,10 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetails(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetails(),
+            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
+          });
         },
         analyticsExpectations: importWalletMetricsOptOutExpectations,
       },
