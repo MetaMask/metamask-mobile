@@ -1221,20 +1221,25 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ),
   );
 
+  const validationReferencePrice =
+    orderForm.type === 'limit' && orderForm.limitPrice
+      ? parseFloat(orderForm.limitPrice)
+      : assetData.price;
+
   const isTakeProfitPriceInvalid = Boolean(
     orderForm.takeProfitPrice?.trim() &&
-      assetData.price > 0 &&
+      validationReferencePrice > 0 &&
       !isValidTakeProfitPrice(orderForm.takeProfitPrice, {
-        currentPrice: assetData.price,
+        currentPrice: validationReferencePrice,
         direction: orderForm.direction,
       }),
   );
 
   const isStopLossPriceInvalid = Boolean(
     orderForm.stopLossPrice?.trim() &&
-      assetData.price > 0 &&
+      validationReferencePrice > 0 &&
       !isValidStopLossPrice(orderForm.stopLossPrice, {
-        currentPrice: assetData.price,
+        currentPrice: validationReferencePrice,
         direction: orderForm.direction,
       }),
   );

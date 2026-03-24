@@ -2217,6 +2217,190 @@ describe('PerpsOrderView', () => {
       );
       expect(placeOrderButton).toBeDefined();
     });
+
+    describe('limit order TP/SL validates against entry price, not market price', () => {
+      const orderContextForLimitOrder = (overrides: {
+        direction: 'long' | 'short';
+        limitPrice: string;
+        takeProfitPrice?: string;
+        stopLossPrice?: string;
+      }) => ({
+        orderForm: {
+          asset: 'ETH',
+          amount: '100',
+          leverage: 10,
+          direction: overrides.direction,
+          type: 'limit' as const,
+          limitPrice: overrides.limitPrice,
+          takeProfitPrice: overrides.takeProfitPrice,
+          stopLossPrice: overrides.stopLossPrice,
+          balancePercent: 10,
+        },
+        setAmount: jest.fn(),
+        setLeverage: jest.fn(),
+        setTakeProfitPrice: jest.fn(),
+        setStopLossPrice: jest.fn(),
+        setLimitPrice: jest.fn(),
+        setOrderType: jest.fn(),
+        handlePercentageAmount: jest.fn(),
+        handleMaxAmount: jest.fn(),
+        handleMinAmount: jest.fn(),
+        optimizeOrderAmount: jest.fn(),
+        maxPossibleAmount: 1000,
+        balanceForValidation: 1000,
+        calculations: {
+          marginRequired: '10',
+          positionSize: '0.04',
+        },
+      });
+
+      it('accepts TP above limit price for long limit order even when TP is below market price', async () => {
+        // Scenario: market at $3000, long limit buy at $2500, TP at $2700
+        // TP $2700 is valid relative to $2500 entry but below $3000 market price
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'long',
+            limitPrice: '2500',
+            takeProfitPrice: '2700',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // TP at $2700 is above the $2500 limit (entry) price, so no warning should appear
+        expect(screen.queryByText(/Take profit must be/)).toBeNull();
+      });
+
+      it('accepts SL below limit price for long limit order even when SL is below market price', async () => {
+        // Scenario: market at $3000, long limit buy at $2500, SL at $2300
+        // SL $2300 is valid relative to $2500 entry
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'long',
+            limitPrice: '2500',
+            stopLossPrice: '2300',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // SL at $2300 is below the $2500 limit (entry) price, so no warning should appear
+        expect(screen.queryByText(/Stop loss must be/)).toBeNull();
+      });
+
+      it('rejects TP below limit price for long limit order', async () => {
+        // Scenario: market at $3000, long limit buy at $2500, TP at $2400
+        // TP $2400 is below the $2500 entry → invalid
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'long',
+            limitPrice: '2500',
+            takeProfitPrice: '2400',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText(/Take profit must be above/)).toBeDefined();
+        });
+      });
+
+      it('accepts TP below limit price for short limit order even when TP is above market price', async () => {
+        // Scenario: market at $3000, short limit sell at $3500, TP at $3200
+        // TP $3200 is below $3500 entry (valid for short) but above $3000 market
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'short',
+            limitPrice: '3500',
+            takeProfitPrice: '3200',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // TP at $3200 is below $3500 limit entry, valid for short
+        expect(screen.queryByText(/Take profit must be/)).toBeNull();
+      });
+
+      it('accepts SL above limit price for short limit order', async () => {
+        // Scenario: market at $3000, short limit sell at $3500, SL at $3700
+        // SL $3700 is above $3500 entry (valid for short)
+        (usePerpsOrderContext as jest.Mock).mockReturnValue(
+          orderContextForLimitOrder({
+            direction: 'short',
+            limitPrice: '3500',
+            stopLossPrice: '3700',
+          }),
+        );
+        (usePerpsOrderValidation as jest.Mock).mockReturnValue({
+          isValid: true,
+          errors: [],
+          isValidating: false,
+        });
+        (usePerpsOrderExecution as jest.Mock).mockReturnValue({
+          placeOrder: jest.fn(),
+          isPlacing: false,
+        });
+
+        render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+        await waitFor(() => {
+          expect(screen.getByText('Leverage')).toBeDefined();
+        });
+
+        // SL at $3700 is above $3500 limit entry, valid for short
+        expect(screen.queryByText(/Stop loss must be/)).toBeNull();
+      });
+    });
   });
 
   describe('TP/SL limit price validation', () => {
