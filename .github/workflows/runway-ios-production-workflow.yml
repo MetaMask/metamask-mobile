@@ -1,15 +1,15 @@
 ##############################################################################################
 #
-# Runway iOS RC Workflow
+# Runway iOS Production Workflow
 #
 # Triggered from Runway to either:
-# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
-# - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
+# - Push an OTA update to the production channel (when OTA_VERSION is bumped), or
+# - Build the production app and upload the IPA to TestFlight (when there is no OTA bump).
 #
-# When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+# When triggering workflow_dispatch, select the correct branch (e.g. main or release).
 #
 ##############################################################################################
-name: Runway iOS RC
+name: Runway iOS Production
 
 on:
   workflow_dispatch:
@@ -20,6 +20,12 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
+      skip_version_bump:
+        description: >-
+          Skip the build-number bump when the other platform Runway workflow already bumped this branch.
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -28,10 +34,15 @@ permissions:
   id-token: write # required by build.yml
 
 jobs:
-  runway-rc:
+  runway-production:
     uses: ./.github/workflows/runway-rc-core.yml
     with:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
+      ota_channel: production
+      build_name: main-prod
       upload_testflight: true
+      create_production_ota_tag: true
+      ios_testflight_summary_title: 'Runway iOS Production'
+      skip_version_bump: ${{ inputs.skip_version_bump }}
     secrets: inherit

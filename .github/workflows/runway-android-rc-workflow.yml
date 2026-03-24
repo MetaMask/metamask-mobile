@@ -20,6 +20,13 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
+      skip_version_bump:
+        description: >-
+          Skip the build-number bump in the repo. Use true when this branch was already bumped by
+          Runway iOS RC for the same release (typical: run iOS first, then Android with this true).
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -33,4 +40,5 @@ jobs:
     with:
       platform: android
       source_branch: ${{ inputs.source_branch }}
+      skip_version_bump: ${{ inputs.skip_version_bump }}
     secrets: inherit

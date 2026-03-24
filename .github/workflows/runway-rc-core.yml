@@ -3,8 +3,7 @@
 # Runway OTA / build core (reusable)
 #
 # Shared logic for Runway: OTA bump detection, push-eas-update dispatch, or build.yml.
-# Callers: runway_*_rc_workflow.yml (defaults: channel rc, build main-rc),
-# runway_*_production_workflow.yml (channel production, build main-prod).
+# Callers: runway-*-rc-workflow / runway-*-production-workflow (see skip_version_bump for iOS+Android).
 #
 ##############################################################################################
 name: Runway OTA Build Core
@@ -48,6 +47,13 @@ on:
         required: false
         type: string
         default: 'Runway iOS RC'
+      skip_version_bump:
+        description: >-
+          If true, build.yml skips the repo version bump (use on the 2nd Runway run when you already
+          bumped on another platform for the same branch, e.g. Android after iOS RC).
+        required: false
+        type: boolean
+        default: false
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -181,7 +187,7 @@ jobs:
     with:
       build_name: ${{ inputs.build_name }}
       platform: ${{ inputs.platform }}
-      skip_version_bump: false
+      skip_version_bump: ${{ inputs.skip_version_bump }}
       source_branch: ${{ inputs.source_branch || github.ref_name }}
       upload_to_sentry: true
     secrets: inherit
