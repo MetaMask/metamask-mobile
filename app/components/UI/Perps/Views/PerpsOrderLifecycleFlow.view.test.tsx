@@ -116,9 +116,9 @@ describe('Order Lifecycle & Funds Flow', () => {
     const feesTooltip = screen.queryByTestId(
       PerpsClosePositionViewSelectorsIDs.FEES_TOOLTIP_BUTTON,
     );
-    // Skip tooltip press — the navigation target (PERPS.MODALS.TOOLTIP)
-    // is not registered in this test's navigator, and React 19's strict act()
-    // turns the unhandled action into a hard error that corrupts the renderer.
+    if (feesTooltip) {
+      fireEvent.press(feesTooltip);
+    }
 
     // ── PHASE 2: Order book ──────────────────────────────────────────────
     await act(async () => { cleanup(); });
