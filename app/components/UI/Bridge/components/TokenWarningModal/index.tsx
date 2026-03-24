@@ -1,6 +1,7 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import { useNavigation } from '@react-navigation/native';
+import { StackNavigationProp } from '@react-navigation/stack';
 import {
   MetaMetricsSwapsEventSource,
   TokenFeatureType,
@@ -44,7 +45,8 @@ export interface TokenWarningModalParams {
 }
 
 export const TokenWarningModal = () => {
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<StackNavigationProp<Record<string, object | undefined>>>();
   const sheetRef = useRef<BottomSheetRef>(null);
   const [loading, setLoading] = useState(false);
 
@@ -81,13 +83,9 @@ export const TokenWarningModal = () => {
         (bridgeFeatureFlags?.priceImpactThreshold?.error ??
           AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
     ) {
-      sheetRef.current?.onCloseBottomSheet();
-      navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-        screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,
-        params: {
-          type: PriceImpactModalType.Execution,
-          token: sourceToken,
-        },
+      navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
+        type: PriceImpactModalType.Execution,
+        token: sourceToken,
       });
       return;
     }
