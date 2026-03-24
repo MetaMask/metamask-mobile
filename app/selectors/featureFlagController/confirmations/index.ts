@@ -2,11 +2,7 @@ import { createSelector } from 'reselect';
 import { selectRemoteFeatureFlags } from '..';
 import { Hex, Json } from '@metamask/utils';
 import { RootState } from '../../../reducers';
-import {
-  type MetaMaskPayRoutingFlags,
-  normalizeMetaMaskPayRoutingFlags,
-  resolveMetaMaskPayStrategies,
-} from '../../../util/transactions/transaction-pay-routing';
+import { getMetaMaskPayStrategiesForRoute } from '../../../util/transactions/transaction-pay-routing';
 
 export const ATTEMPTS_MAX_DEFAULT = 2;
 export const BUFFER_INITIAL_DEFAULT = 0.025;
@@ -119,15 +115,9 @@ export const selectMetaMaskPayFlags = createSelector(
   },
 );
 
-export const selectMetaMaskPayRoutingFlags = createSelector(
-  selectRemoteFeatureFlags,
-  (featureFlags): MetaMaskPayRoutingFlags =>
-    normalizeMetaMaskPayRoutingFlags(featureFlags?.confirmations_pay),
-);
-
 export const selectMetaMaskPayStrategiesForRoute = createSelector(
   [
-    selectMetaMaskPayRoutingFlags,
+    selectRemoteFeatureFlags,
     (_state: RootState, transactionType?: string) => transactionType,
     (_state: RootState, _transactionType?: string, chainId?: Hex) => chainId,
     (
@@ -137,14 +127,14 @@ export const selectMetaMaskPayStrategiesForRoute = createSelector(
       tokenAddress?: Hex,
     ) => tokenAddress,
   ],
-  (routingFlags, transactionType, chainId, tokenAddress) =>
-    resolveMetaMaskPayStrategies(
+  (featureFlags, transactionType, chainId, tokenAddress) =>
+    getMetaMaskPayStrategiesForRoute(
       {
-        chainId: chainId?.toLowerCase() as Hex | undefined,
-        tokenAddress: tokenAddress?.toLowerCase() as Hex | undefined,
+        chainId,
+        tokenAddress,
         transactionType,
       },
-      routingFlags,
+      featureFlags?.confirmations_pay,
     ),
 );
 

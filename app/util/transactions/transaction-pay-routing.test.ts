@@ -5,55 +5,46 @@ import {
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 
 import {
-  getTransactionPayRouteContext,
-  normalizeMetaMaskPayRoutingFlags,
-  resolveMetaMaskPayStrategies,
+  getMetaMaskPayStrategiesForRoute,
+  getMetaMaskPayStrategiesForTransaction,
 } from './transaction-pay-routing';
 
 describe('transaction pay routing', () => {
   it('normalizes invalid routing flags and drops empty overrides', () => {
-    const routingFlags = normalizeMetaMaskPayRoutingFlags({
-      strategyOrder: [123, 'relay', 'relay'],
-      payStrategies: {
-        across: { enabled: true },
-        relay: { enabled: false },
+    const strategies = getMetaMaskPayStrategiesForRoute(
+      {
+        chainId: '0xa4b2',
+        tokenAddress: '0xdef',
+        transactionType: TransactionType.perpsDeposit,
       },
-      routingOverrides: {
-        overrides: {
-          perpsDeposit: {
-            default: [123, 'invalid'],
-            chains: {
-              '0xa4b1': [123],
-              '0xa4b2': ['relay'],
-            },
-            tokens: {
-              '0xa4b1': undefined,
-              '0xa4b2': {
-                '0xabc': [123],
-                '0xdef': ['across'],
+      {
+        strategyOrder: [123, 'relay', 'relay'],
+        payStrategies: {
+          across: { enabled: true },
+          relay: { enabled: false },
+        },
+        routingOverrides: {
+          overrides: {
+            perpsDeposit: {
+              default: [123, 'invalid'],
+              chains: {
+                '0xa4b1': [123],
+                '0xa4b2': ['relay'],
+              },
+              tokens: {
+                '0xa4b1': undefined,
+                '0xa4b2': {
+                  '0xabc': [123],
+                  '0xdef': ['across'],
+                },
               },
             },
           },
         },
       },
-    });
+    );
 
-    expect(routingFlags.strategyOrder).toEqual([TransactionPayStrategy.Relay]);
-    expect(
-      routingFlags.routingOverrides.overrides.perpsDeposit.default,
-    ).toBeUndefined();
-    expect(routingFlags.routingOverrides.overrides.perpsDeposit.chains).toEqual(
-      {
-        '0xa4b2': [TransactionPayStrategy.Relay],
-      },
-    );
-    expect(routingFlags.routingOverrides.overrides.perpsDeposit.tokens).toEqual(
-      {
-        '0xa4b2': {
-          '0xdef': [TransactionPayStrategy.Across],
-        },
-      },
-    );
+    expect(strategies).toEqual([TransactionPayStrategy.Across]);
   });
 
   it('uses destination values for post-quote transactions', () => {
@@ -70,13 +61,25 @@ describe('transaction pay routing', () => {
       type: TransactionType.perpsDeposit,
     } as unknown as TransactionMeta;
 
-    const routeContext = getTransactionPayRouteContext(transactionMeta);
-
-    expect(routeContext).toEqual({
-      chainId: '0x89',
-      tokenAddress: '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-      transactionType: TransactionType.perpsDeposit,
-    });
+    expect(
+      getMetaMaskPayStrategiesForTransaction(transactionMeta, {
+        payStrategies: {
+          across: { enabled: true },
+          relay: { enabled: true },
+        },
+        routingOverrides: {
+          overrides: {
+            perpsDeposit: {
+              chains: {
+                '0x89': ['across'],
+              },
+              default: ['relay'],
+            },
+          },
+        },
+        strategyOrder: ['relay'],
+      }),
+    ).toEqual([TransactionPayStrategy.Across]);
   });
 
   it('groups perpsDepositAndOrder under the perpsDeposit routing key', () => {
@@ -88,45 +91,42 @@ describe('transaction pay routing', () => {
       type: TransactionType.perpsDepositAndOrder,
     } as unknown as TransactionMeta;
 
-    const routeContext = getTransactionPayRouteContext(transactionMeta);
-
-    expect(routeContext.transactionType).toBe(TransactionType.perpsDeposit);
-
-    const routingFlags = normalizeMetaMaskPayRoutingFlags({
-      payStrategies: {
-        across: { enabled: true },
-        relay: { enabled: true },
-      },
-      routingOverrides: {
-        overrides: {
-          perpsDeposit: {
-            chains: {
-              '0xa4b1': ['across'],
+    expect(
+      getMetaMaskPayStrategiesForTransaction(transactionMeta, {
+        payStrategies: {
+          across: { enabled: true },
+          relay: { enabled: true },
+        },
+        routingOverrides: {
+          overrides: {
+            perpsDeposit: {
+              chains: {
+                '0xa4b1': ['across'],
+              },
+              default: ['relay'],
             },
-            default: ['relay'],
           },
         },
-      },
-      strategyOrder: ['relay'],
-    });
-
-    expect(resolveMetaMaskPayStrategies(routeContext, routingFlags)).toEqual([
-      TransactionPayStrategy.Across,
-    ]);
+        strategyOrder: ['relay'],
+      }),
+    ).toEqual([TransactionPayStrategy.Across]);
   });
 
-  it('returns an empty strategy list when the route context cannot resolve', () => {
-    const routingFlags = {
-      payStrategies: {
-        across: { enabled: true },
-        relay: { enabled: true },
-      },
-      routingOverrides: {
-        overrides: {},
-      },
-      strategyOrder: ['bridge' as unknown as TransactionPayStrategy],
-    };
-
-    expect(resolveMetaMaskPayStrategies({}, routingFlags)).toEqual([]);
+  it('returns an empty strategy list when every fallback strategy is disabled', () => {
+    expect(
+      getMetaMaskPayStrategiesForRoute(
+        {},
+        {
+          payStrategies: {
+            across: { enabled: false },
+            relay: { enabled: false },
+          },
+          routingOverrides: {
+            overrides: {},
+          },
+          strategyOrder: ['relay', 'across'],
+        },
+      ),
+    ).toEqual([]);
   });
 });

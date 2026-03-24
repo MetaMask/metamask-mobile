@@ -1,7 +1,6 @@
 import { cloneDeep } from 'lodash';
 import {
   selectMetaMaskPayFlags,
-  selectMetaMaskPayRoutingFlags,
   selectMetaMaskPayStrategiesForRoute,
   selectMetaMaskPayTokensFlags,
   BUFFER_STEP_DEFAULT,
@@ -148,9 +147,6 @@ describe('MetaMask Pay Feature Flags', () => {
 describe('MetaMask Pay Routing Flags', () => {
   it('returns the default global order when routing flags are missing', () => {
     expect(
-      selectMetaMaskPayRoutingFlags(mockedEmptyFlagsState).strategyOrder,
-    ).toEqual([TransactionPayStrategy.Relay, TransactionPayStrategy.Across]);
-    expect(
       selectMetaMaskPayStrategiesForRoute(
         mockedEmptyFlagsState as RootState,
         'perpsDeposit',
@@ -173,10 +169,14 @@ describe('MetaMask Pay Routing Flags', () => {
         },
       };
 
-    expect(selectMetaMaskPayRoutingFlags(state).strategyOrder).toEqual([
-      TransactionPayStrategy.Across,
-      TransactionPayStrategy.Relay,
-    ]);
+    expect(
+      selectMetaMaskPayStrategiesForRoute(
+        state as RootState,
+        'perpsDeposit',
+        '0xa4b1' as Hex,
+        '0xabc' as Hex,
+      ),
+    ).toEqual([TransactionPayStrategy.Across, TransactionPayStrategy.Relay]);
   });
 
   it('applies local overrides when resolving routing flags', () => {
