@@ -6,13 +6,19 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureMultichainAccountsAccountDetails } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import {
+  remoteFeatureMultichainAccountsAccountDetails,
+  remoteFeaturePredictGtmOnboardingModalDisabled,
+} from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import {
   createLogger,
   countProxiedRequestsMatching,
   waitForAdditionalProxiedRequestsMatching,
 } from '../../../framework';
-import { AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER } from '../../../api-mocking/helpers/mockHelpers';
+import {
+  AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
+  PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
+} from './constants';
 import {
   importWalletMetricsOptOutExpectations,
   importWalletWithMetricsOptInExpectations,
@@ -37,10 +43,10 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetails(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetails(),
+            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
+          });
         },
         analyticsExpectations: importWalletWithMetricsOptInExpectations,
       },
@@ -66,7 +72,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           optInToMetrics: true,
         });
 
-        // MMQA-1384: PUT authentication profile/accounts after import
         await waitForAdditionalProxiedRequestsMatching(
           mockServer,
           profileAccountsMatcher,
@@ -74,6 +79,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           {
             description:
               'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet import',
+            timeout: PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
             successLog: {
               logger,
               label:
@@ -91,10 +97,10 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeatureMultichainAccountsAccountDetails(),
-          );
+          await setupRemoteFeatureFlagsMock(mockServer, {
+            ...remoteFeatureMultichainAccountsAccountDetails(),
+            ...remoteFeaturePredictGtmOnboardingModalDisabled(),
+          });
         },
         analyticsExpectations: importWalletMetricsOptOutExpectations,
       },

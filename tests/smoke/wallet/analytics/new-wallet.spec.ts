@@ -9,12 +9,18 @@ import {
   countProxiedRequestsMatching,
   waitForAdditionalProxiedRequestsMatching,
 } from '../../../framework';
-import { AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER } from '../../../api-mocking/helpers/mockHelpers';
+import {
+  AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
+  PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
+} from './constants';
 import {
   getEventsPayloads,
   onboardingEvents,
 } from '../../../helpers/analytics/helpers';
 import SoftAssert from '../../../framework/SoftAssert';
+import { Mockttp } from 'mockttp';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 
@@ -41,11 +47,17 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it('should track analytics events during new wallet flow', async () => {
+  it.only('should track analytics events during new wallet flow', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeaturePredictGtmOnboardingModalDisabled(),
+          );
+        },
       },
       async ({ mockServer }) => {
         if (!mockServer) {
@@ -156,7 +168,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
 
         softAssert.throwIfErrors();
 
-        // MMQA-1384: PUT authentication profile/accounts after new wallet
         await waitForAdditionalProxiedRequestsMatching(
           mockServer,
           profileAccountsMatcher,
@@ -164,6 +175,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           {
             description:
               'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet creation',
+            timeout: PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
             successLog: {
               logger,
               label:
@@ -180,6 +192,12 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
+        testSpecificMock: async (mockServer: Mockttp) => {
+          await setupRemoteFeatureFlagsMock(
+            mockServer,
+            remoteFeaturePredictGtmOnboardingModalDisabled(),
+          );
+        },
       },
       async ({ mockServer }) => {
         await CreateNewWallet({

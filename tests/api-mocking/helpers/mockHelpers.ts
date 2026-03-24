@@ -463,15 +463,6 @@ export async function setupAccountsV2SupportedNetworksMock(
   });
 }
 
-// --- Proxied traffic observation (same source as getEventsPayloads: getMockedEndpoints + getSeenRequests) ---
-
-/**
- * MMQA-1384: user profile / address collection — `PUT …/api/v2/profile/accounts`
- * (default mock: tests/api-mocking/mock-responses/defaults/index.ts).
- */
-export const AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER =
-  'authentication.api.cx.metamask.io/api/v2/profile/accounts';
-
 export interface SeenProxiedRequest {
   method: string;
   proxiedUrl: string;
