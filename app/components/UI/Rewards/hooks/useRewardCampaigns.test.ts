@@ -12,12 +12,12 @@ import {
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
+  selectCampaignsHasLoaded,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import type {
-  CampaignDto,
+import {
+  type CampaignDto,
   CampaignType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -43,14 +43,11 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectCampaigns: jest.fn(),
   selectCampaignsLoading: jest.fn(),
   selectCampaignsError: jest.fn(),
+  selectCampaignsHasLoaded: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectCampaignsRewardsEnabledFlag: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -78,7 +75,7 @@ const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
 ): CampaignDto => ({
   id: 'campaign-1',
-  type: 'ONDO_HOLDING' as CampaignType,
+  type: CampaignType.ONDO_HOLDING,
   name: 'ONDO Holding Campaign',
   startDate: '2025-01-01T00:00:00.000Z',
   endDate: '2027-01-01T00:00:00.000Z',
@@ -86,6 +83,7 @@ const createTestCampaign = (
   excludedRegions: [],
   statusLabel: 'Active',
   details: null,
+  featured: true,
   ...overrides,
 });
 
@@ -142,7 +140,7 @@ describe('useRewardCampaigns', () => {
       campaigns?: CampaignDto[];
       isLoading?: boolean;
       hasError?: boolean;
-      isCampaignsEnabled?: boolean;
+      hasLoaded?: boolean;
     } = {},
   ) => {
     const {
@@ -150,7 +148,7 @@ describe('useRewardCampaigns', () => {
       campaigns = [],
       isLoading = false,
       hasError = false,
-      isCampaignsEnabled = true,
+      hasLoaded = true,
     } = options;
 
     mockUseSelector.mockImplementation((selector) => {
@@ -158,8 +156,7 @@ describe('useRewardCampaigns', () => {
       if (selector === selectCampaigns) return campaigns;
       if (selector === selectCampaignsLoading) return isLoading;
       if (selector === selectCampaignsError) return hasError;
-      if (selector === selectCampaignsRewardsEnabledFlag)
-        return isCampaignsEnabled;
+      if (selector === selectCampaignsHasLoaded) return hasLoaded;
       return undefined;
     });
   };
@@ -174,7 +171,16 @@ describe('useRewardCampaigns', () => {
       expect(result.current.campaigns).toEqual(testCampaigns);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
+      expect(result.current.hasLoaded).toBe(true);
       expect(typeof result.current.fetchCampaigns).toBe('function');
+    });
+
+    it('returns hasLoaded as false when campaigns have never been loaded', () => {
+      setupSelectorMocks({ hasLoaded: false });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.hasLoaded).toBe(false);
     });
 
     it('returns empty array when campaigns selector returns undefined', () => {
@@ -184,7 +190,6 @@ describe('useRewardCampaigns', () => {
         if (selector === selectRewardsSubscriptionId) return 'subscription-1';
         if (selector === selectCampaignsLoading) return false;
         if (selector === selectCampaignsError) return false;
-        if (selector === selectCampaignsRewardsEnabledFlag) return true;
         return undefined;
       });
 
@@ -256,26 +261,6 @@ describe('useRewardCampaigns', () => {
 
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsError(true));
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
-    });
-
-    it('fetches campaigns even when feature flag is disabled', async () => {
-      setupSelectorMocks({ isCampaignsEnabled: false });
-      const mockCampaignsData = [createTestCampaign()];
-      mockEngineCall.mockResolvedValueOnce(mockCampaignsData);
-
-      const { result } = renderHook(() => useRewardCampaigns());
-
-      await act(async () => {
-        await result.current.fetchCampaigns();
-      });
-
-      expect(mockEngineCall).toHaveBeenCalledWith(
-        'RewardsController:getCampaigns',
-        'subscription-1',
-      );
-      expect(mockDispatch).toHaveBeenCalledWith(
-        mockSetCampaigns(mockCampaignsData),
-      );
     });
 
     it('does not fetch when subscriptionId is null', async () => {
@@ -477,7 +462,7 @@ describe('useRewardCampaigns', () => {
       );
     });
 
-    it('filters out active and previous campaigns when feature flag is disabled', () => {
+    it('returns all campaigns', () => {
       const activeCampaign = createTestCampaign({
         id: 'active-1',
         startDate: '2020-01-01T00:00:00.000Z',
@@ -496,65 +481,6 @@ describe('useRewardCampaigns', () => {
 
       setupSelectorMocks({
         campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
-        isCampaignsEnabled: false,
-      });
-
-      const { result } = renderHook(() => useRewardCampaigns());
-
-      expect(result.current.categorizedCampaigns.active).toEqual([]);
-      expect(result.current.categorizedCampaigns.upcoming).toEqual([
-        upcomingCampaign,
-      ]);
-      expect(result.current.categorizedCampaigns.previous).toEqual([]);
-    });
-
-    it('returns only upcoming campaigns when feature flag is disabled', () => {
-      const activeCampaign = createTestCampaign({
-        id: 'active-1',
-        startDate: '2020-01-01T00:00:00.000Z',
-        endDate: '2099-12-31T23:59:59.999Z',
-      });
-      const upcomingCampaign = createTestCampaign({
-        id: 'upcoming-1',
-        startDate: '2099-06-01T00:00:00.000Z',
-        endDate: '2099-12-31T23:59:59.999Z',
-      });
-      const completeCampaign = createTestCampaign({
-        id: 'complete-1',
-        startDate: '2020-01-01T00:00:00.000Z',
-        endDate: '2020-12-31T23:59:59.999Z',
-      });
-
-      setupSelectorMocks({
-        campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
-        isCampaignsEnabled: false,
-      });
-
-      const { result } = renderHook(() => useRewardCampaigns());
-
-      expect(result.current.campaigns).toEqual([upcomingCampaign]);
-    });
-
-    it('returns all campaigns when feature flag is enabled', () => {
-      const activeCampaign = createTestCampaign({
-        id: 'active-1',
-        startDate: '2020-01-01T00:00:00.000Z',
-        endDate: '2099-12-31T23:59:59.999Z',
-      });
-      const upcomingCampaign = createTestCampaign({
-        id: 'upcoming-1',
-        startDate: '2099-06-01T00:00:00.000Z',
-        endDate: '2099-12-31T23:59:59.999Z',
-      });
-      const completeCampaign = createTestCampaign({
-        id: 'complete-1',
-        startDate: '2020-01-01T00:00:00.000Z',
-        endDate: '2020-12-31T23:59:59.999Z',
-      });
-
-      setupSelectorMocks({
-        campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
-        isCampaignsEnabled: true,
       });
 
       const { result } = renderHook(() => useRewardCampaigns());

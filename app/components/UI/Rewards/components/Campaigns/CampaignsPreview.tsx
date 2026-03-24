@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import {
   Box,
@@ -21,63 +20,65 @@ import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
-import PreviousSeasonTile from '../PreviousSeason/PreviousSeasonTile';
+import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  getCampaignSortComparator,
+  getCampaignStatus,
+  isCampaignTypeSupported,
+} from './CampaignTile.utils';
 
 /**
- * CampaignsPreview shows a single featured campaign on the dashboard.
- * Priority: first active (soonest start date) → first upcoming (soonest start date) → most recent previous (latest end date).
+ * CampaignsPreview shows featured campaigns on the dashboard.
+ * Campaigns are ordered by status: active first, then upcoming, then past (complete).
+ * Only campaigns marked as featured are displayed.
  */
 const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
-  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
-  const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
+  const { campaigns, isLoading, hasError, hasLoaded, fetchCampaigns } =
     useRewardCampaigns();
 
-  // Priority: first active (soonest start) → first upcoming (soonest start) → most recent previous (latest end)
-  const featuredCampaign = useMemo(
-    () =>
-      categorizedCampaigns.active[0] ??
-      categorizedCampaigns.upcoming[0] ??
-      categorizedCampaigns.previous[0] ??
-      null,
-    [categorizedCampaigns],
-  );
+  /**
+   * Get featured campaigns ordered by status priority:
+   * 1. Active campaigns (sorted by start date ascending)
+   * 2. Upcoming campaigns (sorted by start date ascending)
+   * 3. Past/complete campaigns (sorted by end date descending - most recent first)
+   */
+  const featuredCampaigns = useMemo((): CampaignDto[] => {
+    const featured = (campaigns ?? []).filter((c) => c.featured);
+
+    const active: CampaignDto[] = [];
+    const upcoming: CampaignDto[] = [];
+    const past: CampaignDto[] = [];
+
+    featured.forEach((campaign) => {
+      const status = getCampaignStatus(campaign);
+      switch (status) {
+        case 'active':
+          active.push(campaign);
+          break;
+        case 'upcoming':
+          upcoming.push(campaign);
+          break;
+        case 'complete':
+          past.push(campaign);
+          break;
+      }
+    });
+
+    active.sort(getCampaignSortComparator('active'));
+    upcoming.sort(getCampaignSortComparator('upcoming'));
+    past.sort(getCampaignSortComparator('complete'));
+
+    return [...active, ...upcoming, ...past];
+  }, [campaigns]);
+
+  const hasFeaturedCampaigns = featuredCampaigns.length > 0;
 
   const handleNavigateToCampaigns = useCallback(() => {
     navigation.navigate(Routes.CAMPAIGNS_VIEW);
   }, [navigation]);
-
-  const handleNavigateToPreviousSeason = useCallback(() => {
-    navigation.navigate(Routes.PREVIOUS_SEASON_VIEW);
-  }, [navigation]);
-
-  const showPreviousSeasonTile = !isLoading && !featuredCampaign;
-
-  if (showPreviousSeasonTile) {
-    return (
-      <Box
-        twClassName="gap-3 p-4"
-        testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}
-      >
-        <Pressable onPress={handleNavigateToPreviousSeason}>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-2"
-          >
-            <Text variant={TextVariant.HeadingMd}>
-              {strings('rewards.campaigns_preview.title')}
-            </Text>
-            <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-          </Box>
-        </Pressable>
-        <PreviousSeasonTile />
-      </Box>
-    );
-  }
 
   return (
     <Box
@@ -90,7 +91,7 @@ const CampaignsPreview: React.FC = () => {
           alignItems={BoxAlignItems.Center}
           twClassName="gap-2"
         >
-          {isLoading && !featuredCampaign && (
+          {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
             <ActivityIndicator size="small" color={colors.primary.default} />
           )}
           <Text variant={TextVariant.HeadingMd}>
@@ -100,11 +101,11 @@ const CampaignsPreview: React.FC = () => {
         </Box>
       </Pressable>
 
-      {isLoading && !featuredCampaign && (
+      {(isLoading || !hasLoaded) && !hasFeaturedCampaigns && (
         <Skeleton style={tw.style('h-50 rounded-xl')} />
       )}
 
-      {!isLoading && hasError && !featuredCampaign && (
+      {!isLoading && hasLoaded && hasError && !hasFeaturedCampaigns && (
         <RewardsErrorBanner
           title={strings('rewards.campaigns_view.error_title')}
           description={strings('rewards.campaigns_view.error_description')}
@@ -113,12 +114,13 @@ const CampaignsPreview: React.FC = () => {
         />
       )}
 
-      {featuredCampaign && (
+      {featuredCampaigns.map((campaign) => (
         <CampaignTile
-          campaign={featuredCampaign}
-          onPress={isCampaignsEnabled ? undefined : handleNavigateToCampaigns}
+          key={campaign.id}
+          campaign={campaign}
+          isInteractive={isCampaignTypeSupported(campaign.type)}
         />
-      )}
+      ))}
     </Box>
   );
 };
