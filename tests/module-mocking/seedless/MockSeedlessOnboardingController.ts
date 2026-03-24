@@ -258,7 +258,9 @@ export class MockSeedlessOnboardingController extends BaseController<
     console.log('[E2E Mock] addNewSecretData called');
   }
 
-  /** Matches SeedlessOnboardingController v9+ public API. */
+  /**
+   * Mock renewRefreshToken
+   */
   async rotateRefreshToken(): Promise<void> {
     console.log('[E2E Mock] rotateRefreshToken called');
   }
