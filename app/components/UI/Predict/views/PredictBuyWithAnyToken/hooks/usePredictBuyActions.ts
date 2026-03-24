@@ -1,7 +1,7 @@
 import { StackActions, useNavigation } from '@react-navigation/native';
 import type { StackNavigationProp } from '@react-navigation/stack';
 import type { PredictNavigationParamList } from '../../../types/navigation';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
 import {
   ActiveOrderState,
   OrderPreview,
@@ -13,7 +13,6 @@ import Engine from '../../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/featureFlags';
 import { PredictTradeStatus } from '../../../constants/eventNames';
-import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { useQueryClient } from '@tanstack/react-query';
 import { predictQueries } from '../../../queries';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
@@ -88,9 +87,6 @@ export const usePredictBuyActions = ({
       preview,
     });
   }, [preview, placeOrder, analyticsProperties]);
-
-  const handlePlaceOrderRef = useRef(handlePlaceOrder);
-  handlePlaceOrderRef.current = handlePlaceOrder;
 
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
