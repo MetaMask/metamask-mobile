@@ -27,6 +27,11 @@ import {
   TradingReadinessCache,
   type ReconnectOptions,
 } from '@metamask/perps-controller';
+import StorageWrapper from '../../../../store/storage-wrapper';
+import {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+} from '../constants/perpsConfig';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import {
   selectPerpsNetwork,
@@ -171,6 +176,14 @@ class PerpsConnectionManagerClass {
         streamManager.fills.clearCache();
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
+
+        // Invalidate disk-persisted cold-start cache
+        if (accountOnly) {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA);
+        } else {
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_MARKETS);
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA);
+        }
 
         // Store flag so performReconnection can thread it into the second clearCache call.
         // AND with current value when a debounce timer is pending so that any

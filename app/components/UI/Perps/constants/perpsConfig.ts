@@ -302,3 +302,10 @@ export function getPerpsProviderChainId(
 ): string | undefined {
   return PERPS_PROVIDER_CHAIN_IDS[provider]?.[network];
 }
+
+// Re-export disk cache constants from controller layer
+export {
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_DISK_CACHE_THROTTLE_MS,
+} from '@metamask/perps-controller/constants/perpsConfig';

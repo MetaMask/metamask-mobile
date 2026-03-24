@@ -94,6 +94,12 @@ jest.mock('react-native-background-timer', () => ({
   stop: jest.fn(),
 }));
 
+jest.mock('../../../../store/storage-wrapper', () => ({
+  getItem: jest.fn().mockResolvedValue(null),
+  setItem: jest.fn().mockResolvedValue(undefined),
+  removeItem: jest.fn().mockResolvedValue(undefined),
+}));
+
 // Import non-singleton modules first
 import { addEventListener as mockNetInfoAddEventListener } from '@react-native-community/netinfo';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';

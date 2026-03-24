@@ -21,6 +21,8 @@ import {
   PERPS_CONSTANTS,
   MARKET_SORTING_CONFIG,
   PROVIDER_CONFIG,
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
 } from './constants/perpsConfig';
 import type { SortOptionId } from './constants/perpsConfig';
 import type { PerpsControllerMethodActions } from './PerpsController-method-action-types';
@@ -2626,6 +2628,101 @@ export class PerpsController extends BaseController<
   static readonly #preloadGuardMs = 30_000; // 30s debounce
 
   /**
+   * Hydrate in-memory caches from disk-persisted snapshots.
+   * Reads MMKV keys written by PerpsStreamManager and populates
+   * cachedMarketDataByProvider / cachedUserDataByProvider so the UI
+   * can render last-known data instantly on cold start.
+   */
+  async #hydrateCacheFromDisk(): Promise<void> {
+    const { diskCache } = this.#options.infrastructure;
+    try {
+      const [marketsRaw, userRaw] = await Promise.all([
+        diskCache.getItem(PERPS_DISK_CACHE_MARKETS),
+        diskCache.getItem(PERPS_DISK_CACHE_USER_DATA),
+      ]);
+
+      if (marketsRaw) {
+        try {
+          const parsed = JSON.parse(marketsRaw) as {
+            providerNetworkKey: string;
+            data: PerpsMarketData[];
+            timestamp: number;
+          };
+          if (parsed.providerNetworkKey && Array.isArray(parsed.data)) {
+            const existing =
+              this.state.cachedMarketDataByProvider[parsed.providerNetworkKey];
+            if (!existing || existing.timestamp < parsed.timestamp) {
+              this.update((state) => {
+                state.cachedMarketDataByProvider[parsed.providerNetworkKey] = {
+                  data: parsed.data,
+                  timestamp: parsed.timestamp,
+                };
+              });
+              this.#debugLog(
+                'PerpsController: Hydrated market data from disk',
+                { key: parsed.providerNetworkKey, count: parsed.data.length },
+              );
+            }
+          }
+        } catch {
+          // Corrupt JSON — silently ignore
+        }
+      }
+
+      if (userRaw) {
+        try {
+          const parsed = JSON.parse(userRaw) as {
+            providerNetworkKey: string;
+            address: string;
+            positions: Position[];
+            orders: Order[];
+            accountState: AccountState | null;
+            timestamp: number;
+          };
+          if (parsed.providerNetworkKey && parsed.address) {
+            // Only hydrate if address matches current user
+            const evmAccount = getSelectedEvmAccount(
+              this.messenger.call(
+                'AccountTreeController:getAccountsFromSelectedAccountGroup',
+              ),
+            );
+            if (
+              evmAccount?.address &&
+              evmAccount.address.toLowerCase() === parsed.address.toLowerCase()
+            ) {
+              const existing =
+                this.state.cachedUserDataByProvider[parsed.providerNetworkKey];
+              if (!existing || existing.timestamp < parsed.timestamp) {
+                this.update((state) => {
+                  state.cachedUserDataByProvider[parsed.providerNetworkKey] = {
+                    positions: parsed.positions,
+                    orders: parsed.orders,
+                    accountState: parsed.accountState,
+                    timestamp: parsed.timestamp,
+                    address: parsed.address,
+                  };
+                });
+                this.#debugLog(
+                  'PerpsController: Hydrated user data from disk',
+                  {
+                    key: parsed.providerNetworkKey,
+                    positions: parsed.positions.length,
+                    orders: parsed.orders.length,
+                  },
+                );
+              }
+            }
+          }
+        } catch {
+          // Corrupt JSON — silently ignore
+        }
+      }
+    } catch {
+      // Disk read failure — non-critical
+    }
+  }
+
+  /**
    * Start background market data preloading.
    * Fetches market data immediately and refreshes every 5 minutes.
    * Watches for isTestnet and hip3ConfigVersion changes to re-preload.
@@ -2637,6 +2734,11 @@ export class PerpsController extends BaseController<
     }
 
     this.#debugLog('PerpsController: Starting market data preload');
+
+    // Hydrate in-memory caches from disk (fire-and-forget, ~1ms MMKV read)
+    this.#hydrateCacheFromDisk().catch(() => {
+      /* fire-and-forget */
+    });
 
     // Track current values for change detection
     this.#previousIsTestnet = this.state.isTestnet;
@@ -2730,6 +2832,12 @@ export class PerpsController extends BaseController<
         this.update((state) => {
           state.cachedUserDataByProvider = {};
         });
+        // Invalidate disk-cached user data for the old account
+        this.#options.infrastructure.diskCache
+          .removeItem(PERPS_DISK_CACHE_USER_DATA)
+          .catch(() => {
+            /* fire-and-forget */
+          });
         // Only preload if the new account is an EVM account
         if (currentAddress) {
           this.#performUserDataPreload().catch(() => {

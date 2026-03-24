@@ -346,3 +346,8 @@ export const PROVIDER_CONFIG = {
   /** Force MYX to testnet only (mainnet credentials not yet available) */
   MYX_TESTNET_ONLY: false,
 } as const;
+
+// Disk-backed cold-start cache keys and throttle interval
+export const PERPS_DISK_CACHE_MARKETS = 'PERPS_DISK_CACHE_MARKETS';
+export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA';
+export const PERPS_DISK_CACHE_THROTTLE_MS = 30_000;

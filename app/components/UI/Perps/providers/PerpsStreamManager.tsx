@@ -24,7 +24,13 @@ import {
   type PerpsMarketData,
   findEvmAccount,
 } from '@metamask/perps-controller';
-import { PROVIDER_CONFIG } from '../constants/perpsConfig';
+import {
+  PROVIDER_CONFIG,
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+  PERPS_DISK_CACHE_THROTTLE_MS,
+} from '../constants/perpsConfig';
+import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
 import { getPreloadedData } from '../hooks/stream/hasCachedPerpsData';
@@ -39,6 +45,13 @@ function getEvmAccountFromSelectedAccountGroup() {
   const { AccountTreeController } = Engine.context;
   const accounts = AccountTreeController.getAccountsFromSelectedAccountGroup();
   return findEvmAccount(accounts as InternalAccount[]);
+}
+
+// Lazy accessor for disk persistence — avoids no-use-before-define since
+// the singleton is defined after channel classes.
+let _streamManagerRef: PerpsStreamManager | null = null;
+function getDiskPersistRef(): PerpsStreamManager | null {
+  return _streamManagerRef;
 }
 
 // Generic subscription parameters
@@ -658,6 +671,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
+        getDiskPersistRef()?.persistUserDataToDisk();
       },
     });
   }
@@ -670,6 +684,10 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
   protected getClearedData(): Order[] | null {
     return null;
+  }
+
+  public getSnapshot() {
+    return this.cache.get('orders') ?? null;
   }
 
   /**
@@ -790,6 +808,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
+        getDiskPersistRef()?.persistUserDataToDisk();
       },
     });
   }
@@ -802,6 +821,10 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
   protected getClearedData(): Position[] | null {
     return null;
+  }
+
+  public getSnapshot() {
+    return this.cache.get('positions') ?? null;
   }
 
   /**
@@ -1058,6 +1081,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);
+        getDiskPersistRef()?.persistUserDataToDisk();
       },
     });
   }
@@ -1070,6 +1094,10 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
   protected getClearedData(): AccountState | null {
     return null;
+  }
+
+  public getSnapshot() {
+    return this.cache.get('account') ?? null;
   }
 
   public disconnect() {
@@ -1438,6 +1466,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         // Notify all subscribers
         this.notifySubscribers(data);
+        getDiskPersistRef()?.persistMarketDataToDisk();
 
         DevLogger.log('PerpsStreamManager: Market data fetched and cached', {
           marketCount: data.length,
@@ -1508,6 +1537,10 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
     return [];
   }
 
+  public getSnapshot() {
+    return this.cache.get('markets') ?? null;
+  }
+
   /**
    * Prewarm market data cache
    * @returns Cleanup function (no-op for REST data)
@@ -1569,9 +1602,73 @@ export class PerpsStreamManager {
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
 
-  // Future channels can be added here:
-  // public readonly funding = new FundingStreamChannel();
-  // public readonly trades = new TradeStreamChannel();
+  // Disk cache throttle timestamps
+  private marketDiskWriteTime = 0;
+  private userDiskWriteTime = 0;
+
+  /**
+   * Persist current market data snapshot to disk (throttled).
+   * Called after MarketDataChannel receives fresh data.
+   */
+  persistMarketDataToDisk(): void {
+    const now = Date.now();
+    if (now - this.marketDiskWriteTime < PERPS_DISK_CACHE_THROTTLE_MS) return;
+    this.marketDiskWriteTime = now;
+
+    const snapshot = this.marketData.getSnapshot();
+    if (!snapshot || snapshot.length === 0) return;
+
+    const controller = Engine.context.PerpsController;
+    const providerNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+
+    StorageWrapper.setItem(
+      PERPS_DISK_CACHE_MARKETS,
+      JSON.stringify({
+        providerNetworkKey,
+        data: snapshot,
+        timestamp: now,
+      }),
+    ).catch(() => {
+      /* fire-and-forget */
+    });
+  }
+
+  /**
+   * Persist current user data snapshot to disk (throttled).
+   * Called after position/order/account channels receive fresh data.
+   */
+  persistUserDataToDisk(): void {
+    const now = Date.now();
+    if (now - this.userDiskWriteTime < PERPS_DISK_CACHE_THROTTLE_MS) return;
+    this.userDiskWriteTime = now;
+
+    const address = getEvmAccountFromSelectedAccountGroup()?.address;
+    if (!address) return;
+
+    const positions = this.positions.getSnapshot();
+    const orders = this.orders.getSnapshot();
+    const account = this.account.getSnapshot();
+
+    // Only persist if we have at least some data
+    if (!positions && !orders && !account) return;
+
+    const controller = Engine.context.PerpsController;
+    const providerNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+
+    StorageWrapper.setItem(
+      PERPS_DISK_CACHE_USER_DATA,
+      JSON.stringify({
+        providerNetworkKey,
+        address,
+        positions: positions ?? [],
+        orders: orders ?? [],
+        accountState: account ?? null,
+        timestamp: now,
+      }),
+    ).catch(() => {
+      /* fire-and-forget */
+    });
+  }
 
   /**
    * Force reconnection of all stream channels after WebSocket reconnection
@@ -1594,6 +1691,7 @@ export class PerpsStreamManager {
 
 // Singleton instance
 const streamManager = new PerpsStreamManager();
+_streamManagerRef = streamManager;
 
 // Export singleton for pre-warming in PerpsConnectionManager
 export const getStreamManagerInstance = () => streamManager;
