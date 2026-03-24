@@ -1,5 +1,5 @@
-import React from 'react';
-import { StyleSheet, useWindowDimensions } from 'react-native';
+import React, { type ComponentProps } from 'react';
+import { useWindowDimensions } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
 
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -29,10 +29,10 @@ const SRPList = ({
 
   return (
     <Box
-      style={tw.style('py-4 px-4 bg-default m-2', {
-        maxHeight,
-        ...StyleSheet.flatten(containerStyle ?? {}),
-      })}
+      twClassName="py-4 px-4 bg-default m-2"
+      style={
+        [{ maxHeight }, containerStyle] as ComponentProps<typeof Box>['style']
+      }
       testID={SRPListSelectorsIDs.SRP_LIST}
     >
       <FlatList
