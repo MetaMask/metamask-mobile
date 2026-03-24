@@ -7,59 +7,11 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
-import StorageWrapper from '../../store/storage-wrapper';
-
-const BRANCH_DEBUG_KEY = 'BRANCH_DEBUG_PARAMS';
-
-async function writeBranchDebug(label: string, data: unknown) {
-  try {
-    const entry = `[${new Date().toISOString()}] ${label}\n${JSON.stringify(data, null, 2)}\n\n`;
-    const prev = (await StorageWrapper.getItem(BRANCH_DEBUG_KEY)) ?? '';
-    await StorageWrapper.setItem(BRANCH_DEBUG_KEY, prev + entry);
-  } catch {
-    // best-effort — never block deep link handling
-  }
-}
-
-/**
- * Calls the Branch Deep Link API directly to read the metadata for a short
- * link. This bypasses the Branch SDK entirely and shows what the Branch
- * backend actually returns for a given URL.
- */
-async function fetchBranchLinkData(shortUrl: string) {
-  const branchKey =
-    process.env.MM_BRANCH_KEY_LIVE ?? process.env.MM_BRANCH_KEY_TEST;
-  if (!branchKey) {
-    await writeBranchDebug('NETWORK fetchBranchLinkData', {
-      error: 'No Branch key available (MM_BRANCH_KEY_LIVE / _TEST)',
-    });
-    return;
-  }
-  try {
-    const response = await fetch('https://api2.branch.io/v1/url', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ branch_key: branchKey, url: shortUrl }),
-    });
-    const body = await response.text();
-    await writeBranchDebug('NETWORK fetchBranchLinkData', {
-      shortUrl,
-      httpStatus: response.status,
-      body: (() => {
-        try {
-          return JSON.parse(body);
-        } catch {
-          return body;
-        }
-      })(),
-    });
-  } catch (err) {
-    await writeBranchDebug('NETWORK fetchBranchLinkData', {
-      shortUrl,
-      error: String(err),
-    });
-  }
-}
+import {
+  writeBranchDebug,
+  fetchBranchLinkData,
+  resolveShortLinkViaApi,
+} from './branchApi';
 
 /**
  * Branch short-link domains carry a link ID (e.g. /1WkF6GmE40b), NOT an
@@ -228,7 +180,6 @@ export class DeeplinkManager {
       try {
         const params = await branch.getLatestReferringParams();
         const uri = resolveRouteFromBranchParams(params);
-        // Single write to avoid race with concurrent writeBranchDebug calls
         await writeBranchDebug('COLD START', {
           resolvedRoute: uri ?? 'NONE',
           rawParams: params,
@@ -238,8 +189,18 @@ export class DeeplinkManager {
           return;
         }
 
+        // SDK failed to resolve — if +non_branch_link is a Branch short link,
+        // the SDK didn't click-attribute it (NativeLink). Resolve via HTTP API.
         const nonBranchLink = params?.['+non_branch_link'] as string;
-        if (nonBranchLink) {
+        if (nonBranchLink && isBranchShortLinkUrl(nonBranchLink)) {
+          const apiRoute = await resolveShortLinkViaApi(nonBranchLink);
+          if (apiRoute) {
+            handleDeeplink({ uri: apiRoute });
+            return;
+          }
+        }
+
+        if (nonBranchLink && !isBranchShortLinkUrl(nonBranchLink)) {
           handleDeeplink({ uri: nonBranchLink });
         }
       } catch (error) {
@@ -254,7 +215,6 @@ export class DeeplinkManager {
       }
 
       const uri = resolveRouteFromBranchParams(opts.params);
-      // Single write to avoid race with concurrent writeBranchDebug calls
       await writeBranchDebug('SUBSCRIBE', {
         resolvedRoute: uri ?? 'NONE',
         uri: opts.uri,
@@ -265,8 +225,17 @@ export class DeeplinkManager {
         return;
       }
 
+      // SDK failed — if the URI is a Branch short link the SDK didn't resolve,
+      // try the HTTP API as a fallback.
+      if (opts.uri && isBranchShortLinkUrl(opts.uri)) {
+        const apiRoute = await resolveShortLinkViaApi(opts.uri);
+        if (apiRoute) {
+          handleDeeplink({ uri: apiRoute });
+          return;
+        }
+      }
+
       // Non-Branch URIs (e.g. link.metamask.io/trending) can be routed directly.
-      // Branch short-link URIs without $deeplink_path cannot be routed.
       if (opts.uri && !isBranchShortLinkUrl(opts.uri)) {
         handleDeeplink({ uri: opts.uri });
       }

@@ -9,6 +9,7 @@ import SharedDeeplinkManager, {
   buildDeepLinkFromPath,
   resolveRouteFromBranchParams,
 } from './DeeplinkManager';
+import { resolveShortLinkViaApi } from './branchApi';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
 import parseDeeplink from './utils/parseDeeplink';
@@ -35,6 +36,20 @@ jest.mock('../../store', () => ({
   store: {
     getState: jest.fn(),
   },
+}));
+
+jest.mock('../../store/storage-wrapper', () => ({
+  __esModule: true,
+  default: {
+    getItem: jest.fn().mockResolvedValue(null),
+    setItem: jest.fn().mockResolvedValue(undefined),
+  },
+}));
+
+jest.mock('./branchApi', () => ({
+  writeBranchDebug: jest.fn().mockResolvedValue(undefined),
+  fetchBranchLinkData: jest.fn().mockResolvedValue(undefined),
+  resolveShortLinkViaApi: jest.fn().mockResolvedValue(undefined),
 }));
 
 jest.mock('react-native-branch', () => ({
@@ -593,11 +608,11 @@ describe('Branch SDK deep link handling', () => {
     });
   });
 
-  it('skips unresolvable Branch short link (no route params)', async () => {
+  it('skips unresolvable Branch short link when API also fails', async () => {
     DeeplinkManager.start();
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
 
-    callback({
+    await callback({
       uri: 'https://metamask.app.link/1WkF6GmE40b',
       params: { '+clicked_branch_link': false },
     });
@@ -609,5 +624,115 @@ describe('Branch SDK deep link handling', () => {
         uri: expect.stringContaining('metamask.app.link'),
       }),
     );
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Branch HTTP API fallback (NativeLink workaround)
+// ---------------------------------------------------------------------------
+
+describe('Branch HTTP API fallback when SDK fails to resolve', () => {
+  const mockResolveShortLinkViaApi =
+    resolveShortLinkViaApi as jest.MockedFunction<
+      typeof resolveShortLinkViaApi
+    >;
+
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('resolves via API on cold start when SDK returns Branch short link as +non_branch_link', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+is_first_session': false,
+      '+clicked_branch_link': false,
+      '+non_branch_link': 'https://metamask.app.link/1WkF6GmE40b',
+    });
+    mockResolveShortLinkViaApi.mockResolvedValue(
+      'https://link.metamask.io/trending',
+    );
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(mockResolveShortLinkViaApi).toHaveBeenCalledWith(
+        'https://metamask.app.link/1WkF6GmE40b',
+      );
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: 'https://link.metamask.io/trending',
+      });
+    });
+  });
+
+  it('does not route when API returns no routing data on cold start', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': false,
+      '+non_branch_link': 'https://metamask.app.link/1WkF6GmE40b',
+    });
+    mockResolveShortLinkViaApi.mockResolvedValue(undefined);
+
+    DeeplinkManager.start();
+
+    await waitFor(() => {
+      expect(mockResolveShortLinkViaApi).toHaveBeenCalled();
+    });
+
+    expect(handleDeeplink).not.toHaveBeenCalled();
+  });
+
+  it('resolves via API from subscribe when SDK fails with Branch short link URI', async () => {
+    mockResolveShortLinkViaApi.mockResolvedValue(
+      'https://link.metamask.io/trending',
+    );
+
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    await callback({
+      uri: 'https://metamask.app.link/1WkF6GmE40b',
+      params: {
+        '+clicked_branch_link': false,
+        '+non_branch_link': 'https://metamask.app.link/1WkF6GmE40b',
+      },
+    });
+
+    await waitFor(() => {
+      expect(handleDeeplink).toHaveBeenCalledWith({
+        uri: 'https://link.metamask.io/trending',
+      });
+    });
+  });
+
+  it('does not route when API fails from subscribe', async () => {
+    mockResolveShortLinkViaApi.mockResolvedValue(undefined);
+
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    await callback({
+      uri: 'https://metamask.app.link/1WkF6GmE40b',
+      params: { '+clicked_branch_link': false },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: expect.stringContaining('metamask.app.link'),
+      }),
+    );
+  });
+
+  it('still routes non-Branch +non_branch_link directly without calling API', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+non_branch_link': 'https://link.metamask.io/home',
+    });
+
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(mockResolveShortLinkViaApi).not.toHaveBeenCalled();
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/home',
+    });
   });
 });
