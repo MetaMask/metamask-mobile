@@ -6,6 +6,13 @@ import {
   type Country,
   type PaymentMethod,
 } from '@metamask/ramps-controller';
+import { AccountGroupType } from '@metamask/account-api';
+import { AccountId } from '@metamask/accounts-controller';
+import { TrxAccountType } from '@metamask/keyring-api';
+import { KeyringTypes } from '@metamask/keyring-controller';
+import { InternalAccount } from '@metamask/keyring-internal-api';
+import { createMockInternalAccount } from '../../util/test/accountsControllerTestUtils';
+import { mockSolanaAddress } from '../../util/test/keyringControllerTestUtils';
 import {
   selectUserRegion,
   selectProviders,
@@ -14,6 +21,7 @@ import {
   selectPaymentMethods,
   selectRampsControllerState,
   selectRampsOrders,
+  selectRampsOrdersForSelectedAccountGroup,
   selectTransak,
 } from './index';
 
@@ -31,6 +39,7 @@ type RampsControllerStateOverride = Partial<RampsControllerState>;
 
 const createMockState = (
   rampsController: RampsControllerStateOverride = {},
+  extraBackgroundState: Record<string, unknown> = {},
 ): RootState =>
   ({
     engine: {
@@ -58,9 +67,64 @@ const createMockState = (
           },
           ...rampsController,
         },
+        KeyringController: {
+          keyrings: [],
+        },
+        ...extraBackgroundState,
       },
     },
   }) as unknown as RootState;
+
+const WALLET_ID = 'keyring:ramps-selector-test' as const;
+const GROUP_ID = `${WALLET_ID}/ethereum` as const;
+
+function createStateWithSelectedAccountGroup(
+  rampsController: RampsControllerStateOverride,
+  internalAccount: InternalAccount,
+  accountId: string,
+): RootState {
+  return createMockState(rampsController, {
+    AccountTreeController: {
+      accountTree: {
+        wallets: {
+          [WALLET_ID]: {
+            id: WALLET_ID,
+            metadata: { name: 'Test wallet' },
+            groups: {
+              [GROUP_ID]: {
+                id: GROUP_ID,
+                type: AccountGroupType.SingleAccount,
+                accounts: [accountId],
+                metadata: { name: 'Test Group' },
+              },
+            },
+          },
+        },
+        selectedAccountGroup: GROUP_ID,
+      },
+    },
+    RemoteFeatureFlagController: {
+      remoteFeatureFlags: {
+        enableMultichainAccounts: {
+          enabled: true,
+          featureVersion: '1',
+          minimumVersion: '1.0.0',
+        },
+      },
+    },
+    AccountsController: {
+      internalAccounts: {
+        accounts: {
+          [accountId]: internalAccount,
+        },
+        selectedAccount: accountId,
+      },
+    },
+    KeyringController: {
+      keyrings: [],
+    },
+  });
+}
 
 const mockUserRegion: UserRegion = {
   country: {
@@ -311,6 +375,198 @@ describe('RampsController Selectors', () => {
 
       const result = selectRampsOrders(state);
       expect(result).toEqual([]);
+    });
+  });
+
+  describe('selectRampsOrdersForSelectedAccountGroup', () => {
+    const accountId = 'account-ramps-1';
+    const walletAddrLower = '0x2990079bcdee240329a520d2444386fc119da21a';
+    const internalAccount = {
+      ...createMockInternalAccount(walletAddrLower, 'Account 1'),
+      id: accountId,
+    };
+
+    it('returns empty array when no selected account group addresses', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-1',
+          walletAddress: walletAddrLower,
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+      ];
+      const state = createMockState({
+        orders: mockOrders,
+      } as never);
+
+      expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([]);
+    });
+
+    it('keeps orders whose walletAddress matches a selected group address (case-insensitive for EVM)', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-match',
+          walletAddress: '0x2990079BCDEE240329A520D2444386FC119DA21A',
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+        {
+          providerOrderId: 'order-other',
+          walletAddress: '0x0000000000000000000000000000000000000001',
+          status: 'COMPLETED',
+          createdAt: 2000,
+        },
+      ];
+      const state = createStateWithSelectedAccountGroup(
+        { orders: mockOrders } as never,
+        internalAccount,
+        accountId,
+      );
+
+      const result = selectRampsOrdersForSelectedAccountGroup(state);
+      expect(result).toEqual([mockOrders[0]]);
+    });
+
+    it('excludes orders with missing walletAddress', () => {
+      const mockOrders = [
+        {
+          providerOrderId: 'order-no-wallet',
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+      ];
+      const state = createStateWithSelectedAccountGroup(
+        { orders: mockOrders } as never,
+        internalAccount,
+        accountId,
+      );
+
+      expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([]);
+    });
+
+    it('keeps orders whose walletAddress matches a Solana account in the selected group', () => {
+      const solanaAccountId = 'account-ramps-solana' as AccountId;
+      const otherSolanaAddress = '9WzDXwBbmkg8ZTbNMqUxvQRAyrZzDsGYdLVL9zYtAWWM';
+      const solanaInternalAccount: InternalAccount = {
+        id: solanaAccountId,
+        address: mockSolanaAddress,
+        type: 'solana:dataAccount' as InternalAccount['type'],
+        options: {},
+        methods: [],
+        scopes: ['solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp'],
+        metadata: {
+          name: 'Solana Account',
+          importTime: Date.now(),
+          keyring: {
+            type: 'Snap Keyring',
+          },
+        },
+      };
+      const mockOrders = [
+        {
+          providerOrderId: 'order-sol-match',
+          walletAddress: mockSolanaAddress,
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+        {
+          providerOrderId: 'order-sol-other',
+          walletAddress: otherSolanaAddress,
+          status: 'COMPLETED',
+          createdAt: 2000,
+        },
+      ];
+      const state = createStateWithSelectedAccountGroup(
+        { orders: mockOrders } as never,
+        solanaInternalAccount,
+        solanaAccountId,
+      );
+
+      expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([
+        mockOrders[0],
+      ]);
+    });
+
+    it('keeps orders whose walletAddress matches a Bitcoin account in the selected group', () => {
+      const bitcoinAccountId = 'account-ramps-bitcoin' as AccountId;
+      const bitcoinAddress = 'bc1qxy2kgdygjrsqtzq2n0yrf2493p83kkfjhx0wlh';
+      const otherBitcoinAddress = 'bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq';
+      const bitcoinInternalAccount: InternalAccount = {
+        id: bitcoinAccountId,
+        address: bitcoinAddress,
+        type: 'bip122:p2wpkh' as InternalAccount['type'],
+        options: {},
+        methods: [],
+        scopes: ['bip122:000000000019d6689c085ae165831e93'],
+        metadata: {
+          name: 'Bitcoin Account',
+          importTime: Date.now(),
+          keyring: {
+            type: 'Snap Keyring',
+          },
+        },
+      };
+      const mockOrders = [
+        {
+          providerOrderId: 'order-btc-match',
+          walletAddress: bitcoinAddress,
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+        {
+          providerOrderId: 'order-btc-other',
+          walletAddress: otherBitcoinAddress,
+          status: 'COMPLETED',
+          createdAt: 2000,
+        },
+      ];
+      const state = createStateWithSelectedAccountGroup(
+        { orders: mockOrders } as never,
+        bitcoinInternalAccount,
+        bitcoinAccountId,
+      );
+
+      expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([
+        mockOrders[0],
+      ]);
+    });
+
+    it('keeps orders whose walletAddress matches a Tron account in the selected group', () => {
+      const tronAccountId = 'account-ramps-tron' as AccountId;
+      const tronAddress = 'TXYZopYRdj2D9XRtbPoJZ1CuXLNaoEBgD';
+      const otherTronAddress = 'TN3W4H6rK2ce4vX9YnFQHw8ENXNA9s8rPH';
+      const tronInternalAccount: InternalAccount = {
+        ...createMockInternalAccount(
+          tronAddress,
+          'Tron Account',
+          KeyringTypes.snap,
+          TrxAccountType.Eoa,
+        ),
+        id: tronAccountId,
+      };
+      const mockOrders = [
+        {
+          providerOrderId: 'order-tron-match',
+          walletAddress: tronAddress,
+          status: 'COMPLETED',
+          createdAt: 1000,
+        },
+        {
+          providerOrderId: 'order-tron-other',
+          walletAddress: otherTronAddress,
+          status: 'COMPLETED',
+          createdAt: 2000,
+        },
+      ];
+      const state = createStateWithSelectedAccountGroup(
+        { orders: mockOrders } as never,
+        tronInternalAccount,
+        tronAccountId,
+      );
+
+      expect(selectRampsOrdersForSelectedAccountGroup(state)).toEqual([
+        mockOrders[0],
+      ]);
     });
   });
 
