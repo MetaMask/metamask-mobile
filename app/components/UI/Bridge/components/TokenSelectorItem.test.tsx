@@ -41,6 +41,10 @@ jest.mock('../../../../component-library/hooks', () => ({
       badgeWrapper: {},
       noFeeBadge: {},
       selectedItemWrapperReset: {},
+      tokenSymbolRow: {},
+      tokenSymbol: {},
+      verifiedIcon: {},
+      childrenWrapper: {},
     },
   }),
 }));
@@ -73,6 +77,19 @@ jest.mock(
 jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'Md' },
 }));
+
+jest.mock('../../../../component-library/components/Icons/Icon', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ testID, name }: { testID?: string; name: string }) =>
+      createElement(Text, { testID }, name),
+    IconColor: { Info: 'Info' },
+    IconName: { VerifiedFilled: 'VerifiedFilled' },
+    IconSize: { Xs: 'Xs' },
+  };
+});
 
 jest.mock('../../../../component-library/base-components/TagBase', () => {
   const { createElement } = jest.requireActual('react');
@@ -179,6 +196,46 @@ describe('TokenSelectorItem', () => {
         <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
       );
 
+      expect(getByText('No MM Fee')).toBeTruthy();
+    });
+
+    it('renders verified icon when token is verified', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: true,
+      });
+
+      const { getByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(getByTestId('token-verified-icon-ETH')).toBeTruthy();
+    });
+
+    it('does not render verified icon when token is not verified', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: false,
+      });
+
+      const { queryByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByTestId('token-verified-icon-ETH')).toBeNull();
+    });
+
+    it('renders verified icon alongside no fee badge', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: true,
+      });
+
+      const { getByTestId, getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
+      );
+
+      expect(getByTestId('token-verified-icon-ETH')).toBeTruthy();
       expect(getByText('No MM Fee')).toBeTruthy();
     });
 
