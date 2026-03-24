@@ -35,23 +35,6 @@ export function rewriteBranchUri(
   }
 }
 
-/**
- * Branch short-link domains carry a link ID (e.g. /1WkF6GmE40b), NOT an
- * in-app route. React Native Linking must never attempt to route these;
- * the Branch SDK resolves them and provides the actual route via $deeplink_path.
- */
-export function isBranchShortLinkUrl(url: string): boolean {
-  try {
-    const { hostname } = new URL(url);
-    return (
-      hostname === AppConstants.MM_UNIVERSAL_LINK_HOST ||
-      hostname === AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE
-    );
-  } catch {
-    return false;
-  }
-}
-
 export class DeeplinkManager {
   // singleton instance
   private static _instance: DeeplinkManager | null = null;
@@ -148,19 +131,16 @@ export class DeeplinkManager {
       }
     });
 
-    // Branch short-link URLs (metamask.app.link/*) carry a link ID, not an
-    // in-app route. Letting Linking route them causes a race condition: Linking
-    // fires immediately with the raw URL while the Branch SDK is still resolving
-    // the link via its API. The result is "This page doesn't exist" flashing
-    // before the Branch SDK delivers the correct route via subscribe/cold-start.
     Linking.getInitialURL().then((url) => {
-      if (!url) return;
-      if (isBranchShortLinkUrl(url)) return;
+      if (!url) {
+        return;
+      }
+      Logger.log(`handleDeeplink:: got initial URL ${url}`);
       handleDeeplink({ uri: url });
     });
 
-    Linking.addEventListener('url', ({ url }) => {
-      if (isBranchShortLinkUrl(url)) return;
+    Linking.addEventListener('url', (params) => {
+      const { url } = params;
       handleDeeplink({ uri: url });
     });
 
