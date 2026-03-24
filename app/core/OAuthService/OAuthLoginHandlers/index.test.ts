@@ -1,5 +1,9 @@
 import { Platform } from 'react-native';
-import { AuthConnection, HandleFlowParams } from '../OAuthInterface';
+import {
+  AuthConnection,
+  HandleFlowParams,
+  LoginHandlerCodeResult,
+} from '../OAuthInterface';
 import { createLoginHandler } from './index';
 import { OAuthError, OAuthErrorType } from '../error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
@@ -403,7 +407,7 @@ describe('OAuth login handlers', () => {
         const result = await handler.login();
 
         expect(result?.authConnection).toBe(AuthConnection.Google);
-        expect(result?.code).toBe('test-auth-code');
+        expect((result as LoginHandlerCodeResult)?.code).toBe('test-auth-code');
         expect(mockGetIosGoogleConfig).toHaveBeenCalledTimes(1);
         expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(1);
       });
