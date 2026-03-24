@@ -5,6 +5,7 @@ import {
   FALLBACK_FIXTURE_SERVER_PORT,
   FALLBACK_COMMAND_QUEUE_SERVER_PORT,
   FALLBACK_MOCKSERVER_PORT,
+  FALLBACK_MOCK_SERVER_CONTROL_PORT,
   FALLBACK_GANACHE_PORT,
   FALLBACK_DAPP_SERVER_PORT,
 } from './Constants.ts';
@@ -18,6 +19,7 @@ const logger = createLogger({
 export enum ResourceType {
   FIXTURE_SERVER = 'fixture-server',
   MOCK_SERVER = 'mock-server',
+  MOCK_SERVER_CONTROL = 'mock-server-control',
   COMMAND_QUEUE_SERVER = 'command-queue-server',
   DAPP_SERVER = 'dapp-server',
   GANACHE = 'ganache',
@@ -46,6 +48,8 @@ function getFallbackPortForResource(resourceType: ResourceType): number {
       return FALLBACK_FIXTURE_SERVER_PORT;
     case ResourceType.MOCK_SERVER:
       return FALLBACK_MOCKSERVER_PORT;
+    case ResourceType.MOCK_SERVER_CONTROL:
+      return FALLBACK_MOCK_SERVER_CONTROL_PORT;
     case ResourceType.COMMAND_QUEUE_SERVER:
       return FALLBACK_COMMAND_QUEUE_SERVER_PORT;
     case ResourceType.GANACHE:
