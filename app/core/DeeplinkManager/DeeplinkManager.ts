@@ -10,6 +10,25 @@ import AppConstants from '../AppConstants';
 import { BranchParams } from './types/deepLinkAnalytics.types';
 
 /**
+ * Returns true when the URL belongs to a Branch.io domain that the Branch SDK
+ * will resolve (e.g. metamask.app.link, metamask-alternate.app.link).
+ * These URLs must NOT be handled by React Native Linking because the path
+ * segment is a Branch link ID (e.g. /1WkF6GmE40b), not an in-app route.
+ * The Branch SDK will resolve the link and provide the actual $deeplink_path.
+ */
+export function isBranchUrl(url: string): boolean {
+  try {
+    const { hostname } = new URL(url);
+    return (
+      hostname === AppConstants.MM_UNIVERSAL_LINK_HOST ||
+      hostname === AppConstants.MM_UNIVERSAL_LINK_HOST_ALTERNATE
+    );
+  } catch {
+    return false;
+  }
+}
+
+/**
  * When Branch resolves a short link (e.g. metamask-alternate.app.link/1WkF6GmE40b),
  * the URI path may be link ID, not an in-app route. If the resolved params indicate
  * a clicked Branch link with a $deeplink_path, replace the host and path segment
@@ -135,12 +154,21 @@ export class DeeplinkManager {
       if (!url) {
         return;
       }
+      if (isBranchUrl(url)) {
+        Logger.log(
+          `handleDeeplink:: skipping Branch URL from Linking (Branch SDK will handle): ${url}`,
+        );
+        return;
+      }
       Logger.log(`handleDeeplink:: got initial URL ${url}`);
       handleDeeplink({ uri: url });
     });
 
     Linking.addEventListener('url', (params) => {
       const { url } = params;
+      if (isBranchUrl(url)) {
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 

@@ -1,9 +1,11 @@
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { waitFor } from '@testing-library/react-native';
+import { Linking } from 'react-native';
 import FCMService from '../../util/notifications/services/FCMService';
 import NavigationService from '../NavigationService';
 import SharedDeeplinkManager, {
   DeeplinkManager,
+  isBranchUrl,
   rewriteBranchUri,
 } from './DeeplinkManager';
 import type { BranchParams } from './types/deepLinkAnalytics.types';
@@ -286,6 +288,34 @@ describe('SharedDeeplinkManager', () => {
   });
 });
 
+describe('isBranchUrl', () => {
+  it('returns true for metamask.app.link URLs', () => {
+    expect(isBranchUrl('https://metamask.app.link/1WkF6GmE40b')).toBe(true);
+  });
+
+  it('returns true for metamask-alternate.app.link URLs', () => {
+    expect(
+      isBranchUrl('https://metamask-alternate.app.link/ABC123?foo=bar'),
+    ).toBe(true);
+  });
+
+  it('returns false for link.metamask.io URLs', () => {
+    expect(isBranchUrl('https://link.metamask.io/trending')).toBe(false);
+  });
+
+  it('returns false for link-test.metamask.io URLs', () => {
+    expect(isBranchUrl('https://link-test.metamask.io/swap')).toBe(false);
+  });
+
+  it('returns false for metamask:// scheme URLs', () => {
+    expect(isBranchUrl('metamask://trending')).toBe(false);
+  });
+
+  it('returns false for invalid URLs', () => {
+    expect(isBranchUrl('not-a-url')).toBe(false);
+  });
+});
+
 describe('rewriteBranchUri', () => {
   it('rewrites host and path to link.metamask.io and preserves query when +clicked_branch_link and $deeplink_path are set', () => {
     const uri =
@@ -437,6 +467,86 @@ describe('DeeplinkManager.start Branch deeplink handling', () => {
     await new Promise((resolve) => setImmediate(resolve));
     expect(handleDeeplink).toHaveBeenCalledWith({
       uri: 'https://link.metamask.io/swap/token',
+    });
+  });
+});
+
+describe('Linking handlers skip Branch URLs (race condition fix)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('skips Branch short link from Linking.getInitialURL to avoid race with Branch SDK', async () => {
+    (Linking.getInitialURL as jest.Mock).mockResolvedValue(
+      'https://metamask.app.link/1WkF6GmE40b',
+    );
+
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: 'https://metamask.app.link/1WkF6GmE40b',
+      }),
+    );
+  });
+
+  it('skips metamask-alternate.app.link from Linking.getInitialURL', async () => {
+    (Linking.getInitialURL as jest.Mock).mockResolvedValue(
+      'https://metamask-alternate.app.link/1WkF6GmE40b?__branch_flow_type=viewapp',
+    );
+
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: expect.stringContaining('metamask-alternate.app.link'),
+      }),
+    );
+  });
+
+  it('processes non-Branch URLs from Linking.getInitialURL normally', async () => {
+    const nonBranchUrl = 'https://link.metamask.io/trending';
+    (Linking.getInitialURL as jest.Mock).mockResolvedValue(nonBranchUrl);
+
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).toHaveBeenCalledWith({ uri: nonBranchUrl });
+  });
+
+  it('skips Branch short link from Linking URL event listener', async () => {
+    (Linking.getInitialURL as jest.Mock).mockResolvedValue(null);
+
+    DeeplinkManager.start();
+
+    const urlEventCallback = (Linking.addEventListener as jest.Mock).mock
+      .calls[0][1];
+
+    urlEventCallback({ url: 'https://metamask.app.link/1WkF6GmE40b' });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        uri: 'https://metamask.app.link/1WkF6GmE40b',
+      }),
+    );
+  });
+
+  it('processes non-Branch URLs from Linking URL event listener normally', async () => {
+    (Linking.getInitialURL as jest.Mock).mockResolvedValue(null);
+
+    DeeplinkManager.start();
+
+    const urlEventCallback = (Linking.addEventListener as jest.Mock).mock
+      .calls[0][1];
+
+    urlEventCallback({ url: 'https://link.metamask.io/swap' });
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/swap',
     });
   });
 });
