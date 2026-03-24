@@ -169,9 +169,8 @@ class AuthenticationService {
     if (selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       await SeedlessOnboardingController.submitPassword(password);
 
-      // renew refresh token
       renewSeedlessControllerRefreshTokens(password).catch((err) => {
-        Logger.error(err, 'Failed to renew refresh token');
+        Logger.error(err, 'Failed to revoke pending seedless OAuth tokens');
       });
     }
     password = this.wipeSensitiveData();

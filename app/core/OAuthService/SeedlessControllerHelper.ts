@@ -1,20 +1,20 @@
 import Engine from '../Engine';
 
-// delay function
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
-
 /**
- * Renews the refresh tokens for the seedless onboarding controller and revokes the pending revoke tokens.
- * @param password - The password to use to unlock seedless controller in order to renew the refresh tokens.
- * @returns A promise that resolves when the refresh tokens have been renewed.
+ * Revokes OAuth refresh tokens that SeedlessOnboardingController has queued for
+ * revocation (e.g. after an internal refresh-token rotation).
+ *
+ * The previous implementation also called `SeedlessOnboardingController.renewRefreshToken(password)`
+ * and waited 15s before revoking. That public `renewRefreshToken` API was removed in
+ * `@metamask/seedless-onboarding-controller` v9 — rotation runs inside the controller
+ * (via `rotateRefreshToken` on JWT refresh). The delay only existed to wait after that
+ * manual renew; it is no longer needed.
+ *
+ * @param _password - Unused; kept so `Authentication.loginVaultCreation` can pass the same argument without churn (wallet is already unlocked via `submitPassword`).
  */
 export const renewSeedlessControllerRefreshTokens = async (
-  password: string,
-) => {
+  _password: string,
+): Promise<void> => {
   const { SeedlessOnboardingController } = Engine.context;
-  await SeedlessOnboardingController.renewRefreshToken(password);
-
-  // delay to allow new refresh token to be persisted
-  await delay(15_000);
   await SeedlessOnboardingController.revokePendingRefreshTokens();
 };
