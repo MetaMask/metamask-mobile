@@ -85,7 +85,10 @@ export function useEVMNfts(): UseEVMNftsResult {
       setIsLoading(false);
     };
 
-    processNfts();
+    processNfts().catch((error) => {
+      Logger.error(error, 'useEVMNfts: processNfts failed');
+      setIsLoading(false);
+    });
   }, [
     ipfsGateway,
     evmAccount,
