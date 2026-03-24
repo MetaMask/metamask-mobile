@@ -2,7 +2,6 @@ import { useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import {
-  appendBenefits,
   setBenefits,
   setBenefitsError,
   setBenefitsLoading,
@@ -11,10 +10,6 @@ import Engine from '../../../../core/Engine';
 import type { SubscriptionBenefitsState } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import {
-  selectBenefitsHasNextPage,
-  selectCurrentBenefitsPage,
-} from '../../../../reducers/benefits/selectors.ts';
 
 export const useBenefits = (): {
   initBenefits: (refreshCache?: boolean) => Promise<void>;
@@ -22,43 +17,10 @@ export const useBenefits = (): {
 } => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const currentPage = useSelector(selectCurrentBenefitsPage);
-  const hasNextPage = useSelector(selectBenefitsHasNextPage);
   const isLoadingRef = useRef(false);
 
-  const initBenefits = useCallback(async (refreshCache = false): Promise<void> => {
-    if (!subscriptionId) {
-      dispatch(setBenefitsError(false));
-      dispatch(setBenefitsLoading(false));
-      return;
-    }
-    if (isLoadingRef.current) {
-      return;
-    }
-    isLoadingRef.current = true;
-
-    try {
-      dispatch(setBenefitsLoading(true));
-      dispatch(setBenefitsError(false));
-
-      const benefitsState: SubscriptionBenefitsState =
-        await Engine.controllerMessenger.call(
-          'RewardsController:getBenefits',
-          subscriptionId,
-          0,
-        );
-
-      dispatch(setBenefits(benefitsState));
-    } catch (error) {
-      dispatch(setBenefitsError(true));
-    } finally {
-      isLoadingRef.current = false;
-      dispatch(setBenefitsLoading(false));
-    }
-  }, [dispatch, subscriptionId]);
-
-  const getMoreBenefits = useCallback(
-    async (): Promise<void> => {
+  const fetchBenefits = useCallback(
+    async (limit: number) => {
       if (!subscriptionId) {
         dispatch(setBenefitsError(false));
         dispatch(setBenefitsLoading(false));
@@ -77,10 +39,10 @@ export const useBenefits = (): {
           await Engine.controllerMessenger.call(
             'RewardsController:getBenefits',
             subscriptionId,
-            currentPage + 1,
+            limit,
           );
 
-        dispatch(appendBenefits(benefitsState));
+        dispatch(setBenefits(benefitsState));
       } catch (error) {
         dispatch(setBenefitsError(true));
       } finally {
@@ -88,12 +50,20 @@ export const useBenefits = (): {
         dispatch(setBenefitsLoading(false));
       }
     },
-    [dispatch, hasNextPage, currentPage, subscriptionId],
+    [dispatch, subscriptionId],
   );
+
+  const initBenefits = useCallback(async (): Promise<void> => {
+    await fetchBenefits(10);
+  }, [fetchBenefits]);
+
+  const getAllBenefits = useCallback(async (): Promise<void> => {
+    await fetchBenefits(200);
+  }, [fetchBenefits]);
 
   useFocusEffect(
     useCallback(() => {
-      initBenefits();
+      initBenefits().then();
     }, [initBenefits]),
   );
 
@@ -103,5 +73,5 @@ export const useBenefits = (): {
     initBenefits,
   );
 
-  return { initBenefits, getMoreBenefits };
+  return { initBenefits, getAllBenefits };
 };

@@ -8,8 +8,6 @@ export interface BenefitsState {
   benefits: SubscriptionBenefitDto[];
   benefitsLoading: boolean;
   benefitsError: boolean;
-  currentPage: number;
-  hasNextPage: boolean;
   lastFetched: number;
 }
 
@@ -17,8 +15,7 @@ export const initialState: BenefitsState = {
   benefits: [],
   benefitsLoading: false,
   benefitsError: false,
-  currentPage: 0,
-  hasNextPage: false,
+  allFetched: false,
   lastFetched: 0,
 };
 
@@ -26,15 +23,6 @@ const benefitsSlice = createSlice({
   name: 'rewards',
   initialState,
   reducers: {
-    appendBenefits: (
-      state,
-      action: PayloadAction<SubscriptionBenefitsState>,
-    ) => {
-      state.benefits.push(...action.payload.benefits);
-      state.currentPage = action.payload.page;
-      state.hasNextPage = action.payload.hasNextPage;
-      state.lastFetched = action.payload.lastFetched;
-    },
     setBenefits: (state, action: PayloadAction<SubscriptionBenefitsState>) => {
       state.benefits = action.payload.benefits;
       state.currentPage = action.payload.page;
@@ -51,7 +39,6 @@ const benefitsSlice = createSlice({
 });
 
 export const {
-  appendBenefits,
   setBenefits,
   setBenefitsError,
   setBenefitsLoading,

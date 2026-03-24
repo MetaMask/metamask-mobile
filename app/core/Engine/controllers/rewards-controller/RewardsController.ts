@@ -3672,17 +3672,15 @@ export class RewardsController extends BaseController<
   /**
    * Get benefits details with caching
    * @param subscriptionId - The subscription ID for authentication
-   * @param page - The page number for pagination
+   * @param limit - The maximum number of items requested
    * @returns Promise<SubscriptionBenefitsState> - The benefits data
    */
   async getBenefits(
     subscriptionId: string,
-    page: number,
+    limit: number,
   ): Promise<SubscriptionBenefitsState> {
-    // TODO: Define page size for pagination, where is the best to put that config as it would impact caching if it's dynamic
-    const pageSize = 20;
     const result = await wrapWithCache<SubscriptionBenefitsState>({
-      key: `${subscriptionId}-${page}`,
+      key: `${subscriptionId}`,
       ttl: REFERRAL_DETAILS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
         const cached = this.state.subscriptionBenefits[key] || undefined;
@@ -3696,22 +3694,20 @@ export class RewardsController extends BaseController<
         try {
           Logger.log(
             'RewardsController: Fetching fresh benefits details data via API call for',
-            { subscriptionId, page },
+            { subscriptionId, limit },
           );
           const benefits = await this.#withAuthRetry(
             () =>
               this.messenger.call(
                 'RewardsDataService:getBenefits',
                 subscriptionId,
-                page,
-                pageSize,
+                limit
               ),
             subscriptionId,
           );
           return {
             benefits,
-            page,
-            hasNextPage: benefits.length === pageSize,
+            limit,
             lastFetched: Date.now(),
           };
         } catch (error) {

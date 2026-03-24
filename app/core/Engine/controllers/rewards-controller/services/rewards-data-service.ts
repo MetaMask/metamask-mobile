@@ -1408,38 +1408,20 @@ export class RewardsDataService {
    */
   async getBenefits(
     subscriptionId: string,
-    page: number,
-    pageSize: number,
+    limit: number
   ): Promise<SubscriptionBenefitDto[]> {
-    return [
+    const response = await this.makeRequest(
+      `/benefits?limit=${limit}&offset=0`,
       {
-        id: 3023,
-        longTitle: 'Get highlighted in the weekly "From The Bodega" features',
-        shortDescription:
-          'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
-        longDescription:
-          'Heads up Apes, if you have an MBA license and would like to be highlighted in one of the upcoming weekly “From The Bodega” features along with the monthly spaces:\n\n- Head over to the BAYC Discord (link below)\n- Fill out the pinned form in the Made By Apes channel',
-        thumbnail:
-          'https://pbs.twimg.com/media/GNKKmIzXsAAk5Xn?format=jpg&name=medium',
-        validFrom: '2024-05-08T00:00:00+00:00',
-        validTo: '2048-05-23T00:00:00+00:00',
-        url: 'https://app.themiracle.io/redirect?url=https%3A%2F%2Fdiscord.com%2Finvite%2Fbayc&trackingBenefitId=3023&trackingBenefitType=23&trackingSource=metamaskmobilewallet&trackingWallet=0x504dAC87BF574C0c70D95b30576d6af2376A6da5&',
-        actionDate: '2048-05-23T00:00:00+00:00',
-        chain: 'ethereum',
+        method: 'GET',
       },
-    ];
-    // const response = await this.makeRequest(
-    //   `/benefits`,
-    //   {
-    //     method: 'GET',
-    //   },
-    //   subscriptionId,
-    // );
-    //
-    // if (!response.ok) {
-    //   throw new Error(`Get benefits failed: ${response.status}`);
-    // }
-    // const data = await response.json();
-    // return data as SubscriptionBenefitsDto;
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get benefits failed: ${response.status}`);
+    }
+    const data = await response.json();
+    return data.results as SubscriptionBenefitDto[];
   }
 }

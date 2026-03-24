@@ -839,8 +839,7 @@ export type SubscriptionBenefitDto = {
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type SubscriptionBenefitsState = {
   benefits: SubscriptionBenefitDto[];
-  page: number;
-  hasNextPage: boolean;
+  limit: number;
   lastFetched: number;
 };
 

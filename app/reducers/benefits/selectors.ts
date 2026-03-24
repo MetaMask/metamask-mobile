@@ -10,12 +10,4 @@ export const selectBenefits = (state: RootState): SubscriptionBenefitDto[] =>
 export const selectBenefitsLoading = (state: RootState): boolean =>
   state.benefits.benefitsLoading;
 
-export const selectHasMoreBenefits = (state: RootState): boolean =>
-  state.benefits.hasNextPage;
-
-export const selectCurrentBenefitsPage = (state: RootState): number =>
-  state.benefits.currentPage;
-
-export const selectBenefitsHasNextPage = (state: RootState): boolean =>
-  state.benefits.hasNextPage;
 

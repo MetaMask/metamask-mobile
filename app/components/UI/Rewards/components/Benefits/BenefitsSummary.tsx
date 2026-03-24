@@ -26,7 +26,7 @@ const BenefitsSummary = () => {
   const { initBenefits } = useBenefits();
 
   useEffect(() => {
-    initBenefits();
+    initBenefits().then();
   }, [initBenefits]);
 
   if (!firstBenefit) {
