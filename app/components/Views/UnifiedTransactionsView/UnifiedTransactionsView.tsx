@@ -10,6 +10,7 @@ import { RefreshControl, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { RPC } from '../../../constants/network';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
@@ -422,7 +423,7 @@ const UnifiedTransactionsView = ({
     let title;
     if (configBlockExplorerUrl) {
       const result = getBlockExplorerAddressUrl(
-        providerType,
+        RPC,
         selectedAccountGroupEvmAddress,
         blockExplorerUrl,
       );
@@ -448,7 +449,6 @@ const UnifiedTransactionsView = ({
     });
   }, [
     navigation,
-    providerType,
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
     popularListBlockExplorer,
