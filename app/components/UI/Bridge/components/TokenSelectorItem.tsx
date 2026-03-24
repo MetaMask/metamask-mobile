@@ -28,10 +28,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../component-library/components/Icons/Icon';
 import { Box } from '../../Box/Box';
 import { ethers } from 'ethers';
 import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
@@ -58,6 +54,12 @@ import {
   TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
   TokenSelectorBalanceLayoutVariant,
 } from './TokenSelectorItem.abTestConfig';
+import {
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 
 const createStyles = ({
   theme,
@@ -377,6 +379,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
                       testID={`token-verified-icon-${token.symbol}`}
                       name={IconName.VerifiedFilled}
                       size={IconSize.Sm}
+                      color={IconColor.InfoDefault}
                       style={styles.verifiedIcon}
                     />
                   )}
