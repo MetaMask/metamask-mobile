@@ -3,7 +3,7 @@ import {
   AppRedirectUri,
   web3AuthNetwork,
   AuthServerUrl,
-  AndroidGoogleWebGID,
+  GoogleWebGID,
   AppleWebClientId,
   AppleServerRedirectUri,
   AuthConnectionConfig,
@@ -66,7 +66,7 @@ describe('OAuth Constants', () => {
     });
 
     it('should have Android configuration from jest config', () => {
-      expect(AndroidGoogleWebGID).toBe('androidGoogleWebClientId');
+      expect(GoogleWebGID).toBe('androidGoogleWebClientId');
       expect(AppleWebClientId).toBe('AppleClientId');
     });
 
@@ -81,7 +81,7 @@ describe('OAuth Constants', () => {
     it('should have all required constants defined and non-empty', () => {
       expect(web3AuthNetwork).toBeTruthy();
       expect(AuthServerUrl).toBeTruthy();
-      expect(AndroidGoogleWebGID).toBeTruthy();
+      expect(GoogleWebGID).toBeTruthy();
       expect(AppleWebClientId).toBeTruthy();
       expect(AuthConnectionConfig).toBeTruthy();
       expect(AppleServerRedirectUri).toBeTruthy();

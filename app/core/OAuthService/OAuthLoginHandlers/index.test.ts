@@ -21,8 +21,8 @@ const mockGetIosGoogleConfig = jest.fn();
 jest.mock('./constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
   AppRedirectUri: 'https://app.example.com',
-  AndroidGoogleWebGID: 'mock-android-google-client-id',
-  AndroidGoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
+  GoogleWebGID: 'mock-android-google-client-id',
+  GoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
   getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),

@@ -61,11 +61,11 @@ export const AUTH_SERVER_MARKETING_OPT_IN_PATH =
 
 export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
-export const AndroidGoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
+export const GoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
 
 // Use universal link for OAuth redirect
-export const AndroidGoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
+export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
 export const AppRedirectUri = `${PREFIXES.METAMASK}${ACTIONS.OAUTH_REDIRECT}`;
 export const AppleServerRedirectUri = `${CURRENT_OAUTH_CONFIG.AUTH_SERVER_URL}/api/v1/oauth/callback`;
 
@@ -95,12 +95,12 @@ export const getIosGoogleConfig = () => {
     };
   }
 
-  if (!AndroidGoogleWebGID) {
-    throw new Error('AndroidGoogleWebGID is not set');
+  if (!GoogleWebGID) {
+    throw new Error('GoogleWebGID is not set');
   }
   return {
-    clientId: AndroidGoogleWebGID,
-    redirectUri: AndroidGoogleRedirectUri,
+    clientId: GoogleWebGID,
+    redirectUri: GoogleRedirectUri,
   };
 };
 

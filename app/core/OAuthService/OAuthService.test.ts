@@ -16,7 +16,7 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
   AUTH_SERVER_MARKETING_OPT_IN_PATH: '/api/v1/oauth/marketing_opt_in_status',
   IosGID: 'mock-ios-google-client-id',
   IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
-  AndroidGoogleWebGID: 'mock-android-google-client-id',
+  GoogleWebGID: 'mock-android-google-client-id',
   AppleWebClientId: 'mock-android-apple-client-id',
   AuthConnectionConfig: {
     android: {

@@ -7,8 +7,8 @@ import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallb
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
 import {
   AuthServerUrl,
-  AndroidGoogleWebGID,
-  AndroidGoogleRedirectUri,
+  GoogleWebGID,
+  GoogleRedirectUri,
   AppleWebClientId,
   web3AuthNetwork,
   getIosGoogleConfig,
@@ -31,9 +31,9 @@ export function createLoginHandler(
 ): BaseLoginHandler {
   if (
     !AuthServerUrl ||
-    !AndroidGoogleWebGID ||
+    !GoogleWebGID ||
     !AppleWebClientId ||
-    !AndroidGoogleRedirectUri
+    !GoogleRedirectUri
   ) {
     throw new Error('Missing environment variables');
   }
@@ -66,20 +66,20 @@ export function createLoginHandler(
         case AuthConnection.Google:
           return fallback
             ? new AndroidGoogleFallbackLoginHandler({
-                clientId: AndroidGoogleWebGID,
-                redirectUri: AndroidGoogleRedirectUri,
+                clientId: GoogleWebGID,
+                redirectUri: GoogleRedirectUri,
                 authServerUrl: AuthServerUrl,
                 web3AuthNetwork,
               })
             : new AndroidGoogleLoginHandler({
-                clientId: AndroidGoogleWebGID,
+                clientId: GoogleWebGID,
                 authServerUrl: AuthServerUrl,
                 web3AuthNetwork,
               });
         case AuthConnection.Apple:
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
-            appRedirectUri: AndroidGoogleRedirectUri,
+            appRedirectUri: GoogleRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
