@@ -1,15 +1,15 @@
 ##############################################################################################
 #
-# Runway iOS RC Workflow
+# Runway iOS Production Workflow
 #
 # Triggered from Runway to either:
-# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
-# - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
+# - Push an OTA update to the production channel (when OTA_VERSION is bumped), or
+# - Build the production app and upload the IPA to TestFlight (when there is no OTA bump).
 #
-# When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+# When triggering workflow_dispatch, select the correct branch (e.g. main or release).
 #
 ##############################################################################################
-name: Runway iOS RC
+name: Runway iOS Production
 
 on:
   workflow_dispatch:
@@ -28,11 +28,23 @@ permissions:
   id-token: write # required by build.yml
 
 jobs:
-  runway-rc:
+  runway-production:
     uses: ./.github/workflows/runway-rc-core.yml
     with:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
+      ota_channel: production
+      build_name: main-prod
+    secrets: inherit
+
+  create-ota-production-tag:
+    name: Create OTA production release tag
+    needs: [trigger-ota]
+    if: success()
+    uses: ./.github/workflows/runway-create-ota-production-tag.yml
+    with:
+      tag_name: ${{ needs.trigger-ota.outputs.release_tag }}
+      checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
 
   testflight-upload-summary:
@@ -48,12 +60,12 @@ jobs:
         run: |
           BUILD_VERSION=$(node -p "require('./package.json').version")
           {
-            echo "### 📲 TestFlight Upload (Runway iOS RC)"
+            echo "### 📲 TestFlight Upload (Runway iOS Production)"
             echo ""
             echo "| Field | Value |"
             echo "| --- | --- |"
             echo "| **Ref** | ${{ inputs.source_branch || github.ref_name }} |"
-            echo "| **Build name** | main-rc |"
+            echo "| **Build name** | main-prod |"
             echo "| **Build version** | ${BUILD_VERSION} |"
             echo "| **TestFlight group** | MetaMask BETA & Release Candidates |"
           } >> "$GITHUB_STEP_SUMMARY"
@@ -80,7 +92,7 @@ jobs:
       - name: Download iOS build artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-ipa-main-rc
+          name: ios-ipa-main-prod
 
       - name: Find IPA path
         id: ipa
@@ -107,7 +119,7 @@ jobs:
       - name: Upload to TestFlight
         run: |
           bash scripts/upload-to-testflight.sh \
-            "github_actions_main-rc" \
+            "github_actions_main-prod" \
             "${{ inputs.source_branch || github.ref_name }}" \
             "${{ steps.ipa.outputs.path }}" \
             "" \

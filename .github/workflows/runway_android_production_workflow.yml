@@ -1,15 +1,15 @@
 ##############################################################################################
 #
-# Runway Android RC Workflow
+# Runway Android Production Workflow
 #
 # Triggered from Runway to either:
-# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
-# - Build the mobile app (when there is no OTA version bump).
+# - Push an OTA update to the production channel (when OTA_VERSION is bumped), or
+# - Build the production mobile app (when there is no OTA version bump).
 #
-# When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+# When triggering workflow_dispatch, select the correct branch (e.g. main or release).
 #
 ##############################################################################################
-name: Runway Android RC
+name: Runway Android Production
 
 on:
   workflow_dispatch:
@@ -28,9 +28,21 @@ permissions:
   id-token: write # required by build.yml
 
 jobs:
-  runway-rc:
+  runway-production:
     uses: ./.github/workflows/runway-rc-core.yml
     with:
       platform: android
       source_branch: ${{ inputs.source_branch }}
+      ota_channel: production
+      build_name: main-prod
+    secrets: inherit
+
+  create-ota-production-tag:
+    name: Create OTA production release tag
+    needs: [trigger-ota]
+    if: success()
+    uses: ./.github/workflows/runway-create-ota-production-tag.yml
+    with:
+      tag_name: ${{ needs.trigger-ota.outputs.release_tag }}
+      checkout_ref: ${{ inputs.source_branch || github.ref_name }}
     secrets: inherit
