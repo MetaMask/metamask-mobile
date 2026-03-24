@@ -38,6 +38,7 @@ import {
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
+import StorageWrapper from '../../../../store/storage-wrapper';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -96,6 +97,13 @@ const createStyles = (colors) =>
       color: colors.text.alternative,
       ...fontStyles.normal,
     },
+    debugText: {
+      fontSize: 12,
+      textAlign: 'left',
+      marginBottom: 20,
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+    },
   });
 
 const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import-x/no-commonjs
@@ -117,6 +125,7 @@ class AppInformation extends PureComponent {
     appVersion: '',
     buildNumber: '',
     showEnvironmentInfo: false,
+    branchDebug: '',
   };
 
   componentDidMount = async () => {
@@ -168,8 +177,15 @@ class AppInformation extends PureComponent {
     this.goTo(url, strings('drawer.metamask_support'));
   };
 
-  handleLongPressFox = () => {
-    this.setState({ showEnvironmentInfo: true });
+  handleLongPressFox = async () => {
+    const branchDebug =
+      (await StorageWrapper.getItem('BRANCH_DEBUG_PARAMS')) ?? '(empty)';
+    this.setState({ showEnvironmentInfo: true, branchDebug });
+  };
+
+  clearBranchDebug = async () => {
+    await StorageWrapper.removeItem('BRANCH_DEBUG_PARAMS');
+    this.setState({ branchDebug: '(cleared)' });
   };
 
   /**
@@ -281,6 +297,15 @@ class AppInformation extends PureComponent {
                     {snap.name}: {snap.version} ({snap.status})
                   </Text>
                 ))}
+
+                <View style={styles.division} />
+                <Text style={styles.title}>Branch Debug Params</Text>
+                <TouchableOpacity onPress={this.clearBranchDebug}>
+                  <Text style={styles.link}>Clear</Text>
+                </TouchableOpacity>
+                <Text style={styles.debugText} selectable>
+                  {this.state.branchDebug}
+                </Text>
               </>
             )}
           </View>
