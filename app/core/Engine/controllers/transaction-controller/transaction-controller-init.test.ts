@@ -17,6 +17,7 @@ import { selectShouldUseSmartTransaction } from '../../../../selectors/smartTran
 import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { getGlobalChainId } from '../../../../util/networks/global-network';
 import { submitSmartTransactionHook } from '../../../../util/smart-transactions/smart-publish-hook';
+import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
@@ -39,6 +40,7 @@ jest.mock('../../../../selectors/smartTransactionsController');
 jest.mock('../../../../util/networks/global-network');
 jest.mock('../../../../util/smart-transactions/smart-publish-hook');
 jest.mock('./event-handlers/metrics');
+jest.mock('../../../../util/transactions/account-supports-7702');
 jest.mock('../../../../util/transactions/hooks/delegation-7702-publish');
 jest.mock('../../../../util/transactions/sentinel-api');
 jest.mock('@metamask/transaction-pay-controller');
@@ -141,6 +143,7 @@ describe('Transaction Controller Init', () => {
   const handleTransactionAddedEventForMetricsMock = jest.mocked(
     handleTransactionAddedEventForMetrics,
   );
+  const accountSupports7702Mock = jest.mocked(accountSupports7702);
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
   const selectMetaMaskPayFlagsMock = jest.mocked(selectMetaMaskPayFlags);
   const payHookClassMock = jest.mocked(TransactionPayPublishHook);
@@ -422,6 +425,7 @@ describe('Transaction Controller Init', () => {
       let mockDelegation7702Hook: jest.MockedFn<PublishHook>;
 
       beforeEach(() => {
+        accountSupports7702Mock.mockResolvedValue(true);
         payHookMock.mockResolvedValue({ transactionHash: undefined });
         mockDelegation7702Hook = jest
           .fn()
@@ -432,6 +436,20 @@ describe('Transaction Controller Init', () => {
               getHook: () => mockDelegation7702Hook,
             }) as unknown as InstanceType<typeof Delegation7702PublishHook>,
         );
+      });
+
+      it('skips Delegation7702PublishHook for hardware wallet accounts', async () => {
+        accountSupports7702Mock.mockResolvedValue(false);
+        selectShouldUseSmartTransactionMock.mockReturnValue(false);
+
+        const hooks = testConstructorOption('hooks');
+        await hooks?.publish?.({
+          ...MOCK_TRANSACTION_META,
+          chainId: '0x13',
+        });
+
+        expect(Delegation7702PublishHookMock).not.toHaveBeenCalled();
+        expect(mockDelegation7702Hook).not.toHaveBeenCalled();
       });
 
       it('falls back to Delegation7702PublishHook when smart transactions are disabled', async () => {
@@ -718,6 +736,7 @@ describe('Transaction Controller Init', () => {
     });
 
     it('returns true if isExternalSign', async () => {
+      accountSupports7702Mock.mockResolvedValue(true);
       const mockTransactionMeta = {
         id: '123',
         status: 'approved',
@@ -732,6 +751,7 @@ describe('Transaction Controller Init', () => {
   });
 
   it('calls getNonceLock and releaseLock via Delegation7702PublishHook getNextNonce', async () => {
+    accountSupports7702Mock.mockResolvedValue(true);
     const releaseLockMock = jest.fn();
     const getNonceLockMock = jest.fn().mockResolvedValue({
       nextNonce: 99,
@@ -773,6 +793,7 @@ describe('Transaction Controller Init', () => {
   });
 
   it('calls 7702 publish hook if isExternalSign', async () => {
+    accountSupports7702Mock.mockResolvedValue(true);
     const delegation7702Mock: jest.MockedFn<PublishHook> = jest.fn();
 
     jest.mocked(Delegation7702PublishHook).mockImplementation(
