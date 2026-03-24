@@ -7,6 +7,19 @@ import Logger from '../../util/Logger';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import FCMService from '../../util/notifications/services/FCMService';
 import AppConstants from '../AppConstants';
+import StorageWrapper from '../../store/storage-wrapper';
+
+const BRANCH_DEBUG_KEY = 'BRANCH_DEBUG_PARAMS';
+
+async function writeBranchDebug(label: string, data: unknown) {
+  try {
+    const entry = `[${new Date().toISOString()}] ${label}\n${JSON.stringify(data, null, 2)}\n\n`;
+    const prev = (await StorageWrapper.getItem(BRANCH_DEBUG_KEY)) ?? '';
+    await StorageWrapper.setItem(BRANCH_DEBUG_KEY, prev + entry);
+  } catch {
+    // best-effort — never block deep link handling
+  }
+}
 
 /**
  * Branch short-link domains carry a link ID (e.g. /1WkF6GmE40b), NOT an
@@ -31,6 +44,53 @@ export function isBranchShortLinkUrl(url: string): boolean {
  */
 export function buildDeepLinkFromPath(path: string): string {
   return `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${path.replace(/^\//, '')}`;
+}
+
+/**
+ * Attempts to extract a routable deep link URL from Branch-resolved params.
+ * Checks $deeplink_path, $canonical_url, and $desktop_url (in priority order).
+ * Returns undefined when no route can be determined.
+ */
+export function resolveRouteFromBranchParams(
+  params: Record<string, unknown> | undefined,
+): string | undefined {
+  if (!params) return undefined;
+
+  // 1. $deeplink_path — preferred, set explicitly in the Branch dashboard
+  const deepLinkPath = params.$deeplink_path;
+  if (typeof deepLinkPath === 'string' && deepLinkPath.length > 0) {
+    return buildDeepLinkFromPath(deepLinkPath);
+  }
+
+  // 2. $canonical_url — may contain a full MetaMask universal link
+  const canonical = params.$canonical_url;
+  if (typeof canonical === 'string' && canonical.length > 0) {
+    try {
+      const url = new URL(canonical);
+      const path = url.pathname.replace(/^\//, '');
+      if (path.length > 0) {
+        return buildDeepLinkFromPath(path + url.search);
+      }
+    } catch {
+      // not a valid URL — skip
+    }
+  }
+
+  // 3. $desktop_url — another place teams sometimes put the destination
+  const desktop = params.$desktop_url;
+  if (typeof desktop === 'string' && desktop.length > 0) {
+    try {
+      const url = new URL(desktop);
+      const path = url.pathname.replace(/^\//, '');
+      if (path.length > 0) {
+        return buildDeepLinkFromPath(path + url.search);
+      }
+    } catch {
+      // not a valid URL — skip
+    }
+  }
+
+  return undefined;
 }
 
 export class DeeplinkManager {
@@ -103,12 +163,19 @@ export class DeeplinkManager {
     // Branch short-link URLs must be skipped here — they contain a link ID,
     // not an in-app route. The Branch SDK (below) will resolve them.
     Linking.getInitialURL().then((url) => {
-      if (!url || isBranchShortLinkUrl(url)) return;
+      if (!url) return;
+      if (isBranchShortLinkUrl(url)) {
+        writeBranchDebug('Linking.getInitialURL SKIPPED (Branch)', { url });
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 
     Linking.addEventListener('url', ({ url }) => {
-      if (isBranchShortLinkUrl(url)) return;
+      if (isBranchShortLinkUrl(url)) {
+        writeBranchDebug('Linking.addEventListener SKIPPED (Branch)', { url });
+        return;
+      }
       handleDeeplink({ uri: url });
     });
 
@@ -118,10 +185,12 @@ export class DeeplinkManager {
     (async () => {
       try {
         const params = await branch.getLatestReferringParams();
+        writeBranchDebug('getLatestReferringParams (cold start)', params);
 
-        const deepLinkPath = params?.$deeplink_path;
-        if (typeof deepLinkPath === 'string') {
-          handleDeeplink({ uri: buildDeepLinkFromPath(deepLinkPath) });
+        const uri = resolveRouteFromBranchParams(params);
+        writeBranchDebug('cold-start resolvedRoute', { uri: uri ?? 'NONE' });
+        if (uri) {
+          handleDeeplink({ uri });
           return;
         }
 
@@ -140,12 +209,15 @@ export class DeeplinkManager {
         return;
       }
 
-      // $deeplink_path is set in the Branch dashboard for each short link.
-      // It works regardless of +clicked_branch_link, which is false under
-      // NativeLink (pasteboard-based deferred deep linking).
-      const deepLinkPath = opts.params?.$deeplink_path;
-      if (typeof deepLinkPath === 'string') {
-        handleDeeplink({ uri: buildDeepLinkFromPath(deepLinkPath) });
+      writeBranchDebug('branch.subscribe', {
+        uri: opts.uri,
+        params: opts.params,
+      });
+
+      const uri = resolveRouteFromBranchParams(opts.params);
+      writeBranchDebug('subscribe resolvedRoute', { uri: uri ?? 'NONE' });
+      if (uri) {
+        handleDeeplink({ uri });
         return;
       }
 

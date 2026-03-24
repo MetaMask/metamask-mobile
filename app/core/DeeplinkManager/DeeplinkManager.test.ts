@@ -7,6 +7,7 @@ import SharedDeeplinkManager, {
   DeeplinkManager,
   isBranchShortLinkUrl,
   buildDeepLinkFromPath,
+  resolveRouteFromBranchParams,
 } from './DeeplinkManager';
 import { handleDeeplink } from './handlers/legacy/handleDeeplink';
 import switchNetwork from '../../util/networks/switchNetwork';
@@ -330,6 +331,55 @@ describe('buildDeepLinkFromPath', () => {
   });
 });
 
+describe('resolveRouteFromBranchParams', () => {
+  it('returns undefined when params is undefined', () => {
+    expect(resolveRouteFromBranchParams(undefined)).toBeUndefined();
+  });
+
+  it('resolves from $deeplink_path (highest priority)', () => {
+    expect(
+      resolveRouteFromBranchParams({
+        $deeplink_path: 'trending',
+        $canonical_url: 'https://metamask.io/swap',
+      }),
+    ).toBe('https://link.metamask.io/trending');
+  });
+
+  it('falls back to $canonical_url when $deeplink_path is absent', () => {
+    expect(
+      resolveRouteFromBranchParams({
+        $canonical_url: 'https://metamask.io/trending',
+      }),
+    ).toBe('https://link.metamask.io/trending');
+  });
+
+  it('falls back to $desktop_url when both $deeplink_path and $canonical_url are absent', () => {
+    expect(
+      resolveRouteFromBranchParams({
+        $desktop_url: 'https://portfolio.metamask.io/swap?amount=100',
+      }),
+    ).toBe('https://link.metamask.io/swap?amount=100');
+  });
+
+  it('returns undefined when no usable params exist', () => {
+    expect(
+      resolveRouteFromBranchParams({
+        '+clicked_branch_link': false,
+        '~channel': 'twitter',
+      }),
+    ).toBeUndefined();
+  });
+
+  it('skips empty $deeplink_path and falls through', () => {
+    expect(
+      resolveRouteFromBranchParams({
+        $deeplink_path: '',
+        $canonical_url: 'https://metamask.io/trending',
+      }),
+    ).toBe('https://link.metamask.io/trending');
+  });
+});
+
 // ---------------------------------------------------------------------------
 // Linking handlers (Branch short-link guard)
 // ---------------------------------------------------------------------------
@@ -437,7 +487,21 @@ describe('Branch SDK deep link handling', () => {
     });
   });
 
-  it('falls back to +non_branch_link on cold start when $deeplink_path is absent', async () => {
+  it('falls back to $canonical_url on cold start when $deeplink_path is absent', async () => {
+    (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
+      '+clicked_branch_link': false,
+      $canonical_url: 'https://metamask.io/trending',
+    });
+
+    DeeplinkManager.start();
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/trending',
+    });
+  });
+
+  it('falls back to +non_branch_link on cold start when no route params exist', async () => {
     const mockDeeplink = 'https://link.metamask.io/home';
     (branch.getLatestReferringParams as jest.Mock).mockResolvedValue({
       '+non_branch_link': mockDeeplink,
@@ -494,7 +558,26 @@ describe('Branch SDK deep link handling', () => {
     });
   });
 
-  it('routes non-Branch URI directly when $deeplink_path is absent', async () => {
+  it('falls back to $canonical_url from subscribe when $deeplink_path is absent', async () => {
+    DeeplinkManager.start();
+    const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
+
+    callback({
+      uri: 'https://metamask.app.link/1WkF6GmE40b',
+      params: {
+        '+clicked_branch_link': false,
+        $canonical_url: 'https://metamask.io/trending',
+      },
+    });
+
+    await new Promise((resolve) => setImmediate(resolve));
+
+    expect(handleDeeplink).toHaveBeenCalledWith({
+      uri: 'https://link.metamask.io/trending',
+    });
+  });
+
+  it('routes non-Branch URI directly when no route params exist', async () => {
     DeeplinkManager.start();
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
 
@@ -510,7 +593,7 @@ describe('Branch SDK deep link handling', () => {
     });
   });
 
-  it('skips unresolvable Branch short link (no $deeplink_path)', async () => {
+  it('skips unresolvable Branch short link (no route params)', async () => {
     DeeplinkManager.start();
     const callback = (branch.subscribe as jest.Mock).mock.calls[0][0];
 
