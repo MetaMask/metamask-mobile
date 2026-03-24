@@ -71,6 +71,7 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
@@ -1326,7 +1327,9 @@ describe('Onboarding', () => {
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
-            type: 'warning',
+            type: 'error',
+            icon: IconName.Warning,
+            isInteractable: false,
             title: strings('error_sheet.ios_google_login_not_supported_title'),
             description: strings(
               'error_sheet.ios_google_login_not_supported_description',
