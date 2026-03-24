@@ -29,11 +29,10 @@ const SRPList = ({
 
   return (
     <Box
-      style={tw.style(
-        'py-4 px-4 bg-default m-2',
-        { maxHeight },
-        containerStyle && StyleSheet.flatten(containerStyle),
-      )}
+      style={tw.style('py-4 px-4 bg-default m-2', {
+        maxHeight,
+        ...StyleSheet.flatten(containerStyle ?? {}),
+      })}
       testID={SRPListSelectorsIDs.SRP_LIST}
     >
       <FlatList

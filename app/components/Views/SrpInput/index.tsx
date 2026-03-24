@@ -95,18 +95,21 @@ const TextField = React.forwardRef<
       }
     };
 
+    let borderStyleClass = 'border-muted';
+    if (isError) {
+      borderStyleClass = 'border-error-default';
+    } else if (isFocused) {
+      borderStyleClass = 'border-default';
+    }
+
     return (
       <TouchableWithoutFeedback onPress={onInputFocus}>
         <Box
           style={tw.style(
             'flex-row items-center rounded-xl h-12 border px-4 bg-muted',
             isDisabled && 'opacity-50',
-            isError
-              ? 'border-error-default'
-              : isFocused
-                ? 'border-default'
-                : 'border-muted',
-            style && StyleSheet.flatten(style),
+            borderStyleClass,
+            ...(style ? [StyleSheet.flatten(style)] : []),
           )}
           testID={TEXTFIELD_TEST_ID}
         >
