@@ -6,13 +6,11 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import createStyles from './ContextualNetworkPicker.styles';
 import ContextualNetworkPicker from './ContextualNetworkPicker';
 import { BASE_DISPLAY_NAME } from '../../../core/Engine/constants';
-import { mockTheme } from '../../../util/theme';
 
 jest.mock('../../../util/theme', () => {
-  const actual = jest.requireActual('../../../util/theme');
+  const { mockTheme } = jest.requireActual('../../../util/theme');
   return {
-    ...actual,
-    useTheme: () => actual.mockTheme,
+    useTheme: jest.fn(() => mockTheme),
   };
 });
 
@@ -295,27 +293,46 @@ describe('ContextualNetworkPicker', () => {
   });
 
   describe('Styles', () => {
-    const colors = mockTheme.colors as unknown as ThemeColors;
+    const mockColors = {
+      background: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        default: '#ffffff',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        alternative: '#f2f3f4',
+      },
+      border: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        default: '#d6d9dc',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        muted: '#bbc0c5',
+      },
+      text: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        default: '#24272a',
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        alternative: '#535a61',
+      },
+    } as unknown as ThemeColors;
 
     it('should create styles with enabled state (disabled=false)', () => {
-      const styles = createStyles(colors, false);
+      const styles = createStyles(mockColors, false);
 
-      expect(styles.base.borderColor).toBe(colors.border.default);
+      expect(styles.base.borderColor).toBe(mockColors.border.default);
       expect(styles.avatar.opacity).toBe(1);
       expect(styles.networkName.opacity).toBe(1);
     });
 
     it('should create styles with disabled state (disabled=true)', () => {
-      const styles = createStyles(colors, true);
+      const styles = createStyles(mockColors, true);
 
-      expect(styles.base.borderColor).toBe(colors.border.muted);
+      expect(styles.base.borderColor).toBe(mockColors.border.muted);
       expect(styles.avatar.opacity).toBe(0.5);
       expect(styles.networkName.opacity).toBe(0.5);
     });
 
     it('should create consistent static styles regardless of disabled state', () => {
-      const enabledStyles = createStyles(colors, false);
-      const disabledStyles = createStyles(colors, true);
+      const enabledStyles = createStyles(mockColors, false);
+      const disabledStyles = createStyles(mockColors, true);
 
       // These styles should be identical regardless of disabled state
       expect(enabledStyles.accountSelectorWrapper).toEqual(
@@ -326,7 +343,7 @@ describe('ContextualNetworkPicker', () => {
     });
 
     it('should return valid StyleSheet objects with all expected properties', () => {
-      const styles = createStyles(colors, false);
+      const styles = createStyles(mockColors, false);
 
       expect(styles).toHaveProperty('base');
       expect(styles).toHaveProperty('accountSelectorWrapper');

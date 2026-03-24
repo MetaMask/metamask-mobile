@@ -19,8 +19,6 @@ import NotificationManager from '../../../core/NotificationManager';
 import { updateIncomingTransactions } from '../../../util/transaction-controller';
 import Engine from '../../../core/Engine';
 import Logger from '../../../util/Logger';
-import { CancelSpeedupModal } from '../../../components/Views/confirmations/components/modals/cancel-speedup-modal';
-import { mockTheme } from '../../../util/theme';
 
 // Mock the navigation and other dependencies
 const mockNavigationPush = jest.fn();
@@ -60,8 +58,8 @@ jest.mock('../../../util/transaction-controller', () => ({
 jest.mock('../../../core/Engine', () => ({
   context: {
     ApprovalController: {
-      acceptRequest: jest.fn(),
-      rejectRequest: jest.fn(),
+      accept: jest.fn(),
+      reject: jest.fn(),
     },
     TransactionController: {
       stopTransaction: jest.fn(),
@@ -80,6 +78,14 @@ jest.mock('../TransactionElement', () => ({
 }));
 
 // Mock other connected components
+jest.mock(
+  '../../Views/confirmations/legacy/components/UpdateEIP1559Tx',
+  () => ({
+    __esModule: true,
+    default: () => null,
+  }),
+);
+
 jest.mock('../TransactionActionModal', () => ({
   __esModule: true,
   default: () => null,
@@ -627,7 +633,7 @@ describe('Transactions', () => {
     });
 
     it('should test Engine context methods', () => {
-      expect(Engine.context.ApprovalController.acceptRequest).toBeDefined();
+      expect(Engine.context.ApprovalController.accept).toBeDefined();
       expect(
         Engine.context.TransactionController.stopTransaction,
       ).toBeDefined();
@@ -1543,25 +1549,37 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(instance.cancelTxId).toBe('tx-456');
     expect(instance.existingTx).toBe(tx);
     expect(instance.setState).toHaveBeenCalledWith({
-      speedUpIsOpen: false,
+      cancelConfirmDisabled: false,
       cancelIsOpen: true,
-      confirmDisabled: false,
     });
   });
 
-  it('should test closeSpeedUpCancelModal method directly', () => {
+  it('should test onSpeedUpCompleted method directly', () => {
     instance.setState = jest.fn();
     instance.speedUpTxId = 'tx-123';
-    instance.cancelTxId = 'tx-456';
     instance.existingTx = { id: 'tx-123' };
 
-    instance.closeSpeedUpCancelModal();
+    instance.onSpeedUpCompleted();
 
     expect(instance.setState).toHaveBeenCalledWith({
+      speedUp1559IsOpen: false,
       speedUpIsOpen: false,
-      cancelIsOpen: false,
     });
     expect(instance.speedUpTxId).toBeNull();
+    expect(instance.existingTx).toBeNull();
+  });
+
+  it('should test onCancelCompleted method directly', () => {
+    instance.setState = jest.fn();
+    instance.cancelTxId = 'tx-456';
+    instance.existingTx = { id: 'tx-456' };
+
+    instance.onCancelCompleted();
+
+    expect(instance.setState).toHaveBeenCalledWith({
+      cancel1559IsOpen: false,
+      cancelIsOpen: false,
+    });
     expect(instance.cancelTxId).toBeNull();
     expect(instance.existingTx).toBeNull();
   });
@@ -1843,7 +1861,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test componentDidUpdate method directly', () => {
     instance.updateBlockExplorer = jest.fn();
-    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.onSpeedUpCompleted = jest.fn();
+    instance.onCancelCompleted = jest.fn();
     instance.existingTx = { id: 'tx-123' };
     instance.props = {
       ...defaultTestProps,
@@ -1853,7 +1872,8 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     instance.componentDidUpdate();
 
     expect(instance.updateBlockExplorer).toHaveBeenCalled();
-    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
+    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
+    expect(instance.onCancelCompleted).toHaveBeenCalled();
   });
 
   it('should test init method directly', () => {
@@ -1919,7 +1939,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.onSpeedUpCompleted = jest.fn();
 
     const transactionObject = {
       maxFeePerGas: '0x123',
@@ -1928,7 +1948,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
     await instance.speedUpTransaction(transactionObject);
 
-    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
+    expect(instance.onSpeedUpCompleted).toHaveBeenCalled();
   });
 
   it('should test cancelTransaction method directly', async () => {
@@ -1938,7 +1958,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       maxFeePerGas: '0x123',
       maxPriorityFeePerGas: '0x456',
     });
-    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.onCancelCompleted = jest.fn();
 
     const transactionObject = {
       maxFeePerGas: '0x123',
@@ -1950,13 +1970,18 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(
       Engine.context.TransactionController.stopTransaction,
     ).toHaveBeenCalled();
-    expect(instance.closeSpeedUpCancelModal).toHaveBeenCalled();
+    expect(instance.onCancelCompleted).toHaveBeenCalled();
   });
 
   it('should test renderLoader method directly', () => {
     instance.context = {
-      colors: mockTheme.colors,
-      typography: mockTheme.typography,
+      colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        text: { muted: '#999' },
+      },
+      typography: {},
     };
 
     const result = instance.renderLoader();
@@ -1965,8 +1990,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderEmpty method directly', () => {
     instance.context = {
-      colors: mockTheme.colors,
-      typography: mockTheme.typography,
+      colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        text: { muted: '#999' },
+      },
+      typography: {},
     };
     instance.props = {
       ...defaultTestProps,
@@ -1997,8 +2027,17 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderList method directly', () => {
     instance.context = {
-      colors: mockTheme.colors,
-      typography: mockTheme.typography,
+      colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        text: { muted: '#999' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        primary: { default: '#037dd6' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        icon: { default: '#24272a' },
+      },
+      typography: {},
     };
     instance.flatList = React.createRef();
     instance.state = { refreshing: false };
@@ -2021,64 +2060,27 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     expect(result).toBeDefined();
   });
 
-  it('renders single CancelSpeedupModal with correct props when speed up or cancel is open', () => {
-    instance.context = {
-      colors: mockTheme.colors,
-      typography: mockTheme.typography,
-    };
-    instance.state = {
-      refreshing: false,
-      confirmDisabled: false,
-    };
-    instance.props = {
-      ...defaultTestProps,
-      submittedTransactions: [],
-      confirmedTransactions: [],
-      transactions: [{ id: 'tx-1' }],
-      isSigningQRObject: false,
-    };
-    instance.existingTx = { id: 'tx-1', chainId: '0x1' };
-
-    // When both closed: modal mounted but not visible (exit animation can run)
-    instance.state.speedUpIsOpen = false;
-    instance.state.cancelIsOpen = false;
-    let listResult = instance.renderList();
-    let listWrapper = shallow(listResult);
-    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
-    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(false);
-
-    // When speed up open: one modal, isVisible true, isCancel false
-    instance.state.speedUpIsOpen = true;
-    instance.state.cancelIsOpen = false;
-    listResult = instance.renderList();
-    listWrapper = shallow(listResult);
-    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
-    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
-    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(false);
-
-    // When cancel open: one modal, isVisible true, isCancel true
-    instance.state.speedUpIsOpen = false;
-    instance.state.cancelIsOpen = true;
-    listResult = instance.renderList();
-    listWrapper = shallow(listResult);
-    expect(listWrapper.find(CancelSpeedupModal)).toHaveLength(1);
-    expect(listWrapper.find(CancelSpeedupModal).prop('isVisible')).toBe(true);
-    expect(listWrapper.find(CancelSpeedupModal).prop('isCancel')).toBe(true);
-  });
-
   it('should test render method directly', () => {
     instance.context = {
-      colors: mockTheme.colors,
-      typography: mockTheme.typography,
+      colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        text: { muted: '#999' },
+      },
+      typography: {},
     };
     instance.state = {
       ready: true,
+      speedUp1559IsOpen: false,
+      cancel1559IsOpen: false,
       retryIsOpen: false,
       errorMsg: null,
     };
     instance.props = { ...defaultTestProps, loading: false };
     instance.renderLoader = jest.fn();
     instance.renderList = jest.fn();
+    instance.renderUpdateTxEIP1559Gas = jest.fn();
     instance.toggleRetry = jest.fn();
     instance.retry = jest.fn();
 
@@ -2191,8 +2193,13 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
 
   it('should test renderEmpty with switch network scenarios', () => {
     instance.context = {
-      colors: mockTheme.colors,
-      typography: mockTheme.typography,
+      colors: {
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        background: { default: '#fff' },
+        // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+        text: { muted: '#999' },
+      },
+      typography: {},
     };
 
     // Test when tokenChainId is different from chainId
@@ -2307,7 +2314,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.speedUpTxId = 'tx-123';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.onSpeedUpCompleted = jest.fn();
 
     const transactionObject = {
       suggestedMaxFeePerGasHex: '123',
@@ -2322,7 +2329,7 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     mockIsHardwareAccount.mockReturnValue(true);
     instance.cancelTxId = 'tx-456';
     instance.signLedgerTransaction = jest.fn().mockResolvedValue(undefined);
-    instance.closeSpeedUpCancelModal = jest.fn();
+    instance.onCancelCompleted = jest.fn();
 
     await instance.cancelTransaction(transactionObject);
 

@@ -1,13 +1,15 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useTokenLogo } from './useTokenLogo';
+import { mockTheme } from '../../../util/theme';
 
-// Mock useTheme hook
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn().mockReturnValue(mockTheme),
-  };
+const mockUseTheme = jest.fn().mockReturnValue({
+  ...mockTheme,
+  themeAppearance: 'light' as const,
 });
+
+jest.mock('../../../util/theme', () => ({
+  useTheme: () => mockUseTheme(),
+}));
 
 describe('useTokenLogo', () => {
   const mockAssetsRequiringLightBg = new Set(['ETH', 'XRP']);
@@ -15,6 +17,10 @@ describe('useTokenLogo', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseTheme.mockReturnValue({
+      ...mockTheme,
+      themeAppearance: 'light' as const,
+    });
   });
 
   describe('Initial state', () => {

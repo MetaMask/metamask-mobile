@@ -1,4 +1,4 @@
-/* eslint-disable import-x/no-commonjs */
+/* eslint-disable import/no-commonjs */
 module.exports = {
   root: true,
   parser: '@typescript-eslint/parser',
@@ -9,7 +9,7 @@ module.exports = {
     '@react-native',
     'eslint:recommended',
     // '@metamask/eslint-config', // TODO: Enable when ready
-    'plugin:import-x/warnings',
+    'plugin:import/warnings',
     'plugin:react/recommended',
   ],
   // ESLint can find the plugin without the `eslint-plugin-` prefix. Ex. `eslint-plugin-react-compiler` -> `react-compiler`
@@ -51,65 +51,6 @@ module.exports = {
             allow: ['Text'],
           },
         ],
-
-        // These rule modifications are removing changes to our shared ESLint config made after
-        // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-        // at which point we can restore the intended rules and use error suppression instead.
-        //
-        // TODO: Remove these modifications after the ESLint v9 update
-        '@typescript-eslint/await-thenable': 'off',
-        '@typescript-eslint/consistent-type-imports': 'off',
-        '@typescript-eslint/consistent-type-exports': 'off',
-        '@typescript-eslint/explicit-function-return-type': 'off',
-        '@typescript-eslint/naming-convention': 'off',
-        '@typescript-eslint/no-base-to-string': 'off',
-        '@typescript-eslint/no-duplicate-type-constituents': 'off',
-        '@typescript-eslint/no-empty-object-type': 'off',
-        '@typescript-eslint/no-floating-promises': 'off',
-        '@typescript-eslint/no-implied-eval': 'off',
-        '@typescript-eslint/no-misused-promises': 'off',
-        '@typescript-eslint/no-redundant-type-constituents': 'off',
-        '@typescript-eslint/no-throw-literal': 'off',
-        '@typescript-eslint/no-unnecessary-type-assertion': 'off',
-        '@typescript-eslint/no-unnecessary-type-arguments': 'off',
-        '@typescript-eslint/no-unsafe-enum-comparison': 'off',
-        '@typescript-eslint/no-unnecessary-boolean-literal-compare': 'off',
-        '@typescript-eslint/no-unused-vars': 'off',
-        '@typescript-eslint/no-wrapper-object-types': 'off',
-        '@typescript-eslint/only-throw-error': 'off',
-        '@typescript-eslint/prefer-enum-initializers': 'off',
-        '@typescript-eslint/prefer-includes': 'off',
-        '@typescript-eslint/prefer-nullish-coalescing': 'off',
-        '@typescript-eslint/prefer-optional-chain': 'off',
-        '@typescript-eslint/prefer-promise-reject-errors': 'off',
-        '@typescript-eslint/prefer-readonly': 'off',
-        '@typescript-eslint/prefer-reduce-type-parameter': 'off',
-        '@typescript-eslint/prefer-string-starts-ends-with': 'off',
-        '@typescript-eslint/promise-function-async': 'off',
-        '@typescript-eslint/restrict-plus-operands': 'off',
-        '@typescript-eslint/restrict-template-expressions': 'off',
-        '@typescript-eslint/switch-exhaustiveness-check': 'off',
-        '@typescript-eslint/unbound-method': 'off',
-        'no-restricted-syntax': [
-          'error',
-          {
-            selector: 'WithStatement',
-            message: 'With statements are not allowed',
-          },
-          {
-            selector: 'SequenceExpression',
-            message: 'Sequence expressions are not allowed',
-          },
-          // {
-          //   selector: "BinaryExpression[operator='in']",
-          //   message: 'The "in" operator is not allowed',
-          // },
-          // {
-          //   selector:
-          //     "PropertyDefinition[accessibility='private'], MethodDefinition[accessibility='private'], TSParameterProperty[accessibility='private']",
-          //   message: 'Use a hash name instead.',
-          // },
-        ],
       },
     },
     {
@@ -145,20 +86,16 @@ module.exports = {
       },
       rules: {
         'no-console': 'off',
-        'import-x/no-commonjs': 'off',
-        'import-x/no-nodejs-modules': 'off',
+        'import/no-commonjs': 'off',
+        'import/no-nodejs-modules': 'off',
       },
     },
     {
-      files: [
-        'scripts/**/*.{js,ts}',
-        'tests/tools/**/*.{js,ts}',
-        'app.config.js',
-      ],
+      files: ['scripts/**/*.js', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
       rules: {
         'no-console': 'off',
-        'import-x/no-commonjs': 'off',
-        'import-x/no-nodejs-modules': 'off',
+        'import/no-commonjs': 'off',
+        'import/no-nodejs-modules': 'off',
       },
     },
     {
@@ -179,75 +116,6 @@ module.exports = {
         '@metamask/design-tokens/color-no-hex': 'off',
       },
     },
-    {
-      files: [
-        // @MetaMask/card
-        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/core-platform
-        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/predict
-        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/ramp
-        'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/rewards
-        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/perps
-        'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/metamask-earn
-        'app/components/UI/Earn/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Stake/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/metamask-assets
-        'app/components/UI/Assets/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Tokens/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/AssetOverview/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Collectibles/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleContractElement/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleContractInformation/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleContractOverview/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleContracts/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleDetectionModal/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleMedia/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleModal/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/CollectibleOverview/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/ConfirmAddAsset/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/DeFiPositions/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/TokenDetails/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/AddAsset/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/Asset/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/AssetDetails/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/AssetHideConfirmation/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/AssetOptions/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/Collectible/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/CollectibleView/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/DetectedTokens/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/NFTAutoDetectionModal/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/NftDetails/**/*.{js,jsx,ts,tsx}',
-        // @MetaMask/mobile-core-ux
-        'app/components/Views/AccountActions/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/AccountSelector/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/AccountsMenu/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/AddressQRCode/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/EditAccountName/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/LockScreen/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/Login/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/MultichainTransactionsView/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/NetworkConnect/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/NetworkSelector/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/QRAccountDisplay/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/QRScanner/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/Settings/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/TermsAndConditions/**/*.{js,jsx,ts,tsx}',
-        'app/components/Views/UnifiedTransactionsView/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/MultichainTransactionListItem/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/TransactionActionModal/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/TransactionElement/**/*.{js,jsx,ts,tsx}',
-        'app/components/UI/Transactions/**/*.{js,jsx,ts,tsx}',
-      ],
-      rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
-      },
-    },
-
     {
       files: [
         'app/components/UI/Name/**/*.{js,ts,tsx}',
@@ -284,11 +152,20 @@ module.exports = {
     },
     {
       files: [
-        'app/component-library/**/*.{js,ts,tsx}',
-        'app/components/**/*.{js,ts,tsx}',
+        'app/component-library/**/*.{js,jsx,ts,tsx}',
+        'app/components/**/*.{js,jsx,ts,tsx}',
       ],
-      plugins: ['tailwindcss'],
+      excludedFiles: [
+        'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
+      ],
+      plugins: ['@metamask/design-tokens', 'tailwindcss'],
       rules: {
+        '@metamask/design-tokens/color-no-hex': 'error',
         'tailwindcss/classnames-order': 'error',
         'tailwindcss/enforces-negative-arbitrary-values': 'error',
         'tailwindcss/enforces-shorthand': 'error',
@@ -475,13 +352,10 @@ module.exports = {
         '@typescript-eslint/no-floating-promises': 'error',
         '@typescript-eslint/restrict-template-expressions': 'error',
 
-        // === Import rules ===
-        'import-x/consistent-type-specifier-style': [
-          'error',
-          'prefer-top-level',
-        ],
-        'import-x/no-named-as-default': 'error',
-        'import-x/order': [
+        // === Import rules (using 'import' plugin, not 'import-x') ===
+        'import/consistent-type-specifier-style': ['error', 'prefer-top-level'],
+        'import/no-named-as-default': 'error',
+        'import/order': [
           'error',
           {
             groups: [
@@ -558,10 +432,10 @@ module.exports = {
   },
 
   settings: {
-    'import-x/resolver': {
+    'import/resolver': {
       typescript: {}, // this loads <rootdir>/tsconfig.json to eslint
     },
-    'import-x/internal-regex': '^@metamask/perps-controller',
+    'import/internal-regex': '^@metamask/perps-controller',
   },
 
   rules: {
@@ -583,7 +457,7 @@ module.exports = {
     'no-bitwise': 'off',
     'class-methods-use-this': 'off',
     'eol-last': 'warn',
-    'import-x/no-named-as-default': 'off',
+    'import/no-named-as-default': 'off',
     'no-invalid-this': 'off',
     'no-new': 'off',
     'react/jsx-handler-names': 'off',
@@ -594,14 +468,14 @@ module.exports = {
     'arrow-body-style': 'error',
     'dot-notation': 'error',
     eqeqeq: 'error',
-    'import-x/no-amd': 'error',
-    'import-x/no-commonjs': 'error',
-    'import-x/no-duplicates': 'error',
-    'import-x/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
-    'import-x/no-mutable-exports': 'error',
-    'import-x/no-namespace': 'error',
-    'import-x/no-nodejs-modules': 'error',
-    'import-x/prefer-default-export': 'off',
+    'import/no-amd': 'error',
+    'import/no-commonjs': 'error',
+    'import/no-duplicates': 'error',
+    'import/no-extraneous-dependencies': ['error', { packageDir: ['./'] }],
+    'import/no-mutable-exports': 'error',
+    'import/no-namespace': 'error',
+    'import/no-nodejs-modules': 'error',
+    'import/prefer-default-export': 'off',
     'no-alert': 'error',
     'no-constant-condition': [
       'error',
@@ -649,7 +523,7 @@ module.exports = {
     'prefer-const': 'error',
     'prefer-rest-params': 'error',
     'prefer-spread': 'error',
-    'import-x/no-unresolved': 'error',
+    'import/no-unresolved': 'error',
     'eslint-comments/no-unlimited-disable': 'off',
     'eslint-comments/no-unused-disable': 'off',
     'react-native/no-color-literals': 'error',
@@ -674,16 +548,7 @@ module.exports = {
     'react/no-string-refs': 'error',
     'react/no-unused-prop-types': 'error',
     'react/prefer-es6-class': 'error',
-    '@metamask/design-tokens/color-no-hex': 'warn',
     radix: 'off',
-
-    // These rule modifications are removing changes to our shared ESLint config made after
-    // version v9. This is a temporary measure to get us to ESLint v9 compatible versions,
-    // at which point we can restore the intended rules and use error suppression instead.
-    //
-    // TODO: Remove these modifications after the ESLint v9 update
-    'react-hooks/rules-of-hooks': 'off',
-    'no-loss-of-precision': 'off',
   },
 
   ignorePatterns: ['wdio.conf.js', 'app/util/termsOfUse/termsOfUseContent.ts'],

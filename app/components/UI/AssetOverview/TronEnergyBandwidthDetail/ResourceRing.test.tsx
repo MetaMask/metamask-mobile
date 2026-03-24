@@ -2,6 +2,7 @@ import React from 'react';
 import { render } from '@testing-library/react-native';
 import ResourceRing from './ResourceRing';
 import { IconName } from '@metamask/design-system-react-native';
+import { mockTheme } from '../../../../util/theme';
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => {
@@ -10,14 +11,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   },
 }));
 
-jest.mock('../../../../util/theme', () => {
-  // Use the real mockTheme to avoid circular mock issues
-  const actual = jest.requireActual('../../../../util/theme');
-  return {
-    ...actual,
-    useTheme: () => actual.mockTheme,
-  };
-});
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => mockTheme,
+}));
 
 describe('ResourceRing', () => {
   it('renders the ring icon', () => {

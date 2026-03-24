@@ -38,17 +38,25 @@ jest.mock('../../../util/theme', () => {
 });
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
-  useStyles: jest.fn(() => {
-    const { mockTheme } = jest.requireActual('../../../util/theme');
-    return {
-      styles: {
-        bodyContainer: {},
-        selectAllText: {},
-        customNetworkContainer: {},
+  useStyles: jest.fn(() => ({
+    styles: {
+      bodyContainer: {},
+      selectAllText: {},
+      customNetworkContainer: {},
+    },
+    theme: {
+      colors: {
+        icon: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          alternative: '#666666',
+        },
+        text: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          alternative: '#999999',
+        },
       },
-      theme: mockTheme,
-    };
-  }),
+    },
+  })),
 }));
 
 jest.mock('../../../../locales/i18n', () => ({
@@ -87,25 +95,18 @@ jest.mock('react-redux', () => ({
   Provider: jest.requireActual('react-redux').Provider,
 }));
 
-jest.mock('../../../selectors/accountsController', () => {
-  const actual = jest.requireActual('../../../selectors/accountsController');
-  return {
-    ...actual,
-    selectSelectedInternalAccountByScope: jest.fn(() => jest.fn()),
-    selectInternalAccounts: jest.fn(),
-    selectInternalAccountsById: jest.fn(),
-  };
-});
+jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn()),
+  selectInternalAccounts: jest.fn(),
+  selectInternalAccountsById: jest.fn(),
+}));
 
-jest.mock('../../../selectors/multichainAccounts/accountTreeController', () => {
-  const actual = jest.requireActual(
-    '../../../selectors/multichainAccounts/accountTreeController',
-  );
-  return {
-    ...actual,
+jest.mock(
+  '../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
     selectAccountTreeControllerState: jest.fn(),
-  };
-});
+  }),
+);
 
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => null),
@@ -183,7 +184,13 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 });
 
 // Mock store setup
-const mockStore = createStore(() => ({}));
+const mockStore = createStore(() => ({
+  featureFlags: {
+    multichainAccounts: {
+      enabledMultichainAccounts: true,
+    },
+  },
+}));
 
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
@@ -253,6 +260,7 @@ describe('NetworkMultiSelector', () => {
       : null,
     selectedBitcoinAccount: null,
     selectedTronAccount: null,
+    isMultichainAccountsState2Enabled: true,
     areAllNetworksSelectedCombined: areAllSelected,
     areAllEvmNetworksSelected: false,
     areAllSolanaNetworksSelected: false,
@@ -324,9 +332,6 @@ describe('NetworkMultiSelector', () => {
       enableNetwork: jest.fn(),
       disableNetwork: jest.fn(),
       enableAllPopularNetworks: jest.fn(),
-      popularEvmNetworks: [],
-      popularMultichainNetworks: [],
-      popularNetworks: [],
       isNetworkEnabled: jest.fn(),
       hasOneEnabledNetwork: false,
       tryEnableEvmNetwork: jest.fn(),
@@ -381,6 +386,7 @@ describe('NetworkMultiSelector', () => {
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
       selectedTronAccount: { id: 'tron-account' } as InternalAccount,
+      isMultichainAccountsState2Enabled: true,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
@@ -461,7 +467,6 @@ describe('NetworkMultiSelector', () => {
     mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
-      identify: jest.fn(),
       isEnabled: () => true,
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
@@ -561,9 +566,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -602,9 +604,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -691,9 +690,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -719,8 +715,9 @@ describe('NetworkMultiSelector', () => {
       });
     });
 
-    it('calls useNetworksToUse', () => {
+    it('calls useNetworksToUse when multichain is enabled', () => {
       mockUseSelector
+        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
 
@@ -749,9 +746,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -786,6 +780,7 @@ describe('NetworkMultiSelector', () => {
         selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: true,
         areAllSolanaNetworksSelected: false,
@@ -831,9 +826,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -871,6 +863,7 @@ describe('NetworkMultiSelector', () => {
         selectedTronAccount: null,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: true,
@@ -912,9 +905,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -949,6 +939,7 @@ describe('NetworkMultiSelector', () => {
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -985,9 +976,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
@@ -1023,6 +1011,7 @@ describe('NetworkMultiSelector', () => {
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
+        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -1150,6 +1139,7 @@ describe('NetworkMultiSelector', () => {
         });
 
       mockUseSelector
+        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })) // selectedSolanaAccount
         .mockReturnValueOnce(() => ({ id: 'bitcoin-account' })); // selectedBitcoinAccount
@@ -2420,9 +2410,6 @@ describe('NetworkMultiSelector', () => {
         enableNetwork: jest.fn(),
         disableNetwork: jest.fn(),
         enableAllPopularNetworks: jest.fn(),
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),

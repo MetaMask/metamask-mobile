@@ -4,14 +4,14 @@ import StockBadge from './StockBadge';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { BridgeToken } from '../../Bridge/types';
-import { mockTheme } from '../../../../util/theme';
 
 // Mock dependencies
 const mockStyles = {
   stockBadge: {
     flexDirection: 'row' as const,
     alignItems: 'center' as const,
-    backgroundColor: mockTheme.colors.background.muted,
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+    backgroundColor: '#f0f0f0',
     borderRadius: 10,
     paddingHorizontal: 6,
     paddingVertical: 2,

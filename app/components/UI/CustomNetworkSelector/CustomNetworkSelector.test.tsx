@@ -1,6 +1,6 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
+import { Provider, useSelector } from 'react-redux';
 import { createStore } from 'redux';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -17,7 +17,11 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import CustomNetworkSelector from './CustomNetworkSelector';
 import { CustomNetworkItem } from './CustomNetworkSelector.types';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
+import {
+  selectIsEvmNetworkSelected,
+  selectSelectedNonEvmNetworkChainId,
+} from '../../../selectors/multichainNetworkController';
+import { selectEvmChainId } from '../../../selectors/networkController';
 import { InternalAccount } from '@metamask/keyring-internal-api';
 
 jest.mock('../../../core/Multichain/utils', () => ({
@@ -57,17 +61,25 @@ jest.mock('../../../../locales/i18n', () => ({
 }));
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
-  useStyles: jest.fn(() => {
-    const { mockTheme } = jest.requireActual('../../../util/theme');
-    return {
-      styles: {
-        container: {},
-        addNetworkButtonContainer: {},
-        iconContainer: {},
+  useStyles: jest.fn(() => ({
+    styles: {
+      container: {},
+      addNetworkButtonContainer: {},
+      iconContainer: {},
+    },
+    theme: {
+      colors: {
+        icon: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          alternative: '#666666',
+        },
+        text: {
+          // eslint-disable-next-line @metamask/design-tokens/color-no-hex
+          alternative: '#999999',
+        },
       },
-      theme: mockTheme,
-    };
-  }),
+    },
+  })),
 }));
 
 jest.mock('../../../util/networks', () => ({
@@ -84,19 +96,6 @@ jest.mock('../../../util/hideKeyFromUrl', () =>
 
 jest.mock('../../../constants/navigation/Routes', () => ({
   ADD_NETWORK: 'AddNetwork',
-}));
-
-jest.mock('../../../selectors/assets/balances', () => ({
-  selectBalanceBySelectedAccountGroup: jest.fn(() => () => null),
-  selectBalanceChangeBySelectedAccountGroup: jest.fn(() => () => null),
-}));
-
-jest.mock('../../hooks/useFormatters', () => ({
-  useFormatters: jest.fn(() => ({
-    formatCurrency: jest.fn(
-      (amount: number, currency: string) => `${amount} ${currency}`,
-    ),
-  })),
 }));
 
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
@@ -123,6 +122,7 @@ jest.mock('../../../util/device', () => ({
 
 jest.mock('../../../selectors/networkController', () => ({
   selectEvmNetworkConfigurationsByChainId: jest.fn(),
+  selectEvmChainId: jest.fn(),
   createProviderConfig: jest.fn(),
 }));
 
@@ -164,6 +164,7 @@ jest.mock('@shopify/flash-list', () => {
 
 jest.mock('../../../selectors/multichainNetworkController', () => ({
   selectIsEvmNetworkSelected: jest.fn(),
+  selectSelectedNonEvmNetworkChainId: jest.fn(),
 }));
 
 // Mock store setup
@@ -202,6 +203,7 @@ describe('CustomNetworkSelector', () => {
   const mockUseNetworksToUse = useNetworksToUse as jest.MockedFunction<
     typeof useNetworksToUse
   >;
+  const mockUseSelector = jest.mocked(useSelector);
   const mockSelectIsEvmNetworkSelected =
     selectIsEvmNetworkSelected as jest.MockedFunction<
       typeof selectIsEvmNetworkSelected
@@ -283,6 +285,7 @@ describe('CustomNetworkSelector', () => {
       evmNetworks: mockNetworks,
       solanaNetworks: mockNetworks,
       bitcoinNetworks: mockNetworks,
+      isMultichainAccountsState2Enabled: true,
       selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
@@ -296,6 +299,19 @@ describe('CustomNetworkSelector', () => {
     });
 
     mockSelectIsEvmNetworkSelected.mockReturnValue(true);
+
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === mockSelectIsEvmNetworkSelected) {
+        return true;
+      }
+      if (selector === selectEvmChainId) {
+        return '0x1'; // Ethereum mainnet
+      }
+      if (selector === selectSelectedNonEvmNetworkChainId) {
+        return 'solana:mainnet';
+      }
+      return undefined;
+    });
   });
 
   // Helper function to render with Redux provider
@@ -492,6 +508,7 @@ describe('CustomNetworkSelector', () => {
         evmNetworks: [networkWithMultipleRpcs],
         solanaNetworks: [],
         bitcoinNetworks: [],
+        isMultichainAccountsState2Enabled: false,
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
@@ -540,6 +557,7 @@ describe('CustomNetworkSelector', () => {
         evmNetworks: [networkWithSingleRpc],
         solanaNetworks: [],
         bitcoinNetworks: [],
+        isMultichainAccountsState2Enabled: false,
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,

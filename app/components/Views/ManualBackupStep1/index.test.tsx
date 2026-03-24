@@ -9,10 +9,22 @@ import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
 import { AppThemeKey } from '../../../util/theme/models';
 import { strings } from '../../../../locales/i18n';
 import { InteractionManager, Platform } from 'react-native';
-import { AccountType } from '../../../constants/onboarding';
 
 const mockStore = configureMockStore();
-const store = mockStore({ user: { appTheme: AppThemeKey.light } });
+const initialState = {
+  user: { appTheme: AppThemeKey.light },
+};
+const store = mockStore(initialState);
+
+const initialStateDark = {
+  user: { appTheme: AppThemeKey.dark },
+};
+const storeDark = mockStore(initialStateDark);
+
+const initialStateOs = {
+  user: { appTheme: AppThemeKey.os },
+};
+const storeOs = mockStore(initialStateOs);
 
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
@@ -21,6 +33,13 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: jest.fn(),
     useRoute: jest.fn(),
     useFocusEffect: jest.fn(),
+  };
+});
+
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
   };
 });
 
@@ -34,36 +53,22 @@ jest.mock('react-native', () => {
   };
 });
 
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => {
-    const tw = (...args: unknown[]) => ({
-      fontSize: 14,
-      lineHeight: 20,
-      ...(typeof args[0] === 'string' ? { testStyle: args[0] } : {}),
-    });
-    tw.style = (...args: unknown[]) => args;
-    return tw;
-  },
-  useTheme: () => 'light',
-  Theme: { Light: 'light', Dark: 'dark' },
-}));
-
+// Mock useTheme hook - default to dark theme
 const mockUseTheme = jest.fn().mockReturnValue({
-  colors: {
-    text: { default: '#000000' },
-    background: { default: '#FFFFFF', muted: '#F2F4F6' },
-    icon: { default: '#24272A' },
-    border: { default: '#BBC0C5', muted: '#D6D9DC' },
-    error: { default: '#D73A49' },
-  },
-  themeAppearance: 'dark',
+  colors: {},
+  themeAppearance: 'dark', // Default to dark theme
 });
 
 jest.mock('../../../util/theme', () => ({
   useTheme: () => mockUseTheme(),
-  AppThemeKey: { os: 'os', light: 'light', dark: 'dark' },
+  AppThemeKey: {
+    os: 'os',
+    light: 'light',
+    dark: 'dark',
+  },
 }));
 
+// Mock useAnalytics hook
 const mockIsMetricsEnabled = jest.fn().mockReturnValue(true);
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
@@ -79,15 +84,19 @@ jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+// Mock Engine
 jest.mock('../../../core/Engine', () => {
   const mockHasFundsFn = jest.fn().mockReturnValue(true);
   const mockExportSeedPhraseFn = jest.fn().mockResolvedValue(new Uint8Array());
+
   return {
     __esModule: true,
     default: {
       hasFunds: mockHasFundsFn,
       context: {
-        KeyringController: { exportSeedPhrase: mockExportSeedPhraseFn },
+        KeyringController: {
+          exportSeedPhrase: mockExportSeedPhraseFn,
+        },
       },
     },
   };
@@ -95,363 +104,557 @@ jest.mock('../../../core/Engine', () => {
 
 const Engine = jest.requireMock('../../../core/Engine').default;
 const mockHasFunds = Engine.hasFunds as jest.Mock;
+
 const mockExportSeedPhrase = Engine.context.KeyringController
   .exportSeedPhrase as jest.Mock;
 
 const mockGetPassword = jest.fn();
 jest.mock('../../../core', () => ({
-  Authentication: { getPassword: () => mockGetPassword() },
+  Authentication: {
+    getPassword: () => mockGetPassword(),
+  },
 }));
 
-jest.mock('../../../util/Logger', () => ({ error: jest.fn(), log: jest.fn() }));
+jest.mock('../../../util/Logger', () => ({
+  error: jest.fn(),
+  log: jest.fn(),
+}));
+
 const Logger = jest.requireMock('../../../util/Logger');
 
-const MOCK_WORDS = [
-  'abstract',
-  'accident',
-  'acoustic',
-  'announce',
-  'artefact',
-  'attitude',
-  'bachelor',
-  'broccoli',
-  'business',
-  'category',
-  'champion',
-  'cinnamon',
-];
+describe('ManualBackupStep1', () => {
+  const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
+    cb();
+    return {
+      then: (onfulfilled: () => void) => Promise.resolve(onfulfilled()),
+      done: (onfulfilled: () => void, onrejected: () => void) =>
+        Promise.resolve().then(onfulfilled, onrejected),
+      cancel: jest.fn(),
+    };
+  });
+  jest
+    .spyOn(InteractionManager, 'runAfterInteractions')
+    .mockImplementation(mockRunAfterInteractions);
 
-const createMockNavigation = () => ({
-  navigate: jest.fn(),
-  goBack: jest.fn(),
-  setOptions: jest.fn(),
-  dispatch: jest.fn(),
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-  isFocused: jest.fn(),
-});
+  const mockWords = [
+    'abstract',
+    'accident',
+    'acoustic',
+    'announce',
+    'artefact',
+    'attitude',
+    'bachelor',
+    'broccoli',
+    'business',
+    'category',
+    'champion',
+    'cinnamon',
+  ];
 
-interface SetupOptions {
-  seedPhrase?: string[];
-  words?: string[];
-  backupFlow?: boolean;
-  settingsBackup?: boolean;
-}
-
-const renderComponent = (routeParams: SetupOptions = {}) => {
-  const nav = createMockNavigation();
-  store.dispatch = nav.dispatch;
-
-  (useNavigation as jest.Mock).mockReturnValue(nav);
-  (useRoute as jest.Mock).mockReturnValue({
+  const mockRoute = {
     params: {
-      seedPhrase: MOCK_WORDS,
+      words: mockWords,
       backupFlow: true,
       settingsBackup: true,
-      ...routeParams,
+      seedPhrase: mockWords,
     },
-  });
+  };
 
-  const wrapper = renderWithProvider(
-    <Provider store={store}>
-      <ManualBackupStep1 />
-    </Provider>,
-  );
+  const setupTest = (routeParams = {}) => {
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    const mockSetOptions = jest.fn();
+    const mockDispatch = jest.fn();
 
-  return { wrapper, ...nav };
-};
+    store.dispatch = mockDispatch;
 
-const revealSeedPhrase = async (
-  wrapper: ReturnType<typeof renderWithProvider>,
-) => {
-  fireEvent.press(
-    wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.BLUR_BUTTON),
-  );
-  await waitFor(() => {
-    expect(
-      wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
-    ).toBeOnTheScreen();
-  });
-};
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      isFocused: jest.fn(),
+      dispatch: mockDispatch,
+    });
 
-const renderPasswordView = async () => {
-  mockGetPassword.mockResolvedValue(null);
+    const testRoute = {
+      params: {
+        ...mockRoute.params,
+        ...routeParams,
+      },
+    };
 
-  const result = renderComponent({
-    seedPhrase: undefined,
-    words: undefined,
-    backupFlow: false,
-    settingsBackup: false,
-  });
+    (useRoute as jest.Mock).mockReturnValue(testRoute);
 
-  await waitFor(() => {
-    expect(
-      result.wrapper.getByTestId(
-        ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
-      ),
-    ).toBeOnTheScreen();
-  });
+    const wrapper = renderWithProvider(
+      <Provider store={store}>
+        <ManualBackupStep1 />
+      </Provider>,
+    );
 
-  return result;
-};
+    return {
+      wrapper,
+      mockNavigate,
+      mockGoBack,
+      mockSetOptions,
+      mockDispatch,
+    };
+  };
 
-describe('ManualBackupStep1', () => {
-  jest.spyOn(InteractionManager, 'runAfterInteractions').mockImplementation(
-    jest.fn().mockImplementation((cb) => {
-      cb();
-      return {
-        then: (f: () => void) => Promise.resolve(f()),
-        done: (f: () => void, r: () => void) => Promise.resolve().then(f, r),
-        cancel: jest.fn(),
-      };
-    }),
-  );
+  const setupTestDark = () => {
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    const mockSetOptions = jest.fn();
+    const mockDispatch = jest.fn();
+
+    storeDark.dispatch = mockDispatch;
+
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      isFocused: jest.fn(),
+      dispatch: mockDispatch,
+    });
+
+    (useRoute as jest.Mock).mockReturnValue(mockRoute);
+
+    const wrapper = renderWithProvider(
+      <Provider store={storeDark}>
+        <ManualBackupStep1 />
+      </Provider>,
+    );
+
+    return {
+      wrapper,
+      mockNavigate,
+      mockGoBack,
+      mockSetOptions,
+      mockDispatch,
+    };
+  };
+
+  const setupTestOs = () => {
+    const mockNavigate = jest.fn();
+    const mockGoBack = jest.fn();
+    const mockSetOptions = jest.fn();
+    const mockDispatch = jest.fn();
+
+    storeOs.dispatch = mockDispatch;
+
+    (useNavigation as jest.Mock).mockReturnValue({
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetOptions,
+      addListener: jest.fn(),
+      removeListener: jest.fn(),
+      isFocused: jest.fn(),
+      dispatch: mockDispatch,
+    });
+
+    (useRoute as jest.Mock).mockReturnValue(mockRoute);
+
+    const wrapper = renderWithProvider(
+      <Provider store={storeOs}>
+        <ManualBackupStep1 />
+      </Provider>,
+    );
+
+    return {
+      wrapper,
+      mockNavigate,
+      mockGoBack,
+      mockSetOptions,
+      mockDispatch,
+    };
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('matches snapshot', () => {
-    const { wrapper } = renderComponent();
+  it('render matches snapshot', () => {
+    const { wrapper } = setupTest();
     expect(wrapper).toMatchSnapshot();
   });
 
-  describe('seed phrase reveal', () => {
-    it('reveals seed phrase words after pressing the blur overlay', async () => {
-      const { wrapper } = renderComponent();
+  it('render Step 2 of 3 i.e Reveal SeedPhrase with light theme', async () => {
+    const { wrapper } = setupTest();
 
-      expect(
-        wrapper.getByText(strings('manual_backup_step_1.action')),
-      ).toBeOnTheScreen();
-      expect(
-        wrapper.getByText(strings('manual_backup_step_1.reveal')),
-      ).toBeOnTheScreen();
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.action')),
+    ).toBeTruthy();
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.reveal')),
+    ).toBeTruthy();
 
-      await revealSeedPhrase(wrapper);
-    }, 15000);
+    const blurButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+    );
+    fireEvent.press(blurButton);
 
-    it('displays the concealer with blur overlay before reveal', () => {
-      const { wrapper } = renderComponent();
+    await waitFor(() => {
+      expect(
+        wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
+      ).toBeTruthy();
+    });
+  });
 
+  it('render Step 2 of 3 i.e Reveal SeedPhrase with dark theme', async () => {
+    const { wrapper } = setupTestDark();
+
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.action')),
+    ).toBeTruthy();
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.reveal')),
+    ).toBeTruthy();
+
+    const blurButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+    );
+    fireEvent.press(blurButton);
+
+    await waitFor(() => {
       expect(
-        wrapper.getByText(strings('manual_backup_step_1.action')),
-      ).toBeOnTheScreen();
+        wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
+      ).toBeTruthy();
+    });
+  });
+
+  it('render Step 2 of 3 i.e Reveal SeedPhrase with os theme', async () => {
+    const { wrapper, mockNavigate } = setupTestOs();
+
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.action')),
+    ).toBeTruthy();
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.reveal')),
+    ).toBeTruthy();
+
+    const blurButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+    );
+    fireEvent.press(blurButton);
+
+    await waitFor(() => {
       expect(
-        wrapper.getByText(strings('manual_backup_step_1.reveal')),
-      ).toBeOnTheScreen();
+        wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
+      ).toBeTruthy();
     });
 
-    it('opens the seedphrase definition modal', async () => {
-      const { wrapper, navigate } = renderComponent();
+    const srpText = wrapper.getByText(strings('manual_backup_step_1.info-2'));
 
-      const srpText = wrapper.getByText(strings('manual_backup_step_1.info-2'));
-      fireEvent.press(srpText);
+    fireEvent.press(srpText);
 
-      expect(navigate).toHaveBeenCalledWith('RootModalFlow', {
-        screen: 'SeedphraseModal',
-      });
+    expect(mockNavigate).toHaveBeenCalledWith('RootModalFlow', {
+      screen: 'SeedphraseModal',
     });
 
-    it('navigates to ManualBackupStep2 after reveal and continue', async () => {
-      const { wrapper, navigate } = renderComponent();
+    const confirmButton = wrapper.getByText(
+      strings('manual_backup_step_1.continue'),
+    );
 
-      await revealSeedPhrase(wrapper);
+    fireEvent.press(confirmButton);
 
-      fireEvent.press(
-        wrapper.getByText(strings('manual_backup_step_1.continue')),
-      );
+    expect(confirmButton).toBeTruthy();
+  });
 
-      await waitFor(() => {
-        expect(navigate).toHaveBeenCalledWith('ManualBackupStep2', {
-          words: MOCK_WORDS,
-          steps: [
-            'Create password',
-            'Secure wallet',
-            'Confirm Secret Recovery Phrase',
-          ],
-          backupFlow: true,
-          settingsBackup: true,
-        });
+  it('render Step 2 of 3 and after reveal seedPhrase navigate to Step 3 of 3 i.e. ManualBackupStep2', async () => {
+    const { wrapper, mockNavigate } = setupTestOs();
+
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.action')),
+    ).toBeTruthy();
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.reveal')),
+    ).toBeTruthy();
+
+    const blurButton = wrapper.getByTestId(
+      ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+    );
+    fireEvent.press(blurButton);
+
+    await waitFor(() => {
+      expect(
+        wrapper.getByTestId(`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-0`),
+      ).toBeTruthy();
+    });
+
+    const confirmButton = wrapper.getByText(
+      strings('manual_backup_step_1.continue'),
+    );
+
+    fireEvent.press(confirmButton);
+
+    await waitFor(() => {
+      expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep2', {
+        words: mockWords,
+        steps: [
+          'Create password',
+          'Secure wallet',
+          'Confirm Secret Recovery Phrase',
+        ],
+        backupFlow: true,
+        settingsBackup: true,
       });
     });
   });
 
-  describe('header visibility', () => {
-    it('hides header during onboarding flow', () => {
-      const { setOptions } = renderComponent({
+  it('render SeedPhrase reveal container', async () => {
+    const { wrapper } = setupTest();
+
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.action')),
+    ).toBeTruthy();
+    expect(
+      wrapper.getByText(strings('manual_backup_step_1.reveal')),
+    ).toBeTruthy();
+  });
+
+  describe('Header visibility based on flow type', () => {
+    it('hides header for onboarding flow', () => {
+      const { mockSetOptions } = setupTest({
         backupFlow: false,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      expect(setOptions.mock.calls[0][0].headerShown).toBe(false);
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      expect(setOptionsCall.headerShown).toBe(false);
     });
 
     it('shows header with back button for backup flow', () => {
-      const { setOptions } = renderComponent({
+      const { mockSetOptions } = setupTest({
         backupFlow: true,
         settingsBackup: false,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBeNull();
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      expect(setOptionsCall.headerShown).toBeUndefined();
+      expect(setOptionsCall.headerLeft).toBeDefined();
+      expect(setOptionsCall.headerTitle).toBeNull();
     });
 
     it('shows header with back button for settings backup flow', () => {
-      const { setOptions } = renderComponent({
+      const { mockSetOptions } = setupTest({
         backupFlow: false,
         settingsBackup: true,
       });
 
-      expect(setOptions).toHaveBeenCalled();
-      const opts = setOptions.mock.calls[0][0];
-      expect(opts.headerShown).toBeUndefined();
-      expect(opts.headerLeft).toBeDefined();
-      expect(opts.headerTitle).toBeNull();
+      expect(mockSetOptions).toHaveBeenCalled();
+      const setOptionsCall = mockSetOptions.mock.calls[0][0];
+      expect(setOptionsCall.headerShown).toBeUndefined();
+      expect(setOptionsCall.headerLeft).toBeDefined();
+      expect(setOptionsCall.headerTitle).toBeNull();
     });
   });
 
-  describe('theme appearance', () => {
+  describe('Theme appearance', () => {
     afterEach(() => {
       mockUseTheme.mockReturnValue({
-        colors: {
-          text: { default: '#000000' },
-          background: { default: '#FFFFFF', muted: '#F2F4F6' },
-          icon: { default: '#24272A' },
-          border: { default: '#BBC0C5', muted: '#D6D9DC' },
-          error: { default: '#D73A49' },
-        },
+        colors: {},
         themeAppearance: 'dark',
       });
       Platform.OS = 'ios';
     });
 
-    it('renders with dark theme', () => {
-      const { wrapper } = renderComponent();
+    it('renders dark SRP design image by default (dark theme)', () => {
+      mockUseTheme.mockReturnValue({
+        colors: {},
+        themeAppearance: 'dark',
+      });
+
+      const { wrapper } = setupTest();
+
       expect(wrapper).toMatchSnapshot();
     });
 
-    it('renders with light theme on Android', () => {
+    it('renders light SRP design image for light theme', () => {
       Platform.OS = 'android';
       mockUseTheme.mockReturnValue({
-        colors: {
-          text: { default: '#000000' },
-          background: { default: '#FFFFFF', muted: '#F2F4F6' },
-          icon: { default: '#24272A' },
-          border: { default: '#BBC0C5', muted: '#D6D9DC' },
-          error: { default: '#D73A49' },
-        },
+        colors: {},
         themeAppearance: 'light',
       });
 
-      const { wrapper } = renderComponent();
+      const { wrapper } = setupTest();
+
       expect(wrapper).toMatchSnapshot();
+      Platform.OS = 'ios';
     });
   });
 
-  describe('remind me later', () => {
-    const renderOnboarding = (overrides: SetupOptions = {}) =>
-      renderComponent({
-        backupFlow: false,
-        settingsBackup: false,
-        ...overrides,
+  describe('Remind me later functionality', () => {
+    let mockNavigate: jest.Mock;
+    let mockSetOptions: jest.Mock;
+    let mockDispatch: jest.Mock;
+
+    beforeEach(() => {
+      mockNavigate = jest.fn();
+      mockSetOptions = jest.fn();
+      mockDispatch = jest.fn();
+      jest.clearAllMocks();
+    });
+
+    const setupTestWithMocks = (routeParams = {}) => {
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        dispatch: mockDispatch,
+        goBack: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
       });
 
-    it('is hidden when user has funds', () => {
+      const testRoute = {
+        params: {
+          seedPhrase: mockWords,
+          backupFlow: false,
+          settingsBackup: false,
+          ...routeParams,
+        },
+      };
+
+      (useRoute as jest.Mock).mockReturnValue(testRoute);
+
+      const wrapper = renderWithProvider(
+        <Provider store={store}>
+          <ManualBackupStep1 />
+        </Provider>,
+      );
+
+      return { wrapper };
+    };
+
+    it('hides remind me later button when user has funds', () => {
       mockHasFunds.mockReturnValue(true);
-      const { wrapper } = renderOnboarding();
 
-      expect(
-        wrapper.queryByText(strings('account_backup_step_1.remind_me_later')),
-      ).toBeNull();
+      const { wrapper } = setupTestWithMocks();
+
+      const reminderButton = wrapper.queryByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+
+      expect(reminderButton).toBeNull();
     });
 
-    it('is visible when user has no funds', () => {
+    it('displays remind me later button when user has no funds', () => {
       mockHasFunds.mockReturnValue(false);
-      const { wrapper } = renderOnboarding();
 
-      expect(
-        wrapper.queryByText(strings('account_backup_step_1.remind_me_later')),
-      ).toBeOnTheScreen();
+      const { wrapper } = setupTestWithMocks();
+
+      const reminderButton = wrapper.queryByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+
+      expect(reminderButton).toBeOnTheScreen();
     });
 
-    it('is hidden for backup flow', () => {
+    it('hides remind me later button for backup flow', () => {
       mockHasFunds.mockReturnValue(false);
-      const { wrapper } = renderOnboarding({ backupFlow: true });
 
-      expect(
-        wrapper.queryByText(strings('account_backup_step_1.remind_me_later')),
-      ).toBeNull();
+      const { wrapper } = setupTestWithMocks({ backupFlow: true });
+
+      const reminderButton = wrapper.queryByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+
+      expect(reminderButton).toBeNull();
     });
 
-    it('is hidden for settings backup flow', () => {
+    it('hides remind me later button for settings backup flow', () => {
       mockHasFunds.mockReturnValue(false);
-      const { wrapper } = renderOnboarding({ settingsBackup: true });
 
-      expect(
-        wrapper.queryByText(strings('account_backup_step_1.remind_me_later')),
-      ).toBeNull();
+      const { wrapper } = setupTestWithMocks({ settingsBackup: true });
+
+      const reminderButton = wrapper.queryByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
+
+      expect(reminderButton).toBeNull();
     });
 
-    it('skips backup and resets navigation when metrics are enabled', async () => {
+    it('directly executes skip when remind me later button is pressed with metrics enabled', async () => {
       mockHasFunds.mockReturnValue(false);
       mockIsMetricsEnabled.mockReturnValue(true);
-      const { wrapper, dispatch } = renderOnboarding();
+
+      const { wrapper } = setupTestWithMocks();
+
+      const reminderButton = wrapper.getByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
 
       await act(async () => {
-        fireEvent.press(
-          wrapper.getByText(strings('account_backup_step_1.remind_me_later')),
-        );
+        fireEvent.press(reminderButton);
       });
 
-      expect(dispatch).toHaveBeenCalledWith(
+      expect(mockDispatch).toHaveBeenCalledWith(
         expect.objectContaining({
           type: 'RESET',
           payload: expect.objectContaining({
             index: 0,
             routes: expect.arrayContaining([
-              expect.objectContaining({ name: 'OnboardingSuccessFlow' }),
+              expect.objectContaining({
+                name: 'OnboardingSuccessFlow',
+              }),
             ]),
           }),
         }),
       );
     });
 
-    it('navigates to OptinMetrics when metrics are disabled', async () => {
+    it('navigates to OptinMetrics when remind me later is pressed with metrics disabled', async () => {
       mockHasFunds.mockReturnValue(false);
       mockIsMetricsEnabled.mockReturnValue(false);
-      const { wrapper, navigate } = renderOnboarding();
+
+      const { wrapper } = setupTestWithMocks();
+
+      const reminderButton = wrapper.getByText(
+        strings('account_backup_step_1.remind_me_later'),
+      );
 
       await act(async () => {
-        fireEvent.press(
-          wrapper.getByText(strings('account_backup_step_1.remind_me_later')),
-        );
+        fireEvent.press(reminderButton);
       });
 
-      expect(navigate).toHaveBeenCalledWith(
+      expect(mockNavigate).toHaveBeenCalledWith(
         'OptinMetrics',
         expect.objectContaining({
           onContinue: expect.any(Function),
-          accountType: AccountType.Metamask,
         }),
       );
     });
 
-    it('navigates to ManualBackupStep2 after revealing and pressing continue', async () => {
+    it('navigates to ManualBackupStep2 when continue is pressed after reveal', async () => {
       mockHasFunds.mockReturnValue(false);
-      const { wrapper, navigate } = renderOnboarding();
 
-      await revealSeedPhrase(wrapper);
+      const { wrapper } = setupTestWithMocks();
 
-      fireEvent.press(
-        wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON),
+      // First reveal the seed phrase
+      const revealButton = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.BLUR_BUTTON,
+      );
+      fireEvent.press(revealButton);
+
+      await waitFor(() => {
+        const continueButton = wrapper.getByTestId(
+          ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
+        );
+        expect(continueButton).toBeOnTheScreen();
+      });
+
+      const continueButton = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON,
       );
 
-      expect(navigate).toHaveBeenCalledWith('ManualBackupStep2', {
-        words: MOCK_WORDS,
+      fireEvent.press(continueButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith('ManualBackupStep2', {
+        words: mockWords,
         steps: expect.any(Array),
         backupFlow: false,
         settingsBackup: false,
@@ -459,24 +662,66 @@ describe('ManualBackupStep1', () => {
     });
   });
 
-  describe('seed phrase recovery (no seed phrase in route params)', () => {
-    it('shows password view when Authentication.getPassword returns null', async () => {
-      const { wrapper } = await renderPasswordView();
+  describe('getSeedphrase functionality', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
+
+    const setupTestWithoutSeedPhrase = (routeParams = {}) => {
+      const mockNavigate = jest.fn();
+      const mockSetOptions = jest.fn();
+      const mockDispatch = jest.fn();
+
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        dispatch: mockDispatch,
+        goBack: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      });
+
+      const testRoute = {
+        params: {
+          backupFlow: false,
+          settingsBackup: false,
+          ...routeParams,
+        },
+      };
+
+      (useRoute as jest.Mock).mockReturnValue(testRoute);
+
+      const wrapper = renderWithProvider(
+        <Provider store={store}>
+          <ManualBackupStep1 />
+        </Provider>,
+      );
+
+      return { wrapper, mockNavigate, mockSetOptions };
+    };
+
+    it('shows CONFIRM_PASSWORD view when Authentication.getPassword returns null', async () => {
+      mockGetPassword.mockResolvedValue(null);
+
+      const { wrapper } = setupTestWithoutSeedPhrase();
+
+      await waitFor(() => {
+        expect(
+          wrapper.getByTestId(
+            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+          ),
+        ).toBeOnTheScreen();
+      });
 
       expect(
         wrapper.getByText(strings('manual_backup_step_1.before_continiuing')),
-      ).toBeOnTheScreen();
+      ).toBeTruthy();
     });
 
-    it('shows password view and logs error when getPassword throws', async () => {
+    it('shows CONFIRM_PASSWORD view when getSeedphrase throws error', async () => {
       mockGetPassword.mockRejectedValue(new Error('Test error'));
 
-      const { wrapper } = renderComponent({
-        seedPhrase: undefined,
-        words: undefined,
-        backupFlow: false,
-        settingsBackup: false,
-      });
+      const { wrapper } = setupTestWithoutSeedPhrase();
 
       await waitFor(() => {
         expect(
@@ -489,16 +734,11 @@ describe('ManualBackupStep1', () => {
       expect(Logger.error).toHaveBeenCalled();
     });
 
-    it('exports seed phrase when credentials are available', async () => {
+    it('fetches seed phrase when credentials are available', async () => {
       mockGetPassword.mockResolvedValue({ password: 'test-password' });
       mockExportSeedPhrase.mockResolvedValue(new Uint8Array([0]));
 
-      renderComponent({
-        seedPhrase: undefined,
-        words: [],
-        backupFlow: false,
-        settingsBackup: false,
-      });
+      setupTestWithoutSeedPhrase({ words: [] });
 
       await waitFor(() => {
         expect(mockGetPassword).toHaveBeenCalled();
@@ -506,24 +746,70 @@ describe('ManualBackupStep1', () => {
     });
   });
 
-  describe('password unlock', () => {
-    it('unlocks with correct password', async () => {
-      const { wrapper } = await renderPasswordView();
-      mockExportSeedPhrase.mockResolvedValue(new Uint8Array([0]));
+  describe('tryUnlockWithPassword functionality', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+    });
 
-      await act(async () => {
-        fireEvent.changeText(
+    const setupPasswordView = async () => {
+      const mockNavigate = jest.fn();
+      const mockSetOptions = jest.fn();
+      const mockDispatch = jest.fn();
+
+      mockGetPassword.mockResolvedValue(null);
+
+      (useNavigation as jest.Mock).mockReturnValue({
+        navigate: mockNavigate,
+        setOptions: mockSetOptions,
+        dispatch: mockDispatch,
+        goBack: jest.fn(),
+        addListener: jest.fn(),
+        removeListener: jest.fn(),
+      });
+
+      (useRoute as jest.Mock).mockReturnValue({
+        params: {
+          backupFlow: false,
+          settingsBackup: false,
+        },
+      });
+
+      const wrapper = renderWithProvider(
+        <Provider store={store}>
+          <ManualBackupStep1 />
+        </Provider>,
+      );
+
+      await waitFor(() => {
+        expect(
           wrapper.getByTestId(
             ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
           ),
-          'correct-password',
-        );
+        ).toBeOnTheScreen();
       });
 
+      return { wrapper, mockNavigate };
+    };
+
+    it('unlocks successfully with correct password', async () => {
+      const { wrapper } = await setupPasswordView();
+
+      mockExportSeedPhrase.mockResolvedValue(new Uint8Array([0]));
+
+      const passwordInput = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+      );
+
       await act(async () => {
-        fireEvent.press(
-          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON),
-        );
+        fireEvent.changeText(passwordInput, 'correct-password');
+      });
+
+      const submitButton = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
       });
 
       await waitFor(() => {
@@ -531,23 +817,25 @@ describe('ManualBackupStep1', () => {
       });
     });
 
-    it('shows incorrect password warning on decrypt failure', async () => {
-      const { wrapper } = await renderPasswordView();
+    it('shows incorrect password warning when error matches WRONG_PASSWORD_ERROR', async () => {
+      const { wrapper } = await setupPasswordView();
+
       mockExportSeedPhrase.mockRejectedValue(new Error('Decrypt failed'));
 
-      await act(async () => {
-        fireEvent.changeText(
-          wrapper.getByTestId(
-            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
-          ),
-          'wrong-password',
-        );
-      });
+      const passwordInput = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+      );
 
       await act(async () => {
-        fireEvent.press(
-          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON),
-        );
+        fireEvent.changeText(passwordInput, 'wrong-password');
+      });
+
+      const submitButton = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
       });
 
       await waitFor(() => {
@@ -559,23 +847,25 @@ describe('ManualBackupStep1', () => {
       });
     });
 
-    it('shows unknown error for non-decrypt failures', async () => {
-      const { wrapper } = await renderPasswordView();
+    it('shows unknown error message when error does not match WRONG_PASSWORD_ERROR', async () => {
+      const { wrapper } = await setupPasswordView();
+
       mockExportSeedPhrase.mockRejectedValue(new Error('Network error'));
 
-      await act(async () => {
-        fireEvent.changeText(
-          wrapper.getByTestId(
-            ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
-          ),
-          'some-password',
-        );
-      });
+      const passwordInput = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT,
+      );
 
       await act(async () => {
-        fireEvent.press(
-          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON),
-        );
+        fireEvent.changeText(passwordInput, 'some-password');
+      });
+
+      const submitButton = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(submitButton);
       });
 
       await waitFor(() => {
@@ -585,14 +875,17 @@ describe('ManualBackupStep1', () => {
       });
     });
 
-    it('does not attempt unlock when password is empty', async () => {
-      const { wrapper } = await renderPasswordView();
+    it('does not call exportSeedPhrase when submit pressed without password', async () => {
+      const { wrapper } = await setupPasswordView();
+
       mockExportSeedPhrase.mockClear();
 
+      const submitButton = wrapper.getByTestId(
+        ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON,
+      );
+
       await act(async () => {
-        fireEvent.press(
-          wrapper.getByTestId(ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON),
-        );
+        fireEvent.press(submitButton);
       });
 
       expect(mockExportSeedPhrase).not.toHaveBeenCalled();
