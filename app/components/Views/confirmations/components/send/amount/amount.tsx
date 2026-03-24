@@ -51,7 +51,9 @@ export const Amount = () => {
     getFiatValue,
     getFiatDisplayValue,
   } = useCurrencyConversions();
-  const isNFT = asset?.standard === TokenStandard.ERC1155;
+  const isNFT =
+    asset?.standard === TokenStandard.ERC721 ||
+    asset?.standard === TokenStandard.ERC1155;
   const assetSymbol = isNFT
     ? undefined
     : ((asset as AssetType)?.ticker ?? (asset as AssetType)?.symbol);
