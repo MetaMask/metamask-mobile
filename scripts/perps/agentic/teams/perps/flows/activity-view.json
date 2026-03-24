@@ -1,0 +1,45 @@
+{
+  "title": "Activity — view recent trades and funding history",
+  "inputs": {
+    "tab": {
+      "type": "string",
+      "default": "trades",
+      "description": "Activity tab to select (trades/orders/funding/deposits)"
+    }
+  },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.feature_enabled"
+      ],
+      "steps": [
+        {
+          "id": "nav-activity",
+          "description": "Navigate to perps activity screen (perps transactions tab)",
+          "action": "navigate",
+          "target": "PerpsActivity",
+          "params": {
+            "redirectToPerpsTransactions": true
+          }
+        },
+        {
+          "id": "wait-render",
+          "action": "wait_for",
+          "route": "PerpsActivity"
+        },
+        {
+          "id": "press-tab",
+          "description": "Select the requested tab",
+          "action": "press",
+          "test_id": "perps-transactions-tab-{{tab}}"
+        },
+        {
+          "id": "wait-filter",
+          "action": "wait_for",
+          "route": "PerpsActivity"
+        }
+      ]
+    }
+  }
+}

@@ -4418,12 +4418,29 @@ describe('RewardsDataService', () => {
       expect(result).toEqual(mockStatusResponse);
     });
 
-    it('throws when response is not ok', async () => {
-      mockFetch.mockResolvedValue({ ok: false, status: 409 } as Response);
+    it('returns participant status when 409 response (already opted in)', async () => {
+      const mockParticipantStatus = { optedIn: true, participantCount: 10 };
+      mockFetch
+        .mockResolvedValueOnce({ ok: false, status: 409 } as Response)
+        .mockResolvedValueOnce({
+          ok: true,
+          json: jest.fn().mockResolvedValue(mockParticipantStatus),
+        } as unknown as Response);
+
+      const result = await service.optInToCampaign(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(result).toEqual(mockParticipantStatus);
+    });
+
+    it('throws when response is not ok with non-409 status', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
 
       await expect(
         service.optInToCampaign(mockSubscriptionId, mockCampaignId),
-      ).rejects.toThrow('Opt-in to campaign failed: 409');
+      ).rejects.toThrow('Opt-in to campaign failed: 500');
     });
   });
 
@@ -4471,6 +4488,46 @@ describe('RewardsDataService', () => {
           mockCampaignId,
         ),
       ).rejects.toThrow('Get campaign participant status failed: 404');
+    });
+  });
+
+  describe('getClientVersionRequirements', () => {
+    const mockVersionRequirements = {
+      minimumMobileVersion: '7.72.0',
+      minimumExtensionVersion: '12.0.0',
+    };
+
+    it('fetches version requirements from the correct public endpoint', async () => {
+      const mockResponse = {
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockVersionRequirements),
+      } as unknown as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      const result = await service.getClientVersionRequirements();
+
+      expect(result).toEqual(mockVersionRequirements);
+      expect(mockFetch).toHaveBeenCalledWith(
+        `${AppConstants.REWARDS_API_URL.UAT}/public/client-version-requirements`,
+        {
+          credentials: 'omit',
+          method: 'GET',
+          headers: {
+            'Accept-Language': 'en-US',
+            'Content-Type': 'application/json',
+            'rewards-client-id': 'mobile-7.50.1',
+          },
+          signal: expect.any(AbortSignal),
+        },
+      );
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(service.getClientVersionRequirements()).rejects.toThrow(
+        'Get client version requirements failed: 500',
+      );
     });
   });
 });
