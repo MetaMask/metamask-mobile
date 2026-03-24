@@ -10,6 +10,8 @@ describe('confirmation constants', () => {
   });
 
   it('includes perps withdraw in post-quote transaction types', () => {
-    expect(POST_QUOTE_TRANSACTION_TYPES).toContain(TransactionType.perpsWithdraw);
+    expect(POST_QUOTE_TRANSACTION_TYPES).toContain(
+      TransactionType.perpsWithdraw,
+    );
   });
 });

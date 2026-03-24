@@ -314,10 +314,7 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  it.each([
-    TransactionType.predictWithdraw,
-    TransactionType.perpsWithdraw,
-  ])(
+  it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
     'renders the withdraw confirm label for %s transactions',
     async (transactionType) => {
       useTransactionMetadataRequestMock.mockReturnValue({
@@ -332,7 +329,9 @@ describe('CustomAmountInfo', () => {
       });
 
       expect(
-        await findByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
+        await findByText(
+          strings('confirm.deposit_edit_amount_predict_withdraw'),
+        ),
       ).toBeOnTheScreen();
     },
   );

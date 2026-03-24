@@ -1,8 +1,5 @@
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
-import {
-  CHAIN_IDS,
-  TransactionType,
-} from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { fireEvent, act, render } from '@testing-library/react-native';
 import React from 'react';
@@ -57,8 +54,7 @@ jest.mock('../../../hooks/useConfirmNavigation', () => ({
 
 const MOCK_ACCOUNT = '0x1234567890123456789012345678901234567890' as Hex;
 const MOCK_TRANSFER_DATA = '0xabcdef' as Hex;
-const MOCK_ARBITRUM_USDC =
-  '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as Hex;
+const MOCK_ARBITRUM_USDC = '0xaf88d065e77c8cC2239327C5EDb3A432268e5831' as Hex;
 const MOCK_NETWORK_CLIENT_ID = 'arbitrum-mainnet';
 const mockNavigateToConfirmation = jest.fn();
 
@@ -100,9 +96,9 @@ describe('ConfirmationsDeveloperOptions', () => {
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     } as never);
-    mockUseSelector.mockImplementation(
-      ((selector: (state: object) => unknown) => selector({})) as typeof useSelector,
-    );
+    mockUseSelector.mockImplementation(((
+      selector: (state: object) => unknown,
+    ) => selector({})) as typeof useSelector);
   });
 
   afterEach(() => {
@@ -110,7 +106,9 @@ describe('ConfirmationsDeveloperOptions', () => {
   });
 
   it('renders the Perps Withdraw developer option', () => {
-    const { getByText, getByTestId } = render(<ConfirmationsDeveloperOptions />);
+    const { getByText, getByTestId } = render(
+      <ConfirmationsDeveloperOptions />,
+    );
 
     expect(getByText('Perps Withdraw')).toBeOnTheScreen();
     expect(
