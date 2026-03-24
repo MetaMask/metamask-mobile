@@ -2821,7 +2821,7 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('perps-compact-order-row-first')).toBeOnTheScreen();
+      expect(getByTestId('compact-order-parent-order')).toBeOnTheScreen();
       expect(queryByTestId('compact-order-full-position-tpsl')).toBeNull();
     });
 
@@ -2889,7 +2889,9 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('perps-compact-order-row-first')).toBeOnTheScreen();
+      expect(
+        getByTestId('compact-order-standalone-during-loading'),
+      ).toBeOnTheScreen();
       expect(queryByTestId('compact-order-full-position-loading')).toBeNull();
     });
 
@@ -3043,7 +3045,9 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('perps-compact-order-row-first')).toBeOnTheScreen();
+      expect(
+        getByTestId('compact-order-parent-order-with-metadata'),
+      ).toBeOnTheScreen();
       expect(
         getByTestId('compact-order-parent-order-with-metadata-synthetic-tp'),
       ).toBeOnTheScreen();
@@ -3133,7 +3137,9 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       expect(queryByTestId('compact-order-fallback-full-size')).toBeNull();
-      expect(getByTestId('perps-compact-order-row-first')).toBeOnTheScreen();
+      expect(
+        getByTestId('compact-order-fallback-standalone'),
+      ).toBeOnTheScreen();
     });
 
     it('handles empty order list', () => {

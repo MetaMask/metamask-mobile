@@ -153,7 +153,6 @@ jest.mock('./hooks/useHomeViewedEvent', () => ({
   HomeSectionNames: {
     CASH: 'cash',
     TOKENS: 'tokens',
-    WHATS_HAPPENING: 'whats_happening',
     PERPS: 'perps',
     DEFI: 'defi',
     PREDICT: 'predict',

@@ -49,7 +49,6 @@ export const FULL_SCREEN_CONFIRMATIONS = [
   TransactionType.musdConversion,
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
-  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictClaim,
   TransactionType.predictWithdraw,
@@ -79,7 +78,7 @@ export const HIDE_NETWORK_FILTER_TYPES = [TransactionType.perpsDepositAndOrder];
  */
 export const POST_QUOTE_TRANSACTION_TYPES = [
   TransactionType.predictWithdraw,
-  TransactionType.perpsWithdraw,
+  // TransactionType.perpsWithdraw, // Add when implementing for Perps
 ] as const;
 
 /**

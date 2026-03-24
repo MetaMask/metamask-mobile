@@ -17,10 +17,6 @@ jest.mock('../../../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionFlowEnabledFlag: jest.fn(() => true),
 }));
 
-jest.mock('../../../../UI/Money/selectors/featureFlags', () => ({
-  selectMoneyHomeScreenEnabledFlag: jest.fn(() => false),
-}));
-
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: true }));
 jest.mock('../../../../UI/Earn/hooks/useMusdConversionEligibility', () => ({
   useMusdConversionEligibility: () => mockUseMusdConversionEligibility(),
@@ -77,9 +73,6 @@ describe('CashSection', () => {
     jest
       .requireMock('../../../../UI/Earn/selectors/featureFlags')
       .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
-    jest
-      .requireMock('../../../../UI/Money/selectors/featureFlags')
-      .selectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
     mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
     mockUseMusdBalance.mockReturnValue({
       hasMusdBalanceOnAnyChain: false,
@@ -118,11 +111,7 @@ describe('CashSection', () => {
     expect(screen.getByText('Cash')).toBeOnTheScreen();
   });
 
-  it('navigates to CASH_TOKENS_FULL_VIEW when Money home screen flag is disabled', () => {
-    jest
-      .requireMock('../../../../UI/Money/selectors/featureFlags')
-      .selectMoneyHomeScreenEnabledFlag.mockReturnValue(false);
-
+  it('navigates to CASH_TOKENS_FULL_VIEW when section header is pressed', () => {
     renderWithProvider(
       <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
     );
@@ -132,20 +121,6 @@ describe('CashSection', () => {
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WALLET.CASH_TOKENS_FULL_VIEW,
     );
-  });
-
-  it('navigates to Money home screen when Money home screen flag is enabled', () => {
-    jest
-      .requireMock('../../../../UI/Money/selectors/featureFlags')
-      .selectMoneyHomeScreenEnabledFlag.mockReturnValue(true);
-
-    renderWithProvider(
-      <CashSection sectionIndex={0} totalSectionsLoaded={1} />,
-    );
-
-    fireEvent.press(screen.getByText('Cash'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MONEY.ROOT);
   });
 
   it('shows Get mUSD empty state when user has no mUSD balance', () => {

@@ -12,7 +12,6 @@ import {
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
-import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -25,6 +24,7 @@ export interface CardSliceState {
   hasViewedCardButton: boolean;
   isLoaded: boolean;
   alwaysShowCardButton: boolean;
+  geoLocation: string;
   isAuthenticated: boolean;
   userCardLocation: CardLocation;
   onboarding: OnboardingState;
@@ -36,6 +36,7 @@ export const initialState: CardSliceState = {
   hasViewedCardButton: false,
   isLoaded: false,
   alwaysShowCardButton: false,
+  geoLocation: 'UNKNOWN',
   isAuthenticated: false,
   userCardLocation: 'international',
   onboarding: {
@@ -107,6 +108,7 @@ const slice = createSlice({
     builder
       .addCase(loadCardholderAccounts.fulfilled, (state, action) => {
         state.cardholderAccounts = action.payload.cardholderAddresses ?? [];
+        state.geoLocation = action.payload.geoLocation ?? 'UNKNOWN';
         state.isLoaded = true;
       })
       .addCase(loadCardholderAccounts.rejected, (state, action) => {
@@ -164,9 +166,9 @@ export const selectAlwaysShowCardButton = createSelector(
   },
 );
 
-export const selectCardIsLoaded = createSelector(
+export const selectCardGeoLocation = createSelector(
   selectCardState,
-  (card) => card.isLoaded,
+  (card) => card.geoLocation,
 );
 
 export const selectHasCardholderAccounts = createSelector(
@@ -209,7 +211,7 @@ export const selectIsDaimoDemo = createSelector(
 );
 
 export const selectIsUserInSupportedCardCountry = createSelector(
-  selectGeolocationLocation,
+  selectCardGeoLocation,
   selectCardSupportedCountries,
   (geoLocation, cardSupportedCountries) =>
     (cardSupportedCountries as Record<string, boolean>)?.[geoLocation] === true,

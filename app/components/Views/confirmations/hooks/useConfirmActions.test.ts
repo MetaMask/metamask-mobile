@@ -10,19 +10,12 @@ import {
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 // eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
+// eslint-disable-next-line import-x/no-namespace
+import * as LedgerContext from '../context/ledger-context/ledger-context';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useConfirmActions } from './useConfirmActions';
 
 jest.mock('./transactions/useTransactionConfirm');
-
-jest.mock('./useIsConfirmationFromLedgerAccount', () => ({
-  useIsConfirmationFromLedgerAccount: jest.fn().mockReturnValue(false),
-}));
-
-const mockOnLedgerConfirm = jest.fn().mockResolvedValue(undefined);
-jest.mock('./useLedgerConfirm', () => ({
-  useLedgerConfirm: () => ({ onConfirm: mockOnLedgerConfirm }),
-}));
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -60,6 +53,14 @@ jest.mock('./signatures/useSignatureMetrics', () => ({
 }));
 
 const flushPromises = async () => await new Promise(process.nextTick);
+
+const createUseLedgerContextSpy = (mockedValues = {}) => {
+  jest.spyOn(LedgerContext, 'useLedgerContext').mockReturnValue({
+    ledgerSigningInProgress: false,
+    openLedgerSignModal: jest.fn(),
+    ...mockedValues,
+  } as unknown as LedgerContext.LedgerContextType);
+};
 
 describe('useConfirmAction', () => {
   const useTransactionConfirmMock = jest.mocked(useTransactionConfirm);
@@ -101,25 +102,23 @@ describe('useConfirmAction', () => {
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(0);
   });
 
-  it('delegates to useLedgerConfirm when account is Ledger', async () => {
-    const { useIsConfirmationFromLedgerAccount } = jest.requireMock(
-      './useIsConfirmationFromLedgerAccount',
-    );
-    useIsConfirmationFromLedgerAccount.mockReturnValue(true);
-
+  it('open LedgerSignModal if confirm button is clicked when signing using ledger account', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({
+      ledgerSigningInProgress: true,
+      openLedgerSignModal: mockOpenLedgerSignModal,
+    });
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
-
-    await result?.current?.onConfirm();
-
-    expect(mockOnLedgerConfirm).toHaveBeenCalledTimes(1);
-    expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
-
-    useIsConfirmationFromLedgerAccount.mockReturnValue(false);
+    result?.current?.onConfirm();
+    expect(mockOpenLedgerSignModal).toHaveBeenCalledTimes(1);
+    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(0);
   });
 
   it('does not call signature related methods when onConfirm is called if confirmation is not of type signature', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
     const clearSecurityAlertResponseSpy = jest.spyOn(
       PPOMUtil,
       'clearSignatureSecurityAlertResponse',
@@ -131,9 +130,12 @@ describe('useConfirmAction', () => {
     await flushPromises();
     expect(mockCaptureSignatureMetrics).not.toHaveBeenCalled();
     expect(clearSecurityAlertResponseSpy).not.toHaveBeenCalled();
+    expect(mockOpenLedgerSignModal).not.toHaveBeenCalled();
   });
 
   it('call required callbacks when confirm button is clicked', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
     const clearSecurityAlertResponseSpy = jest.spyOn(
       PPOMUtil,
       'clearSignatureSecurityAlertResponse',
@@ -146,6 +148,7 @@ describe('useConfirmAction', () => {
     await flushPromises();
     expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(1);
     expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(1);
+    expect(mockOpenLedgerSignModal).not.toHaveBeenCalled();
   });
 
   it('does not call signature related methods when onReject is called if confirmation is not of type signature', async () => {
@@ -205,6 +208,9 @@ describe('useConfirmAction', () => {
   });
 
   it('sets waitForResult to false when approvalType is TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
     const transactionBatchState = {
       engine: {
         backgroundState: {
@@ -245,6 +251,9 @@ describe('useConfirmAction', () => {
   });
 
   it('sets waitForResult to true when approvalType is not TransactionBatch', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });
@@ -262,6 +271,9 @@ describe('useConfirmAction', () => {
   });
 
   it('navigates to transactions view when confirming batch transaction', async () => {
+    const mockOpenLedgerSignModal = jest.fn();
+    createUseLedgerContextSpy({ openLedgerSignModal: mockOpenLedgerSignModal });
+
     const lendingBatchId = 'lending-batch-id';
     const lendingDepositBatchState = {
       engine: {

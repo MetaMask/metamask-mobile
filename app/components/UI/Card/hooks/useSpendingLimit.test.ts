@@ -258,7 +258,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(priorityToken);
     });
 
-    it('selects Solana priority token when provided', () => {
+    it('falls back to mUSD when Solana is priority token', () => {
       const priorityToken = createMockToken({
         symbol: 'SOL',
         caipChainId: SolScope.Mainnet,
@@ -267,7 +267,8 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ priorityToken })),
       );
 
-      expect(result.current.selectedToken?.symbol).toBe('SOL');
+      // mUSD is selected as fallback when priorityToken is Solana
+      expect(result.current.selectedToken?.symbol).toBe('mUSD');
     });
   });
 
@@ -359,6 +360,40 @@ describe('useSpendingLimit', () => {
     });
   });
 
+  describe('isSolanaSelected', () => {
+    it('returns false when no token is selected', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      expect(result.current.isSolanaSelected).toBe(false);
+    });
+
+    it('returns true when Solana token is selected', () => {
+      const initialToken = createMockToken({
+        symbol: 'SOL',
+        caipChainId: SolScope.Mainnet,
+      });
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.isSolanaSelected).toBe(true);
+    });
+
+    it('returns true when token has solana: prefix', () => {
+      const initialToken = createMockToken({
+        symbol: 'SOL',
+        caipChainId: 'solana:mainnet' as never,
+      });
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ initialToken })),
+      );
+
+      expect(result.current.isSolanaSelected).toBe(true);
+    });
+  });
+
   describe('Limit Type and Custom Limit', () => {
     it('setLimitType changes limit type', () => {
       const { result } = renderHook(() =>
@@ -431,7 +466,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.isValid).toBe(true);
     });
 
-    it('returns true when Solana token is selected', () => {
+    it('returns false when Solana token is selected', () => {
       const initialToken = createMockToken({
         caipChainId: SolScope.Mainnet,
       });
@@ -439,7 +474,7 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ initialToken })),
       );
 
-      expect(result.current.isValid).toBe(true);
+      expect(result.current.isValid).toBe(false);
     });
 
     it('returns false for restricted limit with empty custom limit', () => {

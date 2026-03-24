@@ -18,7 +18,7 @@ import { useNavigation, StackActions } from '@react-navigation/native';
 import { createRestoreWalletNavDetails } from './RestoreWallet';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 export const createWalletResetNeededNavDetails = createNavigationDetails(
   Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED,
@@ -26,7 +26,7 @@ export const createWalletResetNeededNavDetails = createNavigationDetails(
 
 const WalletResetNeeded = () => {
   const { colors } = useAppThemeFromContext();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const styles = createStyles(colors);
 
   const navigation = useNavigation();

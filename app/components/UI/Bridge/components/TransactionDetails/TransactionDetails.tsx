@@ -42,9 +42,6 @@ import { getMultichainTxFees } from '../../../../hooks/useMultichainTransactionD
 import { useMultichainBlockExplorerTxUrl } from '../../hooks/useMultichainBlockExplorerTxUrl';
 import { StatusResponse } from '@metamask/bridge-status-controller';
 import { toDateFormat } from '../../../../../util/date';
-import TagColored, {
-  TagColor,
-} from '../../../../../component-library/components-temp/TagColored';
 // import { renderShortAddress } from '../../../../../util/address';
 
 const styles = StyleSheet.create({
@@ -101,24 +98,6 @@ interface BridgeTransactionDetailsProps {
     };
   };
 }
-
-const PaidByMetaMask = () => (
-  <TagColored
-    color={TagColor.Success}
-    labelProps={{
-      variant: TextVariant.BodySM,
-      style: {
-        textTransform: 'none',
-        textAlign: 'center',
-        bottom: 1,
-        fontWeight: 'normal',
-      },
-      testID: 'paid-by-metamask',
-    }}
-  >
-    {strings('transactions.paid_by_metamask')}
-  </TagColored>
-);
 
 const BridgeStatusToColorMap: Record<StatusTypes, TextColor> = {
   [StatusTypes.PENDING]: TextColor.Warning,
@@ -392,24 +371,18 @@ export const BridgeTransactionDetails = (
           <Text variant={TextVariant.BodyMDMedium}>
             {strings('bridge_transaction_details.total_gas_fee')}
           </Text>
-          {evmTxMeta?.isGasFeeSponsored ? (
-            <PaidByMetaMask />
-          ) : (
-            <>
-              {/* TODO get solana gas fee from multiChainTx */}
-              {evmTotalGasFee && (
-                <Text>
-                  {evmTotalGasFee}{' '}
-                  {getNativeAssetForChainId(quote.srcChainId).symbol}
-                </Text>
-              )}
-              {multiChainTotalGasFee && (
-                <Text>
-                  {multiChainTotalGasFee}{' '}
-                  {getNativeAssetForChainId(quote.srcChainId).symbol}
-                </Text>
-              )}
-            </>
+          {/* TODO get solana gas fee from multiChainTx */}
+          {evmTotalGasFee && (
+            <Text>
+              {evmTotalGasFee}{' '}
+              {getNativeAssetForChainId(quote.srcChainId).symbol}
+            </Text>
+          )}
+          {multiChainTotalGasFee && (
+            <Text>
+              {multiChainTotalGasFee}{' '}
+              {getNativeAssetForChainId(quote.srcChainId).symbol}
+            </Text>
           )}
         </Box>
       </Box>

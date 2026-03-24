@@ -23,8 +23,6 @@ import { generateTransferData } from '../../../../../../util/transactions';
 import { useConfirmNavigation } from '../../../hooks/useConfirmNavigation';
 import { selectSelectedInternalAccountAddress } from '../../../../../../selectors/accountsController';
 import { RootState } from '../../../../../../reducers';
-import { ConfirmationsDeveloperOptionsTestIds } from './confirmations-developer-options.testIds';
-import { ARBITRUM_USDC } from '../../../constants/perps';
 
 const POLYGON_USDCE_ADDRESS =
   '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as Hex;
@@ -38,29 +36,7 @@ export function ConfirmationsDeveloperOptions() {
       <PredictDeposit />
       <PredictClaim />
       <PredictWithdraw />
-      <PerpsWithdraw />
     </>
-  );
-}
-
-function PerpsWithdraw() {
-  const { addTransactionBatchAndNavigate } = useAddPerpsTransactionBatch();
-
-  const handleWithdraw = useCallback(() => {
-    addTransactionBatchAndNavigate({
-      loader: ConfirmationLoader.CustomAmount,
-      transactionType: TransactionType.perpsWithdraw,
-    });
-  }, [addTransactionBatchAndNavigate]);
-
-  return (
-    <DeveloperButton
-      title="Perps Withdraw"
-      description="Trigger a Perps withdraw confirmation."
-      buttonLabel="Withdraw"
-      onPress={handleWithdraw}
-      testID={ConfirmationsDeveloperOptionsTestIds.PERPS_WITHDRAW_BUTTON}
-    />
   );
 }
 
@@ -188,71 +164,15 @@ function useAddTransactionBatch() {
   };
 }
 
-function useAddPerpsTransactionBatch() {
-  const selectedAccount = useSelector(selectSelectedInternalAccountAddress);
-  const { navigateToConfirmation } = useConfirmNavigation();
-
-  const { networkClientId } =
-    useSelector((state: RootState) =>
-      selectDefaultEndpointByChainId(state, CHAIN_IDS.ARBITRUM),
-    ) ?? {};
-
-  const transferData = generateTransferData('transfer', {
-    toAddress: ARBITRUM_USDC.address,
-    amount: '0x0',
-  }) as Hex;
-
-  const addTransactionBatchAndNavigate = useCallback(
-    async ({
-      loader,
-      transactionType,
-    }: {
-      loader?: ConfirmationLoader;
-      transactionType: TransactionType;
-    }) => {
-      navigateToConfirmation({
-        loader,
-        stack: Routes.PERPS.ROOT,
-      });
-
-      addTransactionBatch({
-        from: selectedAccount as Hex,
-        origin: ORIGIN_METAMASK,
-        networkClientId,
-        disableHook: true,
-        disableSequential: true,
-        transactions: [
-          {
-            params: {
-              to: ARBITRUM_USDC.address,
-              data: transferData,
-            },
-            type: transactionType,
-          },
-        ],
-      }).catch((e) => {
-        console.error('Perps transaction error', e);
-      });
-    },
-    [navigateToConfirmation, networkClientId, selectedAccount, transferData],
-  );
-
-  return {
-    addTransactionBatchAndNavigate,
-  };
-}
-
 function DeveloperButton({
   buttonLabel,
   description,
   onPress,
-  testID,
   title,
 }: {
   buttonLabel: string;
   description: string;
   onPress: () => void;
-  testID?: string;
   title: string;
 }) {
   const theme = useTheme();
@@ -279,7 +199,6 @@ function DeveloperButton({
         size={ButtonSize.Lg}
         label={buttonLabel}
         onPress={onPress}
-        testID={testID}
         width={ButtonWidthTypes.Full}
         style={styles.accessory}
       />

@@ -15,7 +15,7 @@ import Logger from '../../../util/Logger';
 import { AddAccountActionsProps } from './AddAccountActions.types';
 import { AddAccountBottomSheetSelectorsIDs } from './AddAccountBottomSheet.testIds';
 import Routes from '../../../constants/navigation/Routes';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { useStyles } from '../../hooks/useStyles';
 import styleSheet from './AddAccountActions.styles';
 
@@ -40,7 +40,7 @@ import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithN
 const AddAccountActions = ({ onBack }: AddAccountActionsProps) => {
   const { styles } = useStyles(styleSheet, {});
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const [isLoading, setIsLoading] = useState(false);
   const hdKeyrings = useSelector(selectHDKeyrings);
   const hasMultipleSRPs = hdKeyrings.length > 1;

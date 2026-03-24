@@ -62,7 +62,9 @@ export const useDeviceEventHandlers = ({
       } else {
         hwError = parseErrorByType(
           error,
-          walletType ?? refs.adapterRef.current?.walletType,
+          walletType ??
+            refs.adapterRef.current?.walletType ??
+            HardwareWalletType.Ledger,
         );
       }
 
@@ -122,7 +124,9 @@ export const useDeviceEventHandlers = ({
           } else {
             const lockedError = createHardwareWalletError(
               ErrorCode.AuthenticationDeviceLocked,
-              walletType ?? refs.adapterRef.current?.walletType,
+              walletType ??
+                refs.adapterRef.current?.walletType ??
+                HardwareWalletType.Ledger,
             );
             updateConnectionState({
               status: ConnectionStatus.ErrorState,

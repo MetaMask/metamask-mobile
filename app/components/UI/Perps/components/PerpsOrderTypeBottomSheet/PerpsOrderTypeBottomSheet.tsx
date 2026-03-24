@@ -18,7 +18,6 @@ import {
   type OrderType,
 } from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsOrderTypeBottomSheetProps {
   isVisible?: boolean;
@@ -56,13 +55,11 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       type: 'market' as OrderType,
       title: strings('perps.order.type.market.title'),
       description: strings('perps.order.type.market.description'),
-      testID: PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
     },
     {
       type: 'limit' as OrderType,
       title: strings('perps.order.type.limit.title'),
       description: strings('perps.order.type.limit.description'),
-      testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
     },
   ];
 
@@ -103,10 +100,9 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       </BottomSheetHeader>
 
       <View style={styles.container}>
-        {orderTypes.map(({ type, title, description, testID }) => (
+        {orderTypes.map(({ type, title, description }) => (
           <TouchableOpacity
             key={type}
-            testID={testID}
             style={[
               styles.option,
               currentOrderType === type && styles.optionSelected,

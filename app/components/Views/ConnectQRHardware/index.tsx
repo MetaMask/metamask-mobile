@@ -26,7 +26,7 @@ import { useTheme } from '../../../util/theme';
 import { fontStyles } from '../../../styles/common';
 import Logger from '../../../util/Logger';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import ExtendedKeyringTypes, {
   HardwareDeviceTypes,
 } from '../../../constants/keyringTypes';
@@ -86,7 +86,7 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
 
 const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const insets = useSafeAreaInsets();
   const styles = createStyles(colors, insets);
 

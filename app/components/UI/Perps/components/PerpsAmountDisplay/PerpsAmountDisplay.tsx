@@ -157,11 +157,7 @@ const PerpsAmountDisplay: React.FC<PerpsAmountDisplayProps> = ({
 
   if (onPress) {
     return (
-      <TouchableOpacity
-        testID={PerpsAmountDisplaySelectorsIDs.TOUCHABLE}
-        onPress={onPress}
-        activeOpacity={0.7}
-      >
+      <TouchableOpacity onPress={onPress} activeOpacity={0.7}>
         {content}
       </TouchableOpacity>
     );

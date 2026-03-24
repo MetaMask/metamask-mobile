@@ -133,9 +133,6 @@ interface AgenticBridge {
     error?: string;
     accounts?: { address: string; name: string }[];
   }>;
-  showStep: (step: { id: string; description: string }) => void;
-  hideStep: () => void;
-  findFiberByTestId: (testId: string) => boolean;
 }
 
 declare global {
@@ -245,17 +242,6 @@ function tryScroll(
     current = walkSiblings ? current.sibling : null;
   }
   return false;
-}
-
-// ─── Step HUD callback registry ─────────────────────────────────────────────
-
-type StepHudCallback =
-  | ((step: { id: string; description: string } | null) => void)
-  | null;
-let _stepHudCallback: StepHudCallback = null;
-
-export function registerStepHudCallback(fn: StepHudCallback) {
-  _stepHudCallback = fn;
 }
 
 // ─── AgenticService ─────────────────────────────────────────────────────────
@@ -396,23 +382,6 @@ const AgenticService = {
         }
         Engine.setSelectedAddress(target.address);
         return { switched: true, ...toAccountSummary(target) };
-      },
-      showStep: (step: { id: string; description: string }) => {
-        _stepHudCallback?.(step);
-      },
-      hideStep: () => {
-        _stepHudCallback?.(null);
-      },
-      findFiberByTestId: (testId: string): boolean => {
-        let found = false;
-        walkFiberRoots((rootFiber) => {
-          if (findFiberByTestId(rootFiber, testId)) {
-            found = true;
-            return true;
-          }
-          return false;
-        });
-        return found;
       },
       setupWallet: async (fixture) => {
         try {

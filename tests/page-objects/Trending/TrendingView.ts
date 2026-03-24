@@ -33,9 +33,9 @@ class TrendingView {
     );
   }
 
-  get searchEngineButton(): DetoxElement {
+  get googleSearchButton(): DetoxElement {
     return Matchers.getElementByID(
-      TrendingViewSelectorsIDs.SEARCH_FOOTER_SEARCH_LINK,
+      TrendingViewSelectorsIDs.SEARCH_FOOTER_GOOGLE_LINK,
     );
   }
 
@@ -468,23 +468,23 @@ class TrendingView {
   }
 
   /**
-   * Scroll down in search results to ensure the search engine option is visible
+   * Scroll down in search results to ensure Google Search Option is visible
    */
-  async scrollToSearchEngineOption(): Promise<void> {
+  async scrollToGoogleSearchOption(): Promise<void> {
     await Gestures.scrollToElement(
-      this.searchEngineButton,
+      this.googleSearchButton,
       Matchers.getIdentifier(TrendingViewSelectorsIDs.SEARCH_RESULTS_LIST),
       {
         direction: 'down',
         scrollAmount: 300,
-        elemDescription: 'Scroll to search engine option',
+        elemDescription: 'Scroll to Google search option',
       },
     );
   }
 
-  async verifySearchEngineOptionVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.searchEngineButton, {
-      description: 'Search engine option should be visible',
+  async verifyGoogleSearchOptionVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.googleSearchButton, {
+      description: 'Google search option should be visible',
     });
   }
 

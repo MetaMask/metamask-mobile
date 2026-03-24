@@ -88,7 +88,6 @@ jest.mock('../../../../../../util/networks', () => ({
 }));
 
 jest.mock('@metamask/utils', () => ({
-  ...jest.requireActual('@metamask/utils'),
   parseCaipAssetType: jest.fn(),
 }));
 

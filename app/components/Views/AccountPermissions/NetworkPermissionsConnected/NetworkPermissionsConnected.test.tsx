@@ -46,8 +46,8 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockedTrackEvent,
   }),
 }));

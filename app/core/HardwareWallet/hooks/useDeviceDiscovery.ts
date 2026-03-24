@@ -88,7 +88,7 @@ export const useDeviceDiscovery = ({
         DevLogger.log('[HardwareWallet] Device discovery error:', error);
         const scanError = parseErrorByType(
           error,
-          walletType ?? adapter.walletType,
+          walletType ?? adapter.walletType ?? HardwareWalletType.Ledger,
         );
         updateConnectionState({
           status: ConnectionStatus.ErrorState,

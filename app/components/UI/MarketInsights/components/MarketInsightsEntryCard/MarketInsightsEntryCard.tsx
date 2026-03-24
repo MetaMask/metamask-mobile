@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { Pressable, View } from 'react-native';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -10,8 +10,6 @@ import {
   IconName,
   IconSize,
   IconColor,
-  ButtonIcon,
-  ButtonIconSize,
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
@@ -65,13 +63,11 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
             {strings('market_insights.title')}
           </Text>
-          <View pointerEvents="none" style={tw.style('ml-1')}>
-            <ButtonIcon
-              iconName={IconName.ArrowRight}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.IconAlternative }}
-            />
-          </View>
+          <Icon
+            name={IconName.ArrowRight}
+            size={IconSize.Sm}
+            color={IconColor.IconDefault}
+          />
         </Box>
 
         <Box gap={3}>

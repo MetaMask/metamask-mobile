@@ -33,7 +33,6 @@ import {
   type SeasonStateDto,
   type LineaTokenRewardDto,
   type OffDeviceSubscriptionAccountsState,
-  type ClientVersionRequirementDto,
   BASE32_REGEX,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
@@ -311,7 +310,6 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
-  #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
@@ -647,10 +645,6 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:applyBonusCode',
       this.applyBonusCode.bind(this),
-    );
-    this.messenger.registerActionHandler(
-      'RewardsController:getClientVersionRequirements',
-      this.getClientVersionRequirements.bind(this),
     );
   }
 
@@ -3390,6 +3384,9 @@ export class RewardsController extends BaseController<
     if (!rewardsEnabled) {
       return [];
     }
+    if (!this.#isCampaignsEnabled()) {
+      return [];
+    }
     const result = await wrapWithCache<CampaignDto[]>({
       key: subscriptionId,
       ttl: CAMPAIGNS_CACHE_THRESHOLD_MS,
@@ -3683,25 +3680,6 @@ export class RewardsController extends BaseController<
       );
       throw error;
     }
-  }
-
-  /**
-   * Fetch the minimum client version requirements from the public API.
-   * Cached in memory for the controller's lifetime (one fetch per app session).
-   * This is a public (unauthenticated) endpoint that does not require
-   * the rewards feature to be enabled.
-   */
-  async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
-    if (this.#clientVersionRequirements) {
-      return this.#clientVersionRequirements;
-    }
-
-    const result = (await this.messenger.call(
-      'RewardsDataService:getClientVersionRequirements',
-    )) as ClientVersionRequirementDto;
-
-    this.#clientVersionRequirements = result;
-    return result;
   }
 
   /**

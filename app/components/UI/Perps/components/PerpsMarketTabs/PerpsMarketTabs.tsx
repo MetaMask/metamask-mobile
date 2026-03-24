@@ -626,7 +626,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'position-tab',
       tabLabel: strings('perps.market.position'),
-      testID: PerpsMarketTabsSelectorsIDs.POSITION_TAB,
       position,
       showIcon: true,
       onAutoClosePress: handleAutoClosePress,
@@ -640,7 +639,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'orders-tab',
       tabLabel: strings('perps.market.orders'),
-      testID: PerpsMarketTabsSelectorsIDs.ORDERS_TAB,
       sortedUnfilledOrders,
       activeTPOrderId,
       activeSLOrderId,
@@ -662,7 +660,6 @@ const PerpsMarketTabs: React.FC<PerpsMarketTabsProps> = ({
     () => ({
       key: 'statistics-tab',
       tabLabel: strings('perps.market.statistics'),
-      testID: PerpsMarketTabsSelectorsIDs.STATISTICS_TAB,
       symbol,
       onTooltipPress: handleTooltipPress,
       nextFundingTime,

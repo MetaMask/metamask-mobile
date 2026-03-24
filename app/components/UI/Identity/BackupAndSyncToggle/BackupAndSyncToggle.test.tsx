@@ -6,12 +6,11 @@ import Routes from '../../../../constants/navigation/Routes';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { toggleBasicFunctionality } from '../../../../actions/settings';
 import { BACKUPANDSYNC_FEATURES } from '@metamask/profile-sync-controller/user-storage';
-import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
+import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
 
-jest.mock('../../../../components/hooks/useAnalytics/useAnalytics');
+jest.mock('../../../../components/hooks/useMetrics');
 
 // Mock Engine for MultichainAccountService calls
 jest.mock('../../../../core/Engine', () => ({
@@ -53,12 +52,19 @@ InteractionManager.runAfterInteractions = jest.fn(async (callback) =>
 );
 
 const mockTrackEvent = jest.fn();
-jest.mocked(useAnalytics).mockReturnValue(
-  createMockUseAnalyticsHook({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-  }),
-);
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => {
@@ -84,12 +90,6 @@ const mockTrackEventOverride = jest.fn();
 describe('BackupAndSyncToggle', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      }),
-    );
   });
 
   it('renders correctly', () => {
@@ -115,7 +115,7 @@ describe('BackupAndSyncToggle', () => {
       fireEvent(switchElement, 'onValueChange', true);
     });
 
-    const expectedEvent = AnalyticsEventBuilder.createEventBuilder(
+    const expectedEvent = MetricsEventBuilder.createEventBuilder(
       MetaMetricsEvents.SETTINGS_UPDATED,
     )
       .addProperties({

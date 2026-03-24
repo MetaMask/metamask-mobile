@@ -138,7 +138,6 @@ describe('CashGetMusdEmptyState', () => {
       expect.objectContaining({
         location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
         cta_type: MUSD_EVENTS_CONSTANTS.MUSD_CTA_TYPES.PRIMARY,
-        cta_click_target: 'cta_button',
         cta_text: 'Get mUSD',
       }),
     );
@@ -157,7 +156,6 @@ describe('CashGetMusdEmptyState', () => {
       expect.objectContaining({
         location: MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.MOBILE_TOKEN_LIST_PAGE,
         cta_type: MUSD_EVENTS_CONSTANTS.MUSD_CTA_TYPES.PRIMARY,
-        cta_click_target: 'cta_button',
         cta_text: 'Get mUSD',
       }),
     );

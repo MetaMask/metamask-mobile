@@ -1,35 +1,19 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import PropTypes from 'prop-types';
+import { connect, useSelector } from 'react-redux';
 import {
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  Image,
-  useWindowDimensions,
-} from 'react-native';
-import { connect, useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  BoxBackgroundColor,
-  BoxBorderColor,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  ButtonIcon,
-  ButtonIconSize,
-  Icon,
-  IconName,
-  IconColor,
-  IconSize,
   Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-} from '@metamask/design-system-react-native';
+  View,
+  SafeAreaView,
+  StyleSheet,
+  Image,
+  Dimensions,
+} from 'react-native';
+import PropTypes from 'prop-types';
+import Icon from 'react-native-vector-icons/FontAwesome';
+import { fontStyles } from '../../../styles/common';
+import StyledButton from '../../UI/StyledButton';
 import OnboardingProgress from '../../UI/OnboardingProgress';
 import { strings } from '../../../../locales/i18n';
 import AndroidBackHandler from '../AndroidBackHandler';
@@ -39,6 +23,7 @@ import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { CHOOSE_PASSWORD_STEPS } from '../../../constants/onboarding';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+
 import { useTheme } from '../../../util/theme';
 import { ManualBackUpStepsSelectorsIDs } from '../ManualBackupStep1/ManualBackUpSteps.testIds';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
@@ -49,43 +34,185 @@ import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOn
 const explain_backup_seedphrase = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
 const IMAGE_1_RATIO = 162.8 / 138;
+const DEVICE_WIDTH = Dimensions.get('window').width;
 const IMG_PADDING = Device.isIphoneX() ? 100 : Device.isIphone5S() ? 180 : 220;
 
-const BodyXsText = ({ text, twClassName }) => (
-  <Text
-    variant={TextVariant.BodyXs}
-    color={TextColor.TextDefault}
-    twClassName={twClassName}
-  >
-    {text}
-  </Text>
-);
+const createStyles = (colors) =>
+  StyleSheet.create({
+    mainWrapper: {
+      backgroundColor: colors.background.default,
+      flex: 1,
+    },
+    scrollviewWrapper: {
+      flexGrow: 1,
+    },
+    wrapper: {
+      flex: 1,
+      padding: 20,
+      paddingTop: 0,
+      paddingBottom: 0,
+      marginTop: 16,
+    },
+    content: {
+      alignItems: 'center',
+      paddingBottom: 16,
+    },
+    title: {
+      fontSize: 24,
+      marginLeft: 0,
+      marginTop: 16,
+      marginBottom: 16,
+      color: colors.text.default,
+      justifyContent: 'center',
+      ...fontStyles.bold,
+    },
+    text: {
+      marginBottom: 16,
+      justifyContent: 'center',
+    },
+    label: {
+      lineHeight: 20,
+      fontSize: 16,
+      color: colors.text.default,
+      textAlign: 'left',
+      ...fontStyles.normal,
+    },
+    bold: {
+      lineHeight: 25,
+      ...fontStyles.bold,
+    },
+    image: {
+      marginTop: 14,
+      marginBottom: 8,
+      width: DEVICE_WIDTH - IMG_PADDING,
+      height: (DEVICE_WIDTH - IMG_PADDING) * IMAGE_1_RATIO,
+    },
+    card: {
+      backgroundColor: colors.background.default,
+      borderWidth: 1,
+      borderColor: colors.border.default,
+      borderRadius: 10,
+      elevation: 4,
+      padding: 16,
+      marginBottom: 20,
+    },
 
-BodyXsText.propTypes = {
-  text: PropTypes.string.isRequired,
-  twClassName: PropTypes.string,
-};
+    modalNoBorder: {
+      borderTopWidth: 0,
+    },
+    secureModalContainer: { flex: 1, padding: 27, flexDirection: 'column' },
+    secureModalXButton: {
+      padding: 5,
+      alignItems: 'flex-end',
+    },
+    whySecureTitle: {
+      flex: 1,
+      fontSize: 18,
+      color: colors.text.default,
+      textAlign: 'center',
+      ...fontStyles.bold,
+    },
+    learnMoreText: {
+      marginTop: 21,
+      textAlign: 'center',
+      fontSize: 15,
+      lineHeight: 20,
+      color: colors.primary.default,
+      ...fontStyles.normal,
+    },
+    blue: {
+      color: colors.primary.default,
+    },
+    titleIcon: {
+      fontSize: 32,
+    },
+    centerContent: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    infoIcon: {
+      fontSize: 15,
+      marginRight: 6,
+    },
+    whyImportantText: {
+      fontSize: 14,
+      color: colors.primary.default,
+    },
+    manualTitle: {
+      fontSize: 16,
+      marginBottom: 8,
+      lineHeight: 17,
+      color: colors.text.default,
+      ...fontStyles.bold,
+    },
+    paragraph: {
+      lineHeight: 17,
+      marginBottom: 20,
+      fontSize: 12,
+      color: colors.text.default,
+    },
+    smallParagraph: {
+      lineHeight: 17,
+      fontSize: 12,
+      color: colors.text.default,
+    },
+    barsTitle: {
+      lineHeight: 17,
+      marginBottom: 8,
+      fontSize: 12,
+      color: colors.text.default,
+    },
+    barsContainer: {
+      lineHeight: 17,
+      flexDirection: 'row',
+      marginBottom: 20,
+    },
+    bar: {
+      lineHeight: 17,
+      width: 32,
+      height: 6,
+      backgroundColor: colors.primary.default,
+      marginRight: 2,
+    },
+    secureModalXIcon: {
+      fontSize: 16,
+      color: colors.text.default,
+    },
+    auxCenterView: {
+      width: 26,
+    },
+    secureModalTitleContainer: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+      marginBottom: 16,
+    },
+    explainBackupContainer: {
+      flexDirection: 'column',
+      alignItems: 'center',
+    },
+    whySecureText: {
+      textAlign: 'center',
+      lineHeight: 20,
+      color: colors.text.default,
+    },
+  });
 
-const BulletText = ({ text, twClassName }) => (
-  <BodyXsText text={`• ${text}`} twClassName={twClassName} />
-);
-
-BulletText.propTypes = {
-  text: PropTypes.string.isRequired,
-  twClassName: PropTypes.string,
-};
-
+/**
+ * View that's shown during the first step of
+ * the backup seed phrase flow
+ */
 const AccountBackupStep1B = (props) => {
   const { navigation, route } = props;
   const [showWhySecureWalletModal, setWhySecureWalletModal] = useState(false);
   const { colors } = useTheme();
-  const tw = useTailwind();
-  const { width: deviceWidth } = useWindowDimensions();
+  const styles = createStyles(colors);
   const isSeedlessOnboardingLoginFlow = useSelector(
     selectSeedlessOnboardingLoginFlow,
   );
 
-  const headerLeft = useCallback(() => <Box />, []);
+  const headerLeft = useCallback(() => <View />, []);
   const track = (event, properties) => {
     const eventBuilder = MetricsEventBuilder.createEventBuilder(event);
     eventBuilder.addProperties(properties);
@@ -137,186 +264,145 @@ const AccountBackupStep1B = (props) => {
     });
   };
 
-  const imgWidth = deviceWidth - IMG_PADDING;
-  const imgHeight = imgWidth * IMAGE_1_RATIO;
-
   return (
-    <SafeAreaView style={tw.style('flex-1 bg-default')}>
+    <SafeAreaView style={styles.mainWrapper}>
       <ScrollView
-        contentContainerStyle={tw.style('flex-grow')}
-        style={tw.style('flex-1 bg-default')}
+        contentContainerStyle={styles.scrollviewWrapper}
+        style={styles.mainWrapper}
       >
-        <Box
-          twClassName="flex-1 px-5 mt-4"
+        <View
+          style={styles.wrapper}
           testID={ManualBackUpStepsSelectorsIDs.PROTECT_CONTAINER}
         >
           <OnboardingProgress steps={CHOOSE_PASSWORD_STEPS} currentStep={1} />
-          <Box alignItems={BoxAlignItems.Center} twClassName="pb-4">
-            <Text variant={TextVariant.DisplayMd}>🔒</Text>
-            <Text
-              variant={TextVariant.HeadingLg}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Bold}
-              twClassName="my-4"
-            >
+          <View style={styles.content}>
+            <Text style={styles.titleIcon}>🔒</Text>
+            <Text style={styles.title}>
               {strings('account_backup_step_1B.title')}
             </Text>
-            <Box twClassName="mb-4 justify-center">
-              <Text variant={TextVariant.BodyMd} color={TextColor.TextDefault}>
+            <View style={styles.text}>
+              <Text style={styles.label}>
                 {strings('account_backup_step_1B.subtitle_1')}{' '}
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.PrimaryDefault}
-                  onPress={showWhatIsSeedphrase}
-                >
+                <Text style={styles.blue} onPress={showWhatIsSeedphrase}>
                   {strings('account_backup_step_1B.subtitle_2')}
                 </Text>
               </Text>
-            </Box>
+            </View>
             <TouchableOpacity
               onPress={showWhySecureWallet}
-              style={tw.style('flex-row justify-center items-center')}
+              style={styles.centerContent}
             >
               <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.PrimaryDefault}
-                twClassName="mr-1.5"
+                name="info-circle"
+                style={styles.infoIcon}
+                color={colors.primary.default}
               />
-              <Text
-                variant={TextVariant.BodySm}
-                color={TextColor.PrimaryDefault}
-              >
+              <Text style={styles.whyImportantText}>
                 {strings('account_backup_step_1B.why_important')}
               </Text>
             </TouchableOpacity>
-          </Box>
-          <Box
-            backgroundColor={BoxBackgroundColor.BackgroundDefault}
-            borderWidth={1}
-            borderColor={BoxBorderColor.BorderDefault}
-            twClassName="rounded-xl p-4 mb-5"
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Bold}
-              twClassName="mb-2"
-            >
+          </View>
+          <View style={styles.card}>
+            <Text style={styles.manualTitle}>
               {strings('account_backup_step_1B.manual_title')}
             </Text>
-            <BodyXsText
-              text={strings('account_backup_step_1B.manual_subtitle')}
-              twClassName="mb-5"
-            />
-            <BodyXsText
-              text={strings('account_backup_step_1B.manual_security')}
-              twClassName="mb-2"
-            />
-            <Box flexDirection={BoxFlexDirection.Row} twClassName="mb-5">
-              <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
-              <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
-              <Box twClassName="w-8 h-1.5 bg-primary-default mr-0.5" />
-            </Box>
-            <BodyXsText text={strings('account_backup_step_1B.risks_title')} />
-            <BulletText text={strings('account_backup_step_1B.risks_1')} />
-            <BulletText text={strings('account_backup_step_1B.risks_2')} />
-            <BulletText
-              text={strings('account_backup_step_1B.risks_3')}
-              twClassName="mb-5"
-            />
-            <BodyXsText
-              text={strings('account_backup_step_1B.other_options')}
-              twClassName="mb-5"
-            />
-            <BodyXsText text={strings('account_backup_step_1B.tips_title')} />
-            <BulletText text={strings('account_backup_step_1B.tips_1')} />
-            <BulletText text={strings('account_backup_step_1B.tips_2')} />
-            <BulletText
-              text={strings('account_backup_step_1B.tips_3')}
-              twClassName="mb-5"
-            />
+            <Text style={styles.paragraph}>
+              {strings('account_backup_step_1B.manual_subtitle')}
+            </Text>
+            <Text style={styles.barsTitle}>
+              {strings('account_backup_step_1B.manual_security')}
+            </Text>
+            <View style={styles.barsContainer}>
+              <View style={styles.bar} />
+              <View style={styles.bar} />
+              <View style={styles.bar} />
+            </View>
+            <Text style={styles.smallParagraph}>
+              {strings('account_backup_step_1B.risks_title')}
+            </Text>
+            <Text style={styles.smallParagraph}>
+              • {strings('account_backup_step_1B.risks_1')}
+            </Text>
+            <Text style={styles.smallParagraph}>
+              • {strings('account_backup_step_1B.risks_2')}
+            </Text>
+            <Text style={styles.paragraph}>
+              • {strings('account_backup_step_1B.risks_3')}
+            </Text>
+            <Text style={styles.paragraph}>
+              {strings('account_backup_step_1B.other_options')}
+            </Text>
+            <Text style={styles.smallParagraph}>
+              {strings('account_backup_step_1B.tips_title')}
+            </Text>
+            <Text style={styles.smallParagraph}>
+              • {strings('account_backup_step_1B.tips_1')}
+            </Text>
+            <Text style={styles.smallParagraph}>
+              • {strings('account_backup_step_1B.tips_2')}
+            </Text>
+            <Text style={styles.paragraph}>
+              • {strings('account_backup_step_1B.tips_3')}
+            </Text>
 
-            <Button
-              variant={ButtonVariant.Primary}
+            <StyledButton
+              containerStyle={styles.button}
+              type={'confirm'}
               onPress={goNext}
-              isFullWidth
-              size={ButtonSize.Lg}
             >
               {strings('account_backup_step_1B.cta_text')}
-            </Button>
-          </Box>
-        </Box>
+            </StyledButton>
+          </View>
+        </View>
       </ScrollView>
       {Device.isAndroid() && <AndroidBackHandler customBackPress={dismiss} />}
       <ActionModal
         modalVisible={
           showWhySecureWalletModal && !isSeedlessOnboardingLoginFlow
         }
-        actionContainerStyle={tw.style('border-t-0')}
+        actionContainerStyle={styles.modalNoBorder}
         displayConfirmButton={false}
         displayCancelButton={false}
         onRequestClose={hideWhySecureWallet}
       >
-        <Box twClassName="flex-1 p-7">
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Center}
-            alignItems={BoxAlignItems.Center}
-            twClassName="mb-4"
-          >
-            <Box twClassName="w-7" />
-            <Text
-              variant={TextVariant.HeadingMd}
-              color={TextColor.TextDefault}
-              fontWeight={FontWeight.Bold}
-              twClassName="flex-1 text-center"
-            >
+        <View style={styles.secureModalContainer}>
+          <View style={styles.secureModalTitleContainer}>
+            <View style={styles.auxCenterView} />
+            <Text style={styles.whySecureTitle}>
               {strings('account_backup_step_1B.why_secure_title')}
             </Text>
-            <ButtonIcon
-              iconName={IconName.Close}
+            <TouchableOpacity
               onPress={hideWhySecureWallet}
-              size={ButtonIconSize.Sm}
-            />
-          </Box>
-          <Box alignItems={BoxAlignItems.Center}>
+              style={styles.secureModalXButton}
+              hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+            >
+              <Icon name="times" style={styles.secureModalXIcon} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.explainBackupContainer}>
             <Image
               source={explain_backup_seedphrase}
-              style={tw.style(
-                `w-[${imgWidth}px] h-[${imgHeight}px] mt-3.5 mb-2`,
-              )}
+              style={styles.image}
               resizeMethod={'auto'}
               testID={'carousel-one-image'}
             />
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextDefault}
-              twClassName="text-center"
-            >
+            <Text style={styles.whySecureText}>
               {strings('account_backup_step_1B.why_secure_1')}
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextDefault}
-                fontWeight={FontWeight.Bold}
-              >
+              <Text style={styles.bold}>
                 {strings('account_backup_step_1B.why_secure_2')}
               </Text>
             </Text>
             <TouchableOpacity
+              style={styles.remindLaterButton}
               onPress={learnMore}
               hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryDefault}
-                twClassName="mt-5 text-center"
-              >
+              <Text style={styles.learnMoreText}>
                 {strings('account_backup_step_1B.learn_more')}
               </Text>
             </TouchableOpacity>
-          </Box>
-        </Box>
+          </View>
+        </View>
       </ActionModal>
     </SafeAreaView>
   );
@@ -324,8 +410,8 @@ const AccountBackupStep1B = (props) => {
 
 AccountBackupStep1B.propTypes = {
   /**
-   * Object that represents the navigator
-   */
+  /* navigation object required to push and pop other views
+  */
   navigation: PropTypes.object,
   /**
    * Object that represents the current route info like params passed to it

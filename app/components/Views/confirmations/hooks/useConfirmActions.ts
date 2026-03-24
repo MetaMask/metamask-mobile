@@ -1,4 +1,4 @@
-import { useCallback, useMemo } from 'react';
+import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
 
@@ -6,12 +6,11 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { isSignatureRequest } from '../utils/confirm';
+import { useLedgerContext } from '../context/ledger-context';
 import { useQRHardwareContext } from '../context/qr-hardware-context';
 import useApprovalRequest from './useApprovalRequest';
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
-import { useIsConfirmationFromLedgerAccount } from './useIsConfirmationFromLedgerAccount';
-import { useLedgerConfirm } from './useLedgerConfirm';
 
 export const useConfirmActions = () => {
   const {
@@ -23,13 +22,12 @@ export const useConfirmActions = () => {
   const { captureSignatureMetrics } = useSignatureMetrics();
   const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
     useQRHardwareContext();
+  const { ledgerSigningInProgress, openLedgerSignModal } = useLedgerContext();
   const navigation = useNavigation();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
   const isTransactionReq =
     approvalType && approvalType === ApprovalType.Transaction;
-
-  const isLedgerAccount = useIsConfirmationFromLedgerAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -56,48 +54,9 @@ export const useConfirmActions = () => {
     ],
   );
 
-  const executeApproval = useCallback(async () => {
-    const waitForResult = approvalType !== ApprovalType.TransactionBatch;
-    await onRequestConfirm({
-      waitForResult,
-      deleteAfterResult: true,
-      handleErrors: false,
-    });
-
-    if (approvalType === ApprovalType.TransactionBatch) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    } else {
-      navigation.goBack();
-    }
-
-    if (isSignatureReq && approvalRequest?.id) {
-      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
-      PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
-    }
-  }, [
-    approvalType,
-    onRequestConfirm,
-    navigation,
-    isSignatureReq,
-    approvalRequest?.id,
-    captureSignatureMetrics,
-  ]);
-
-  const ledgerConfirmOptions = useMemo(
-    () => ({
-      onReject,
-      onTransactionConfirm,
-      executeApproval,
-      isTransactionReq: Boolean(isTransactionReq),
-    }),
-    [onReject, onTransactionConfirm, executeApproval, isTransactionReq],
-  );
-
-  const { onConfirm: onLedgerConfirm } = useLedgerConfirm(ledgerConfirmOptions);
-
   const onConfirm = useCallback(async () => {
-    if (isLedgerAccount) {
-      await onLedgerConfirm();
+    if (ledgerSigningInProgress) {
+      openLedgerSignModal();
       return;
     }
 
@@ -107,19 +66,42 @@ export const useConfirmActions = () => {
     }
 
     if (isTransactionReq) {
-      await onTransactionConfirm();
+      onTransactionConfirm();
       return;
     }
 
-    await executeApproval();
+    const waitForResult = approvalType !== ApprovalType.TransactionBatch;
+
+    await onRequestConfirm({
+      waitForResult,
+      deleteAfterResult: true,
+      handleErrors: false,
+    });
+
+    if (approvalType === ApprovalType.TransactionBatch) {
+      navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      return;
+    }
+
+    navigation.goBack();
+
+    if (isSignatureReq && approvalRequest?.id) {
+      captureSignatureMetrics(MetaMetricsEvents.SIGNATURE_APPROVED);
+      PPOMUtil.clearSignatureSecurityAlertResponse(approvalRequest.id);
+    }
   }, [
-    isLedgerAccount,
+    ledgerSigningInProgress,
     isSigningQRObject,
     isTransactionReq,
+    onRequestConfirm,
+    navigation,
+    isSignatureReq,
+    openLedgerSignModal,
     setScannerVisible,
     onTransactionConfirm,
-    executeApproval,
-    onLedgerConfirm,
+    captureSignatureMetrics,
+    approvalType,
+    approvalRequest?.id,
   ]);
 
   return { onConfirm, onReject };

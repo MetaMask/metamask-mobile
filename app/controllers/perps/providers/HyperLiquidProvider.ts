@@ -2119,13 +2119,16 @@ export class HyperLiquidProvider implements PerpsProvider {
         '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
         { error: String(dexError) },
       );
+      this.#cachedAllPerpDexs = this.#cachedAllPerpDexs ?? [null];
       dexsToMap = [null];
     }
 
-    // Local fallback only — never write [null] into #cachedAllPerpDexs here.
-    // That cache is owned exclusively by #fetchValidatedDexsInternal; writing a
-    // fallback here would prevent subsequent callers from retrying perpDexs().
-    const allPerpDexs = this.#cachedAllPerpDexs ?? [null];
+    // Use cached perpDexs array (populated by getValidatedDexs)
+    // Defensive: ensure non-null even if getValidatedDexs had an unexpected issue
+    if (!this.#cachedAllPerpDexs) {
+      this.#cachedAllPerpDexs = [null];
+    }
+    const allPerpDexs = this.#cachedAllPerpDexs;
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Starting asset mapping rebuild',
@@ -4768,12 +4771,6 @@ export class HyperLiquidProvider implements PerpsProvider {
     if (!allDexs || !Array.isArray(allDexs)) {
       return [null];
     }
-
-    // Populate #cachedAllPerpDexs so buildAssetMapping can compute perpDexIndex.
-    // Without this, getValidatedDexs returns from #cachedValidatedDexs (string names)
-    // but #cachedAllPerpDexs (raw objects for index computation) stays null,
-    // causing "Could not find perpDexIndex for DEX xyz" failures.
-    this.#cachedAllPerpDexs = allDexs;
 
     // Extract HIP-3 DEX names (filter out null which represents main DEX)
     const availableHip3Dexs: string[] = [];

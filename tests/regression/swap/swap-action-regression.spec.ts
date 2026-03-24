@@ -12,8 +12,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
-import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
-import { AnvilManager, DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
+import { AnvilManager } from '../../seeder/anvil-manager';
 
 describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
@@ -38,6 +37,7 @@ describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
               nickname: 'Localhost',
               ticker: 'ETH',
             })
+            .withDisabledSmartTransactions()
             .build();
         },
         localNodeOptions: [
@@ -49,10 +49,7 @@ describe(RegressionTrade('Swap ETH <-> WETH from Actions'), (): void => {
             },
           },
         ],
-        testSpecificMock: async (mockServer) => {
-          await testSpecificMock(mockServer);
-          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
-        },
+        testSpecificMock,
         restartDevice: true,
       },
       async () => {

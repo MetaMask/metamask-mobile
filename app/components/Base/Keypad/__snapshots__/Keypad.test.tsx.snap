@@ -744,7 +744,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-1"
       >
         <Text
           accessibilityRole="none"
@@ -797,7 +796,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-2"
       >
         <Text
           accessibilityRole="none"
@@ -850,7 +848,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-3"
       >
         <Text
           accessibilityRole="none"
@@ -917,7 +914,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-4"
       >
         <Text
           accessibilityRole="none"
@@ -970,7 +966,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-5"
       >
         <Text
           accessibilityRole="none"
@@ -1023,7 +1018,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-6"
       >
         <Text
           accessibilityRole="none"
@@ -1090,7 +1084,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-7"
       >
         <Text
           accessibilityRole="none"
@@ -1143,7 +1136,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-8"
       >
         <Text
           accessibilityRole="none"
@@ -1196,7 +1188,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-9"
       >
         <Text
           accessibilityRole="none"
@@ -1265,7 +1256,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             },
           ]
         }
-        testID="keypad-key-dot"
       >
         <Text
           accessibilityRole="none"
@@ -1318,7 +1308,6 @@ exports[`Keypad should render correctly and match snapshot 1`] = `
             undefined,
           ]
         }
-        testID="keypad-key-0"
       >
         <Text
           accessibilityRole="none"

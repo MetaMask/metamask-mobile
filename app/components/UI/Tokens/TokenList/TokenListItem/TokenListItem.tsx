@@ -1,7 +1,7 @@
-import { CaipAssetType, Hex } from '@metamask/utils';
+import { Hex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
-import { Platform, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useSelector } from 'react-redux';
 import Badge, {
@@ -10,16 +10,20 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
+import Text, {
+  TextColor,
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import { RootState } from '../../../../../reducers';
 import { isTestNet } from '../../../../../util/networks';
 import { useTheme } from '../../../../../util/theme';
 import { TraceName, trace } from '../../../../../util/trace';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import AssetElement from '../../../AssetElement';
 import { StakeButton } from '../../../Stake/components/StakeButton';
 import { TokenI } from '../../types';
 import { ScamWarningIcon } from './ScamWarningIcon/ScamWarningIcon';
-import useIsOriginalNativeTokenSymbol from '../../../../hooks/useIsOriginalNativeTokenSymbol/useIsOriginalNativeTokenSymbol';
 import { FlashListAssetKey } from '../TokenList';
 import {
   selectIsMusdConversionFlowEnabledFlag,
@@ -33,21 +37,18 @@ import Tag from '../../../../../component-library/components/Tags/Tag';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
-import {
-  TextColor as CLTextColor,
-  TextVariant as CLTextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import AssetLogo from '../../../Assets/components/AssetLogo/AssetLogo';
 import { ACCOUNT_TYPE_LABELS } from '../../../../../constants/account-type-labels';
 
 import { selectIsStakeableToken } from '../../../Stake/selectors/stakeableTokens';
+import { fontStyles } from '../../../../../styles/common';
 import { Colors } from '../../../../../util/theme/models';
 import { strings } from '../../../../../../locales/i18n';
 import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
 import { BridgeToken } from '../../../Bridge/types';
-import Routes from '../../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
+import Routes from '../../../../../constants/navigation/Routes';
 import StockBadge from '../../../shared/StockBadge';
 import { useMusdConversion } from '../../../Earn/hooks/useMusdConversion';
 import { toHex } from '@metamask/controller-utils';
@@ -60,84 +61,43 @@ import useEarnTokens from '../../../Earn/hooks/useEarnTokens';
 import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { EVENT_LOCATIONS as EARN_EVENT_LOCATIONS } from '../../../Earn/constants/events/earnEvents';
 import { useStablecoinLendingRedirect } from '../../../Earn/hooks/useStablecoinLendingRedirect';
-import { selectTokenMarketData } from '../../../../../selectors/tokenRatesController';
-import { selectMultichainAssetsRates } from '../../../../../selectors/multichain/multichain';
-import {
-  selectCurrencyRates,
-  selectCurrentCurrency,
-} from '../../../../../selectors/currencyRateController';
-import {
-  selectNativeCurrencyByChainId,
-  selectProviderType,
-} from '../../../../../selectors/networkController';
-import { selectShowFiatInTestnets } from '../../../../../selectors/settings';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
-import { safeToChecksumAddress } from '../../../../../util/address';
-import generateTestId from '../../../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import SkeletonText from '../../../Ramp/Aggregator/components/SkeletonText';
-import {
-  TOKEN_BALANCE_LOADING,
-  TOKEN_BALANCE_LOADING_UPPERCASE,
-  TOKEN_RATE_UNDEFINED,
-} from '../../constants';
-import {
-  BALANCE_TEST_ID,
-  SECONDARY_BALANCE_BUTTON_TEST_ID,
-  SECONDARY_BALANCE_TEST_ID,
-} from '../../../AssetElement/index.constants';
-import {
-  Box,
-  BoxFlexDirection,
-  BoxJustifyContent,
-  FontWeight,
-  Text,
-  TextColor,
-  TextVariant,
-} from '@metamask/design-system-react-native';
 import { MUSD_CONVERSION_NAVIGATION_OVERRIDE } from '../../../Earn/types/musd.types';
 
 export const ACCOUNT_TYPE_LABEL_TEST_ID = 'account-type-label';
 
 const createStyles = (colors: Colors) =>
   StyleSheet.create({
+    balances: {
+      flex: 1,
+      justifyContent: 'center',
+      marginLeft: 20,
+    },
+    balanceFiat: {
+      color: colors.text.alternative,
+      ...fontStyles.normal,
+      textTransform: 'uppercase',
+    },
     badge: {
       marginTop: 8,
     },
     assetNameContainer: {
       flexDirection: 'row',
       alignItems: 'center',
-      flexShrink: 1,
     },
     assetName: {
       flexDirection: 'row',
       gap: 8,
-      flexShrink: 1,
-    },
-    assetNameText: {
-      flexShrink: 1,
     },
     percentageChange: {
       flexDirection: 'row',
       alignItems: 'center',
       alignContent: 'center',
     },
+    centered: {
+      textAlign: 'center',
+    },
     stockBadgeWrapper: {
       marginLeft: 4,
-    },
-    itemWrapper: {
-      flexDirection: 'row',
-      height: 64,
-      alignItems: 'center',
-    },
-    skeleton: {
-      width: 50,
-    },
-    secondaryBalance: {
-      color: colors.text.alternative,
-      paddingHorizontal: 0,
-      textAlign: 'right',
     },
   });
 
@@ -149,7 +109,6 @@ interface TokenListItemProps {
   showPercentageChange?: boolean;
   isFullView?: boolean;
   shouldShowTokenListItemCta: (asset?: TokenI) => boolean;
-  // Whether this item is currently visible in the viewport.
   isVisible?: boolean;
 }
 
@@ -169,13 +128,6 @@ export const TokenListItem = React.memo(
     const { colors } = useTheme();
     const styles = createStyles(colors);
 
-    const tokenMarketData = useSelector(selectTokenMarketData);
-    const currencyRates = useSelector(selectCurrencyRates);
-
-    ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-    const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
-    ///: END:ONLY_INCLUDE_IF
-
     const asset = useSelector((state: RootState) =>
       selectAsset(state, {
         address: assetKey.address,
@@ -187,24 +139,6 @@ export const TokenListItem = React.memo(
     const { isStockToken } = useRWAToken();
 
     const chainId = asset?.chainId as Hex;
-
-    const nativeCurrency = useSelector((state: RootState) =>
-      selectNativeCurrencyByChainId(state, chainId),
-    );
-
-    const showFiatOnTestnets = useSelector(selectShowFiatInTestnets);
-
-    const providerType = useSelector(selectProviderType) ?? '';
-    const isOriginalNativeTokenSymbol = useIsOriginalNativeTokenSymbol(
-      chainId ?? '',
-      asset?.ticker ?? asset?.symbol,
-      providerType,
-    );
-    const showScamWarningIcon =
-      isOriginalNativeTokenSymbol === false &&
-      (asset?.isNative || asset?.isETH);
-
-    const currentCurrency = useSelector(selectCurrentCurrency);
 
     const networkName = useNetworkName(chainId);
 
@@ -267,67 +201,6 @@ export const TokenListItem = React.memo(
 
     const pricePercentChange1d = useTokenPricePercentageChange(asset);
 
-    // Calculate token price in fiat currency
-    const tokenPriceInFiat = useMemo(() => {
-      if (!asset?.address || !asset?.chainId) {
-        return undefined;
-      }
-
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      // Non-EVM: use MultichainAssetsRatesController (rate is already in fiat)
-      const multichainRate =
-        multichainAssetsRates?.[asset.address as CaipAssetType]?.rate;
-      if (multichainRate !== undefined) {
-        return multichainRate;
-      }
-      ///: END:ONLY_INCLUDE_IF
-
-      // EVM: convert token price from native currency to fiat
-      if (!nativeCurrency) {
-        return undefined;
-      }
-
-      if (isTestNet(asset.chainId) && !showFiatOnTestnets) {
-        return undefined;
-      }
-
-      // Get the checksummed address for market data lookup
-      const addressToUse = asset.isNative
-        ? getNativeTokenAddress(asset.chainId as Hex)
-        : safeToChecksumAddress(asset.address);
-
-      // Token price in native currency: tokenMarketData first, then currencyRates for native
-      const marketPriceInNative =
-        tokenMarketData?.[asset.chainId as Hex]?.[addressToUse as Hex]?.price;
-      const currencyRateAsFiat = currencyRates?.[asset.symbol]?.conversionRate;
-      const tokenPriceInNative = marketPriceInNative ?? currencyRateAsFiat;
-
-      if (!tokenPriceInNative) {
-        return undefined;
-      }
-
-      // currencyRateAsFiat is already in fiat; market price is in native, so convert with nativeToFiatRate
-      if (currencyRateAsFiat != null && marketPriceInNative == null) {
-        return currencyRateAsFiat;
-      }
-
-      const nativeToFiatRate = currencyRates[nativeCurrency]?.conversionRate;
-      if (!nativeToFiatRate) {
-        return undefined;
-      }
-
-      return tokenPriceInNative * nativeToFiatRate;
-    }, [
-      asset,
-      tokenMarketData,
-      currencyRates,
-      nativeCurrency,
-      showFiatOnTestnets,
-      ///: BEGIN:ONLY_INCLUDE_IF(keyring-snaps)
-      multichainAssetsRates,
-      ///: END:ONLY_INCLUDE_IF
-    ]);
-
     const handleConvertToMUSD = useCallback(async () => {
       const submitCtaPressedEvent = () => {
         const { MUSD_CTA_TYPES, EVENT_LOCATIONS } = MUSD_EVENTS_CONSTANTS;
@@ -370,7 +243,6 @@ export const TokenListItem = React.memo(
         }
 
         const assetChainId = toHex(asset.chainId);
-
         await initiateCustomConversion({
           preferredPaymentToken: {
             address: toHex(asset.address),
@@ -407,11 +279,10 @@ export const TokenListItem = React.memo(
       Number.isFinite(pricePercentChange1d);
 
     const onItemPress = useCallback(
-      (token: TokenI, scrollToMerklRewards?: boolean) => {
+      (token: TokenI) => {
         trace({ name: TraceName.AssetDetails });
         navigation.navigate('Asset', {
           ...token,
-          scrollToMerklRewards,
           source: isFullView
             ? TokenDetailsSource.MobileTokenListPage
             : TokenDetailsSource.MobileTokenList,
@@ -428,9 +299,11 @@ export const TokenListItem = React.memo(
     const secondaryBalanceDisplay = useMemo(() => {
       if (hasClaimableBonus) {
         return {
-          text: strings('earn.claim_bonus'),
-          color: CLTextColor.Primary,
-          onPress: handleClaimBonus,
+          text: merklClaimData.isClaiming
+            ? undefined
+            : strings('earn.claim_bonus'),
+          color: TextColor.Primary,
+          onPress: merklClaimData.isClaiming ? undefined : handleClaimBonus,
         };
       }
 
@@ -445,7 +318,7 @@ export const TokenListItem = React.memo(
           text: strings('earn.musd_conversion.percentage_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
-          color: CLTextColor.Success,
+          color: TextColor.Success,
           onPress: undefined,
         };
       }
@@ -455,7 +328,7 @@ export const TokenListItem = React.memo(
           text: strings('earn.musd_conversion.get_a_percentage_musd_bonus', {
             percentage: MUSD_CONVERSION_APY,
           }),
-          color: CLTextColor.Primary,
+          color: TextColor.Primary,
           onPress: handleConvertToMUSD,
         };
       }
@@ -466,7 +339,7 @@ export const TokenListItem = React.memo(
       ) {
         return {
           text: `${strings('stake.earn')}`,
-          color: CLTextColor.Primary,
+          color: TextColor.Primary,
           onPress: handleLendingRedirect,
         };
       }
@@ -474,7 +347,7 @@ export const TokenListItem = React.memo(
       if (!hasPercentageChange) {
         return {
           text: undefined,
-          color: CLTextColor.Alternative,
+          color: TextColor.Alternative,
           onPress: undefined,
         };
       }
@@ -483,15 +356,16 @@ export const TokenListItem = React.memo(
         2,
       )}%`;
 
-      let color = CLTextColor.Alternative;
+      let color = TextColor.Alternative;
       if (pricePercentChange1d > 0) {
-        color = CLTextColor.Success;
+        color = TextColor.Success;
       } else if (pricePercentChange1d < 0) {
-        color = CLTextColor.Error;
+        color = TextColor.Error;
       }
 
       return { text, color, onPress: undefined };
     }, [
+      asset,
       isMusdConversionFlowEnabled,
       isMusdGeoEligible,
       hasClaimableBonus,
@@ -500,7 +374,7 @@ export const TokenListItem = React.memo(
       earnToken?.experience?.type,
       hasPercentageChange,
       pricePercentChange1d,
-      asset,
+      merklClaimData.isClaiming,
       handleClaimBonus,
       handleConvertToMUSD,
       handleLendingRedirect,
@@ -537,193 +411,79 @@ export const TokenListItem = React.memo(
       ? ACCOUNT_TYPE_LABELS[asset.accountType]
       : undefined;
 
-    const hideFiatForTestnet =
-      asset?.chainId != null && isTestNet(asset.chainId) && !showFiatOnTestnets;
-    const hideFiatForScamWarning = showScamWarningIcon;
-    const fiatBalance = asset.balanceFiat || '—';
-    const tokenBalance = `${asset.balance} ${asset.symbol}`;
-
-    const isFiatBalanceLoading =
-      fiatBalance === TOKEN_BALANCE_LOADING ||
-      fiatBalance === TOKEN_BALANCE_LOADING_UPPERCASE;
-    let fiatBalanceDisplay: string | React.ReactNode;
-    if (hideFiatForTestnet) {
-      fiatBalanceDisplay = '—';
-    } else if (isFiatBalanceLoading) {
-      fiatBalanceDisplay = <SkeletonText thin style={styles.skeleton} />;
-    } else {
-      fiatBalanceDisplay = fiatBalance;
-    }
-
     return (
-      <TouchableOpacity
-        onPress={() => {
-          onItemPress?.(asset);
-        }}
-        onLongPress={() => {
-          const onLongPress =
-            asset.isNative || isMusdToken(asset.address)
-              ? null
-              : showRemoveMenu;
-          onLongPress?.(asset);
-        }}
-        style={styles.itemWrapper}
-        {...generateTestId(Platform, getAssetTestId(asset.symbol))}
+      <AssetElement
+        onPress={onItemPress}
+        onLongPress={
+          asset.isNative || isMusdToken(asset.address) ? null : showRemoveMenu
+        }
+        asset={asset}
+        balance={asset.balanceFiat || '—'}
+        secondaryBalance={secondaryBalanceDisplay.text || '-'}
+        secondaryBalanceColor={secondaryBalanceDisplay.color}
+        privacyMode={privacyMode}
+        hideSecondaryBalanceInPrivacyMode={false}
+        onSecondaryBalancePress={secondaryBalanceDisplay.onPress}
+        secondaryBalanceElement={
+          merklClaimData.isClaiming ? <Spinner /> : undefined
+        }
       >
-        {/* Column: 1 - Token logo */}
         <BadgeWrapper
           style={styles.badge}
           badgePosition={BadgePosition.BottomRight}
           badgeElement={
-            networkBadgeSource && (
+            networkBadgeSource ? (
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={networkBadgeSource}
               />
-            )
+            ) : null
           }
         >
           <AssetLogo asset={asset} />
         </BadgeWrapper>
-
-        {/* Column 2*/}
-        <Box twClassName="flex-1 ml-5">
-          {/* Row: 1 - Token name, label, earn CTA, stock badge */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
-          >
-            {/*
-             * Token name and label
-             * The name of the token must callback to the symbol
-             * The reason for this is that the wallet_watchAsset doesn't return the name
-             * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
-             */}
-            <View style={styles.assetNameContainer}>
-              <View style={styles.assetName}>
-                <Text
-                  variant={TextVariant.BodyMd}
-                  fontWeight={FontWeight.Medium}
-                  numberOfLines={1}
-                  style={styles.assetNameText}
-                >
-                  {asset.name || asset.symbol}
-                </Text>
-                {label && (
-                  <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
-                )}
-              </View>
-
-              {renderEarnCta()}
-
-              {isStockToken(asset as BridgeToken) && (
-                <StockBadge
-                  style={styles.stockBadgeWrapper}
-                  token={asset as BridgeToken}
-                />
+        <View style={styles.balances}>
+          {/*
+           * The name of the token must callback to the symbol
+           * The reason for this is that the wallet_watchAsset doesn't return the name
+           * more info: https://docs.metamask.io/guide/rpc-api.html#wallet-watchasset
+           */}
+          <View style={styles.assetNameContainer}>
+            <View style={styles.assetName}>
+              <Text variant={TextVariant.BodyMDMedium} numberOfLines={1}>
+                {asset.name || asset.symbol}
+              </Text>
+              {label && (
+                <Tag label={label} testID={ACCOUNT_TYPE_LABEL_TEST_ID} />
               )}
             </View>
 
-            {/* Fiat Balance — or scam warning icon when native symbol is not original */}
-            {hideFiatForScamWarning ? (
-              <ScamWarningIcon
-                asset={asset as TokenI & { chainId: string }}
-                setShowScamWarningModal={setShowScamWarningModal}
-              />
-            ) : (
+            {renderEarnCta()}
+          </View>
+          <View style={styles.percentageChange}>
+            {
               <SensitiveText
-                variant={
-                  asset?.hasBalanceError ||
-                  asset.balanceFiat === TOKEN_RATE_UNDEFINED ||
-                  hideFiatForTestnet
-                    ? CLTextVariant.BodySM
-                    : CLTextVariant.BodyMDMedium
-                }
+                variant={TextVariant.BodySMMedium}
+                style={styles.balanceFiat}
                 isHidden={privacyMode}
-                length={SensitiveTextLength.Medium}
-                testID={BALANCE_TEST_ID}
-              >
-                {fiatBalanceDisplay}
-              </SensitiveText>
-            )}
-          </Box>
-
-          {/* Row: 2 - Token price and percentage change and token balance */}
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
-          >
-            {/* Token price and percentage change — or claim bonus CTA */}
-            <View style={styles.percentageChange}>
-              {merklClaimData.isClaiming ? (
-                <Spinner />
-              ) : (
-                <>
-                  {!hasClaimableBonus && (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="uppercase"
-                    >
-                      {tokenPriceInFiat && !hideFiatForScamWarning
-                        ? formatPriceWithSubscriptNotation(
-                            tokenPriceInFiat,
-                            currentCurrency,
-                          )
-                        : '-'}
-                      {' \u2022 '}
-                    </Text>
-                  )}
-
-                  {hideFiatForScamWarning ? (
-                    <Text
-                      variant={TextVariant.BodySm}
-                      fontWeight={FontWeight.Medium}
-                      color={TextColor.TextAlternative}
-                      twClassName="uppercase"
-                    >
-                      {'-'}
-                    </Text>
-                  ) : (
-                    <TouchableOpacity
-                      disabled={!secondaryBalanceDisplay.onPress}
-                      onPress={secondaryBalanceDisplay.onPress}
-                      testID={SECONDARY_BALANCE_BUTTON_TEST_ID}
-                    >
-                      <SensitiveText
-                        variant={CLTextVariant.BodySMMedium}
-                        color={secondaryBalanceDisplay.color}
-                        isHidden={false}
-                        length={SensitiveTextLength.Short}
-                        testID={SECONDARY_BALANCE_TEST_ID}
-                      >
-                        {secondaryBalanceDisplay.text || '-'}
-                      </SensitiveText>
-                    </TouchableOpacity>
-                  )}
-                </>
-              )}
-            </View>
-
-            {/* Token balance */}
-            <Box twClassName="shrink">
-              <SensitiveText
-                variant={CLTextVariant.BodySMMedium}
-                style={styles.secondaryBalance}
                 length={SensitiveTextLength.Short}
-                isHidden={privacyMode}
-                numberOfLines={1}
-                ellipsizeMode="tail"
               >
-                {tokenBalance}
+                {asset.balance} {asset.symbol}
               </SensitiveText>
-            </Box>
-          </Box>
-        </Box>
-      </TouchableOpacity>
+            }
+            {isStockToken(asset as BridgeToken) && (
+              <StockBadge
+                style={styles.stockBadgeWrapper}
+                token={asset as BridgeToken}
+              />
+            )}
+          </View>
+        </View>
+        <ScamWarningIcon
+          asset={asset as TokenI & { chainId: string }}
+          setShowScamWarningModal={setShowScamWarningModal}
+        />
+      </AssetElement>
     );
   },
 );

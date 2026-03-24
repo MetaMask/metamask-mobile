@@ -53,7 +53,7 @@ const assertTrendingTokenRowsVisibility = async (opts: {
         expect(queryByTestId(result.id)).not.toBeOnTheScreen();
       });
     },
-    { timeout: 5000 },
+    { timeout: 2000 },
   );
 };
 
@@ -317,11 +317,6 @@ describeForPlatforms('TrendingTokensFullView - Component Tests', () => {
       expect(
         getByTestId(TrendingViewSelectorsIDs.TRENDING_TOKENS_HEADER),
       ).toBeOnTheScreen();
-    });
-
-    await assertTrendingTokenRowsVisibility({
-      queryByTestId,
-      visible: [{ id: TRENDING_ETHEREUM_ID }],
     });
 
     const searchToggle = getByTestId(

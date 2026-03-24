@@ -27,12 +27,20 @@ const mockAddProperties = jest.fn();
 const mockBuild = jest.fn();
 const mockCreateEventBuilder = jest.fn();
 
-jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../../components/hooks/useMetrics', () => {
+  const actualMetrics = jest.requireActual('../../../../core/Analytics');
+  const actualHooks = jest.requireActual(
+    '../../../../components/hooks/useMetrics',
+  );
+  return {
+    ...actualHooks,
+    useMetrics: () => ({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    }),
+    MetaMetricsEvents: actualMetrics.MetaMetricsEvents,
+  };
+});
 
 const mockNavigate = jest.fn();
 const mockOnConnect = jest.fn();
@@ -326,8 +334,8 @@ describe('ConnectQRInstruction', () => {
     });
   });
 
-  describe('useAnalytics integration', () => {
-    it('uses useAnalytics hook', () => {
+  describe('useMetrics integration', () => {
+    it('uses the useMetrics hook correctly', () => {
       renderWithProvider(
         <ConnectQRInstruction
           navigation={mockNavigation}
@@ -341,7 +349,7 @@ describe('ConnectQRInstruction', () => {
       expect(mockTrackEvent).toBeDefined();
     });
 
-    it('creates event builder with event type for marketing events', () => {
+    it('creates event builder with correct event type for marketing events', () => {
       const { getByText } = renderWithProvider(
         <ConnectQRInstruction
           navigation={mockNavigation}

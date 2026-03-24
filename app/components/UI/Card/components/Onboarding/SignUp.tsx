@@ -30,6 +30,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';
 import {
+  selectCardGeoLocation,
   setContactVerificationId,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -47,7 +48,6 @@ import {
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -61,7 +61,7 @@ const SignUp = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
-  const geoLocation = useSelector(selectGeolocationLocation);
+  const geoLocation = useSelector(selectCardGeoLocation);
   const {
     signUpRegions,
     getRegionByCode,

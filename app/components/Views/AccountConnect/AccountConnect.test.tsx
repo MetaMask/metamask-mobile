@@ -90,8 +90,8 @@ jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   ),
 }));
 
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockedTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),

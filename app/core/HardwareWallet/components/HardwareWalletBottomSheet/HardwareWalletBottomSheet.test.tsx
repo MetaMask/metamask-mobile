@@ -140,19 +140,6 @@ describe('HardwareWalletBottomSheet', () => {
       expect(queryByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID)).toBeNull();
     });
 
-    it('does not render when walletType is null even if status is active', () => {
-      mockConnectionState.status = ConnectionStatus.Scanning;
-      const { queryByTestId } = render(
-        <HardwareWalletBottomSheet
-          {...createDefaultProps({ walletType: null })}
-        />,
-      );
-
-      expect(
-        queryByTestId(HARDWARE_WALLET_BOTTOM_SHEET_TEST_ID),
-      ).not.toBeOnTheScreen();
-    });
-
     it('renders when connected (polling may still be in progress)', () => {
       Object.assign(mockConnectionState, {
         status: ConnectionStatus.Connected,

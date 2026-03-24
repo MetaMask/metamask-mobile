@@ -42,7 +42,7 @@ import { useAccounts } from '../../hooks/useAccounts';
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import PhishingModal from '../../../components/UI/PhishingModal';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import Routes from '../../../constants/navigation/Routes';
 import {
   MM_BLOCKLIST_ISSUE_URL,
@@ -120,7 +120,7 @@ const AccountConnect = (props: AccountConnectProps) => {
   const previousIdentitiesListSize = useRef<number>();
   const internalAccounts = useSelector(selectInternalAccountsWithCaipAccountId);
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 

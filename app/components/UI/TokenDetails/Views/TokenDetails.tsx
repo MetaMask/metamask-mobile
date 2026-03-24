@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
 import { useSelector } from 'react-redux';
+import { selectTokenListLayoutV2Enabled } from '../../../../selectors/featureFlagController/tokenListLayout';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
@@ -316,6 +317,7 @@ const TokenDetails: React.FC<{
 const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { variantName, isTestActive } = useTokenDetailsABTest();
+  const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
   const lastTrackedTokenKeyRef = useRef<string | null>(null);
 
   return useCallback(
@@ -341,8 +343,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
 
       const isFromTokenList =
         source === TokenDetailsSource.MobileTokenList ||
-        source === TokenDetailsSource.MobileTokenListPage ||
-        source === TokenDetailsSource.HomeSection;
+        source === TokenDetailsSource.MobileTokenListPage;
 
       const eventProperties = {
         source,
@@ -354,9 +355,16 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
         market_insights_displayed: isMarketInsightsDisplayed,
         severity,
         // A/B test attribution — each experiment is independent
-        ...(isTestActive && {
+        ...((isTestActive || isFromTokenList) && {
           ab_tests: {
-            assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+            ...(isTestActive && {
+              assetsASSETS2493AbtestTokenDetailsLayout: variantName,
+            }),
+            ...(isFromTokenList && {
+              assetsASSETS2621AbtestTokenListLayout: isTokenListV2
+                ? 'v2'
+                : 'v1',
+            }),
           },
         }),
       };
@@ -369,6 +377,7 @@ const useTokenDetailsOpenedTracking = (params: TokenDetailsRouteParams) => {
     [
       createEventBuilder,
       isTestActive,
+      isTokenListV2,
       params.address,
       params.balance,
       params.chainId,

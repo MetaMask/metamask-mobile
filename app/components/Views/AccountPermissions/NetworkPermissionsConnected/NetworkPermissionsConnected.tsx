@@ -27,7 +27,7 @@ import Logger from '../../../../util/Logger';
 // Internal dependencies.
 import { NetworkPermissionsConnectedProps } from './NetworkPermissionsConnected.types';
 import styles from './NetworkPermissionsConnected.styles';
-import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../../components/hooks/useMetrics';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -56,7 +56,7 @@ const NetworkPermissionsConnected = ({
   favicon,
 }: NetworkPermissionsConnectedProps) => {
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
 
   const evmChainId = useSelector(selectEvmChainId);
   const evmCaipChainId = `eip155:${parseInt(evmChainId, 16)}`;

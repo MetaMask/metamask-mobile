@@ -98,6 +98,11 @@ jest.mock('../../../../../core/Engine', () => {
       unsubscribe: jest.fn(),
     },
     context: {
+      SwapsController: {
+        fetchAggregatorMetadataWithCache: jest.fn(),
+        fetchTopAssetsWithCache: jest.fn(),
+        fetchTokenWithCache: jest.fn(),
+      },
       KeyringController: {
         state: {
           keyrings: [
@@ -153,7 +158,6 @@ jest.mock('../../../../../core/Engine', () => {
         resetState: jest.fn(),
         setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
         updateBridgeQuoteRequestParams: jest.fn(),
-        trackUnifiedSwapBridgeEvent: jest.fn(),
       },
     },
     getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -485,43 +489,6 @@ describe('BridgeView', () => {
 
     // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
     expect(getByText('$19,000.00')).toBeTruthy();
-  });
-
-  it('should update source token amount when selecting a quick-pick preset', async () => {
-    jest
-      .mocked(useBridgeQuoteData as unknown as jest.Mock)
-      .mockImplementation(() => ({
-        ...mockUseBridgeQuoteData,
-        activeQuote: null,
-        bestQuote: null,
-        sourceAmount: undefined,
-        isLoading: false,
-        destTokenAmount: undefined,
-        formattedQuoteData: undefined,
-      }));
-
-    const { getByTestId, getByText } = renderScreen(
-      BridgeView,
-      {
-        name: Routes.BRIDGE.ROOT,
-      },
-      { state: mockState },
-    );
-
-    const sourceInput = getByTestId('source-token-area-input');
-    await act(async () => {
-      sourceInput.props.onPressIn();
-    });
-
-    await waitFor(() => {
-      expect(getByText('25%')).toBeTruthy();
-    });
-
-    fireEvent.press(getByText('25%'));
-
-    await waitFor(() => {
-      expect(getByTestId('source-token-area-input').props.value).toBe('0.5');
-    });
   });
 
   it('should display source token symbol and balance', async () => {

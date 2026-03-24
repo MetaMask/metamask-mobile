@@ -16,11 +16,6 @@ export { boxedStep, getDriver } from './PlaywrightUtilities.ts';
 
 // Mock server utilities
 export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
-export {
-  countProxiedRequestsMatching,
-  waitForAdditionalProxiedRequestsMatching,
-  type WaitForAdditionalProxiedRequestsOptions,
-} from '../api-mocking/helpers/mockHelpers.ts';
 
 // Dapp server exports for standalone usage (e.g., Appwright tests)
 export { default as DappServer } from './DappServer.ts';

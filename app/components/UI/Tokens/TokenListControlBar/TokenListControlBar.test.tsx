@@ -94,12 +94,15 @@ jest.mock('../../../../selectors/networkInfos', () => ({
 }));
 
 // Mock the theme
-jest.mock('../../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      background: { default: '#ffffff' },
+      text: { default: '#000000' },
+      border: { muted: '#e0e0e0' },
+    },
+  }),
+}));
 
 const mockStore = configureMockStore();
 

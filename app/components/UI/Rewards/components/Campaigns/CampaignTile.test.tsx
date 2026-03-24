@@ -335,46 +335,5 @@ describe('CampaignTile', () => {
         campaignId: 'camp-42',
       });
     });
-
-    it('calls custom onPress handler instead of navigating when provided', () => {
-      const campaign = createTestCampaign({ id: 'camp-custom' });
-      const mockOnPress = jest.fn();
-
-      const { getByTestId } = render(
-        <CampaignTile campaign={campaign} onPress={mockOnPress} />,
-      );
-      fireEvent.press(getByTestId('campaign-tile-camp-custom'));
-
-      expect(mockOnPress).toHaveBeenCalledTimes(1);
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not navigate when isInteractive is false', () => {
-      const campaign = createTestCampaign({ id: 'camp-disabled' });
-
-      const { getByTestId } = render(
-        <CampaignTile campaign={campaign} isInteractive={false} />,
-      );
-      fireEvent.press(getByTestId('campaign-tile-camp-disabled'));
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
-
-    it('does not call onPress when isInteractive is false', () => {
-      const campaign = createTestCampaign({ id: 'camp-both' });
-      const mockOnPress = jest.fn();
-
-      const { getByTestId } = render(
-        <CampaignTile
-          campaign={campaign}
-          isInteractive={false}
-          onPress={mockOnPress}
-        />,
-      );
-      fireEvent.press(getByTestId('campaign-tile-camp-both'));
-
-      expect(mockOnPress).not.toHaveBeenCalled();
-      expect(mockNavigate).not.toHaveBeenCalled();
-    });
   });
 });

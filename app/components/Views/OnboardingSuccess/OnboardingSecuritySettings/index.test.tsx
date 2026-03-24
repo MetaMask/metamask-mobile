@@ -6,7 +6,7 @@ import { selectUseSafeChainsListValidation } from '../../../../selectors/prefere
 import { selectSeedlessOnboardingLoginFlow } from '../../../../selectors/seedlessOnboardingController';
 import OnboardingSecuritySettings from './';
 
-const mockUseAnalytics = jest.fn();
+const mockUseMetrics = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -42,8 +42,8 @@ jest.mock(
   }),
 );
 
-jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => mockUseAnalytics(),
+jest.mock('../../../hooks/useMetrics', () => ({
+  useMetrics: () => mockUseMetrics(),
 }));
 
 describe('OnboardingSecuritySettings', () => {
@@ -65,7 +65,7 @@ describe('OnboardingSecuritySettings', () => {
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     mockMetaMetricsAndDataCollectionSection.mockReturnValue(null);
     mockDeleteMetaMetricsData.mockReturnValue(null);
-    mockUseAnalytics.mockReturnValue({
+    mockUseMetrics.mockReturnValue({
       isEnabled: jest.fn(() => false),
     });
   });
@@ -250,7 +250,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should pass metricsOptin=false when analytics is disabled', () => {
-      mockUseAnalytics.mockReturnValue({
+      mockUseMetrics.mockReturnValue({
         isEnabled: jest.fn(() => false),
       });
 
@@ -263,7 +263,7 @@ describe('OnboardingSecuritySettings', () => {
     });
 
     it('should pass metricsOptin=true when analytics is enabled', () => {
-      mockUseAnalytics.mockReturnValue({
+      mockUseMetrics.mockReturnValue({
         isEnabled: jest.fn(() => true),
       });
 
@@ -275,21 +275,21 @@ describe('OnboardingSecuritySettings', () => {
       );
     });
 
-    it('should call useAnalytics hook to get analytics state', () => {
+    it('should call useMetrics hook to get analytics state', () => {
       const mockIsEnabled = jest.fn(() => false);
-      mockUseAnalytics.mockReturnValue({
+      mockUseMetrics.mockReturnValue({
         isEnabled: mockIsEnabled,
       });
 
       renderWithProvider(<OnboardingSecuritySettings />);
 
-      expect(mockUseAnalytics).toHaveBeenCalled();
+      expect(mockUseMetrics).toHaveBeenCalled();
       expect(mockIsEnabled).toHaveBeenCalled();
     });
 
     it('should sync analytics state on component mount', () => {
       const mockIsEnabled = jest.fn(() => true);
-      mockUseAnalytics.mockReturnValue({
+      mockUseMetrics.mockReturnValue({
         isEnabled: mockIsEnabled,
       });
 

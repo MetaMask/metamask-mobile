@@ -317,6 +317,7 @@ describe('SpendingLimit Component', () => {
       cancel: mockCancel,
       skip: mockSkip,
       isValid: true,
+      isSolanaSelected: false,
       needsFaucet: false,
       isFaucetCheckLoading: false,
     });
@@ -575,6 +576,7 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
+        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -690,6 +692,7 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
+        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -733,6 +736,7 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
+        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -854,6 +858,7 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
+        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -1066,6 +1071,7 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
+        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });

@@ -7,7 +7,6 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 
 // Internal dependencies
 import ThemeProvider from './ThemeProvider';
-import { brandColor } from '@metamask/design-tokens';
 
 describe('ThemeProvider', () => {
   it('renders children correctly', () => {
@@ -37,6 +36,6 @@ describe('ThemeProvider', () => {
       </ThemeProvider>,
     );
 
-    expect(themeValue.brandColors.black).toStrictEqual(brandColor.black);
+    expect(themeValue.brandColors.black).toStrictEqual('#000000');
   });
 });

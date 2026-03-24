@@ -4,14 +4,6 @@ import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
 import AppConstants from '../../core/AppConstants';
 
-export type SearchEngine = 'Google' | 'DuckDuckGo' | 'Brave';
-
-export const SEARCH_ENGINE_URLS: Record<SearchEngine, string> = {
-  Google: 'https://www.google.com/search?q=',
-  DuckDuckGo: 'https://duckduckgo.com/?q=',
-  Brave: 'https://search.brave.com/search?q=',
-};
-
 /**
  * Returns URL prefixed with protocol
  *
@@ -52,10 +44,7 @@ const safeDecodeUrl = (url: string): string => {
   }
 };
 
-export function processUrlForBrowser(
-  input: string,
-  searchEngine: string = AppConstants.DEFAULT_SEARCH_ENGINE,
-) {
+export function processUrlForBrowser(input: string, searchEngine = 'Google') {
   const defaultProtocol = 'https://';
 
   // Decode the URL first to handle URL-encoded characters
@@ -68,10 +57,13 @@ export function processUrlForBrowser(
       !decodedInput.startsWith('http://localhost') &&
       !decodedInput.startsWith('localhost')
     ) {
-      const baseUrl =
-        SEARCH_ENGINE_URLS[searchEngine as SearchEngine] ??
-        SEARCH_ENGINE_URLS[AppConstants.DEFAULT_SEARCH_ENGINE];
-      return baseUrl + encodeURIComponent(input);
+      // In case of keywords we default to google search
+      let searchUrl =
+        'https://www.google.com/search?q=' + encodeURIComponent(input);
+      if (searchEngine === 'DuckDuckGo') {
+        searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
+      }
+      return searchUrl;
     }
   }
   return prefixUrlWithProtocol(input, defaultProtocol);

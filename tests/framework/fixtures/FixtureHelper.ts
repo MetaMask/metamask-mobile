@@ -792,12 +792,9 @@ export async function withFixtures(
 
     // Remove the abort filter AFTER all cleanup is complete so late async
     // "Aborted" rejections from destroyed sockets are still caught.
-    // removeAbortFilter() is async — it holds the filter active for an extra
-    // 500ms before restoring Jest's handlers to cover abort events that fire
-    // after all cleanup has completed (observed up to ~200ms on loaded CI).
     if (mockServerInstance) {
       logger.info('Removing abort filter after full cleanup');
-      await mockServerInstance.removeAbortFilter();
+      mockServerInstance.removeAbortFilter();
     }
 
     // Handle error reporting: prioritize test error over cleanup errors

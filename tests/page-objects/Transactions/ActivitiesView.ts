@@ -68,12 +68,6 @@ class ActivitiesView {
     );
   }
 
-  get predictWithdraw(): DetoxElement {
-    return Matchers.getElementByText(
-      ActivitiesViewSelectorsText.PREDICT_WITHDRAW,
-    );
-  }
-
   transactionStatus(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-status-${row}`);
   }

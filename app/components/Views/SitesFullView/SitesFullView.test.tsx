@@ -17,12 +17,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useAppThemeFromContext: () => mockTheme,
-  };
-});
+jest.mock('../../../util/theme', () => ({
+  useAppThemeFromContext: () => ({
+    colors: {
+      background: { default: '#FFFFFF' },
+      primary: { default: '#037DD6' },
+      icon: { default: '#24272A' },
+    },
+  }),
+}));
 
 jest.mock('../../UI/shared/ListHeaderWithSearch/ListHeaderWithSearch', () => {
   const ReactNative = jest.requireActual('react-native');

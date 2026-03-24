@@ -31,6 +31,7 @@ interface TooltipModalNavigateParams {
     tooltip: string | React.ReactNode;
     footerText?: string;
     buttonText?: string;
+    bottomPadding?: number;
   };
 }
 
@@ -56,6 +57,7 @@ describe('useTooltipModal', () => {
         tooltip,
         footerText,
         buttonText,
+        bottomPadding: undefined,
       },
     });
   });
@@ -72,6 +74,29 @@ describe('useTooltipModal', () => {
       .calls[0][1] as TooltipModalNavigateParams;
 
     expect(navigateParams.params.tooltip).toBe(tooltip);
+  });
+
+  it('includes bottomPadding when provided', () => {
+    const { result } = renderHook(() => useTooltipModal());
+    const title = 'Title';
+    const tooltip = 'Tooltip text';
+    const bottomPadding = 24;
+
+    result.current.openTooltipModal(title, tooltip, undefined, undefined, {
+      bottomPadding,
+    });
+
+    expect(mockNavigate).toHaveBeenCalledTimes(1);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
+      screen: Routes.SHEET.TOOLTIP_MODAL,
+      params: {
+        title,
+        tooltip,
+        footerText: undefined,
+        buttonText: undefined,
+        bottomPadding,
+      },
+    });
   });
 
   it('returns stable openTooltipModal reference across rerenders', () => {

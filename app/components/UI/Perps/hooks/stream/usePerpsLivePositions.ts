@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { type Position, type PriceUpdate } from '@metamask/perps-controller';
@@ -99,6 +99,9 @@ export function usePerpsLivePositions(
 ): UsePerpsLivePositionsReturn {
   const { throttleMs = 0, useLivePnl = false } = options; // No live PnL by default to avoid unnecessary re-renders
   const stream = usePerpsStream();
+  const [positions, setPositions] = useState<Position[]>(
+    () => getPreloadedData<Position[]>('cachedPositions') ?? EMPTY_POSITIONS,
+  );
   const [isInitialLoading, setIsInitialLoading] = useState(
     () => !hasPreloadedData('cachedPositions'),
   );
@@ -110,13 +113,18 @@ export function usePerpsLivePositions(
   );
   const [priceData, setPriceData] = useState<Record<string, PriceUpdate>>({});
 
-  // Derive enriched positions synchronously to avoid one-frame flash
-  // where isInitialLoading is false but positions haven't been enriched yet
-  const positions = useMemo(() => {
+  // Enrich and update positions whenever raw positions or prices change
+  useEffect(() => {
     if (rawPositions.length === 0) {
-      return EMPTY_POSITIONS;
+      setPositions(EMPTY_POSITIONS);
+      return;
     }
-    return enrichPositionsWithLivePnL(rawPositions, priceData);
+
+    const enrichedPositions = enrichPositionsWithLivePnL(
+      rawPositions,
+      priceData,
+    );
+    setPositions(enrichedPositions);
   }, [rawPositions, priceData]);
 
   // Subscribe to position updates

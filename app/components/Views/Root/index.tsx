@@ -22,7 +22,6 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
-import { HardwareWalletProvider } from '../../../core/HardwareWallet';
 
 /**
  * Top level of the component hierarchy
@@ -85,12 +84,10 @@ const Root = ({ foxCode }: RootProps) => {
                 <NavigationProvider>
                   <ControllersGate>
                     <ToastContextWrapper>
-                      <HardwareWalletProvider>
-                        <ErrorBoundary view="Root">
-                          <ReducedMotionConfig mode={ReduceMotion.Never} />
-                          <App />
-                        </ErrorBoundary>
-                      </HardwareWalletProvider>
+                      <ErrorBoundary view="Root">
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </ErrorBoundary>
                     </ToastContextWrapper>
                   </ControllersGate>
                 </NavigationProvider>

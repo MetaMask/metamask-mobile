@@ -5,28 +5,12 @@ import { CreateNewWallet } from '../../../flows/wallet.flow';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
 import {
-  createLogger,
-  countProxiedRequestsMatching,
-  waitForAdditionalProxiedRequestsMatching,
-} from '../../../framework';
-import {
-  AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
-  PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
-} from './constants';
-import {
   getEventsPayloads,
   onboardingEvents,
 } from '../../../helpers/analytics/helpers';
 import SoftAssert from '../../../framework/SoftAssert';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-
-const logger = createLogger({
-  name: 'NewWalletAnalyticsSpec',
-});
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -52,31 +36,15 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeaturePredictGtmOnboardingModalDisabled(),
-          );
-        },
       },
       async ({ mockServer }) => {
+        await CreateNewWallet();
+
         if (!mockServer) {
           throw new Error(
             'Mock server is not defined, check testSpecificMock setup',
           );
         }
-
-        const profileAccountsMatcher = {
-          method: 'PUT' as const,
-          urlSubstring: AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
-        };
-
-        const profileAccountsBaseline = await countProxiedRequestsMatching(
-          mockServer,
-          profileAccountsMatcher,
-        );
-
-        await CreateNewWallet();
 
         const events = await getEventsPayloads(mockServer, eventNames);
 
@@ -167,22 +135,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
         ]);
 
         softAssert.throwIfErrors();
-
-        await waitForAdditionalProxiedRequestsMatching(
-          mockServer,
-          profileAccountsMatcher,
-          profileAccountsBaseline,
-          {
-            description:
-              'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet creation',
-            timeout: PROFILE_ACCOUNTS_PROXIED_REQUEST_TIMEOUT_MS,
-            successLog: {
-              logger,
-              label:
-                'PUT authentication.api.cx.metamask.io/api/v2/profile/accounts after new wallet',
-            },
-          },
-        );
       },
     );
   });
@@ -192,12 +144,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(
-            mockServer,
-            remoteFeaturePredictGtmOnboardingModalDisabled(),
-          );
-        },
       },
       async ({ mockServer }) => {
         await CreateNewWallet({
