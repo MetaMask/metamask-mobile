@@ -17,7 +17,8 @@ export const navigateToSuccessErrorSheet = (
 export const navigateToSuccessErrorSheetPromise = async (
   navigation: NavigationProp<ParamListBase>,
   params: SuccessErrorSheetParams,
-) => new Promise((resolve) => {
+) =>
+  new Promise((resolve) => {
     navigateToSuccessErrorSheet(navigation, {
       ...params,
       onPrimaryButtonPress: () => {
