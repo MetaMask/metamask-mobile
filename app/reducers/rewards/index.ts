@@ -467,6 +467,9 @@ const rewardsSlice = createSlice({
     },
     setCampaignsError: (state, action: PayloadAction<boolean>) => {
       state.campaignsError = action.payload;
+      if (action.payload) {
+        state.campaignsHasLoaded = true;
+      }
     },
 
     setCampaignParticipantStatus: (
