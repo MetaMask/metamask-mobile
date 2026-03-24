@@ -5,8 +5,6 @@ import { getFeatureFlagValue } from '../env';
 import { selectRemoteFeatureFlags } from '..';
 
 export const DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED = true;
-export const LEGACY_IOS_GOOGLE_CONFIG_ENV_VAR =
-  'MM_LEGACY_IOS_GOOGLE_CONFIG_ENABLED';
 
 export const selectLegacyIosGoogleConfigEnabled = createSelector(
   selectRemoteFeatureFlags,
@@ -19,9 +17,9 @@ export const selectLegacyIosGoogleConfigEnabled = createSelector(
           remoteFeatureFlags[FeatureFlagNames.legacyIosGoogleConfigEnabled],
         )
       : DEFAULT_LEGACY_IOS_GOOGLE_CONFIG_ENABLED;
-
     return getFeatureFlagValue(
-      process.env[LEGACY_IOS_GOOGLE_CONFIG_ENV_VAR],
+      // Use direct env access so Babel can inline this value in app builds.
+      process.env.MM_LEGACY_IOS_GOOGLE_CONFIG_ENABLED,
       remoteValue,
     );
   },
