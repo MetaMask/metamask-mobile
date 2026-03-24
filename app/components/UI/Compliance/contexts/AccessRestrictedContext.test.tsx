@@ -5,6 +5,7 @@ import {
   AccessRestrictedProvider,
   useAccessRestrictedModal,
 } from './AccessRestrictedContext';
+import { AccessRestrictedModalSelectorsIDs } from '../AccessRestrictedModal/AccessRestrictedModal.testIds';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -30,18 +31,6 @@ jest.mock(
     };
   },
 );
-
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => ({
-    __esModule: true,
-    default: jest.fn(({ children }) => <>{children}</>),
-  }),
-);
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: string[]) => args }),
-}));
 
 const TestConsumer = () => {
   const {
@@ -129,7 +118,7 @@ describe('AccessRestrictedContext', () => {
     });
 
     const contactSupportBtn = getByTestId(
-      'access-restricted-modal-contact-support',
+      AccessRestrictedModalSelectorsIDs.CONTACT_SUPPORT_BUTTON,
     );
     act(() => {
       fireEvent.press(contactSupportBtn);

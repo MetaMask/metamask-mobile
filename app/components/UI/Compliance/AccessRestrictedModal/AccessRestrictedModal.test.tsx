@@ -23,18 +23,6 @@ jest.mock(
   },
 );
 
-jest.mock(
-  '../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => ({
-    __esModule: true,
-    default: jest.fn(({ children }) => <>{children}</>),
-  }),
-);
-
-jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({ style: (...args: string[]) => args }),
-}));
-
 describe('AccessRestrictedModal', () => {
   const defaultProps = {
     isVisible: true,
@@ -59,13 +47,15 @@ describe('AccessRestrictedModal', () => {
   it('renders the modal with title and description when visible', () => {
     const { getByTestId } = render(<AccessRestrictedModal {...defaultProps} />);
 
-    expect(getByTestId(AccessRestrictedModalSelectorsIDs.TITLE)).toBeTruthy();
+    expect(
+      getByTestId(AccessRestrictedModalSelectorsIDs.TITLE),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(AccessRestrictedModalSelectorsIDs.DESCRIPTION),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
     expect(
       getByTestId(AccessRestrictedModalSelectorsIDs.CONTACT_SUPPORT_BUTTON),
-    ).toBeTruthy();
+    ).toBeOnTheScreen();
   });
 
   it('calls onContactSupport when pressing the contact support button', () => {
