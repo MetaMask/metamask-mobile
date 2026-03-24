@@ -218,7 +218,7 @@ const SRPSecurityQuiz = ({
       <Text
         variant={TextVariant.BodyMd}
         color={TextColor.TextAlternative}
-        twClassName="mb-4"
+        twClassName="mb-2"
       >
         {strings('srp_security_quiz.question_step', {
           step: currentQuestionIndex,
@@ -232,7 +232,7 @@ const SRPSecurityQuiz = ({
         <Text
           variant={TextVariant.HeadingLg}
           color={TextColor.TextDefault}
-          twClassName="w-[90%] mb-4"
+          twClassName="w-[90%] mb-6"
         >
           {strings(
             currentQuestionIndex === 1

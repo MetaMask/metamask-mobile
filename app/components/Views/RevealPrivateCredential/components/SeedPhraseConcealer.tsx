@@ -38,7 +38,7 @@ const SeedPhraseConcealer = ({ onReveal }: SeedPhraseConcealerProps) => {
           source={
             themeAppearance === AppThemeKey.dark ? darkBlurImage : blurImage
           }
-          style={tw.style(`${FILL_STYLE} opacity-50`)}
+          style={tw.style(FILL_STYLE, 'opacity-50')}
           resizeMode="cover"
         />
         <Box twClassName="items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1">
