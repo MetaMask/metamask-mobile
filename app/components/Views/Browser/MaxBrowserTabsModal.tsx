@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import SheetHeader from '../../../component-library/components/Sheet/SheetHeader';
+import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -38,7 +38,7 @@ const MaxBrowserTabsModal = () => {
           color={colors.primary.default}
         />
       </View>
-      <SheetHeader title={strings('browser.max_tabs_title')} />
+      <BottomSheetHeader>{strings('browser.max_tabs_title')}</BottomSheetHeader>
       <View style={styles.sheet}>
         <Text style={styles.dialogDescription}>
           {strings('browser.max_tabs_desc')}
