@@ -323,12 +323,11 @@ describe('KYCFailed Component', () => {
     });
 
     it('displays the correct button label', () => {
-      const { getByTestId } = render(<KYCFailed />);
+      const { getByTestId, getByText } = render(<KYCFailed />);
 
-      const buttonLabel = getByTestId('kyc-failed-close-button-label');
-
-      expect(buttonLabel).toBeTruthy();
-      expect(buttonLabel.props.children).toBe('Back to home');
+      const button = getByTestId('kyc-failed-close-button');
+      expect(button).toBeTruthy();
+      expect(getByText('Back to home')).toBeTruthy();
     });
 
     it('navigates to wallet home when close button is pressed', () => {
@@ -440,11 +439,9 @@ describe('KYCFailed Component', () => {
     });
 
     it('uses correct i18n key for close button', () => {
-      const { getByTestId } = render(<KYCFailed />);
+      const { getByText } = render(<KYCFailed />);
 
-      const buttonLabel = getByTestId('kyc-failed-close-button-label');
-
-      expect(buttonLabel.props.children).toBe('Back to home');
+      expect(getByText('Back to home')).toBeTruthy();
     });
   });
 

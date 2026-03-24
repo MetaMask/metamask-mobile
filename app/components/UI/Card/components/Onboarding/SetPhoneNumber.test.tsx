@@ -109,6 +109,11 @@ jest.mock('@metamask/design-system-react-native', () => {
       Sm: 'sm',
       Md: 'md',
     },
+    Label: ({
+      children,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      React.createElement(Text, props, children),
   };
 });
 
