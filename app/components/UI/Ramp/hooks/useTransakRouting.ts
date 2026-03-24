@@ -40,6 +40,8 @@ interface RampStackParamList {
     quote: TransakBuyQuote;
     kycUrl: string;
     workFlowRunId: string;
+    /** User-entered fiat from BuildQuote; used when resetting stack so amount screen keeps the typed value. */
+    amount?: number;
   };
   RampKycProcessing: { quote: TransakBuyQuote };
   RampEnterEmail: undefined;
@@ -258,7 +260,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           },
           {
             name: Routes.RAMP.ADDITIONAL_VERIFICATION,
-            params: { quote, kycUrl, workFlowRunId },
+            params: { quote, kycUrl, workFlowRunId, amount },
           },
         ],
       });
