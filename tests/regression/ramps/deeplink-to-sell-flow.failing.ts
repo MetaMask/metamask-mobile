@@ -11,6 +11,11 @@ import NetworkAddedBottomSheet from '../../page-objects/Network/NetworkAddedBott
 import NetworkEducationModal from '../../page-objects/Network/NetworkEducationModal';
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
+import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
+import { Mockttp } from 'mockttp';
+import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 // This test was migrated to the new framework but should be reworked to use withFixtures properly
 describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
@@ -28,24 +33,20 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
     'should deep link to offramp ETH',
     async () => {
       const sellDeepLinkURL = 'metamask://sell?chainId=1&amount=50';
-      const franceRegion = {
-        currencies: ['/currencies/fiat/eur'],
-        emoji: '🇫🇷',
-        id: '/regions/fr',
-        name: 'France',
-        countryName: 'France',
-        countryIsoCode: 'FR',
-        support: { buy: true, sell: true, recurringBuy: true },
-        unsupported: false,
-        recommended: false,
-        detected: false,
-      };
+      const franceRegion = RampsRegions[RampsRegionsEnum.FRANCE];
       await withFixtures(
         {
           fixture: new FixtureBuilder()
             .withRampsSelectedRegion(franceRegion)
             .withRampsSelectedPaymentMethod()
             .build(),
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureFlagRampsUnifiedEnabled(true),
+            );
+            await setupRegionAwareOnRampMocks(mockServer, franceRegion);
+          },
           restartDevice: true,
         },
         async () => {
@@ -81,6 +82,16 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
             .withRampsSelectedRegion()
             .withRampsSelectedPaymentMethod()
             .build(),
+          testSpecificMock: async (mockServer: Mockttp) => {
+            await setupRemoteFeatureFlagsMock(
+              mockServer,
+              remoteFeatureFlagRampsUnifiedEnabled(true),
+            );
+            await setupRegionAwareOnRampMocks(
+              mockServer,
+              RampsRegions[RampsRegionsEnum.SAINT_LUCIA],
+            );
+          },
           restartDevice: true,
         },
         async () => {
