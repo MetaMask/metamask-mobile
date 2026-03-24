@@ -36,6 +36,7 @@ const mockReauthenticate = jest.fn();
 const mockRevealSRP = jest.fn();
 const mockRevealPrivateKey = jest.fn();
 const mockRequestBiometricsAccessControlForIOS = jest.fn();
+const mockUpdateAuthPreference = jest.fn();
 
 jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
   __esModule: true,
@@ -49,6 +50,7 @@ jest.mock('../../../core/Authentication/hooks/useAuthentication', () => ({
     revealPrivateKey: mockRevealPrivateKey,
     requestBiometricsAccessControlForIOS:
       mockRequestBiometricsAccessControlForIOS,
+    updateAuthPreference: mockUpdateAuthPreference,
   }),
 }));
 
@@ -191,6 +193,7 @@ describe('OAuthRehydration', () => {
     mockRequestBiometricsAccessControlForIOS.mockResolvedValue(
       AUTHENTICATION_TYPE.PASSWORD,
     );
+    mockUpdateAuthPreference.mockResolvedValue(undefined);
     mockUseNetInfo.mockReturnValue({
       isConnected: true,
       isInternetReachable: true,
@@ -220,6 +223,9 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(mockReplace).toHaveBeenCalledWith(Routes.ONBOARDING.HOME_NAV);
       });
+      expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
+        mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
+      );
       expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
         AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
       );
@@ -244,6 +250,18 @@ describe('OAuthRehydration', () => {
       await waitFor(() => {
         expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
       });
+    });
+
+    it('does not prompt biometrics when password unlock fails', async () => {
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Decrypt failed'));
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'wrongPassword');
+
+      await waitFor(() => {
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
+      expect(mockRequestBiometricsAccessControlForIOS).not.toHaveBeenCalled();
+      expect(mockUpdateAuthPreference).not.toHaveBeenCalled();
     });
 
     it('clears error when user types new password', async () => {
@@ -858,10 +876,22 @@ describe('OAuthRehydration', () => {
           expect.objectContaining({
             authPreference: expect.objectContaining({
               oauth2Login: false,
+              currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
             }),
           }),
         );
       });
+    });
+
+    it('does not prompt biometrics before unlock when password is wrong (outdated password flow)', async () => {
+      mockUnlockWallet.mockRejectedValue(new Error('Error: Decrypt failed'));
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId, 'wrongPassword');
+
+      await waitFor(() => {
+        expect(getByTestId(LoginViewSelectors.PASSWORD_ERROR)).toBeTruthy();
+      });
+      expect(mockRequestBiometricsAccessControlForIOS).not.toHaveBeenCalled();
     });
 
     it('navigates to DELETE_WALLET modal on forgot password press', () => {
