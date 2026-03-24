@@ -230,6 +230,7 @@ module.exports = {
       ],
       plugins: ['tailwindcss'],
       rules: {
+        '@metamask/design-tokens/color-no-hex': 'error',
         'tailwindcss/classnames-order': 'error',
         'tailwindcss/enforces-negative-arbitrary-values': 'error',
         'tailwindcss/enforces-shorthand': 'error',
@@ -615,7 +616,7 @@ module.exports = {
     'react/no-string-refs': 'error',
     'react/no-unused-prop-types': 'error',
     'react/prefer-es6-class': 'error',
-    '@metamask/design-tokens/color-no-hex': 'warn',
+    '@metamask/design-tokens/color-no-hex': 'off',
     radix: 'off',
 
     // These rule modifications are removing changes to our shared ESLint config made after
