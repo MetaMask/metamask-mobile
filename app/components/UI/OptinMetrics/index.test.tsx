@@ -147,6 +147,16 @@ describe('OptinMetrics', () => {
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({
             name: 'Analytics Preference Selected',
             properties: expect.objectContaining({
               has_marketing_consent: false,
@@ -177,6 +187,16 @@ describe('OptinMetrics', () => {
       await waitFor(() => {
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+          2,
           expect.objectContaining({
             name: 'Analytics Preference Selected',
             properties: expect.objectContaining({
@@ -212,6 +232,16 @@ describe('OptinMetrics', () => {
       );
 
       await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+              account_type: AccountType.Imported,
+            }),
+          }),
+        );
         expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
           expect.objectContaining({
             name: 'Analytics Preference Selected',
