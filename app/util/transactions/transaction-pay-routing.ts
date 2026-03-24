@@ -1,5 +1,6 @@
 import { TransactionMeta } from '@metamask/transaction-controller';
-import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
+// eslint-disable-next-line import-x/no-namespace -- this module is runtime-probed for an optional export from a newer core version
+import * as TransactionPayControllerPackage from '@metamask/transaction-pay-controller';
 import { Hex } from '@metamask/utils';
 
 import {
@@ -8,7 +9,25 @@ import {
 } from './metamask-pay';
 import { getTokenAddress } from './transaction-pay-token-transfer';
 
-export const DEFAULT_META_MASK_PAY_STRATEGY_ORDER = [
+const { TransactionPayStrategy } = TransactionPayControllerPackage;
+
+type TransactionPayStrategy =
+  TransactionPayControllerPackage.TransactionPayStrategy;
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions -- this is an intersection over the runtime module shape
+type TransactionPayControllerPackageWithRouteSupport =
+  typeof TransactionPayControllerPackage & {
+    getStrategyOrderForRouteFromFeatureFlags?: (
+      rawFeatureFlags: unknown,
+      routeContext: MetaMaskPayStrategyRoute,
+    ) => TransactionPayStrategy[];
+  };
+
+const getStrategyOrderForRouteFromFeatureFlags = (
+  TransactionPayControllerPackage as TransactionPayControllerPackageWithRouteSupport
+).getStrategyOrderForRouteFromFeatureFlags;
+
+const DEFAULT_META_MASK_PAY_STRATEGY_ORDER = [
   TransactionPayStrategy.Relay,
   TransactionPayStrategy.Across,
 ] as const;
@@ -41,19 +60,25 @@ interface RawMetaMaskPayRoutingFlags {
   };
 }
 
-export interface MetaMaskPayRouteContext {
+interface MetaMaskPayRouteContext {
   chainId?: Hex;
   tokenAddress?: Hex;
   transactionType?: string;
 }
 
-export interface MetaMaskPayRoutingOverride {
+export interface MetaMaskPayStrategyRoute {
+  chainId?: Hex;
+  tokenAddress?: Hex;
+  transactionType?: string;
+}
+
+interface MetaMaskPayRoutingOverride {
   chains: Record<Hex, TransactionPayStrategy[]>;
   default?: TransactionPayStrategy[];
   tokens: Record<Hex, Record<Hex, TransactionPayStrategy[]>>;
 }
 
-export interface MetaMaskPayRoutingFlags {
+interface MetaMaskPayRoutingFlags {
   payStrategies: {
     across: {
       enabled: boolean;
@@ -179,7 +204,7 @@ function filterEnabledStrategies(
   });
 }
 
-export function getTransactionPayRouteContext(
+function getTransactionPayRouteContext(
   transactionMeta: TransactionMeta | undefined,
 ): MetaMaskPayRouteContext {
   const transactionType = getMetaMaskPayRouteTransactionType(transactionMeta);
@@ -202,7 +227,7 @@ export function getTransactionPayRouteContext(
   };
 }
 
-export function normalizeMetaMaskPayRoutingFlags(
+function normalizeMetaMaskPayRoutingFlags(
   rawFlags: unknown,
 ): MetaMaskPayRoutingFlags {
   const flags = (rawFlags ?? {}) as RawMetaMaskPayRoutingFlags;
@@ -232,7 +257,7 @@ export function normalizeMetaMaskPayRoutingFlags(
   };
 }
 
-export function resolveMetaMaskPayStrategies(
+function resolveMetaMaskPayStrategies(
   routeContext: MetaMaskPayRouteContext,
   routingFlags: MetaMaskPayRoutingFlags,
 ): TransactionPayStrategy[] {
@@ -262,4 +287,42 @@ export function resolveMetaMaskPayStrategies(
   }
 
   return [];
+}
+
+function normalizeRoute(
+  route: MetaMaskPayStrategyRoute,
+): MetaMaskPayRouteContext {
+  return {
+    chainId: normalizeHex(route.chainId),
+    tokenAddress: normalizeHex(route.tokenAddress),
+    transactionType: route.transactionType,
+  };
+}
+
+export function getMetaMaskPayStrategiesForRoute(
+  route: MetaMaskPayStrategyRoute,
+  rawFeatureFlags: unknown,
+): TransactionPayStrategy[] {
+  const normalizedRoute = normalizeRoute(route);
+
+  if (getStrategyOrderForRouteFromFeatureFlags) {
+    return getStrategyOrderForRouteFromFeatureFlags(
+      rawFeatureFlags,
+      normalizedRoute,
+    );
+  }
+
+  const routingFlags = normalizeMetaMaskPayRoutingFlags(rawFeatureFlags);
+
+  return resolveMetaMaskPayStrategies(normalizedRoute, routingFlags);
+}
+
+export function getMetaMaskPayStrategiesForTransaction(
+  transactionMeta: TransactionMeta | undefined,
+  rawFeatureFlags: unknown,
+): TransactionPayStrategy[] {
+  return getMetaMaskPayStrategiesForRoute(
+    getTransactionPayRouteContext(transactionMeta),
+    rawFeatureFlags,
+  );
 }
