@@ -173,7 +173,7 @@ describe('assetsControllerInit', () => {
           pollInterval: 30_000,
           enabled: true,
         },
-        trackMetaMetricsEvent: expect.any(Function),
+        trace: expect.any(Function),
       }),
     );
   });
