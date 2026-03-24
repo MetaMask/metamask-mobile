@@ -51,8 +51,8 @@ jest.mock('./adapters', () => ({
   createAdapter: jest.fn(() => mockAdapterInstance),
 }));
 
-jest.mock('../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn().mockReturnValue({
       addProperties: jest.fn().mockReturnValue({
