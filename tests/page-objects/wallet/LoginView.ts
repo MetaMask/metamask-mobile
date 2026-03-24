@@ -59,7 +59,7 @@ class LoginView {
     return encapsulated({
       detox: () => Matchers.getElementByID(LoginViewSelectors.TITLE_ID),
       appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.LOGIN_BUTTON_ID, {
+        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID, {
           exact: true,
         }),
     });
