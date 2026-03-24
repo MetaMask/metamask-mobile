@@ -31,6 +31,17 @@ jest.mock(
   }),
 );
 
+const mockShowAccessRestrictedModal = jest.fn();
+const mockHideAccessRestrictedModal = jest.fn();
+
+jest.mock('../contexts/AccessRestrictedContext', () => ({
+  useAccessRestrictedModal: () => ({
+    showAccessRestrictedModal: mockShowAccessRestrictedModal,
+    hideAccessRestrictedModal: mockHideAccessRestrictedModal,
+    isAccessRestricted: false,
+  }),
+}));
+
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 const BLOCKED_ADDRESS = '0xBLOCKED';
@@ -204,5 +215,65 @@ describe('useAccountGroupCompliance', () => {
     const { result } = renderHook(() => useAccountGroupCompliance());
 
     expect(result.current.isBlocked).toBe(false);
+  });
+
+  it('shows access restricted modal when any address is blocked', () => {
+    mockUseSelector
+      .mockReturnValueOnce(['0xEVM', 'bc1qBTC']) // group addresses
+      .mockReturnValueOnce(true) // selectComplianceEnabled
+      .mockReturnValueOnce(false) // selectIsWalletBlocked
+      .mockReturnValueOnce(true); // selectAreAnyWalletsBlocked -> blocked
+
+    renderHook(() => useAccountGroupCompliance());
+
+    expect(mockShowAccessRestrictedModal).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not show access restricted modal when no addresses are blocked', () => {
+    mockUseSelector
+      .mockReturnValueOnce(['0xEVM', 'bc1qBTC']) // group addresses
+      .mockReturnValueOnce(true) // selectComplianceEnabled
+      .mockReturnValueOnce(false) // selectIsWalletBlocked
+      .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked -> not blocked
+
+    renderHook(() => useAccountGroupCompliance());
+
+    expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
+  });
+
+  it('does not show access restricted modal when compliance is disabled even if address is blocked', () => {
+    mockUseSelector
+      .mockReturnValueOnce([BLOCKED_ADDRESS]) // group addresses
+      .mockReturnValueOnce(false) // selectComplianceEnabled -> disabled
+      .mockReturnValueOnce(true) // selectIsWalletBlocked -> blocked
+      .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+    renderHook(() => useAccountGroupCompliance());
+
+    expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
+  });
+
+  it('shows modal when blocked status changes from false to true on rerender', () => {
+    // Initial render: not blocked
+    mockUseSelector
+      .mockReturnValueOnce(['0xEVM']) // group addresses
+      .mockReturnValueOnce(true) // selectComplianceEnabled
+      .mockReturnValueOnce(false) // selectIsWalletBlocked -> not blocked
+      .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+    const { rerender } = renderHook(() => useAccountGroupCompliance());
+
+    expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
+
+    // Rerender: now blocked
+    mockUseSelector
+      .mockReturnValueOnce(['0xEVM']) // group addresses
+      .mockReturnValueOnce(true) // selectComplianceEnabled
+      .mockReturnValueOnce(true) // selectIsWalletBlocked -> blocked
+      .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+    rerender();
+
+    expect(mockShowAccessRestrictedModal).toHaveBeenCalledTimes(1);
   });
 });
