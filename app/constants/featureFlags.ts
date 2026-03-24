@@ -15,6 +15,7 @@ export enum FeatureFlagNames {
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
   complianceEnabled = 'complianceEnabled',
+  legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
