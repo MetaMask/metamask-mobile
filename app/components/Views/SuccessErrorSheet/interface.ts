@@ -9,7 +9,7 @@ export interface SuccessErrorSheetParams {
   title: string | React.ReactNode;
   description: string | React.ReactNode;
   customButton?: React.ReactNode;
-  type: 'success' | 'error' | 'warning';
+  type: 'success' | 'error';
   icon?: IconName;
   secondaryButtonLabel?: string;
   onSecondaryButtonPress?: () => void;

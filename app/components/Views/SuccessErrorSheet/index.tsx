@@ -1,4 +1,4 @@
-import React, { useMemo, useRef } from 'react';
+import React, { useRef } from 'react';
 import { View } from 'react-native';
 import Text from '../../../component-library/components/Texts/Text';
 import {
@@ -70,22 +70,8 @@ const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
     }
   };
 
-  const getIcon = useMemo(() => {
-    if (icon) {
-      return icon;
-    }
-
-    switch (type) {
-      case 'success':
-        return IconName.Confirmation;
-      case 'error':
-        return IconName.CircleX;
-      case 'warning':
-        return IconName.Warning;
-      default:
-        return IconName.CircleX;
-    }
-  }, [type, icon]);
+  const getIcon =
+    icon || (type === 'success' ? IconName.Confirmation : IconName.CircleX);
 
   const getIconColor =
     iconColor ||

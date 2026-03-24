@@ -111,6 +111,7 @@ import {
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
 import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -767,7 +768,8 @@ const Onboarding = () => {
           Device.comparePlatformVersionTo('17.4') < 0
         ) {
           await navigateToSuccessErrorSheetPromise(navigation, {
-            type: 'warning',
+            type: 'error',
+            icon: IconName.Warning,
             title: strings(`error_sheet.ios_google_login_not_supported_title`),
             description: strings(
               `error_sheet.ios_google_login_not_supported_description`,
