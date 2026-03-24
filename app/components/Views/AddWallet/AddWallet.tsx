@@ -1,12 +1,11 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { SafeAreaView } from 'react-native';
+import { Pressable, SafeAreaView } from 'react-native';
 import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
-  ButtonBase,
   ButtonIcon,
   FontWeight,
   Icon,
@@ -93,19 +92,22 @@ const AddWallet = () => {
         </Box>
 
         <Box gap={6} paddingHorizontal={4}>
-          <Text variant={TextVariant.HeadingLg}>Add a wallet</Text>
+          <Text color={TextColor.TextDefault} variant={TextVariant.HeadingLg}>
+            {strings('multichain_accounts.add_wallet')}
+          </Text>
 
           <Box gap={3}>
             {actionConfigs.map((config) => (
-              <ButtonBase
+              <Pressable
                 key={config.testID}
-                accessibilityRole="button"
                 onPress={() => handleActionPress(config)}
                 testID={config.testID}
-                twClassName={(pressed) =>
-                  `w-full rounded-xl bg-background-muted px-4 py-3 ${
-                    pressed ? 'opacity-70' : ''
-                  }`
+                accessibilityRole="button"
+                style={({ pressed }) =>
+                  tw.style(
+                    'w-full rounded-xl bg-background-muted px-4 py-3',
+                    pressed && 'opacity-80',
+                  )
                 }
               >
                 <Box
@@ -127,6 +129,7 @@ const AddWallet = () => {
 
                   <Box twClassName="flex-1">
                     <Text
+                      color={TextColor.TextDefault}
                       fontWeight={FontWeight.Medium}
                       variant={TextVariant.BodyMd}
                     >
@@ -141,7 +144,7 @@ const AddWallet = () => {
                     </Text>
                   </Box>
                 </Box>
-              </ButtonBase>
+              </Pressable>
             ))}
           </Box>
         </Box>
