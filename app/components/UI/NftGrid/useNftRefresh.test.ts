@@ -1,10 +1,9 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 import { useNftRefresh } from './useNftRefresh';
 import Engine from '../../../core/Engine';
-import { useNftDetection } from '../../hooks/useNftDetection';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
-import { selectTokenNetworkFilter } from '../../../selectors/preferencesController';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn((selector) => selector()),
@@ -16,10 +15,6 @@ jest.mock('../../../core/Engine', () => ({
       checkAndUpdateAllNftsOwnershipStatus: jest.fn(),
     },
   },
-}));
-
-jest.mock('../../hooks/useNftDetection', () => ({
-  useNftDetection: jest.fn(),
 }));
 
 jest.mock('../../../selectors/networkController', () => ({
@@ -35,35 +30,25 @@ jest.mock('../../../selectors/networkController', () => ({
   })),
 }));
 
-jest.mock('../../../selectors/preferencesController', () => ({
-  selectTokenNetworkFilter: jest.fn(() => ({
-    '0x1': true,
-    '0x89': true,
-  })),
-}));
-
 describe('useNftRefresh', () => {
   const mockDetectNfts = jest.fn();
   const mockCheckAndUpdateAllNftsOwnershipStatus = jest.fn();
+  const defaultChainIds: Hex[] = ['0x1', '0x89'];
 
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockUseNftDetection = useNftDetection as jest.MockedFunction<
-    typeof useNftDetection
-  >;
+
+  const defaultProps = {
+    detectNfts: mockDetectNfts,
+    chainIdsToDetectNftsFor: defaultChainIds,
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();
 
     mockDetectNfts.mockResolvedValue(undefined);
     mockCheckAndUpdateAllNftsOwnershipStatus.mockResolvedValue(undefined);
-
-    mockUseNftDetection.mockReturnValue({
-      detectNfts: mockDetectNfts,
-      chainIdsToDetectNftsFor: ['0x1', '0x89'],
-      abortDetection: jest.fn(),
-    });
 
     (
       Engine.context.NftController
@@ -83,18 +68,12 @@ describe('useNftRefresh', () => {
           },
         };
       }
-      if (selector === selectTokenNetworkFilter) {
-        return {
-          '0x1': true,
-          '0x89': true,
-        };
-      }
       return undefined;
     });
   });
 
   it('returns refreshing and onRefresh', () => {
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultProps));
 
     expect(result.current.refreshing).toBe(false);
     expect(result.current.onRefresh).toBeDefined();
@@ -102,7 +81,7 @@ describe('useNftRefresh', () => {
   });
 
   it('sets refreshing to true during refresh and false after', async () => {
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultProps));
 
     expect(result.current.refreshing).toBe(false);
 
@@ -113,8 +92,8 @@ describe('useNftRefresh', () => {
     expect(result.current.refreshing).toBe(false);
   });
 
-  it('calls useNftDetection.detectNfts on refresh', async () => {
-    const { result } = renderHook(() => useNftRefresh());
+  it('calls detectNfts on refresh', async () => {
+    const { result } = renderHook(() => useNftRefresh(defaultProps));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -124,7 +103,7 @@ describe('useNftRefresh', () => {
   });
 
   it('calls NftController.checkAndUpdateAllNftsOwnershipStatus for each network', async () => {
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultProps));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -143,7 +122,7 @@ describe('useNftRefresh', () => {
     const mockError = new Error('Detection failed');
     mockDetectNfts.mockRejectedValueOnce(mockError);
 
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultProps));
 
     await act(async () => {
       await result.current.onRefresh();
@@ -152,15 +131,13 @@ describe('useNftRefresh', () => {
     expect(result.current.refreshing).toBe(false);
   });
 
-  it('does not call checkAndUpdateAllNftsOwnershipStatus when no network client IDs', async () => {
-    mockUseSelector.mockImplementation((selector: unknown) => {
-      if (selector === selectTokenNetworkFilter) {
-        return {};
-      }
-      return undefined;
-    });
-
-    const { result } = renderHook(() => useNftRefresh());
+  it('does not call checkAndUpdateAllNftsOwnershipStatus when chainIdsToDetectNftsFor is empty', async () => {
+    const { result } = renderHook(() =>
+      useNftRefresh({
+        detectNfts: mockDetectNfts,
+        chainIdsToDetectNftsFor: [],
+      }),
+    );
 
     await act(async () => {
       await result.current.onRefresh();
@@ -180,13 +157,15 @@ describe('useNftRefresh', () => {
           },
         };
       }
-      if (selector === selectTokenNetworkFilter) {
-        return { '0x1': true };
-      }
       return undefined;
     });
 
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() =>
+      useNftRefresh({
+        detectNfts: mockDetectNfts,
+        chainIdsToDetectNftsFor: ['0x1'],
+      }),
+    );
 
     await act(async () => {
       await result.current.onRefresh();
@@ -210,7 +189,7 @@ describe('useNftRefresh', () => {
       callOrder.push('ownership-end');
     });
 
-    const { result } = renderHook(() => useNftRefresh());
+    const { result } = renderHook(() => useNftRefresh(defaultProps));
 
     await act(async () => {
       await result.current.onRefresh();

@@ -97,7 +97,12 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
       useState<Nft | null>(null);
     const tw = useTailwind();
     const { colors } = useTheme();
-    const { refreshing, onRefresh } = useNftRefresh();
+    const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =
+      useNftDetection();
+    const { refreshing, onRefresh } = useNftRefresh({
+      detectNfts,
+      chainIdsToDetectNftsFor,
+    });
 
     useImperativeHandle(ref, () => ({
       refresh: onRefresh,
@@ -133,9 +138,6 @@ const NftGrid = forwardRef<TabRefreshHandle, NftGridProps>(
           ) => Record<string, Nft[]>
         )(state, undefined, addressesOverride),
     );
-
-    const { detectNfts, abortDetection, chainIdsToDetectNftsFor } =
-      useNftDetection();
 
     const isInitialMount = useRef(true);
     const hasTrackedScreenViewRef = useRef(false);
