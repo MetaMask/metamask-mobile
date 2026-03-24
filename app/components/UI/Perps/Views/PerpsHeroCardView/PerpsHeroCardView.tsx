@@ -20,6 +20,7 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName as DSIconName,
 } from '@metamask/design-system-react-native';
 import {
   IconName,
@@ -522,7 +523,7 @@ const PerpsHeroCardView: React.FC = () => {
           variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           isFullWidth
-          startIconName={isSharing ? undefined : IconName.Share}
+          startIconName={isSharing ? undefined : DSIconName.Share}
           onPress={handleShare}
           isLoading={isSharing}
           isDisabled={isSharing}

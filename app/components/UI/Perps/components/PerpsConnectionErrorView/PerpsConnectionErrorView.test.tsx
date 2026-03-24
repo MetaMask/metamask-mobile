@@ -205,7 +205,7 @@ describe('PerpsConnectionErrorView', () => {
 
     const button = getByText('perps.connection.retrying_connection');
     // Button is disabled while loading, so traverse up to find and invoke onPress directly
-    let node = button;
+    let node: typeof button | null = button;
     while (node && !node.props.onPress) {
       node = node.parent;
     }
