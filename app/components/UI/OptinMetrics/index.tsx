@@ -32,6 +32,7 @@ import { clearOnboardingEvents } from '../../../actions/onboarding';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { markMetricsOptInUISeen } from '../../../util/metrics/metricsOptInUIUtils';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
@@ -216,7 +217,10 @@ const OptinMetrics = () => {
         // as precision is only to the milisecond
         // and loop seems to runs faster than that
         setTimeout(() => {
-          metrics.trackEvent(...eventArgs);
+          const event = AnalyticsEventBuilder.createEventBuilder(
+            eventArgs[0],
+          ).build();
+          metrics.trackEvent(event);
         }, delay);
         delay += eventTrackingDelay;
       });
