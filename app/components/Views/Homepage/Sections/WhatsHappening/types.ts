@@ -1,14 +1,4 @@
-import type { Article } from '@metamask/ai-controllers';
-
-/**
- * An asset referenced by a trending topic.
- */
-export interface RelatedAsset {
-  sourceAssetId: string;
-  symbol: string;
-  name: string;
-  caip19: string[];
-}
+import type { Article, RelatedAsset } from '@metamask/ai-controllers';
 
 /**
  * Represents a single "What's Happening" trending item.
