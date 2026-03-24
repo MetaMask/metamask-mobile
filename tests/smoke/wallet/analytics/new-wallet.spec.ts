@@ -47,7 +47,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
     await TestHelpers.reverseServerPort();
   });
 
-  it.only('should track analytics events during new wallet flow', async () => {
+  it('should track analytics events during new wallet flow', async () => {
     await withFixtures(
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
