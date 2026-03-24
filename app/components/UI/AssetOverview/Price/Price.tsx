@@ -1,7 +1,3 @@
-import {
-  TimePeriod,
-  TokenPrice,
-} from '../../../../components/hooks/useTokenHistoricalPrices';
 import React, { useCallback, useMemo, useState } from 'react';
 import { Dimensions, View } from 'react-native';
 import SkeletonPlaceholder from 'react-native-skeleton-placeholder';
@@ -16,10 +12,9 @@ import Text, {
 } from '../../../../component-library/components/Texts/Text';
 
 import styleSheet from './Price.styles';
+import { TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
 import { TokenI } from '../../Tokens/types';
-import StockBadge from '../../shared/StockBadge/StockBadge';
-import { BridgeToken } from '../../Bridge/types';
 import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
@@ -35,13 +30,7 @@ import TimeRangeSelector, {
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar';
-
-/**
- * Fixed chart block height for line and candle (design: same height when toggling; only axis
- * show/hide changes). Line full width: TradingView webview (hidden right scale, detachNoScale,
- * zero time-scale right offset). Candle keeps Y-axis gutter.
- */
-const CHART_HEIGHT = Dimensions.get('screen').height * 0.24;
+import { Box } from '@metamask/design-system-react-native';
 
 // SVG path from design for placeholder chart background
 const PLACEHOLDER_SVG_PATH =
@@ -62,7 +51,6 @@ interface PriceProps {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
-  timePeriod: TimePeriod;
 }
 
 interface NoDataOverlayProps {
@@ -84,7 +72,6 @@ const NoDataOverlay: React.FC<NoDataOverlayProps> = ({
         height={CHART_HEIGHT}
         viewBox="0 0 362 202"
         preserveAspectRatio="none"
-        style={styles.placeholderChart}
       >
         <Path
           d={PLACEHOLDER_SVG_PATH}
@@ -165,11 +152,6 @@ const Price = ({
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
   const { styles, theme } = useStyles(styleSheet, { priceDiff });
-  const ticker = asset.ticker || asset.symbol;
-
-  const stockTokenBadge = isStockToken(asset as BridgeToken) && (
-    <StockBadge style={styles.stockBadge} token={asset as BridgeToken} />
-  );
 
   const hasChartData = ohlcvData.length > 1;
   const hasInsufficientData = ohlcvData.length === 1;
@@ -240,42 +222,42 @@ const Price = ({
           ) : null}
         </Text>
       </View>
-      {crosshairData && chartType === ChartType.Candles && (
-        <OHLCVBar data={crosshairData} currency={currentCurrency} />
-      )}
-      {/* TODO: Line chart color should match percentage color (green when positive, red when negative) */}
-      <View style={[styles.chartContainer, { height: CHART_HEIGHT }]}>
-        {showEmptyState ? (
-          <NoDataOverlay
-            hasInsufficientData={hasInsufficientData}
-            styles={styles}
-          />
-        ) : (
-          <AdvancedChart
-            ohlcvData={ohlcvData}
-            height={CHART_HEIGHT}
-            showVolume={chartType === ChartType.Candles}
-            chartType={chartType}
-            indicators={indicators}
-            isLoading={chartLoading}
-            onRequestMoreHistory={fetchMoreHistory}
-            onCrosshairMove={handleCrosshairMove}
-          />
+      <Box twClassName={showEmptyState ? 'mt-8 mb-6' : 'mt-8'}>
+        {crosshairData && chartType === ChartType.Candles && (
+          <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
-      </View>
+        {/* TODO: Line chart color should match percentage color (green when positive, red when negative) */}
+        <View style={[styles.chartContainer, { height: CHART_HEIGHT }]}>
+          {showEmptyState ? (
+            <NoDataOverlay
+              hasInsufficientData={hasInsufficientData}
+              styles={styles}
+            />
+          ) : (
+            <AdvancedChart
+              ohlcvData={ohlcvData}
+              height={CHART_HEIGHT}
+              showVolume={chartType === ChartType.Candles}
+              chartType={chartType}
+              indicators={indicators}
+              isLoading={chartLoading}
+              onRequestMoreHistory={fetchMoreHistory}
+              onCrosshairMove={handleCrosshairMove}
+            />
+          )}
+        </View>
+      </Box>
+
       {!showEmptyState && (
         <View style={styles.timeRangeContainer}>
-          <TimeRangeSelector
-            selected={timeRange}
-            onSelect={setTimeRange}
-            chartType={chartType}
-            onChartTypeToggle={toggleChartType}
-          />
-          {/* TODO: Re-enable indicators when ready for production */}
-          {/* <IndicatorToggle
-            activeIndicators={indicators}
-            onToggle={handleToggleIndicator}
-          /> */}
+          <View style={styles.timeRangeSelectorWrap}>
+            <TimeRangeSelector
+              selected={timeRange}
+              onSelect={setTimeRange}
+              chartType={chartType}
+              onChartTypeToggle={toggleChartType}
+            />
+          </View>
         </View>
       )}
     </>

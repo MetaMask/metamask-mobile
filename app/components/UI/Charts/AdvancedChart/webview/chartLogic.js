@@ -7,6 +7,7 @@
  * CONFIG is injected before this script runs and contains:
  * - libraryUrl: string
  * - theme: { backgroundColor, borderColor, textColor, successColor, errorColor, primaryColor }
+ * - lineChrome: { hideTimeScale, showLastPriceLine } (line chart only; optional for older templates)
  */
 
 // ============================================
@@ -25,6 +26,8 @@ window.realtimeCallbacks = {};
 window.pendingGetBarsCallback = null;
 // Default line chart (ChartType.Line === 2); RN SET_CHART_TYPE overrides when chart mounts.
 window.currentChartType = 2;
+window.lineChromeOverrides = {};
+window.lineLastPriceShapeId = null;
 
 // ============================================
 // Communication with React Native
@@ -36,13 +39,6 @@ function sendToReactNative(type, payload) {
       JSON.stringify({ type: type, payload: payload }),
     );
   }
-}
-
-// Log script initialization - try both console and postMessage
-try {
-  console.log('[chartLogic.js] Script loaded and initialized');
-} catch (e) {
-  console.error('[chartLogic.js] Init error:', e);
 }
 
 // ============================================
@@ -71,6 +67,9 @@ function handleMessage(event) {
       case 'SET_CHART_TYPE':
         handleSetChartType(message.payload);
         break;
+      case 'SET_LINE_CHROME':
+        handleSetLineChrome(message.payload);
+        break;
       case 'SET_POSITION_LINES':
         handleSetPositionLines(message.payload);
         break;
@@ -88,6 +87,36 @@ function handleMessage(event) {
 
 window.addEventListener('message', handleMessage);
 document.addEventListener('message', handleMessage);
+
+function getLineChrome() {
+  var base = (window.CONFIG && window.CONFIG.lineChrome) || {};
+  var ovr = window.lineChromeOverrides || {};
+  return {
+    hideTimeScale:
+      ovr.hideTimeScale !== undefined
+        ? !!ovr.hideTimeScale
+        : !!base.hideTimeScale,
+    showLastPriceLine:
+      ovr.showLastPriceLine !== undefined
+        ? !!ovr.showLastPriceLine
+        : !!base.showLastPriceLine,
+  };
+}
+
+function handleSetLineChrome(payload) {
+  if (!payload || typeof payload !== 'object') return;
+  if (payload.hideTimeScale !== undefined) {
+    window.lineChromeOverrides.hideTimeScale = !!payload.hideTimeScale;
+  }
+  if (payload.showLastPriceLine !== undefined) {
+    window.lineChromeOverrides.showLastPriceLine = !!payload.showLastPriceLine;
+  }
+  if (!window.isChartReady || !window.chartWidget) return;
+  applyChartScaleLayout(window.currentChartType);
+  if (window.currentChartType === 2) {
+    refreshLineChartOverlays();
+  }
+}
 
 // ============================================
 // Data Handlers
@@ -172,6 +201,7 @@ function handleSetOHLCVData(payload) {
         window.volumeStudyId = null;
         window.lastPriceShapeId = null;
         window.lineEndDotShapeId = null;
+        window.lineLastPriceShapeId = null;
         window.positionShapeIds = [];
         window.realtimeCallbacks = {};
         window.pendingGetBarsCallback = null;
@@ -182,11 +212,25 @@ function handleSetOHLCVData(payload) {
       try {
         window.chartWidget.activeChart().resetData();
         // Re-apply overrides after resetData (resetData can reset to defaults)
-        setTimeout(function () {
-          if (window.chartWidget && window.isChartReady) {
-            applyChartScaleLayout(window.currentChartType);
-          }
-        }, 0);
+        try {
+          requestAnimationFrame(function () {
+            if (window.chartWidget && window.isChartReady) {
+              applyChartScaleLayout(window.currentChartType);
+              if (window.currentChartType === 2) {
+                refreshLineChartOverlays();
+              }
+            }
+          });
+        } catch (e) {
+          setTimeout(function () {
+            if (window.chartWidget && window.isChartReady) {
+              applyChartScaleLayout(window.currentChartType);
+              if (window.currentChartType === 2) {
+                refreshLineChartOverlays();
+              }
+            }
+          }, 0);
+        }
       } catch (e) {
         // resetData can fail if chart is in a transitional state
       }
@@ -236,9 +280,8 @@ function handleRealtimeUpdate(payload) {
 
   // Update price indicators based on current chart type
   if (window.currentChartType === 2) {
-    // Line chart: update end dot, ensure no price line
     removeLastPriceLine();
-    refreshLineEndDot();
+    refreshLineChartOverlays();
   } else if (window.currentChartType === 1) {
     // Candlestick: update price line, ensure no end dot
     ensureNoLineChartEndIcons();
@@ -402,38 +445,35 @@ function applySeriesColors() {
 }
 
 /**
- * Line: detach main series from price scale so the plot uses full width; candle: pin to right scale.
+ * Pin main series to the right price scale (line and candles).
  * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ISeriesApi/
  */
-function syncMainSeriesPriceScaleAttachment(isLineChart) {
+function syncMainSeriesToRightScale() {
   if (!window.chartWidget || !window.isChartReady) return;
   try {
-    var series = window.chartWidget.activeChart().getSeries();
-    if (isLineChart) {
-      series.detachNoScale();
-    } else {
-      series.detachToRight();
-    }
+    window.chartWidget.activeChart().getSeries().detachToRight();
   } catch (e) {}
 }
 
 /**
- * setChartType() can reset scale attachment after our first layout pass — re-apply line-only
- * scale + markup + time gap shortly after so the series actually expands into the axis gutter.
+ * setChartType() can reset scale attachment — re-apply right scale + time-scale offset for line
+ * (right offset keeps the end dot off the edge).
  */
 function scheduleLineChartLayoutReflow() {
   if (window.currentChartType !== 2 || !window.chartWidget) return;
   function run() {
     if (!window.chartWidget || window.currentChartType !== 2) return;
     try {
-      syncMainSeriesPriceScaleAttachment(true);
-      applyLineChartMarkupAdjustments(true);
+      syncMainSeriesToRightScale();
       syncTimeScaleRightMargin(true);
     } catch (e) {}
   }
-  setTimeout(run, 0);
-  setTimeout(run, 50);
-  setTimeout(run, 150);
+  try {
+    requestAnimationFrame(run);
+  } catch (e) {
+    setTimeout(run, 0);
+  }
+  setTimeout(run, 120);
 }
 
 function applyChartScaleLayout(type) {
@@ -441,111 +481,491 @@ function applyChartScaleLayout(type) {
 
   var theme = window.CONFIG.theme;
   var isLineChart = type === 2;
-  var axisLineColor = isLineChart ? theme.backgroundColor : '#444444';
+  /** Match pane background so time/price scale rules disappear; labels use textColor above. */
+  var axisLineColor = theme.backgroundColor || '#131416';
 
   try {
     window.chartWidget.applyOverrides({
-      'scalesProperties.showRightScale': !isLineChart,
+      'scalesProperties.showRightScale': true,
       'scalesProperties.showLeftScale': false,
-      // Always off: candle last price uses createLastPriceLine only; native last-value pill/dot
-      // duplicates that UI and looked like the line-chart end marker bleeding into candles.
       'scalesProperties.showSeriesLastValue': false,
       'scalesProperties.showStudyLastValue': false,
       'scalesProperties.showSymbolLabels': false,
-      'scalesProperties.showPriceScaleCrosshairLabel': false,
-      'scalesProperties.showTimeScaleCrosshairLabel': !isLineChart,
-      'scalesProperties.textColor': isLineChart
-        ? theme.backgroundColor
-        : theme.textColor,
-      // Always off: line has refreshLineEndDot; candle uses createLastPriceLine (no native line/dot).
+      'scalesProperties.showPriceScaleCrosshairLabel': true,
+      'scalesProperties.showTimeScaleCrosshairLabel': true,
+      'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
+      'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
+      'scalesProperties.textColor': theme.textColor,
       'mainSeriesProperties.showPriceLine': false,
       'timeScale.borderColor': axisLineColor,
       'scalesProperties.lineColor': axisLineColor,
-      // Separator between main chart and volume panes - cannot be removed, only colored
-      // https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ChartPropertiesOverrides/#panepropertiesseparatorcolor
       'paneProperties.separatorColor': theme.backgroundColor,
-      // Center line chart by adding top/bottom margins since axes are hidden
-      'paneProperties.topMargin': isLineChart ? 15 : 5,
-      'paneProperties.bottomMargin': isLineChart ? 15 : 5,
+      'paneProperties.topMargin': 5,
+      // Same margin in both modes so scale padding (and logo anchor) does not shift on toggle.
+      'paneProperties.bottomMargin': 5,
     });
   } catch (e) {}
 
-  syncMainSeriesPriceScaleAttachment(isLineChart);
-  applyLineChartMarkupAdjustments(isLineChart);
+  removeLineChartMarkupStyle();
+  syncMainSeriesToRightScale();
   syncTimeScaleRightMargin(isLineChart);
   if (isLineChart) {
     scheduleLineChartLayoutReflow();
   }
+  applyChartContainerOverflowUnclip();
+  scheduleChartDomUnclip();
+  updateCandleVolumeScaleColumnVisibility();
+  applyHidePriceScaleModeButtons();
+  applyLineTimeScaleVisibility(
+    window.currentChartType === 2 ? getLineChrome().hideTimeScale : false,
+  );
 }
 
 /**
- * Line chart: small bar gap past the last bar so the 16px end icon is not clipped at the pane
- * edge. Candle: 0 (price scale already consumes right gutter). Slight x-shift vs candle is the
- * trade-off for a full visible dot.
+ * Line chart: small right gap so the end dot isn’t flush/clipped against the pane edge.
+ * Candle: small offset so createLastPriceLine isn’t clipped at the Y-axis.
  * https://www.tradingview.com/charting-library-docs/latest/api/interfaces/Charting_Library.ITimeScaleApi/
  */
-var LINE_END_DOT_PIXEL_BUFFER = 20;
-var LINE_CHART_RIGHT_GAP_BARS_MAX = 6;
-/** Room before the Y-axis so createLastPriceLine’s label/anchor isn’t clipped on candles. */
+var LINE_CHART_RIGHT_OFFSET_BARS = 1;
 var CANDLE_CHART_RIGHT_GAP_BARS = 1;
-
-function lineChartRightGapBars(timeScale) {
-  var bs = 4;
-  try {
-    bs = timeScale.barSpacing();
-  } catch (e) {}
-  var n = Math.ceil(LINE_END_DOT_PIXEL_BUFFER / Math.max(bs, 0.25));
-  return Math.min(LINE_CHART_RIGHT_GAP_BARS_MAX, Math.max(1, n));
-}
 
 function syncTimeScaleRightMargin(isLineChart) {
   if (!window.chartWidget) return;
   try {
     var ts = window.chartWidget.activeChart().getTimeScale();
     ts.usePercentageRightOffset().setValue(false);
-    if (isLineChart) {
-      var gap = lineChartRightGapBars(ts);
-      ts.defaultRightOffset().setValue(gap);
-      ts.setRightOffset(gap);
-    } else {
-      ts.defaultRightOffset().setValue(CANDLE_CHART_RIGHT_GAP_BARS);
-      ts.setRightOffset(CANDLE_CHART_RIGHT_GAP_BARS);
-    }
+    var gap = isLineChart
+      ? LINE_CHART_RIGHT_OFFSET_BARS
+      : CANDLE_CHART_RIGHT_GAP_BARS;
+    ts.defaultRightOffset().setValue(gap);
+    ts.setRightOffset(gap);
   } catch (e) {}
 }
 
 /**
- * Line-only: collapse the *main pane* price-scale column (first chart row). Avoid targeting every
- * tr > td:last-child so the time-scale row layout stays intact. Candlestick path removes this style.
+ * TradingView adds `chart-markup-table` to the root and to inner cells; `querySelector('.chart-markup-table')`
+ * can return an inner node — pick the outer wrapper.
  */
-function applyLineChartMarkupAdjustments(isLineChart) {
-  var id = 'tv-line-chart-markup';
-  var existing = document.getElementById(id);
-  if (existing) {
-    existing.remove();
+function findOuterChartMarkupTable(doc) {
+  if (!doc || !doc.querySelectorAll) {
+    return null;
   }
-  if (!isLineChart) {
+  var list = doc.querySelectorAll('.chart-markup-table');
+  var i;
+  var el;
+  var cn;
+  for (i = 0; i < list.length; i++) {
+    el = list[i];
+    cn = el.className && String(el.className);
+    if (el.classList.contains('pane')) {
+      continue;
+    }
+    if (cn.indexOf('price-axis-container') !== -1) {
+      continue;
+    }
+    if (cn.indexOf('time-axis') !== -1) {
+      continue;
+    }
+    return el;
+  }
+  return list.length ? list[0] : null;
+}
+
+/** Run fn(document) and fn(iframe.contentDocument) when the chart lives in TV’s same-origin iframe. */
+function eachChartDocument(fn) {
+  try {
+    fn(document);
+  } catch (e) {}
+  try {
+    var container = document.getElementById('tv_chart_container');
+    var iframe = container && container.querySelector('iframe');
+    if (iframe && iframe.contentDocument) {
+      fn(iframe.contentDocument);
+    }
+  } catch (e2) {}
+}
+
+function removeInjectedStyleByIdFromChartDocs(styleId) {
+  eachChartDocument(function (d) {
+    var node = d.getElementById(styleId);
+    if (node) {
+      node.remove();
+    }
+  });
+}
+
+/** Remove legacy injected line-chart markup stylesheet (if present). */
+function removeLineChartMarkupStyle() {
+  removeInjectedStyleByIdFromChartDocs('tv-line-chart-markup');
+}
+
+/**
+ * Line chart: hide time-axis row via TradingView overrides (if supported) plus DOM fallback
+ * (same pattern as tv-pane-separator-hide). No effect on candle mode when hide is false.
+ */
+function injectHideTimeAxisStyle() {
+  var paneBg =
+    window.CONFIG && window.CONFIG.theme && window.CONFIG.theme.backgroundColor
+      ? String(window.CONFIG.theme.backgroundColor)
+      : '#131416';
+  eachChartDocument(function (targetDoc) {
+    if (!targetDoc || !targetDoc.getElementById) {
+      return;
+    }
+    var id = 'tv-hide-time-axis';
+    var existing = targetDoc.getElementById(id);
+    if (existing) {
+      existing.remove();
+    }
+    var sel = tvScopedDomSelectors(targetDoc);
+    // Collapse time row — TV keeps chart-markup-table / chart-widget at pane+time height (~204px)
+    // while the main row + .pane stay at ~176px inline; the empty strip is transparent and shows
+    // .chart-container-border .screen-* (rgb(19,20,22)) as a dark band. Fill that strip with the
+    // same surface as the chart and stretch the first row to the full widget height.
+    var hide =
+      'display:none!important;visibility:hidden!important;height:0!important;min-height:0!important;' +
+      'max-height:0!important;overflow:hidden!important;pointer-events:none!important;opacity:0!important;' +
+      'flex:0 0 0!important;margin:0!important;padding:0!important;border:none!important;';
+    var style = targetDoc.createElement('style');
+    style.id = id;
+    style.textContent =
+      sel.widgetSel +
+      '{background-color:' +
+      paneBg +
+      '!important;}' +
+      sel.chartRootSel +
+      '{display:flex!important;flex-direction:column!important;background-color:' +
+      paneBg +
+      '!important;}' +
+      sel.chartRootSel +
+      ' > div{' +
+      'background-color:' +
+      paneBg +
+      '!important;}' +
+      sel.chartRootSel +
+      '>div:last-child{' +
+      hide +
+      '}' +
+      sel.chartRootSel +
+      '>div:last-child .time-axis,' +
+      sel.chartRootSel +
+      '>div:last-child [class*="price-axis-container"]{' +
+      hide +
+      '}' +
+      sel.chartRootSel +
+      '>div:first-child{display:flex!important;flex:1 1 auto!important;height:100%!important;min-height:0!important;' +
+      'max-height:none!important;align-items:stretch!important;align-self:stretch!important;}' +
+      sel.chartRootSel +
+      '>div:first-child > .chart-markup-table.pane,' +
+      sel.chartRootSel +
+      '>div:first-child > .pane,' +
+      sel.chartRootSel +
+      '>div:first-child > .chart-markup-table.price-axis-container{' +
+      'flex:1 1 auto!important;height:100%!important;min-height:100%!important;max-height:none!important;align-self:stretch!important;' +
+      'background-color:' +
+      paneBg +
+      '!important;}' +
+      sel.chartRootSel +
+      '>div:first-child .chart-gui-wrapper{height:100%!important;min-height:100%!important;max-height:none!important;' +
+      'background-color:' +
+      paneBg +
+      '!important;}' +
+      sel.screenSel +
+      '{background:' +
+      paneBg +
+      '!important;}';
+    (targetDoc.head || targetDoc.documentElement).appendChild(style);
+  });
+}
+
+function removeHideTimeAxisStyle() {
+  removeInjectedStyleByIdFromChartDocs('tv-hide-time-axis');
+}
+
+function applyLineTimeScaleVisibility(hide) {
+  if (!window.chartWidget) return;
+  var shouldHide = window.currentChartType === 2 && hide;
+  try {
+    window.chartWidget.applyOverrides({
+      'timeScale.visible': !shouldHide,
+    });
+  } catch (e) {}
+  try {
+    window.chartWidget.applyOverrides({
+      'scalesProperties.hideTimeScale': shouldHide,
+    });
+  } catch (e2) {}
+  if (shouldHide) {
+    injectHideTimeAxisStyle();
+    function nudgeResizeAfterHideTimeAxis() {
+      if (
+        !window.chartWidget ||
+        window.currentChartType !== 2 ||
+        !getLineChrome().hideTimeScale
+      ) {
+        return;
+      }
+      try {
+        window.chartWidget.resize();
+      } catch (e) {}
+    }
+    try {
+      requestAnimationFrame(function () {
+        requestAnimationFrame(nudgeResizeAfterHideTimeAxis);
+      });
+    } catch (e) {
+      setTimeout(nudgeResizeAfterHideTimeAxis, 0);
+    }
+    setTimeout(nudgeResizeAfterHideTimeAxis, 120);
+  } else {
+    removeHideTimeAxisStyle();
+  }
+}
+
+/**
+ * TradingView sets overflow:hidden on several layout shells (.chart-container, etc.) and may
+ * re-apply after resize — refresh textContent so !important keeps winning. Also open the first
+ * price pane + gui wrapper; the watermark ring often straddles the pane bottom.
+ */
+function buildChartDomUnclipCss(targetDoc) {
+  var top = targetDoc === document;
+  var p = top ? '#tv_chart_container ' : '';
+  return (
+    p +
+    '.layout__area--center,' +
+    p +
+    '.js-rootresizer__contents,' +
+    p +
+    '.chart-container,' +
+    p +
+    '.chart-container-border{' +
+    'overflow:visible!important;clip-path:none!important;}' +
+    p +
+    '.chart-widget > .chart-markup-table > div:first-child .pane{' +
+    'overflow:visible!important;clip-path:none!important;}' +
+    p +
+    '.chart-widget > .chart-markup-table > div:first-child .pane .chart-gui-wrapper{' +
+    'overflow:visible!important;clip-path:none!important;}'
+  );
+}
+
+function injectChartContainerOverflowUnclip(targetDoc) {
+  if (!targetDoc || !targetDoc.getElementById) {
     return;
   }
-  var bg = window.CONFIG.theme.backgroundColor;
-  var style = document.createElement('style');
+  var id = 'tv-chart-container-unclip';
+  var css = buildChartDomUnclipCss(targetDoc);
+  var node = targetDoc.getElementById(id);
+  if (!node) {
+    node = targetDoc.createElement('style');
+    node.id = id;
+    (targetDoc.head || targetDoc.documentElement).appendChild(node);
+  }
+  node.textContent = css;
+}
+
+function applyChartContainerOverflowUnclip() {
+  eachChartDocument(injectChartContainerOverflowUnclip);
+}
+
+/** TV relayout is async — re-apply unclip after it sets inline overflow again. */
+function scheduleChartDomUnclip() {
+  function run() {
+    applyChartContainerOverflowUnclip();
+  }
+  try {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(run);
+    });
+  } catch (e) {
+    setTimeout(run, 0);
+  }
+  setTimeout(run, 100);
+  setTimeout(run, 280);
+}
+
+/**
+ * Locate outer .chart-markup-table (TradingView may host it under #tv_chart_container or in a same-origin iframe).
+ */
+function getChartMarkupTableContext() {
+  var container = document.getElementById('tv_chart_container');
+  if (!container) {
+    return null;
+  }
+  var table = findOuterChartMarkupTable(document);
+  var doc = document;
+  if (!table || !container.contains(table)) {
+    table = null;
+  }
+  if (!table) {
+    try {
+      var iframe = container.querySelector('iframe');
+      if (iframe && iframe.contentDocument) {
+        table = findOuterChartMarkupTable(iframe.contentDocument);
+        if (table) {
+          doc = iframe.contentDocument;
+        }
+      }
+    } catch (e) {}
+  }
+  return table ? { doc: doc, table: table } : null;
+}
+
+/** CSS selector prefix: top window uses `#tv_chart_container `; chart iframe document uses none. */
+function tvScopedDomSelectors(targetDoc) {
+  var top = targetDoc === document;
+  var p = top ? '#tv_chart_container ' : '';
+  return {
+    overflowRule:
+      buildChartDomUnclipCss(targetDoc) +
+      (top
+        ? '#tv_chart_container{overflow:visible!important;}'
+        : '.chart-widget{overflow:visible!important;}'),
+    chartRootSel: p + '.chart-widget > .chart-markup-table',
+    screenSel: p + '.chart-container-border [class^="screen-"]',
+    widgetSel: p + '.chart-widget',
+  };
+}
+
+/**
+ * Mobile Advanced Charts show Auto / Log toggles (DOM: class substring `priceScaleModeButtons`).
+ * No documented `disabled_features` entry matches this; hide the control group in the chart document.
+ */
+function injectHidePriceScaleModeButtonsStyle(targetDoc) {
+  if (!targetDoc || !targetDoc.getElementById) {
+    return;
+  }
+  var id = 'tv-hide-price-scale-mode-buttons';
+  if (targetDoc.getElementById(id)) {
+    return;
+  }
+  var style = targetDoc.createElement('style');
   style.id = id;
   style.textContent =
-    '#tv_chart_container{overflow:visible!important;}' +
-    '#tv_chart_container .chart-markup-table{width:100%!important;table-layout:fixed!important;}' +
-    '#tv_chart_container .chart-markup-table tr:first-child>td:first-child{' +
-    'width:100%!important;overflow:visible!important;box-sizing:border-box!important;}' +
-    '#tv_chart_container .chart-markup-table tr:first-child>td:last-child{' +
-    'display:none!important;width:0!important;min-width:0!important;max-width:0!important;' +
-    'padding:0!important;margin:0!important;overflow:hidden!important;' +
-    'border-color:' +
+    '[class*="priceScaleModeButtons"]{' +
+    'display:none!important;visibility:hidden!important;pointer-events:none!important;' +
+    'width:0!important;height:0!important;overflow:hidden!important;opacity:0!important;}';
+  (targetDoc.head || targetDoc.documentElement).appendChild(style);
+}
+
+function applyHidePriceScaleModeButtons() {
+  eachChartDocument(injectHidePriceScaleModeButtonsStyle);
+}
+
+function scheduleHidePriceScaleModeButtons() {
+  applyHidePriceScaleModeButtons();
+  try {
+    requestAnimationFrame(function () {
+      requestAnimationFrame(applyHidePriceScaleModeButtons);
+    });
+  } catch (e) {}
+  setTimeout(applyHidePriceScaleModeButtons, 450);
+}
+
+/**
+ * Remove injected CSS that hides the pane separator between main series and Volume.
+ */
+function removeCandleVolumeScaleMarkup() {
+  removeInjectedStyleByIdFromChartDocs('tv-pane-separator-hide');
+}
+
+/**
+ * Candle + Volume: blend the pane splitter, hide the empty error-card layer, paint TV’s #131416
+ * shell (`screen-*`, widget) to the pane color, and fix the time-scale row flex/width.
+ *
+ * Selectors must target only the outer `chart-widget > .chart-markup-table` — inner nodes also
+ * use `chart-markup-table` (e.g. `.pane`), so `.chart-markup-table > div:last-child` was matching
+ * the wrong subtree and breaking the time-axis row (black gutter under volume, misaligned border).
+ */
+function updateCandleVolumeScaleColumnVisibility() {
+  removeCandleVolumeScaleMarkup();
+
+  if (!window.chartWidget || !window.isChartReady) {
+    return;
+  }
+  if (window.currentChartType === 2) {
+    return;
+  }
+  if (!window.volumeStudyId) {
+    return;
+  }
+
+  var ctx = getChartMarkupTableContext();
+  if (!ctx) {
+    return;
+  }
+
+  var targetDoc = ctx.doc;
+  var sel = tvScopedDomSelectors(targetDoc);
+  var bg = window.CONFIG.theme.backgroundColor;
+
+  var style = targetDoc.createElement('style');
+  style.id = 'tv-pane-separator-hide';
+  // Hide pane separator entirely so it cannot sit under price-scale / floating labels.
+  // If chart layout between main + volume panes regresses, revert to blending (1px + pane bg).
+  // display:none removes the node from layout and hides it; extra visibility/size rules are redundant.
+  var sepHide = 'display:none!important;';
+  var errHide =
+    'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;' +
+    'width:0!important;height:0!important;overflow:hidden!important;';
+  // Last direct row under the outer table = time-scale flex row (not a descendant `.pane` table).
+  var timeRowFix =
+    'display:flex!important;width:100%!important;align-items:stretch!important;' +
+    'background:' +
     bg +
-    '!important;border-right:none!important;}' +
-    '#tv_chart_container .chart-markup-table tr:last-child td{' +
-    'border-bottom-color:' +
+    '!important;';
+  var timeAxisFix =
+    'flex:1 1 auto!important;min-width:0!important;width:auto!important;max-width:none!important;' +
+    'background:' +
     bg +
-    '!important;}';
-  document.head.appendChild(style);
+    '!important;';
+  var timeCanvasFix =
+    'width:100%!important;max-width:100%!important;box-sizing:border-box!important;';
+  var axisCellBg = 'background:' + bg + '!important;';
+
+  style.textContent =
+    sel.overflowRule +
+    sel.widgetSel +
+    '{background:' +
+    bg +
+    '!important;}' +
+    sel.screenSel +
+    '{background:' +
+    bg +
+    '!important;}' +
+    sel.chartRootSel +
+    '{background:' +
+    bg +
+    '!important;}' +
+    sel.chartRootSel +
+    ' > div:first-child .pane .chart-gui-wrapper{' +
+    'overflow:visible!important;' +
+    '}' +
+    sel.chartRootSel +
+    ' [class*="paneSeparator"]{' +
+    sepHide +
+    '}' +
+    sel.chartRootSel +
+    ' [class*="errorCardRendererContainer"]{' +
+    errHide +
+    '}' +
+    sel.chartRootSel +
+    '>div:last-child{' +
+    timeRowFix +
+    '}' +
+    sel.chartRootSel +
+    '>div:last-child .time-axis{' +
+    timeAxisFix +
+    '}' +
+    sel.chartRootSel +
+    '>div:last-child .time-axis canvas{' +
+    timeCanvasFix +
+    '}' +
+    sel.chartRootSel +
+    '>div:last-child [class*="price-axis-container"]{' +
+    axisCellBg +
+    '}';
+  (targetDoc.head || targetDoc.documentElement).appendChild(style);
 }
 
 function handleSetChartType(payload) {
@@ -593,7 +1013,7 @@ function handleSetChartType(payload) {
       if (window.currentChartType !== capturedType) return;
 
       if (capturedType === 2) {
-        refreshLineEndDot();
+        refreshLineChartOverlays();
       } else if (capturedType === 1) {
         createLastPriceLine();
       }
@@ -790,6 +1210,77 @@ function removeLastPriceLine() {
   }
 }
 
+function createLineLastPriceLine() {
+  if (!window.chartWidget || !window.isChartReady) return;
+  if (window.ohlcvData.length === 0) return;
+
+  if (window.currentChartType !== 2 || !getLineChrome().showLastPriceLine) {
+    removeLineLastPriceLine();
+    return;
+  }
+
+  removeLineLastPriceLine();
+
+  var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
+  var chart = window.chartWidget.activeChart();
+  var color = window.CONFIG.theme.successColor;
+
+  chart
+    .createShape(
+      { price: lastBar.close },
+      {
+        shape: 'horizontal_line',
+        lock: true,
+        overrides: {
+          linecolor: color,
+          linestyle: 2,
+          linewidth: 1,
+          showLabel: false,
+          showPrice: true,
+          fontsize: 11,
+          horzLabelsAlign: 'right',
+        },
+        disableSelection: true,
+        disableSave: true,
+        disableUndo: true,
+        showInObjectsTree: false,
+        zOrder: 'bottom',
+      },
+    )
+    .then(function (id) {
+      if (window.currentChartType !== 2 || !getLineChrome().showLastPriceLine) {
+        if (id) {
+          try {
+            chart.removeEntity(id);
+          } catch (e) {}
+        }
+        return;
+      }
+      window.lineLastPriceShapeId = id;
+    })
+    .catch(function () {});
+}
+
+function removeLineLastPriceLine() {
+  if (window.lineLastPriceShapeId && window.chartWidget) {
+    try {
+      window.chartWidget
+        .activeChart()
+        .removeEntity(window.lineLastPriceShapeId);
+    } catch (e) {}
+  }
+  window.lineLastPriceShapeId = null;
+}
+
+function refreshLineChartOverlays() {
+  refreshLineEndDot();
+  if (window.currentChartType === 2 && getLineChrome().showLastPriceLine) {
+    createLineLastPriceLine();
+  } else {
+    removeLineLastPriceLine();
+  }
+}
+
 // ============================================
 // Line chart end dot (~16px design): native line has no marker size API
 // ============================================
@@ -810,6 +1301,7 @@ function removeLineEndDot() {
 function ensureNoLineChartEndIcons() {
   if (window.currentChartType === 2) return;
   removeLineEndDot();
+  removeLineLastPriceLine();
   window.lineEndDotShapeId = null;
   if (!window.chartWidget || !window.isChartReady) return;
   try {
@@ -910,11 +1402,28 @@ function createVolumeStudy() {
           var heights = chart.getAllPanesHeight();
           if (heights.length === 2) {
             var total = heights[0] + heights[1];
-            chart.setAllPanesHeight([
-              Math.round(total * 0.78),
-              Math.round(total * 0.22),
-            ]);
+            // Default ~22% volume is often too short — TV draws the watermark on the bottom pane
+            // and the ring is canvas-clipped. Min height keeps the logo visible *and* matches the
+            // same bottom-corner placement as line mode (single full-height pane).
+            var minVolumePx = 56;
+            var minMainPx = 72;
+            var vol = Math.max(Math.round(total * 0.22), minVolumePx);
+            var main = total - vol;
+            if (main < minMainPx && total > minMainPx + minVolumePx) {
+              main = minMainPx;
+              vol = total - main;
+            } else if (main < minMainPx) {
+              main = Math.max(48, total - minVolumePx);
+              vol = total - main;
+            }
+            chart.setAllPanesHeight([main, vol]);
           }
+        } catch (e) {}
+        updateCandleVolumeScaleColumnVisibility();
+        try {
+          requestAnimationFrame(function () {
+            requestAnimationFrame(updateCandleVolumeScaleColumnVisibility);
+          });
         } catch (e) {}
       })
       .catch(function () {});
@@ -934,6 +1443,7 @@ function handleToggleVolume(payload) {
       // Already removed
     }
     window.volumeStudyId = null;
+    updateCandleVolumeScaleColumnVisibility();
   }
 }
 
@@ -1234,6 +1744,9 @@ function initChart() {
       disabled_features: disabledFeatures.concat(
         'use_localstorage_for_settings',
       ),
+      // Keep default logo placement on the *bottom* pane so it stays in the same corner when
+      // toggling line (single pane) vs candle + volume (logo on volume strip). Forcing
+      // move_logo_to_main_pane shifts the mark into the price pane and it jumps above volume.
       enabled_features: ['study_templates', 'iframe_loading_same_origin'],
 
       custom_themes: {
@@ -1250,17 +1763,17 @@ function initChart() {
           'paneProperties.vertGridProperties.color': 'transparent',
           'paneProperties.horzGridProperties.color': 'transparent',
           'scalesProperties.textColor': theme.textColor,
-          // Axis border lines: visible by default, hidden dynamically for line chart
-          'scalesProperties.lineColor': '#444444',
-          'timeScale.borderColor': '#444444',
+          'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
+          'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'scalesProperties.fontSize': 11,
-          'scalesProperties.showStudyLastValue': false, // Hides volume label
-          'scalesProperties.showSeriesLastValue': false, // Hides open/close labels
-          'scalesProperties.showSymbolLabels': false, // Hides "ASSET" text
+          'scalesProperties.showStudyLastValue': false,
+          'scalesProperties.showSeriesLastValue': false,
+          'scalesProperties.showSymbolLabels': false,
           'scalesProperties.showRightScale': true,
           'scalesProperties.showLeftScale': false,
-          // Hide crosshair labels (price/time labels that appear on long press)
-          'scalesProperties.showPriceScaleCrosshairLabel': false,
+          'scalesProperties.showPriceScaleCrosshairLabel': true,
+          'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
+          'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
 
           'mainSeriesProperties.candleStyle.upColor': theme.successColor,
           'mainSeriesProperties.candleStyle.downColor': theme.errorColor,
@@ -1292,11 +1805,12 @@ function initChart() {
       applySeriesColors();
       applyChartScaleLayout(window.currentChartType);
 
+      scheduleHidePriceScaleModeButtons();
+
       // Initialize price indicators based on chart type
       if (window.currentChartType === 2) {
-        // Line chart: show end dot, no price line
         removeLastPriceLine();
-        refreshLineEndDot();
+        refreshLineChartOverlays();
       } else {
         // Candlestick: show price line, no end dot
         ensureNoLineChartEndIcons();
@@ -1314,30 +1828,28 @@ function initChart() {
           });
       } catch (e) {}
 
-      // After zoom, re-apply small line-only right gap + repaint end dot (syncTimeScaleRightMargin).
-      var lineChartBarGapDebounce = null;
+      // After zoom/pan, TV may reset time-scale and re-apply overflow on layout shells.
+      var chartTimeScaleLayoutDebounce = null;
       try {
         window.chartWidget
           .activeChart()
           .getTimeScale()
           .barSpacingChanged()
           .subscribe(null, function () {
-            if (window.currentChartType !== 2) return;
-            if (lineChartBarGapDebounce) {
-              clearTimeout(lineChartBarGapDebounce);
+            if (chartTimeScaleLayoutDebounce) {
+              clearTimeout(chartTimeScaleLayoutDebounce);
             }
-            lineChartBarGapDebounce = setTimeout(function () {
-              lineChartBarGapDebounce = null;
-              if (window.currentChartType !== 2 || !window.chartWidget) return;
+            chartTimeScaleLayoutDebounce = setTimeout(function () {
+              chartTimeScaleLayoutDebounce = null;
+              if (!window.chartWidget) return;
               try {
-                var tsGap = window.chartWidget.activeChart().getTimeScale();
-                tsGap.usePercentageRightOffset().setValue(false);
-                var g = lineChartRightGapBars(tsGap);
-                tsGap.defaultRightOffset().setValue(g);
-                tsGap.setRightOffset(g);
-                setTimeout(function () {
-                  refreshLineEndDot();
-                }, 0);
+                applyChartContainerOverflowUnclip();
+                if (window.currentChartType === 2) {
+                  syncTimeScaleRightMargin(true);
+                  try {
+                    requestAnimationFrame(refreshLineChartOverlays);
+                  } catch (rafDot) {}
+                }
               } catch (err) {}
             }, 80);
           });

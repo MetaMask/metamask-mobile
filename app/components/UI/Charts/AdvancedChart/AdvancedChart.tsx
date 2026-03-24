@@ -55,6 +55,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       onError,
       onCrosshairMove,
       isLoading = false,
+      lineChrome,
     },
     ref,
   ) => {
@@ -77,8 +78,9 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         createAdvancedChartTemplate(theme, {
           enableDrawingTools,
           disabledFeatures,
+          lineChrome,
         }),
-      [theme, enableDrawingTools, disabledFeatures],
+      [theme, enableDrawingTools, disabledFeatures, lineChrome],
     );
 
     // Reset all chart state when the WebView reloads due to htmlContent changes
@@ -349,6 +351,15 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [showVolume, chartReadyCount, postMessage]);
 
+    // Line chart chrome presets (time axis / last-price line); merges in WebView without requiring HTML edits
+    useEffect(() => {
+      if (chartReadyCount === 0 || lineChrome === undefined) return;
+      postMessage({
+        type: 'SET_LINE_CHROME',
+        payload: lineChrome,
+      });
+    }, [lineChrome, chartReadyCount, postMessage]);
+
     // ---- Render ----
 
     if (webViewError) {
@@ -373,6 +384,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
           originWhitelist={['*']}
           javaScriptEnabled
           domStorageEnabled
+          webviewDebuggingEnabled={__DEV__}
           scrollEnabled={false}
           bounces={false}
           showsHorizontalScrollIndicator={false}

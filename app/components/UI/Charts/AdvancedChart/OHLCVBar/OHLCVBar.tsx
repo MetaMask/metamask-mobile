@@ -48,12 +48,11 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
   }, [data.open, data.close, data.high, data.low, data.volume, currency]);
 
   return (
-    <Box twClassName="px-4 py-2" testID={testID}>
+    <Box twClassName="px-4" testID={testID}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        twClassName="mb-1"
       >
         {LABELS.map(({ key }) => (
           <Box key={key} twClassName="flex-1">

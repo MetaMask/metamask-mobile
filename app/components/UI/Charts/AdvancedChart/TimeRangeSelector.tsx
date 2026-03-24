@@ -1,27 +1,26 @@
 import React from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { Pressable } from 'react-native';
 import Svg, { Path } from 'react-native-svg';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
-  BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import { useStyles } from '../../../../component-library/hooks';
+import { IconSize } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
-import { Theme } from '../../../../util/theme/models';
 import { ChartType } from './AdvancedChart.types';
 
 const CandlestickIcon = ({
   color,
-  size = 16,
+  size,
 }: {
   color: string;
-  size?: number;
+  size: IconSize;
 }) => (
-  <Svg width={size * 0.875} height={size} viewBox="0 0 14 16" fill="none">
+  <Svg width={size} height={size} viewBox="0 0 14 16" fill="none">
     <Path d="M4 0H2V2H0V14H2V16H4V14H6V2H4V0ZM4 12H2V4H4V12Z" fill={color} />
     <Path
       d="M14 4H12V0H10V4H8V11H10V16H12V11H14V4ZM12 9H10V6H12V9Z"
@@ -30,13 +29,7 @@ const CandlestickIcon = ({
   </Svg>
 );
 
-const LineChartIcon = ({
-  color,
-  size = 16,
-}: {
-  color: string;
-  size?: number;
-}) => (
+const LineChartIcon = ({ color, size }: { color: string; size: IconSize }) => (
   <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
     <Path
       d="M3 16.5L9 10L13 16L21 6.5"
@@ -70,6 +63,10 @@ export const TIME_RANGE_CONFIGS: Record<TimeRange, TimeRangeConfig> = {
 
 const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
+/** padding 4px 16px, gap spacing/1, rounded 8 — filter control spec */
+const SEGMENT_BUTTON_BASE =
+  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1';
+
 interface TimeRangeSelectorProps {
   selected: TimeRange;
   onSelect: (range: TimeRange) => void;
@@ -81,25 +78,6 @@ interface TimeRangeSelectorProps {
   onChartTypeToggle?: () => void;
 }
 
-const selectorStyleSheet = (params: { theme: Theme }) => {
-  const { theme } = params;
-  return StyleSheet.create({
-    button: {
-      paddingHorizontal: 14,
-      paddingVertical: 8,
-      borderRadius: 8,
-      alignItems: 'center',
-      justifyContent: 'center',
-    },
-    buttonSelected: {
-      backgroundColor: theme.colors.background.muted,
-    },
-    buttonPressed: {
-      opacity: 0.7,
-    },
-  });
-};
-
 const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   selected,
   onSelect,
@@ -107,27 +85,27 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
   chartType,
   onChartTypeToggle,
 }) => {
-  const { styles } = useStyles(selectorStyleSheet, {});
+  const tw = useTailwind();
   const { colors } = useTheme();
 
   return (
     <Box
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Center}
-      gap={1}
-      twClassName="px-4"
+      twClassName="w-full px-4"
     >
       {ranges.map((range) => {
         const isSelected = selected === range;
         return (
           <Pressable
             key={range}
-            style={({ pressed }) => [
-              styles.button,
-              isSelected && styles.buttonSelected,
-              pressed && styles.buttonPressed,
-            ]}
+            style={({ pressed }) =>
+              tw.style(
+                SEGMENT_BUTTON_BASE,
+                isSelected && 'bg-muted',
+                pressed && 'opacity-70',
+              )
+            }
             onPress={() => onSelect(range)}
           >
             <Text
@@ -141,12 +119,11 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           </Pressable>
         );
       })}
-      {onChartTypeToggle && (
+      {onChartTypeToggle ? (
         <Pressable
-          style={({ pressed }) => [
-            styles.button,
-            pressed && styles.buttonPressed,
-          ]}
+          style={({ pressed }) =>
+            tw.style(SEGMENT_BUTTON_BASE, pressed && 'opacity-70')
+          }
           onPress={onChartTypeToggle}
           accessibilityRole="button"
           accessibilityLabel={
@@ -156,12 +133,15 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           }
         >
           {chartType === ChartType.Candles ? (
-            <CandlestickIcon color={colors.text.alternative} size={16} />
+            <CandlestickIcon
+              color={colors.text.alternative}
+              size={IconSize.Md}
+            />
           ) : (
-            <LineChartIcon color={colors.text.alternative} size={16} />
+            <LineChartIcon color={colors.text.alternative} size={IconSize.Md} />
           )}
         </Pressable>
-      )}
+      ) : null}
     </Box>
   );
 };

@@ -157,7 +157,6 @@ const defaultProps: AssetOverviewContentProps = {
   comparePrice: 2000,
   prices: [],
   isLoading: false,
-  timePeriod: '1d',
   isPerpsEnabled: true,
   displayBuyButton: false,
   displaySwapsButton: false,

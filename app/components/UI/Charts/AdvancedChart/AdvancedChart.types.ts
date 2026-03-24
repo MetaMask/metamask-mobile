@@ -114,11 +114,22 @@ export type ChartType = (typeof ChartType)[keyof typeof ChartType];
 // Message protocol: React Native <-> WebView
 // ============================================
 
+/**
+ * Line-chart-only chrome (TradingView WebView). Candlestick behavior is unchanged.
+ */
+export interface LineChromeOptions {
+  /** When true, hide the time-axis row (line chart only). */
+  hideTimeScale?: boolean;
+  /** When true, draw last-close dashed horizontal_line + right-axis price tag (line chart only). */
+  showLastPriceLine?: boolean;
+}
+
 export type RNToWebViewMessageType =
   | 'SET_OHLCV_DATA'
   | 'ADD_INDICATOR'
   | 'REMOVE_INDICATOR'
   | 'SET_CHART_TYPE'
+  | 'SET_LINE_CHROME'
   | 'SET_POSITION_LINES'
   | 'REALTIME_UPDATE'
   | 'TOGGLE_VOLUME';
@@ -162,11 +173,14 @@ export interface ToggleVolumePayload {
   visible: boolean;
 }
 
+export interface SetLineChromePayload extends LineChromeOptions {}
+
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
   | { type: 'ADD_INDICATOR'; payload: AddIndicatorPayload }
   | { type: 'REMOVE_INDICATOR'; payload: RemoveIndicatorPayload }
   | { type: 'SET_CHART_TYPE'; payload: SetChartTypePayload }
+  | { type: 'SET_LINE_CHROME'; payload: SetLineChromePayload }
   | { type: 'SET_POSITION_LINES'; payload: SetPositionLinesPayload }
   | { type: 'REALTIME_UPDATE'; payload: RealtimeUpdatePayload }
   | { type: 'TOGGLE_VOLUME'; payload: ToggleVolumePayload };
@@ -329,6 +343,12 @@ export interface AdvancedChartProps {
    * TradingView capabilities like header_widget, timeframes_toolbar, etc.
    */
   disabledFeatures?: string[];
+
+  /**
+   * Line chart only: hide time axis and/or show last-close price line + Y-axis tag.
+   * Merged at runtime via SET_LINE_CHROME after CHART_READY.
+   */
+  lineChrome?: LineChromeOptions;
 
   /** Callback when chart is ready */
   onChartReady?: () => void;

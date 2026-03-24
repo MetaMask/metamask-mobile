@@ -1,7 +1,14 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
 import Price from './Price';
-import { TimePeriod } from '../../../../components/hooks/useTokenHistoricalPrices';
+import { PriceChartProvider } from '../PriceChart/PriceChart.context';
+
+jest.mock('../../Bridge/hooks/useRWAToken', () => ({
+  useRWAToken: () => ({
+    isStockToken: () => false,
+    isTokenTradingOpen: () => true,
+  }),
+}));
 
 jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
@@ -14,11 +21,19 @@ jest.mock('../../Charts/AdvancedChart/AdvancedChart', () => {
 
 jest.mock('../../Charts/AdvancedChart/useOHLCVChart', () => ({
   useOHLCVChart: () => ({
-    ohlcvData: [],
+    ohlcvData: [
+      { time: 1000, open: 100, high: 101, low: 99, close: 100, volume: 1 },
+      { time: 2000, open: 100, high: 106, low: 100, close: 105, volume: 1 },
+    ],
     isLoading: false,
+    error: undefined,
     fetchMoreHistory: jest.fn(),
   }),
 }));
+
+function renderWithProviders(ui: React.ReactElement) {
+  return render(<PriceChartProvider>{ui}</PriceChartProvider>);
+}
 
 const mockProps: {
   asset: {
@@ -33,7 +48,6 @@ const mockProps: {
   currentCurrency: string;
   comparePrice: number;
   isLoading: boolean;
-  timePeriod: TimePeriod;
 } = {
   asset: {
     address: '0x1234567890123456789012345678901234567890',
@@ -51,49 +65,8 @@ const mockProps: {
 };
 
 describe('Price Component', () => {
-  describe('Header', () => {
-    it('renders header correctly when asset name and symbol are provided', () => {
-      const props = {
-        ...mockProps,
-        asset: {
-          ...mockProps.asset,
-          ticker: '',
-        },
-      };
-
-      const { getByText } = render(<Price {...props} />);
-
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.symbol})`),
-      ).toBeTruthy();
-    });
-
-    it('renders header correctly when name not provided and symbol is provided', () => {
-      const props = {
-        ...mockProps,
-        asset: {
-          ...mockProps.asset,
-          name: '',
-          ticker: '',
-        },
-      };
-
-      const { getByText } = render(<Price {...props} />);
-
-      expect(getByText(`${mockProps.asset.symbol}`)).toBeTruthy();
-    });
-
-    it('renders header correctly when name and ticker are provided', () => {
-      const { getByText } = render(<Price {...mockProps} />);
-
-      expect(
-        getByText(`${mockProps.asset.name} (${mockProps.asset.ticker})`),
-      ).toBeTruthy();
-    });
-  });
-
   it('shows loading state when isLoading is true', () => {
-    const { getByTestId } = render(
+    const { getByTestId } = renderWithProviders(
       <Price {...{ ...mockProps, isLoading: true }} />,
     );
 
@@ -101,7 +74,7 @@ describe('Price Component', () => {
   });
 
   it('renders the advanced chart', () => {
-    const { getByTestId } = render(<Price {...mockProps} />);
+    const { getByTestId } = renderWithProviders(<Price {...mockProps} />);
 
     expect(getByTestId('mock-advanced-chart')).toBeTruthy();
   });

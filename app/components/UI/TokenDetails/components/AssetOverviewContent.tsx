@@ -26,10 +26,7 @@ import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import {
-  TimePeriod,
-  TokenPrice,
-} from '../../../hooks/useTokenHistoricalPrices';
+import { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import {
@@ -167,9 +164,6 @@ export interface AssetOverviewContentProps {
   prices: TokenPrice[];
   isLoading: boolean;
 
-  // Time period
-  timePeriod: TimePeriod;
-
   // Feature flags
   isPerpsEnabled: boolean;
 
@@ -223,7 +217,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   comparePrice,
   prices,
   isLoading,
-  timePeriod,
   isPerpsEnabled,
   displayBuyButton,
   displaySwapsButton,
@@ -610,7 +603,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="py-2 pl-4 pr-4 self-stretch gap-3"
+            twClassName="pt-2 pb-1 pl-4 pr-4 self-stretch gap-3"
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -755,7 +748,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               currentPrice={currentPrice}
               comparePrice={comparePrice}
               isLoading={isLoading}
-              timePeriod={timePeriod}
             />
           </PriceChartProvider>
           {!isTokenTradingOpen(token as BridgeToken) && (

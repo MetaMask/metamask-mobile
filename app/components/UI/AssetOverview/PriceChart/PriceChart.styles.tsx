@@ -1,29 +1,36 @@
 import type { Theme } from '@metamask/design-tokens';
-import { Dimensions, StyleSheet, TextStyle } from 'react-native';
+import { StyleSheet, TextStyle } from 'react-native';
 import {
   getFontFamily,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 
-export const CHART_HEIGHT = Dimensions.get('screen').height * 0.44;
-
-const styleSheet = (params: { theme: Theme }) => {
+const styleSheet = (params: {
+  theme: Theme;
+  vars: { chartHeight: number };
+}) => {
   const { theme } = params;
+  const { chartHeight } = params.vars;
   const { typography } = theme;
   return StyleSheet.create({
     chart: {
       paddingRight: 0,
       paddingLeft: 0,
-      height: CHART_HEIGHT - 10, // hack to remove internal padding that is not configurable
+      height: chartHeight,
       paddingTop: 0,
-      marginVertical: 10,
-      width: Dimensions.get('screen').width,
+      marginVertical: 0,
+      // Match parent width (e.g. token overview with horizontal padding). Full screen width here
+      // overflows the padded container and clips the SVG on the right — hiding the end dot.
+      width: '100%',
+      alignSelf: 'stretch',
+      overflow: 'visible',
     },
     chartArea: {
       flex: 1,
     },
     chartLoading: {
-      width: Dimensions.get('screen').width,
+      width: '100%',
+      alignSelf: 'stretch',
       paddingHorizontal: 16,
       paddingTop: 10,
     },

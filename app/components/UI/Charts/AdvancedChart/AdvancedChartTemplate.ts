@@ -1,4 +1,5 @@
 import type { Theme } from '../../../../util/theme/models';
+import type { LineChromeOptions } from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
 
 /**
@@ -42,13 +43,29 @@ const stripHexAlpha = (hex: string): string =>
 interface ChartFeatures {
   enableDrawingTools?: boolean;
   disabledFeatures?: string[];
+  lineChrome?: LineChromeOptions;
 }
+
+const defaultLineChrome = (): Required<LineChromeOptions> => ({
+  hideTimeScale: false,
+  showLastPriceLine: true,
+});
+
+const serializeLineChrome = (lineChrome?: LineChromeOptions) => {
+  const d = defaultLineChrome();
+  return {
+    hideTimeScale: lineChrome?.hideTimeScale ?? d.hideTimeScale,
+    showLastPriceLine: lineChrome?.showLastPriceLine ?? d.showLastPriceLine,
+  };
+};
 
 const createConfigScript = (
   libraryUrl: string,
   theme: Theme,
   features: ChartFeatures,
-): string => `
+): string => {
+  const lc = serializeLineChrome(features.lineChrome);
+  return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
   theme: {
@@ -62,9 +79,14 @@ window.CONFIG = {
   features: {
     enableDrawingTools: ${features.enableDrawingTools ? 'true' : 'false'},
     disabledFeatures: ${JSON.stringify(features.disabledFeatures ?? [])}
+  },
+  lineChrome: {
+    hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
+    showLastPriceLine: ${lc.showLastPriceLine ? 'true' : 'false'}
   }
 };
 `;
+};
 
 /**
  * Creates the HTML template for TradingView Advanced Charts.
@@ -75,7 +97,13 @@ window.CONFIG = {
 export const createAdvancedChartTemplate = (
   theme: Theme,
   features: ChartFeatures = {},
-): string => `
+): string => {
+  const configInline = createConfigScript(
+    CHARTING_LIBRARY_URL,
+    theme,
+    features,
+  );
+  return `
 <!DOCTYPE html>
 <html>
 <head>
@@ -123,7 +151,7 @@ export const createAdvancedChartTemplate = (
     <div id="tv_chart_container"></div>
 
     <script type="text/javascript">
-        ${createConfigScript(CHARTING_LIBRARY_URL, theme, features)}
+        ${configInline}
     </script>
     <script type="text/javascript">
         ${chartLogicScript}
@@ -131,5 +159,6 @@ export const createAdvancedChartTemplate = (
 </body>
 </html>
 `;
+};
 
 export default createAdvancedChartTemplate;
