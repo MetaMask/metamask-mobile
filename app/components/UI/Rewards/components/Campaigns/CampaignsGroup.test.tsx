@@ -25,20 +25,19 @@ const createTestCampaign = (
 jest.mock('./CampaignTile', () => {
   const ReactActual = jest.requireActual('react');
   const { Text } = jest.requireActual('react-native');
+  const { isCampaignTypeSupported } = jest.requireActual(
+    './CampaignTile.utils',
+  );
   return {
     __esModule: true,
-    default: ({
-      campaign,
-      isInteractive,
-    }: {
-      campaign: { name: string };
-      isInteractive: boolean;
-    }) =>
-      ReactActual.createElement(
+    default: ({ campaign }: { campaign: { name: string; type: string } }) => {
+      const isInteractive = isCampaignTypeSupported(campaign.type);
+      return ReactActual.createElement(
         Text,
         { testID: isInteractive ? 'interactive' : 'non-interactive' },
         campaign.name,
-      ),
+      );
+    },
   };
 });
 

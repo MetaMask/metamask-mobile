@@ -219,6 +219,7 @@ const hookDefaults = {
   campaigns: [],
   categorizedCampaigns: emptyCategorized,
   isLoading: false,
+  hasLoaded: false,
   hasError: false,
   fetchCampaigns: mockFetchCampaigns,
 };
@@ -419,7 +420,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId('campaign-opt-in-sheet')).toBeDefined();
     });
 
-    it('renders the CTA as disabled when campaign is upcoming', () => {
+    it('redirects to campaigns view when campaign is upcoming', () => {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const nextMonth = new Date();
@@ -434,12 +435,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      const cta = getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON);
-      expect(cta).toBeDefined();
-      expect(
-        cta.props.isDisabled ?? cta.props.accessibilityState?.disabled,
-      ).toBeTruthy();
+      render(<OndoCampaignDetailsView />);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
     });
 
     it('does not render the CTA when campaign is complete', () => {

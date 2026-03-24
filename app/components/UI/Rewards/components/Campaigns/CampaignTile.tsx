@@ -49,8 +49,6 @@ interface CampaignTileProps {
  * - With onPress: executes custom handler regardless of type
  */
 const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
-  const isInteractive =
-    onPress != null || isCampaignTypeSupported(campaign.type);
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
@@ -69,6 +67,10 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     dateLabel,
     dateLabelIcon,
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
+
+  const isInteractive =
+    campaignStatus !== 'upcoming' &&
+    (onPress != null || isCampaignTypeSupported(campaign.type));
 
   const backgroundImageUrl =
     colorScheme === 'dark'

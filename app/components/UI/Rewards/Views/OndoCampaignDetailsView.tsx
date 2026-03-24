@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useEffect, useMemo } from 'react';
 import { ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { Box, IconName, Skeleton } from '@metamask/design-system-react-native';
@@ -9,6 +9,7 @@ import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
+import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
@@ -41,6 +42,12 @@ const OndoCampaignDetailsView: React.FC = () => {
   );
 
   const participantStatus = useGetCampaignParticipantStatus(campaignId);
+
+  useEffect(() => {
+    if (campaign && getCampaignStatus(campaign) === 'upcoming') {
+      navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW as never);
+    }
+  }, [campaign, navigation]);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">

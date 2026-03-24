@@ -152,6 +152,7 @@ const hookDefaults = {
   categorizedCampaigns: emptyCategorized,
   isLoading: false,
   hasError: false,
+  hasLoaded: false,
   fetchCampaigns: jest.fn(),
 };
 

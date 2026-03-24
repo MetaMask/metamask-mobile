@@ -174,7 +174,7 @@ describe('SeasonOneCampaignDetailsView', () => {
 
   it('renders without crashing', () => {
     const { getByTestId } = render(<SeasonOneCampaignDetailsView />);
-    expect(getByTestId('header')).toBeDefined();
+    expect(getByTestId('header')).toBeOnTheScreen();
   });
 
   describe('loading state', () => {
@@ -212,7 +212,7 @@ describe('SeasonOneCampaignDetailsView', () => {
       });
       const { getByTestId } = render(<SeasonOneCampaignDetailsView />);
       // campaign is present, so summary renders instead
-      expect(getByTestId('previous-season-summary')).toBeDefined();
+      expect(getByTestId('previous-season-summary')).toBeOnTheScreen();
     });
   });
 
@@ -224,7 +224,7 @@ describe('SeasonOneCampaignDetailsView', () => {
         campaigns: [],
       });
       const { getByTestId } = render(<SeasonOneCampaignDetailsView />);
-      expect(getByTestId('error-banner')).toBeDefined();
+      expect(getByTestId('error-banner')).toBeOnTheScreen();
     });
 
     it('calls fetchCampaigns when retry is pressed', () => {
@@ -256,7 +256,7 @@ describe('SeasonOneCampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
       });
       const { getByTestId } = render(<SeasonOneCampaignDetailsView />);
-      expect(getByTestId('previous-season-summary')).toBeDefined();
+      expect(getByTestId('previous-season-summary')).toBeOnTheScreen();
     });
 
     it('does not render PreviousSeasonSummary when campaign is not found', () => {
@@ -285,13 +285,13 @@ describe('SeasonOneCampaignDetailsView', () => {
         campaigns: [createTestCampaign({ name: 'My Season Campaign' })],
       });
       const { getByText } = render(<SeasonOneCampaignDetailsView />);
-      expect(getByText('My Season Campaign')).toBeDefined();
+      expect(getByText('My Season Campaign')).toBeOnTheScreen();
     });
 
     it('shows an empty string in the header when no campaign is found', () => {
       mockUseRewardCampaigns.mockReturnValue(hookDefaults);
       const { getByTestId } = render(<SeasonOneCampaignDetailsView />);
-      expect(getByTestId('header')).toBeDefined();
+      expect(getByTestId('header')).toBeOnTheScreen();
     });
   });
 

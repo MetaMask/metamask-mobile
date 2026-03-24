@@ -127,7 +127,8 @@ describe('EarnRewardsPreview', () => {
   });
 
   describe('geo loading state', () => {
-    it('shows skeletons while rewards geo is loading', () => {
+    it('shows mUSD skeleton and renders card card while mUSD geo is loading', () => {
+      // card geo is complete and country is supported by default
       setupSelectors({ geoStatus: 'loading' });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
       expect(
@@ -137,11 +138,11 @@ describe('EarnRewardsPreview', () => {
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeOnTheScreen();
     });
 
-    it('shows skeletons while rewards geo is idle (not yet started)', () => {
+    it('shows mUSD skeleton and renders card card while mUSD geo is idle (not yet started)', () => {
       setupSelectors({ geoStatus: 'idle' });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
       expect(
@@ -151,25 +152,29 @@ describe('EarnRewardsPreview', () => {
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeOnTheScreen();
     });
 
-    it('shows skeletons while card geo is loading', () => {
-      setupSelectors({ isCardGeoLoaded: false });
+    it('shows card skeleton and renders mUSD card while card geo is loading', () => {
+      setupSelectors({
+        geoLocation: 'US',
+        geoStatus: 'complete',
+        isCardGeoLoaded: false,
+      });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
       ).toBeOnTheScreen();
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeNull();
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
       ).toBeNull();
     });
 
-    it('shows skeletons when both geos are still loading', () => {
+    it('shows both skeletons when both geos are still loading', () => {
       setupSelectors({ geoStatus: 'loading', isCardGeoLoaded: false });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
@@ -193,9 +198,9 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides mUSD card when geoLocation is undefined (undetermined) to prevent flash', () => {
+    it('hides mUSD card when geoLocation is undefined even if geo status is complete', () => {
       setupSelectors({ geoLocation: undefined });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      const { queryByTestId, getByTestId } = render(<EarnRewardsPreview />);
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
@@ -260,10 +265,10 @@ describe('EarnRewardsPreview', () => {
     });
   });
 
-  describe('after geo loaded — mUSD blocked (UK)', () => {
-    it('hides mUSD card and shows card card when user is in UK but card geo is allowed', () => {
+  describe('after geo loaded — UK user', () => {
+    it('hides mUSD card for UK users but shows card card when card geo is allowed', () => {
       setupSelectors({ geoLocation: 'GB' });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      const { queryByTestId, getByTestId } = render(<EarnRewardsPreview />);
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();

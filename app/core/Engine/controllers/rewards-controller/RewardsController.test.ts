@@ -18612,6 +18612,7 @@ describe('RewardsController', () => {
         excludedRegions: string[];
         statusLabel: string;
         details: null;
+        featured: boolean;
       }> = {},
     ) => ({
       id: 'campaign-1',
@@ -18623,6 +18624,7 @@ describe('RewardsController', () => {
       excludedRegions: [],
       statusLabel: 'Active',
       details: null,
+      featured: false,
       ...overrides,
     });
 

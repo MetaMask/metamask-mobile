@@ -157,32 +157,31 @@ const EarnRewardsPreview: React.FC = () => {
         </Text>
       </Box>
 
-      {isAnyGeoLoading ? (
-        <>
-          <Skeleton style={tw.style('h-28 rounded-xl')} />
-          <Skeleton style={tw.style('h-28 rounded-xl')} />
-        </>
+      {isMusdGeoLoading && !showMusdCard ? (
+        <Skeleton style={tw.style('h-28 rounded-xl')} />
       ) : (
-        <>
-          {showMusdCard && (
-            <EarnCard
-              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
-              image={musdImage}
-              title={strings('rewards.earn_rewards.musd_title')}
-              subtitle={strings('rewards.earn_rewards.musd_subtitle')}
-              onPress={handleMusdPress}
-            />
-          )}
-          {showCardCard && (
-            <EarnCard
-              testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-              image={cardImage}
-              title={strings('rewards.earn_rewards.card_title')}
-              subtitle={cardSubtitle}
-              onPress={handleCardPress}
-            />
-          )}
-        </>
+        showMusdCard && (
+          <EarnCard
+            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD}
+            image={musdImage}
+            title={strings('rewards.earn_rewards.musd_title')}
+            subtitle={strings('rewards.earn_rewards.musd_subtitle')}
+            onPress={handleMusdPress}
+          />
+        )
+      )}
+      {isCardGeoLoading ? (
+        <Skeleton style={tw.style('h-28 rounded-xl')} />
+      ) : (
+        showCardCard && (
+          <EarnCard
+            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+            image={cardImage}
+            title={strings('rewards.earn_rewards.card_title')}
+            subtitle={cardSubtitle}
+            onPress={handleCardPress}
+          />
+        )
       )}
     </Box>
   );

@@ -2137,6 +2137,7 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
@@ -2244,6 +2245,7 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
@@ -4471,6 +4473,7 @@ const mockCampaign: CampaignDto = {
   excludedRegions: [],
   statusLabel: 'Active',
   details: null,
+  featured: false,
 };
 
 describe('setCampaigns', () => {

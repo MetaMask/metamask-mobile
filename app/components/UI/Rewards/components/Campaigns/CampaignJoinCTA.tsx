@@ -33,11 +33,10 @@ const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
 
-  const campaignStatus = getCampaignStatus(campaign);
-  const isCampaignActive = campaignStatus === 'active';
-  const isCampaignComplete = campaignStatus === 'complete';
-
-  if (participantStatus.status?.optedIn === true || isCampaignComplete) {
+  if (
+    participantStatus.status?.optedIn === true ||
+    getCampaignStatus(campaign) !== 'active'
+  ) {
     return null;
   }
 
@@ -50,7 +49,7 @@ const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
           isFullWidth
           onPress={() => setIsOptInSheetOpen(true)}
           isLoading={participantStatus.isLoading}
-          isDisabled={participantStatus.isLoading || !isCampaignActive}
+          isDisabled={participantStatus.isLoading}
           testID={CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON}
         >
           {participantStatus.isLoading

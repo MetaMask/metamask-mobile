@@ -121,6 +121,7 @@ describe('CampaignTile', () => {
       dateLabel: 'Ends Mar 15, 2:30 PM',
       dateLabelIcon: 'Clock',
     });
+    (isCampaignTypeSupported as jest.Mock).mockReturnValue(true);
     setupParticipantCount(null);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
@@ -405,6 +406,61 @@ describe('CampaignTile', () => {
 
       expect(mockOnPress).toHaveBeenCalledTimes(1);
       expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate for any campaign type when status is upcoming', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Up next',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'camp-ondo-upcoming',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-ondo-upcoming'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not call onPress for any campaign type when status is upcoming', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Up next',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'camp-season-upcoming',
+        type: CampaignType.SEASON_1,
+      });
+      const mockOnPress = jest.fn();
+
+      const { getByTestId } = render(
+        <CampaignTile campaign={campaign} onPress={mockOnPress} />,
+      );
+      fireEvent.press(getByTestId('campaign-tile-camp-season-upcoming'));
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates for ONDO_HOLDING campaign when status is active', () => {
+      const campaign = createTestCampaign({
+        id: 'camp-ondo-active',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-ondo-active'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+        { campaignId: 'camp-ondo-active' },
+      );
     });
   });
 });
