@@ -47,12 +47,6 @@ const EVM_ONLY_ACCOUNT_TREE = {
 const TOKEN_SYMBOL_MOCK = 'ABC';
 const TOKEN_ADDRESS_MOCK = '0x123';
 
-/**
- * Incoming native from an untrusted address is hidden. User-storage mocks return an empty remote
- * address book, which can wipe fixture contacts—so use Account 2 (same wallet) as sender; own
- * accounts are always trusted.
- */
-const SECOND_HD_ACCOUNT_ID = '5e8c6f1a-c372-5bed-9237-1f03c3d4e5b2';
 const TRUSTED_INCOMING_SENDER_CHECKSUM = toChecksumHexAddress(
   DEFAULT_FIXTURE_ACCOUNT_2,
 );
@@ -139,55 +133,32 @@ function createAccountsTestSpecificMock(
 }
 
 /**
- * Ensures Account 2 exists on the HD keyring + AccountsController so its address is in the trusted
- * set (same as address-book trust, without relying on contacts surviving user-storage sync mocks).
+ * Makes the sender address trusted via the address book so the incoming
+ * native transfer passes the poisoning filter.
+ *
+ * KeyringController / AccountsController merges don't work here because
+ * AccountsController reconciles against the vault on unlock (which only
+ * contains Account 1) and drops any extra accounts.  The address book is
+ * static persisted state that survives startup, and contact sync is
+ * disabled via UserStorageController flags.
  */
-function mergeSecondHdAccountForTrustedIncomingNative(fixture: Fixture): void {
-  merge(fixture.state.engine.backgroundState.KeyringController, {
-    keyrings: [
-      {
-        type: 'HD Key Tree',
-        accounts: [
-          toChecksumHexAddress(DEFAULT_FIXTURE_ACCOUNT),
-          TRUSTED_INCOMING_SENDER_CHECKSUM,
-        ],
-      },
-    ],
-  });
-
-  merge(fixture.state.engine.backgroundState.AccountsController, {
-    accountIdByAddress: {
-      [DEFAULT_FIXTURE_ACCOUNT_2]: SECOND_HD_ACCOUNT_ID,
-    },
-    internalAccounts: {
-      accounts: {
-        [SECOND_HD_ACCOUNT_ID]: {
-          address: TRUSTED_INCOMING_SENDER_CHECKSUM,
-          id: SECOND_HD_ACCOUNT_ID,
-          metadata: {
-            name: 'Account 2',
-            importTime: 1684232000457,
-            keyring: { type: 'HD Key Tree' },
-          },
-          options: {},
-          methods: [
-            'personal_sign',
-            'eth_signTransaction',
-            'eth_signTypedData_v1',
-            'eth_signTypedData_v3',
-            'eth_signTypedData_v4',
-          ],
-          type: 'eip155:eoa',
-          scopes: ['eip155:0'],
-        },
-      },
-    },
-  });
-
+function mergeTrustedSenderForIncomingNative(fixture: Fixture): void {
   merge(fixture.state.engine.backgroundState.UserStorageController, {
     isBackupAndSyncEnabled: false,
     isAccountSyncingEnabled: false,
     isContactSyncingEnabled: false,
+  });
+
+  merge(fixture.state.engine.backgroundState.AddressBookController, {
+    addressBook: {
+      '0x1': {
+        [TRUSTED_INCOMING_SENDER_CHECKSUM]: {
+          address: TRUSTED_INCOMING_SENDER_CHECKSUM,
+          name: 'Account 2',
+          chainId: '0x1',
+        },
+      },
+    },
   });
 }
 
@@ -204,7 +175,7 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
       .withNetworkEnabledMap({ eip155: { '0x1': true } })
       .withPrivacyModePreferences(false)
       .build();
-    mergeSecondHdAccountForTrustedIncomingNative(fixture);
+    mergeTrustedSenderForIncomingNative(fixture);
 
     await withFixtures(
       {
