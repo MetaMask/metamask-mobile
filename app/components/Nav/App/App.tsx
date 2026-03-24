@@ -1112,7 +1112,8 @@ const AppFlow = () => (
       options={{
         headerShown: false,
         gestureEnabled: true,
-        presentation: 'modal',
+        presentation: 'transparentModal',
+        cardStyle: { backgroundColor: importedColors.transparent },
       }}
       component={Confirm}
     />
