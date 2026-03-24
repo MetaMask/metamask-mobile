@@ -14,8 +14,6 @@ export {
 } from '../helpers/analytics/runAnalyticsExpectations.ts';
 export { boxedStep, getDriver } from './PlaywrightUtilities.ts';
 
-// Mock server utilities
-export { safeGetBodyText } from '../api-mocking/MockServerE2E.ts';
 export {
   countProxiedRequestsMatching,
   waitForAdditionalProxiedRequestsMatching,
