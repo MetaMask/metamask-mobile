@@ -6,6 +6,7 @@ import { AnvilManager, Hardfork } from '../seeder/anvil-manager.ts';
 import ContractAddressRegistry from '../../app/util/test/contract-address-registry';
 import Ganache from '../../app/util/test/ganache';
 import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../api-mocking/MockttpCompat';
 import type { EventPayload } from '../helpers/analytics/helpers.ts';
 import FixtureBuilder from './fixtures/FixtureBuilder.ts';
 import type { Fixture } from './fixtures/types.ts';
@@ -264,7 +265,7 @@ export type LocalNode = AnvilManager | Ganache;
 
 export interface TestSuiteParams {
   contractRegistry?: ContractAddressRegistry;
-  mockServer: Mockttp;
+  mockServer: MockttpCompat;
   localNodes?: LocalNode[];
   commandQueueServer?: CommandQueueServer;
 }
@@ -310,7 +311,7 @@ export interface MockApiEndpoint {
   priority?: number;
 }
 
-export type TestSpecificMock = (mockServer: Mockttp) => Promise<void>;
+export type TestSpecificMock = (mockServer: MockttpCompat) => Promise<void>;
 
 /**
  * Declarative expectation for a single MetaMetrics event name captured during E2E.
@@ -372,7 +373,7 @@ export interface AnalyticsExpectations {
    */
   validate?: (ctx: {
     events: EventPayload[];
-    mockServer: Mockttp;
+    mockServer: MockttpCompat;
   }) => Promise<void>;
 }
 

@@ -2,7 +2,7 @@
  * Helper for creating remote feature flags mock configurations
  */
 
-import type { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../MockttpCompat';
 import { setupMockRequest } from './mockHelpers.ts';
 import { MockApiEndpoint } from '../../framework';
 import { getProductionRemoteFlagApiResponse } from '../../feature-flags';
@@ -129,7 +129,7 @@ export const createRemoteFeatureFlagsMock = (
  * This will be called automatically and can be overridden by testSpecificMock
  */
 export const setupRemoteFeatureFlagsMock = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   flagOverrides: Record<string, unknown> = {},
 ): Promise<void> => {
   const environments = ['dev', 'test', 'prod'] as const;
