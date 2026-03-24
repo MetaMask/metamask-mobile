@@ -10,6 +10,7 @@ import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
+// Methods migrated to tests/page-objects/Onboarding/MetaMetricsOptInView.ts: isScreenTitleVisible, tapIAgreeButton
 class MetaMetricsScreen {
 
   get device() {

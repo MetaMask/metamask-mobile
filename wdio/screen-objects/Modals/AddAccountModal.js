@@ -5,6 +5,7 @@ import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { expect as appwrightExpect } from 'appwright';
 
+// Methods migrated to tests/page-objects/wallet/AddAccountBottomSheet.ts: isVisible, tapImportSrpButton
 class AddAccountModal {
 
   get device() {

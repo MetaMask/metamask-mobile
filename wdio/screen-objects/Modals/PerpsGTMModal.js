@@ -5,6 +5,7 @@ import AppwrightGestures from "../../../tests/framework/AppwrightGestures";
 import { expect } from 'appwright';
 import { PerpsGTMModalSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 
+// Methods migrated to tests/page-objects/Perps/PerpsGTMModal.ts: tapNotNowButton, tapGetStartedButton
 class PerpsGTMModal {
 
   get device() {

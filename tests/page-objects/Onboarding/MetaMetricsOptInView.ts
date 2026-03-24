@@ -1,6 +1,14 @@
 import { MetaMetricsOptInSelectorsIDs } from '../../../app/components/UI/OptinMetrics/MetaMetricsOptIn.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import UnifiedGestures from '../../framework/UnifiedGestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  asPlaywrightElement,
+} from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class MetaMetricsOptIn {
   get container(): DetoxElement {
@@ -9,16 +17,36 @@ class MetaMetricsOptIn {
     );
   }
 
+  get screenTitle(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_TITLE_ID,
+        ),
+    });
+  }
+
   get optInMetricsContent(): DetoxElement {
     return Matchers.getElementByID(
       MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_PRIVACY_POLICY_DESCRIPTION_CONTENT_1_ID,
     );
   }
 
-  get iAgreeButton(): DetoxElement {
-    return Matchers.getElementByID(
-      MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
-    );
+  get iAgreeButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          MetaMetricsOptInSelectorsIDs.OPTIN_METRICS_CONTINUE_BUTTON_ID,
+        ),
+    });
   }
 
   get metricsCheckbox(): DetoxElement {
@@ -36,15 +64,31 @@ class MetaMetricsOptIn {
   }
 
   async tapAgreeButton(): Promise<void> {
-    await this.swipeContentUp();
-    await Gestures.waitAndTap(this.iAgreeButton, {
-      elemDescription: 'Opt-in Metrics Continue Button',
+    await encapsulatedAction({
+      detox: async () => {
+        await this.swipeContentUp();
+        await Gestures.waitAndTap(this.iAgreeButton as DetoxElement, {
+          elemDescription: 'Opt-in Metrics Continue Button',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.tap(this.iAgreeButton);
+      },
     });
   }
 
   async tapMetricsCheckbox(): Promise<void> {
     await Gestures.waitAndTap(this.metricsCheckbox, {
       elemDescription: 'Opt-in Metrics Metrics Checkbox',
+    });
+  }
+
+  async isScreenTitleVisible(): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const el = await asPlaywrightElement(this.screenTitle);
+        await el.waitForDisplayed({ timeout: 30000 });
+      },
     });
   }
 }

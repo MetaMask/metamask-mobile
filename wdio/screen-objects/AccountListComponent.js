@@ -7,6 +7,7 @@ import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { expect } from 'appwright';
 
+// Methods migrated to tests/page-objects/wallet/AccountListBottomSheet.ts: isComponentDisplayed, tapOnAddWalletButton, tapOnAccountByName, waitForSyncingToComplete
 class AccountListComponent {
 
   get device() {

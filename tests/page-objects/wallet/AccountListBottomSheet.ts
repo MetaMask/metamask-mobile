@@ -12,8 +12,11 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   encapsulated,
   EncapsulatedElementType,
+  asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class AccountListBottomSheet {
   /** Account list container - wdio uses getElementByText('Accounts') for Appium */
@@ -58,6 +61,13 @@ class AccountListBottomSheet {
           AccountListBottomSheetSelectorsIDs.ACCOUNT_LIST_ADD_BUTTON_ID,
           { exact: true },
         ),
+    });
+  }
+
+  get addWalletButton(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () =>
+        PlaywrightMatchers.getElementById('account-list-add-account-button'),
     });
   }
 
@@ -281,6 +291,69 @@ class AccountListBottomSheet {
 
     // Second swipe to dismiss the AccountListBottomSheet
     await this.swipeToDismissAccountsModal();
+  }
+
+  async isComponentDisplayed(): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const el = await asPlaywrightElement(this.accountList);
+        await el.waitForDisplayed({ timeout: 10000 });
+      },
+    });
+  }
+
+  async tapOnAddWalletButton(): Promise<void> {
+    await UnifiedGestures.tap(this.addWalletButton, {
+      description: 'Add Wallet Button',
+    });
+  }
+
+  async tapOnAccountByName(name: string): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const account = await PlaywrightMatchers.getElementByText(name);
+        await PlaywrightGestures.scrollIntoView(account);
+        await account.click();
+      },
+    });
+  }
+
+  async waitForSyncingToComplete(timeout: number = 60000): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const syncingElement =
+          await PlaywrightMatchers.getElementByCatchAll('Syncing');
+        const discoveringElement =
+          await PlaywrightMatchers.getElementByCatchAll('Discovering');
+
+        // Step 1: Wait up to 5s for either "Syncing" or "Discovering" to appear
+        const syncingDetected = await Promise.race([
+          syncingElement
+            .waitForDisplayed({ timeout: 5000 })
+            .then(() => true)
+            .catch(() => false),
+          discoveringElement
+            .waitForDisplayed({ timeout: 5000 })
+            .then(() => true)
+            .catch(() => false),
+        ]);
+
+        if (!syncingDetected) return;
+
+        // Step 2: Wait for "Syncing" to disappear
+        await syncingElement
+          .waitForDisplayed({ timeout, reverse: true })
+          .catch(() => undefined);
+
+        // Step 3: Brief pause before checking discovery state
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+
+        // Step 4: Wait for "Discovering" to disappear
+        await discoveringElement
+          .waitForDisplayed({ timeout, reverse: true })
+          .catch(() => undefined);
+      },
+    });
   }
 }
 

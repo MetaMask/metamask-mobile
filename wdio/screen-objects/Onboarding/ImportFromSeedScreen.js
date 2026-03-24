@@ -5,6 +5,7 @@ import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
 
+// Methods migrated to tests/page-objects/Onboarding/ImportWalletView.ts: isScreenTitleVisible, typeSecretRecoveryPhrase, tapImportScreenTitleToDismissKeyboard, tapContinueButton
 class ImportFromSeedScreen {
 
   get device() {

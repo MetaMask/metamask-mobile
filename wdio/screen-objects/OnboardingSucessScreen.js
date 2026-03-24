@@ -4,6 +4,7 @@ import Gestures from '../helpers/Gestures';
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { expect as appwrightExpect } from 'appwright';
 
+// Methods migrated to tests/page-objects/Onboarding/OnboardingSuccessView.ts: isVisible, tapDone
 
 class OnboardingSuccessView {
 

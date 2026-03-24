@@ -1,29 +1,73 @@
 import { ChoosePasswordSelectorsIDs } from '../../../app/components/Views/ChoosePassword/ChoosePassword.testIds';
+import {
+  CREATE_PASSWORD_INPUT_FIRST_FIELD,
+  CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+} from '../../../wdio/screen-objects/testIDs/Screens/WalletSetupScreen.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
+import UnifiedGestures from '../../framework/UnifiedGestures';
+import {
+  encapsulated,
+  EncapsulatedElementType,
+  asPlaywrightElement,
+  asDetoxElement,
+} from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
+import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import { getDriver } from '../../framework/PlaywrightUtilities';
 import enContent from '../../../locales/languages/en.json';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class CreatePasswordView {
   get container(): DetoxElement {
     return Matchers.getElementByID(ChoosePasswordSelectorsIDs.CONTAINER_ID);
   }
 
-  get newPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
+  get newPasswordInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(CREATE_PASSWORD_INPUT_FIRST_FIELD),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            '(//XCUIElementTypeOther[@name="textfield"])[1]',
+          ),
+      },
+    });
   }
 
-  get confirmPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
+  get confirmPasswordInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(CONFIRM_PASSWORD_INPUT_FIRST_FIELD),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            '(//XCUIElementTypeOther[@name="textfield"])[2]',
+          ),
+      },
+    });
   }
 
-  get iUnderstandCheckbox(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
+  get iUnderstandCheckbox(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+        ),
+    });
   }
 
   get iUnderstandCheckboxNewWallet(): DetoxElement {
@@ -32,8 +76,15 @@ class CreatePasswordView {
     );
   }
 
-  get submitButton(): DetoxElement {
-    return Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID);
+  get submitButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+        ),
+    });
   }
 
   get passwordError(): DetoxElement {
@@ -41,37 +92,55 @@ class CreatePasswordView {
   }
 
   async resetPasswordInputs(): Promise<void> {
-    await Gestures.typeText(this.newPasswordInput, '', {
+    await Gestures.typeText(this.newPasswordInput as DetoxElement, '', {
       hideKeyboard: true,
     });
-    await Gestures.typeText(this.confirmPasswordInput, '', {
+    await Gestures.typeText(this.confirmPasswordInput as DetoxElement, '', {
       hideKeyboard: true,
     });
   }
 
   async enterPassword(password: string): Promise<void> {
-    await Gestures.typeText(this.newPasswordInput, password, {
-      elemDescription: 'Create Password New Password Input',
-      hideKeyboard: true,
+    await UnifiedGestures.typeText(this.newPasswordInput, password, {
+      description: 'Create Password New Password Input',
     });
   }
 
   async reEnterPassword(password: string): Promise<void> {
-    await Gestures.typeText(this.confirmPasswordInput, password, {
-      elemDescription: 'Create Password Confirm Password Input',
-      hideKeyboard: true,
+    await UnifiedGestures.typeText(this.confirmPasswordInput, password, {
+      description: 'Create Password Confirm Password Input',
     });
   }
 
   async tapIUnderstandCheckBox(): Promise<void> {
-    await Gestures.tap(this.iUnderstandCheckbox, {
-      elemDescription: 'Create Password - I Understand Checkbox',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.tap(asDetoxElement(this.iUnderstandCheckbox), {
+          elemDescription: 'Create Password - I Understand Checkbox',
+        });
+      },
+      appium: async () => {
+        const drv = getDriver();
+        await drv.hideKeyboard();
+        await PlaywrightGestures.tap(
+          await asPlaywrightElement(this.iUnderstandCheckbox),
+        );
+      },
     });
   }
 
   async tapCreatePasswordButton(): Promise<void> {
-    await Gestures.waitAndTap(this.submitButton, {
-      elemDescription: 'Create Password Submit Button',
+    await UnifiedGestures.waitAndTap(this.submitButton, {
+      description: 'Create Password Submit Button',
+    });
+  }
+
+  async isVisible(): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const el = await asPlaywrightElement(this.newPasswordInput);
+        await el.waitForDisplayed({ timeout: 10000 });
+      },
     });
   }
 }

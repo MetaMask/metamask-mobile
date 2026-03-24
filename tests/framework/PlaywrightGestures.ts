@@ -136,4 +136,9 @@ export default class PlaywrightGestures {
       throw new Error('Package name or app id is not available');
     }
   }
+
+  @boxedStep
+  static async tap(elem: PlaywrightElement): Promise<void> {
+    await elem.click();
+  }
 }

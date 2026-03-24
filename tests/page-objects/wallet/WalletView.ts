@@ -2,6 +2,7 @@ import {
   WalletViewSelectorsIDs,
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
+import { TabBarSelectorIDs } from '../../../app/components/Nav/Main/TabBar.testIds';
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
@@ -95,8 +96,27 @@ class WalletView {
     );
   }
 
-  get accountIcon(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  get accountIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+      },
+    });
+  }
+
+  get walletButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TabBarSelectorIDs.WALLET),
+      appium: () => PlaywrightMatchers.getElementById(TabBarSelectorIDs.WALLET),
+    });
   }
 
   get eyeSlashIcon(): DetoxElement {
@@ -299,8 +319,17 @@ class WalletView {
   }
 
   async tapIdenticon(): Promise<void> {
-    await Gestures.waitAndTap(this.accountIcon, {
-      elemDescription: 'Top Account Icon',
+    await UnifiedGestures.waitAndTap(this.accountIcon, {
+      description: 'Top Account Icon',
+    });
+  }
+
+  async isMainWalletViewVisible(): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const el = await asPlaywrightElement(this.walletButton);
+        await el.waitForDisplayed({ timeout: 30000 });
+      },
     });
   }
 

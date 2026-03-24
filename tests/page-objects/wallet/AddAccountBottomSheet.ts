@@ -5,7 +5,9 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
   encapsulated,
   EncapsulatedElementType,
+  asPlaywrightElement,
 } from '../../framework/EncapsulatedElement';
+import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 
 class AddAccountBottomSheet {
@@ -62,6 +64,15 @@ class AddAccountBottomSheet {
   async tapAddSolanaAccount(): Promise<void> {
     await Gestures.waitAndTap(this.createSolanaAccountButton, {
       elemDescription: 'Add Solana Account button',
+    });
+  }
+
+  async isVisible(): Promise<void> {
+    await encapsulatedAction({
+      appium: async () => {
+        const el = await asPlaywrightElement(this.importSrpButton);
+        await el.waitForDisplayed({ timeout: 20000 });
+      },
     });
   }
 }
