@@ -279,11 +279,13 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
 
 const mockNavigate = jest.fn();
 const mockReplace = jest.fn();
+const mockGoBack = jest.fn();
 const mockNav = {
   navigate: mockNavigate,
   replace: mockReplace,
   reset: jest.fn(),
   setOptions: jest.fn(),
+  goBack: mockGoBack,
   dispatch: jest.fn((action) => {
     if (action.type === 'REPLACE') {
       mockReplace(action.payload.name, action.payload.params);
@@ -1278,16 +1280,17 @@ describe('Onboarding', () => {
         accountName: 'test@example.com',
       });
 
-      // Auto-close the error sheet so the promise resolves and the login continues
+      // Simulate user pressing the Continue button — the only dismissal path since
+      // isInteractable: false prevents closing by tapping outside the sheet.
       mockNavigate.mockImplementation(
         (route: string, params: Record<string, unknown>) => {
           const screenParams = params?.params as Record<string, unknown>;
           if (
             route === Routes.MODAL.ROOT_MODAL_FLOW &&
             params?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
-            typeof screenParams?.onClose === 'function'
+            typeof screenParams?.onPrimaryButtonPress === 'function'
           ) {
-            (screenParams.onClose as () => void)();
+            (screenParams.onPrimaryButtonPress as () => void)();
           }
         },
       );
