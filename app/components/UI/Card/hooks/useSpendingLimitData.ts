@@ -42,7 +42,6 @@ const useSpendingLimitData = (): UseSpendingLimitDataReturn => {
                 name?: string;
               }[]
           : undefined,
-        hideSolana: true,
       }),
     [sdk, delegationSettings],
   );
