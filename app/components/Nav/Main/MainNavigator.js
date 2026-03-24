@@ -1193,7 +1193,10 @@ const MainNavigator = () => {
           <Stack.Screen
             name={Routes.PREDICT.MODALS.ROOT}
             component={PredictModalStack}
-            options={clearStackNavigatorOptions}
+            options={{
+              presentation: 'transparentModal',
+              ...clearStackNavigatorOptions,
+            }}
           />
         </>
       )}

@@ -1029,6 +1029,9 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST}
       component={MultichainPrivateKeyList}
+      options={{
+        presentation: 'transparentModal',
+      }}
     />
     <Stack.Screen
       options={{
