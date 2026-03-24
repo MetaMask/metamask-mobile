@@ -44,10 +44,7 @@ import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
-import {
-  RampsOrderStatus,
-  normalizeProviderCode,
-} from '@metamask/ramps-controller';
+import { RampsOrderStatus } from '@metamask/ramps-controller';
 import { useRampsController } from '../../hooks/useRampsController';
 import { useRampsQuotes } from '../../hooks/useRampsQuotes';
 import { createSettingsModalNavDetails } from '../Modals/SettingsModal';
@@ -619,7 +616,7 @@ function BuildQuote() {
     if (!selectedQuote) return;
     setIsContinueLoading(true);
     try {
-      const providerCode = normalizeProviderCode(selectedQuote.provider);
+      const providerCode = selectedQuote.provider;
       const isCustom = isCustomAction(selectedQuote);
       const { useExternalBrowser, redirectUrl } = getWidgetRedirectConfig(
         selectedQuote,

@@ -5,10 +5,7 @@ import { useSelector } from 'react-redux';
 import type { CaipChainId } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
-import {
-  normalizeProviderCode,
-  type TransakBuyQuote,
-} from '@metamask/ramps-controller';
+import { type TransakBuyQuote } from '@metamask/ramps-controller';
 import { REDIRECTION_URL } from '../Deposit/constants';
 import { generateThemeParameters } from '../Deposit/utils';
 import { BasicInfoFormData } from '../Deposit/Views/BasicInfo/BasicInfo';
@@ -294,9 +291,7 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
           throw new Error('Missing order');
         }
 
-        const providerCode = normalizeProviderCode(
-          String(depositOrder.provider ?? 'transak-native'),
-        );
+        const providerCode = String(depositOrder.provider ?? 'transak-native');
         const rampsOrder = await refreshOrder(
           providerCode,
           depositOrder.providerOrderId,
@@ -454,8 +449,8 @@ export const useTransakRouting = (_config?: UseTransakRoutingConfig) => {
                   throw new Error('Missing order');
                 }
 
-                const providerCode = normalizeProviderCode(
-                  String(depositOrder.provider ?? 'transak-native'),
+                const providerCode = String(
+                  depositOrder.provider ?? 'transak-native',
                 );
                 const rampsOrder = await refreshOrder(
                   providerCode,
