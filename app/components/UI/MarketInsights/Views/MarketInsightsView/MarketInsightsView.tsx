@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -445,7 +446,7 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = false;
   }, [assetIdentifier]);
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setFeedbackGiven(
       report?.generatedAt
         ? (feedbackByDigest.get(report.generatedAt) ?? null)

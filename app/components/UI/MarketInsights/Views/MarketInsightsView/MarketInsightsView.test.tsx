@@ -222,6 +222,15 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const { View } = jest.requireActual('react-native');
+  return {
+    ...actual,
+    Icon: ({ name }: { name: string }) => <View testID={`icon-${name}`} />,
+  };
+});
+
 const buildMockReport = (overrides?: Record<string, unknown>) => ({
   asset: 'eth',
   generatedAt: '2026-02-17T11:55:00.000Z',
@@ -894,16 +903,17 @@ describe('MarketInsightsView', () => {
         timeAgo: '5m ago',
       });
 
-      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps } =
-        renderWithProvider(<MarketInsightsView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MarketInsightsView />,
+      );
 
-      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbUp')).toBeOnTheScreen();
 
       fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
 
-      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
-      expect(UNSAFE_queryByProps({ name: 'ThumbUp' })).toBeNull();
-      expect(UNSAFE_getByProps({ name: 'ThumbDown' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbUpFilled')).toBeOnTheScreen();
+      expect(queryByTestId('icon-ThumbUp')).toBeNull();
+      expect(getByTestId('icon-ThumbDown')).toBeOnTheScreen();
     });
 
     it('shows filled thumbs-down icon after submitting negative feedback', () => {
@@ -914,17 +924,18 @@ describe('MarketInsightsView', () => {
         timeAgo: '5m ago',
       });
 
-      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps } =
-        renderWithProvider(<MarketInsightsView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MarketInsightsView />,
+      );
 
       fireEvent.press(
         getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON),
       );
       fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
 
-      expect(UNSAFE_getByProps({ name: 'ThumbDownFilled' })).toBeTruthy();
-      expect(UNSAFE_queryByProps({ name: 'ThumbDown' })).toBeNull();
-      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbDownFilled')).toBeOnTheScreen();
+      expect(queryByTestId('icon-ThumbDown')).toBeNull();
+      expect(getByTestId('icon-ThumbUp')).toBeOnTheScreen();
     });
 
     it('keeps thumbs-up filled when thumbs-down sheet is dismissed without submit', () => {
@@ -935,19 +946,17 @@ describe('MarketInsightsView', () => {
         timeAgo: '5m ago',
       });
 
-      const { getByTestId, UNSAFE_getByProps } = renderWithProvider(
-        <MarketInsightsView />,
-      );
+      const { getByTestId } = renderWithProvider(<MarketInsightsView />);
 
       fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
-      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbUpFilled')).toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON),
       );
       fireEvent.press(getByTestId('market-insights-feedback-close-button'));
 
-      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbUpFilled')).toBeOnTheScreen();
     });
 
     it('switches from thumbs-up to thumbs-down when negative feedback is submitted', () => {
@@ -958,20 +967,21 @@ describe('MarketInsightsView', () => {
         timeAgo: '5m ago',
       });
 
-      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps } =
-        renderWithProvider(<MarketInsightsView />);
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MarketInsightsView />,
+      );
 
       fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
-      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbUpFilled')).toBeOnTheScreen();
 
       fireEvent.press(
         getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON),
       );
       fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
 
-      expect(UNSAFE_getByProps({ name: 'ThumbDownFilled' })).toBeTruthy();
-      expect(UNSAFE_queryByProps({ name: 'ThumbUpFilled' })).toBeNull();
-      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbDownFilled')).toBeOnTheScreen();
+      expect(queryByTestId('icon-ThumbUpFilled')).toBeNull();
+      expect(getByTestId('icon-ThumbUp')).toBeOnTheScreen();
     });
 
     it('resets feedback state when report generatedAt changes', () => {
@@ -982,11 +992,12 @@ describe('MarketInsightsView', () => {
         timeAgo: '5m ago',
       });
 
-      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps, rerender } =
-        renderWithProvider(<MarketInsightsView />);
+      const { getByTestId, queryByTestId, rerender } = renderWithProvider(
+        <MarketInsightsView />,
+      );
 
       fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
-      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbUpFilled')).toBeOnTheScreen();
 
       mockUseMarketInsights.mockReturnValue({
         report: buildMockReport({
@@ -999,9 +1010,9 @@ describe('MarketInsightsView', () => {
 
       rerender(<MarketInsightsView />);
 
-      expect(UNSAFE_queryByProps({ name: 'ThumbUpFilled' })).toBeNull();
-      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
-      expect(UNSAFE_getByProps({ name: 'ThumbDown' })).toBeTruthy();
+      expect(queryByTestId('icon-ThumbUpFilled')).toBeNull();
+      expect(getByTestId('icon-ThumbUp')).toBeOnTheScreen();
+      expect(getByTestId('icon-ThumbDown')).toBeOnTheScreen();
     });
 
     it('persists feedback state across unmount and remount for the same digest', () => {
@@ -1012,20 +1023,20 @@ describe('MarketInsightsView', () => {
         timeAgo: '5m ago',
       });
 
-      const { getByTestId, UNSAFE_getByProps, unmount } = renderWithProvider(
+      const { getByTestId, unmount } = renderWithProvider(
         <MarketInsightsView />,
       );
 
       fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
-      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+      expect(getByTestId('icon-ThumbUpFilled')).toBeOnTheScreen();
 
       unmount();
 
-      const { UNSAFE_getByProps: getByPropsAfterRemount } = renderWithProvider(
+      const { getByTestId: getByTestIdAfterRemount } = renderWithProvider(
         <MarketInsightsView />,
       );
 
-      expect(getByPropsAfterRemount({ name: 'ThumbUpFilled' })).toBeTruthy();
+      expect(getByTestIdAfterRemount('icon-ThumbUpFilled')).toBeOnTheScreen();
     });
   });
 });
