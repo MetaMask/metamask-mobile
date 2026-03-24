@@ -125,11 +125,29 @@ describe('CampaignsPreview', () => {
     mockUseRewardCampaigns.mockReturnValue({
       ...mockHookDefaults,
       hasError: true,
+      hasLoaded: true,
     });
 
     const { getByText } = render(<CampaignsPreview />);
 
     expect(getByText('rewards.campaigns_view.error_title')).toBeOnTheScreen();
+  });
+
+  it('renders error banner on first-load failure (not skeleton)', () => {
+    const { Skeleton } = jest.requireActual(
+      '@metamask/design-system-react-native',
+    );
+    mockUseRewardCampaigns.mockReturnValue({
+      ...mockHookDefaults,
+      hasError: true,
+      hasLoaded: true,
+      isLoading: false,
+    });
+
+    const { getByText, UNSAFE_queryByType } = render(<CampaignsPreview />);
+
+    expect(getByText('rewards.campaigns_view.error_title')).toBeOnTheScreen();
+    expect(UNSAFE_queryByType(Skeleton)).toBeNull();
   });
 
   it('renders the section title when a featured active campaign exists', () => {
