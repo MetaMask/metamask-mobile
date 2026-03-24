@@ -103,7 +103,9 @@ function mockAccountsApi(
   transactions: Record<string, unknown>[] = [],
 ): MockApiEndpoint {
   return {
-    urlEndpoint: `https://accounts.api.cx.metamask.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions?networks=0x1,0x89,0x38,0xe708,0x2105,0xa,0xa4b1,0x82750,0x531&sortDirection=DESC`,
+    urlEndpoint: new RegExp(
+      `^https://accounts\\.api\\.cx\\.metamask\\.io/v1/accounts/${DEFAULT_FIXTURE_ACCOUNT}/transactions\\?.*sortDirection=DESC`,
+    ),
     response: {
       data:
         transactions.length > 0
