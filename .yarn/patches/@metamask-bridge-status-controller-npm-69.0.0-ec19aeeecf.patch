@@ -1,8 +1,8 @@
 diff --git a/dist/bridge-status-controller.cjs b/dist/bridge-status-controller.cjs
-index b787174f2c8c448ed1ad9c8884204c5c8b6858be..af058623871badb4891564c003693ea19d0aa676 100644
+index ec19aeeecfa32a3cdf955ccc1152829ee4ddfd8f..d9b427f9f0f4b05238d79c731fc81566634a7c25 100644
 --- a/dist/bridge-status-controller.cjs
 +++ b/dist/bridge-status-controller.cjs
-@@ -834,7 +834,13 @@ class BridgeStatusController extends (0, polling_controller_1.StaticIntervalPoll
+@@ -855,7 +855,13 @@
                          ? quoteResponse.approval
                          : undefined, quoteResponse.resetApproval, requireApproval);
                      approvalTxId = approvalTxMeta?.id;
@@ -18,10 +18,10 @@ index b787174f2c8c448ed1ad9c8884204c5c8b6858be..af058623871badb4891564c003693ea1
                      const actionId = (0, transaction_1.generateActionId)().toString();
                      // Add pre-submission history keyed by actionId
 diff --git a/dist/bridge-status-controller.mjs b/dist/bridge-status-controller.mjs
-index 2fe71bdd2caf4d62f7946e9466b31367d360cd7c..fb9c0bc45abf88873452667b85ef2ea0cdfd929c 100644
+index a5661d63c35b5ad3526c1804936dc0e189c90c29..86efc019968599662466e643dae7002ebf5f5014 100644
 --- a/dist/bridge-status-controller.mjs
 +++ b/dist/bridge-status-controller.mjs
-@@ -831,7 +831,13 @@ export class BridgeStatusController extends StaticIntervalPollingController() {
+@@ -852,7 +852,13 @@
                          ? quoteResponse.approval
                          : undefined, quoteResponse.resetApproval, requireApproval);
                      approvalTxId = approvalTxMeta?.id;

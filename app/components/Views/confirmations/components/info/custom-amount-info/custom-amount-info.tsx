@@ -315,7 +315,12 @@ function useIsResultReady({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
 
-  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
+  if (
+    hasTransactionType(transaction, [
+      TransactionType.predictWithdraw,
+      TransactionType.perpsWithdraw,
+    ])
+  ) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 
