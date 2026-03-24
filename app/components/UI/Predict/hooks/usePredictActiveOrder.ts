@@ -17,31 +17,12 @@ export const usePredictActiveOrder = () => {
 
   const activeOrder = useSelector(selectPredictActiveOrder);
 
-  const initializeActiveOrder = useCallback(
-    (params: InitializeActiveOrderParams) => {
-      PredictController.initializeOrder(
-        parseAnalyticsProperties(
-          params.market,
-          params.outcomeToken,
-          params.entryPoint,
-        ),
-      );
-    },
-    [PredictController],
-  );
-
-  const clearActiveOrder = useCallback(() => {
-    PredictController.clearActiveOrder();
-  }, [PredictController]);
-
   const clearOrderError = useCallback(() => {
     PredictController.clearOrderError();
   }, [PredictController]);
 
   return {
     activeOrder,
-    clearActiveOrder,
     clearOrderError,
-    initializeActiveOrder,
   };
 };

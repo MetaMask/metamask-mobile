@@ -42,6 +42,7 @@ interface UsePredictPlaceOrderReturn {
   placeOrder: (params: PlaceOrderParams) => Promise<PlaceOrderOutcome>;
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
+  showOrderPlacedToast: () => void;
 }
 
 export type PlaceOrderOutcome =
@@ -317,5 +318,6 @@ export function usePredictPlaceOrder(
     placeOrder,
     isOrderNotFilled,
     resetOrderNotFilled,
+    showOrderPlacedToast,
   };
 }

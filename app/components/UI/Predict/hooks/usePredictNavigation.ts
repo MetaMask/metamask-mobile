@@ -11,7 +11,6 @@ interface NavigateToBuyPreviewOptions {
 
 export const usePredictNavigation = () => {
   const navigation = useNavigation();
-  const { initializeActiveOrder } = usePredictActiveOrder();
 
   const navigateToBuyPreview = useCallback(
     (
@@ -22,24 +21,16 @@ export const usePredictNavigation = () => {
         navigation.dispatch(
           StackActions.replace(Routes.PREDICT.MODALS.BUY_PREVIEW, params),
         );
-      } else {
-        initializeActiveOrder({
-          market: params.market,
-          outcomeToken: params.outcomeToken,
-          entryPoint: params.entryPoint,
+      } else if (options?.throughRoot) {
+        navigation.navigate(Routes.PREDICT.ROOT, {
+          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
+          params,
         });
-
-        if (options?.throughRoot) {
-          navigation.navigate(Routes.PREDICT.ROOT, {
-            screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-            params,
-          });
-        } else {
-          navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
-        }
+      } else {
+        navigation.navigate(Routes.PREDICT.MODALS.BUY_PREVIEW, params);
       }
     },
-    [navigation, initializeActiveOrder],
+    [navigation],
   );
 
   return { navigateToBuyPreview };

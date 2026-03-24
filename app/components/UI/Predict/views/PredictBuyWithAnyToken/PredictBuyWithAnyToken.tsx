@@ -22,7 +22,7 @@ import { PredictBuyPreviewSelectorsIDs } from '../../Predict.testIds';
 import PredictBuyActionButton from './components/PredictBuyActionButton';
 import PredictBuyAmountSection from './components/PredictBuyAmountSection';
 import PredictBuyBottomContent from './components/PredictBuyBottomContent';
-import PredictBuyMinimumError from './components/PredictBuyMinimumError';
+import PredictBuyError from './components/PredictBuyError';
 import PredictBuyPreviewHeader from './components/PredictBuyPreviewHeader/PredictBuyPreviewHeader';
 import PredictFeeBreakdownSheet from '../../components/PredictFeeBreakdownSheet';
 import PredictFeeSummary from './components/PredictFeeSummary/PredictFeeSummary';
@@ -36,7 +36,7 @@ import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBal
 import { usePredictBuyConditions } from './hooks/usePredictBuyConditions';
 import { usePredictBuyInfo } from './hooks/usePredictBuyInfo';
 import { usePredictBuyInputState } from './hooks/usePredictBuyInputState';
-import { usePredictBuyActions } from './hooks/usePredictBuyPreviewActions';
+import { usePredictBuyActions } from './hooks/usePredictBuyActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
@@ -101,6 +101,7 @@ const PredictBuyWithAnyToken = () => {
     error: placeOrderError,
     isOrderNotFilled,
     resetOrderNotFilled,
+    showOrderPlacedToast,
   } = usePredictPlaceOrder();
 
   const handleFeesInfoPress = useCallback(() => {
@@ -146,9 +147,6 @@ const PredictBuyWithAnyToken = () => {
 
   const {
     isPlacingOrder,
-    isBelowMinimum,
-    isInsufficientBalance,
-    maxBetAmount,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
@@ -167,8 +165,8 @@ const PredictBuyWithAnyToken = () => {
   const { handleConfirm } = usePredictBuyActions({
     analyticsProperties,
     preview,
-    placeOrder,
     setIsConfirming,
+    showOrderPlacedToast,
   });
 
   useEffect(() => {
@@ -236,12 +234,7 @@ const PredictBuyWithAnyToken = () => {
           )}
         </Box>
       </ScrollView>
-      <PredictBuyMinimumError
-        isBalanceLoading={isBalanceLoading}
-        isBelowMinimum={isBelowMinimum}
-        isInsufficientBalance={isInsufficientBalance}
-        maxBetAmount={maxBetAmount}
-      />
+      <PredictBuyError errorMessage={errorMessage} />
       <PredictKeypad
         ref={keypadRef}
         isInputFocused={isInputFocused}
@@ -251,10 +244,7 @@ const PredictBuyWithAnyToken = () => {
         setCurrentValueUSDString={setCurrentValueUSDString}
         setIsInputFocused={setIsInputFocused}
       />
-      <PredictBuyBottomContent
-        isInputFocused={isInputFocused}
-        errorMessage={errorMessage}
-      >
+      <PredictBuyBottomContent isInputFocused={isInputFocused}>
         <PredictFeeSummary
           disabled={isInputFocused}
           loading={isPayFeesLoading}

@@ -3642,18 +3642,6 @@ describe('PredictController', () => {
       });
     });
 
-    it('tracks INITIATED analytics event', () => {
-      withController(({ controller }) => {
-        const analyticsProps = { marketId: 'market-1' };
-
-        controller.initializeOrder(
-          analyticsProps as Parameters<typeof controller.initializeOrder>[0],
-        );
-
-        expect(analytics.trackEvent).toHaveBeenCalled();
-      });
-    });
-
     it('resets any previous activeOrder state', () => {
       withController(({ controller }) => {
         controller.setActiveOrder({

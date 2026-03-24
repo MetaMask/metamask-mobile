@@ -5,6 +5,12 @@ import { OrderPreview } from '../../../types';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
+import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
+import { strings } from '../../../../../../../locales/i18n';
+import { formatPrice } from '../../../utils/format';
+import { MINIMUM_BET } from '../../../constants/transactions';
+import { parseErrorMessage } from '../../../utils/predictErrorHandler';
+import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
@@ -29,6 +35,8 @@ export const usePredictBuyInfo = ({
   const payTotals = useTransactionPayTotals();
   const { activeOrder } = usePredictActiveOrder();
   const { data: predictBalance = 0 } = usePredictBalance();
+  const { availableBalance, isBalanceLoading } =
+    usePredictBuyAvailableBalance();
 
   const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
 
@@ -84,19 +92,74 @@ export const usePredictBuyInfo = ({
     ],
   );
 
-  const errorMessage = useMemo(
-    () =>
-      isOrderNotFilled || isConfirming
-        ? undefined
-        : (previewError ?? placeOrderError ?? activeOrder?.error),
-    [
-      isOrderNotFilled,
-      isConfirming,
-      previewError,
-      placeOrderError,
-      activeOrder?.error,
-    ],
+  const isBelowMinimum = useMemo(
+    () => currentValue > 0 && currentValue < MINIMUM_BET,
+    [currentValue],
   );
+
+  const maxBetAmount = useMemo(() => {
+    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
+    return Math.max(
+      0,
+      Math.floor(((availableBalance - depositFee) / (1 + feeRate)) * 100) / 100,
+    );
+  }, [availableBalance, depositFee, preview?.fees?.totalFeePercentage]);
+
+  const isInsufficientBalance = useMemo(
+    () => !isConfirming && currentValue > 0 && currentValue > maxBetAmount,
+    [isConfirming, currentValue, maxBetAmount],
+  );
+
+  const errorMessage = useMemo(() => {
+    if (isBalanceLoading || isOrderNotFilled || isConfirming) {
+      return undefined;
+    }
+
+    if (activeOrder?.error) {
+      const parsedErrorMessage = parseErrorMessage({
+        error: activeOrder.error,
+        defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+      });
+      return parsedErrorMessage;
+    }
+
+    if (previewError ?? placeOrderError) {
+      return previewError ?? placeOrderError ?? undefined;
+    }
+
+    if (isBelowMinimum) {
+      return strings('predict.order.prediction_minimum_bet', {
+        amount: formatPrice(MINIMUM_BET, {
+          minimumDecimals: 2,
+          maximumDecimals: 2,
+        }),
+      });
+    }
+
+    if (isInsufficientBalance) {
+      const formattedMax = formatPrice(maxBetAmount, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+      return maxBetAmount >= MINIMUM_BET
+        ? strings('predict.order.prediction_insufficient_funds', {
+            amount: formattedMax,
+          })
+        : strings('predict.order.no_funds_enough');
+    }
+
+    return undefined;
+  }, [
+    isBalanceLoading,
+    isOrderNotFilled,
+    isConfirming,
+    activeOrder?.error,
+    previewError,
+    placeOrderError,
+    isBelowMinimum,
+    isInsufficientBalance,
+    maxBetAmount,
+  ]);
 
   const depositAmount = useMemo(() => {
     const previewTotal =

@@ -75,15 +75,12 @@ export const usePredictBuyConditions = ({
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
   const isDepositing = useMemo(
-    () =>
-      currentState === ActiveOrderState.DEPOSITING ||
-      currentState === ActiveOrderState.DEPOSIT,
+    () => currentState === ActiveOrderState.DEPOSITING,
     [currentState],
   );
 
   const isPlacingOrder = useMemo(
     () =>
-      currentState === ActiveOrderState.PLACE_ORDER ||
       currentState === ActiveOrderState.PLACING_ORDER ||
       isPlaceOrderLoading ||
       isDepositing,

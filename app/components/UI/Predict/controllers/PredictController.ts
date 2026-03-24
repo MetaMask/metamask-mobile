@@ -155,6 +155,7 @@ export type PredictControllerState = {
     batchId?: string;
     state: ActiveOrderState;
     error?: string;
+    analyticsProperties?: PlaceOrderParams['analyticsProperties'];
   } | null;
 
   selectedPaymentToken: {
@@ -363,6 +364,8 @@ export class PredictController extends BaseController<
   PredictControllerMessenger
 > {
   private provider: PolymarketProvider;
+
+  private depositPreview?: OrderPreview;
 
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
@@ -1447,13 +1450,29 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
+    if (this.state.activeOrder?.state === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
+      this.update((state) => {
+        state.activeOrder = {
+          state: ActiveOrderState.DEPOSITING,
+          analyticsProperties: params.analyticsProperties,
+        };
+      });
+      this.depositPreview = params.preview;
+      return {
+        success: false,
+        response: { status: 'deposit_in_progress' },
+      } as unknown as Result;
+    }
+
     this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.PLACING_ORDER;
-      }
+      state.activeOrder = { state: ActiveOrderState.PLACING_ORDER };
     });
+
     const startTime = performance.now();
-    const { analyticsProperties, preview } = params;
+    const { analyticsProperties, preview: previewParam } = params;
+
+    const preview = this.depositPreview ?? previewParam;
+    this.depositPreview = undefined;
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
@@ -1488,6 +1507,9 @@ export class PredictController extends BaseController<
 
       const signer = this.getSigner();
 
+      /* await new Promise((resolve) => setTimeout(resolve, 1000));
+      throw new Error('Test error'); */
+
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,
@@ -1511,6 +1533,10 @@ export class PredictController extends BaseController<
       if (!result.success) {
         throw new Error(result.error);
       }
+
+      this.update((state) => {
+        state.activeOrder = { state: ActiveOrderState.SUCCESS };
+      });
 
       const { spentAmount, receivedAmount } = result.response;
 
@@ -1582,6 +1608,11 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
+        state.activeOrder = {
+          state: ActiveOrderState.PREVIEW,
+          error: errorMessage,
+        };
+        state.selectedPaymentToken = null;
       });
 
       traceData = { success: false, error: errorMessage };
@@ -1932,16 +1963,16 @@ export class PredictController extends BaseController<
     this.update(updater);
   }
 
-  public initializeOrder(
-    analyticsProperties?: PlaceOrderParams['analyticsProperties'],
-  ): void {
-    this.setActiveOrder({
-      state: ActiveOrderState.PREVIEW,
-    });
-    this.setSelectedPaymentToken(null);
-    this.trackPredictOrderEvent({
-      status: PredictTradeStatus.INITIATED,
-      analyticsProperties,
+  public initializeOrder(): void {
+    this.update((state) => {
+      if (!state.activeOrder) {
+        state.selectedPaymentToken = null;
+        state.activeOrder = {
+          state: ActiveOrderState.PREVIEW,
+        };
+      } else {
+        state.activeOrder.state = ActiveOrderState.PREVIEW;
+      }
     });
   }
 
@@ -1953,28 +1984,19 @@ export class PredictController extends BaseController<
     });
   }
 
-  public onConfirmOrder(): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        delete state.activeOrder.error;
-        state.activeOrder.state = ActiveOrderState.PLACE_ORDER;
-      }
-    });
-  }
-
-  public onDepositOrder(): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.DEPOSITING;
-      }
-    });
-  }
-
   public onDepositOrderSuccess(): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.PLACE_ORDER;
-      }
+    if (!this.depositPreview) {
+      this.update((state) => {
+        state.activeOrder = {
+          state: ActiveOrderState.PREVIEW,
+          error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
+        };
+      });
+      return;
+    }
+    this.placeOrder({
+      analyticsProperties: this.state.activeOrder?.analyticsProperties,
+      preview: this.depositPreview,
     });
   }
 
@@ -1992,32 +2014,6 @@ export class PredictController extends BaseController<
   public onOrderCancelled(): void {
     this.clearActiveOrder();
     this.setSelectedPaymentToken(null);
-  }
-
-  public onOrderError(params?: { errorMessage: string }): void {
-    this.setSelectedPaymentToken(null);
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.PREVIEW;
-        state.activeOrder.error = params?.errorMessage;
-      }
-    });
-  }
-
-  public onOrderSuccess(): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.SUCCESS;
-      }
-    });
-  }
-
-  public onPlaceOrder(): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.PLACING_ORDER;
-      }
-    });
   }
 
   public onPlaceOrderEnd(): void {
@@ -2228,6 +2224,8 @@ export class PredictController extends BaseController<
   public async initiPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
 
+    this.initializeOrder();
+
     try {
       const activeOrder = this.state.activeOrder;
       if (!activeOrder) {
@@ -2342,6 +2340,8 @@ export class PredictController extends BaseController<
           providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
+
+      this.onDepositOrderFailed(errorMessage);
 
       throw new Error(errorMessage);
     }

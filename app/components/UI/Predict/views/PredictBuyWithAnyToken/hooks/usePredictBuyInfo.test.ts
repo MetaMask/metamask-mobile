@@ -12,6 +12,8 @@ let mockPayTotals: {
 } | null = null;
 let mockActiveOrder: { error?: string } | null = null;
 let mockPredictBalance = 0;
+let mockAvailableBalance = 1000;
+let mockIsBalanceLoading = false;
 
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -37,6 +39,36 @@ jest.mock('../../../hooks/usePredictBalance', () => ({
     data: mockPredictBalance,
     isLoading: false,
   }),
+}));
+
+jest.mock('./usePredictBuyAvailableBalance', () => ({
+  usePredictBuyAvailableBalance: () => ({
+    availableBalance: mockAvailableBalance,
+    isBalanceLoading: mockIsBalanceLoading,
+  }),
+}));
+
+jest.mock('../../../../../../../locales/i18n', () => ({
+  strings: jest.fn((key: string, options?: Record<string, unknown>) => {
+    if (key === 'predict.order.prediction_minimum_bet') {
+      return `Minimum bet: ${options?.amount}`;
+    }
+    if (key === 'predict.order.prediction_insufficient_funds') {
+      return `Not enough funds. You can use up to ${options?.amount}.`;
+    }
+    if (key === 'predict.order.no_funds_enough') {
+      return 'Not enough funds.';
+    }
+    return key;
+  }),
+}));
+
+jest.mock('../../../utils/format', () => ({
+  formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
+}));
+
+jest.mock('../../../constants/transactions', () => ({
+  MINIMUM_BET: 1,
 }));
 
 const createMockPreview = (
@@ -82,6 +114,8 @@ describe('usePredictBuyInfo', () => {
     mockPayTotals = null;
     mockActiveOrder = null;
     mockPredictBalance = 0;
+    mockAvailableBalance = 1000;
+    mockIsBalanceLoading = false;
   });
 
   describe('depositFee', () => {
@@ -294,6 +328,19 @@ describe('usePredictBuyInfo', () => {
   });
 
   describe('errorMessage', () => {
+    it('returns undefined when isBalanceLoading is true', () => {
+      mockIsBalanceLoading = true;
+      const params = {
+        ...defaultParams,
+        previewError: 'Some error',
+        placeOrderError: 'Place error',
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.errorMessage).toBeUndefined();
+    });
+
     it('returns undefined when isOrderNotFilled is true', () => {
       const params = {
         ...defaultParams,
@@ -320,8 +367,21 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.errorMessage).toBeUndefined();
     });
 
-    it('returns previewError as priority error', () => {
+    it('returns activeOrder.error with highest priority', () => {
       mockActiveOrder = { error: 'Active order error' };
+      const params = {
+        ...defaultParams,
+        previewError: 'Preview error',
+        placeOrderError: 'Place order error',
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.errorMessage).toBe('Active order error');
+    });
+
+    it('returns previewError when activeOrder.error is not set', () => {
+      mockActiveOrder = null;
       const params = {
         ...defaultParams,
         previewError: 'Preview error',
@@ -334,7 +394,7 @@ describe('usePredictBuyInfo', () => {
     });
 
     it('returns placeOrderError when no previewError', () => {
-      mockActiveOrder = { error: 'Active order error' };
+      mockActiveOrder = null;
       const params = {
         ...defaultParams,
         previewError: null,
@@ -346,17 +406,50 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.errorMessage).toBe('Place order error');
     });
 
-    it('returns activeOrder.error as fallback', () => {
-      mockActiveOrder = { error: 'Active order error' };
+    it('returns minimum bet message when currentValue is below minimum', () => {
+      mockActiveOrder = null;
       const params = {
         ...defaultParams,
+        currentValue: 0.5,
         previewError: null,
         placeOrderError: null,
       };
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
-      expect(result.current.errorMessage).toBe('Active order error');
+      expect(result.current.errorMessage).toBe('Minimum bet: $1.00');
+    });
+
+    it('returns insufficient funds message with max amount when maxBetAmount >= MINIMUM_BET', () => {
+      mockAvailableBalance = 5;
+      mockActiveOrder = null;
+      const params = {
+        ...defaultParams,
+        currentValue: 100,
+        previewError: null,
+        placeOrderError: null,
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.errorMessage).toContain(
+        'Not enough funds. You can use up to',
+      );
+    });
+
+    it('returns generic no funds message when maxBetAmount < MINIMUM_BET', () => {
+      mockAvailableBalance = 0.5;
+      mockActiveOrder = null;
+      const params = {
+        ...defaultParams,
+        currentValue: 100,
+        previewError: null,
+        placeOrderError: null,
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.errorMessage).toBe('Not enough funds.');
     });
 
     it('returns undefined when no errors exist', () => {
