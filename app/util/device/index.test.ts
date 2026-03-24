@@ -34,6 +34,17 @@ describe('Device', () => {
         compareVersions('17.3.1', '17.4'),
       );
     });
+
+    it('supports Android-style numeric platform versions and numeric references', () => {
+      Object.defineProperty(Platform, 'Version', {
+        configurable: true,
+        value: 34,
+      });
+
+      expect(Device.comparePlatformVersionTo(33)).toBe(
+        compareVersions('34', '33'),
+      );
+    });
   });
   describe('isIpad', () => {
     it('should return true if device width/height is > 1000', () => {
