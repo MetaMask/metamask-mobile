@@ -12,7 +12,7 @@ import Engine from '../Engine';
  *
  * @param _password - Unused; kept so `Authentication.loginVaultCreation` can pass the same argument without churn (wallet is already unlocked via `submitPassword`).
  */
-export const renewSeedlessControllerRefreshTokens = async (
+export const revokePendingSeedlessRefreshTokens = async (
   _password: string,
 ): Promise<void> => {
   const { SeedlessOnboardingController } = Engine.context;
