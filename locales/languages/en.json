@@ -6439,7 +6439,8 @@
       "approve": "Approve request",
       "perps_deposit": "Add funds",
       "predict_deposit": "Add Prediction funds",
-      "predict_withdraw": "Withdraw"
+      "predict_withdraw": "Withdraw",
+      "perps_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -6565,6 +6566,7 @@
     "nested_transaction_heading": "Transaction {{index}}",
     "transaction": "Transaction",
     "available_balance": "Available balance: ",
+    "available_perps_balance": "Available Perps balance: ",
     "edit_amount_done": "Continue",
     "deposit_edit_amount_done": "Add funds",
     "deposit_edit_amount_predict_withdraw": "Withdraw",
@@ -7365,7 +7367,6 @@
       "dismiss": "Dismiss",
       "update_success": "Spending limit updated successfully",
       "update_error": "Failed to update spending limit",
-      "solana_not_supported": "Enable Solana tokens on card.metamask.io",
       "select_token": "Select token",
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
@@ -7407,9 +7408,7 @@
       "limited": "Limited",
       "not_enabled": "Not enabled",
       "update_success": "Spend priority updated successfully",
-      "update_error": "Failed to update spend priority",
-      "solana_not_supported_button_title": "Others tokens on Solana",
-      "solana_not_supported_button_description": "Enable on card.metamask.io"
+      "update_error": "Failed to update spend priority"
     },
     "card_authentication": {
       "title": "Log in to your card account",
