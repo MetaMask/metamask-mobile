@@ -91,6 +91,7 @@ export const HardwareWalletBottomSheet: React.FC<
   const { devices, selectedDevice, isScanning } = deviceSelection;
 
   const shouldShow = useMemo(() => {
+    if (!walletType) return false;
     switch (connectionState.status) {
       case ConnectionStatus.Scanning:
       case ConnectionStatus.Connecting:
@@ -103,7 +104,7 @@ export const HardwareWalletBottomSheet: React.FC<
       default:
         return false;
     }
-  }, [connectionState.status]);
+  }, [connectionState.status, walletType]);
 
   useEffect(() => {
     DevLogger.log(
@@ -164,16 +165,13 @@ export const HardwareWalletBottomSheet: React.FC<
     onClose();
   }, [onClose]);
 
-  // The effective device type — only used when the sheet is visible,
-  // so walletType should always be set by then.
-  const deviceType = walletType ?? HardwareWalletType.Ledger;
-
   const renderContent = () => {
+    if (!walletType) return null;
     switch (connectionState.status) {
       case ConnectionStatus.Ready:
         return (
           <SuccessContent
-            deviceType={deviceType}
+            deviceType={walletType}
             onDismiss={handleSuccessDismiss}
             autoDismissMs={successAutoDismissMs}
           />
@@ -185,7 +183,7 @@ export const HardwareWalletBottomSheet: React.FC<
             devices={devices}
             selectedDevice={selectedDevice ?? undefined}
             isScanning={isScanning}
-            deviceType={deviceType}
+            deviceType={walletType}
             onSelectDevice={handleSelectDevice}
             onConfirmSelection={handleConfirmDeviceSelection}
             onRescan={handleRescan}
@@ -195,12 +193,12 @@ export const HardwareWalletBottomSheet: React.FC<
 
       case ConnectionStatus.Connecting:
       case ConnectionStatus.Connected:
-        return <ConnectingContent deviceType={deviceType} />;
+        return <ConnectingContent deviceType={walletType} />;
 
       case ConnectionStatus.AwaitingApp:
         return (
           <AwaitingAppContent
-            deviceType={deviceType}
+            deviceType={walletType}
             requiredApp={connectionState.appName}
             onContinue={handleErrorContinue}
           />
@@ -209,7 +207,7 @@ export const HardwareWalletBottomSheet: React.FC<
       case ConnectionStatus.AwaitingConfirmation:
         return (
           <AwaitingConfirmationContent
-            deviceType={deviceType}
+            deviceType={walletType}
             operationType={connectionState.operationType}
             onCancel={handleAwaitingConfirmationCancel}
           />
@@ -219,7 +217,7 @@ export const HardwareWalletBottomSheet: React.FC<
         return (
           <ErrorContent
             error={connectionState.error}
-            deviceType={deviceType}
+            deviceType={walletType}
             onContinue={handleErrorContinue}
             onDismiss={handleErrorDismiss}
           />

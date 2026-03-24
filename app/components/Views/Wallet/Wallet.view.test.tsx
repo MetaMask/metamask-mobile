@@ -4,7 +4,7 @@ import {
   renderWalletViewWithRoutes,
 } from '../../../../tests/component-view/renderers/wallet';
 import { WalletViewSelectorsIDs } from './WalletView.testIds';
-import { describeForPlatforms } from '../../../util/test/platform';
+import { describeForPlatforms } from '../../../../tests/component-view/platform';
 import { fireEvent } from '@testing-library/react-native';
 import Routes from '../../../constants/navigation/Routes';
 

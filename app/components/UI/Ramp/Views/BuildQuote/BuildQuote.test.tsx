@@ -83,10 +83,18 @@ jest.mock('../../components/QuickAmounts', () => {
 });
 
 jest.mock('@react-navigation/native', () => {
+  const ReactActual = jest.requireActual('react');
   const actual = jest.requireActual('@react-navigation/native');
   return {
     ...actual,
     useNavigation: jest.fn(),
+    useIsFocused: jest.fn(() => true),
+    useFocusEffect: (callback: () => void | (() => void)) => {
+      ReactActual.useEffect(() => {
+        const cleanup = callback();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [callback]);
+    },
   };
 });
 
@@ -354,11 +362,14 @@ describe('BuildQuote', () => {
       userRegion: USER_REGION,
       selectedProvider: WIDGET_PROVIDER,
       selectedToken: SELECTED_TOKEN,
+      paymentMethods: [SELECTED_PAYMENT_METHOD],
       getBuyWidgetData: mockGetBuyWidgetData,
       addPrecreatedOrder: mockAddPrecreatedOrder,
       addOrder: mockAddOrder,
       getOrderFromCallback: mockGetOrderFromCallback,
       paymentMethodsLoading: false,
+      paymentMethodsFetching: false,
+      paymentMethodsStatus: 'success',
       selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
     });
     mockUseRampsQuotes.mockReturnValue({
@@ -388,6 +399,41 @@ describe('BuildQuote', () => {
       setParams: jest.fn(),
       navigate: mockNavigate,
       goBack: mockGoBack,
+    });
+  });
+
+  describe('amount param initialization', () => {
+    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
+      mockUseParams.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('100');
+    });
+
+    it('uses amount param as initial value when provided via route params', () => {
+      mockUseParams.mockReturnValue({ amount: 30 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('30');
+    });
+
+    it('does not override amount with region default when amount param is provided', () => {
+      mockUseParams.mockReturnValue({ amount: 50 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('50');
     });
   });
 
@@ -430,12 +476,6 @@ describe('BuildQuote', () => {
         type: 'success',
         url: 'metamask://on-ramp/providers/moonpay?orderId=ord-123',
       });
-      mockGetOrderFromCallback.mockResolvedValue({
-        providerOrderId: 'ord-123',
-        status: 'Pending',
-        cryptoAmount: '0.05',
-        cryptoCurrency: { symbol: 'ETH' },
-      });
       mockGetBuyWidgetData.mockResolvedValue({
         url: 'https://widget.example.com/checkout',
         browser: 'IN_APP_OS_BROWSER',
@@ -451,14 +491,18 @@ describe('BuildQuote', () => {
       });
 
       await waitFor(() => {
-        expect(mockAddOrder).toHaveBeenCalled();
+        expect(mockAddOrder).not.toHaveBeenCalled();
+        expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
         expect(mockNavigationReset).toHaveBeenCalledWith({
           index: 0,
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
               params: {
-                orderId: 'ord-123',
+                callbackUrl:
+                  'metamask://on-ramp/providers/moonpay?orderId=ord-123',
+                providerCode: 'moonpay',
+                walletAddress: '0x1234567890123456789012345678901234567890',
                 showCloseButton: true,
               },
             },
@@ -676,9 +720,14 @@ describe('BuildQuote', () => {
         userRegion: USER_REGION,
         selectedProvider: NATIVE_PROVIDER,
         selectedToken: SELECTED_TOKEN,
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
         getBuyWidgetData: mockGetBuyWidgetData,
         addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
         paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
         selectedPaymentMethod: SELECTED_PAYMENT_METHOD,
       });
       mockUseRampsQuotes.mockReturnValue({
@@ -709,7 +758,7 @@ describe('BuildQuote', () => {
         '/payments/debit-credit-card',
         '100',
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE);
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
 
     it('navigates to VerifyIdentity when user has no token', async () => {
@@ -841,6 +890,180 @@ describe('BuildQuote', () => {
       });
 
       expect(toJSON()).toMatchSnapshot();
+    });
+  });
+
+  describe('Token unavailable for provider', () => {
+    const TOKEN_ASSET = 'eip155:1/slip44:60';
+
+    const transakProvider = {
+      id: '/providers/transak',
+      name: 'Transak',
+      supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+      links: [],
+    };
+
+    const mockUnavailableController = (overrides: Record<string, unknown>) => {
+      mockUseRampsController.mockReturnValue({
+        userRegion: USER_REGION,
+        selectedProvider: transakProvider,
+        selectedToken: SELECTED_TOKEN,
+        paymentMethods: [],
+        getBuyWidgetData: mockGetBuyWidgetData,
+        addPrecreatedOrder: mockAddPrecreatedOrder,
+        addOrder: mockAddOrder,
+        getOrderFromCallback: mockGetOrderFromCallback,
+        paymentMethodsLoading: false,
+        paymentMethodsFetching: false,
+        paymentMethodsStatus: 'success',
+        selectedPaymentMethod: null,
+        ...overrides,
+      });
+    };
+
+    beforeEach(() => {
+      jest.useFakeTimers();
+      mockUseParams.mockReturnValue({ assetId: TOKEN_ASSET });
+    });
+
+    afterEach(() => {
+      jest.useRealTimers();
+    });
+
+    it('navigates to token unavailable modal after debounce when payment methods are empty', () => {
+      mockUnavailableController({});
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: expect.objectContaining({ assetId: TOKEN_ASSET }),
+        }),
+      );
+    });
+
+    it('does not navigate while payment methods are still fetching', () => {
+      mockUnavailableController({ paymentMethodsFetching: true });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate before payment methods status is success', () => {
+      mockUnavailableController({ paymentMethodsStatus: 'loading' });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('does not navigate when payment methods returned', () => {
+      mockUnavailableController({
+        paymentMethods: [SELECTED_PAYMENT_METHOD],
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('passes buyFlowOrigin to token unavailable modal params', () => {
+      mockUseParams.mockReturnValue({
+        assetId: TOKEN_ASSET,
+        buyFlowOrigin: 'tokenInfo' as const,
+      });
+      mockUnavailableController({});
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+          params: expect.objectContaining({
+            assetId: TOKEN_ASSET,
+            buyFlowOrigin: 'tokenInfo',
+          }),
+        }),
+      );
+    });
+
+    it('does not open payment selection when token unavailable disables pill', () => {
+      mockUnavailableController({});
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      mockNavigate.mockClear();
+      fireEvent.press(getByTestId('build-quote-payment-pill'));
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampPaymentSelectionModal',
+        }),
+      );
+    });
+
+    it('re-navigates when provider id changes', () => {
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/a',
+          name: 'A',
+          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+          links: [],
+        },
+      });
+      const { rerender } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalled();
+      mockNavigate.mockClear();
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/b',
+          name: 'B',
+          supportedCryptoCurrencies: { [TOKEN_ASSET]: true },
+          links: [],
+        },
+      });
+      rerender(<BuildQuote />);
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
     });
   });
 });

@@ -8,7 +8,6 @@ import Logger from '../../../../../util/Logger';
 import {
   selectCardholderAccounts,
   selectIsAuthenticatedCard,
-  selectCardGeoLocation,
   setAlwaysShowCardButton,
 } from '../../../../redux/slices/card';
 import {
@@ -17,6 +16,7 @@ import {
   selectDisplayCardButtonFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
 import { selectInternalAccounts } from '../../../../../selectors/accountsController';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 
 jest.mock('../../../../redux', () => ({
   __esModule: true,
@@ -34,6 +34,7 @@ jest.mock('../../../../Engine', () => ({
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/featureFlagController/card');
 jest.mock('../../../../../selectors/accountsController');
+jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
 
@@ -62,7 +63,7 @@ describe('handleCardHome', () => {
 
     (selectCardholderAccounts as unknown as jest.Mock).mockReturnValue([]);
     (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
-    (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('US');
+    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
     (selectCardExperimentalSwitch as unknown as jest.Mock).mockReturnValue(
       false,
     );
@@ -100,7 +101,7 @@ describe('handleCardHome', () => {
       });
 
       it('enables card regardless of geo location', () => {
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue(
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
           'UNSUPPORTED_COUNTRY',
         );
 
@@ -136,7 +137,9 @@ describe('handleCardHome', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('GB');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'GB',
+        );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
           GB: true,
           DE: true,
@@ -170,7 +173,7 @@ describe('handleCardHome', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue(
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
           'UNSUPPORTED',
         );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
@@ -208,7 +211,9 @@ describe('handleCardHome', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(false);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('GB');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'GB',
+        );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
           GB: true,
         });
@@ -230,7 +235,9 @@ describe('handleCardHome', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('XX');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'XX',
+        );
         (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
           XX: false,
           GB: true,
@@ -279,7 +286,9 @@ describe('handleCardHome', () => {
         (
           selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
         ).mockReturnValue(true);
-        (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('GB');
+        (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue(
+          'GB',
+        );
       });
 
       it('does not enable card when cardSupportedCountries is undefined', () => {

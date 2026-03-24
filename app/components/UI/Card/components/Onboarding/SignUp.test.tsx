@@ -85,9 +85,25 @@ jest.mock('./OnboardingStep', () => {
 });
 
 // Create test store
-const createTestStore = (initialState = {}) =>
-  configureStore({
+// SignUp reads geoLocation from state.engine.backgroundState.GeolocationController.location
+// via selectGeolocationLocation. Pass { geoLocation: 'US' } etc. to control it.
+const createTestStore = (initialState: Record<string, unknown> = {}) => {
+  const { geoLocation, ...cardState } = initialState;
+  const engineState = {
+    backgroundState: {
+      GeolocationController:
+        typeof geoLocation === 'string' ? { location: geoLocation } : undefined,
+    },
+  };
+
+  return configureStore({
     reducer: {
+      engine: (state = engineState, action = { type: '', payload: null }) => {
+        switch (action.type) {
+          default:
+            return state;
+        }
+      },
       card: (
         state = {
           onboarding: {
@@ -97,8 +113,7 @@ const createTestStore = (initialState = {}) =>
             user: null,
           },
           userCardLocation: 'international',
-          geoLocation: 'UNKNOWN',
-          ...initialState,
+          ...cardState,
         },
         action = { type: '', payload: null },
       ) => {
@@ -114,6 +129,7 @@ const createTestStore = (initialState = {}) =>
       },
     },
   });
+};
 
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
