@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { Pressable, ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import {
   Box,
@@ -20,6 +21,8 @@ import { strings } from '../../../../../../locales/i18n';
 import { useRewardCampaigns } from '../../hooks/useRewardCampaigns';
 import CampaignTile from './CampaignTile';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import { selectCampaignsRewardsEnabledFlag } from '../../../../../selectors/featureFlagController/rewards';
+import PreviousSeasonTile from '../PreviousSeason/PreviousSeasonTile';
 
 /**
  * CampaignsPreview shows a single featured campaign on the dashboard.
@@ -29,6 +32,7 @@ const CampaignsPreview: React.FC = () => {
   const tw = useTailwind();
   const navigation = useNavigation();
   const { colors } = useTheme();
+  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
   const { categorizedCampaigns, isLoading, hasError, fetchCampaigns } =
     useRewardCampaigns();
 
@@ -46,8 +50,33 @@ const CampaignsPreview: React.FC = () => {
     navigation.navigate(Routes.CAMPAIGNS_VIEW);
   }, [navigation]);
 
-  if (!isLoading && !hasError && !featuredCampaign) {
-    return null;
+  const handleNavigateToPreviousSeason = useCallback(() => {
+    navigation.navigate(Routes.PREVIOUS_SEASON_VIEW);
+  }, [navigation]);
+
+  const showPreviousSeasonTile = !isLoading && !featuredCampaign;
+
+  if (showPreviousSeasonTile) {
+    return (
+      <Box
+        twClassName="gap-3 p-4"
+        testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIEW}
+      >
+        <Pressable onPress={handleNavigateToPreviousSeason}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            twClassName="gap-2"
+          >
+            <Text variant={TextVariant.HeadingMd}>
+              {strings('rewards.campaigns_preview.title')}
+            </Text>
+            <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+          </Box>
+        </Pressable>
+        <PreviousSeasonTile />
+      </Box>
+    );
   }
 
   return (
@@ -84,7 +113,12 @@ const CampaignsPreview: React.FC = () => {
         />
       )}
 
-      {featuredCampaign && <CampaignTile campaign={featuredCampaign} />}
+      {featuredCampaign && (
+        <CampaignTile
+          campaign={featuredCampaign}
+          onPress={isCampaignsEnabled ? undefined : handleNavigateToCampaigns}
+        />
+      )}
     </Box>
   );
 };

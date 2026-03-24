@@ -75,6 +75,7 @@ import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 import { AccountType } from '../../../constants/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -1990,6 +1991,13 @@ describe('Onboarding', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.optIn).toHaveBeenCalled();
+        expect(
+          mockCreateEventBuilder.mock.calls.some(
+            (call) =>
+              (call[0] as { category: string }).category ===
+              MetaMetricsEvents.METRICS_OPT_IN.category,
+          ),
+        ).toBe(true);
       });
     });
   });

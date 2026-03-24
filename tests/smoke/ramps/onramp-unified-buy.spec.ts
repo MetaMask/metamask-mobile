@@ -55,8 +55,8 @@ const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
 const nativeDepositOrder = {
   token: 'ETH',
   tokenAmount: '0.02455',
-  totalFiat: '$100 USD',
-  feesFiat: '$23.33 USD',
+  totalFiat: '$100.00',
+  feesFiat: '$23.33',
   quoteDisplayAmount: '100 USD',
   provider: 'Transak (Staging)',
 };
@@ -64,15 +64,13 @@ const nativeDepositOrder = {
 const aggregatorBuyOrder = {
   token: 'ETH',
   tokenAmount: '0.00355',
-  totalFiat: '$15 USD',
-  feesFiat: '$3.5 USD',
+  totalFiat: '$15.00',
+  feesFiat: '$3.50',
   quoteDisplayAmount: '$15.00',
   provider: 'Transak (Staging)',
 };
 
-// Disabling as the test is currently hanging in CI
-// https://github.com/MetaMask/metamask-mobile/actions/runs/23006374721
-describe.skip(SmokeRamps('Onramp Unified Buy'), () => {
+describe(SmokeRamps('Onramp Unified Buy'), () => {
   beforeEach(async () => {
     await device.clearKeychain();
   });

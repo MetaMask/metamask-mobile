@@ -11,6 +11,7 @@ import {
 import { loginToApp } from '../../flows/wallet.flow';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 import { swapActionExpectations } from '../../helpers/analytics/expectations/swap-action.analytics';
 
@@ -30,7 +31,6 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             nickname: 'Localhost',
             ticker: 'ETH',
           })
-          .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
           .build(),
         localNodeOptions: [
@@ -44,7 +44,10 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
         skipReactNativeReload: true,
         analyticsExpectations: swapActionExpectations,
