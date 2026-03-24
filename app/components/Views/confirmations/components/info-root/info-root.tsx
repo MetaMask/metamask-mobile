@@ -24,6 +24,7 @@ import { PredictDepositInfo } from '../info/predict-deposit-info';
 import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimInfo } from '../info/predict-claim-info';
 import { PredictWithdrawInfo } from '../info/predict-withdraw-info';
+import { PerpsWithdrawInfo } from '../info/perps-withdraw-info';
 import { MusdClaimInfo } from '../info/musd-claim-info';
 import { MusdConversionInfoRoot } from '../info/musd-conversion-info-root';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
@@ -134,6 +135,13 @@ const Info = ({ route }: InfoProps) => {
     hasTransactionType(transactionMetadata, [TransactionType.predictWithdraw])
   ) {
     return <PredictWithdrawInfo />;
+  }
+
+  if (
+    transactionMetadata &&
+    hasTransactionType(transactionMetadata, [TransactionType.perpsWithdraw])
+  ) {
+    return <PerpsWithdrawInfo />;
   }
 
   const { requestData } = approvalRequest ?? {

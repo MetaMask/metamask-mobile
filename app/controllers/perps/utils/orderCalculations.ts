@@ -1,15 +1,15 @@
 import type { Hex } from '@metamask/utils';
 
 import {
+  formatHyperLiquidPrice,
+  formatHyperLiquidSize,
+} from './hyperLiquidAdapter';
+import {
   MAX_ORDER_MARGIN_BUFFER,
   ORDER_SLIPPAGE_CONFIG,
 } from '../constants/perpsConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { PerpsDebugLogger } from '../types';
-import {
-  formatHyperLiquidPrice,
-  formatHyperLiquidSize,
-} from './hyperLiquidAdapter';
 import type { SDKOrderParams } from '../types/hyperliquid-types';
 
 /**

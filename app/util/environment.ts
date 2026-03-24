@@ -1,4 +1,4 @@
-/* eslint-disable import/prefer-default-export */
+/* eslint-disable import-x/prefer-default-export */
 
 // TODO: This should be consolidated into app/util/test/utils.js
 // This needs to be updated to check for the METAMASK_ENVIRONMENT environment variable instead of NODE_ENV

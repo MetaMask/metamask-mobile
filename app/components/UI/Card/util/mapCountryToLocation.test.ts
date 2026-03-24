@@ -71,22 +71,6 @@ describe('mapCountryToLocation', () => {
       expect(result).toBe('international' as CardLocation);
     });
 
-    it('returns international location for lowercase us country code', () => {
-      const countryCode = 'us';
-
-      const result = mapCountryToLocation(countryCode);
-
-      expect(result).toBe('international' as CardLocation);
-    });
-
-    it('returns international location for mixed case Us country code', () => {
-      const countryCode = 'Us';
-
-      const result = mapCountryToLocation(countryCode);
-
-      expect(result).toBe('international' as CardLocation);
-    });
-
     it('returns international location for invalid country code', () => {
       const countryCode = 'INVALID';
 

@@ -1,6 +1,9 @@
 import { Mockttp } from 'mockttp';
 import { TestSpecificMock } from '../../framework';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import {
+  setupMockRequest,
+  setupSSEMockRequest,
+} from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
@@ -46,9 +49,6 @@ export const testSpecificMock: TestSpecificMock = async (
         { chainId: 'eip155:59144', name: 'Linea' },
         { chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp', name: 'Solana' },
       ],
-      sse: {
-        enabled: false,
-      },
     },
   });
   // Mock Ethereum token list
@@ -85,49 +85,26 @@ export const testSpecificMock: TestSpecificMock = async (
 
   // ── SSE path (bridge-controller uses getQuoteStream for SSE streaming) ──
   // Catch-all for getQuoteStream — low priority fallback to prevent real network calls
-  await setupMockRequest(
+  await setupSSEMockRequest(
     mockServer,
-    {
-      requestMethod: 'GET',
-      url: /getQuoteStream/i,
-      response: toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
-      responseCode: 200,
-    },
+    /getQuoteStream/i,
+    toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
     1, // lower priority than specific mocks below (999)
   );
 
   // Mock SSE quote response ETH(Ethereum)->SOL(Solana)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destChainId=1151111081099710/i,
-    response: toSSEResponse(GET_QUOTE_ETH_SOLANA_RESPONSE),
-    responseCode: 200,
-  });
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destChainId=1151111081099710/i,
+    toSSEResponse(GET_QUOTE_ETH_SOLANA_RESPONSE),
+  );
 
   // Mock SSE quote response ETH(Ethereum)->ETH(BASE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuoteStream.*destChainId=8453/i,
-    response: toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
-    responseCode: 200,
-  });
-
-  // ── JSON path (fallback for non-SSE quote fetching) ──────────────────────
-  // Mock quote response ETH(Ethereum)->SOL(Solana)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destChainId=1151111081099710/i,
-    response: GET_QUOTE_ETH_SOLANA_RESPONSE,
-    responseCode: 200,
-  });
-
-  // Mock quote response ETH(Ethereum)->ETH(BASE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /\/getQuote\?.*destChainId=8453/i,
-    response: GET_QUOTE_ETH_BASE_RESPONSE,
-    responseCode: 200,
-  });
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destChainId=8453/i,
+    toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
+  );
 
   // Mock popular tokens (POST - for token selector)
   // This combines responses from all networks as the API returns tokens for all requested chainIds

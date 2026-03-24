@@ -1,4 +1,4 @@
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 // @ts-expect-error - No types declarations
 import pump from 'pump';

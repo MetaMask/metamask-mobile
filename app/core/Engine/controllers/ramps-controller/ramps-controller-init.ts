@@ -5,20 +5,13 @@ import {
   getDefaultRampsControllerState,
 } from '@metamask/ramps-controller';
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
-import { hasMinimumRequiredVersion } from '../../../../components/UI/Ramp/utils/hasMinimumRequiredVersion';
+import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
+import { RAMPS_UNIFIED_BUY_V2_FLAG_KEY } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
-interface RampsUnifiedBuyV2Config {
-  active?: boolean;
-  minimumVersion?: string;
-}
-
-const RAMPS_UNIFIED_BUY_V2_FLAG_KEY = 'rampsUnifiedBuyV2';
-
 /**
- * Determines whether the ramps unified buy V2 feature is enabled
- * by reading the remote feature flag state.
+ * Whether Unified Buy V2 is enabled per RemoteFeatureFlagController state.
  *
  * @param initMessenger - The init messenger to read RemoteFeatureFlagController state.
  * @returns Whether V2 is enabled.
@@ -30,14 +23,9 @@ function getIsRampsUnifiedBuyV2Enabled(
     const remoteState = initMessenger.call(
       'RemoteFeatureFlagController:getState',
     );
-    const config = (remoteState?.remoteFeatureFlags?.[
-      RAMPS_UNIFIED_BUY_V2_FLAG_KEY
-    ] ?? {}) as RampsUnifiedBuyV2Config;
-
-    return hasMinimumRequiredVersion(
-      config.minimumVersion,
-      config.active ?? false,
-    );
+    const remoteFlag =
+      remoteState?.remoteFeatureFlags?.[RAMPS_UNIFIED_BUY_V2_FLAG_KEY];
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
   } catch {
     return false;
   }
@@ -65,21 +53,28 @@ export const rampsControllerInit: ControllerInitFunction<
     state: rampsControllerState,
   });
 
-  const isV2Enabled = getIsRampsUnifiedBuyV2Enabled(initMessenger);
+  let orderSubscriptionsRegistered = false;
 
-  if (isV2Enabled) {
+  const registerUnifiedBuyV2OrderSubscriptions = (): void => {
+    if (orderSubscriptionsRegistered) {
+      return;
+    }
+    orderSubscriptionsRegistered = true;
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForNotifications,
     );
-
     initMessenger.subscribe(
       'RampsController:orderStatusChanged',
       handleOrderStatusChangedForMetrics,
     );
+  };
 
-    // Start init immediately so tokens (and providers) load on app start.
-    // init() is async and does not block controller creation.
+  const startUnifiedBuyV2IfEnabled = (): void => {
+    if (!getIsRampsUnifiedBuyV2Enabled(initMessenger)) {
+      return;
+    }
+    registerUnifiedBuyV2OrderSubscriptions();
     controller
       .init()
       .then(() => {
@@ -88,7 +83,20 @@ export const rampsControllerInit: ControllerInitFunction<
       .catch(() => {
         // Initialization failed - error state will be available via selectors
       });
-  }
+  };
+
+  startUnifiedBuyV2IfEnabled();
+
+  // Remote flags can be empty on first Engine init and fill in once the
+  // controller has fetched; re-check so RampsController.init() runs then.
+  //
+  // This event fires for any RemoteFeatureFlagController state update — not
+  // only rampsUnifiedBuyV2. When V2 is off, startUnifiedBuyV2IfEnabled returns
+  // immediately. When V2 is on, order subscriptions register once; init() and
+  // startOrderPolling() are idempotent, so repeat invocations are safe.
+  initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
+    startUnifiedBuyV2IfEnabled();
+  });
 
   return {
     controller,

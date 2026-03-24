@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
 import {
   defineConfig as defineConfigPlaywright,
@@ -18,8 +18,8 @@ const defaultConfig: PlaywrightTestConfig<WebDriverConfig> = {
   // used across tests in a file where they run sequentially
   fullyParallel: false,
   forbidOnly: false,
-  retries: 1,
-  workers: isCI ? 2 : 1,
+  retries: isCI ? 1 : 0,
+  workers: 1,
   reporter: [['list'], ['html', { open: 'always' }]],
   timeout: 300_000,
 };

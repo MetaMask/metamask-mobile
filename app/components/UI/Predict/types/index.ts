@@ -164,7 +164,6 @@ export type PredictGamePeriod =
   | 'OT' // Overtime
   | 'FT' // Final
   | 'VFT' // Verified fulltime (when closed=true)
-  // eslint-disable-next-line @typescript-eslint/ban-types
   | (string & {}); // Escape hatch for future sports with different period formats
 
 // Game data attached to market

@@ -16,7 +16,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 
 ### E2E Tests (Detox smoke/regression)
 
-- [.agents/skills/e2e-test/SKILL.md](../.agents/skills/e2e-test/SKILL.md) — Canonical skill for adding or fixing E2E specs: workflow, decision tree, references (writing-tests, page-objects, mocking, running-tests).
+- [.agents/skills/e2e-test/SKILL.md](../.agents/skills/e2e-test/SKILL.md) — Canonical skill for adding or fixing E2E specs: workflow, decision tree, references (writing-tests, page-objects, mocking, analytics-e2e, running-tests).
 
 ## Canonical Sources (read these, do not duplicate)
 
@@ -24,6 +24,7 @@ Single agent index for **tests/**, and **wdio/**. Pointers only; details live in
 - [docs/readme/e2e-testing.md](../docs/readme/e2e-testing.md) — Setup, run commands, build types, Metro, Detox, Flask; legacy Appium; Appwright.
 - [tests/docs/README.md](docs/README.md) — Framework structure, withFixtures, FixtureBuilder, anti-patterns, checklist.
 - [tests/docs/MOCKING.md](docs/MOCKING.md) — API mocking, default and test-specific mocks.
+- [tests/docs/analytics-e2e.md](docs/analytics-e2e.md) — MetaMetrics E2E: `analyticsExpectations` on `withFixtures`, presets, `runAnalyticsExpectations`.
 - [tests/docs/CONTROLLER_MOCKING.md](docs/CONTROLLER_MOCKING.md) — Controller mocking.
 - [tests/docs/MODULE_MOCKING.md](docs/MODULE_MOCKING.md) — Module mocking.
 - [tests/framework/index.ts](framework/index.ts) — Assertions, Gestures, Matchers, Utilities, PlaywrightAdapter.
