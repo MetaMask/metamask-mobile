@@ -742,14 +742,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
-  legacyIosGoogleConfigEnabled: {
-    name: 'legacyIosGoogleConfigEnabled',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: true,
-    status: FeatureFlagStatus.Active,
-  },
-
   config_registry_api_enabled: {
     name: 'config_registry_api_enabled',
     type: FeatureFlagType.Remote,
@@ -2834,6 +2826,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.61.0',
       enabled: true,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  legacyIosGoogleConfigEnabled: {
+    name: 'legacyIosGoogleConfigEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: true,
     status: FeatureFlagStatus.Active,
   },
 
