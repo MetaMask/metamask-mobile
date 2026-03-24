@@ -310,4 +310,115 @@ describe('useWithdrawTokenFilter', () => {
       includeNoBalance: true,
     });
   });
+
+  it('creates zero-balance entry from API data for allowlisted tokens not in wallet', () => {
+    mockUseSendTokens.mockReturnValue([ALL_TOKENS_MOCK[0]]);
+
+    mockUseERC20Tokens.mockReturnValue([
+      { name: 'Token A', symbol: 'TKNA', image: 'icon-a.png', decimals: 18 },
+      {
+        name: 'New API Token',
+        symbol: 'NAT',
+        image: 'icon-nat.png',
+        decimals: 8,
+      },
+    ]);
+
+    const { result } = runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: { '0x1': ['0xaaa', '0xnewtoken'] },
+        },
+      },
+    });
+
+    const filtered = result.current([]);
+
+    expect(filtered).toHaveLength(2);
+    expect(filtered[0].address).toBe('0xaaa');
+    expect(filtered[0].balance).toBe('1.0');
+
+    expect(filtered[1].address).toBe('0xnewtoken');
+    expect(filtered[1].symbol).toBe('NAT');
+    expect(filtered[1].balance).toBe('0');
+    expect(filtered[1].decimals).toBe(8);
+    expect(filtered[1].image).toBe('icon-nat.png');
+  });
+
+  it('skips API entries with no name and no symbol', () => {
+    mockUseSendTokens.mockReturnValue([]);
+
+    mockUseERC20Tokens.mockReturnValue([
+      {
+        name: undefined,
+        symbol: undefined,
+        image: undefined,
+        decimals: undefined,
+      } as unknown as ReturnType<typeof useERC20Tokens>[number],
+    ]);
+
+    const { result } = runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: { '0x1': ['0xunknown'] },
+        },
+      },
+    });
+
+    const filtered = result.current([]);
+    expect(filtered).toHaveLength(0);
+  });
+
+  it('backfills image from API when wallet token has empty image', () => {
+    const tokenWithoutImage = {
+      ...ALL_TOKENS_MOCK[0],
+      image: '',
+      logo: undefined,
+    } as AssetType;
+
+    mockUseSendTokens.mockReturnValue([tokenWithoutImage]);
+
+    mockUseERC20Tokens.mockReturnValue([
+      { name: 'Token A', symbol: 'TKNA', image: 'api-icon.png', decimals: 18 },
+    ]);
+
+    const { result } = runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: { '0x1': ['0xaaa'] },
+        },
+      },
+    });
+
+    const filtered = result.current([]);
+
+    expect(filtered).toHaveLength(1);
+    expect(filtered[0].address).toBe('0xaaa');
+    expect(filtered[0].image).toBe('api-icon.png');
+    expect(filtered[0].logo).toBe('api-icon.png');
+  });
+
+  it('does not pass native addresses to useERC20Tokens requests', () => {
+    runHook({
+      type: TransactionType.predictWithdraw,
+      postQuoteFlags: {
+        default: {
+          enabled: true,
+          tokens: {
+            '0x1': ['0x0000000000000000000000000000000000000000', '0xaaa'],
+          },
+        },
+      },
+    });
+
+    const requests = mockUseERC20Tokens.mock.calls[0][0];
+    expect(requests).toHaveLength(1);
+    expect(requests[0].value).toBe('0xaaa');
+  });
 });
