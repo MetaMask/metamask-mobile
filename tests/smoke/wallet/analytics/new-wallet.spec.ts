@@ -4,6 +4,7 @@ import { SmokeWalletPlatform } from '../../../tags';
 import { CreateNewWallet } from '../../../flows/wallet.flow';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
+import { createLogger } from '../../../framework';
 import {
   getEventsPayloads,
   onboardingEvents,
@@ -17,6 +18,10 @@ import {
   filterProxiedRequests,
   waitForProxiedRequestsMatching,
 } from '../../../api-mocking/helpers/mockHelpers';
+
+const logger = createLogger({
+  name: 'NewWalletAnalyticsSpec',
+});
 
 const eventNames = [
   onboardingEvents.ANALYTICS_PREFERENCE_SELECTED,
@@ -54,8 +59,10 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           method: 'PUT' as const,
           urlSubstring: AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
         };
+
+        const seenBeforeWallet = await collectSeenProxiedRequests(mockServer);
         const profileAccountsBaseline = filterProxiedRequests(
-          await collectSeenProxiedRequests(mockServer),
+          seenBeforeWallet,
           profileAccountsMatcher,
         ).length;
 
@@ -151,8 +158,6 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
 
         softAssert.throwIfErrors();
 
-        // MMQA-1384: address collection — PUT profile/accounts after new wallet
-        // (same proxy observation pattern as MetaMetrics above).
         await waitForProxiedRequestsMatching(
           mockServer,
           profileAccountsMatcher,
@@ -161,6 +166,19 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
             description:
               'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet creation',
           },
+        );
+
+        const seenAfterProfileAccountsWait =
+          await collectSeenProxiedRequests(mockServer);
+        const profileAccountsAfter = filterProxiedRequests(
+          seenAfterProfileAccountsWait,
+          profileAccountsMatcher,
+        ).length;
+
+        logger.info(
+          `PUT authentication.api.cx.metamask.io/api/v2/profile/accounts after new wallet: new count=${String(
+            profileAccountsAfter - profileAccountsBaseline,
+          )}`,
         );
       },
     );

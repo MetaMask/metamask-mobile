@@ -5,13 +5,13 @@ import {
   LogLevel,
   MockApiEndpoint,
   MockEventsObject,
+  sleep,
 } from '../../framework';
-import Utilities from '../../framework/Utilities.ts';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
 import { safeGetBodyText } from '../MockServerE2E.ts';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
-// Change this to DEBUG as needed
+// Change this to DEBUG as needed (required to see `waitForProxiedRequestsMatching` dumps)
 const logger = createLogger({
   name: 'TestSpecificMockHelpers',
   level: LogLevel.INFO,
@@ -477,6 +477,13 @@ export const ACCOUNTS_API_SUPPORTED_NETWORKS_URL_MARKER =
 export const AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER =
   'authentication.api.cx.metamask.io/api/v2/profile/accounts';
 
+/**
+ * MMQA-1384: backup-and-sync — `PUT` to user-storage (multichain account tree /
+ * address book; see USER_STORAGE_MOCK). Used in new-wallet analytics E2E where applicable.
+ */
+export const USER_STORAGE_ACCOUNT_SYNC_PUT_URL_MARKER =
+  'user-storage.api.cx.metamask.io/api/v1/userstorage';
+
 export interface SeenProxiedRequest {
   method: string;
   proxiedUrl: string;
@@ -534,6 +541,8 @@ export function filterProxiedRequests(
 
 /**
  * Polls until at least `minCount` proxied requests match, or throws after timeout.
+ * Polls every `interval` ms (default 1000) for up to `timeout` ms (default 60000).
+ * On timeout only: logs the full proxied request list at DEBUG (see module LogLevel).
  */
 export async function waitForProxiedRequestsMatching(
   mockServer: Mockttp | MockttpServer,
@@ -541,30 +550,72 @@ export async function waitForProxiedRequestsMatching(
   options: {
     minCount?: number;
     timeout?: number;
+    interval?: number;
     description: string;
   },
 ): Promise<SeenProxiedRequest[]> {
-  const { minCount = 1, timeout = 20000, description } = options;
+  const {
+    minCount = 1,
+    timeout = 60000,
+    interval = 1000,
+    description,
+  } = options;
 
-  return Utilities.executeWithRetry(
-    async () => {
-      const seen = await collectSeenProxiedRequests(mockServer);
-      const matches = filterProxiedRequests(seen, matcher);
-      if (matches.length < minCount) {
-        throw new Error(
-          `Expected at least ${String(minCount)} proxied request(s) matching ${JSON.stringify(
-            matcher,
-          )}, got ${String(matches.length)} (total proxied rows: ${String(
-            seen.length,
-          )})`,
-        );
-      }
-      return matches;
-    },
-    {
-      timeout,
-      interval: 500,
-      description,
-    },
+  const pollIntervalMs = Math.max(1, interval);
+  const startMs = Date.now();
+
+  logger.info(
+    `Polling proxied requests for "${description}" (matcher ${JSON.stringify(
+      matcher,
+    )}, minCount ${String(minCount)}, every ${String(
+      pollIntervalMs,
+    )}ms, up to ${String(timeout)}ms)`,
   );
+
+  for (;;) {
+    const seen = await collectSeenProxiedRequests(mockServer);
+    const matches = filterProxiedRequests(seen, matcher);
+
+    if (matches.length >= minCount) {
+      const matchedRequestsDump = matches
+        .map(
+          (request, index) =>
+            `[${String(index + 1)}] ${request.method} ${request.proxiedUrl}`,
+        )
+        .join('\n');
+      logger.info(
+        `Matched proxied request(s) for "${description}": ${String(matches.length)} (required: ${String(minCount)})\n${matchedRequestsDump}`,
+      );
+      return matches;
+    }
+
+    const elapsedMs = Date.now() - startMs;
+    if (elapsedMs >= timeout) {
+      const seenRequestsDump = seen
+        .map(
+          (request, index) =>
+            `[${String(index + 1)}] ${request.method} ${request.proxiedUrl}`,
+        )
+        .join('\n');
+
+      logger.debug(
+        `Proxied requests mismatch for "${description}": expected >= ${String(minCount)} matching ${JSON.stringify(
+          matcher,
+        )}, got ${String(matches.length)} (total proxied rows: ${String(
+          seen.length,
+        )})\nSeen proxied requests:\n${seenRequestsDump || '(none)'}`,
+      );
+
+      throw new Error(
+        `Expected at least ${String(minCount)} proxied request(s) matching ${JSON.stringify(
+          matcher,
+        )}, got ${String(matches.length)} (total proxied rows: ${String(
+          seen.length,
+        )})`,
+      );
+    }
+
+    const remainingMs = timeout - elapsedMs;
+    await sleep(Math.min(pollIntervalMs, remainingMs));
+  }
 }
