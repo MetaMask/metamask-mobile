@@ -431,6 +431,14 @@ const extractNftProperties = (
   // NFT route doesn't have sensitive parameters to extract
 };
 
+const extractSdkMwpProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // SDK MWP deeplinks carry their payload in a compressed `p` param;
+  // no route-level sensitive properties to extract here.
+};
+
 /**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
@@ -471,6 +479,7 @@ const routeExtractors: Record<
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
   [DeepLinkRoute.NFT]: extractNftProperties,
+  [DeepLinkRoute.SDK_MWP]: extractSdkMwpProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 

@@ -18,6 +18,7 @@ import { whenStoreReady } from '../utils/when-store-ready';
 import Engine from '../../Engine';
 import { rpcErrors } from '@metamask/rpc-errors';
 import { INTERNAL_ORIGINS } from '../../../constants/transaction';
+import { trackWalletEvent, type WalletEventProperties } from './v2-analytics';
 
 /**
  * The ConnectionRegistry is the central service responsible for managing the
@@ -113,8 +114,21 @@ export class ConnectionRegistry {
     const conn = await this.store.get(id);
 
     if (conn) {
+      trackWalletEvent('wallet_connection_request_received', {
+        anon_id: id,
+        platform: 'mobile',
+        sdk_version: conn.metadata?.sdk?.version,
+        sdk_platform: conn.metadata?.sdk?.platform,
+        found_in_store: true,
+      });
       return;
     }
+
+    trackWalletEvent('wallet_connection_request_received', {
+      anon_id: id,
+      platform: 'mobile',
+      found_in_store: false,
+    });
 
     logger.error(
       'Failed to find connection in store for simple deeplink with id:',
@@ -169,8 +183,18 @@ export class ConnectionRegistry {
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
 
+    let baseProps: WalletEventProperties | undefined;
+
     try {
       const connReq = this.parseConnectionRequest(url);
+
+      baseProps = {
+        anon_id: connReq.sessionRequest.id,
+        platform: 'mobile',
+        sdk_version: connReq.metadata.sdk.version,
+        sdk_platform: connReq.metadata.sdk.platform,
+      };
+      trackWalletEvent('wallet_connection_request_received', baseProps);
 
       // Defense-in-depth: block connections whose self-reported dapp metadata
       // matches a known internal origin. This check is currently redundant
@@ -200,11 +224,19 @@ export class ConnectionRegistry {
       this.connections.set(conn.id, conn);
       await this.store.save(connInfo);
       this.hostapp.syncConnectionList(Array.from(this.connections.values()));
+
+      trackWalletEvent('wallet_connection_user_approved', baseProps);
       logger.debug('Handled connect deeplink.', connInfo?.id);
     } catch (error) {
       logger.error('Failed to handle connect deeplink:', error, redactUrl(url));
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
+
+      const failProps: WalletEventProperties = baseProps ?? {
+        anon_id: 'unknown',
+        platform: 'mobile',
+      };
+      trackWalletEvent('wallet_connection_request_failed', failProps);
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }
