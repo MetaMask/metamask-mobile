@@ -91,7 +91,7 @@ module.exports = {
       },
     },
     {
-      files: ['scripts/**/*.js', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
+      files: ['scripts/**/*.{js,ts}', 'tests/tools/**/*.{js,ts}', 'app.config.js'],
       rules: {
         'no-console': 'off',
         'import/no-commonjs': 'off',
