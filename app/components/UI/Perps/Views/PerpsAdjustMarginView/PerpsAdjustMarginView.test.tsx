@@ -411,10 +411,12 @@ describe('PerpsAdjustMarginView', () => {
 
       render(<PerpsAdjustMarginView />);
 
-      // When loading, button text is not rendered
-      expect(
-        screen.queryByText('perps.adjust_margin.add_margin'),
-      ).not.toBeOnTheScreen();
+      // When loading, button text is rendered but hidden (opacity: 0)
+      const buttonText = screen.queryByText('perps.adjust_margin.add_margin');
+      expect(buttonText).toBeTruthy();
+      expect(buttonText?.props.style).toEqual(
+        expect.arrayContaining([expect.objectContaining({ opacity: 0 })]),
+      );
     });
 
     it('displays button text when not adjusting', () => {

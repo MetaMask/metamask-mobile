@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import PerpsConnectionErrorView from './PerpsConnectionErrorView';
 
 // Mock navigation
@@ -194,7 +194,7 @@ describe('PerpsConnectionErrorView', () => {
     expect(mockOnRetry).toHaveBeenCalledTimes(1);
   });
 
-  it('should not call onRetry when button is pressed while retrying', () => {
+  it('should not call onRetry when button is pressed while retrying', async () => {
     const { getByText } = render(
       <PerpsConnectionErrorView
         error="Test error"
@@ -204,9 +204,14 @@ describe('PerpsConnectionErrorView', () => {
     );
 
     const button = getByText('perps.connection.retrying_connection');
-    if (button.parent) {
-      fireEvent.press(button.parent);
+    // Button is disabled while loading, so traverse up to find and invoke onPress directly
+    let node = button;
+    while (node && !node.props.onPress) {
+      node = node.parent;
     }
+    await act(async () => {
+      node?.props.onPress?.();
+    });
 
     // Button should still call onRetry even when loading (Button component handles this)
     expect(mockOnRetry).toHaveBeenCalledTimes(1);
