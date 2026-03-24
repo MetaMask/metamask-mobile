@@ -51,8 +51,3 @@ func (s *RuleStore) Match(method, url string, body []byte) (*MockRule, bool) {
 	}
 	return nil, false
 }
-
-// stub — replaced by matcher.go
-func matchRule(rule *MockRule, method, url string, body []byte) bool {
-	return rule.Method == method && rule.URLEndpoint == url
-}
