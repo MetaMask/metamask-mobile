@@ -126,7 +126,7 @@ export const TokenWarningModal = () => {
           {description}
         </Text>
       </Box>
-      {mode === TokenWarningModalMode.Swap ? (
+      {mode === TokenWarningModalMode.Execution ? (
         <BottomSheetFooter
           buttonsAlignment={ButtonsAlignment.Horizontal}
           secondaryButtonProps={{

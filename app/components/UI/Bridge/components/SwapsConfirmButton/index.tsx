@@ -155,7 +155,7 @@ export const SwapsConfirmButton = ({
         warningType:
           tokenWarning.type as TokenWarningModalParams['warningType'],
         description: tokenWarning.description,
-        mode: TokenWarningModalMode.Swap,
+        mode: TokenWarningModalMode.Execution,
         location,
       };
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
