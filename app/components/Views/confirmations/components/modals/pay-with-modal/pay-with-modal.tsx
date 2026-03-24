@@ -1,5 +1,6 @@
 import React, { useCallback, useRef } from 'react';
 import { Hex } from '@metamask/utils';
+import { noop } from 'lodash';
 import Engine from '../../../../../../core/Engine';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
 import { useTransactionPayWithdraw } from '../../../hooks/pay/useTransactionPayWithdraw';
@@ -89,7 +90,7 @@ export function PayWithModal() {
 
   const handleTokenSelect = useCallback(
     (token: AssetType) => {
-      const onClosed = async () => {
+      const onClosed = () => {
         if (
           hasTransactionType(transactionMeta, [TransactionType.musdConversion])
         ) {
@@ -116,7 +117,7 @@ export function PayWithModal() {
               NetworkController.findNetworkClientIdByChainId(
                 token.chainId as Hex,
               );
-            await TokensController.addTokens(
+            TokensController.addTokens(
               [
                 {
                   address: token.address,
@@ -126,7 +127,7 @@ export function PayWithModal() {
                 },
               ],
               networkClientId,
-            );
+            ).catch(noop);
           } catch {
             // Network not configured — skip
           }
