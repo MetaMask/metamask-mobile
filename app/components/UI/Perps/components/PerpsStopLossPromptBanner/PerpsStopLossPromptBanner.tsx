@@ -5,10 +5,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
@@ -154,23 +155,22 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
                 </Text>
               </View>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Sm}
-                label={
-                  isLoading ? (
-                    <ActivityIndicator
-                      size="small"
-                      color={colors.primary.inverse}
-                    />
-                  ) : (
-                    strings('perps.stop_loss_prompt.add_margin_button')
-                  )
-                }
                 onPress={handleAddMarginPress}
                 isDisabled={isLoading || !onAddMargin}
                 style={styles.button}
                 testID={PerpsStopLossPromptSelectorsIDs.ADD_MARGIN_BUTTON}
-              />
+              >
+                {isLoading ? (
+                  <ActivityIndicator
+                    size="small"
+                    color={colors.primary.inverse}
+                  />
+                ) : (
+                  strings('perps.stop_loss_prompt.add_margin_button')
+                )}
+              </Button>
             </View>
           </Animated.View>
         );
@@ -195,31 +195,30 @@ const PerpsStopLossPromptBanner: React.FC<PerpsStopLossPromptBannerProps> =
               </Text>
             </View>
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Sm}
-              label={
-                isLoading ? (
-                  <ActivityIndicator
-                    size="small"
-                    color={colors.primary.inverse}
-                    testID={PerpsStopLossPromptSelectorsIDs.LOADING}
-                  />
-                ) : isSuccess ? (
-                  <Icon
-                    name={IconName.Check}
-                    size={IconSize.Sm}
-                    color={IconColor.Inverse}
-                    testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
-                  />
-                ) : (
-                  strings('perps.stop_loss_prompt.set_button')
-                )
-              }
               onPress={handleSetStopLossPress}
               isDisabled={isLoading || isSuccess || !onSetStopLoss}
               style={styles.button}
               testID={PerpsStopLossPromptSelectorsIDs.SET_STOP_LOSS_BUTTON}
-            />
+            >
+              {isLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color={colors.primary.inverse}
+                  testID={PerpsStopLossPromptSelectorsIDs.LOADING}
+                />
+              ) : isSuccess ? (
+                <Icon
+                  name={IconName.Check}
+                  size={IconSize.Sm}
+                  color={IconColor.Inverse}
+                  testID={PerpsStopLossPromptSelectorsIDs.SUCCESS_ICON}
+                />
+              ) : (
+                strings('perps.stop_loss_prompt.set_button')
+              )}
+            </Button>
           </View>
         </Animated.View>
       );

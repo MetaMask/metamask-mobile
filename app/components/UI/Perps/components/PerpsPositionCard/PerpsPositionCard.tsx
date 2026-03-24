@@ -6,10 +6,11 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../component-library/components/Buttons/ButtonIcon';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -553,17 +554,15 @@ const PerpsPositionCard: React.FC<PerpsPositionCardProps> = ({
         <View>
           {onAutoClosePress && (
             <Button
-              variant={ButtonVariants.Secondary}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Sm}
-              label={
-                hasTPSLConfigured
-                  ? strings('perps.auto_close.edit_button')
-                  : strings('perps.auto_close.set_button')
-              }
-              labelTextVariant={TextVariant.BodyMD}
               onPress={handleAutoCloseButtonPress}
               style={styles.autoCloseButton}
-            />
+            >
+              {hasTPSLConfigured
+                ? strings('perps.auto_close.edit_button')
+                : strings('perps.auto_close.set_button')}
+            </Button>
           )}
         </View>
       </TouchableOpacity>

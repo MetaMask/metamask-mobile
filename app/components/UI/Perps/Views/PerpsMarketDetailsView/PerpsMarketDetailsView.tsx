@@ -1,5 +1,7 @@
 import {
   Box,
+  Button as DSButton,
+  ButtonVariant,
   ButtonSize as ButtonSizeRNDesignSystem,
   IconName,
 } from '@metamask/design-system-react-native';
@@ -35,11 +37,6 @@ import { setPerpsChartPreferredCandlePeriod } from '../../../../../actions/setti
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import Text, {
   TextColor,
@@ -1462,29 +1459,29 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {hasLongShortButtons && existingPosition && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
-                <Button
-                  variant={ButtonVariants.Secondary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.market.modify')}
+                <DSButton
+                  variant={ButtonVariant.Secondary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isFullWidth
                   onPress={handleModifyPress}
                   testID={PerpsMarketDetailsViewSelectorsIDs.MODIFY_BUTTON}
-                />
+                >
+                  {strings('perps.market.modify')}
+                </DSButton>
               </View>
 
               <View style={styles.actionButtonWrapper}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={
-                    parseFloat(existingPosition.size) >= 0
-                      ? strings('perps.market.close_long')
-                      : strings('perps.market.close_short')
-                  }
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isFullWidth
                   onPress={handleClosePosition}
                   testID={PerpsMarketDetailsViewSelectorsIDs.CLOSE_BUTTON}
-                />
+                >
+                  {parseFloat(existingPosition.size) >= 0
+                    ? strings('perps.market.close_long')
+                    : strings('perps.market.close_short')}
+                </DSButton>
               </View>
             </View>
           )}
@@ -1493,14 +1490,15 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           {shouldShowAddFundsCTASection && (
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
-                <Button
-                  variant={ButtonVariants.Primary}
-                  size={ButtonSize.Lg}
-                  width={ButtonWidthTypes.Full}
-                  label={strings('perps.add_funds')}
+                <DSButton
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSizeRNDesignSystem.Lg}
+                  isFullWidth
                   onPress={handleAddFunds}
                   testID={PerpsMarketDetailsViewSelectorsIDs.ADD_FUNDS_BUTTON}
-                />
+                >
+                  {strings('perps.add_funds')}
+                </DSButton>
               </View>
             </View>
           )}
@@ -1509,15 +1507,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             <View style={styles.actionsContainer}>
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
-                    label={strings('perps.market.long')}
+                  <DSButton
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isFullWidth
                     onPress={handleLongPress}
                     isDisabled={isAtOICap}
                     testID={PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON}
-                  />
+                  >
+                    {strings('perps.market.long')}
+                  </DSButton>
                 ) : (
                   <ButtonSemantic
                     severity={ButtonSemanticSeverity.Success}
@@ -1534,15 +1533,16 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
 
               <View style={styles.actionButtonWrapper}>
                 {buttonColorVariant === 'monochrome' ? (
-                  <Button
-                    variant={ButtonVariants.Primary}
-                    size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
-                    label={strings('perps.market.short')}
+                  <DSButton
+                    variant={ButtonVariant.Primary}
+                    size={ButtonSizeRNDesignSystem.Lg}
+                    isFullWidth
                     onPress={handleShortPress}
                     isDisabled={isAtOICap}
                     testID={PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON}
-                  />
+                  >
+                    {strings('perps.market.short')}
+                  </DSButton>
                 ) : (
                   <ButtonSemantic
                     severity={ButtonSemanticSeverity.Danger}

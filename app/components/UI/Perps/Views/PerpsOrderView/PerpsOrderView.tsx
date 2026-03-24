@@ -18,7 +18,11 @@ import {
 } from 'react-native-safe-area-context';
 import { PerpsOrderViewSelectorsIDs } from '../../Perps.testIds';
 
-import { ButtonSize as ButtonSizeRNDesignSystem } from '@metamask/design-system-react-native';
+import {
+  Button as DSButton,
+  ButtonVariant,
+  ButtonSize as ButtonSizeRNDesignSystem,
+} from '@metamask/design-system-react-native';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BigNumber } from 'bignumber.js';
 import { useSelector } from 'react-redux';
@@ -26,11 +30,6 @@ import { strings } from '../../../../../../locales/i18n';
 import ButtonSemantic, {
   ButtonSemanticSeverity,
 } from '../../../../../component-library/components-temp/Buttons/ButtonSemantic';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Icon, {
   IconColor,
   IconName,
@@ -1677,38 +1676,42 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           testID={PerpsOrderViewSelectorsIDs.KEYPAD}
         >
           <View style={styles.percentageButtonsContainer}>
-            <Button
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="25%"
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={() => handlePercentagePress(0.25)}
               style={styles.percentageButton}
-            />
-            <Button
+            >
+              25%
+            </DSButton>
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label="50%"
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={() => handlePercentagePress(0.5)}
               style={styles.percentageButton}
-            />
-            <Button
+            >
+              50%
+            </DSButton>
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label={strings('perps.deposit.max_button')}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={handleMaxPress}
               style={styles.percentageButton}
-            />
-            <Button
+            >
+              {strings('perps.deposit.max_button')}
+            </DSButton>
+            <DSButton
               testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
-              variant={ButtonVariants.Secondary}
-              size={ButtonSize.Md}
-              label={strings('perps.deposit.done_button')}
+              variant={ButtonVariant.Secondary}
+              size={ButtonSizeRNDesignSystem.Md}
               onPress={handleDonePress}
               style={styles.percentageButton}
-            />
+            >
+              {strings('perps.deposit.done_button')}
+            </DSButton>
           </View>
 
           <Keypad
@@ -1753,11 +1756,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
           )}
 
           {buttonColorVariant === 'monochrome' ? (
-            <Button
-              variant={ButtonVariants.Primary}
-              size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
-              label={placeOrderLabel}
+            <DSButton
+              variant={ButtonVariant.Primary}
+              size={ButtonSizeRNDesignSystem.Lg}
+              isFullWidth
               onPress={() => handlePlaceOrder()}
               isDisabled={
                 !orderValidation.isValid ||
@@ -1768,9 +1770,11 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                 shouldBlockBecauseOfFeesLoading ||
                 hasBlockingPayAlerts
               }
-              loading={isPlacingOrder}
+              isLoading={isPlacingOrder}
               testID={PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON}
-            />
+            >
+              {placeOrderLabel}
+            </DSButton>
           ) : (
             <ButtonSemantic
               severity={
