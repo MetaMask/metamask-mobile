@@ -26,7 +26,6 @@ interface SupportedToken {
 interface BuildTokenListParams {
   delegationSettings: DelegationSettingsResponse | null;
   getSupportedTokensByChainId?: (chainId: CaipChainId) => SupportedToken[];
-  hideSolana?: boolean;
 }
 
 /**
@@ -57,10 +56,10 @@ export function getCaipChainId(
 
 /**
  * Checks if a network should be processed based on filters
+ * @param network - Network configuration from delegation settings
  */
 export function shouldProcessNetwork(
   network: DelegationSettingsResponse['networks'][0],
-  hideSolana: boolean,
 ): boolean {
   const networkLower = network.network?.toLowerCase();
 
@@ -69,11 +68,6 @@ export function shouldProcessNetwork(
     !networkLower ||
     !SUPPORTED_ASSET_NETWORKS.includes(networkLower as CardNetwork)
   ) {
-    return false;
-  }
-
-  // Filter Solana if requested
-  if (hideSolana && network.network === 'solana') {
     return false;
   }
 
@@ -87,7 +81,6 @@ export function shouldProcessNetwork(
 export function buildTokenListFromSettings({
   delegationSettings,
   getSupportedTokensByChainId,
-  hideSolana = true,
 }: BuildTokenListParams): CardTokenAllowance[] {
   if (!delegationSettings?.networks) {
     return [];
@@ -96,7 +89,7 @@ export function buildTokenListFromSettings({
   const tokens: CardTokenAllowance[] = [];
 
   for (const network of delegationSettings.networks) {
-    if (!shouldProcessNetwork(network, hideSolana)) {
+    if (!shouldProcessNetwork(network)) {
       continue;
     }
 
@@ -206,7 +199,6 @@ export function buildQuickSelectTokens(
     }
   }
 
-  // Combine allTokens with delegation settings tokens
   const combinedTokens = [...allTokens, ...lineaTokensFromSettings];
 
   return QUICK_SELECT_TOKENS.map((symbol) => {
@@ -216,7 +208,7 @@ export function buildQuickSelectTokens(
           t.symbol?.toUpperCase() === symbol.toUpperCase() &&
           t.caipChainId === LINEA_CAIP_CHAIN_ID,
       ) ?? null;
-    // Use the display symbol from QUICK_SELECT_TOKENS for consistent casing
+
     return { symbol, token };
   });
 }
