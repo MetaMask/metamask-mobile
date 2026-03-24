@@ -114,9 +114,9 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'perps.tpsl.stop_loss_order_view_warning':
         'Stop loss is {{direction}} liquidation price',
       'perps.tpsl.take_profit_wrong_side_warning':
-        'Take profit must be {{direction}} current price. Update or clear it to place the order.',
+        'Take profit must be {{direction}} {{priceType}} price. Update or clear it to place the order.',
       'perps.tpsl.stop_loss_wrong_side_warning':
-        'Stop loss must be {{direction}} current price. Update or clear it to place the order.',
+        'Stop loss must be {{direction}} {{priceType}} price. Update or clear it to place the order.',
       'perps.tpsl.below': 'below',
       'perps.tpsl.above': 'above',
       'perps.points': 'Points',
@@ -2337,7 +2337,9 @@ describe('PerpsOrderView', () => {
         render(<PerpsOrderView />, { wrapper: TestWrapper });
 
         await waitFor(() => {
-          expect(screen.getByText(/Take profit must be above/)).toBeDefined();
+          expect(
+            screen.getByText(/Take profit must be above entry price/),
+          ).toBeDefined();
         });
       });
 

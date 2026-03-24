@@ -1221,10 +1221,14 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
       ),
   );
 
-  const validationReferencePrice =
-    orderForm.type === 'limit' && orderForm.limitPrice
-      ? parseFloat(orderForm.limitPrice)
-      : assetData.price;
+  const isLimitWithPrice =
+    orderForm.type === 'limit' && Boolean(orderForm.limitPrice);
+
+  const validationReferencePrice = isLimitWithPrice
+    ? parseFloat(String(orderForm.limitPrice))
+    : assetData.price;
+
+  const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
 
   const isTakeProfitPriceInvalid = Boolean(
     orderForm.takeProfitPrice?.trim() &&
@@ -1471,6 +1475,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       orderForm.direction === 'long'
                         ? strings('perps.tpsl.above')
                         : strings('perps.tpsl.below'),
+                    priceType: tpslPriceType,
                   })}
                 </Text>
               </View>
@@ -1483,6 +1488,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                       orderForm.direction === 'long'
                         ? strings('perps.tpsl.below')
                         : strings('perps.tpsl.above'),
+                    priceType: tpslPriceType,
                   })}
                 </Text>
               </View>
