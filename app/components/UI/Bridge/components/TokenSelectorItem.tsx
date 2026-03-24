@@ -110,7 +110,6 @@ const createStyles = ({
       alignItems: 'center',
       flexShrink: 1,
       minWidth: 0,
-      marginRight: 4,
     },
     tokenSymbol: {
       flexShrink: 1,
