@@ -931,12 +931,8 @@ const SampleFeatureFlow = () => (
 
 const MainNavigator = () => {
   // Get feature flag state for conditional Money home screen registration
-  const moneyHomeScreenEnabledFlag = useSelector(
+  const isMoneyHomeScreenEnabled = useSelector(
     selectMoneyHomeScreenEnabledFlag,
-  );
-  const isMoneyHomeScreenEnabled = useMemo(
-    () => moneyHomeScreenEnabledFlag,
-    [moneyHomeScreenEnabledFlag],
   );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
