@@ -26,30 +26,61 @@ jest.mock('../../../../UI/AssetOverview/Balance/Balance', () => ({
   NetworkBadgeSource: jest.fn(() => null),
 }));
 
-const createMockToken = (overrides: Partial<AssetType> = {}): AssetType =>
-  ({
-    name: 'USD Coin',
-    symbol: 'USDC',
-    address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-    chainId: '0x1',
-    decimals: 6,
-    balanceInSelectedCurrency: '$5,000.00',
-    ...overrides,
-  }) as AssetType;
+const MOCK_USDC: AssetType = {
+  name: 'USD Coin',
+  symbol: 'USDC',
+  address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
+  chainId: '0x1',
+  decimals: 6,
+  balanceInSelectedCurrency: '$5,000.00',
+} as AssetType;
 
-const mockTokens: AssetType[] = [
-  createMockToken({ name: 'USD Coin', symbol: 'USDC' }),
-  createMockToken({
-    name: 'Tether',
-    symbol: 'USDT',
-    balanceInSelectedCurrency: '$4,000.00',
-  }),
-  createMockToken({
-    name: 'Dai',
-    symbol: 'DAI',
-    balanceInSelectedCurrency: '$1,000.00',
-  }),
-];
+const MOCK_USDT: AssetType = {
+  name: 'Tether',
+  symbol: 'USDT',
+  address: '0xdAC17F958D2ee523a2206206994597C13D831ec7',
+  chainId: '0x1',
+  decimals: 6,
+  balanceInSelectedCurrency: '$4,000.00',
+} as AssetType;
+
+const MOCK_DAI: AssetType = {
+  name: 'Dai',
+  symbol: 'DAI',
+  address: '0x6B175474E89094C44Da98b954EedeAC495271d0F',
+  chainId: '0x1',
+  decimals: 18,
+  balanceInSelectedCurrency: '$1,000.00',
+} as AssetType;
+
+const MOCK_WBTC: AssetType = {
+  name: 'Wrapped Bitcoin',
+  symbol: 'WBTC',
+  address: '0x2260FAC5E5542a773Aa44fBCfeDf7C193bc2C599',
+  chainId: '0x1',
+  decimals: 8,
+  balanceInSelectedCurrency: '$3,000.00',
+} as AssetType;
+
+const MOCK_LINK: AssetType = {
+  name: 'Chainlink',
+  symbol: 'LINK',
+  address: '0x514910771AF9Ca656af840dff83E8264EcF986CA',
+  chainId: '0x1',
+  decimals: 18,
+  balanceInSelectedCurrency: '$2,000.00',
+} as AssetType;
+
+const MOCK_UNI: AssetType = {
+  name: 'Uniswap',
+  symbol: 'UNI',
+  address: '0x1f9840a85d5aF5bf1D1762F925BDADdC4201F984',
+  chainId: '0x1',
+  decimals: 18,
+  balanceInSelectedCurrency: '$1,500.00',
+} as AssetType;
+
+const mockTokens: AssetType[] = [MOCK_USDC, MOCK_USDT, MOCK_DAI];
 
 describe('MoneyPotentialEarnings', () => {
   it('renders the section title when tokens are provided', () => {
@@ -133,19 +164,23 @@ describe('MoneyPotentialEarnings', () => {
 
   it('limits displayed tokens to a maximum of 5', () => {
     const sixTokens = [
-      createMockToken({ name: 'Token1', symbol: 'T1' }),
-      createMockToken({ name: 'Token2', symbol: 'T2' }),
-      createMockToken({ name: 'Token3', symbol: 'T3' }),
-      createMockToken({ name: 'Token4', symbol: 'T4' }),
-      createMockToken({ name: 'Token5', symbol: 'T5' }),
-      createMockToken({ name: 'Token6', symbol: 'T6' }),
+      MOCK_USDC,
+      MOCK_USDT,
+      MOCK_DAI,
+      MOCK_WBTC,
+      MOCK_LINK,
+      MOCK_UNI,
     ];
 
     const { getByText, queryByText } = render(
       <MoneyPotentialEarnings tokens={sixTokens} />,
     );
 
-    expect(getByText('Token5')).toBeOnTheScreen();
-    expect(queryByText('Token6')).not.toBeOnTheScreen();
+    expect(getByText(MOCK_USDC.name)).toBeOnTheScreen();
+    expect(getByText(MOCK_USDT.name)).toBeOnTheScreen();
+    expect(getByText(MOCK_DAI.name)).toBeOnTheScreen();
+    expect(getByText(MOCK_WBTC.name)).toBeOnTheScreen();
+    expect(getByText(MOCK_LINK.name)).toBeOnTheScreen();
+    expect(queryByText(MOCK_UNI.name)).not.toBeOnTheScreen();
   });
 });
