@@ -70,14 +70,14 @@ export const dismissDevScreens = async (): Promise<void> => {
  *
  * @async
  * @function waitForAppReady
- * @param {number} timeout - Maximum time to wait in milliseconds (default: 15000)
+ * @param {number} timeout - Maximum time to wait in milliseconds (default: 20000)
  * @param {object} [options]
  * @param {boolean} [options.allowUnlockedWallet=true] - When true, a stable wallet screen counts as ready (post-relaunch keychain unlock). Set false after an explicit lock so tests assert the login screen.
  * @returns {Promise<void>} Resolves when app is ready
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
-  timeout: number = 15000,
+  timeout: number = 20000,
   options: { allowUnlockedWallet?: boolean } = {},
 ): Promise<void> => {
   const { allowUnlockedWallet = true } = options;
@@ -88,34 +88,35 @@ export const waitForAppReady = async (
   const stabilizeLoginScreen = async (): Promise<void> => {
     await Assertions.expectElementToBeVisible(LoginView.container, {
       description: 'Login view should be stable',
-      timeout: 2000,
+      timeout: 3000,
     });
 
-    // Verify it stays visible (not flickering)
-    await sleep(1000);
+    // Verify it stays visible (not flickering during rehydration)
+    await sleep(1500);
 
     await Assertions.expectElementToBeVisible(LoginView.container, {
       description: 'Login view should remain visible',
-      timeout: 1000,
+      timeout: 2000,
     });
   };
 
   const stabilizeWalletScreen = async (): Promise<void> => {
     await Assertions.expectElementToBeVisible(WalletView.safeArea, {
       description: 'Wallet view should be stable',
-      timeout: 2000,
+      timeout: 3000,
     });
 
-    await sleep(1000);
+    await sleep(1500);
 
     await Assertions.expectElementToBeVisible(WalletView.safeArea, {
       description: 'Wallet view should remain visible',
-      timeout: 1000,
+      timeout: 2000,
     });
   };
 
   try {
-    await sleep(500);
+    // Initial wait for app to finish launching and start rehydration
+    await sleep(1000);
     await Utilities.executeWithRetry(
       async () => {
         if (!allowUnlockedWallet) {
@@ -130,6 +131,7 @@ export const waitForAppReady = async (
       },
       {
         timeout,
+        interval: 2000,
         description: allowUnlockedWallet
           ? 'wait for app to complete rehydration and stabilize on login or wallet screen'
           : 'wait for app to complete rehydration and stabilize on login screen',

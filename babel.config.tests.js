@@ -12,6 +12,8 @@ const newOverrides = [
   {
     exclude: [
       'app/components/UI/Earn/selectors/featureFlags/index.ts',
+      'app/components/UI/Money/selectors/featureFlags.ts',
+      'app/components/UI/Money/selectors/featureFlags.test.ts',
       'app/components/UI/Perps/selectors/featureFlags/index.ts',
       'app/core/Engine/controllers/network-controller/utils.ts',
       'app/core/Engine/controllers/network-controller/utils.test.ts',
