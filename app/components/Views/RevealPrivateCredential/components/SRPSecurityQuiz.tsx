@@ -23,7 +23,6 @@ import {
   SrpSecurityQuestionTwoSelectorsIDs,
 } from '../../Quiz/SRPQuiz/SrpQuizModal.testIds';
 import { SRPSecurityQuizProps } from '../types';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const SRPSecurityQuiz = ({
   currentQuestionIndex,
@@ -33,8 +32,6 @@ const SRPSecurityQuiz = ({
   onContinueClick,
   onLearnMore,
 }: SRPSecurityQuizProps) => {
-  const tw = useTailwind();
-
   const renderQuestionResult = () => (
     <Box
       flexDirection={BoxFlexDirection.Column}

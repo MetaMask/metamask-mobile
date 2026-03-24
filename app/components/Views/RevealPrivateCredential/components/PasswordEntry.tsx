@@ -5,7 +5,6 @@ import {
   TextVariant,
   Text,
   TextFieldSize,
-  Box,
   FontWeight,
   ButtonIcon,
   TextColor,
