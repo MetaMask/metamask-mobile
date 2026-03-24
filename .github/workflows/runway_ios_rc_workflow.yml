@@ -7,6 +7,7 @@
 # - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
 #
 # When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+# Version bump: this workflow bumps the repo build number; run Android RC after so it can skip bump.
 #
 ##############################################################################################
 name: Runway iOS RC
@@ -20,13 +21,6 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
-      skip_version_bump:
-        description: >-
-          Skip the build-number bump in the repo. Use true when this branch was already bumped by
-          the other platform Runway workflow (e.g. run Android RC second after iOS RC).
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -41,5 +35,4 @@ jobs:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
       upload_testflight: true
-      skip_version_bump: ${{ inputs.skip_version_bump }}
     secrets: inherit

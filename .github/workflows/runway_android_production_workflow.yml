@@ -7,6 +7,7 @@
 # - Build the production mobile app (when there is no OTA version bump).
 #
 # When triggering workflow_dispatch, select the correct branch (e.g. main or release).
+# Version bump: skipped — run Runway iOS Production first on the same branch for the bump.
 #
 ##############################################################################################
 name: Runway Android Production
@@ -20,12 +21,6 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
-      skip_version_bump:
-        description: >-
-          Skip the build-number bump when the other platform Runway workflow already bumped this branch.
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -42,5 +37,5 @@ jobs:
       ota_channel: production
       build_name: main-prod
       create_production_ota_tag: true
-      skip_version_bump: ${{ inputs.skip_version_bump }}
+      skip_version_bump: true
     secrets: inherit

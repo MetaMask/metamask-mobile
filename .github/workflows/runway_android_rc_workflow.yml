@@ -7,6 +7,7 @@
 # - Build the mobile app (when there is no OTA version bump).
 #
 # When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+# Version bump: skipped here — run Runway iOS RC first on the same branch so it performs the bump.
 #
 ##############################################################################################
 name: Runway Android RC
@@ -20,13 +21,6 @@ on:
           Empty uses the branch selected in the "Use workflow from" UI.
         required: false
         type: string
-      skip_version_bump:
-        description: >-
-          Skip the build-number bump in the repo. Use true when this branch was already bumped by
-          Runway iOS RC for the same release (typical: run iOS first, then Android with this true).
-        required: false
-        type: boolean
-        default: false
 
 permissions:
   contents: write # required by build.yml (update-build-version job)
@@ -40,5 +34,5 @@ jobs:
     with:
       platform: android
       source_branch: ${{ inputs.source_branch }}
-      skip_version_bump: ${{ inputs.skip_version_bump }}
+      skip_version_bump: true
     secrets: inherit
