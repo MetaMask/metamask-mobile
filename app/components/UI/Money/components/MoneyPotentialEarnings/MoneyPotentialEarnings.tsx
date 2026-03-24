@@ -153,7 +153,7 @@ const MoneyPotentialEarnings = ({
       {/* Show max of 5 tokens */}
       {tokens.slice(0, 5).map((token) => (
         <TokenRow
-          key={`${token.symbol}-${token.chainId}`}
+          key={`${token.address}-${token.chainId}`}
           token={token}
           onAddPress={handleTokenAdd(token.name)}
           // Temp: hardcoding true to show the "No fee" tag.
