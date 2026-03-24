@@ -186,7 +186,8 @@
     "@metamask/accounts-controller": "37.0.0",
     "@metamask/core-backend": "^5.0.0",
     "bn.js@npm:4.11.6": "4.12.3",
-    "bn.js@npm:5.2.1": "5.2.3"
+    "bn.js@npm:5.2.1": "5.2.3",
+    "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
