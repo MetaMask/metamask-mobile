@@ -2,27 +2,10 @@
 
 exports[`CustomAction Component shows loading indicator when isLoading is true 1`] = `
 <View
-  collapsable={false}
-  jestAnimatedProps={
-    {
-      "value": {},
-    }
-  }
-  jestAnimatedStyle={
-    {
-      "value": {
-        "opacity": 0,
-      },
-    }
-  }
-  jestInlineStyle={{}}
-  nativeID="4"
   style={
-    [
-      {
-        "opacity": 0,
-      },
-    ]
+    {
+      "opacity": 1,
+    }
   }
   testID="animated-view-opacity"
 >
@@ -194,26 +177,6 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
           }
         >
           <View
-            collapsable={false}
-            jestAnimatedProps={
-              {
-                "value": {},
-              }
-            }
-            jestAnimatedStyle={
-              {
-                "value": {},
-              }
-            }
-            jestInlineStyle={
-              [
-                {
-                  "marginTop": 4,
-                  "overflow": "hidden",
-                },
-              ]
-            }
-            nativeID="5"
             onLayout={[Function]}
             style={
               [
@@ -221,7 +184,10 @@ exports[`CustomAction Component shows loading indicator when isLoading is true 1
                   "marginTop": 4,
                   "overflow": "hidden",
                 },
-                {},
+                {
+                  "height": 0,
+                  "opacity": 0,
+                },
               ]
             }
             testID="animated-view-height"

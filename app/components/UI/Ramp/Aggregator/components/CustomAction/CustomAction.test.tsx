@@ -4,7 +4,7 @@ import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import { selectIpfsGateway } from '../../../../../../selectors/preferencesController';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
-import { fireEvent , act } from '@testing-library/react-native';
+import { fireEvent } from '@testing-library/react-native';
 
 // Mock the selectIpfsGateway selector
 jest.mock('../../../../../../selectors/preferencesController', () => ({
@@ -12,11 +12,17 @@ jest.mock('../../../../../../selectors/preferencesController', () => ({
   selectIpfsGateway: jest.fn(),
 }));
 
-// mockReanimated is a no-op; the global Reanimated.setUpTests() mock handles
-// useSharedValue/useAnimatedStyle.  The animated style values land on
-// `.props.style` (possibly flattened) rather than at a fixed array index,
-// so individual assertions below access them accordingly.
-const mockReanimated = () => { /* no-op */ };
+jest.mock('react-native-reanimated', () => {
+  const Reanimated = jest.requireActual('react-native-reanimated/mock');
+  // eslint-disable-next-line no-empty-function
+  Reanimated.default.call = () => {};
+  Reanimated.useSharedValue = jest.fn(() => ({
+    value: 1,
+  }));
+  Reanimated.useAnimatedStyle = jest.fn((callback) => callback());
+  return Reanimated;
+});
+
 // eslint-disable-next-line @typescript-eslint/ban-ts-comment
 // @ts-ignore
 (selectIpfsGateway as unknown as jest.Mock).mockReturnValue(
@@ -63,7 +69,7 @@ describe('CustomAction Component', () => {
     expect(getByText('Continue with Paypal (Staging)')).toBeTruthy();
   });
 
-  it('calls onPress when not highlighted and pressed', async () => {
+  it('calls onPress when not highlighted and pressed', () => {
     const onPressMock = jest.fn();
     const { getByLabelText } = renderWithProvider(
       <CustomAction
@@ -74,9 +80,7 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
 
-    await act(async () => {
-      fireEvent.press(getByLabelText('Paypal (Staging)'));
-    });
+    fireEvent.press(getByLabelText('Paypal (Staging)'));
     expect(onPressMock).toHaveBeenCalled();
   });
 
@@ -106,7 +110,7 @@ describe('CustomAction Component', () => {
     expect(getByText('Previously used')).toBeTruthy();
   });
 
-  it('calls onPressCTA when CTA button is pressed', async () => {
+  it('calls onPressCTA when CTA button is pressed', () => {
     const onPressCTAMock = jest.fn();
     const { getByText } = renderWithProvider(
       <CustomAction
@@ -117,15 +121,11 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
 
-    await act(async () => {
-      fireEvent.press(getByText('Continue with Paypal (Staging)'));
-    });
+    fireEvent.press(getByText('Continue with Paypal (Staging)'));
     expect(onPressCTAMock).toHaveBeenCalled();
   });
 
   it('sets expandedHeight on layout', () => {
-    mockReanimated();
-
     const { getByTestId } = renderWithProvider(
       <CustomAction customAction={mockCustomAction} showInfo={jest.fn()} />,
       { state: defaultState },
@@ -139,15 +139,10 @@ describe('CustomAction Component', () => {
     };
 
     fireEvent(animatedView, 'layout', layoutEvent);
-    // Verify the animated view has the style array (animated styles are
-    // evaluated by Reanimated's mock and may return empty objects).
-    expect(animatedView.props.style).toBeDefined();
-    expect(Array.isArray(animatedView.props.style)).toBe(true);
+    expect(animatedView.props.style[1].height).toBeDefined();
   });
 
   it('applies animated styles when highlighted', () => {
-    mockReanimated();
-
     const { getByTestId } = renderWithProvider(
       <CustomAction
         customAction={mockCustomAction}
@@ -157,16 +152,11 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
     const animatedView = getByTestId('animated-view-height');
-    // Verify the animated view renders with a style array containing the
-    // base style and the animated style object.
-    expect(animatedView.props.style).toBeDefined();
-    expect(Array.isArray(animatedView.props.style)).toBe(true);
-    expect(animatedView.props.style.length).toBe(2);
+    expect(animatedView.props.style[1].height).toBeGreaterThan(0);
+    expect(animatedView.props.style[1].opacity).toBe(1);
   });
 
   it('resets animated styles when not highlighted', () => {
-    mockReanimated();
-
     const { getByTestId } = renderWithProvider(
       <CustomAction
         customAction={mockCustomAction}
@@ -176,21 +166,16 @@ describe('CustomAction Component', () => {
       { state: defaultState },
     );
     const animatedView = getByTestId('animated-view-height');
-    // Verify the animated view renders with the style array structure.
-    expect(animatedView.props.style).toBeDefined();
-    expect(Array.isArray(animatedView.props.style)).toBe(true);
-    expect(animatedView.props.style.length).toBe(2);
+    expect(animatedView.props.style[1].height).toBe(0);
+    expect(animatedView.props.style[1].opacity).toBe(0);
   });
 
   it('applies animated opacity based on expandedHeight', () => {
-    mockReanimated();
-
     const { getByTestId } = renderWithProvider(
       <CustomAction customAction={mockCustomAction} showInfo={jest.fn()} />,
       { state: defaultState },
     );
     const animatedView = getByTestId('animated-view-opacity');
-    // Verify the animated opacity view renders with a style object.
-    expect(animatedView.props.style).toBeDefined();
+    expect(animatedView.props.style.opacity).toBe(1);
   });
 });
