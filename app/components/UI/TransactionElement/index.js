@@ -66,7 +66,6 @@ import {
   getMonetizedPrimitive,
 } from '../../../core/Analytics/events/transactions';
 import { getTransactionTypeValue } from '../../../core/Engine/controllers/transaction-controller/metrics_properties/base';
-import { MM_PAY_DETAIL_TRANSACTION_TYPES } from '../../../util/transactions/metamask-pay';
 
 const createStyles = (colors, typography) =>
   StyleSheet.create({
@@ -150,7 +149,15 @@ const transactionIconReceivedFailed = require('../../../images/transaction-icons
 const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
 /* eslint-enable import-x/no-commonjs */
 
-const NEW_TRANSACTION_DETAILS_TYPES = [...MM_PAY_DETAIL_TRANSACTION_TYPES];
+const NEW_TRANSACTION_DETAILS_TYPES = [
+  TransactionType.musdClaim,
+  TransactionType.musdConversion,
+  TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
+  TransactionType.predictClaim,
+  TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
+];
 
 const INTENT_STATUS = {
   SUBMITTED: 'SUBMITTED',

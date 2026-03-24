@@ -15,6 +15,7 @@ import { usePerpsSelector } from '../../hooks/usePerpsSelector';
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
@@ -24,7 +25,6 @@ import {
   PROGRESS_BAR_COMPLETION_DELAY_MS,
 } from '@metamask/perps-controller';
 import { HYPERLIQUID_WITHDRAWAL_PROGRESS_INTERVAL_MS } from '../../constants/perpsUIConfig';
-import { hasPerpsDepositTransactionType } from '../../../../../util/transactions/metamask-pay';
 
 interface PerpsProgressBarProps {
   /**
@@ -178,7 +178,10 @@ export const PerpsProgressBar: React.FC<PerpsProgressBarProps> = ({
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (hasPerpsDepositTransactionType(transactionMeta)) {
+      if (
+        transactionMeta.type === TransactionType.perpsDeposit ||
+        transactionMeta.type === TransactionType.perpsDepositAndOrder
+      ) {
         const progress = getProgressFromStatus(transactionMeta.status);
         setTransactionProgress(progress);
 
