@@ -33,7 +33,6 @@ Use these entrypoints:
 
 - Codex skill entrypoint: `.agents/skills/repo-skill-authoring/SKILL.md` (`$repo-skill-authoring`)
 - Claude skill entrypoint: `.claude/skills/repo-skill-authoring/SKILL.md`
-- Claude command entrypoint: `.claude/commands/create-repo-skill.md`
 
 ## Repo Skill Shape
 
@@ -51,7 +50,6 @@ Optional shape, when the workflow needs it:
 .agents/skills/<skill-name>/references/
 .agents/skills/<skill-name>/assets/
 .claude/skills/<skill-name>/SKILL.md
-.claude/commands/create-<thing>.md
 ```
 
 Keep `.agents/skills/<name>/SKILL.md` as the single source of truth. Any harness-specific shim should point directly to it.
@@ -80,7 +78,6 @@ For agent implementation and review tasks, follow this workflow:
    - Keep this file readable by both agents and humans.
 4. Add the minimum harness shims required.
    - Add `.claude/skills/<name>/SKILL.md` when Claude needs a pointer.
-   - Add `.claude/commands/...` only when a command entrypoint is genuinely useful.
    - Point every shim directly back to `.agents/skills/<name>/SKILL.md`.
 5. Sanity check the result.
    - Confirm the skill and any shims all point to the same workflow.
@@ -126,14 +123,6 @@ Explain when this repo-local skill is needed and when existing repo docs are eno
 name: topic
 summary: Create or update the repo-local topic workflow.
 ---
-
-Follow `.agents/skills/topic/SKILL.md`.
-```
-
-### Claude Command Shim
-
-```md
-# Create Topic
 
 Follow `.agents/skills/topic/SKILL.md`.
 ```
