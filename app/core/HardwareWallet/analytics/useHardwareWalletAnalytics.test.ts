@@ -19,8 +19,8 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: mockAddProperties,
 });
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),

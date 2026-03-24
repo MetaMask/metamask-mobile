@@ -113,7 +113,7 @@ export function getErrorDetails(
     const { error } = connectionState;
     return {
       error_code: String(error.code),
-      error_message: error.userMessage ?? '',
+      error_message: error.userMessage ?? 'No error message',
     };
   }
   if (connectionState.status === ConnectionStatus.AwaitingApp) {

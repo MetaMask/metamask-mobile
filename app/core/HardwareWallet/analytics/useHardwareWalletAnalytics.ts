@@ -4,7 +4,7 @@ import {
   HardwareWalletType,
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../Analytics';
 import {
   HardwareWalletAnalyticsErrorType,
@@ -49,7 +49,7 @@ export function useHardwareWalletAnalytics({
   flow,
   deviceModel,
 }: UseHardwareWalletAnalyticsOptions): UseHardwareWalletAnalyticsResult {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const viewCountsRef = useRef<Map<string, number>>(new Map());
   const lastErrorTypeRef = useRef<HardwareWalletAnalyticsErrorType | null>(
