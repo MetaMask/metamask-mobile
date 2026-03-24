@@ -7,20 +7,20 @@
  */
 
 import { PerpsE2EMockService } from '../mock-responses/perps/perps-e2e-mocks';
-import type {
-  OrderParams,
-  OrderResult,
-  AccountState,
-  Position,
-  Order,
-  OrderFill,
-  PriceUpdate,
-  ClosePositionParams,
-  LiquidationPriceParams,
-  Funding,
-  UpdatePositionTPSLParams,
-} from '../../../app/components/UI/Perps/controllers/types';
-import type { PerpsControllerState } from '../../../app/components/UI/Perps/controllers/PerpsController';
+import {
+  type OrderParams,
+  type OrderResult,
+  type AccountState,
+  type Position,
+  type Order,
+  type OrderFill,
+  type PriceUpdate,
+  type ClosePositionParams,
+  type LiquidationPriceParams,
+  type Funding,
+  type UpdatePositionTPSLParams,
+  type PerpsControllerState,
+} from '@metamask/perps-controller';
 
 // Interface for controller with update method access
 interface ControllerWithUpdate {
@@ -466,9 +466,10 @@ export function createE2EMockStreamManager(): unknown {
       },
     },
     candles: {
-      subscribe: (params: { callback: (data: unknown[]) => void }) => {
-        // Return empty array - no candle data in E2E tests by default
-        setTimeout(() => params.callback([]), 0);
+      subscribe: (params: { callback: (data: unknown) => void }) => {
+        // Return CandleData-like payload to match consumers that access
+        // candleData.candles on homepage sparklines.
+        setTimeout(() => params.callback({ candles: [] }), 0);
         return () => undefined;
       },
     },

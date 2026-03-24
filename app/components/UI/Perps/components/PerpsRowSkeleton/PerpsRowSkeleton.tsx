@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, type ViewStyle } from 'react-native';
-import Skeleton from '../../../../../component-library/components/Skeleton/Skeleton';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 export interface PerpsRowSkeletonProps {
@@ -9,7 +9,7 @@ export interface PerpsRowSkeletonProps {
    */
   count?: number;
   /**
-   * Size of the icon skeleton (defaults to HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE)
+   * Size of the icon skeleton (defaults to HOME_SCREEN_CONFIG.DefaultIconSize)
    */
   iconSize?: number;
   /**
@@ -70,7 +70,7 @@ const styles = StyleSheet.create({
  */
 const PerpsRowSkeleton: React.FC<PerpsRowSkeletonProps> = ({
   count = 1,
-  iconSize = HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE,
+  iconSize = HOME_SCREEN_CONFIG.DefaultIconSize,
   style,
 }) => {
   // Generate array for count

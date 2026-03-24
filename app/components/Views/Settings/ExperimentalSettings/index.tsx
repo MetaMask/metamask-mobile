@@ -1,5 +1,6 @@
-import React, { useEffect } from 'react';
+import React, { useCallback } from 'react';
 import { ScrollView, Switch, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { strings } from '../../../../../locales/i18n';
 import { useTheme } from '../../../../util/theme';
@@ -7,7 +8,6 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
-import { getNavigationOptionsTitle } from '../../../UI/Navbar';
 import { Props } from './ExperimentalSettings.types';
 import createStyles from './ExperimentalSettings.styles';
 import Button, {
@@ -28,40 +28,36 @@ import {
 } from 'react-native-device-info';
 import {
   selectAlwaysShowCardButton,
+  selectIsDaimoDemo,
   setAlwaysShowCardButton,
+  setIsDaimoDemo,
 } from '../../../../core/redux/slices/card';
 import { selectCardExperimentalSwitch } from '../../../../selectors/featureFlagController/card';
+import { NON_PRODUCTION_ENVIRONMENTS } from '../../../UI/Card/constants';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { ExperimentalSelectorsIDs } from './ExperimentalView.testIds';
 
 /**
  * Main view for app Experimental Settings
  */
-const ExperimentalSettings = ({ navigation, route }: Props) => {
+const ExperimentalSettings = ({ navigation }: Props) => {
   const dispatch = useDispatch();
   const performanceMetrics = useSelector(selectPerformanceMetrics);
   const cardExperimentalSwitch = useSelector(selectCardExperimentalSwitch);
   const alwaysShowCardButton = useSelector(selectAlwaysShowCardButton);
-
-  const isFullScreenModal = route?.params?.isFullScreenModal;
+  const isDaimoDemo = useSelector(selectIsDaimoDemo);
 
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles(colors);
 
-  useEffect(
-    () => {
-      navigation.setOptions(
-        getNavigationOptionsTitle(
-          strings('app_settings.experimental_title'),
-          navigation,
-          isFullScreenModal,
-          colors,
-          null,
-        ),
-      );
-    },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [colors],
+  const canShowDaimoDemoToggle = NON_PRODUCTION_ENVIRONMENTS.includes(
+    process.env.METAMASK_ENVIRONMENT ?? '',
   );
+
+  const handleBack = useCallback(() => {
+    navigation.goBack();
+  }, [navigation]);
 
   const goToWalletConnectSessions = () => {
     navigation.navigate(Routes.WALLET.WALLET_CONNECT_SESSIONS_VIEW);
@@ -94,6 +90,10 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     dispatch(setAlwaysShowCardButton(value));
   };
 
+  const handleDaimoDemoToggle = (value: boolean) => {
+    dispatch(setIsDaimoDemo(value));
+  };
+
   const renderCardSettings = () => (
     <View style={styles.heading}>
       <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
@@ -110,6 +110,26 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
         value={alwaysShowCardButton}
         onValueChange={handleAlwaysShowCardButtonToggle}
         testID="always-show-card-button-switch"
+      />
+    </View>
+  );
+
+  const renderDaimoDemoSettings = () => (
+    <View style={styles.heading}>
+      <Text color={TextColor.Default} variant={TextVariant.BodyLGMedium}>
+        {strings('experimental_settings.daimo_demo_title')}
+      </Text>
+      <Text
+        color={TextColor.Alternative}
+        variant={TextVariant.BodyMD}
+        style={styles.desc}
+      >
+        {strings('experimental_settings.daimo_demo_desc')}
+      </Text>
+      <Switch
+        value={isDaimoDemo}
+        onValueChange={handleDaimoDemoToggle}
+        testID="is-daimo-demo-switch"
       />
     </View>
   );
@@ -162,11 +182,23 @@ const ExperimentalSettings = ({ navigation, route }: Props) => {
     </View>
   );
   return (
-    <ScrollView style={styles.wrapper}>
-      {renderWalletConnectSettings()}
-      {cardExperimentalSwitch && renderCardSettings()}
-      {isTest && renderPerformanceSettings()}
-    </ScrollView>
+    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.wrapper}>
+      <HeaderCompactStandard
+        title={strings('app_settings.experimental_title')}
+        onBack={handleBack}
+        backButtonProps={{
+          testID: ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_BACK_BUTTON,
+        }}
+        testID={ExperimentalSelectorsIDs.EXPERIMENTAL_SETTINGS_HEADER}
+        includesTopInset
+      />
+      <ScrollView style={styles.content}>
+        {renderWalletConnectSettings()}
+        {cardExperimentalSwitch && renderCardSettings()}
+        {canShowDaimoDemoToggle && renderDaimoDemoSettings()}
+        {isTest && renderPerformanceSettings()}
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

@@ -3,7 +3,14 @@ import { render, screen, fireEvent } from '@testing-library/react-native';
 import PerpsMarketTradesList from './PerpsMarketTradesList';
 import Routes from '../../../../../constants/navigation/Routes';
 import { usePerpsMarketFills } from '../../hooks/usePerpsMarketFills';
-import type { OrderFill } from '../../controllers/types';
+import { type OrderFill } from '@metamask/perps-controller';
+import { TRANSACTION_DETAIL_EVENTS } from '../../../../../core/Analytics/events/transactions';
+import { MonetizedPrimitive } from '../../../../../core/Analytics/MetaMetrics.types';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn();
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -115,8 +122,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
   },
 }));
 
-jest.mock('../../utils/marketUtils', () => ({
+jest.mock('@metamask/perps-controller', () => ({
   getPerpsDisplaySymbol: (symbol: string) => symbol,
+  PERPS_CONSTANTS: {
+    RecentActivityLimit: 3,
+  },
+  PERPS_EVENT_VALUE: {
+    SCREEN_NAME: {
+      PERPS_MARKET_DETAILS: 'perps_market_details',
+    },
+  },
 }));
 
 describe('PerpsMarketTradesList', () => {
@@ -199,6 +214,20 @@ describe('PerpsMarketTradesList', () => {
     });
     // Set default mock for usePerpsMarketFills
     mockUsePerpsMarketFills.mockReturnValue(createMockFillsReturn());
+
+    // Re-set up analytics mock (resetAllMocks in afterEach clears implementations)
+    const { useAnalytics } = jest.requireMock(
+      '../../../../hooks/useAnalytics/useAnalytics',
+    );
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+      build: mockBuild,
+    });
+    useAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
   });
 
   afterEach(() => {
@@ -566,6 +595,30 @@ describe('PerpsMarketTradesList', () => {
       const { root } = render(<PerpsMarketTradesList symbol="ETH" />);
 
       expect(root).toBeTruthy();
+    });
+  });
+
+  describe('Analytics Tracking', () => {
+    it('tracks Transaction Detail List Item Clicked when a trade is pressed', () => {
+      mockUsePerpsMarketFills.mockReturnValue(
+        createMockFillsReturn(mockOrderFills),
+      );
+
+      render(<PerpsMarketTradesList symbol="ETH" />);
+
+      const tradeItem = screen.getByText('Opened long');
+      fireEvent.press(tradeItem.parent?.parent || tradeItem);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          transaction_type: 'perps_trade',
+          monetized_primitive: MonetizedPrimitive.Perps,
+        }),
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
     });
   });
 });

@@ -87,6 +87,15 @@ const browserTabSharedStyles = ({ theme: { colors } }: { theme: Theme }) => {
       right: 16,
       borderRadius: 4,
     },
+    refreshIndicator: {
+      position: 'absolute',
+      top: 0,
+      left: 0,
+      right: 0,
+      justifyContent: 'center',
+      alignItems: 'center',
+      zIndex: 9997,
+    },
   });
 };
 

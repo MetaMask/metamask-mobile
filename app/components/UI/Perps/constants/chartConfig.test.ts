@@ -4,19 +4,20 @@ import {
   getCandlePeriodsForDuration,
   getDefaultCandlePeriodForDuration,
   calculateCandleCount,
-  getCandlestickColors,
-} from './chartConfig';
+} from '@metamask/perps-controller';
+import { getCandlestickColors } from './chartConfig';
+import { mockTheme } from '../../../../util/theme';
 
 describe('chartConfig', () => {
   describe('getCandlePeriodsForDuration', () => {
     it('returns correct periods for one hour duration', () => {
       // Act
-      const periods = getCandlePeriodsForDuration(TimeDuration.ONE_HOUR);
+      const periods = getCandlePeriodsForDuration(TimeDuration.OneHour);
 
       // Assert
       expect(periods).toHaveLength(4);
-      expect(periods[0]?.value).toBe(CandlePeriod.ONE_MINUTE);
-      expect(periods[1]?.value).toBe(CandlePeriod.THREE_MINUTES);
+      expect(periods[0]?.value).toBe(CandlePeriod.OneMinute);
+      expect(periods[1]?.value).toBe(CandlePeriod.ThreeMinutes);
     });
 
     it('returns empty array for unknown duration', () => {
@@ -32,11 +33,11 @@ describe('chartConfig', () => {
     it('returns correct default for one day duration', () => {
       // Act
       const defaultPeriod = getDefaultCandlePeriodForDuration(
-        TimeDuration.ONE_DAY,
+        TimeDuration.OneDay,
       );
 
       // Assert
-      expect(defaultPeriod).toBe(CandlePeriod.ONE_HOUR);
+      expect(defaultPeriod).toBe(CandlePeriod.OneHour);
     });
 
     it('returns fallback for unknown duration', () => {
@@ -44,7 +45,7 @@ describe('chartConfig', () => {
       const defaultPeriod = getDefaultCandlePeriodForDuration('unknown');
 
       // Assert
-      expect(defaultPeriod).toBe(CandlePeriod.ONE_HOUR);
+      expect(defaultPeriod).toBe(CandlePeriod.OneHour);
     });
   });
 
@@ -52,8 +53,8 @@ describe('chartConfig', () => {
     it('calculates correct count for one hour with one minute periods', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.ONE_HOUR,
-        CandlePeriod.ONE_MINUTE,
+        TimeDuration.OneHour,
+        CandlePeriod.OneMinute,
       );
 
       // Assert
@@ -63,8 +64,8 @@ describe('chartConfig', () => {
     it('calculates correct count for one day with one hour periods', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.ONE_DAY,
-        CandlePeriod.ONE_HOUR,
+        TimeDuration.OneDay,
+        CandlePeriod.OneHour,
       );
 
       // Assert
@@ -74,8 +75,8 @@ describe('chartConfig', () => {
     it('caps at maximum candle count', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.MAX,
-        CandlePeriod.ONE_MINUTE,
+        TimeDuration.Max,
+        CandlePeriod.OneMinute,
       );
 
       // Assert
@@ -85,8 +86,8 @@ describe('chartConfig', () => {
     it('enforces minimum candle count', () => {
       // Act
       const count = calculateCandleCount(
-        TimeDuration.ONE_HOUR,
-        CandlePeriod.ONE_MONTH,
+        TimeDuration.OneHour,
+        CandlePeriod.OneMonth,
       );
 
       // Assert
@@ -97,17 +98,19 @@ describe('chartConfig', () => {
   describe('getCandlestickColors', () => {
     it('returns colors object with positive and negative properties', () => {
       // Arrange
-      const mockColors = {
-        success: { default: '#00ff00' },
-        error: { default: '#ff0000' },
-      } as Parameters<typeof getCandlestickColors>[0];
+      const mockColors = mockTheme.colors as Parameters<
+        typeof getCandlestickColors
+      >[0];
 
       // Act
       const colors = getCandlestickColors(mockColors);
 
       // Assert
-      expect(colors).toHaveProperty('positive', '#00ff00');
-      expect(colors).toHaveProperty('negative', '#ff0000');
+      expect(colors).toHaveProperty(
+        'positive',
+        mockTheme.colors.success.default,
+      );
+      expect(colors).toHaveProperty('negative', mockTheme.colors.error.default);
     });
   });
 });

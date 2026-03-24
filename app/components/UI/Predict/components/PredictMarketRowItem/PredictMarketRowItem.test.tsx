@@ -8,9 +8,11 @@ import {
   PredictMarket as PredictMarketType,
 } from '../../types';
 import { PredictEventValues } from '../../constants/eventNames';
+import { PredictEntryPointProvider } from '../../contexts';
 import PredictMarketRowItem from './';
 import Routes from '../../../../../constants/navigation/Routes';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -21,7 +23,7 @@ jest.mock('@react-navigation/native', () => ({
 
 const createMockOutcome = (overrides = {}): PredictOutcome => ({
   id: 'test-outcome-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'test-market-1',
   title: 'Monad market cap (FDV) >$4B one day after launch?',
   description: 'Test outcome description',
@@ -48,7 +50,7 @@ const createMockOutcome = (overrides = {}): PredictOutcome => ({
 
 const createMockMarket = (overrides = {}): PredictMarketType => ({
   id: 'test-market-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'monad-fdv-prediction',
   title: 'Monad FDV one day after launch?',
   description: 'Prediction market for Monad FDV',
@@ -503,5 +505,60 @@ describe('PredictMarketRowItem', () => {
     expect(
       queryByText('Monad FDV one day after launch?'),
     ).not.toBeOnTheScreen();
+  });
+
+  it('uses context entryPoint when available', () => {
+    const market = createMockMarket();
+
+    const { getByText } = renderWithProvider(
+      <PredictEntryPointProvider
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
+      >
+        <PredictMarketRowItem market={market} />
+      </PredictEntryPointProvider>,
+      { state: initialState },
+    );
+
+    const touchable = getByText('Monad FDV one day after launch?');
+    fireEvent.press(touchable);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: 'test-market-1',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
+        title: 'Monad FDV one day after launch?',
+        image: 'https://example.com/monad.jpg',
+      },
+    });
+  });
+
+  it('prioritizes context entryPoint over prop entryPoint', () => {
+    const market = createMockMarket();
+
+    const { getByText } = renderWithProvider(
+      <PredictEntryPointProvider
+        entryPoint={PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST}
+      >
+        <PredictMarketRowItem
+          market={market}
+          entryPoint={PredictEventValues.ENTRY_POINT.SEARCH}
+        />
+      </PredictEntryPointProvider>,
+      { state: initialState },
+    );
+
+    const touchable = getByText('Monad FDV one day after launch?');
+    fireEvent.press(touchable);
+
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.PREDICT.ROOT, {
+      screen: Routes.PREDICT.MARKET_DETAILS,
+      params: {
+        marketId: 'test-market-1',
+        entryPoint: PredictEventValues.ENTRY_POINT.HOMEPAGE_FEATURED_LIST,
+        title: 'Monad FDV one day after launch?',
+        image: 'https://example.com/monad.jpg',
+      },
+    });
   });
 });

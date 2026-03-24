@@ -11,3 +11,5 @@ export const MULTICHAIN_ACCOUNT_SELECTOR_LOADING_TESTID =
   'multichain-account-selector-loading';
 export const MULTICHAIN_ACCOUNT_SELECTOR_EMPTY_STATE_TESTID =
   'multichain-account-selector-empty-state';
+export const MULTICHAIN_ACCOUNT_SELECTOR_SEARCH_ERROR_TESTID =
+  'multichain-account-selector-search-error';

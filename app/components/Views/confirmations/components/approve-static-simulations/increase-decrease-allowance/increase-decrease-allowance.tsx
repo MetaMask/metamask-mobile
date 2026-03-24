@@ -11,6 +11,8 @@ import { useApproveTransactionActions } from '../../../hooks/useApproveTransacti
 import { TokenStandard } from '../../../types/token';
 import { ApproveMethod } from '../../../types/approve';
 import InfoRow from '../../UI/info-row/info-row';
+import AlertRow from '../../UI/info-row/alert-row';
+import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
 import { Pill } from '../../UI/pill';
 import { EditSpendingCapButton } from '../../edit-spending-cap-button/edit-spending-cap-button';
@@ -61,12 +63,15 @@ export const IncreaseDecreaseAllowance = () => {
           />
         </View>
       </InfoRow>
-      <InfoRow label={strings('confirm.spender')}>
+      <AlertRow
+        alertField={RowAlertKey.Spender}
+        label={strings('confirm.spender')}
+      >
         <Address
           address={spender ?? ''}
           chainId={transactionMetadata.chainId}
         />
-      </InfoRow>
+      </AlertRow>
     </>
   );
 };

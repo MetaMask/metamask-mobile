@@ -3,8 +3,11 @@ import Device from '../util/device';
 import { DEFAULT_SERVER_URL } from '@metamask/sdk-communication-layer';
 
 const DEVELOPMENT = 'development';
+
+// Server APIs: GH Actions use builds.yml (apply-build-config.js sets PORTFOLIO_API_URL, etc.). Local can use .js.env or same keys.
 const PORTFOLIO_URL =
   process.env.MM_PORTFOLIO_URL || 'https://portfolio.metamask.io';
+
 const SECURITY_ALERTS_API_URL =
   process.env.SECURITY_ALERTS_API_URL ??
   'https://security-alerts.api.cx.metamask.io';
@@ -13,7 +16,7 @@ export default {
   IS_DEV: process.env?.NODE_ENV === DEVELOPMENT,
   METAMASK_BUILD_TYPE: process.env.METAMASK_BUILD_TYPE,
   DEFAULT_LOCK_TIMEOUT: 30000,
-  DEFAULT_SEARCH_ENGINE: 'Google',
+  DEFAULT_SEARCH_ENGINE: 'Brave',
   TX_CHECK_BACKGROUND_FREQUENCY: 30000,
   IPFS_OVERRIDE_PARAM: 'mm_override',
   IPFS_DEFAULT_GATEWAY_URL: 'https://dweb.link/ipfs/',
@@ -30,6 +33,45 @@ export default {
   BRIDGE: {
     ACTIVE: true,
     URL: `${PORTFOLIO_URL}/bridge`,
+    PRICE_IMPACT_WARNING_THRESHOLD: 0.05,
+    PRICE_IMPACT_ERROR_THRESHOLD: 0.25,
+    // Check app/components/UI/Bridge/types.ts
+    // for interface definition.
+    SLIPPAGE_CONFIG: {
+      __default__: {
+        input_step: 0.1,
+        max_amount: 100,
+        min_amount: 0,
+        input_max_decimals: 2,
+        lower_allowed_slippage_threshold: {
+          messageId: 'bridge.exceeding_lower_slippage_error',
+          value: 0.1,
+          inclusive: true,
+        },
+        lower_suggested_slippage_threshold: {
+          messageId: 'bridge.exceeding_lower_slippage_warning',
+          value: 0.5,
+          inclusive: false,
+        },
+        upper_suggested_slippage_threshold: {
+          messageId: 'bridge.exceeding_upper_slippage_warning',
+          value: 5,
+          inclusive: false,
+        },
+        upper_allowed_slippage_threshold: {
+          messageId: 'bridge.exceeding_upper_slippage_error',
+          value: 100,
+          inclusive: false,
+        },
+        default_slippage_options: ['0.5', '2', '3'],
+        has_custom_slippage_option: true,
+      },
+      'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': {
+          default_slippage_options: ['auto', '0.5', '2'],
+        },
+      },
+    },
   },
   STAKE: {
     URL: `${PORTFOLIO_URL}/stake`,
@@ -53,6 +95,7 @@ export default {
     },
   },
   MM_UNIVERSAL_LINK_HOST: 'metamask.app.link',
+  MM_UNIVERSAL_LINK_HOST_ALTERNATE: 'metamask-alternate.app.link',
   MM_IO_UNIVERSAL_LINK_HOST: 'link.metamask.io',
   MM_IO_UNIVERSAL_LINK_TEST_HOST: 'link-test.metamask.io',
   MM_DEEP_ITMS_APP_LINK: 'https://metamask.app.link/skAH3BaF99',
@@ -164,10 +207,16 @@ export default {
     PRIVACY_NOTICE: 'https://consensys.io/privacy-notice',
     MULTICHAIN_ACCOUNTS:
       'https://support.metamask.io/configure/accounts/multichain-accounts/',
+    MUSD_CONVERSION_BONUS_TERMS_OF_USE:
+      'https://metamask.io/musd-bonus-terms-of-use',
   },
   DECODING_API_URL:
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
+  DIGEST_API_URL:
+    process.env.DIGEST_API_URL ||
+    'https://digest.dev-api.cx.metamask.io/api/v1',
+  // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
     UAT: 'https://rewards.uat-api.cx.metamask.io',

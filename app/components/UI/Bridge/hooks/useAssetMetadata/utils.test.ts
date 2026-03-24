@@ -76,6 +76,14 @@ describe('asset-utils', () => {
       expect(getAssetImageUrl(assetId, 'eip155:1')).toBe(expectedUrl);
     });
 
+    it('lowercases EVM erc20 asset references in the image URL', () => {
+      const assetId =
+        'eip155:1/erc20:0xFeDC5f4a6c38211c1338aa411018DFAf26612c08' as CaipAssetType;
+      const expectedUrl = `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/eip155/1/erc20/0xfedc5f4a6c38211c1338aa411018dfaf26612c08.png`;
+
+      expect(getAssetImageUrl(assetId, 'eip155:1')).toBe(expectedUrl);
+    });
+
     it('should return correct image URL for non-hex CAIP asset ID', () => {
       const assetId = `${SolScope.Mainnet}/token:aBCD` as CaipAssetType;
       const expectedUrl = `${STATIC_METAMASK_BASE_URL}/api/v2/tokenIcons/assets/solana/5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp/token/aBCD.png`;
@@ -116,18 +124,19 @@ describe('asset-utils', () => {
       const result = await fetchAssetMetadata(mockAddress, mockHexChainId);
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
         symbol: 'TEST',
         decimals: 18,
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3afb0bb76683ecb4225f9dbc91f998713c3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
         name: 'Test Token',
+        rwaData: undefined,
       });
     });
 
@@ -156,6 +165,7 @@ describe('asset-utils', () => {
         assetId: solanaAssetId,
         address: solanaAddress,
         chainId: solanaChainId,
+        rwaData: undefined,
       });
     });
 
@@ -174,7 +184,7 @@ describe('asset-utils', () => {
       expect(toEvmCaipChainId).not.toHaveBeenCalled();
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
@@ -182,10 +192,11 @@ describe('asset-utils', () => {
         decimals: 18,
         name: 'Test Token',
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3afb0bb76683ecb4225f9dbc91f998713c3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        rwaData: undefined,
       });
     });
 
@@ -204,7 +215,7 @@ describe('asset-utils', () => {
       expect(toEvmCaipChainId).toHaveBeenCalledWith(mockHexChainId);
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
@@ -212,10 +223,11 @@ describe('asset-utils', () => {
         decimals: 18,
         name: 'Test Token',
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3afb0bb76683ecb4225f9dbc91f998713c3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        rwaData: undefined,
       });
     });
 
@@ -248,7 +260,7 @@ describe('asset-utils', () => {
       const result = await fetchAssetMetadata(mockAddress, mockHexChainId);
 
       expect(handleFetch).toHaveBeenCalledWith(
-        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}`,
+        `${TOKEN_API_V3_BASE_URL}/assets?assetIds=${mockAssetId}&includeIconUrl=true&includeRwaData=true`,
       );
 
       expect(result).toStrictEqual({
@@ -256,10 +268,11 @@ describe('asset-utils', () => {
         decimals: 18,
         name: 'Test Token',
         image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3Afb0bB76683eCb4225F9DBc91f998713C3b01.png',
+          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xbd3afb0bb76683ecb4225f9dbc91f998713c3b01.png',
         assetId: mockAssetId,
         address: mockAddress,
         chainId: mockHexChainId,
+        rwaData: undefined,
       });
     });
   });

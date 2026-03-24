@@ -5,45 +5,55 @@ import {
   View,
   TouchableOpacity,
   Platform,
+  StyleProp,
+  TextStyle,
 } from 'react-native';
+import { useSelector } from 'react-redux';
+import { strings } from '../../../../../locales/i18n';
+import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
+import generateTestId from '../../../../../wdio/utils/generateTestId';
+import TagBase, {
+  TagSeverity,
+  TagShape,
+} from '../../../../component-library/base-components/TagBase';
+import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
+import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../component-library/components/Badges/BadgeWrapper';
 import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
-import AvatarToken from '../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
-import { AvatarSize } from '../../../../component-library/components/Avatars/Avatar';
 import Text, {
   TextVariant,
   TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { Box } from '../../Box/Box';
 import { ethers } from 'ethers';
-import { AlignItems, FlexDirection } from '../../Box/box.types';
+import { AlignItems, FlexDirection, JustifyContent } from '../../Box/box.types';
+import StockBadge from '../../shared/StockBadge';
 import { useStyles } from '../../../../component-library/hooks';
 import { Theme } from '../../../../util/theme/models';
 import { BridgeToken } from '../types';
+import { RootState } from '../../../../reducers';
 import { fontStyles } from '../../../../styles/common';
 import {
   TOKEN_BALANCE_LOADING,
   TOKEN_BALANCE_LOADING_UPPERCASE,
   TOKEN_RATE_UNDEFINED,
 } from '../../Tokens/constants';
-import generateTestId from '../../../../../wdio/utils/generateTestId';
-import { getAssetTestId } from '../../../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
-import { useSelector } from 'react-redux';
 import { selectNoFeeAssets } from '../../../../core/redux/slices/bridge';
-import { strings } from '../../../../../locales/i18n';
-import TagBase, {
-  TagShape,
-  TagSeverity,
-} from '../../../../component-library/base-components/TagBase';
 import Tag from '../../../../component-library/components/Tags/Tag';
-import { RootState } from '../../../../reducers';
 import { ACCOUNT_TYPE_LABELS } from '../../../../constants/account-type-labels';
 import parseAmount from '../../../../util/parseAmount';
 import { getTokenImageSource } from '../utils';
+import { useRWAToken } from '../hooks/useRWAToken';
+import { useABTest } from '../../../../hooks';
+import {
+  TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+  TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  TokenSelectorBalanceLayoutVariant,
+} from './TokenSelectorItem.abTestConfig';
 
 const createStyles = ({
   theme,
@@ -55,6 +65,8 @@ const createStyles = ({
   StyleSheet.create({
     tokenInfo: {
       flex: 1,
+      flexShrink: 1,
+      minWidth: 0,
       marginLeft: 8,
     },
     container: {
@@ -80,9 +92,21 @@ const createStyles = ({
       paddingVertical: 10,
       alignItems: 'flex-start',
     },
-    balance: {
-      flex: 1,
-      alignItems: 'flex-end',
+    tokenMainInfo: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flexShrink: 1,
+      minWidth: 0,
+      marginRight: 8,
+    },
+    rightValue: {
+      flexShrink: 0,
+      textAlign: 'right',
+    },
+    tokenName: {
+      flexShrink: 1,
+      minWidth: 0,
+      marginRight: 8,
     },
     skeleton: {
       width: 50,
@@ -120,12 +144,22 @@ interface TokenSelectorItemProps {
   isNoFeeAsset?: boolean;
 }
 
+const isLoadingBalance = (balance?: string) =>
+  balance === TOKEN_BALANCE_LOADING ||
+  balance === TOKEN_BALANCE_LOADING_UPPERCASE;
+
 const FiatBalanceView = ({
   balance,
   isSelected,
+  textStyle,
+  textVariant,
+  textColor,
 }: {
   balance?: string;
   isSelected: boolean;
+  textStyle?: StyleProp<TextStyle>;
+  textVariant: TextVariant;
+  textColor: TextColor;
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
 
@@ -133,14 +167,55 @@ const FiatBalanceView = ({
     return null;
   }
 
-  if (
-    balance === TOKEN_BALANCE_LOADING ||
-    balance === TOKEN_BALANCE_LOADING_UPPERCASE
-  ) {
+  if (isLoadingBalance(balance)) {
     return <View style={styles.skeleton} />;
   }
 
-  return <Text variant={TextVariant.BodyLGMedium}>{balance}</Text>;
+  return (
+    <Text
+      variant={textVariant}
+      color={textColor}
+      numberOfLines={1}
+      style={textStyle}
+    >
+      {balance}
+    </Text>
+  );
+};
+
+const TokenBalanceView = ({
+  balance,
+  isSelected,
+  textStyle,
+  textVariant,
+  textColor,
+}: {
+  balance?: string;
+  isSelected: boolean;
+  textStyle?: StyleProp<TextStyle>;
+  textVariant: TextVariant;
+  textColor: TextColor;
+}) => {
+  const { styles } = useStyles(createStyles, { isSelected });
+
+  if (!balance) {
+    return null;
+  }
+
+  if (isLoadingBalance(balance)) {
+    return <View style={styles.skeleton} />;
+  }
+
+  return (
+    <Text
+      variant={textVariant}
+      color={textColor}
+      numberOfLines={1}
+      style={textStyle}
+    >
+      {balance}
+    </Text>
+  );
 };
 
 export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
@@ -154,6 +229,10 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
   isNoFeeAsset = false,
 }) => {
   const { styles } = useStyles(createStyles, { isSelected });
+  const { variant } = useABTest(
+    TOKEN_SELECTOR_BALANCE_LAYOUT_AB_KEY,
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS,
+  );
   const noFeeAssets = useSelector((state: RootState) =>
     selectNoFeeAssets(state, token.chainId),
   );
@@ -173,14 +252,35 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
     return parseAmount(balance, 5) || balance;
   };
 
-  const balanceWithSymbol = token.balance
-    ? `${formatTokenBalance(token.balance)} ${token.symbol}`
+  const selectedVariant =
+    variant ??
+    TOKEN_SELECTOR_BALANCE_LAYOUT_VARIANTS[
+      TokenSelectorBalanceLayoutVariant.Control
+    ];
+  const formattedTokenBalance = token.balance
+    ? formatTokenBalance(token.balance)
+    : undefined;
+  const cryptoBalance = formattedTokenBalance
+    ? selectedVariant.removeTickerFromTokenBalance
+      ? formattedTokenBalance
+      : `${formattedTokenBalance} ${token.symbol}`
     : undefined;
 
   const isNative = token.address === ethers.constants.AddressZero;
 
-  const balance = shouldShowBalance ? fiatValue : undefined;
-  const secondaryBalance = shouldShowBalance ? balanceWithSymbol : undefined;
+  // to check if the token is a stock by checking if the name includes 'ondo' or 'stock'
+  const { isStockToken } = useRWAToken();
+
+  const fiatBalance = shouldShowBalance ? fiatValue : undefined;
+  const tokenBalance = shouldShowBalance ? cryptoBalance : undefined;
+  const topRowBalanceTextStyle = {
+    textVariant: TextVariant.BodyMDMedium,
+    textColor: TextColor.Default,
+  };
+  const bottomRowBalanceTextStyle = {
+    textVariant: TextVariant.BodyMD,
+    textColor: TextColor.Alternative,
+  };
 
   const label = token.accountType
     ? ACCOUNT_TYPE_LABELS[token.accountType]
@@ -232,7 +332,7 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             />
           </BadgeWrapper>
 
-          {/* Token symbol and name */}
+          {/* Token symbol/name on the left, balances on the right (extension layout pattern) */}
           <Box
             style={styles.tokenInfo}
             flexDirection={FlexDirection.Column}
@@ -241,47 +341,78 @@ export const TokenSelectorItem: React.FC<TokenSelectorItemProps> = ({
             <Box
               flexDirection={FlexDirection.Row}
               alignItems={AlignItems.center}
-              gap={4}
+              justifyContent={JustifyContent.spaceBetween}
             >
-              <Text variant={TextVariant.BodyLGMedium}>{token.symbol}</Text>
-              {label && <Tag label={label} />}
-              {showNoFeeBadge && (
-                <TagBase
-                  shape={TagShape.Rectangle}
-                  severity={TagSeverity.Info}
-                  textProps={{ variant: TextVariant.BodyXS }}
-                  style={styles.noFeeBadge}
+              <Box style={styles.tokenMainInfo} gap={4}>
+                <Text
+                  variant={TextVariant.BodyMDMedium}
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
                 >
-                  {strings('bridge.no_mm_fee')}
-                </TagBase>
+                  {token.symbol}
+                </Text>
+                {label && <Tag label={label} />}
+                {showNoFeeBadge && (
+                  <TagBase
+                    shape={TagShape.Rectangle}
+                    severity={TagSeverity.Info}
+                    textProps={{ variant: TextVariant.BodyXS }}
+                    style={styles.noFeeBadge}
+                  >
+                    {strings('bridge.no_mm_fee')}
+                  </TagBase>
+                )}
+              </Box>
+
+              {selectedVariant.showTokenBalanceFirst ? (
+                <TokenBalanceView
+                  balance={tokenBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...topRowBalanceTextStyle}
+                />
+              ) : (
+                <FiatBalanceView
+                  balance={fiatBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...topRowBalanceTextStyle}
+                />
               )}
             </Box>
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {token.name}
-            </Text>
-          </Box>
 
-          {/* Token balance and fiat value */}
-          <Box style={styles.balance} gap={4}>
-            <FiatBalanceView balance={balance} isSelected={isSelected} />
-            {secondaryBalance ? (
-              secondaryBalance === TOKEN_BALANCE_LOADING ||
-              secondaryBalance === TOKEN_BALANCE_LOADING_UPPERCASE ? (
-                <View style={styles.skeleton} />
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              justifyContent={JustifyContent.spaceBetween}
+            >
+              <Text
+                variant={TextVariant.BodySM}
+                color={TextColor.Alternative}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+                style={styles.tokenName}
+              >
+                {token.name}
+              </Text>
+
+              {selectedVariant.showTokenBalanceFirst ? (
+                <FiatBalanceView
+                  balance={fiatBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...bottomRowBalanceTextStyle}
+                />
               ) : (
-                <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
-                >
-                  {secondaryBalance}
-                </Text>
-              )
-            ) : null}
+                <TokenBalanceView
+                  balance={tokenBalance}
+                  isSelected={isSelected}
+                  textStyle={styles.rightValue}
+                  {...bottomRowBalanceTextStyle}
+                />
+              )}
+            </Box>
+            {isStockToken(token as BridgeToken) && <StockBadge token={token} />}
           </Box>
         </Box>
       </TouchableOpacity>

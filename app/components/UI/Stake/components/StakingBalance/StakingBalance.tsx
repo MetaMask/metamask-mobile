@@ -12,15 +12,20 @@ import Badge, {
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../component-library/hooks';
 import { RootState } from '../../../../../reducers';
 import { selectNetworkConfigurationByChainId } from '../../../../../selectors/networkController';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { getTimeDifferenceFromNow } from '../../../../../util/date';
 import { getDecimalChainId } from '../../../../../util/networks';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import AssetElement from '../../../AssetElement';
 import { NetworkBadgeSource } from '../../../AssetOverview/Balance/Balance';
 import NetworkAssetLogo from '../../../NetworkAssetLogo';
@@ -67,6 +72,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
   );
 
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
+  const privacyMode = useSelector(selectPrivacyMode);
 
   const { styles } = useStyles(styleSheet, { theme });
 
@@ -74,7 +80,7 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
     asset.chainId as Hex,
   );
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const decimalChainId = getDecimalChainId(asset.chainId);
   const {
@@ -210,8 +216,12 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
       {hasEthToUnstake && !isLoadingPooledStakesData && (
         <AssetElement
           asset={asset}
-          secondaryBalance={stakedBalanceETH}
           balance={stakedBalanceFiat}
+          privacyMode={privacyMode}
+          hideSecondaryBalanceInPrivacyMode={false}
+          secondaryBalanceElement={
+            <PercentageChange value={pricePercentChange1d ?? 0} />
+          }
         >
           <BadgeWrapper
             badgePosition={BadgePosition.BottomRight}
@@ -237,9 +247,14 @@ const StakingBalanceContent = ({ asset }: StakingBalanceProps) => {
             <Text variant={TextVariant.BodyMD} testID="staked-ethereum-label">
               {strings('stake.staked_ethereum')}
             </Text>
-            <Text>
-              <PercentageChange value={pricePercentChange1d ?? 0} />
-            </Text>
+            <SensitiveText
+              variant={TextVariant.BodySM}
+              style={styles.tokenAmount}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Short}
+            >
+              {stakedBalanceETH}
+            </SensitiveText>
           </View>
         </AssetElement>
       )}

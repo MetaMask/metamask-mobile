@@ -9,14 +9,16 @@ import {
   TransactionControllerOptions,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
-import { ApprovalController } from '@metamask/approval-controller';
 import { PreferencesController } from '@metamask/preferences-controller';
 import {
   SmartTransactionsController,
   SmartTransactionStatuses,
 } from '@metamask/smart-transactions-controller';
 
-import { REDESIGNED_TRANSACTION_TYPES } from '../../../../components/Views/confirmations/constants/confirmations';
+import {
+  REDESIGNED_TRANSACTION_TYPES,
+  RELAY_DEPOSIT_TYPES,
+} from '../../../../components/Views/confirmations/constants/confirmations';
 import {
   getSmartTransactionsFeatureFlagsForChain,
   selectShouldUseSmartTransaction,
@@ -48,6 +50,7 @@ import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
 } from '@metamask/transaction-pay-controller';
+import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
@@ -64,7 +67,6 @@ export const TransactionControllerInit: ControllerInitFunction<
     request;
 
   const {
-    approvalController,
     gasFeeController,
     keyringController,
     networkController,
@@ -110,7 +112,6 @@ export const TransactionControllerInit: ControllerInitFunction<
               getState,
               transactionController,
               smartTransactionsController,
-              approvalController,
               initMessenger,
               signedTransactionInHex,
             }),
@@ -120,7 +121,6 @@ export const TransactionControllerInit: ControllerInitFunction<
               smartTransactionsController,
               initMessenger,
               getState,
-              approvalController,
               transactions:
                 _request.transactions as PublishBatchHookTransaction[],
             }),
@@ -131,6 +131,8 @@ export const TransactionControllerInit: ControllerInitFunction<
           isEnabled: () => isIncomingTransactionsEnabled(preferencesController),
           updateTransactions: true,
         },
+        isFirstTimeInteractionEnabled: () =>
+          isFirstTimeInteractionEnabled(preferencesController),
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
           const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
@@ -191,7 +193,6 @@ async function publishHook({
   getState,
   transactionController,
   smartTransactionsController,
-  approvalController,
   initMessenger,
   signedTransactionInHex,
 }: {
@@ -199,7 +200,6 @@ async function publishHook({
   getState: () => RootState;
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
-  approvalController: ApprovalController;
   initMessenger: TransactionControllerInitMessenger;
   signedTransactionInHex: Hex;
 }): Promise<{ transactionHash?: string }> {
@@ -211,8 +211,10 @@ async function publishHook({
     transactionMeta.chainId,
   );
 
+  const { stxDisabled } = selectMetaMaskPayFlags(state);
+
   const payResult = await new TransactionPayPublishHook({
-    isSmartTransaction: () => shouldUseSmartTransaction,
+    isSmartTransaction: () => shouldUseSmartTransaction && !stxDisabled,
     messenger: initMessenger as TransactionPayControllerMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
@@ -248,7 +250,6 @@ async function publishHook({
       transactionController,
       smartTransactionsController,
       shouldUseSmartTransaction,
-      approvalController,
       controllerMessenger:
         initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
       featureFlags,
@@ -282,14 +283,12 @@ function publishBatchSmartTransactionHook({
   smartTransactionsController,
   initMessenger,
   getState,
-  approvalController,
   transactions,
 }: {
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
   initMessenger: TransactionControllerInitMessenger;
   getState: () => RootState;
-  approvalController: ApprovalController;
   transactions: PublishBatchHookTransaction[];
 }): Promise<PublishBatchHookResult> {
   // Get transactionMeta based on the last transaction ID
@@ -320,7 +319,6 @@ function publishBatchSmartTransactionHook({
     controllerMessenger:
       initMessenger as unknown as SubmitSmartTransactionRequest['controllerMessenger'],
     shouldUseSmartTransaction,
-    approvalController,
     featureFlags,
     transactionMeta,
   });
@@ -332,6 +330,12 @@ function isIncomingTransactionsEnabled(
   return preferencesController.state?.privacyMode !== true;
 }
 
+function isFirstTimeInteractionEnabled(
+  preferencesController: PreferencesController,
+): boolean {
+  return preferencesController.state?.securityAlertsEnabled === true;
+}
+
 function getControllers(
   request: ControllerInitRequest<
     TransactionControllerMessenger,
@@ -339,7 +343,6 @@ function getControllers(
   >,
 ) {
   return {
-    approvalController: request.getController('ApprovalController'),
     gasFeeController: request.getController('GasFeeController'),
     keyringController: request.getController('KeyringController'),
     networkController: request.getController('NetworkController'),
@@ -362,7 +365,7 @@ function beforeSign(
 }
 
 function isAutomaticGasFeeUpdateEnabled(transaction: TransactionMeta) {
-  if (hasTransactionType(transaction, [TransactionType.relayDeposit])) {
+  if (hasTransactionType(transaction, RELAY_DEPOSIT_TYPES)) {
     return false;
   }
 

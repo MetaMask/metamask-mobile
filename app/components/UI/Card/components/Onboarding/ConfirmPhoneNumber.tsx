@@ -7,9 +7,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -24,7 +22,8 @@ import { useDispatch, useSelector } from 'react-redux';
 import { CardError } from '../../types';
 import usePhoneVerificationSend from '../../hooks/usePhoneVerificationSend';
 import { useCardSDK } from '../../sdk';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
 
 const CODE_LENGTH = 6;
@@ -43,7 +42,7 @@ const ConfirmPhoneNumber = () => {
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { phoneNumber, phoneCountryCode } = useParams<{
     phoneNumber: string;
     phoneCountryCode: string;
@@ -236,7 +235,6 @@ const ConfirmPhoneNumber = () => {
           autoCapitalize={'none'}
           onChangeText={handleValueChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
           textContentType="oneTimeCode"

@@ -3,7 +3,7 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { TransactionMetricsBuilder } from '../types';
-import { JsonMap } from '../../../../Analytics/MetaMetrics.types';
+import { JsonMap } from '../../../../../util/analytics/analytics.types';
 import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
@@ -15,6 +15,7 @@ import {
 import { RootState } from '../../../../../reducers';
 import { selectSingleTokenByAddressAndChainId } from '../../../../../selectors/tokensController';
 import { Hex } from '@metamask/utils';
+import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
@@ -22,14 +23,19 @@ const COPY_METRICS = [
   'mm_pay',
   'mm_pay_use_case',
   'mm_pay_transaction_step_total',
+  'mm_pay_sending_value_usd',
+  'mm_pay_receiving_value_usd',
+  'mm_pay_metamask_fee_usd',
 ] as const;
 
 const PAY_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.predictDeposit,
+  TransactionType.predictWithdraw,
 ];
 
 export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
+  eventType,
   transactionMeta,
   allTransactions,
   getUIMetrics,
@@ -53,6 +59,10 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
 
   if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
     addFallbackProperties(properties, transactionMeta, getState());
+
+    if (hasTransactionType(transactionMeta, PAY_TYPES) || properties.mm_pay) {
+      addTimeToComplete(properties, eventType, transactionMeta.submittedTime);
+    }
 
     return {
       properties,
@@ -123,11 +133,29 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     }
   }
 
+  addTimeToComplete(properties, eventType, parentTransaction.submittedTime);
+
   return {
     properties,
     sensitiveProperties,
   };
 };
+
+function addTimeToComplete(
+  properties: JsonMap,
+  eventType: Parameters<TransactionMetricsBuilder>[0]['eventType'],
+  submittedTime: number | undefined,
+) {
+  if (
+    eventType !== TRANSACTION_EVENTS.TRANSACTION_FINALIZED ||
+    typeof submittedTime !== 'number'
+  ) {
+    return;
+  }
+
+  properties.mm_pay_time_to_complete_s =
+    Math.round(Date.now() - submittedTime) / 1000;
+}
 
 function addFallbackProperties(
   properties: JsonMap,

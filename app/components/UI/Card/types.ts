@@ -94,7 +94,19 @@ export interface CardLoginInitiateResponse {
 
 export type CardLocation = 'us' | 'international';
 
-export type CardNetwork = 'linea' | 'solana' | 'base';
+/**
+ * Region representation for country/region selectors (e.g. sign-up, phone, address).
+ * Used by useRegions and RegionSelectorModal.
+ */
+export interface Region {
+  key: string;
+  name: string;
+  emoji?: string;
+  areaCode?: string;
+  canSignUp?: boolean;
+}
+
+export type CardNetwork = 'linea' | 'solana' | 'base' | 'monad';
 
 export interface CardNetworkInfo {
   caipChainId: CaipChainId;
@@ -147,12 +159,12 @@ export enum CardType {
 
 export interface CardDetailsResponse {
   id: string;
-  holderName: string;
-  expiryDate: string;
+  isFreezable: boolean;
+  orderedAt: string;
   panLast4: string;
   status: CardStatus;
   type: CardType;
-  orderedAt: string;
+  holderName: string;
 }
 
 export interface CardWalletExternalResponse {
@@ -200,6 +212,7 @@ export enum CardErrorType {
   SERVER_ERROR = 'SERVER_ERROR',
   NO_CARD = 'NO_CARD',
   CONFLICT_ERROR = 'CONFLICT_ERROR',
+  NOT_FOUND = 'NOT_FOUND',
 }
 
 export class CardError extends Error {
@@ -442,19 +455,26 @@ export interface DelegationSettingsResponse {
   };
 }
 
+export interface DelegationPostApprovalParams {
+  address: string;
+  network: CardNetwork;
+  currency: string;
+  amount: string;
+  txHash: string;
+  sigHash: string;
+  sigMessage: string;
+  token: string;
+}
+
 /**
  * Request body for generating card details token
  * Used to customize the visual appearance of the card details image
  */
 export interface CardDetailsTokenRequest {
   customCss?: {
-    /** Background color of the card image (hex format, e.g., "#000000") */
     cardBackgroundColor?: string;
-    /** Text color for card information (hex format) */
     cardTextColor?: string;
-    /** Background color for the PAN number display area (hex format) */
     panBackgroundColor?: string;
-    /** Text color for PAN number (hex format) */
     panTextColor?: string;
   };
 }
@@ -463,8 +483,114 @@ export interface CardDetailsTokenRequest {
  * Response from generating card details token
  */
 export interface CardDetailsTokenResponse {
-  /** Secure, time-limited token (UUID format) - valid for ~10 minutes, single-use */
   token: string;
-  /** URL that renders card details as a secure image */
   imageUrl: string;
+}
+
+/**
+ * Request body for generating card PIN token
+ * Used to customize the visual appearance of the PIN image
+ */
+export interface CardPinTokenRequest {
+  customCss?: {
+    backgroundColor?: string;
+    textColor?: string;
+  };
+}
+
+/**
+ * Response from generating card PIN token
+ */
+export interface CardPinTokenResponse {
+  token: string;
+  imageUrl: string;
+}
+
+/**
+ * Payment methods supported for orders
+ */
+export type OrderPaymentMethod = 'CRYPTO_EXTERNAL_DAIMO';
+
+/**
+ * Request body for creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderRequest {
+  productId: string;
+  paymentMethod: OrderPaymentMethod;
+}
+
+/**
+ * Payment configuration returned when creating an order
+ */
+export interface OrderPaymentConfig {
+  paymentAmount: number;
+  paymentCurrency: string;
+  destinationAddress: string;
+  destinationChainId: string;
+  destinationTokenSymbol: string;
+  destinationTokenAddress: string;
+}
+
+/**
+ * Response from creating a new order
+ * POST /v1/order
+ */
+export interface CreateOrderResponse {
+  orderId: string;
+  requestId: string;
+  paymentConfig: OrderPaymentConfig;
+}
+
+/**
+ * Status of an order
+ */
+export type OrderStatus =
+  | 'STARTED'
+  | 'PENDING'
+  | 'COMPLETED'
+  | 'FAILED'
+  | 'EXPIRED'
+  | 'REFUNDED';
+
+/**
+ * Metadata returned with order status
+ */
+export interface OrderStatusMetadata {
+  paymentId?: string;
+  txHash?: string;
+  note?: string;
+}
+
+/**
+ * Response from fetching order status
+ * GET /v1/order/:orderId
+ */
+export interface GetOrderStatusResponse {
+  orderId: string;
+  paidAt?: string;
+  status: OrderStatus;
+  metadata?: OrderStatusMetadata;
+}
+
+export interface CashbackWalletResponse {
+  id: string;
+  balance: string;
+  currency: string;
+  isWithdrawable: boolean;
+  type: string;
+}
+
+export interface CashbackWithdrawRequest {
+  amount: string;
+}
+
+export interface CashbackWithdrawResponse {
+  txHash: string;
+}
+
+export interface CashbackWithdrawEstimationResponse {
+  wei: string;
+  eth: string;
+  price: string;
 }

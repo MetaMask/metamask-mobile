@@ -2,12 +2,16 @@ import React from 'react';
 import { createStackNavigator } from '@react-navigation/stack';
 import Routes from '../../../constants/navigation/Routes';
 import { BridgeTokenSelector } from './components/BridgeTokenSelector';
-import SlippageModal from './components/SlippageModal';
 import BridgeView from './Views/BridgeView';
 import BlockExplorersModal from './components/TransactionDetails/BlockExplorersModal';
-import QuoteExpiredModal from './components/QuoteExpiredModal';
 import BlockaidModal from './components/BlockaidModal';
 import RecipientSelectorModal from './components/RecipientSelectorModal';
+import MarketClosedBottomSheet from './components/MarketClosedBottomSheets/MarketClosedBottomSheet';
+import { DefaultSlippageModal } from './components/SlippageModal/DefaultSlippageModal';
+import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageModal';
+import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
+import { QuoteSelectorView } from './components/QuoteSelectorView';
+import { PriceImpactModal } from './components/PriceImpactModal';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -35,6 +39,11 @@ export const BridgeScreenStack = () => (
       component={BridgeTokenSelector}
       options={{ title: '' }}
     />
+    <Stack.Screen
+      name={Routes.BRIDGE.QUOTE_SELECTOR_VIEW}
+      component={QuoteSelectorView}
+      options={{ title: '' }}
+    />
   </Stack.Navigator>
 );
 
@@ -45,16 +54,16 @@ export const BridgeModalStack = () => (
     screenOptions={clearStackNavigatorOptions}
   >
     <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.SLIPPAGE_MODAL}
-      component={SlippageModal}
+      name={Routes.BRIDGE.MODALS.DEFAULT_SLIPPAGE_MODAL}
+      component={DefaultSlippageModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.CUSTOM_SLIPPAGE_MODAL}
+      component={CustomSlippageModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.TRANSACTION_DETAILS_BLOCK_EXPLORER}
       component={BlockExplorersModal}
-    />
-    <ModalStack.Screen
-      name={Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL}
-      component={QuoteExpiredModal}
     />
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.BLOCKAID_MODAL}
@@ -63,6 +72,18 @@ export const BridgeModalStack = () => (
     <ModalStack.Screen
       name={Routes.BRIDGE.MODALS.RECIPIENT_SELECTOR_MODAL}
       component={RecipientSelectorModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.MARKET_CLOSED_MODAL}
+      component={MarketClosedBottomSheet}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.NETWORK_LIST_MODAL}
+      component={NetworkListModal}
+    />
+    <ModalStack.Screen
+      name={Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL}
+      component={PriceImpactModal}
     />
   </ModalStack.Navigator>
 );

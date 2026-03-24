@@ -1,11 +1,11 @@
 import Engine from '../../../../../core/Engine';
-import type { CandleData } from '../../types/perps-types';
 import {
   CandlePeriod,
   TimeDuration,
   calculateCandleCount,
-} from '../../constants/chartConfig';
-import { PERPS_CONSTANTS } from '../../constants/perpsConfig';
+  PERPS_CONSTANTS,
+  type CandleData,
+} from '@metamask/perps-controller';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Logger from '../../../../../util/Logger';
 import { ensureError } from '../../../../../util/errorUtils';
@@ -105,6 +105,64 @@ abstract class StreamChannel<T> {
 
 // CandleStreamChannel - specific channel for candle data
 export class CandleStreamChannel extends StreamChannel<CandleData> {
+  // Timer handles for deferred connect so they can be cancelled on disconnect
+  private deferConnectTimers = new Map<string, ReturnType<typeof setTimeout>>();
+  private connectRetryCounts = new Map<string, number>();
+  private static readonly MAX_CONNECT_RETRIES = 50;
+  private readonly getIsInitialized: () => boolean;
+
+  /**
+   * @param getIsInitialized - Getter for connection initialized state.
+   * Injected to avoid circular dependency:
+   * CandleStreamChannel → PerpsConnectionManager → PerpsStreamManager → CandleStreamChannel
+   */
+  constructor(getIsInitialized: () => boolean) {
+    super();
+    this.getIsInitialized = getIsInitialized;
+  }
+
+  /**
+   * Schedule a deferred connect() retry with safety checks.
+   * Aborts if no subscribers remain for the given cacheKey or max retries exceeded.
+   */
+  private deferConnect(
+    symbol: string,
+    interval: CandlePeriod,
+    cacheKey: string,
+    delayMs: number,
+  ): void {
+    const hasActiveSubscribers = Array.from(this.subscribers.values()).some(
+      (sub) => sub.cacheKey === cacheKey,
+    );
+    if (!hasActiveSubscribers) {
+      this.connectRetryCounts.delete(cacheKey);
+      return;
+    }
+
+    const retryCount = this.connectRetryCounts.get(cacheKey) ?? 0;
+    if (retryCount >= CandleStreamChannel.MAX_CONNECT_RETRIES) {
+      DevLogger.log(
+        `CandleStreamChannel: Max connect retries exceeded (${CandleStreamChannel.MAX_CONNECT_RETRIES}), giving up`,
+        { cacheKey },
+      );
+      this.connectRetryCounts.delete(cacheKey);
+      return;
+    }
+
+    this.connectRetryCounts.set(cacheKey, retryCount + 1);
+    const existingTimer = this.deferConnectTimers.get(cacheKey);
+    if (existingTimer) {
+      clearTimeout(existingTimer);
+    }
+    this.deferConnectTimers.set(
+      cacheKey,
+      setTimeout(() => {
+        this.deferConnectTimers.delete(cacheKey);
+        this.connect(symbol, interval, cacheKey);
+      }, delayMs),
+    );
+  }
+
   /**
    * Get cache key for a specific symbol and interval
    */
@@ -189,28 +247,31 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       return;
     }
 
-    // Check if controller is reinitializing
+    // Check if controller is reinitializing - wait before attempting connection
     if (Engine.context.PerpsController.isCurrentlyReinitializing()) {
-      setTimeout(() => {
-        // Verify subscription still active before reconnecting
-        const hasActiveSubscribers = Array.from(this.subscribers.values()).some(
-          (sub) => sub.cacheKey === cacheKey,
-        );
-
-        // Only reconnect if subscribers still exist and no connection established
-        if (hasActiveSubscribers && !this.wsSubscriptions.has(cacheKey)) {
-          this.connect(symbol, interval, cacheKey);
-        }
-      }, PERPS_CONSTANTS.RECONNECTION_CLEANUP_DELAY_MS);
+      this.deferConnect(
+        symbol,
+        interval,
+        cacheKey,
+        PERPS_CONSTANTS.ReconnectionCleanupDelayMs,
+      );
       return;
     }
+
+    // Check if controller is not yet initialized - defer until ready
+    if (!this.getIsInitialized()) {
+      this.deferConnect(symbol, interval, cacheKey, 200);
+      return;
+    }
+
+    this.connectRetryCounts.delete(cacheKey);
 
     // Subscribe to candle updates via controller
     // Always use YEAR_TO_DATE to fetch maximum candles (500) regardless of subscriber's duration
     const unsubscribe = Engine.context.PerpsController.subscribeToCandles({
       symbol,
       interval,
-      duration: TimeDuration.YEAR_TO_DATE, // Always fetch max candles
+      duration: TimeDuration.YearToDate, // Always fetch max candles
       callback: (candleData: CandleData) => {
         // Update cache
         this.cache.set(cacheKey, candleData);
@@ -264,6 +325,13 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       this.disconnectAll();
       return;
     }
+    // Cancel any pending deferred connect for this cacheKey
+    const timer = this.deferConnectTimers.get(cacheKey);
+    if (timer) {
+      clearTimeout(timer);
+      this.deferConnectTimers.delete(cacheKey);
+    }
+    this.connectRetryCounts.delete(cacheKey);
     // Disconnect specific subscription
     const unsubscribe = this.wsSubscriptions.get(cacheKey);
     if (unsubscribe) {
@@ -289,7 +357,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
   protected getClearedData(): CandleData {
     return {
       symbol: '',
-      interval: CandlePeriod.ONE_HOUR,
+      interval: CandlePeriod.OneHour,
       candles: [],
     };
   }
@@ -359,12 +427,12 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
 
       // Fetch historical candles via controller
       const newCandleData =
-        await Engine.context.PerpsController.fetchHistoricalCandles(
+        await Engine.context.PerpsController.fetchHistoricalCandles({
           symbol,
           interval,
           limit,
           endTime,
-        );
+        });
 
       if (!newCandleData || newCandleData.candles.length === 0) {
         DevLogger.log(
@@ -418,12 +486,15 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         },
       );
     } catch (error) {
-      const errorInstance = ensureError(error);
+      const errorInstance = ensureError(
+        error,
+        'CandleStreamChannel.fetchHistoricalCandles',
+      );
 
       // Log to Sentry: fetch failures affect multiple subscribers
       Logger.error(errorInstance, {
         tags: {
-          feature: PERPS_CONSTANTS.FEATURE_NAME,
+          feature: PERPS_CONSTANTS.FeatureName,
           component: 'CandleStreamChannel',
         },
         context: {
@@ -446,6 +517,11 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
    * Disconnect all subscriptions
    */
   public disconnectAll(): void {
+    // Cancel all deferred connect timers
+    this.deferConnectTimers.forEach((timer) => clearTimeout(timer));
+    this.deferConnectTimers.clear();
+    this.connectRetryCounts.clear();
+
     this.subscribers.forEach((subscriber) => {
       if (subscriber.timer) {
         clearTimeout(subscriber.timer);
@@ -458,5 +534,37 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
       unsubscribe();
     });
     this.wsSubscriptions.clear();
+  }
+
+  /**
+   * Reconnect all active subscriptions after WebSocket reconnection
+   * Clears dead subscriptions and re-establishes connections for active subscribers
+   */
+  public reconnect(): void {
+    // Get unique cache keys from subscribers before disconnecting
+    const activeCacheKeys = new Set(
+      Array.from(this.subscribers.values()).map((sub) => sub.cacheKey),
+    );
+
+    // Disconnect all WebSocket subscriptions (they're dead after reconnection)
+    // Using disconnect() without args to call disconnectAll() internally
+    this.disconnect();
+
+    // Re-establish connections for each active cache key
+    activeCacheKeys.forEach((cacheKey) => {
+      // Parse coin and interval from cacheKey (format: "coin-interval")
+      // Since coin symbols can contain hyphens (e.g., "ETH-USD"), we need to
+      // split from the right. The interval is always the last segment after the final hyphen.
+      const lastHyphenIndex = cacheKey.lastIndexOf('-');
+      if (lastHyphenIndex === -1 || lastHyphenIndex === 0) {
+        // Invalid cache key format - skip
+        return;
+      }
+      const coin = cacheKey.substring(0, lastHyphenIndex);
+      const interval = cacheKey.substring(lastHyphenIndex + 1);
+      if (coin && interval) {
+        this.connect(coin, interval as CandlePeriod, cacheKey);
+      }
+    });
   }
 }

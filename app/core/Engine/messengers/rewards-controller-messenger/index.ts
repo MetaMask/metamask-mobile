@@ -8,6 +8,7 @@ import {
   KeyringControllerSignPersonalMessageAction,
   KeyringControllerUnlockEvent,
 } from '@metamask/keyring-controller';
+import type { GeolocationControllerGetGeolocationAction } from '@metamask/geolocation-controller';
 import {
   RewardsDataServiceLoginAction,
   RewardsDataServiceEstimatePointsAction,
@@ -16,8 +17,8 @@ import {
   RewardsDataServiceGetReferralDetailsAction,
   RewardsDataServiceMobileOptinAction,
   RewardsDataServiceLogoutAction,
-  RewardsDataServiceFetchGeoLocationAction,
   RewardsDataServiceValidateReferralCodeAction,
+  RewardsDataServiceValidateBonusCodeAction,
   RewardsDataServiceMobileJoinAction,
   RewardsDataServiceOptOutAction,
 } from '../../controllers/rewards-controller/services';
@@ -34,6 +35,7 @@ import {
   AccountsControllerGetSelectedMultichainAccountAction,
   AccountsControllerListMultichainAccountsAction,
 } from '@metamask/accounts-controller';
+import { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
 import {
   RewardsDataServiceGetOptInStatusAction,
   RewardsDataServiceGetPointsEventsAction,
@@ -44,6 +46,17 @@ import {
   RewardsDataServiceGetDiscoverSeasonsAction,
   RewardsDataServiceGetSeasonMetadataAction,
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
+  RewardsDataServiceApplyReferralCodeAction,
+  RewardsDataServiceApplyBonusCodeAction,
+  RewardsDataServiceGetRewardsEnvUrlAction,
+  RewardsDataServiceCanChangeRewardsEnvUrlAction,
+  RewardsDataServiceSetRewardsEnvUrlAction,
+  RewardsDataServiceGetDefaultRewardsEnvUrlAction,
+  RewardsDataServiceGetSubscriptionAccountsAction,
+  RewardsDataServiceGetCampaignsAction,
+  RewardsDataServiceOptInToCampaignAction,
+  RewardsDataServiceGetCampaignParticipantStatusAction,
+  RewardsDataServiceGetClientVersionRequirementsAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -54,7 +67,9 @@ type AllowedActions =
   | AccountsControllerGetSelectedMultichainAccountAction
   | AccountsControllerListMultichainAccountsAction
   | AccountTreeControllerGetAccountsFromSelectedAccountGroupAction
+  | GeolocationControllerGetGeolocationAction
   | KeyringControllerSignPersonalMessageAction
+  | RemoteFeatureFlagControllerGetStateAction
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
   | RewardsDataServiceGetPointsEventsLastUpdatedAction
@@ -64,8 +79,8 @@ type AllowedActions =
   | RewardsDataServiceGetReferralDetailsAction
   | RewardsDataServiceMobileOptinAction
   | RewardsDataServiceLogoutAction
-  | RewardsDataServiceFetchGeoLocationAction
   | RewardsDataServiceValidateReferralCodeAction
+  | RewardsDataServiceValidateBonusCodeAction
   | RewardsDataServiceMobileJoinAction
   | RewardsDataServiceGetOptInStatusAction
   | RewardsDataServiceOptOutAction
@@ -74,7 +89,18 @@ type AllowedActions =
   | RewardsDataServiceClaimRewardAction
   | RewardsDataServiceGetDiscoverSeasonsAction
   | RewardsDataServiceGetSeasonMetadataAction
-  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction;
+  | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
+  | RewardsDataServiceApplyReferralCodeAction
+  | RewardsDataServiceGetRewardsEnvUrlAction
+  | RewardsDataServiceCanChangeRewardsEnvUrlAction
+  | RewardsDataServiceSetRewardsEnvUrlAction
+  | RewardsDataServiceGetDefaultRewardsEnvUrlAction
+  | RewardsDataServiceApplyBonusCodeAction
+  | RewardsDataServiceGetSubscriptionAccountsAction
+  | RewardsDataServiceGetCampaignsAction
+  | RewardsDataServiceOptInToCampaignAction
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetClientVersionRequirementsAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -106,7 +132,9 @@ export function getRewardsControllerMessenger(
       'AccountsController:getSelectedMultichainAccount',
       'AccountTreeController:getAccountsFromSelectedAccountGroup',
       'AccountsController:listMultichainAccounts',
+      'GeolocationController:getGeolocation',
       'KeyringController:signPersonalMessage',
+      'RemoteFeatureFlagController:getState',
       'RewardsDataService:login',
       'RewardsDataService:getPointsEvents',
       'RewardsDataService:getPointsEventsLastUpdated',
@@ -116,8 +144,8 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getReferralDetails',
       'RewardsDataService:mobileOptin',
       'RewardsDataService:logout',
-      'RewardsDataService:fetchGeoLocation',
       'RewardsDataService:validateReferralCode',
+      'RewardsDataService:validateBonusCode',
       'RewardsDataService:mobileJoin',
       'RewardsDataService:getOptInStatus',
       'RewardsDataService:optOut',
@@ -127,6 +155,17 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getDiscoverSeasons',
       'RewardsDataService:getSeasonMetadata',
       'RewardsDataService:getSeasonOneLineaRewardTokens',
+      'RewardsDataService:applyReferralCode',
+      'RewardsDataService:applyBonusCode',
+      'RewardsDataService:getSubscriptionAccounts',
+      'RewardsDataService:getCampaigns',
+      'RewardsDataService:optInToCampaign',
+      'RewardsDataService:getCampaignParticipantStatus',
+      'RewardsDataService:getRewardsEnvUrl',
+      'RewardsDataService:canChangeRewardsEnvUrl',
+      'RewardsDataService:setRewardsEnvUrl',
+      'RewardsDataService:getDefaultRewardsEnvUrl',
+      'RewardsDataService:getClientVersionRequirements',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

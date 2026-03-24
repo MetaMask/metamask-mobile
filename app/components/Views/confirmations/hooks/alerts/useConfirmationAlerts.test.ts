@@ -21,9 +21,13 @@ import { useTokenTrustSignalAlerts } from './useTokenTrustSignalAlerts';
 import { useAddressTrustSignalAlerts } from './useAddressTrustSignalAlerts';
 import { useOriginTrustSignalAlerts } from './useOriginTrustSignalAlerts';
 import { useGasEstimateFailedAlert } from './useGasEstimateFailedAlert';
+import { useGasSponsorshipWarningAlert } from './useGasSponsorshipWarningAlert';
+import { useFirstTimeInteractionAlert } from './useFirstTimeInteractionAlert';
+import { useTokenContractAlert } from './useTokenContractAlert';
 
 jest.mock('./useBlockaidAlerts');
 jest.mock('./useGasEstimateFailedAlert');
+jest.mock('./useGasSponsorshipWarningAlert');
 jest.mock('./useDomainMismatchAlerts');
 jest.mock('./useInsufficientBalanceAlert');
 jest.mock('./useAccountTypeUpgrade');
@@ -37,6 +41,8 @@ jest.mock('./useBurnAddressAlert');
 jest.mock('./useTokenTrustSignalAlerts');
 jest.mock('./useAddressTrustSignalAlerts');
 jest.mock('./useOriginTrustSignalAlerts');
+jest.mock('./useFirstTimeInteractionAlert');
+jest.mock('./useTokenContractAlert');
 
 describe('useConfirmationAlerts', () => {
   const ALERT_MESSAGE_MOCK = 'This is a test alert message.';
@@ -166,11 +172,20 @@ describe('useConfirmationAlerts', () => {
       severity: Severity.Danger,
     },
   ];
+  const mockTokenContractAlert: Alert[] = [
+    {
+      key: 'TokenContractAlert',
+      title: 'Test Token Contract Alert',
+      message: ALERT_MESSAGE_MOCK,
+      severity: Severity.Warning,
+    },
+  ];
   beforeEach(() => {
     jest.clearAllMocks();
     (useBlockaidAlerts as jest.Mock).mockReturnValue([]);
     (useDomainMismatchAlerts as jest.Mock).mockReturnValue([]);
     (useGasEstimateFailedAlert as jest.Mock).mockReturnValue([]);
+    (useGasSponsorshipWarningAlert as jest.Mock).mockReturnValue([]);
     (useInsufficientBalanceAlert as jest.Mock).mockReturnValue([]);
     (useAccountTypeUpgrade as jest.Mock).mockReturnValue([]);
     (useSignedOrSubmittedAlert as jest.Mock).mockReturnValue([]);
@@ -183,6 +198,8 @@ describe('useConfirmationAlerts', () => {
     (useTokenTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useAddressTrustSignalAlerts as jest.Mock).mockReturnValue([]);
     (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue([]);
+    (useFirstTimeInteractionAlert as jest.Mock).mockReturnValue([]);
+    (useTokenContractAlert as jest.Mock).mockReturnValue([]);
   });
 
   it('returns empty array if no alerts', () => {
@@ -257,6 +274,9 @@ describe('useConfirmationAlerts', () => {
     (useOriginTrustSignalAlerts as jest.Mock).mockReturnValue(
       mockOriginTrustSignalAlerts,
     );
+    (useTokenContractAlert as jest.Mock).mockReturnValue(
+      mockTokenContractAlert,
+    );
     const { result } = renderHookWithProvider(() => useConfirmationAlerts(), {
       state: siweSignatureConfirmationState,
     });
@@ -272,6 +292,7 @@ describe('useConfirmationAlerts', () => {
       ...mockInsufficientPredictBalanceAlert,
       ...mockBurnAddressAlert,
       ...mockTokenTrustSignalAlerts,
+      ...mockTokenContractAlert,
       ...mockUpgradeAccountAlert,
       ...mockOriginTrustSignalAlerts,
       ...mockAddressTrustSignalAlerts,

@@ -33,20 +33,53 @@ export const hasMinimumRequiredVersion = (minRequiredVersion: string) => {
   return compareVersions.compare(currentVersion, minRequiredVersion, '>=');
 };
 
-export const validatedVersionGatedFeatureFlag = (
-  remoteFlag: VersionGatedFeatureFlag,
-) => {
-  // If failed to fetch remote flag or flag is overridden or misconfigured return undefined to trigger fallback
+/**
+ * Normalizes version-gated remote feature flags from two possible runtime shapes.
+ *
+ * 1) Direct shape:
+ * { enabled: true, minimumVersion: '7.65.0' }
+ *
+ * 2) Progressive rollout shape :
+ * { name: undefined | string, value: { enabled: true, minimumVersion: '7.65.0' } }
+ *
+ */
+const unwrapVersionGatedFeatureFlag = (
+  remoteFlag: unknown,
+): VersionGatedFeatureFlag | undefined => {
+  if (isVersionGatedFeatureFlag(remoteFlag)) {
+    return remoteFlag;
+  }
+
   if (
-    isRemoteFeatureFlagOverrideActivated ||
-    !remoteFlag ||
-    typeof remoteFlag.enabled !== 'boolean' ||
-    typeof remoteFlag.minimumVersion !== 'string'
+    typeof remoteFlag === 'object' &&
+    remoteFlag !== null &&
+    'value' in remoteFlag
   ) {
+    const wrappedValue = (remoteFlag as { name?: string; value?: unknown })
+      .value;
+    if (isVersionGatedFeatureFlag(wrappedValue)) {
+      return wrappedValue;
+    }
+  }
+
+  return undefined;
+};
+
+export const validatedVersionGatedFeatureFlag = (remoteFlag: unknown) => {
+  // If remote flag is overridden, return undefined to trigger caller fallback
+  if (isRemoteFeatureFlagOverrideActivated) {
+    return undefined;
+  }
+
+  // Support both direct flags and progressive rollout wrapper objects
+  const normalizedFlag = unwrapVersionGatedFeatureFlag(remoteFlag);
+
+  if (!normalizedFlag) {
     return undefined;
   }
 
   return (
-    remoteFlag.enabled && hasMinimumRequiredVersion(remoteFlag.minimumVersion)
+    normalizedFlag.enabled &&
+    hasMinimumRequiredVersion(normalizedFlag.minimumVersion)
   );
 };

@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import/no-commonjs */
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports, import-x/no-commonjs */
 import type { ThemeColors } from '@metamask/design-tokens';
 import LottieView from 'lottie-react-native';
 import React from 'react';
@@ -6,6 +6,10 @@ import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import Device from '../../../../app/util/device';
 import { useTheme, useAssetFromTheme } from '../../../util/theme';
+
+// Intrinsic dimensions of the Lottie assets (logo-light.json / logo-dark.json).
+const LOTTIE_INTRINSIC_WIDTH = 1000;
+const LOTTIE_INTRINSIC_HEIGHT = 1624;
 
 const animationSize = Device.getDeviceWidth() / 2;
 
@@ -36,6 +40,7 @@ const createStyles = (colors: ThemeColors, _safeAreaInsets: EdgeInsets) =>
     },
     animation: {
       width: animationSize,
+      aspectRatio: LOTTIE_INTRINSIC_WIDTH / LOTTIE_INTRINSIC_HEIGHT,
       alignSelf: 'center',
       alignItems: 'center',
       justifyContent: 'center',

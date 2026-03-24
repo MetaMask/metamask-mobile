@@ -21,12 +21,12 @@ const xmlParser = new xml2js.Parser();
 /**
  * Normalize a test path to be relative and consistent
  * @param {string} filePath - The path to normalize
- * @returns {string} Normalized path starting with e2e/
+ * @returns {string} Normalized path starting with tests/
  */
 function normalizeTestPath(filePath) {
   const normalized = filePath.replace(/\\/g, '/');
-  // Find the e2e/ part of the path and return from there
-  const e2eIndex = normalized.indexOf('e2e/');
+  // Find the tests/ part of the path and return from there
+  const e2eIndex = normalized.indexOf('tests/');
   if (e2eIndex !== -1) {
     return normalized.slice(e2eIndex);
   }
@@ -48,7 +48,7 @@ async function parseXml(content) {
  * jest-junit outputs XML with structure:
  * <testsuites>
  *   <testsuite name="TestSuite" tests="N" failures="N" ...>
- *     <testcase name="test name" classname="e2e/specs/path/to/file.spec.ts" time="N">
+ *     <testcase name="test name" classname="tests/smoke/path/to/file.spec.ts" time="N">
  *       <failure>...</failure>  <!-- only if failed -->
  *     </testcase>
  *   </testsuite>

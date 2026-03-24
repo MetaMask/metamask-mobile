@@ -1,8 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import type { Position } from '../controllers/types';
+import { PERPS_CONSTANTS, type Position } from '@metamask/perps-controller';
 import { usePerpsLiveOrders, usePerpsLivePositions } from './stream';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 
 export interface DataMonitorParams {
   /** Asset symbol */
@@ -65,7 +64,7 @@ export function usePerpsDataMonitor(
     asset,
     monitorOrders = true,
     monitorPositions = true,
-    timeoutMs = PERPS_CONSTANTS.DEFAULT_MONITORING_TIMEOUT_MS,
+    timeoutMs = PERPS_CONSTANTS.DefaultMonitoringTimeoutMs,
     onDataDetected,
     enabled = false,
   } = params;

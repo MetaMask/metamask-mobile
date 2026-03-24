@@ -43,6 +43,7 @@ import {
   CurrencyRateControllerActions,
 } from '@metamask/assets-controllers';
 import {
+  TransactionPayControllerGetDelegationTransactionAction,
   TransactionPayControllerGetStateAction,
   TransactionPayControllerGetStrategyAction,
 } from '@metamask/transaction-pay-controller';
@@ -76,7 +77,13 @@ export function getTransactionControllerMessenger(
       'NetworkController:getNetworkClientById',
       'RemoteFeatureFlagController:getState',
     ],
-    events: [`NetworkController:stateChange`],
+    events: [
+      'AccountActivityService:transactionUpdated',
+      'AccountActivityService:statusChanged',
+      'AccountsController:selectedAccountChange',
+      'BackendWebSocketService:connectionStateChanged',
+      'NetworkController:stateChange',
+    ],
     messenger,
   });
   return messenger;
@@ -91,6 +98,7 @@ type InitMessengerActions =
   | CurrencyRateControllerActions
   | DelegationControllerSignDelegationAction
   | NetworkControllerFindNetworkClientIdByChainIdAction
+  | NetworkControllerGetNetworkClientByIdAction
   | KeyringControllerSignEip7702AuthorizationAction
   | KeyringControllerSignTypedMessageAction
   | NetworkControllerGetEIP1559CompatibilityAction
@@ -100,6 +108,7 @@ type InitMessengerActions =
   | TransactionControllerAddTransactionBatchAction
   | TransactionControllerGetStateAction
   | TransactionControllerUpdateTransactionAction
+  | TransactionPayControllerGetDelegationTransactionAction
   | TransactionPayControllerGetStateAction
   | TransactionPayControllerGetStrategyAction
   | AnalyticsControllerActions;
@@ -148,6 +157,7 @@ export function getTransactionControllerInitMessenger(
       'DelegationController:signDelegation',
       'NetworkController:findNetworkClientIdByChainId',
       'NetworkController:getEIP1559Compatibility',
+      'NetworkController:getNetworkClientById',
       'KeyringController:signEip7702Authorization',
       'KeyringController:signTypedMessage',
       'RemoteFeatureFlagController:getState',
@@ -155,6 +165,7 @@ export function getTransactionControllerInitMessenger(
       'TransactionController:addTransactionBatch',
       'TransactionController:getState',
       'TransactionController:updateTransaction',
+      'TransactionPayController:getDelegationTransaction',
       'TransactionPayController:getState',
       'TransactionPayController:getStrategy',
       'AnalyticsController:trackEvent',

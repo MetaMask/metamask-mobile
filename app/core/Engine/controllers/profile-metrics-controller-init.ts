@@ -32,20 +32,15 @@ export const profileMetricsControllerInit: ControllerInitFunction<
     'RemoteFeatureFlagController',
   );
   const assertUserOptedIn = () => {
-    try {
-      const analyticsState = initMessenger.call('AnalyticsController:getState');
-      const isEnabled =
-        analyticsControllerSelectors.selectEnabled(analyticsState);
-      return (
-        remoteFeatureFlagController.state.remoteFeatureFlags
-          .extensionUxPna25 === true &&
-        isEnabled === true &&
-        getState().legalNotices.isPna25Acknowledged === true
-      );
-    } catch {
-      // If messenger call fails, return false (conservative approach)
-      return false;
-    }
+    const analyticsState = initMessenger.call('AnalyticsController:getState');
+    const isEnabled =
+      analyticsControllerSelectors.selectEnabled(analyticsState);
+    return (
+      remoteFeatureFlagController.state.remoteFeatureFlags.extensionUxPna25 ===
+        true &&
+      isEnabled === true &&
+      getState().legalNotices.isPna25Acknowledged === true
+    );
   };
 
   const controller = new ProfileMetricsController({
@@ -53,6 +48,7 @@ export const profileMetricsControllerInit: ControllerInitFunction<
     state: persistedState.ProfileMetricsController,
     assertUserOptedIn,
     getMetaMetricsId: () => analyticsId,
+    initialDelayDuration: 60_000, // 1 minute delay
   });
 
   return {

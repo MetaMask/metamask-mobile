@@ -3,10 +3,12 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  WITHDRAWAL_CONSTANTS,
+} from '@metamask/perps-controller';
+import {
   METAMASK_WITHDRAWAL_FEE,
   METAMASK_WITHDRAWAL_FEE_PLACEHOLDER,
-} from '../constants/hyperLiquidConfig';
-import { WITHDRAWAL_CONSTANTS } from '../constants/perpsConfig';
+} from '../constants/perpsUIConfig';
 
 interface PerpsWithdrawQuoteParams {
   amount: string;
@@ -52,8 +54,8 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
     // Find USDC route
     const usdcAssetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
     return routes.find((route) => route.assetId === usdcAssetId);
   }, []);
@@ -62,7 +64,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
     // Get fees from route constraints or use defaults
     const networkFee =
       withdrawalRoute?.constraints?.fees?.fixed ??
-      WITHDRAWAL_CONSTANTS.DEFAULT_FEE_AMOUNT;
+      WITHDRAWAL_CONSTANTS.DefaultFeeAmount;
     const metamaskFee = METAMASK_WITHDRAWAL_FEE; // $0 currently
     const totalFees = networkFee + metamaskFee;
 
@@ -110,7 +112,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
     const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
     );
     return parsedAmount >= minAmount;
   }, [parsedAmount, isValid, withdrawalRoute]);
@@ -123,7 +125,7 @@ export const usePerpsWithdrawQuote = ({ amount }: PerpsWithdrawQuoteParams) => {
 
     const minAmount = Number.parseFloat(
       withdrawalRoute?.constraints?.minAmount ||
-        WITHDRAWAL_CONSTANTS.DEFAULT_MIN_AMOUNT,
+        WITHDRAWAL_CONSTANTS.DefaultMinAmount,
     );
     if (parsedAmount > 0 && parsedAmount < minAmount) {
       return strings('perps.withdrawal.amount_too_low', {

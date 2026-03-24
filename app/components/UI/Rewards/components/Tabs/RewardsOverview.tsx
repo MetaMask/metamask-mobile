@@ -16,7 +16,7 @@ const RewardsOverview: React.FC<RewardsOverviewProps> = () => {
 
   return (
     <ScrollView
-      contentContainerStyle={tw.style('flex-grow')}
+      contentContainerStyle={tw.style('flex-grow p-4 gap-4')}
       showsVerticalScrollIndicator={false}
       testID={REWARDS_VIEW_SELECTORS.TAB_CONTENT_OVERVIEW}
     >

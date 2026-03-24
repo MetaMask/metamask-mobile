@@ -1,5 +1,11 @@
 import React, { ReactNode, useEffect } from 'react';
-import { BackHandler, TouchableWithoutFeedback, View } from 'react-native';
+import {
+  BackHandler,
+  StyleProp,
+  TouchableWithoutFeedback,
+  View,
+  ViewStyle,
+} from 'react-native';
 import { ScrollView } from 'react-native-gesture-handler';
 import { useNavigation } from '@react-navigation/native';
 
@@ -11,7 +17,6 @@ import useConfirmationAlerts from '../../hooks/alerts/useConfirmationAlerts';
 import useApprovalRequest from '../../hooks/useApprovalRequest';
 import { AlertsContextProvider } from '../../context/alert-system-context';
 import { ConfirmationContextProvider } from '../../context/confirmation-context';
-import { LedgerContextProvider } from '../../context/ledger-context';
 import { QRHardwareContextProvider } from '../../context/qr-hardware-context';
 import { useConfirmActions } from '../../hooks/useConfirmActions';
 import { useFullScreenConfirmation } from '../../hooks/ui/useFullScreenConfirmation';
@@ -20,7 +25,6 @@ import AlertBanner from '../alert-banner';
 import Info from '../info-root';
 import Title from '../title';
 import { Footer, FooterSkeleton } from '../footer';
-import { Splash } from '../splash';
 import styleSheet from './confirm-component.styles';
 import { TransactionType } from '@metamask/transaction-controller';
 import { useParams } from '../../../../../util/navigation/navUtils';
@@ -36,6 +40,7 @@ const TRANSACTION_TYPES_DISABLE_SCROLL = [TransactionType.predictClaim];
 
 const TRANSACTION_TYPES_DISABLE_ALERT_BANNER = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsDepositAndOrder,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
@@ -50,6 +55,7 @@ export enum ConfirmationLoader {
 export interface ConfirmationParams {
   loader?: ConfirmationLoader;
   maxValueMode?: boolean;
+  forceBottomSheet?: boolean;
 }
 
 const ConfirmWrapped = ({
@@ -66,26 +72,23 @@ const ConfirmWrapped = ({
       <ConfirmationAssetPollingProvider>
         <ConfirmationAlerts>
           <QRHardwareContextProvider>
-            <LedgerContextProvider>
-              <Title />
-              <ScrollView
-                style={styles.scrollView}
-                contentContainerStyle={styles.scrollViewContent}
-                nestedScrollEnabled
-                scrollEnabled={!isScrollDisabled}
-              >
-                <TouchableWithoutFeedback>
-                  <>
-                    <AlertBanner
-                      ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
-                    />
-                    <Info route={route} />
-                  </>
-                </TouchableWithoutFeedback>
-              </ScrollView>
-              <Footer />
-              <Splash />
-            </LedgerContextProvider>
+            <Title />
+            <ScrollView
+              style={styles.scrollView}
+              contentContainerStyle={styles.scrollViewContent}
+              nestedScrollEnabled
+              scrollEnabled={!isScrollDisabled}
+            >
+              <TouchableWithoutFeedback>
+                <>
+                  <AlertBanner
+                    ignoreTypes={TRANSACTION_TYPES_DISABLE_ALERT_BANNER}
+                  />
+                  <Info route={route} />
+                </>
+              </TouchableWithoutFeedback>
+            </ScrollView>
+            <Footer />
           </QRHardwareContextProvider>
         </ConfirmationAlerts>
       </ConfirmationAssetPollingProvider>
@@ -95,14 +98,25 @@ const ConfirmWrapped = ({
 
 interface ConfirmProps {
   route?: UnstakeConfirmationViewProps['route'];
+  /** When true, disables SafeAreaView insets when confirmation is full screen. Defaults to false. */
+  disableSafeArea?: boolean;
+  /** Optional style applied to the full-screen confirmation container. */
+  fullscreenStyle?: StyleProp<ViewStyle>;
 }
 
-export const Confirm = ({ route }: ConfirmProps) => {
+export const Confirm = ({
+  route,
+  disableSafeArea = false,
+  fullscreenStyle,
+}: ConfirmProps) => {
   const { approvalRequest } = useApprovalRequest();
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const navigation = useNavigation();
   const { onReject } = useConfirmActions();
-  const { styles } = useStyles(styleSheet, { isFullScreenConfirmation });
+  const { styles } = useStyles(styleSheet, {
+    isFullScreenConfirmation,
+    disableSafeArea,
+  });
 
   useEffect(() => {
     if (approvalRequest) {
@@ -143,8 +157,8 @@ export const Confirm = ({ route }: ConfirmProps) => {
   if (isFullScreenConfirmation) {
     return (
       <SafeAreaView
-        edges={['right', 'bottom', 'left']}
-        style={styles.flatContainer}
+        edges={disableSafeArea ? [] : ['right', 'bottom', 'left']}
+        style={[styles.flatContainer, fullscreenStyle]}
         testID={ConfirmationUIType.FLAT}
       >
         <ConfirmWrapped styles={styles} route={route} />

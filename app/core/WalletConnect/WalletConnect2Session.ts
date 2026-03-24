@@ -29,14 +29,15 @@ import {
   getScopedPermissions,
   hideWCLoadingState,
   isSwitchingChainRequest,
-  getRequestOrigin,
+  getUnverifiedRequestOrigin,
   hasPermissionsToSwitchChainRequest,
   getNetworkClientIdForCaipChainId,
   getChainIdForCaipChainId,
   getHostname,
+  normalizeDappUrl,
 } from './wc-utils';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
@@ -103,9 +104,15 @@ class WalletConnect2Session {
       navigation,
     );
 
-    const url = session.peer.metadata.url;
+    const rawUrl = session.peer.metadata.url;
     const name = session.peer.metadata.name;
     const icons = session.peer.metadata.icons;
+
+    // Normalize URL to handle legacy sessions that may have URLs without protocol.
+    const url = normalizeDappUrl(rawUrl);
+    if (!url) {
+      throw new Error(`Invalid dApp URL in session metadata: ${rawUrl}`);
+    }
 
     DevLogger.log(
       `WalletConnect2Session::constructor topic=${session.topic} pairingTopic=${session.pairingTopic} url=${url} name=${name} icons=${icons}`,
@@ -131,19 +138,18 @@ class WalletConnect2Session {
         getProviderState: any;
       }) =>
         getRpcMethodMiddleware({
-          hostname: this.hostname,
+          hostname: this.selfReportedHostname,
           getProviderState,
           channelId,
           analytics: {},
           isMMSDK: false,
-          isHomepage: () => false,
-          fromHomepage: { current: false },
-          injectHomePageScripts: () => false,
           navigation: this.navigation,
+          // Website info — self-reported by dapp via WC session metadata, shown in
+          // confirmation/approval UI to indicate the claimed source of the request.
+          // Not equivalent to a verified origin/hostname.
           url: { current: url },
           title: { current: name },
           icon: { current: icons?.[0] as ImageSourcePropType },
-          toggleUrlModal: () => null,
           tabId: '',
           isWalletConnect: true,
         }),
@@ -161,12 +167,26 @@ class WalletConnect2Session {
     store.subscribe(this.onStoreChange.bind(this));
   }
 
-  private get origin() {
+  /**
+   * The dapp URL from the WalletConnect session metadata.
+   *
+   * WARNING: This value is **self-reported** by the dapp in the WC session
+   * proposal and is NOT independently verified. It MUST NOT be used as a
+   * trusted origin identifier. It is shown in the confirmation/approval UI to
+   * indicate the claimed source of the request, and used as a fallback when
+   * `verifyContext` is unavailable. It should therefore not be treated as
+   * equivalent to the verified origin/hostname of the request.
+   */
+  private get selfReportedUrl() {
     return this.session.peer.metadata.url;
   }
 
-  private get hostname() {
-    return getHostname(this.origin);
+  /**
+   * Hostname derived from the self-reported dapp URL.
+   * See {@link selfReportedUrl} for trust caveats.
+   */
+  private get selfReportedHostname() {
+    return getHostname(this.selfReportedUrl);
   }
 
   private onStoreChange() {
@@ -443,7 +463,7 @@ class WalletConnect2Session {
       }
 
       DevLogger.log(
-        `WC2::updateSession origin=${this.origin} hostname=${this.hostname} - chainId=${chainId} - accounts=${accounts}`,
+        `WC2::updateSession selfReportedUrl=${this.selfReportedUrl} selfReportedHostname=${this.selfReportedHostname} - chainId=${chainId} - accounts=${accounts}`,
       );
 
       if (accounts.length === 0) {
@@ -456,7 +476,7 @@ class WalletConnect2Session {
           accounts = approvedAccounts;
         } else {
           console.warn(
-            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} origin=${this.origin}`,
+            `WC2::updateSession no permitted accounts found for topic=${this.session.topic} selfReportedUrl=${this.selfReportedUrl}`,
           );
           return;
         }
@@ -518,7 +538,10 @@ class WalletConnect2Session {
     }
 
     const channelId = this.channelId;
-    const origin = originFromRequest ?? this.origin;
+    // NOTE: originFromRequest and this.selfReportedUrl are both unverified dapp-provided values.
+    // They are shown in the confirmation/approval UI to indicate the claimed source of the
+    // request. They should NOT be treated as equivalent to a verified origin/hostname.
+    const unverifiedOrigin = originFromRequest ?? this.selfReportedUrl;
 
     const { allowed, existingNetwork, hexChainIdString } =
       await hasPermissionsToSwitchChainRequest(caip2ChainId, channelId);
@@ -542,7 +565,7 @@ class WalletConnect2Session {
 
       const hooks = getRpcMethodMiddlewareHooks({
         origin: this.channelId,
-        url: { current: origin },
+        url: { current: unverifiedOrigin },
         title: { current: this.session.peer.metadata.name },
         icon: {
           current: this.session.peer.metadata.icons?.[0] as ImageSourcePropType,
@@ -560,7 +583,7 @@ class WalletConnect2Session {
         // Clear any pending approvals before prompting the user to permit a new chain.
         // Unsure why this is needed, but it was previously found here before this code was refactored.
         // https://github.com/MetaMask/metamask-mobile/blob/081e412f6680e03ad509194acd620c67a273a92b/app/core/WalletConnect/wc-utils.ts#L242
-        Engine.context.ApprovalController.clear(
+        Engine.context.ApprovalController.clearRequests(
           providerErrors.userRejectedRequest(),
         );
         return originalRequestPermittedChainsPermissionIncrementalForOrigin(
@@ -583,7 +606,7 @@ class WalletConnect2Session {
         origin: this.channelId,
         hooks: getRpcMethodMiddlewareHooks({
           origin: this.channelId,
-          url: { current: origin },
+          url: { current: unverifiedOrigin },
           title: { current: this.session.peer.metadata.name },
           icon: {
             current: this.session.peer.metadata
@@ -616,7 +639,31 @@ class WalletConnect2Session {
 
     hideWCLoadingState({ navigation: this.navigation });
 
-    const origin = getRequestOrigin(requestEvent, this.origin);
+    // NOTE: unverifiedOrigin may come from WC verifyContext (partially trusted)
+    // or fall back to self-reported session metadata URL (untrusted).
+    const unverifiedOrigin = getUnverifiedRequestOrigin(
+      requestEvent,
+      this.selfReportedUrl,
+    );
+
+    // Prevent external transactions from using internal origins.
+    // This is an external connection (WalletConnect), so block any internal origin.
+    // NOTE: unverifiedOrigin is self-reported by the dapp.
+    if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
+      this._isHandlingRequest = false;
+      return this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: {
+            code: errorCodes.provider.unauthorized,
+            message: ERROR_MESSAGES.INVALID_ORIGIN,
+          },
+        },
+      });
+    }
+
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
@@ -643,7 +690,7 @@ class WalletConnect2Session {
 
     const currentMetadata = store.getState().sdk.wc2Metadata ?? {
       id: this.channelId,
-      url: origin,
+      url: unverifiedOrigin,
       name: this.session.peer.metadata.name,
       icon: this.session.peer.metadata.icons?.[0] as string,
     };
@@ -651,12 +698,12 @@ class WalletConnect2Session {
     store.dispatch(
       updateWC2Metadata({
         ...currentMetadata,
-        lastVerifiedUrl: origin,
+        lastVerifiedUrl: unverifiedOrigin,
       }),
     );
 
     DevLogger.log(
-      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} origin=${origin}`,
+      `WalletConnect2Session::handleRequest caip2ChainId=${caip2ChainId} method=${method} unverifiedOrigin=${unverifiedOrigin}`,
     );
 
     const permittedChains = await getPermittedChains(this.channelId);
@@ -668,7 +715,7 @@ class WalletConnect2Session {
 
     if (method === 'wallet_switchEthereumChain') {
       try {
-        await this.switchToChain(caip2ChainId, origin, true);
+        await this.switchToChain(caip2ChainId, unverifiedOrigin, true);
         // respond to the request as successful
         DevLogger.log(`WC::handleRequest approving switch chain request`);
         return this.approveRequest({ id: requestEvent.id + '', result: true });
@@ -712,7 +759,7 @@ class WalletConnect2Session {
         caip2ChainId,
         requestEvent,
         methodParams,
-        origin,
+        unverifiedOrigin,
       );
       return;
     }
@@ -726,7 +773,7 @@ class WalletConnect2Session {
           method: 'eth_signTypedData_v3',
           params: methodParams,
         },
-        origin,
+        origin: unverifiedOrigin,
       });
       return;
     }
@@ -739,7 +786,7 @@ class WalletConnect2Session {
         method,
         params: methodParams,
       },
-      origin,
+      origin: unverifiedOrigin,
     });
   };
 
@@ -752,22 +799,15 @@ class WalletConnect2Session {
     requestEvent: WalletKitTypes.SessionRequest,
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     methodParams: any,
-    origin: string,
+    /** WARNING: This origin is self-reported by the dapp and unverified. */
+    unverifiedOrigin: string,
   ) {
     try {
-      // Prevent external transactions from using internal origins
-      // This is an external connection (WalletConnect), so block any internal origin
-      if (INTERNAL_ORIGINS.includes(origin)) {
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
-
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,
         networkClientId,
-        origin,
+        origin: unverifiedOrigin,
         securityAlertResponse: undefined,
       });
 
@@ -775,7 +815,7 @@ class WalletConnect2Session {
         id: requestEvent.id,
         jsonrpc: '2.0',
         method: 'eth_sendTransaction',
-        origin,
+        origin: unverifiedOrigin,
         params: [
           {
             from: methodParams[0].from,

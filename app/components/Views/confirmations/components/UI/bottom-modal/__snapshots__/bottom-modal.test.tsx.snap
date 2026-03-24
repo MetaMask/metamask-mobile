@@ -52,7 +52,7 @@ exports[`BottomModal should match snapshot 1`] = `
       onStartShouldSetResponder={[Function]}
       style={
         {
-          "backgroundColor": "#3f434a66",
+          "backgroundColor": "#0a0d135c",
           "bottom": 0,
           "height": 1334,
           "left": 0,

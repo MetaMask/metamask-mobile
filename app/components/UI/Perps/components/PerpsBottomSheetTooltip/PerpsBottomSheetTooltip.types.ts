@@ -31,6 +31,13 @@ export interface PerpsBottomSheetTooltipProps {
    * Optional button config to pass to custom content renderers
    */
   buttonConfig?: ButtonProps[];
+
+  /**
+   * Analytics: screen context for button_location tracking.
+   * When provided, overrides the default 'tooltip' button_location
+   * to indicate which screen the tooltip was opened from.
+   */
+  buttonLocation?: string;
 }
 
 export type PerpsTooltipContentKey =
@@ -55,4 +62,5 @@ export type PerpsTooltipContentKey =
   | 'market_hours'
   | 'after_hours_trading'
   | 'oracle_price'
-  | 'spread';
+  | 'spread'
+  | 'pay_with';

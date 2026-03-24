@@ -1,5 +1,5 @@
 import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
-import type { Position } from '../controllers/types';
+import { type Position } from '@metamask/perps-controller';
 import { STOP_LOSS_PROMPT_CONFIG } from '../constants/perpsConfig';
 
 export type StopLossPromptVariant = 'stop_loss' | 'add_margin';
@@ -24,7 +24,7 @@ export interface UseStopLossPromptParams {
   currentPrice: number;
   /** Enable/disable the hook (default: true) */
   enabled?: boolean;
-  /** Timestamp when position was opened (from order fills) - bypasses debounce if position is >2min old */
+  /** Timestamp when position was opened (from order fills) - bypasses client-side age wait for old positions */
   positionOpenedTimestamp?: number;
 }
 
@@ -52,8 +52,9 @@ export interface UseStopLossPromptResult {
  *
  * Implements the logic from TASK_AUTOSET.md:
  * - Shows "add_margin" variant when within 3% of liquidation
- * - Shows "stop_loss" variant when ROE <= -10% for 60s (debounced)
+ * - Shows "stop_loss" variant when ROE <= -10%
  * - Suppresses when position has cross margin or existing stop loss
+ * - Suppresses for the first 2 minutes after a position is detected
  *
  * @example
  * ```tsx
@@ -65,7 +66,6 @@ export interface UseStopLossPromptResult {
  * } = useStopLossPrompt({
  *   position: existingPosition,
  *   currentPrice: 50000,
- *   positionOpenedTimestamp: 1234567890000, // Optional: from order fills
  * });
  * ```
  */
@@ -75,11 +75,6 @@ export const useStopLossPrompt = ({
   enabled = true,
   positionOpenedTimestamp,
 }: UseStopLossPromptParams): UseStopLossPromptResult => {
-  // Track when ROE first dropped below threshold for debouncing
-  const roeBelowThresholdSinceRef = useRef<number | null>(null);
-  const hasBeenShownRef = useRef(false);
-  const [roeDebounceComplete, setRoeDebounceComplete] = useState(false);
-
   // Track when the current position was first detected (client-side)
   // This is used to enforce the minimum position age requirement
   const positionFirstSeenRef = useRef<{
@@ -124,52 +119,27 @@ export const useStopLossPrompt = ({
     return roeValue * 100;
   }, [position?.returnOnEquity]);
 
-  // Callback to finish debounce (from main - for server timestamp bypass)
-  const finishDebounce = useCallback(() => {
-    setRoeDebounceComplete(true);
-    hasBeenShownRef.current = true;
-  }, []);
-
-  // Reset hasBeenShownRef when position changes (from main)
-  useEffect(() => {
-    hasBeenShownRef.current = false;
-  }, [position?.symbol]);
-
-  // Server timestamp bypass effect (from main)
-  // If positionOpenedTimestamp shows position is >2 minutes old, bypass debounce AND position age check
-  useEffect(() => {
-    if (!enabled || roePercent === null || hasBeenShownRef.current) {
-      return;
-    }
-
-    // Check if position was opened more than 2 minutes ago (from order fills timestamp)
-    const POSITION_AGE_THRESHOLD_MS = 2 * 60 * 1000; // 2 minutes
-    const positionAge = positionOpenedTimestamp
-      ? Date.now() - positionOpenedTimestamp
-      : 0;
-
-    const isBelowThreshold =
-      roePercent <= STOP_LOSS_PROMPT_CONFIG.ROE_THRESHOLD;
-
-    // If position is old enough (from actual order fill data), bypass both debounce and position age check
-    // Server timestamp is authoritative - no need to wait for client-side age tracking
-    if (positionAge >= POSITION_AGE_THRESHOLD_MS && isBelowThreshold) {
-      setPositionAgeCheckPassed(true); // Also bypass client-side age check
-      finishDebounce();
-    }
-  }, [positionOpenedTimestamp, enabled, roePercent, finishDebounce]);
-
-  // Handle client-side position age tracking (from HEAD)
-  // Track when a position is first detected and enforce minimum age before showing banners
+  // Handle position age tracking
+  // Positions must be open for PositionMinAgeMs before showing the banner.
+  // If positionOpenedTimestamp (from order fills) proves the position is already old enough,
+  // the check passes immediately — no client-side timer needed.
   useEffect(() => {
     if (!enabled || !position?.symbol) {
-      // Reset when disabled or no position
       positionFirstSeenRef.current = null;
       setPositionAgeCheckPassed(false);
       return;
     }
 
-    // Check if this is a new position (different symbol or first time seeing it)
+    // Server timestamp bypass: if order fills confirm the position is old enough, skip the wait
+    if (positionOpenedTimestamp) {
+      const positionAge = Date.now() - positionOpenedTimestamp;
+      if (positionAge >= STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs) {
+        setPositionAgeCheckPassed(true);
+        return;
+      }
+    }
+
+    // Client-side fallback: track when this position was first seen on this screen
     if (
       !positionFirstSeenRef.current ||
       positionFirstSeenRef.current.symbol !== position.symbol
@@ -181,14 +151,11 @@ export const useStopLossPrompt = ({
       setPositionAgeCheckPassed(false);
     }
 
-    // Check if minimum age has passed
     const elapsed = Date.now() - positionFirstSeenRef.current.timestamp;
-    if (elapsed >= STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS) {
+    if (elapsed >= STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs) {
       setPositionAgeCheckPassed(true);
     } else {
-      // Set up timer to check again when age threshold is reached
-      const remainingTime =
-        STOP_LOSS_PROMPT_CONFIG.POSITION_MIN_AGE_MS - elapsed;
+      const remainingTime = STOP_LOSS_PROMPT_CONFIG.PositionMinAgeMs - elapsed;
       const timer = setTimeout(() => {
         setPositionAgeCheckPassed(true);
       }, remainingTime);
@@ -197,107 +164,86 @@ export const useStopLossPrompt = ({
     }
 
     return undefined;
-  }, [enabled, position?.symbol]);
+  }, [enabled, position?.symbol, positionOpenedTimestamp]);
 
-  // Handle ROE debounce logic
-  useEffect(() => {
-    if (!enabled || roePercent === null) {
-      roeBelowThresholdSinceRef.current = null;
-      setRoeDebounceComplete(false);
-      hasBeenShownRef.current = false; // Reset when position is closed
-      return;
-    }
-
-    const isBelowThreshold =
-      roePercent <= STOP_LOSS_PROMPT_CONFIG.ROE_THRESHOLD;
-
-    if (isBelowThreshold) {
-      // Start tracking if not already
-      if (roeBelowThresholdSinceRef.current === null) {
-        roeBelowThresholdSinceRef.current = Date.now();
-      }
-
-      // Check if debounce period has passed
-      const elapsed = Date.now() - roeBelowThresholdSinceRef.current;
-      if (elapsed >= STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS) {
-        finishDebounce();
-      } else {
-        // Set up timer to check again
-        const remainingTime = STOP_LOSS_PROMPT_CONFIG.ROE_DEBOUNCE_MS - elapsed;
-        const timer = setTimeout(() => {
-          // Re-check if still below threshold
-          if (roeBelowThresholdSinceRef.current !== null) {
-            finishDebounce();
-          }
-        }, remainingTime);
-
-        return () => clearTimeout(timer);
-      }
-    } else {
-      // Reset tracking when ROE goes above threshold
-      roeBelowThresholdSinceRef.current = null;
-      setRoeDebounceComplete(false);
-    }
-
-    return undefined;
-  }, [enabled, roePercent, position, positionOpenedTimestamp, finishDebounce]);
-
-  // Calculate suggested stop loss price based on entry price and target ROE
-  // Formula: For a position, SL price at -50% ROE = entryPrice * (1 + targetROE/100/leverage)
+  // Calculate suggested stop loss price as midpoint between current price and liquidation price
+  // This provides a balanced protection point that limits losses while avoiding premature triggers
   const suggestedStopLossPrice = useMemo(() => {
     // Dev override: provide mock price for stop_loss variant without position
     if (__DEV__ && FORCE_BANNER_VARIANT === 'stop_loss' && !position) {
       return '45000'; // Mock price for display
     }
 
-    if (!position?.entryPrice) {
+    if (!position?.liquidationPrice || !currentPrice || currentPrice <= 0) {
       return null;
     }
 
-    const entryPrice = parseFloat(position.entryPrice);
-    const leverage = position.leverage?.value ?? 1;
-    const positionSize = parseFloat(position.size);
+    const liquidationPrice = parseFloat(position.liquidationPrice);
 
-    if (isNaN(entryPrice) || entryPrice <= 0 || leverage <= 0) {
+    if (isNaN(liquidationPrice) || liquidationPrice <= 0) {
       return null;
     }
 
-    // Target ROE is configurable (default -50%)
-    const targetRoeDecimal =
-      STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE / 100;
-
-    // Calculate price at target ROE
-    // ROE = (priceChange / entryPrice) * leverage * direction
-    // priceChange = ROE * entryPrice / leverage / direction
-    const isLong = positionSize >= 0;
-    const direction = isLong ? 1 : -1;
-    const priceChange = (targetRoeDecimal * entryPrice) / leverage / direction;
-    const slPrice = entryPrice + priceChange;
+    // Calculate midpoint between current price and liquidation price
+    const midpointPrice = (currentPrice + liquidationPrice) / 2;
 
     // Ensure SL price is positive and reasonable
-    if (slPrice <= 0) {
+    if (midpointPrice <= 0) {
       return null;
     }
 
-    return slPrice.toString();
-  }, [position]);
+    return midpointPrice.toString();
+  }, [position, currentPrice]);
 
-  // Return the target ROE percentage used to calculate the stop loss
+  // Calculate the ROE percentage at the suggested stop loss price
   // This represents the ROE the user will experience if the stop loss triggers
   const suggestedStopLossPercent = useMemo(() => {
     // Dev override: provide mock percentage for stop_loss variant without position
     if (__DEV__ && FORCE_BANNER_VARIANT === 'stop_loss' && !position) {
-      return STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE;
+      return STOP_LOSS_PROMPT_CONFIG.SuggestedStopLossRoe;
     }
 
-    // Return the configured target ROE if we have a valid stop loss price
-    if (!suggestedStopLossPrice) {
+    if (!suggestedStopLossPrice || !position?.entryPrice) {
       return null;
     }
 
-    // The stop loss price was calculated to achieve this specific ROE
-    return STOP_LOSS_PROMPT_CONFIG.SUGGESTED_STOP_LOSS_ROE;
+    const entryPrice = parseFloat(position.entryPrice);
+    const slPrice = parseFloat(suggestedStopLossPrice);
+    const leverage = position.leverage?.value ?? 1;
+    const positionSize = parseFloat(position.size);
+
+    if (
+      isNaN(entryPrice) ||
+      entryPrice <= 0 ||
+      isNaN(slPrice) ||
+      leverage <= 0
+    ) {
+      return null;
+    }
+
+    // Calculate ROE at the suggested stop loss price
+    // ROE = (priceChange / entryPrice) * leverage * direction
+    const isLong = positionSize >= 0;
+    const direction = isLong ? 1 : -1;
+    const priceChange = slPrice - entryPrice;
+    const roe = (priceChange / entryPrice) * leverage * direction * 100;
+
+    return roe;
   }, [suggestedStopLossPrice, position]);
+
+  // Safety guard: Check if suggested SL price is too close to current price
+  // If within 3% of mark price, we should show "add_margin" instead to avoid accidental immediate fills
+  const isSuggestedSlTooClose = useMemo(() => {
+    if (!suggestedStopLossPrice || !currentPrice || currentPrice <= 0) {
+      return false;
+    }
+    const slPrice = parseFloat(suggestedStopLossPrice);
+    if (isNaN(slPrice) || slPrice <= 0) {
+      return false;
+    }
+    const distance = (Math.abs(currentPrice - slPrice) / currentPrice) * 100;
+    return distance < STOP_LOSS_PROMPT_CONFIG.LiquidationDistanceThreshold; // Within 3% of current price
+  }, [suggestedStopLossPrice, currentPrice]);
 
   // Determine if banner should show and which variant
   const { shouldShowBanner, variant } = useMemo((): {
@@ -348,7 +294,7 @@ export const useStopLossPrompt = ({
     // No banner shown until ROE drops below MIN_LOSS_THRESHOLD (-10%)
     if (
       roePercent === null ||
-      roePercent > STOP_LOSS_PROMPT_CONFIG.MIN_LOSS_THRESHOLD
+      roePercent > STOP_LOSS_PROMPT_CONFIG.MinLossThreshold
     ) {
       return { shouldShowBanner: false, variant: null };
     }
@@ -356,14 +302,26 @@ export const useStopLossPrompt = ({
     // Priority 1: Near liquidation → Add margin variant
     if (
       liquidationDistance !== null &&
-      liquidationDistance <
-        STOP_LOSS_PROMPT_CONFIG.LIQUIDATION_DISTANCE_THRESHOLD
+      liquidationDistance < STOP_LOSS_PROMPT_CONFIG.LiquidationDistanceThreshold
     ) {
       return { shouldShowBanner: true, variant: 'add_margin' };
     }
 
-    // Priority 2: ROE below threshold with debounce → Stop loss variant
-    if (roeDebounceComplete) {
+    // Priority 2: ROE below threshold → Stop loss variant
+    // But if suggested SL is too close to current price (within 3%), show add_margin instead
+    if (
+      roePercent !== null &&
+      roePercent <= STOP_LOSS_PROMPT_CONFIG.RoeThreshold
+    ) {
+      // Guard: Don't show stop_loss variant if we can't calculate a valid suggested price
+      // This prevents displaying garbled banner text like "Set a stop loss at ( ROE)"
+      if (!suggestedStopLossPrice) {
+        return { shouldShowBanner: true, variant: 'add_margin' };
+      }
+      if (isSuggestedSlTooClose) {
+        // Safety guard: SL price too close to current price, suggest adding margin instead
+        return { shouldShowBanner: true, variant: 'add_margin' };
+      }
       return { shouldShowBanner: true, variant: 'stop_loss' };
     }
 
@@ -372,7 +330,8 @@ export const useStopLossPrompt = ({
     enabled,
     position,
     liquidationDistance,
-    roeDebounceComplete,
+    isSuggestedSlTooClose,
+    suggestedStopLossPrice,
     positionAgeCheckPassed,
     roePercent,
   ]);

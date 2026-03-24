@@ -2,7 +2,7 @@ import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { performEvmRefresh } from './tokenRefreshUtils';
+import { performEvmTokenRefresh } from './tokenRefreshUtils';
 
 interface RefreshTokensProps {
   isSolanaSelected: boolean;
@@ -10,14 +10,16 @@ interface RefreshTokensProps {
     string,
     { chainId: Hex; nativeCurrency: string }
   >;
-  nativeCurrencies: string[];
   selectedAccountId?: InternalAccount['id'];
 }
 
+/**
+ * Refreshes token data (detection, balances, rates).
+ * Does NOT refresh account balance - that's handled by refreshSharedContent in Wallet.
+ */
 export const refreshTokens = async ({
   isSolanaSelected,
   evmNetworkConfigurationsByChainId,
-  nativeCurrencies,
   selectedAccountId,
 }: RefreshTokensProps) => {
   if (isSolanaSelected) {
@@ -30,5 +32,5 @@ export const refreshTokens = async ({
       }
     }
   }
-  await performEvmRefresh(evmNetworkConfigurationsByChainId, nativeCurrencies);
+  await performEvmTokenRefresh(evmNetworkConfigurationsByChainId);
 };

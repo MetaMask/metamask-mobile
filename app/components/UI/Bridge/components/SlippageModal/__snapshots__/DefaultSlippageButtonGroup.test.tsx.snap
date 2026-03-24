@@ -1,0 +1,3896 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`DefaultSlippageButtonGroup button variants handles mixed selected states correctly: mixed variants 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="3%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        3%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup button variants uses Primary variant for selected button: primary variant 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup button variants uses Secondary variant for unselected button: secondary variant 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup complete component snapshots matches snapshot for typical slippage options 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="0.5%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        0.5%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="3%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        3%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="Custom"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Custom
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup complete component snapshots matches snapshot with auto selected 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup complete component snapshots matches snapshot with custom selected 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="Custom"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Custom
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup edge cases handles long labels 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Very Long Custom Label"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Very Long Custom Label
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="Another Super Long Label Here"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Another Super Long Label Here
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup edge cases handles many options 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="3%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        3%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="4%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        4%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="5%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        5%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="Custom"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Custom
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup edge cases handles options without selected property 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup edge cases handles single option 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup styling renders correct styling with first option selected 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup styling renders correct styling with last option selected 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup styling renders correct styling with multiple options selected 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup styling renders correct styling with no options selected 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+</View>
+`;
+
+exports[`DefaultSlippageButtonGroup styling renders correct styling with one option selected 1`] = `
+<View
+  style={
+    {
+      "display": "flex",
+      "flexDirection": "row",
+      "gap": 8,
+      "justifyContent": "center",
+      "padding": 16,
+    }
+  }
+>
+  <View>
+    <View
+      accessibilityLabel="Auto"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        Auto
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="1%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#131416",
+            "borderRadius": 12,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#ffffff",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        1%
+      </Text>
+    </View>
+  </View>
+  <View>
+    <View
+      accessibilityLabel="2%"
+      accessibilityRole="button"
+      accessibilityState={
+        {
+          "busy": undefined,
+          "checked": undefined,
+          "disabled": false,
+          "expanded": undefined,
+          "selected": undefined,
+        }
+      }
+      accessibilityValue={
+        {
+          "max": undefined,
+          "min": undefined,
+          "now": undefined,
+          "text": undefined,
+        }
+      }
+      accessible={true}
+      collapsable={false}
+      focusable={true}
+      onBlur={[Function]}
+      onClick={[Function]}
+      onFocus={[Function]}
+      onResponderGrant={[Function]}
+      onResponderMove={[Function]}
+      onResponderRelease={[Function]}
+      onResponderTerminate={[Function]}
+      onResponderTerminationRequest={[Function]}
+      onStartShouldSetResponder={[Function]}
+      style={
+        [
+          {
+            "alignItems": "center",
+            "alignSelf": "flex-start",
+            "backgroundColor": "#b4b4b528",
+            "borderColor": "transparent",
+            "borderRadius": 12,
+            "borderWidth": 1,
+            "columnGap": 8,
+            "flexDirection": "row",
+            "height": 48,
+            "justifyContent": "center",
+            "minWidth": 80,
+            "opacity": 1,
+            "overflow": "hidden",
+            "paddingLeft": 16,
+            "paddingRight": 16,
+          },
+          {
+            "transform": [
+              {
+                "scale": 1,
+              },
+            ],
+          },
+        ]
+      }
+    >
+      <Text
+        accessibilityRole="text"
+        ellipsizeMode="clip"
+        numberOfLines={1}
+        style={
+          [
+            {
+              "color": "#131416",
+              "flexGrow": 0,
+              "flexShrink": 1,
+              "flexWrap": "wrap",
+              "fontFamily": "Geist-Medium",
+              "fontSize": 16,
+              "fontWeight": 400,
+              "letterSpacing": 0,
+              "lineHeight": 24,
+              "textAlign": "center",
+            },
+            undefined,
+          ]
+        }
+      >
+        2%
+      </Text>
+    </View>
+  </View>
+</View>
+`;

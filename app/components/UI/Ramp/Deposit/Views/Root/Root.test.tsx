@@ -87,16 +87,7 @@ describe('Root Component', () => {
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
-  it('calls checkExistingToken on load', async () => {
-    mockCheckExistingToken.mockResolvedValue(false);
-    render(Root);
-    await waitFor(() => {
-      expect(mockCheckExistingToken).toHaveBeenCalled();
-    });
-  });
-
-  it('redirects to BUILD_QUOTE when existing token has been checked', async () => {
-    mockCheckExistingToken.mockResolvedValue(true);
+  it('redirects to BUILD_QUOTE immediately when no created orders exist', async () => {
     render(Root);
     await waitFor(() => {
       expect(mockReset).toHaveBeenCalledWith({
@@ -108,6 +99,27 @@ describe('Root Component', () => {
           },
         ],
       });
+    });
+    expect(mockCheckExistingToken).not.toHaveBeenCalled();
+  });
+
+  it('calls checkExistingToken when a created order exists', async () => {
+    const mockOrders = [
+      {
+        id: 'test-order-id',
+        provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+        state: FIAT_ORDER_STATES.CREATED,
+      },
+    ] as FiatOrder[];
+
+    (
+      getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
+    ).mockReturnValue(mockOrders);
+    mockCheckExistingToken.mockResolvedValue(false);
+    render(Root);
+
+    await waitFor(() => {
+      expect(mockCheckExistingToken).toHaveBeenCalled();
     });
   });
 
@@ -123,7 +135,7 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue(mockOrders);
-    mockCheckExistingToken.mockResolvedValue(true); // User is authenticated
+    mockCheckExistingToken.mockResolvedValue(true);
     render(Root);
 
     await waitFor(() => {
@@ -154,7 +166,40 @@ describe('Root Component', () => {
     (
       getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
     ).mockReturnValue(mockOrders);
-    mockCheckExistingToken.mockResolvedValue(false); // User is not authenticated
+    mockCheckExistingToken.mockResolvedValue(false);
+    render(Root);
+
+    await waitFor(() => {
+      expect(mockReset).toHaveBeenCalledWith({
+        index: 0,
+        routes: [
+          {
+            name: 'EnterEmail',
+            params: {
+              redirectToRootAfterAuth: true,
+              animationEnabled: false,
+            },
+          },
+        ],
+      });
+    });
+  });
+
+  it('redirects to EnterEmail when checkExistingToken rejects and there is a created order', async () => {
+    const mockOrders = [
+      {
+        id: 'test-order-reject',
+        provider: FIAT_ORDER_PROVIDERS.DEPOSIT,
+        state: FIAT_ORDER_STATES.CREATED,
+      },
+    ] as FiatOrder[];
+
+    (
+      getAllDepositOrders as jest.MockedFunction<typeof getAllDepositOrders>
+    ).mockReturnValue(mockOrders);
+    mockCheckExistingToken.mockRejectedValue(
+      new Error('SecureKeychain unavailable'),
+    );
     render(Root);
 
     await waitFor(() => {

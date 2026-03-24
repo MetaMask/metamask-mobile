@@ -12,7 +12,7 @@ const createStyles = (theme: Theme) =>
     cardContainer: {
       borderRadius: 12,
       marginBottom: 20,
-      paddingVertical: 16,
+      paddingVertical: 12,
       paddingHorizontal: 16,
       backgroundColor: theme.colors.background.muted,
       borderWidth: 0,
@@ -36,7 +36,9 @@ const SectionCard: React.FC<SectionCardProps> = ({
   const section = SECTIONS_CONFIG[sectionId];
 
   const renderFlatItem: ListRenderItem<unknown> = useCallback(
-    ({ item }) => <section.RowItem item={item} navigation={navigation} />,
+    ({ item, index }) => (
+      <section.RowItem item={item} index={index} navigation={navigation} />
+    ),
     [navigation, section],
   );
 

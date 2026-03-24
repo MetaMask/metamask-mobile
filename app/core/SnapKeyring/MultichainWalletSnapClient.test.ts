@@ -182,7 +182,7 @@ describe('MultichainWalletSnapClient', () => {
 
   describe('addDiscoveredAccounts', () => {
     it('adds discovered accounts to the keyring', async () => {
-      const expectAccountName = 'Solana Account 1';
+      const expectAccountName = 'Solana Account ';
       const mockEntropySource = 'test-entropy';
       const mockDiscoveredAccounts = [
         {

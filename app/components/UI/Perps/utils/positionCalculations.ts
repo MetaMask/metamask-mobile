@@ -1,7 +1,10 @@
 /**
  * Position calculation utilities for closing positions
  */
-import { CLOSE_POSITION_CONFIG } from '../constants/perpsConfig';
+import {
+  CLOSE_POSITION_CONFIG,
+  type Position,
+} from '@metamask/perps-controller';
 
 interface CloseAmountFromPercentageParams {
   percentage: number;
@@ -74,9 +77,7 @@ export function calculateCloseAmountFromPercentage(
 
   return {
     tokenAmount: Number(tokenAmount.toFixed(szDecimals)),
-    usdValue: Number(
-      usdValue.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES),
-    ),
+    usdValue: Number(usdValue.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces)),
   };
 }
 
@@ -119,8 +120,8 @@ export function formatCloseAmountDisplay(
   const decimalPlaces =
     decimals ??
     (displayMode === 'usd'
-      ? CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES
-      : CLOSE_POSITION_CONFIG.AMOUNT_CALCULATION_PRECISION);
+      ? CLOSE_POSITION_CONFIG.UsdDecimalPlaces
+      : CLOSE_POSITION_CONFIG.AmountCalculationPrecision);
 
   // For USD mode, limit input to specified decimal places
   if (displayMode === 'usd' && value.includes('.')) {
@@ -128,7 +129,7 @@ export function formatCloseAmountDisplay(
     const integerPart = parts[0] || '0';
     const decimalPart = (parts[1] || '').slice(
       0,
-      CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES,
+      CLOSE_POSITION_CONFIG.UsdDecimalPlaces,
     );
     return `${integerPart}${decimalPart ? '.' + decimalPart : ''}`;
   }
@@ -149,7 +150,7 @@ export function calculateCloseValue(params: CloseValueParams): number {
   }
 
   const value = amount * price;
-  return Number(value.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES));
+  return Number(value.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces));
 }
 
 /**
@@ -162,7 +163,7 @@ export function formatCloseAmountUSD(value: number): string {
   if (isNaN(value) || value < 0) {
     return '0';
   }
-  return value.toFixed(CLOSE_POSITION_CONFIG.USD_DECIMAL_PLACES);
+  return value.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces);
 }
 
 /**
@@ -208,6 +209,38 @@ export function calculatePercentageFromUSDAmount(
 
   const percentage = (usdAmount / totalPositionValue) * 100;
   return Math.max(0, Math.min(100, percentage));
+}
+
+/**
+ * Build a human-readable TP/SL label as percentage distance from entry.
+ * Returns null when neither TP nor SL is configured.
+ */
+export function buildTpSlLabel(
+  position: Position,
+  tpLabel = 'TP',
+  slLabel = 'SL',
+): string | null {
+  const tp = position.takeProfitPrice
+    ? parseFloat(position.takeProfitPrice)
+    : 0;
+  const sl = position.stopLossPrice ? parseFloat(position.stopLossPrice) : 0;
+  const entry = parseFloat(position.entryPrice);
+
+  if (!Number.isFinite(entry) || entry <= 0) return null;
+
+  const parts: string[] = [];
+
+  if (Number.isFinite(tp) && tp > 0) {
+    const tpPct = Math.abs(((tp - entry) / entry) * 100);
+    parts.push(`${tpLabel} ${tpPct.toFixed(0)}%`);
+  }
+
+  if (Number.isFinite(sl) && sl > 0) {
+    const slPct = Math.abs(((sl - entry) / entry) * 100);
+    parts.push(`${slLabel} ${slPct.toFixed(0)}%`);
+  }
+
+  return parts.length > 0 ? parts.join(', ') : null;
 }
 
 /**

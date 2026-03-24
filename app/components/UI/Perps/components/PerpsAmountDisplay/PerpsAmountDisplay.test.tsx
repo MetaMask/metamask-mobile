@@ -4,23 +4,12 @@ import { PerpsAmountDisplaySelectorsIDs } from '../../Perps.testIds';
 import PerpsAmountDisplay from './PerpsAmountDisplay';
 import { formatPositionSize } from '../../utils/formatUtils';
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#141618',
-        alternative: '#9fa6ae',
-      },
-      primary: {
-        default: '#037DD6',
-      },
-      warning: {
-        default: '#ffd33d',
-      },
-    },
-    themeAppearance: 'light',
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../utils/formatUtils', () => {
   const actual = jest.requireActual('../../utils/formatUtils');
@@ -110,7 +99,9 @@ describe('PerpsAmountDisplay', () => {
 
       // Assert
       expect(
-        getByText('No funds available. Please deposit first.'),
+        getByText(
+          'Not enough funds available. Deposit funds or select a different payment method',
+        ),
       ).toBeTruthy();
     });
 

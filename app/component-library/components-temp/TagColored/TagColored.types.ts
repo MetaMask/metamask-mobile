@@ -1,6 +1,9 @@
 // Third party dependencies
 import { ViewProps } from 'react-native';
 
+// Internal dependencies
+import { TextProps } from '../../components/Texts/Text/Text.types';
+
 /**
  * Tag Color.
  */
@@ -25,6 +28,11 @@ export interface TagColoredProps extends ViewProps {
    * @default TagColor.Default
    */
   color?: TagColor;
+  /**
+   * Optional props to pass to the label Text component.
+   * Useful for overriding default text styles like textTransform.
+   */
+  labelProps?: Partial<TextProps>;
 }
 /**
  * Style sheet input parameters.

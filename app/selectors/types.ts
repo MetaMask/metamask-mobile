@@ -7,7 +7,6 @@ import {
   TokensControllerState,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
-import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
@@ -18,7 +17,6 @@ import { TransactionControllerState } from '@metamask/transaction-controller';
 import { GasFeeController } from '@metamask/gas-fee-controller';
 import { ApprovalControllerState } from '@metamask/approval-controller';
 import { AccountsControllerState } from '@metamask/accounts-controller';
-import { TokenSearchDiscoveryControllerState } from '@metamask/token-search-discovery-controller';
 import { AccountTreeControllerState } from '@metamask/account-tree-controller';
 ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
 import { SnapController } from '@metamask/snaps-controllers';
@@ -40,7 +38,6 @@ export interface EngineState {
       TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesControllerState;
       TransactionController: TransactionControllerState;
-      SwapsController: SwapsController;
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: SnapController;
       ///: END:ONLY_INCLUDE_IF
@@ -49,7 +46,6 @@ export interface EngineState {
       ApprovalController: ApprovalControllerState;
       AccountsController: AccountsControllerState;
       AccountTreeController: AccountTreeControllerState;
-      TokenSearchDiscoveryController: TokenSearchDiscoveryControllerState;
     };
   };
 }

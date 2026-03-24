@@ -42,7 +42,7 @@ exports[`GraphCursor render matches snapshot 1`] = `
       }
       stroke={
         {
-          "payload": 4280058420,
+          "payload": 4279524645,
           "type": 0,
         }
       }
@@ -57,7 +57,7 @@ exports[`GraphCursor render matches snapshot 1`] = `
       cy={33.17441726994484}
       fill={
         {
-          "payload": 4280058420,
+          "payload": 4279524645,
           "type": 0,
         }
       }
@@ -71,7 +71,7 @@ exports[`GraphCursor render matches snapshot 1`] = `
       r={5}
       stroke={
         {
-          "payload": 4280058420,
+          "payload": 4279524645,
           "type": 0,
         }
       }

@@ -1,11 +1,32 @@
-import { CaipChainId, Hex } from '@metamask/utils';
+import { CaipAssetType, CaipChainId, Hex } from '@metamask/utils';
 import {
+  formatAddressToAssetId,
   formatChainIdToHex,
   getNativeAssetForChainId,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { zeroAddress } from 'ethereumjs-util';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 import { BridgeToken } from '../types';
 import { DefaultSwapDestTokens } from '../constants/default-swap-dest-tokens';
+import { IncludeAsset } from '../hooks/usePopularTokens';
+import { POLYGON_NATIVE_TOKEN } from '../constants/assets';
+
+/**
+ * Normalizes chain-specific native token addresses to the zero address for the bridge flow.
+ *
+ * Some chains use a non-zero contract address for their native token
+ * (e.g. Polygon uses 0x0000000000000000000000000000000000001010), but the bridge API
+ * expects the zero address for all native assets.
+ */
+export const normalizeTokenAddress = (
+  address: string,
+  chainId: Hex | CaipChainId,
+): string => {
+  const isPolygonNativeToken =
+    chainId === CHAIN_IDS.POLYGON && address === POLYGON_NATIVE_TOKEN;
+  return isPolygonNativeToken ? zeroAddress() : address;
+};
 
 /**
  * Creates a formatted native token object for the given chain ID
@@ -58,4 +79,40 @@ export const getDefaultDestToken = (
   }
 
   return undefined;
+};
+
+/**
+ * Checks if a token matches a search query by name, symbol, or address.
+ * Returns true if no query is provided.
+ */
+export const tokenMatchesQuery = (
+  token: BridgeToken,
+  query: string,
+): boolean => {
+  if (!query) return true;
+  const lowerQuery = query.toLowerCase();
+  return (
+    token.name?.toLowerCase().includes(lowerQuery) ||
+    token.symbol.toLowerCase().includes(lowerQuery) ||
+    token.address.toLowerCase().includes(lowerQuery)
+  );
+};
+
+/**
+ * Converts a BridgeToken to IncludeAsset format for the API.
+ * Returns null if the token cannot be converted (invalid assetId).
+ */
+export const tokenToIncludeAsset = (
+  token: BridgeToken,
+): IncludeAsset | null => {
+  const assetId = formatAddressToAssetId(token.address, token.chainId);
+  if (!assetId) return null;
+
+  return {
+    ...token,
+    assetId: isNonEvmChainId(token.chainId)
+      ? assetId
+      : (assetId.toLowerCase() as CaipAssetType),
+    name: token.name ?? '',
+  };
 };

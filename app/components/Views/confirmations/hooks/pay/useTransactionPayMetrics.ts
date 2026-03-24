@@ -1,6 +1,10 @@
 import { useEffect, useMemo, useRef } from 'react';
-import { useDispatch } from 'react-redux';
-import { updateConfirmationMetric } from '../../../../../core/redux/slices/confirmationMetrics';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  selectConfirmationMetricsById,
+  updateConfirmationMetric,
+} from '../../../../../core/redux/slices/confirmationMetrics';
+import { RootState } from '../../../../../reducers';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useDeepMemo } from '../useDeepMemo';
 import { Hex, Json, isCaipChainId, isHexString } from '@metamask/utils';
@@ -10,7 +14,6 @@ import { useTransactionPayToken } from './useTransactionPayToken';
 import { BridgeToken } from '../../../../UI/Bridge/types';
 import { hasTransactionType } from '../../utils/transaction';
 import {
-  useIsTransactionPayQuoteLoading,
   useTransactionPayQuotes,
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
@@ -28,22 +31,26 @@ export function useTransactionPayMetrics() {
   const requiredTokens = useTransactionPayRequiredTokens();
   const highestBalanceChainId = useHighestBalanceCaipChainId();
   const automaticPayToken = useRef<BridgeToken>();
-  const hasRequestedQuoteRef = useRef(false);
+  const hasLoadedQuoteRef = useRef(false);
   const quotes = useTransactionPayQuotes();
-  const isQuotesLoading = useIsTransactionPayQuoteLoading();
   const totals = useTransactionPayTotals();
-  const tokens = useTransactionPayAvailableTokens();
+  const { availableTokens: tokens } = useTransactionPayAvailableTokens();
 
-  if (isQuotesLoading && !hasRequestedQuoteRef.current) {
-    hasRequestedQuoteRef.current = true;
+  const transactionId = transactionMeta?.id ?? '';
+  const storedMetrics = useSelector((state: RootState) =>
+    selectConfirmationMetricsById(state, transactionId),
+  );
+
+  const hasQuotes = (quotes?.length ?? 0) > 0;
+
+  if (hasQuotes && !hasLoadedQuoteRef.current) {
+    hasLoadedQuoteRef.current = true;
   }
 
   const availableTokens = useMemo(
     () => tokens.filter((t) => !t.disabled),
     [tokens],
   );
-
-  const transactionId = transactionMeta?.id ?? '';
   const { chainId, type } = transactionMeta ?? {};
   const primaryRequiredToken = requiredTokens.find((t) => !t.skipIfBalance);
   const sendingValue = Number(primaryRequiredToken?.amountHuman ?? '0');
@@ -54,8 +61,6 @@ export function useTransactionPayMetrics() {
 
   const properties: Json = {};
   const sensitiveProperties: Json = {};
-
-  const hasQuotes = (quotes?.length ?? 0) > 0;
 
   if (payToken) {
     properties.mm_pay = true;
@@ -74,8 +79,9 @@ export function useTransactionPayMetrics() {
 
     properties.mm_pay_payment_token_list_size = availableTokens.length;
 
-    properties.mm_pay_quote_requested = hasRequestedQuoteRef.current;
-    properties.mm_pay_quote_loaded = hasQuotes;
+    properties.mm_pay_quote_requested =
+      (storedMetrics?.properties?.mm_pay_quote_requested as boolean) ?? false;
+    properties.mm_pay_quote_loaded = hasLoadedQuoteRef.current;
     properties.mm_pay_chain_highest_balance_caip =
       highestBalanceChainId ?? null;
   }
@@ -91,6 +97,22 @@ export function useTransactionPayMetrics() {
   ) {
     properties.mm_pay_use_case = 'predict_deposit';
     properties.simulation_sending_assets_total_value = sendingValue;
+  }
+
+  if (
+    payToken &&
+    hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
+  ) {
+    properties.mm_pay_use_case = 'predict_withdraw';
+  }
+
+  if (payToken) {
+    const sendingAmountUsd = Number(primaryRequiredToken?.amountUsd ?? '0');
+    properties.mm_pay_sending_value_usd = sendingAmountUsd;
+
+    properties.mm_pay_receiving_value_usd = totals
+      ? Number(totals.targetAmount.usd)
+      : null;
   }
 
   const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
@@ -121,6 +143,7 @@ export function useTransactionPayMetrics() {
       .toString(10);
 
     properties.mm_pay_provider_fee_usd = totals.fees.provider.usd;
+    properties.mm_pay_metamask_fee_usd = Number(totals.fees.metaMask.usd);
   }
 
   const params = useDeepMemo(

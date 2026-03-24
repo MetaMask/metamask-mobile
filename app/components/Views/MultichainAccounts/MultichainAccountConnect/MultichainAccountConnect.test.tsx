@@ -25,6 +25,10 @@ import {
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { PermissionDoesNotExistError } from '@metamask/permission-controller';
 import { RpcEndpointType, NetworkStatus } from '@metamask/network-controller';
+import { WC2VerifyValidation } from '../../../../actions/sdk/state';
+import { AccountConnectMaliciousWarningSelectorsIDs } from '../../AccountConnect/AccountConnectMaliciousWarning/AccountConnectMaliciousWarning.testIds';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
@@ -54,12 +58,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
+jest.mocked(useAnalytics).mockReturnValue(
+  createMockUseAnalyticsHook({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
-}));
+);
 
 jest.mock('@tommasini/react-native-scrollable-tab-view', () => ({
   __esModule: true,
@@ -166,7 +171,6 @@ const { isUUID: mockIsUUID } = jest.requireMock(
 
 jest.mock('../../../../util/phishingDetection', () => ({
   getPhishingTestResultAsync: jest.fn().mockResolvedValue({ result: false }),
-  isProductSafetyDappScanningEnabled: jest.fn().mockReturnValue(false),
 }));
 
 jest.mock('../../../../util/metrics', () => ({
@@ -276,14 +280,6 @@ jest.mock(
         },
       };
     }),
-  }),
-);
-
-// Mock feature flag selector
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState1Enabled: jest.fn(() => true),
   }),
 );
 
@@ -509,6 +505,12 @@ mockIsUUID.mockReturnValue(false);
 describe('MultichainAccountConnect', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   it('renders correctly with base request when there is no existing CAIP endowment', () => {
@@ -739,6 +741,12 @@ describe('MultichainAccountConnect', () => {
       mockUseSDKV2Connection.mockReset();
       mockUseSDKV2Connection.mockReturnValue(undefined);
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('handles MMSDK remote connection origin correctly', () => {
@@ -1403,6 +1411,12 @@ describe('MultichainAccountConnect', () => {
   describe('Phishing modal navigation functions coverage', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('creates phishing navigation callback functions', () => {
@@ -1490,6 +1504,12 @@ describe('MultichainAccountConnect', () => {
   describe('handleNetworksSelected function and network tab functionality', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('navigates to network selector screen when editing networks', async () => {
@@ -1838,6 +1858,12 @@ describe('MultichainAccountConnect', () => {
   describe('handleAccountGroupsSelected function tests', () => {
     beforeEach(() => {
       jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
     });
 
     it('verifies handleAccountGroupsSelected updates component state after account selection', async () => {
@@ -2153,6 +2179,195 @@ describe('MultichainAccountConnect', () => {
           getByTestId('permission-summary-account-text'),
         ).toHaveTextContent('Requesting for');
       });
+    });
+  });
+
+  describe('WalletConnect Verify API - malicious dapp flow', () => {
+    const createMaliciousWC2State = () => {
+      const state = createMockState();
+      return {
+        ...state,
+        sdk: {
+          wc2Metadata: {
+            id: 'mock-wc2-id',
+            url: 'https://malicious-dapp.com',
+            name: 'Malicious Dapp',
+            icon: '',
+            verifyContext: {
+              isScam: true,
+              validation: WC2VerifyValidation.INVALID,
+              verifiedOrigin: 'https://malicious-dapp.com',
+            },
+          },
+        },
+      };
+    };
+
+    const maliciousRoute = {
+      params: {
+        hostInfo: {
+          metadata: {
+            id: 'mockId',
+            origin: 'wc-channel-id',
+            isEip1193Request: true,
+          },
+          permissions: createMockCaip25Permission({
+            'wallet:eip155': {
+              accounts: [],
+            },
+          }),
+        },
+        permissionRequestId: 'test-malicious',
+      },
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      jest.mocked(useAnalytics).mockReturnValue(
+        createMockUseAnalyticsHook({
+          trackEvent: mockTrackEvent,
+          createEventBuilder: mockCreateEventBuilder,
+        }),
+      );
+      mockGetConnection.mockReturnValue(undefined);
+      mockIsUUID.mockReturnValue(false);
+    });
+
+    it('renders the initial connect screen with connect button for a malicious dapp', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainAccountConnect route={maliciousRoute} />,
+        { state: createMaliciousWC2State() },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+    });
+
+    it('shows MaliciousWarning screen when confirm is pressed on a malicious dapp', async () => {
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect route={maliciousRoute} />,
+        { state: createMaliciousWC2State() },
+      );
+
+      const connectButton = getByTestId(CommonSelectorsIDs.CONNECT_BUTTON);
+      fireEvent.press(connectButton);
+
+      const warningContainer = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CONTAINER,
+      );
+      expect(warningContainer).toBeDefined();
+    });
+
+    it('completes connection when Connect Anyway is pressed on MaliciousWarning', async () => {
+      const mockAcceptLocal = jest.fn().mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptLocal;
+
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect route={maliciousRoute} />,
+        { state: createMaliciousWC2State() },
+      );
+
+      // Step 1: press Connect to navigate to MaliciousWarning
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      // Step 2: press Connect Anyway to complete the connection
+      const connectAnywayButton = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CONNECT_ANYWAY_BUTTON,
+      );
+      fireEvent.press(connectAnywayButton);
+
+      await waitFor(() => {
+        expect(mockAcceptLocal).toHaveBeenCalled();
+      });
+    });
+
+    it('returns to initial connect screen when close is pressed on MaliciousWarning', async () => {
+      const { getByTestId, findByTestId } = renderWithProvider(
+        <MultichainAccountConnect route={maliciousRoute} />,
+        { state: createMaliciousWC2State() },
+      );
+
+      // Navigate to MaliciousWarning
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      const closeButton = await findByTestId(
+        AccountConnectMaliciousWarningSelectorsIDs.CLOSE_BUTTON,
+      );
+      fireEvent.press(closeButton);
+
+      // Should be back on the initial connect screen with the connect button visible
+      await waitFor(() => {
+        expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      });
+    });
+
+    it('does not show MaliciousWarning when confirm is pressed on a clean dapp', async () => {
+      const mockAcceptLocal = jest.fn().mockResolvedValue(undefined);
+      Engine.context.PermissionController.acceptPermissionsRequest =
+        mockAcceptLocal;
+
+      const cleanState = createMockState();
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'https://clean-dapp.com',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': { accounts: [] },
+                }),
+              },
+              permissionRequestId: 'test-clean',
+            },
+          }}
+        />,
+        { state: cleanState },
+      );
+
+      fireEvent.press(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON));
+
+      await waitFor(() => {
+        expect(mockAcceptLocal).toHaveBeenCalled();
+      });
+
+      expect(
+        queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('does not flag non-WalletConnect connections as malicious', () => {
+      const state = createMockState();
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <MultichainAccountConnect
+          route={{
+            params: {
+              hostInfo: {
+                metadata: {
+                  id: 'mockId',
+                  origin: 'some-non-wc-origin',
+                  isEip1193Request: true,
+                },
+                permissions: createMockCaip25Permission({
+                  'wallet:eip155': { accounts: [] },
+                }),
+              },
+              permissionRequestId: 'test',
+            },
+          }}
+        />,
+        { state },
+      );
+
+      expect(getByTestId(CommonSelectorsIDs.CONNECT_BUTTON)).toBeTruthy();
+      expect(
+        queryByTestId(AccountConnectMaliciousWarningSelectorsIDs.CONTAINER),
+      ).toBeNull();
     });
   });
 });

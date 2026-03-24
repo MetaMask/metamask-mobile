@@ -119,17 +119,13 @@ jest.mock('../../sdk', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      success: { default: '#00ff00', muted: '#00ff0033' },
-      error: { default: '#ff0000', muted: '#ff000033' },
-      background: { default: '#ffffff' },
-      text: { default: '#000000' },
-      border: { default: '#cccccc' },
-    },
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 const mockToastRef = {
   current: {
@@ -321,7 +317,6 @@ describe('SpendingLimit Component', () => {
       cancel: mockCancel,
       skip: mockSkip,
       isValid: true,
-      isSolanaSelected: false,
       needsFaucet: false,
       isFaucetCheckLoading: false,
     });
@@ -580,7 +575,6 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
-        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -696,7 +690,6 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
-        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -740,7 +733,6 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
-        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -862,7 +854,6 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
-        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });
@@ -1075,7 +1066,6 @@ describe('SpendingLimit Component', () => {
         cancel: mockCancel,
         skip: mockSkip,
         isValid: true,
-        isSolanaSelected: false,
         needsFaucet: false,
         isFaucetCheckLoading: false,
       });

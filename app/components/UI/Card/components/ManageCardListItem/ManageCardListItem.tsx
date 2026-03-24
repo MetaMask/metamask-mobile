@@ -10,10 +10,12 @@ import ListItem from '../../../../../component-library/components/List/ListItem/
 import ListItemColumn, {
   WidthType,
 } from '../../../../../component-library/components/List/ListItemColumn';
-import Text, {
-  TextVariant,
+import {
+  FontWeight,
+  Text,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import createStyles from './ManageCardListItem.styles';
 
 export interface ManageCardListItemProps {
@@ -21,6 +23,7 @@ export interface ManageCardListItemProps {
   description: string | React.ReactNode;
   descriptionOrientation?: 'row' | 'column';
   rightIcon?: IconName;
+  rightElement?: React.ReactNode;
   testID?: string;
   onPress?: () => void;
   isLoading?: boolean;
@@ -32,6 +35,7 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
   description,
   descriptionOrientation = 'column',
   rightIcon,
+  rightElement,
   testID = 'manage-card-list-item',
   isLoading = false,
 }) => {
@@ -42,27 +46,33 @@ const ManageCardListItem: React.FC<ManageCardListItemProps> = ({
     <TouchableOpacity onPress={onPress} {...generateTestId(Platform, testID)}>
       <ListItem style={styles.root}>
         <ListItemColumn widthType={WidthType.Fill} style={styles.description}>
-          <Text variant={TextVariant.BodyMDMedium}>{title}</Text>
+          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+            {title}
+          </Text>
           {typeof description === 'string' ? (
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {description}
             </Text>
           ) : (
             description
           )}
         </ListItemColumn>
-        {(isLoading || rightIcon) && (
+        {(isLoading || rightIcon || rightElement) && (
           <ListItemColumn>
             {isLoading ? (
               <ActivityIndicator size="small" />
             ) : (
-              rightIcon && (
+              (rightElement ??
+              (rightIcon && (
                 <Icon
                   style={styles.action}
                   size={IconSize.Md}
                   name={rightIcon}
                 />
-              )
+              )))
             )}
           </ListItemColumn>
         )}

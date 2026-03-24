@@ -5,6 +5,15 @@ import { useERC20Tokens } from './useERC20Tokens';
 import { useAccountNames } from './useAccountNames';
 import { useAccountWalletNames } from './useAccountWalletNames';
 import { useSendFlowEnsResolutions } from '../../Views/confirmations/hooks/send/useSendFlowEnsResolutions';
+import { useAddressTrustSignals } from '../../Views/confirmations/hooks/useAddressTrustSignals';
+import { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
+import {
+  getTrustSignalIcon,
+  TrustSignalIcon,
+} from '../../Views/confirmations/utils/trust-signals';
+
+export { TrustSignalDisplayState } from '../../Views/confirmations/types/trustSignals';
+export type { TrustSignalIcon } from '../../Views/confirmations/utils/trust-signals';
 
 export interface UseDisplayNameRequest {
   preferContractSymbol?: boolean;
@@ -19,7 +28,11 @@ export interface UseDisplayNameResponse {
   isFirstPartyContractName?: boolean;
   name?: string;
   subtitle?: string;
+  /** @deprecated Use displayState instead */
   variant: DisplayNameVariant;
+  displayState: TrustSignalDisplayState;
+  icon: TrustSignalIcon | null;
+  isAccount: boolean;
 }
 
 /**
@@ -79,6 +92,38 @@ function getVariant({
 }
 
 /**
+ * Priority: Malicious > Petname > Warning > Recognized > Verified > Unknown
+ * Matches extension behavior.
+ */
+function getDisplayState(
+  trustState: TrustSignalDisplayState | undefined,
+  hasPetname: boolean,
+  displayName: string | null,
+): TrustSignalDisplayState {
+  if (trustState === TrustSignalDisplayState.Malicious) {
+    return TrustSignalDisplayState.Malicious;
+  }
+
+  if (hasPetname) {
+    return TrustSignalDisplayState.Petname;
+  }
+
+  if (trustState === TrustSignalDisplayState.Warning) {
+    return TrustSignalDisplayState.Warning;
+  }
+
+  if (displayName) {
+    return TrustSignalDisplayState.Recognized;
+  }
+
+  if (trustState === TrustSignalDisplayState.Verified) {
+    return TrustSignalDisplayState.Verified;
+  }
+
+  return TrustSignalDisplayState.Unknown;
+}
+
+/**
  * Get the display name for the given value.
  *
  * @param type The NameType to get the display name for.
@@ -100,6 +145,12 @@ export function useDisplayNames(
   const accountWalletNames = useAccountWalletNames(requests);
   const { getResolvedENSName } = useSendFlowEnsResolutions();
 
+  const trustSignalRequests = requests.map(({ value, variation }) => ({
+    address: value,
+    chainId: variation,
+  }));
+  const trustSignals = useAddressTrustSignals(trustSignalRequests);
+
   return requests.map(({ value, variation }, index) => {
     const watchedNftName = watchedNftNames[index];
     const firstPartyContractName = firstPartyContractNames[index];
@@ -107,18 +158,34 @@ export function useDisplayNames(
     const accountName = accountNames[index];
     const subtitle = accountWalletNames[index];
     const ensName = getResolvedENSName(variation, value);
+    const trustSignal = trustSignals[index];
 
-    const name =
+    let name =
       accountName ||
       ensName ||
       firstPartyContractName ||
       watchedNftName ||
       erc20Token?.name;
 
+    const hasPetname = Boolean(accountName);
+
+    const displayState = getDisplayState(
+      trustSignal?.state,
+      hasPetname,
+      name || null,
+    );
+
+    // Applied after displayState to avoid the label triggering Recognized state
+    if (!name && trustSignal?.label) {
+      name = trustSignal.label;
+    }
+
     const image = erc20Token?.image;
 
     const isFirstPartyContractName =
       firstPartyContractName !== undefined && firstPartyContractName !== null;
+
+    const icon = getTrustSignalIcon(displayState);
 
     return {
       contractDisplayName: erc20Token?.name,
@@ -127,6 +194,9 @@ export function useDisplayNames(
       name,
       subtitle,
       variant: getVariant({ name, accountName }),
+      displayState,
+      icon,
+      isAccount: Boolean(accountName),
     };
   });
 }

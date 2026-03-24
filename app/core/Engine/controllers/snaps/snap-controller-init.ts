@@ -1,5 +1,5 @@
 import { SnapController } from '@metamask/snaps-controllers';
-import { Duration, hasProperty, inMilliseconds } from '@metamask/utils';
+import { Duration, inMilliseconds } from '@metamask/utils';
 import { hmacSha512 } from '@metamask/native-utils';
 import { ControllerInitFunction } from '../../types';
 import {
@@ -17,12 +17,11 @@ import {
   LEGACY_DERIVATION_OPTIONS,
   pbkdf2,
 } from '../../../Encryptor';
-import { KeyringTypes } from '@metamask/keyring-controller';
 import { selectBasicFunctionalityEnabled } from '../../../../selectors/settings';
 import { store, runSaga } from '../../../../store';
 import PREINSTALLED_SNAPS from '../../../../lib/snaps/preinstalled-snaps';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
+import { buildAndTrackEvent } from '../../utils/analytics';
+import type { AnalyticsUnfilteredProperties } from '../../../../util/analytics/analytics.types';
 import { take } from 'redux-saga/effects';
 import { selectCompletedOnboarding } from '../../../../selectors/onboarding';
 import {
@@ -30,6 +29,7 @@ import {
   SetCompletedOnboardingAction,
 } from '../../../../actions/onboarding';
 import { SagaIterator } from 'redux-saga';
+import { getMnemonicSeed } from '../../../Snaps/permissions/utils';
 
 /**
  * Initialize the Snap controller.
@@ -60,24 +60,6 @@ export const snapControllerInit: ControllerInitFunction<
   const encryptor = new Encryptor({
     keyDerivationOptions: LEGACY_DERIVATION_OPTIONS,
   });
-
-  // Async because `SnapController` expects a promise.
-  async function getMnemonicSeed() {
-    const keyrings = initMessenger.call(
-      'KeyringController:getKeyringsByType',
-      KeyringTypes.hd,
-    );
-
-    if (
-      !keyrings[0] ||
-      !hasProperty(keyrings[0], 'seed') ||
-      !(keyrings[0].seed instanceof Uint8Array)
-    ) {
-      throw new Error('Primary keyring mnemonic unavailable.');
-    }
-
-    return keyrings[0].seed;
-  }
 
   /**
    * Get the feature flags for the `SnapController.
@@ -153,7 +135,7 @@ export const snapControllerInit: ControllerInitFunction<
     // TODO: Look into the type mismatch.
     encryptor,
 
-    getMnemonicSeed,
+    getMnemonicSeed: getMnemonicSeed.bind(null, initMessenger, undefined),
 
     // @ts-expect-error: `PREINSTALLED_SNAPS` is readonly, but the controller
     // expects a mutable array.
@@ -172,16 +154,11 @@ export const snapControllerInit: ControllerInitFunction<
       event: string;
       properties?: Record<string, unknown>;
     }) => {
-      try {
-        const event = AnalyticsEventBuilder.createEventBuilder(params.event)
-          .addProperties((params.properties ?? {}) as AnalyticsEventProperties)
-          .build();
-
-        initMessenger.call('AnalyticsController:trackEvent', event);
-      } catch (error) {
-        // Analytics tracking failures should not break snap functionality
-        // Error is logged but not thrown
-      }
+      buildAndTrackEvent(
+        initMessenger,
+        params.event,
+        params.properties as AnalyticsUnfilteredProperties,
+      );
     },
   });
 

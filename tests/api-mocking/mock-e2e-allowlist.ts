@@ -11,16 +11,22 @@ export const ALLOWLISTED_HOSTS = [
   'virtual.mainnet.rpc.tenderly.co',
   'testnet-rpc.monad.xyz',
   'virtual.linea.rpc.tenderly.co',
-  'portfolio.dev-api.cx.metamask.io',
-  'portfolio.uat-api.cx.metamask.io',
-  'portfolio.api.cx.metamask.io',
+  'nft.dev-api.cx.metamask.io',
+  'nft.uat-api.cx.metamask.io',
+  'nft.api.cx.metamask.io',
   'gamma-api.polymarket.com',
   'clob.polymarket.com',
   '*.polymarket.com',
   'sepolia.infura.io',
   'mainnet.infura.io',
+  'base-mainnet.infura.io',
+  'arbitrum-mainnet.infura.io',
+  'bsc-mainnet.infura.io',
+  'optimism-mainnet.infura.io',
+  'polygon-mainnet.infura.io',
   'linea-sepolia.infura.io',
   'linea-mainnet.infura.io',
+  'metamask.github.io', // Test-snaps and test-dapp pages loaded in browser
 ];
 
 export const ALLOWLISTED_URLS = [
@@ -41,7 +47,6 @@ export const ALLOWLISTED_URLS = [
   'https://min-api.cryptocompare.com/data/price?fsym=ETH&tsyms=LINEAETH',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x539',
   'https://mainnet.era.zksync.io/',
-  'https://eth.llamarpc.com/',
   'https://rpc.atlantischain.network/',
   'https://nft.api.cx.metamask.io/collections?chainId=0x539&contract=0xb2552e4f4bc23e1572041677234d192774558bf0',
   'https://metamask.github.io/test-dapp/metamask-fox.svg',
@@ -50,7 +55,7 @@ export const ALLOWLISTED_URLS = [
   'https://nft.api.cx.metamask.io/users/0x76cf1cdd1fcc252442b50d6e97207228aa4aefc3/tokens?chainIds=1&limit=50&includeTopBid=true&continuation=',
   'https://bridge.dev-api.cx.metamask.io/getTokens?chainId=1',
   'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0x1',
+  'https://signature-insights.api.cx.metamask.io/v1/signature?chainId=0xaa36a7',
   'https://price.api.cx.metamask.io/v1/exchange-rates?baseCurrency=usd',
   'https://api.hyperliquid.xyz/exchange',
-  'https://api.hyperliquid.xyz/info',
 ];

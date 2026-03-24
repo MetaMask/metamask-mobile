@@ -23,7 +23,7 @@ The `DEEP_LINK_USED` event is created using `AnalyticsEventBuilder` and includes
 
 | Property            | Type    | Description                                                                                  |
 | ------------------- | ------- | -------------------------------------------------------------------------------------------- |
-| `route`             | string  | The deep link route (e.g., "swap", "perps", "deposit")                                       |
+| `route`             | string  | The deep link route (e.g., "swap", "perps", "buy")                                           |
 | `was_app_installed` | boolean | `true` if app was already installed, `false` for deferred deep link (app installed via link) |
 | `signature`         | string  | Signature validation status: "valid", "invalid", or "missing"                                |
 | `interstitial`      | string  | Interstitial state: "accepted", "rejected", or "not shown"                                   |
@@ -59,15 +59,6 @@ Sensitive properties are extracted based on the route type and include transacti
 - `symbol` - Trading pair symbol
 - `screen` - Screen identifier (markets/asset/tabs)
 - `tab` - Tab identifier
-
-**DEPOSIT Route:**
-
-- All common properties
-- `provider` - Payment provider
-- `payment_method` - Payment method type
-- `sub_payment_method` - Sub-payment method
-- `fiat_currency` - Fiat currency code
-- `fiat_quantity` - Fiat amount
 
 **TRANSACTION Route:**
 
@@ -182,20 +173,23 @@ Routes are extracted from the deep link action and mapped to standardized route 
 
 ### DeepLinkRoute Enum
 
-| Route         | Value         | Actions Mapped                                                  |
-| ------------- | ------------- | --------------------------------------------------------------- |
-| `HOME`        | "home"        | `ACTIONS.HOME`                                                  |
-| `SWAP`        | "swap"        | `ACTIONS.SWAP`                                                  |
-| `PERPS`       | "perps"       | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET` |
-| `DEPOSIT`     | "deposit"     | `ACTIONS.DEPOSIT`                                               |
-| `TRANSACTION` | "transaction" | `ACTIONS.SEND`                                                  |
-| `BUY`         | "buy"         | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                             |
-| `SELL`        | "sell"        | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                           |
-| `INVALID`     | "invalid"     | All other actions or invalid URLs                               |
+| Route                | Value                | Actions Mapped                                                  |
+| -------------------- | -------------------- | --------------------------------------------------------------- |
+| `HOME`               | "home"               | `ACTIONS.HOME`                                                  |
+| `ASSET`              | "asset"              | `ACTIONS.ASSET`                                                 |
+| `SWAP`               | "swap"               | `ACTIONS.SWAP`                                                  |
+| `PERPS`              | "perps"              | `ACTIONS.PERPS`, `ACTIONS.PERPS_MARKETS`, `ACTIONS.PERPS_ASSET` |
+| `TRANSACTION`        | "transaction"        | `ACTIONS.SEND`                                                  |
+| `BUY`                | "buy"                | `ACTIONS.BUY`, `ACTIONS.BUY_CRYPTO`                             |
+| `SELL`               | "sell"               | `ACTIONS.SELL`, `ACTIONS.SELL_CRYPTO`                           |
+| `CARD_HOME`          | "card-home"          | `ACTIONS.CARD_HOME`                                             |
+| `CARD_ONBOARDING`    | "card-onboarding"    | `ACTIONS.CARD_ONBOARDING`                                       |
+| `ENABLE_CARD_BUTTON` | "enable-card-button" | `ACTIONS.ENABLE_CARD_BUTTON`                                    |
+| `INVALID`            | "invalid"            | All other actions or invalid URLs                               |
 
 ### Route Extraction
 
-Routes are extracted using `mapSupportedActionToRoute()`, which maps supported actions to their corresponding routes. Unsupported actions or invalid URLs result in the `INVALID` route.
+Routes are extracted using `mapSupportedActionToRoute()`, which maps supported actions to their corresponding routes. Unsupported actions or invalid URLs result in the `INVALID` route. Deprecated `deposit` URLs are treated as `INVALID`.
 
 ## Analytics Context
 
@@ -308,5 +302,5 @@ export const detectAppInstallation = async (
 ## Code References
 
 - [handleUniversalLink.ts](../../app/core/DeeplinkManager/handlers/legacy/handleUniversalLink.ts) - Main handler that creates analytics contexts
-- [deepLinkAnalytics.ts](../../app/util/deeplinks/deepLinkAnalytics.ts) - Analytics utility functions
+- [deepLinkAnalytics.ts](../../app/core/DeeplinkManager/util/deeplinks/deepLinkAnalytics.ts) - Analytics utility functions
 - [deepLinkAnalytics.types.ts](../../app/core/DeeplinkManager/types/deepLinkAnalytics.types.ts) - Type definitions

@@ -4,7 +4,6 @@ import {
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import React, {
   useCallback,
   useEffect,
@@ -25,10 +24,11 @@ import Routes from '../../../../../constants/navigation/Routes';
 import { RootState } from '../../../../../reducers';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import { selectConversionRate } from '../../../../../selectors/currencyRateController';
-import { selectConfirmationRedesignFlags } from '../../../../../selectors/featureFlagController/confirmations';
+
 import { selectContractExchangeRatesByChainId } from '../../../../../selectors/tokenRatesController';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useStyles } from '../../../../hooks/useStyles';
 import useEarnWithdrawInput from '../../../Earn/hooks/useEarnWithdrawInput';
 import { getStakingNavbar } from '../../../Navbar';
@@ -39,7 +39,6 @@ import {
   EVENT_PROVIDERS,
 } from '../../constants/events/earnEvents';
 import usePoolStakedUnstake from '../../../Stake/hooks/usePoolStakedUnstake';
-import { StakeNavigationParamsList } from '../../../Stake/types';
 import EarnTokenSelector from '../../components/EarnTokenSelector';
 import InputDisplay from '../../components/InputDisplay';
 import { EARN_EXPERIENCES } from '../../constants/experiences';
@@ -139,17 +138,12 @@ const EarnWithdrawInputView = () => {
     return undefined;
   }, [receiptTokenToUse, earnTokenFromMap]);
 
-  const navigation =
-    useNavigation<StackNavigationProp<StakeNavigationParamsList>>();
+  const navigation = useNavigation();
   const { styles, theme } = useStyles(styleSheet, {});
   const { attemptUnstakeTransaction } = usePoolStakedUnstake();
   const selectedAccount = useSelector(selectSelectedInternalAccountByScope)(
     EVM_SCOPE,
   );
-  const confirmationRedesignFlags = useSelector(
-    selectConfirmationRedesignFlags,
-  );
-
   const conversionRate = useSelector(selectConversionRate) ?? 1;
   const contractExchangeRates = useSelector((state: RootState) =>
     selectContractExchangeRatesByChainId(state, token?.chainId as Hex),
@@ -162,7 +156,7 @@ const EarnWithdrawInputView = () => {
   const lastQuickAmountButtonPressed = useRef<string | null>(null);
   const exchangeRate = contractExchangeRates?.[token?.address as Hex]?.price;
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { shouldLogStablecoinEvent, shouldLogStakingEvent } =
     useEarnAnalyticsEventLogging({
@@ -341,7 +335,6 @@ const EarnWithdrawInputView = () => {
       : `${strings('stake.unstake')} ${tokenLabel}`;
 
     navigation.setOptions(
-      // @ts-expect-error - React Native style type mismatch due to outdated @types/react-native
       getStakingNavbar(
         title,
         navigation,
@@ -497,8 +490,8 @@ const EarnWithdrawInputView = () => {
   ]);
 
   const handleUnstakeWithdrawalFlow = useCallback(async () => {
-    const isStakingDepositRedesignedEnabled =
-      confirmationRedesignFlags?.staking_confirmations;
+    // TODO: Remove dead code as we are not using the legacy confirmations anymore
+    const isStakingDepositRedesignedEnabled = true;
 
     const unstakeButtonClickEventProperties = {
       selected_provider: EVENT_PROVIDERS.CONSENSYS,
@@ -570,7 +563,6 @@ const EarnWithdrawInputView = () => {
     amountToken,
     amountTokenMinimalUnit,
     attemptUnstakeTransaction,
-    confirmationRedesignFlags?.staking_confirmations,
     createEventBuilder,
     navigation,
     network?.name,

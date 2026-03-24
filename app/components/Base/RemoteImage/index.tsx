@@ -27,6 +27,7 @@ interface RemoteImageProps {
   style?: StyleProp<object>;
   placeholderStyle?: StyleProp<object>;
   onError?: () => void;
+  onLoad?: () => void;
   isUrl?: boolean;
   address?: string;
   isTokenImage?: boolean;
@@ -51,7 +52,8 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
   const [error, setError] = useState<string | undefined>(undefined);
   const source = resolveAssetSource(props.source);
   const ipfsGateway = useIpfsGateway();
-  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>(false);
+  const [resolvedIpfsUrl, setResolvedIpfsUrl] = useState<string | false>();
+  const { onLoad: onLoadProp } = props;
 
   const uri =
     resolvedIpfsUrl ||
@@ -134,16 +136,27 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
           return { width: calculatedWidth, height: calculatedHeight };
         });
       }
+      onLoadProp?.();
     },
-    [calculateImageDimensions],
+    [calculateImageDimensions, onLoadProp],
   );
 
   if (error && props.address) {
     return <Identicon address={props.address} customStyle={props.style} />;
   }
 
+  if (resolvedIpfsUrl === undefined && !uri) {
+    return null;
+  }
+
   const defaultImage = (
-    <Image {...props} source={{ uri }} onLoad={onImageLoad} onError={onError} />
+    <Image
+      {...props}
+      source={{ uri }}
+      recyclingKey={uri}
+      onLoad={onImageLoad}
+      onError={onError}
+    />
   );
 
   if (props.fadeIn) {
@@ -160,6 +173,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
             {showFullRatioImage ? (
               <Image
                 source={{ uri }}
+                recyclingKey={uri}
                 style={{
                   width: dimensions.width,
                   height: dimensions.height,
@@ -174,6 +188,7 @@ const RemoteImage: React.FC<RemoteImageProps> = (props) => {
                   style={styles.imageStyle}
                   {...restProps}
                   source={{ uri }}
+                  recyclingKey={uri}
                   onLoad={onImageLoad}
                   onError={onError}
                 />

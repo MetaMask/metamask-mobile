@@ -49,9 +49,22 @@ import {
   GetOnboardingConsentResponse,
   CardDetailsTokenRequest,
   CardDetailsTokenResponse,
+  CardPinTokenRequest,
+  CardPinTokenResponse,
+  CreateOrderRequest,
+  CreateOrderResponse,
+  GetOrderStatusResponse,
+  CashbackWalletResponse,
+  CashbackWithdrawRequest,
+  CashbackWithdrawResponse,
+  CashbackWithdrawEstimationResponse,
+  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
-import { getCardBaanxToken } from '../util/cardTokenVault';
+import {
+  getCardBaanxToken,
+  removeCardBaanxToken,
+} from '../util/cardTokenVault';
 import { CaipChainId } from '@metamask/utils';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { isZeroValue } from '../../../../util/number';
@@ -196,6 +209,9 @@ export class CardSDK {
     ) {
       return 'card_auth';
     }
+    if (lowerOp.includes('cashback')) {
+      return 'card_cashback';
+    }
     return 'card_api_request';
   }
 
@@ -225,7 +241,7 @@ export class CardSDK {
       tags: {
         feature: 'card',
         operation,
-        errorType: type.toLowerCase().replace(/_/g, '_'),
+        errorType: type.toLowerCase(),
       },
       context: {
         name: this.getContextName(operation),
@@ -449,35 +465,6 @@ export class CardSDK {
 
     return batches;
   }
-
-  getGeoLocation = async (): Promise<string> => {
-    try {
-      const env = process.env.NODE_ENV ?? 'production';
-      const environment = env === 'production' ? 'PROD' : 'DEV';
-
-      const GEOLOCATION_URLS = {
-        DEV: 'https://on-ramp.dev-api.cx.metamask.io/geolocation',
-        PROD: 'https://on-ramp.api.cx.metamask.io/geolocation',
-      };
-      const url = GEOLOCATION_URLS[environment];
-      const response = await fetch(url);
-
-      if (!response.ok) {
-        throw new Error(`Failed to get geolocation: ${response.statusText}`);
-      }
-
-      return await response.text();
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'getGeoLocation' },
-        context: {
-          name: 'card_geolocation',
-          data: { endpoint: 'geolocation' },
-        },
-      });
-      return 'UNKNOWN';
-    }
-  };
 
   // Only runs on linea network
   getSupportedTokensAllowances = async (
@@ -841,6 +828,48 @@ export class CardSDK {
     return data as CardLoginResponse;
   };
 
+  /**
+   * Logs out the user from the Card provider.
+   *
+   * This method always clears the local token, regardless of whether the server
+   * logout succeeds. This ensures users can always log out even if the server
+   * is unreachable or the token is already invalidated server-side.
+   *
+   * @throws {CardError} If the server logout fails (after local cleanup is done)
+   */
+  logout = async (): Promise<void> => {
+    let serverError: Error | null = null;
+
+    try {
+      const response = await this.makeRequest('/v1/auth/logout', {
+        fetchOptions: { method: 'POST' },
+        authenticated: true,
+      });
+
+      if (!response.ok) {
+        serverError = this.logAndCreateError(
+          CardErrorType.SERVER_ERROR,
+          'Failed to logout from server.',
+          'logout',
+          'auth/logout',
+          response.status,
+        );
+      }
+    } catch (error) {
+      Logger.error(error as Error, {
+        message:
+          '[CardSDK] Server logout failed, proceeding with local cleanup',
+      });
+      serverError = error as Error;
+    }
+
+    await removeCardBaanxToken();
+
+    if (serverError) {
+      throw serverError;
+    }
+  };
+
   sendOtpLogin = async (body: {
     userId: string;
     location: CardLocation;
@@ -1004,6 +1033,57 @@ export class CardSDK {
   };
 
   /**
+   * Freeze the user's card to temporarily disable all transactions.
+   * The card can be unfrozen at any time.
+   *
+   * @returns Promise resolving to success status
+   */
+  freezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'freezeCard',
+      'card/freeze',
+      'Failed to freeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/freeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'freezeCard',
+          'card/freeze',
+          'Failed to freeze card',
+        );
+      },
+    );
+
+  /**
+   * Unfreeze the user's card to resume normal transaction processing.
+   *
+   * @returns Promise resolving to success status
+   */
+  unfreezeCard = async (): Promise<{ success: boolean }> =>
+    this.withErrorHandling(
+      'unfreezeCard',
+      'card/unfreeze',
+      'Failed to unfreeze card. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/card/unfreeze', {
+          fetchOptions: { method: 'POST' },
+          authenticated: true,
+        });
+
+        return this.handleApiResponse<{ success: boolean }>(
+          response,
+          'unfreezeCard',
+          'card/unfreeze',
+          'Failed to unfreeze card',
+        );
+      },
+    );
+
+  /**
    * Generate a secure token for displaying sensitive card details through an image-based display.
    * The token is time-limited (~10 minutes) and single-use.
    *
@@ -1039,6 +1119,45 @@ export class CardSDK {
     }
 
     return (await response.json()) as CardDetailsTokenResponse;
+  };
+
+  /**
+   * Generate a secure token for viewing the card PIN through an image-based display.
+   * The token is time-limited (~10 minutes) and single-use.
+   * The PIN is never transmitted as plain text, ensuring PCI compliance.
+   *
+   * @param request - Optional customization for the PIN image appearance
+   * @returns Promise containing the token and imageUrl for displaying the card PIN
+   */
+  generateCardPinToken = async (
+    request?: CardPinTokenRequest,
+  ): Promise<CardPinTokenResponse> => {
+    const response = await this.makeRequest('/v1/card/pin/token', {
+      fetchOptions: {
+        method: 'POST',
+        ...(request && { body: JSON.stringify(request) }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to generate card PIN token. Please try again.',
+        'generateCardPinToken',
+        'card/pin/token',
+        response.status,
+      );
+    }
+
+    return (await response.json()) as CardPinTokenResponse;
   };
 
   getCardExternalWalletDetails = async (
@@ -1116,6 +1235,10 @@ export class CardSDK {
             wallet,
             delegationSettings,
           );
+
+        if (!tokenDetails) {
+          return null;
+        }
 
         const caipChainId = (() => {
           if (networkLower === 'solana') {
@@ -1420,66 +1543,81 @@ export class CardSDK {
   };
 
   /**
-   * Complete EVM wallet delegation for spending limit increase
-   * This is Step 3 of the delegation process (after user completes blockchain transaction)
+   * Complete wallet delegation for spending limit increase.
+   * This is Step 3 of the delegation process (after user completes the blockchain transaction).
+   * Routes to the EVM or Solana endpoint based on params.network.
    */
-  completeEVMDelegation = async (params: {
-    address: string;
-    network: CardNetwork;
-    currency: string;
-    amount: string;
-    txHash: string;
-    sigHash: string;
-    sigMessage: string;
-    token: string;
-  }): Promise<{ success: boolean }> => {
-    // Validate address format (must be valid Ethereum address)
-    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-    if (!addressRegex.test(params.address)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid Ethereum address format',
-      );
+  completeDelegation = async (
+    params: DelegationPostApprovalParams,
+  ): Promise<{ success: boolean }> => {
+    const isSolana = params.network === 'solana';
+
+    if (isSolana) {
+      // Validate Solana address format (Base58, 32-44 characters)
+      const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+      if (!solanaAddressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana address format',
+        );
+      }
+
+      // Validate Solana transaction signature format (Base58, 87-88 characters)
+      const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+      if (!solanaTxHashRegex.test(params.txHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana transaction signature format',
+        );
+      }
+    } else {
+      // Validate EVM address format
+      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+      if (!addressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Ethereum address format',
+        );
+      }
+
+      // Validate EVM signature format
+      const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
+      if (!sigHashRegex.test(params.sigHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid signature format',
+        );
+      }
+
+      if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
+        throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
+      }
     }
 
-    // Validate signature format (must be valid EVM signature)
-    const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
-    if (!sigHashRegex.test(params.sigHash)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid signature format',
-      );
-    }
+    const endpointSuffix = isSolana ? 'solana' : 'evm';
+    const endpoint = `delegation/${endpointSuffix}/post-approval`;
 
-    // Validate network
-    if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
-      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
-    }
-
-    const response = await this.makeRequest(
-      '/v1/delegation/evm/post-approval',
-      {
-        fetchOptions: {
-          method: 'POST',
-          body: JSON.stringify(params),
-        },
-        authenticated: true,
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify(params),
       },
-    );
+      authenticated: true,
+    });
 
     if (!response.ok) {
       throw this.logAndCreateError(
         CardErrorType.SERVER_ERROR,
         'Failed to complete delegation. Please try again.',
-        'completeEVMDelegation',
-        'delegation/evm/post-approval',
+        'completeDelegation',
+        endpoint,
         response.status,
         { network: params.network, currency: params.currency },
       );
     }
 
     const result = await response.json();
-    this.logDebugInfo('completeEVMDelegation', result);
+    this.logDebugInfo('completeDelegation', result);
 
     return result;
   };
@@ -1867,7 +2005,10 @@ export class CardSDK {
       },
     );
 
-  getRegistrationStatus = async (onboardingId: string): Promise<UserResponse> =>
+  getRegistrationStatus = async (
+    onboardingId: string,
+    location?: CardLocation,
+  ): Promise<UserResponse> =>
     this.withErrorHandling(
       'getRegistrationStatus',
       'auth/register',
@@ -1878,6 +2019,7 @@ export class CardSDK {
           {
             fetchOptions: { method: 'GET' },
             authenticated: false,
+            ...(location && { location }),
           },
         );
 
@@ -2012,6 +2154,167 @@ export class CardSDK {
     );
   };
 
+  /**
+   * Creates a new order for a product (e.g., premium account upgrade, metal card)
+   * POST /v1/order
+   *
+   * @param request - The order creation request
+   * @param location - User's card location (us or international)
+   * @returns Promise resolving to order response with orderId and payment configuration
+   */
+  createOrder = async (): Promise<CreateOrderResponse> => {
+    const request: CreateOrderRequest = {
+      productId: 'PREMIUM_SUBSCRIPTION',
+      paymentMethod: 'CRYPTO_EXTERNAL_DAIMO',
+    };
+    this.logDebugInfo('createOrder', request);
+
+    return this.withErrorHandling(
+      'createOrder',
+      'order',
+      'Failed to create order',
+      async () => {
+        const response = await this.makeRequest('/v1/order', {
+          fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify(request),
+          },
+          authenticated: true,
+        });
+
+        const data = await this.handleApiResponse<CreateOrderResponse>(
+          response,
+          'createOrder',
+          'order',
+          'Failed to create order',
+        );
+
+        this.logDebugInfo('createOrder response', data);
+        return data;
+      },
+    );
+  };
+
+  /**
+   * Fetches the status of an order by ID
+   * GET /v1/order/:orderId
+   *
+   * Can be used for polling async completion of an order after interactive payment
+   *
+   * @param orderId - The unique order identifier
+   * @param location - User's card location (us or international)
+   * @returns Promise resolving to order status response
+   */
+  getOrderStatus = async (orderId: string): Promise<GetOrderStatusResponse> => {
+    this.logDebugInfo('getOrderStatus', { orderId });
+
+    return this.withErrorHandling(
+      'getOrderStatus',
+      `order/${orderId}`,
+      'Failed to get order status',
+      async () => {
+        const response = await this.makeRequest(`/v1/order/${orderId}`, {
+          fetchOptions: {
+            method: 'GET',
+          },
+          authenticated: true,
+        });
+
+        // Handle 404 - order not found
+        if (response.status === 404) {
+          throw new CardError(
+            CardErrorType.NOT_FOUND,
+            `Order not found: ${orderId}`,
+          );
+        }
+
+        const data = await this.handleApiResponse<GetOrderStatusResponse>(
+          response,
+          'getOrderStatus',
+          `order/${orderId}`,
+          'Failed to get order status',
+        );
+
+        this.logDebugInfo('getOrderStatus response', data);
+        return data;
+      },
+    );
+  };
+
+  getCashbackWallet = async (): Promise<CashbackWalletResponse> =>
+    this.withErrorHandling(
+      'getCashbackWallet',
+      'wallet/reward',
+      'Failed to get cashback wallet. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward', {
+          fetchOptions: { method: 'GET' },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWalletResponse>(
+          response,
+          'getCashbackWallet',
+          'wallet/reward',
+          'Failed to get cashback wallet',
+        );
+      },
+    );
+
+  getCashbackWithdrawEstimation =
+    async (): Promise<CashbackWithdrawEstimationResponse> =>
+      this.withErrorHandling(
+        'getCashbackWithdrawEstimation',
+        'wallet/reward/withdraw-estimation',
+        'Failed to estimate withdrawal fees. Please try again.',
+        async () => {
+          const response = await this.makeRequest(
+            '/v1/wallet/reward/withdraw-estimation',
+            {
+              fetchOptions: { method: 'GET' },
+              authenticated: true,
+            },
+          );
+          return this.handleApiResponse<CashbackWithdrawEstimationResponse>(
+            response,
+            'getCashbackWithdrawEstimation',
+            'wallet/reward/withdraw-estimation',
+            'Failed to estimate withdrawal fees',
+          );
+        },
+      );
+
+  withdrawCashback = async (
+    request: CashbackWithdrawRequest,
+  ): Promise<CashbackWithdrawResponse> =>
+    this.withErrorHandling(
+      'withdrawCashback',
+      'wallet/reward/withdraw',
+      'Failed to withdraw cashback. Please try again.',
+      async () => {
+        const response = await this.makeRequest('/v1/wallet/reward/withdraw', {
+          fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify(request),
+          },
+          authenticated: true,
+        });
+        return this.handleApiResponse<CashbackWithdrawResponse>(
+          response,
+          'withdrawCashback',
+          'wallet/reward/withdraw',
+          'Failed to withdraw cashback',
+        );
+      },
+    );
+
+  getTransactionReceipt = async (
+    txHash: string,
+    network: CardNetwork = 'linea',
+  ): Promise<ethers.providers.TransactionReceipt | null> => {
+    const provider = this.getEthersProvider(network);
+    return provider.getTransactionReceipt(txHash);
+  };
+
   private getFirstSupportedTokenOrNull(): CardToken | null {
     const lineaSupportedTokens = this.getSupportedTokensByChainId();
 
@@ -2134,4 +2437,181 @@ export class CardSDK {
       name: token.name || null,
     };
   }
+
+  /**
+   * Create Google Wallet provisioning request
+   *
+   * This method sends card ID to the card provider API
+   * to generate an encrypted opaque payment card for Google Wallet provisioning.
+   *
+   * Google Wallet provisioning flow:
+   * 1. Card provider returns opaquePaymentCard (OPC)
+   *
+   * @param params - The Google Wallet provisioning request parameters
+   * @returns Promise resolving to the provisioning response with encrypted opaque payment card
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/google
+   */
+  createGoogleWalletProvisioningRequest = async (): Promise<{
+    cardNetwork: string;
+    lastFourDigits: string;
+    cardholderName: string;
+    cardDescription?: string;
+    opaquePaymentCard: string;
+  }> => {
+    const endpoint = 'card/wallet/provision/google';
+
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({}),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Google Wallet provisioning request. Please try again.',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+        response.status,
+      );
+    }
+
+    const responseData = (await response.json()) as {
+      success: boolean;
+      data?: {
+        cardNetwork?: string;
+        lastFourDigits?: string;
+        panLast4?: string;
+        cardholderName?: string;
+        holderName?: string;
+        cardDescription?: string;
+        opaquePaymentCard?: string;
+      };
+    };
+
+    if (!responseData.success || !responseData.data?.opaquePaymentCard) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Google Wallet provisioning response missing opaquePaymentCard',
+        'createGoogleWalletProvisioningRequest',
+        endpoint,
+      );
+    }
+
+    const data = responseData.data;
+
+    return {
+      cardNetwork: data.cardNetwork || 'MASTERCARD',
+      lastFourDigits: data.lastFourDigits || data.panLast4 || '',
+      cardholderName: data.cardholderName || data.holderName || '',
+      cardDescription: data.cardDescription,
+      opaquePaymentCard: data.opaquePaymentCard as string,
+    };
+  };
+
+  /**
+   * Create Apple Pay provisioning request
+   *
+   * This method sends cryptographic data from PassKit to the card provider API
+   * to generate an encrypted payload for Apple Pay in-app provisioning.
+   *
+   * Apple Pay in-app provisioning flow:
+   * 1. App presents PKAddPaymentPassViewController
+   * 2. PassKit SDK returns nonce, nonceSignature, and certificates
+   * 3. This method sends those to the card provider API
+   * 4. Card provider returns encrypted payload
+   * 5. App returns encrypted payload to PassKit to complete provisioning
+   *
+   * @param params - The Apple Pay provisioning request parameters (all values hex-encoded)
+   * @returns Promise resolving to the encrypted Apple Pay payload
+   * @see https://dev.api.baanx.com/v1/card/wallet/provision/apple
+   */
+  createApplePayProvisioningRequest = async (params: {
+    /** The leaf certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[0]) */
+    leafCertificate: string;
+    /** The intermediate certificate from PassKit (hex-encoded, from PKAddPaymentPassRequest.certificates[1]) */
+    intermediateCertificate: string;
+    /** The nonce from PassKit (hex-encoded) */
+    nonce: string;
+    /** The nonce signature from PassKit (hex-encoded) */
+    nonceSignature: string;
+  }): Promise<{
+    encryptedPassData: string;
+    activationData: string;
+    ephemeralPublicKey: string;
+  }> => {
+    const endpoint = 'card/wallet/provision/apple';
+
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify({
+          leafCertificate: params.leafCertificate,
+          intermediateCertificate: params.intermediateCertificate,
+          nonce: params.nonce,
+          nonceSignature: params.nonceSignature,
+        }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to create Apple Pay provisioning request. Please try again.',
+        'createApplePayProvisioningRequest',
+        endpoint,
+        response.status,
+      );
+    }
+
+    const responseData = (await response.json()) as {
+      success?: boolean;
+      data?: {
+        encryptedPassData?: string;
+        activationData?: string;
+        ephemeralPublicKey?: string;
+      };
+      encryptedPassData?: string;
+      activationData?: string;
+      ephemeralPublicKey?: string;
+    };
+
+    const data = responseData.data || responseData;
+
+    if (
+      !data.encryptedPassData ||
+      !data.activationData ||
+      !data.ephemeralPublicKey
+    ) {
+      throw this.logAndCreateError(
+        CardErrorType.SERVER_ERROR,
+        'Apple Pay provisioning response missing required fields',
+        'createApplePayProvisioningRequest',
+        endpoint,
+      );
+    }
+
+    return {
+      encryptedPassData: data.encryptedPassData,
+      activationData: data.activationData,
+      ephemeralPublicKey: data.ephemeralPublicKey,
+    };
+  };
 }

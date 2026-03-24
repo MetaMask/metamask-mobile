@@ -12,8 +12,6 @@ const styleSheet = (params: {
       backgroundColor: theme.colors.background.default,
       borderTopRightRadius: 16,
       borderTopLeftRadius: 16,
-      paddingLeft: 16,
-      paddingRight: 16,
       paddingBottom: 16,
     },
     titleText: {
@@ -87,7 +85,7 @@ const styleSheet = (params: {
       borderRadius: 8,
       backgroundColor: isSelected
         ? theme.colors.primary.muted
-        : theme.colors.background.alternative,
+        : theme.colors.background.muted,
       marginRight: 8,
     },
   });

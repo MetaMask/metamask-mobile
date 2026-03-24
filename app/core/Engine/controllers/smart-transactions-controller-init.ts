@@ -12,24 +12,7 @@ import type { SmartTransactionsControllerInitMessenger } from '../messengers/sma
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { trace } from '../../../util/trace';
 import { getAllowedSmartTransactionsChainIds } from '../../../constants/smartTransactions';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
-
-/**
- * Filter out undefined values from an object to make it compatible with AnalyticsEventProperties.
- *
- * @param obj - The object to filter.
- * @returns A new object without undefined values.
- */
-function filterUndefinedValues(
-  obj: Record<string, unknown> | undefined,
-): AnalyticsEventProperties {
-  if (!obj) {
-    return {};
-  }
-  return Object.fromEntries(
-    Object.entries(obj).filter(([, value]) => value !== undefined),
-  ) as AnalyticsEventProperties;
-}
+import { setSentinelApiAuth } from '../../../util/transactions/sentinel-api';
 
 /**
  * Initialize the smart transactions controller.
@@ -53,10 +36,8 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
   }) => {
     try {
       const event = AnalyticsEventBuilder.createEventBuilder(params.event)
-        .addProperties(filterUndefinedValues(params.properties))
-        .addSensitiveProperties(
-          filterUndefinedValues(params.sensitiveProperties),
-        )
+        .addProperties(params.properties)
+        .addSensitiveProperties(params.sensitiveProperties)
         .build();
 
       initMessenger.call('AnalyticsController:trackEvent', event);
@@ -65,6 +46,24 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
       // Error is logged but not thrown
     }
   };
+
+  /**
+   * Bearer token for Transaction API (and Sentinel) authentication. Only present when
+   * the user is signed in (AuthenticationController has a valid session). If getBearerToken
+   * returns undefined, no Authorization header is sent on smart transaction API calls.
+   */
+  const getBearerToken = async (): Promise<string | undefined> => {
+    try {
+      return await Promise.resolve(
+        initMessenger.call('AuthenticationController:getBearerToken'),
+      );
+    } catch {
+      return undefined;
+    }
+  };
+
+  // Use same bearer token for Sentinel API (networks, relay) as for Transaction API
+  setSentinelApiAuth(getBearerToken);
 
   const controller = new SmartTransactionsController({
     messenger: controllerMessenger,
@@ -75,6 +74,7 @@ export const smartTransactionsControllerInit: ControllerInitFunction<
     // transactions.
     getMetaMetricsProps: () => Promise.resolve({}),
     trackMetaMetricsEvent,
+    getBearerToken,
 
     // @ts-expect-error: Type of `TraceRequest` is different.
     trace,

@@ -1,28 +1,28 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
+import { DeviceEventEmitter } from 'react-native';
 import { Provider, useSelector } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import { TokenList } from './TokenList';
 import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
-import { useMetrics } from '../../../hooks/useMetrics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 
 // Mock external dependencies
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
 }));
 
-jest.mock('../../../hooks/useMetrics');
+jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      icon: { default: '#24292E' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -39,15 +39,17 @@ jest.mock('../../../../selectors/preferencesController', () => ({
   selectIsTokenNetworkFilterEqualCurrentNetwork: jest.fn(() => true),
 }));
 
-jest.mock(
-  '../../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(() => false),
-  }),
-);
-
 jest.mock('../../../../selectors/featureFlagController/homepage', () => ({
   selectHomepageRedesignV1Enabled: jest.fn(() => true),
+}));
+
+jest.mock('../../Earn/hooks/useMusdCtaVisibility', () => ({
+  useMusdCtaVisibility: jest.fn(() => ({
+    shouldShowGetMusdCta: false,
+    shouldShowTokenListItemCta: jest.fn(() => false),
+    shouldShowConversionTokenListItemCta: jest.fn(() => false),
+    shouldShowConversionAssetDetailCta: jest.fn(() => false),
+  })),
 }));
 
 // Mock child components
@@ -114,6 +116,7 @@ jest.mock('@metamask/design-system-react-native', () => ({
 }));
 
 // Mock FlashList
+const mockScrollToIndex = jest.fn();
 jest.mock('@shopify/flash-list', () => {
   const React = jest.requireActual('react');
   const { FlatList } = jest.requireActual('react-native');
@@ -122,6 +125,7 @@ jest.mock('@shopify/flash-list', () => {
       (props: Record<string, unknown>, ref: React.Ref<unknown>) => {
         React.useImperativeHandle(ref, () => ({
           recomputeViewableItems: jest.fn(),
+          scrollToIndex: mockScrollToIndex,
         }));
         return React.createElement(FlatList, { ...props, ref });
       },
@@ -136,7 +140,9 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 
 const mockTokenKeys = [
   {
@@ -168,9 +174,9 @@ describe('TokenList', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
-      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
       enable: jest.fn(),
       addTraitsToUser: jest.fn(),
       createDataDeletionTask: jest.fn(),
@@ -179,7 +185,8 @@ describe('TokenList', () => {
       getDeleteRegulationId: jest.fn(),
       isDataRecorded: jest.fn(),
       isEnabled: jest.fn(),
-      getMetaMetricsId: jest.fn(),
+      getAnalyticsId: jest.fn(),
+      identify: jest.fn(),
     });
 
     // Mock useSelector to call the selector function with empty state
@@ -293,7 +300,7 @@ describe('TokenList', () => {
     expect(flashList.props.contentContainerStyle).toBeDefined();
   });
 
-  it('uses TokenListItemBip44 when multichain accounts state 2 is enabled', () => {
+  it('renders token list correctly', () => {
     // Reset and set new mock implementation for this test
     mockUseSelector.mockReset();
     mockUseSelector.mockImplementation((selector) => {
@@ -304,11 +311,6 @@ describe('TokenList', () => {
         selector
           .toString()
           .includes('selectIsTokenNetworkFilterEqualCurrentNetwork')
-      ) {
-        return true;
-      }
-      if (
-        selector.toString().includes('selectMultichainAccountsState2Enabled')
       ) {
         return true;
       }
@@ -472,6 +474,218 @@ describe('TokenList', () => {
       // instead of in FlashList
       expect(queryByTestId('token-item-0x123')).toBeOnTheScreen();
       expect(queryByTestId('token-item-0x456')).toBeOnTheScreen();
+    });
+  });
+
+  describe('Scroll to Token Event', () => {
+    beforeEach(() => {
+      mockScrollToIndex.mockClear();
+      // Reset selector mocks
+      mockUseSelector.mockReset();
+    });
+
+    afterEach(() => {
+      // Clean up any event listeners
+      DeviceEventEmitter.removeAllListeners(SCROLL_TO_TOKEN_EVENT);
+      DeviceEventEmitter.removeAllListeners('scrollToTokenIndex');
+    });
+
+    it('scrolls to token using FlashList scrollToIndex when token is found and using FlashList mode', () => {
+      // Set up for FlashList mode (homepage redesign disabled)
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return false;
+        }
+        return selector({});
+      });
+
+      renderComponent({ isFullView: true });
+
+      // Emit scroll-to-token event
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0x123',
+          chainId: '0x1',
+        });
+      });
+
+      expect(mockScrollToIndex).toHaveBeenCalledWith({
+        index: 0,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    });
+
+    it('scrolls to correct index when token is not first in list', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return false;
+        }
+        return selector({});
+      });
+
+      renderComponent({ isFullView: true });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0x456',
+          chainId: '0x1',
+        });
+      });
+
+      expect(mockScrollToIndex).toHaveBeenCalledWith({
+        index: 1,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    });
+
+    it('does not scroll when token is not found in the list', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return false;
+        }
+        return selector({});
+      });
+
+      renderComponent({ isFullView: true });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0xnonexistent',
+          chainId: '0x1',
+        });
+      });
+
+      expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('does not scroll when chainId does not match', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return false;
+        }
+        return selector({});
+      });
+
+      renderComponent({ isFullView: true });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0x123',
+          chainId: '0x5', // Different chainId
+        });
+      });
+
+      expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('emits scrollToTokenIndex event in .map() mode (homepage redesign enabled, not full view)', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const scrollToTokenIndexHandler = jest.fn();
+      DeviceEventEmitter.addListener(
+        'scrollToTokenIndex',
+        scrollToTokenIndexHandler,
+      );
+
+      renderComponent({ isFullView: false });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0x123',
+          chainId: '0x1',
+        });
+      });
+
+      expect(scrollToTokenIndexHandler).toHaveBeenCalledWith({
+        index: 0,
+        offset: 0, // 0 * 72 (TOKEN_ROW_HEIGHT)
+      });
+      expect(mockScrollToIndex).not.toHaveBeenCalled();
+    });
+
+    it('calculates correct offset based on token index in .map() mode', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return true;
+        }
+        return selector({});
+      });
+
+      const scrollToTokenIndexHandler = jest.fn();
+      DeviceEventEmitter.addListener(
+        'scrollToTokenIndex',
+        scrollToTokenIndexHandler,
+      );
+
+      renderComponent({ isFullView: false });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0x456',
+          chainId: '0x1',
+        });
+      });
+
+      expect(scrollToTokenIndexHandler).toHaveBeenCalledWith({
+        index: 1,
+        offset: 72, // 1 * 72 (TOKEN_ROW_HEIGHT)
+      });
+    });
+
+    it('matches token address case-insensitively', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return false;
+        }
+        return selector({});
+      });
+
+      renderComponent({ isFullView: true });
+
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0X123', // Uppercase
+          chainId: '0x1',
+        });
+      });
+
+      expect(mockScrollToIndex).toHaveBeenCalledWith({
+        index: 0,
+        animated: true,
+        viewPosition: 0.5,
+      });
+    });
+
+    it('cleans up event listener on unmount', () => {
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector.toString().includes('selectHomepageRedesignV1Enabled')) {
+          return false;
+        }
+        return selector({});
+      });
+
+      const { unmount } = renderComponent({ isFullView: true });
+
+      // Unmount the component
+      unmount();
+
+      // Emit event after unmount
+      act(() => {
+        DeviceEventEmitter.emit(SCROLL_TO_TOKEN_EVENT, {
+          address: '0x123',
+          chainId: '0x1',
+        });
+      });
+
+      // Should not scroll because listener was removed
+      expect(mockScrollToIndex).not.toHaveBeenCalled();
     });
   });
 });

@@ -1,13 +1,13 @@
 import type { NavigationProp, ParamListBase } from '@react-navigation/native';
-import { TRON_RESOURCE } from '../../../../core/Multichain/constants';
 import Routes from '../../../../constants/navigation/Routes';
 import { EARN_EXPERIENCES } from '../constants/experiences';
 import type { EarnTokenDetails } from '../types/lending.types';
 import type { TokenI } from '../../Tokens/types';
+import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
 import {
   buildTronEarnTokenIfEligible,
   getLocalizedErrorMessage,
-  getStakedTrxTotalFromResources,
+  getStakedTrxTotalFromSpecialAssets,
   handleTronStakingNavigationResult,
   hasStakedTrxPositions,
 } from './tron';
@@ -51,62 +51,89 @@ describe('tron utils', () => {
     };
   });
 
-  describe('getStakedTrxTotalFromResources', () => {
-    it('returns zero when resources are missing', () => {
-      const total = getStakedTrxTotalFromResources(undefined);
+  describe('getStakedTrxTotalFromSpecialAssets', () => {
+    it('returns zero when special assets are missing', () => {
+      const total = getStakedTrxTotalFromSpecialAssets(undefined);
 
       expect(total).toBe(0);
     });
 
-    it('returns sum of sTRX energy and bandwidth balances', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '10',
-        },
-        {
-          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-          balance: '5',
-        },
-        {
-          symbol: 'OTHER',
-          balance: '1000',
-        },
-      ];
+    it('returns zero when special assets are null', () => {
+      const total = getStakedTrxTotalFromSpecialAssets(null);
 
-      const total = getStakedTrxTotalFromResources(resources);
+      expect(total).toBe(0);
+    });
+
+    it('returns totalStakedTrx from special assets', () => {
+      const specialAssets: TronSpecialAssetsMap = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+        totalStakedTrx: 15,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
+      };
+
+      const total = getStakedTrxTotalFromSpecialAssets(specialAssets);
 
       expect(total).toBe(15);
+    });
+
+    it('defaults to zero when totalStakedTrx is undefined at runtime', () => {
+      const specialAssets = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+      } as unknown as TronSpecialAssetsMap;
+
+      const total = getStakedTrxTotalFromSpecialAssets(specialAssets);
+
+      expect(total).toBe(0);
     });
   });
 
   describe('hasStakedTrxPositions', () => {
-    it('returns false when total staked balance is zero', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '0',
-        },
-        {
-          symbol: TRON_RESOURCE.STRX_BANDWIDTH,
-          balance: '0',
-        },
-      ];
+    it('returns false when totalStakedTrx is zero', () => {
+      const specialAssets: TronSpecialAssetsMap = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+        totalStakedTrx: 0,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
+      };
 
-      const result = hasStakedTrxPositions(resources);
+      const result = hasStakedTrxPositions(specialAssets);
 
       expect(result).toBe(false);
     });
 
-    it('returns true when total staked balance is greater than zero', () => {
-      const resources = [
-        {
-          symbol: TRON_RESOURCE.STRX_ENERGY,
-          balance: '1',
-        },
-      ];
+    it('returns true when totalStakedTrx is greater than zero', () => {
+      const specialAssets: TronSpecialAssetsMap = {
+        energy: undefined,
+        bandwidth: undefined,
+        maxEnergy: undefined,
+        maxBandwidth: undefined,
+        stakedTrxForEnergy: undefined,
+        stakedTrxForBandwidth: undefined,
+        totalStakedTrx: 1,
+        trxReadyForWithdrawal: undefined,
+        trxStakingRewards: undefined,
+        trxInLockPeriod: undefined,
+      };
 
-      const result = hasStakedTrxPositions(resources);
+      const result = hasStakedTrxPositions(specialAssets);
 
       expect(result).toBe(true);
     });
@@ -174,6 +201,97 @@ describe('tron utils', () => {
       expect(result.balanceFormatted).toBe('24');
       // 24 TRX with 6 decimals = 24 * 10^6
       expect(result.balanceMinimalUnit).toBe('24000000');
+    });
+
+    it('truncates floating-point precision errors in stakedBalanceOverride', () => {
+      // This test verifies the BigNumber truncation fix:
+      // A value like 130.96926000000002 should be truncated to 130.96926
+      // before converting to minimal units
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: 130.96926000000002,
+      }) as EarnTokenDetails;
+
+      expect(result.balanceFormatted).toBe('130.96926000000002');
+      // 130.96926 TRX with 6 decimals = 130969260
+      // The truncation ensures this doesn't throw "too many decimal places"
+      expect(result.balanceMinimalUnit).toBe('130969260');
+    });
+
+    it('truncates floating-point artifacts from 130.96926000000002 to valid minimal units', () => {
+      // This is the exact error case from the bug report:
+      // "Error: [number] while converting number 130.96926000000002 to token minimal util, too many decimal places"
+      // This value was produced by floating-point addition and has 14 decimal places,
+      // but TRX only has 6 decimals. Without the fix, toTokenMinimalUnit would throw.
+      const problematicValue = 130.96926000000002;
+
+      // Verify this would have too many decimals without truncation
+      expect(problematicValue.toString().split('.')[1]?.length).toBeGreaterThan(
+        6,
+      );
+
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: problematicValue,
+      }) as EarnTokenDetails;
+
+      // Should not throw and should produce correct minimal unit
+      expect(result.balanceMinimalUnit).toBe('130969260');
+    });
+
+    it('truncates string balance override to token decimals', () => {
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: '50.12345678901234',
+      }) as EarnTokenDetails;
+
+      // Should truncate to 6 decimals (TRX decimals)
+      // 50.123456 * 10^6 = 50123456
+      expect(result.balanceMinimalUnit).toBe('50123456');
+    });
+
+    it('defaults to zero when stakedBalanceOverride is empty string', () => {
+      // When stakedBalanceOverride is an empty string, normalizeToDotDecimal('')
+      // returns an empty string. new BigNumber('') creates BigNumber(NaN),
+      // and BigNumber(NaN).toFixed() returns 'NaN'. This would cause
+      // toTokenMinimalUnit to throw. The fix defaults to '0' in this case.
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: '',
+      }) as EarnTokenDetails;
+
+      expect(result.balanceMinimalUnit).toBe('0');
+    });
+
+    it('defaults to zero when stakedBalanceOverride is non-numeric string', () => {
+      // When stakedBalanceOverride is 'abc', normalizeToDotDecimal('abc')
+      // strips non-digit characters and returns ''. This is the same as
+      // the empty string case and should default to '0'.
+      const result = buildTronEarnTokenIfEligible(baseToken, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+        stakedBalanceOverride: 'abc',
+      }) as EarnTokenDetails;
+
+      expect(result.balanceMinimalUnit).toBe('0');
+    });
+
+    it('defaults to zero when token balance is empty string', () => {
+      const tokenWithEmptyBalance = {
+        ...baseToken,
+        balance: '',
+      };
+
+      const result = buildTronEarnTokenIfEligible(tokenWithEmptyBalance, {
+        isTrxStakingEnabled: true,
+        isTronEligible: true,
+      }) as EarnTokenDetails;
+
+      expect(result.balanceMinimalUnit).toBe('0');
     });
   });
 

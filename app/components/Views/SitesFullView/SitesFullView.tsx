@@ -1,8 +1,6 @@
 import React, { useCallback, useState, useMemo } from 'react';
-import { StyleSheet, View, RefreshControl } from 'react-native';
+import { Platform, StyleSheet, View, RefreshControl } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-// eslint-disable-next-line no-duplicate-imports
-import type { NavigationProp, ParamListBase } from '@react-navigation/native';
 import {
   SafeAreaView,
   useSafeAreaInsets,
@@ -21,7 +19,6 @@ const createStyles = (theme: Theme) =>
     safeArea: {
       flex: 1,
       backgroundColor: theme.colors.background.default,
-      paddingBottom: 16,
     },
     headerContainer: {
       backgroundColor: theme.colors.background.default,
@@ -37,17 +34,13 @@ const SitesFullView: React.FC = () => {
   const theme = useAppThemeFromContext();
   const styles = useMemo(() => createStyles(theme), [theme]);
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation();
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
   // Fetch all sites (no limit)
-  const {
-    sites,
-    isLoading,
-    refetch: refetchSites,
-  } = useSitesData(searchQuery, 100);
+  const { sites, isLoading, refetch: refetchSites } = useSitesData(searchQuery);
 
   const handleBackPress = useCallback(() => {
     navigation.goBack();
@@ -90,7 +83,12 @@ const SitesFullView: React.FC = () => {
   }, [isSearchActive, searchQuery]);
 
   return (
-    <SafeAreaView style={styles.safeArea} edges={['left', 'right']}>
+    <SafeAreaView
+      style={styles.safeArea}
+      edges={
+        Platform.OS === 'ios' ? ['left', 'right'] : ['left', 'right', 'bottom']
+      }
+    >
       <View
         style={[
           styles.headerContainer,

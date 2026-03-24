@@ -56,6 +56,14 @@ jest.mock('../../../hooks/metrics/useConfirmationMetricEvents', () => ({
     setConfirmationMetric: jest.fn(),
   }),
 }));
+jest.mock('../../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn(() => ({
+      addProperties: jest.fn(() => ({ build: jest.fn() })),
+    })),
+  }),
+}));
 
 const mockGoToBuy = jest.fn();
 
@@ -77,6 +85,19 @@ jest.mock('../../../../../UI/Ramp/hooks/useRampNavigation', () => ({
   ...jest.requireActual('../../../../../UI/Ramp/hooks/useRampNavigation'),
   useRampNavigation: () => ({
     goToBuy: mockGoToBuy,
+  }),
+}));
+
+jest.mock('../../../../../UI/Ramp/hooks/useRampsPaymentMethods', () => ({
+  useRampsPaymentMethods: () => ({
+    paymentMethods: [],
+    selectedPaymentMethod: null,
+    setSelectedPaymentMethod: jest.fn(),
+    isFetching: false,
+    isLoading: false,
+    status: 'idle',
+    isSuccess: false,
+    error: null,
   }),
 }));
 
@@ -188,7 +209,10 @@ describe('CustomAmountInfo', () => {
     });
 
     useAccountTokensMock.mockReturnValue([]);
-    useTransactionPayAvailableTokensMock.mockReturnValue([{}] as AssetType[]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [{}] as AssetType[],
+      hasTokens: true,
+    });
     useTransactionPayRequiredTokensMock.mockReturnValue([]);
     useTransactionConfirmMock.mockReturnValue({} as never);
     useIsTransactionPayLoadingMock.mockReturnValue(false);
@@ -247,7 +271,10 @@ describe('CustomAmountInfo', () => {
   });
 
   it('renders buy button if no available tokens', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
 
     const { getByText } = render();
 
@@ -257,7 +284,10 @@ describe('CustomAmountInfo', () => {
   });
 
   it('navigates to ramps if buy button pressed', () => {
-    useTransactionPayAvailableTokensMock.mockReturnValue([]);
+    useTransactionPayAvailableTokensMock.mockReturnValue({
+      availableTokens: [],
+      hasTokens: false,
+    });
 
     useAccountTokensMock.mockReturnValue([
       {
@@ -284,24 +314,27 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  it('renders alternate confirm label if predict withdraw', async () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.predictWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
+  it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
+    'renders the withdraw confirm label for %s transactions',
+    async (transactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
 
-    const { getByText, findByText } = render({
-      transactionType: TransactionType.predictWithdraw,
-    });
+      const { getByText, findByText } = render({ transactionType });
 
-    await act(async () => {
-      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-    });
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
 
-    expect(
-      await findByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
-    ).toBeDefined();
-  });
+      expect(
+        await findByText(
+          strings('confirm.deposit_edit_amount_predict_withdraw'),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('calls overrideContent with amountHuman and hides default content', () => {
     const mockOverrideContent = jest.fn().mockReturnValue(null);
@@ -324,5 +357,17 @@ describe('CustomAmountInfo', () => {
     expect(
       queryByText(new RegExp(strings('confirm.label.pay_with'))),
     ).toBeNull();
+  });
+
+  it('calls onAmountSubmit when Done button is pressed', async () => {
+    const mockOnAmountSubmit = jest.fn();
+
+    const { getByText } = render({ onAmountSubmit: mockOnAmountSubmit });
+
+    await act(async () => {
+      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+    });
+
+    expect(mockOnAmountSubmit).toHaveBeenCalledTimes(1);
   });
 });

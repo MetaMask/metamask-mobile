@@ -4,21 +4,19 @@ import { render } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import configureMockStore from 'redux-mock-store';
 import {
-  INotification,
-  TRIGGER_TYPES,
+  type INotification,
   processNotification,
+  TRIGGER_TYPES,
 } from '@metamask/notification-services-controller/notification-services';
-import {
+import NotificationsDetails from './index';
+import { backgroundState } from '../../../../util/test/initial-root-state';
+import MOCK_NOTIFICATIONS, {
   createMockNotificationERC20Received,
   createMockNotificationERC20Sent,
   createMockNotificationEthReceived,
   createMockNotificationEthSent,
-} from '@metamask/notification-services-controller/notification-services/mocks';
-
-import NotificationsDetails from './index';
-import { backgroundState } from '../../../../util/test/initial-root-state';
-import MOCK_NOTIFICATIONS from '../../../../components/UI/Notification/__mocks__/mock_notifications';
-// eslint-disable-next-line import/no-namespace
+} from '../../../../components/UI/Notification/__mocks__/mock_notifications';
+// eslint-disable-next-line import-x/no-namespace
 import * as UseNotificationsModule from '../../../../util/notifications/hooks/useNotifications';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
 
@@ -41,6 +39,9 @@ jest.mock('../../../../actions/alert', () => ({
 }));
 
 jest.mock('@react-navigation/native');
+jest.mock('@react-navigation/compat', () => ({
+  withNavigation: jest.fn((component) => component),
+}));
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
   const frame = { width: 0, height: 0, x: 0, y: 0 };
@@ -101,7 +102,7 @@ describe('NotificationsDetails', () => {
         n.type === TRIGGER_TYPES.ERC20_SENT ||
         n.type === TRIGGER_TYPES.ERC20_RECEIVED
       ) {
-        n.payload.chain_id = 123; // unsupported chainId
+        return { ...n, payload: undefined } as unknown as INotification; // delete payload
       }
       return n;
     }),

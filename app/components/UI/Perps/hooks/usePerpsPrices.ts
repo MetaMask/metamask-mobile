@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
-import type { PriceUpdate } from '../controllers/types';
+import {
+  PERFORMANCE_CONFIG,
+  type PriceUpdate,
+} from '@metamask/perps-controller';
 import { usePerpsConnection } from './usePerpsConnection';
 import { usePerpsTrading } from './usePerpsTrading';
 import { useStableArray } from './useStableArray';
@@ -66,8 +68,7 @@ export function usePerpsPrices(
   }, []);
 
   // Use provided debounce or fall back to default
-  const debounceDelay =
-    throttleMs ?? PERFORMANCE_CONFIG.PRICE_UPDATE_DEBOUNCE_MS;
+  const debounceDelay = throttleMs ?? PERFORMANCE_CONFIG.PriceUpdateDebounceMs;
 
   // Track if we've received the first update for each symbol
   // This only resets when symbols change, not debounce settings

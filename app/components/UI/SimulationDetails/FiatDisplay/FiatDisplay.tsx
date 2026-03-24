@@ -26,15 +26,6 @@ const sharedTextProps = {
   variant: TextVariant.BodyMD,
 } as const;
 
-const FiatNotAvailableDisplay: React.FC = () => {
-  const { styles } = useStyles(styleSheet, {});
-  return (
-    <Text {...sharedTextProps} style={styles.base}>
-      {strings('simulation_details.fiat_not_available')}
-    </Text>
-  );
-};
-
 export function calculateTotalFiat(fiatAmounts: FiatAmount[]): BigNumber {
   return fiatAmounts.reduce(
     (total: BigNumber, fiat) =>
@@ -70,7 +61,7 @@ export const IndividualFiatDisplay: React.FC<IndividualFiatDisplayProps> = ({
   }
 
   if (fiatAmount === FIAT_UNAVAILABLE) {
-    return <FiatNotAvailableDisplay />;
+    return null;
   }
   const absFiat = new BigNumber(fiatAmount).abs();
 
@@ -108,9 +99,11 @@ export const TotalFiatDisplay: React.FC<{
     return null;
   }
 
-  return totalFiat.eq(0) ? (
-    <FiatNotAvailableDisplay />
-  ) : (
+  if (totalFiat === null || totalFiat.eq(0)) {
+    return null;
+  }
+
+  return (
     <Text {...sharedTextProps} variant={TextVariant.BodySM} style={styles.base}>
       {strings('simulation_details.total_fiat', {
         currency: fiatFormatter(totalFiat.abs()),

@@ -3,7 +3,6 @@ import { StyleSheet } from 'react-native';
 import { Box } from '../../Box/Box';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../component-library/hooks';
 import { FlexDirection, AlignItems } from '../../Box/box.types';
@@ -11,6 +10,9 @@ import AvatarNetwork from '../../../../component-library/components/Avatars/Avat
 import { getNetworkImageSource } from '../../../../util/networks';
 import { CaipChainId, Hex } from '@metamask/utils';
 import { strings } from '../../../../../locales/i18n';
+import TagColored, {
+  TagColor,
+} from '../../../../component-library/components-temp/TagColored';
 
 const createStyles = () =>
   StyleSheet.create({
@@ -22,6 +24,9 @@ const createStyles = () =>
     },
     childrenWrapper: {
       flex: 1,
+    },
+    noNetworkFeeContainer: {
+      alignSelf: 'center',
     },
   });
 
@@ -58,9 +63,21 @@ export const NetworkRow: React.FC<NetworkRowProps> = ({
         <Box>
           <Text variant={TextVariant.BodyLGMedium}>{chainName}</Text>
           {showNoNetworkFeeLabel ? (
-            <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+            <TagColored
+              color={TagColor.Success}
+              style={styles.noNetworkFeeContainer}
+              labelProps={{
+                variant: TextVariant.BodySM,
+                style: {
+                  textTransform: 'none',
+                  textAlign: 'center',
+                  bottom: 1,
+                  fontWeight: 'normal',
+                },
+              }}
+            >
               {strings('networks.no_network_fee')}
-            </Text>
+            </TagColored>
           ) : null}
         </Box>
       </Box>

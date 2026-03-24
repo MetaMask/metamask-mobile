@@ -13,7 +13,6 @@ import {
   BranchParams,
 } from '../../types/deepLinkAnalytics.types';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import type { AnalyticsEventProperties } from '@metamask/analytics-controller';
 import { MetaMetricsEvents } from '../../../Analytics/MetaMetrics.events';
 import { SupportedAction } from '../../types/deepLink.types';
 import { ACTIONS } from '../../../../constants/deeplinks';
@@ -192,43 +191,6 @@ const extractPerpsProperties = (
 };
 
 /**
- * Extract properties specific to DEPOSIT route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractDepositProperties = (
-  urlParams: UrlParamValues,
-  sensitiveProps: Record<string, string>,
-): void => {
-  extractCommonProperties(urlParams, sensitiveProps);
-  addPropertyIfExists(
-    sensitiveProps,
-    'provider',
-    getStringValue(urlParams, 'provider'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'payment_method',
-    getStringValue(urlParams, 'payment_method'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'sub_payment_method',
-    getStringValue(urlParams, 'sub_payment_method'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'fiat_currency',
-    getStringValue(urlParams, 'fiat_currency'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'fiat_quantity',
-    getStringValue(urlParams, 'fiat_quantity'),
-  );
-};
-
-/**
  * Extract properties specific to TRANSACTION route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -305,6 +267,19 @@ const extractHomeProperties = (
     'previewToken',
     getStringValue(urlParams, 'previewToken'),
   );
+};
+
+/**
+ * Extract properties specific to ASSET route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractAssetProperties = (
+  urlParams: UrlParamValues,
+  sensitiveProps: Record<string, string>,
+): void => {
+  const assetValue = getStringValue(urlParams, 'assetId');
+  addPropertyIfExists(sensitiveProps, 'asset', assetValue);
 };
 
 /**
@@ -433,6 +408,30 @@ const extractCardHomeProperties = (
 };
 
 /**
+ * Extract properties for SHIELD route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractShieldProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // SHIELD route doesn't have sensitive parameters to extract
+};
+
+/**
+ * Extract properties for NFT route
+ * @param urlParams - URL parameters
+ * @param sensitiveProps - Object to add properties to
+ */
+const extractNftProperties = (
+  _urlParams: UrlParamValues,
+  _sensitiveProps: Record<string, string>,
+): void => {
+  // NFT route doesn't have sensitive parameters to extract
+};
+
+/**
  * Extract properties for INVALID route
  * No properties to extract, this function is a placeholder
  * to satisfy the type checker
@@ -455,21 +454,23 @@ const routeExtractors: Record<
 > = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
-  [DeepLinkRoute.DEPOSIT]: extractDepositProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
   [DeepLinkRoute.HOME]: extractHomeProperties,
+  [DeepLinkRoute.ASSET]: extractAssetProperties,
   [DeepLinkRoute.DAPP]: extractDappProperties,
   [DeepLinkRoute.WC]: extractWcProperties,
   [DeepLinkRoute.REWARDS]: extractRewardsProperties,
   [DeepLinkRoute.CREATE_ACCOUNT]: extractCreateAccountProperties,
   [DeepLinkRoute.ONBOARDING]: extractOnboardingProperties,
   [DeepLinkRoute.PREDICT]: extractPredictProperties,
+  [DeepLinkRoute.SHIELD]: extractShieldProperties,
   [DeepLinkRoute.TRENDING]: extractTrendingProperties,
   [DeepLinkRoute.ENABLE_CARD_BUTTON]: extractEnableCardButtonProperties,
   [DeepLinkRoute.CARD_ONBOARDING]: extractCardOnboardingProperties,
   [DeepLinkRoute.CARD_HOME]: extractCardHomeProperties,
+  [DeepLinkRoute.NFT]: extractNftProperties,
   [DeepLinkRoute.INVALID]: extractInvalidProperties,
 };
 
@@ -568,8 +569,6 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
       return DeepLinkRoute.PERPS;
-    case ACTIONS.DEPOSIT:
-      return DeepLinkRoute.DEPOSIT;
     case ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
@@ -580,6 +579,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.SELL;
     case ACTIONS.HOME:
       return DeepLinkRoute.HOME;
+    case ACTIONS.ASSET:
+      return DeepLinkRoute.ASSET;
     case ACTIONS.DAPP:
       return DeepLinkRoute.DAPP;
     case ACTIONS.WC:
@@ -592,6 +593,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.ONBOARDING;
     case ACTIONS.PREDICT:
       return DeepLinkRoute.PREDICT;
+    case ACTIONS.SHIELD:
+      return DeepLinkRoute.SHIELD;
     case ACTIONS.TRENDING:
       return DeepLinkRoute.TRENDING;
     case ACTIONS.ENABLE_CARD_BUTTON:
@@ -600,6 +603,8 @@ export const mapSupportedActionToRoute = (
       return DeepLinkRoute.CARD_ONBOARDING;
     case ACTIONS.CARD_HOME:
       return DeepLinkRoute.CARD_HOME;
+    case ACTIONS.NFT:
+      return DeepLinkRoute.NFT;
     default:
       return DeepLinkRoute.INVALID;
   }
@@ -621,7 +626,7 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
       case 'perps':
         return DeepLinkRoute.PERPS;
       case 'deposit':
-        return DeepLinkRoute.DEPOSIT;
+        return DeepLinkRoute.INVALID;
       case 'transaction':
         return DeepLinkRoute.TRANSACTION;
       case 'buy':
@@ -630,6 +635,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.SELL;
       case 'home':
         return DeepLinkRoute.HOME;
+      case 'asset':
+        return DeepLinkRoute.ASSET;
       case 'dapp':
         return DeepLinkRoute.DAPP;
       case 'wc':
@@ -642,6 +649,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.ONBOARDING;
       case 'predict':
         return DeepLinkRoute.PREDICT;
+      case 'shield':
+        return DeepLinkRoute.SHIELD;
       case 'trending':
         return DeepLinkRoute.TRENDING;
       case 'enable-card-button':
@@ -650,6 +659,8 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
         return DeepLinkRoute.CARD_ONBOARDING;
       case 'card-home':
         return DeepLinkRoute.CARD_HOME;
+      case 'nft':
+        return DeepLinkRoute.NFT;
       case undefined: // Empty path (no segments after filtering)
         return DeepLinkRoute.HOME;
       default:
@@ -686,9 +697,11 @@ export const createDeepLinkUsedEventBuilder = async (
   // Determine interstitial state
   const interstitial = determineInterstitialState(context);
 
-  // Build the event properties, filtering out undefined values
-  const eventProperties = Object.fromEntries(
-    Object.entries({
+  // Create the AnalyticsEventBuilder with all deep link properties
+  const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
+    MetaMetricsEvents.DEEP_LINK_USED,
+  )
+    .addProperties({
       route: route.toString(),
       was_app_installed: wasAppInstalled,
       signature: signatureStatus,
@@ -700,14 +713,7 @@ export const createDeepLinkUsedEventBuilder = async (
       utm_term: context.urlParams.utm_term,
       utm_content: context.urlParams.utm_content,
       target: route === DeepLinkRoute.INVALID ? url : undefined,
-    }).filter(([_, value]) => value !== undefined),
-  ) as AnalyticsEventProperties;
-
-  // Create the AnalyticsEventBuilder with all deep link properties
-  const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
-    MetaMetricsEvents.DEEP_LINK_USED,
-  )
-    .addProperties(eventProperties)
+    })
     .addSensitiveProperties(sensitiveProperties);
 
   return eventBuilder;

@@ -10,10 +10,25 @@ import Engine from '../../../../core/Engine';
 import { selectERC20TokensByChain } from '../../../../selectors/tokenListController';
 import { safeToChecksumAddress } from '../../../../util/address';
 import useEarnToasts from './useEarnToasts';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { decodeTransferData } from '../../../../util/transactions';
-import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
-import NetworkList from '../../../../util/networks';
+import { TOAST_TRACKING_CLEANUP_DELAY_MS } from '../constants/musd';
+import {
+  trace,
+  endTrace,
+  TraceName,
+  TraceOperation,
+} from '../../../../util/trace';
+import { store } from '../../../../store';
+import { selectTransactionPayQuotesByTransactionId } from '../../../../selectors/transactionPayController';
+import { getNetworkName } from '../utils/network';
+import { getMusdConversionQuoteTrackingData } from '../utils/analytics';
+
+function getTransactionPayQuotes(transactionId: string) {
+  const state = store.getState();
+  return selectTransactionPayQuotesByTransactionId(state, transactionId) ?? [];
+}
 
 /**
  * Hook to monitor mUSD conversion transaction status and show appropriate toasts
@@ -31,43 +46,39 @@ import NetworkList from '../../../../util/networks';
  * navigating away from the conversion screen.
  */
 export const useMusdConversionStatus = () => {
-  const networkConfigurations = useSelector(
-    selectEvmNetworkConfigurationsByChainId,
-  );
-
   const { showToast, EarnToastOptions } = useEarnToasts();
   const tokensChainsCache = useSelector(selectERC20TokensByChain);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const shownToastsRef = useRef<Set<string>>(new Set());
   const tokensCacheRef = useRef(tokensChainsCache);
   tokensCacheRef.current = tokensChainsCache;
-
-  const getNetworkName = useCallback(
-    (chainId?: Hex) => {
-      if (!chainId) return 'Unknown Network';
-
-      const nickname = networkConfigurations[chainId]?.name;
-
-      const name = Object.values(NetworkList).find(
-        (network: { chainId?: Hex; shortName: string }) =>
-          network.chainId === chainId,
-      )?.shortName;
-
-      return name ?? nickname ?? chainId;
-    },
-    [networkConfigurations],
-  );
 
   const submitConversionEvent = useCallback(
     (
       transactionMeta: TransactionMeta,
       token: { name: string; symbol: string },
     ) => {
-      const [, amountDecimalString, amountHexString] = decodeTransferData(
-        'transfer',
-        transactionMeta?.txParams?.data || '',
+      let amountDecimalString = '';
+      let amountHexString = '';
+
+      try {
+        const decoded = decodeTransferData(
+          'transfer',
+          transactionMeta?.txParams?.data || '',
+        );
+        amountDecimalString = decoded?.[1] ?? '';
+        amountHexString = decoded?.[2] ?? '';
+      } catch {
+        // If txParams.data is malformed or missing, keep amounts empty.
+      }
+
+      const quotes = getTransactionPayQuotes(transactionMeta.id);
+
+      const quoteTrackingData = getMusdConversionQuoteTrackingData(
+        transactionMeta,
+        quotes,
       );
 
       trackEvent(
@@ -81,11 +92,12 @@ export const useMusdConversionStatus = () => {
             network_name: getNetworkName(transactionMeta?.chainId),
             amount_decimal: amountDecimalString,
             amount_hex: amountHexString,
+            ...quoteTrackingData,
           })
           .build(),
       );
     },
-    [createEventBuilder, getNetworkName, trackEvent],
+    [createEventBuilder, trackEvent],
   );
 
   useEffect(() => {
@@ -105,30 +117,57 @@ export const useMusdConversionStatus = () => {
       };
     };
 
-    const handleTransactionStatusUpdated = ({
-      transactionMeta,
-    }: {
-      transactionMeta: TransactionMeta;
-    }) => {
+    // Schedule cleanup of toast tracking entries after final transaction status
+    const scheduleCleanup = (
+      transactionId: string,
+      finalStatus: TransactionStatus,
+    ) => {
+      setTimeout(() => {
+        shownToastsRef.current.delete(
+          `${transactionId}-${TransactionStatus.approved}`,
+        );
+        shownToastsRef.current.delete(`${transactionId}-${finalStatus}`);
+      }, TOAST_TRACKING_CLEANUP_DELAY_MS);
+    };
+
+    // Shared helper to validate and extract common data for mUSD conversion handlers
+    const getConversionData = (
+      transactionMeta: TransactionMeta,
+      status: TransactionStatus,
+    ) => {
       if (transactionMeta.type !== TransactionType.musdConversion) {
-        return;
+        return null;
       }
 
-      const { id: transactionId, status, metamaskPay } = transactionMeta;
+      const { id: transactionId, metamaskPay } = transactionMeta;
       const { chainId: payChainId, tokenAddress: payTokenAddress } =
         metamaskPay || {};
 
       const toastKey = `${transactionId}-${status}`;
 
       if (shownToastsRef.current.has(toastKey)) {
-        return;
+        return null;
       }
 
       const tokenData = payTokenAddress
         ? getTokenData(payChainId as Hex, payTokenAddress)
         : { symbol: '', name: '' };
 
-      switch (status) {
+      return { transactionId, tokenData, toastKey };
+    };
+
+    // Handle approved and failed statuses via transactionStatusUpdated
+    const handleTransactionStatusUpdated = ({
+      transactionMeta,
+    }: {
+      transactionMeta: TransactionMeta;
+    }) => {
+      const data = getConversionData(transactionMeta, transactionMeta.status);
+      if (!data) return;
+
+      const { transactionId, tokenData, toastKey } = data;
+
+      switch (transactionMeta.status) {
         case TransactionStatus.approved: {
           submitConversionEvent(transactionMeta, tokenData);
           // Get token info for the in-progress toast
@@ -139,39 +178,86 @@ export const useMusdConversionStatus = () => {
             }),
           );
           shownToastsRef.current.add(toastKey);
+
+          const quotes = getTransactionPayQuotes(transactionId);
+
+          // Start confirmation trace (approved fires immediately after user confirms)
+          trace({
+            name: TraceName.MusdConversionConfirm,
+            op: TraceOperation.MusdConversionOperation,
+            id: transactionId,
+            tags: {
+              transactionId,
+              chainId: transactionMeta.chainId ?? 'unknown',
+              strategy: quotes?.[0]?.strategy ?? 'unknown',
+            },
+          });
           break;
         }
-        case TransactionStatus.confirmed:
-          submitConversionEvent(transactionMeta, tokenData);
-          showToast(EarnToastOptions.mUsdConversion.success);
-          shownToastsRef.current.add(toastKey);
-          // Clean up entries for this transaction after final status
-          setTimeout(() => {
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.approved}`,
-            );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.confirmed}`,
-            );
-          }, 5000);
-          break;
         case TransactionStatus.failed:
           submitConversionEvent(transactionMeta, tokenData);
           showToast(EarnToastOptions.mUsdConversion.failed);
           shownToastsRef.current.add(toastKey);
-          // Clean up entries for this transaction after final status
-          setTimeout(() => {
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.approved}`,
-            );
-            shownToastsRef.current.delete(
-              `${transactionId}-${TransactionStatus.failed}`,
-            );
-          }, 5000);
+          // End confirmation trace on failure
+          endTrace({
+            name: TraceName.MusdConversionConfirm,
+            id: transactionId,
+            data: {
+              success: false,
+              status: TransactionStatus.failed,
+            },
+          });
+          scheduleCleanup(transactionId, TransactionStatus.failed);
+          break;
+        case TransactionStatus.rejected:
+        case TransactionStatus.dropped:
+        case TransactionStatus.cancelled:
+          // End confirmation trace for terminal statuses (no toast needed)
+          endTrace({
+            name: TraceName.MusdConversionConfirm,
+            id: transactionId,
+            data: {
+              success: false,
+              status: transactionMeta.status,
+            },
+          });
           break;
         default:
           break;
       }
+    };
+
+    // Handle confirmed status via transactionConfirmed event
+    // This event fires at the same time as TokenBalancesController updates balances,
+    // ensuring the success toast appears in sync with the balance change in the UI
+    // Note: transactionConfirmed can fire with failed status (see useCardDelegation.ts pattern)
+    const handleTransactionConfirmed = (transactionMeta: TransactionMeta) => {
+      // Only handle confirmed status - failed status is handled by transactionStatusUpdated
+      if (transactionMeta.status !== TransactionStatus.confirmed) {
+        return;
+      }
+
+      const data = getConversionData(
+        transactionMeta,
+        TransactionStatus.confirmed,
+      );
+      if (!data) return;
+
+      const { transactionId, tokenData, toastKey } = data;
+
+      submitConversionEvent(transactionMeta, tokenData);
+      showToast(EarnToastOptions.mUsdConversion.success);
+      shownToastsRef.current.add(toastKey);
+      // End confirmation trace on success
+      endTrace({
+        name: TraceName.MusdConversionConfirm,
+        id: transactionId,
+        data: {
+          success: true,
+          status: TransactionStatus.confirmed,
+        },
+      });
+      scheduleCleanup(transactionId, TransactionStatus.confirmed);
     };
 
     Engine.controllerMessenger.subscribe(
@@ -179,10 +265,19 @@ export const useMusdConversionStatus = () => {
       handleTransactionStatusUpdated,
     );
 
+    Engine.controllerMessenger.subscribe(
+      'TransactionController:transactionConfirmed',
+      handleTransactionConfirmed,
+    );
+
     return () => {
       Engine.controllerMessenger.unsubscribe(
         'TransactionController:transactionStatusUpdated',
         handleTransactionStatusUpdated,
+      );
+      Engine.controllerMessenger.unsubscribe(
+        'TransactionController:transactionConfirmed',
+        handleTransactionConfirmed,
       );
     };
   }, [showToast, EarnToastOptions.mUsdConversion, submitConversionEvent]);

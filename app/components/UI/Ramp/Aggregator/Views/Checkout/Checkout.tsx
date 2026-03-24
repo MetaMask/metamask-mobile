@@ -41,6 +41,8 @@ import {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './Checkout.styles';
 import Device from '../../../../../../util/device';
+import { shouldStartLoadWithRequest } from '../../../../../../util/browser';
+import { CHECKOUT_TEST_IDS } from './Checkout.testIds';
 
 interface CheckoutParams {
   url: string;
@@ -181,6 +183,11 @@ const CheckoutWebView = () => {
     }
   };
 
+  const handleShouldStartLoadWithRequest = useCallback(
+    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
+    [],
+  );
+
   if (sdkError) {
     return (
       <BottomSheet
@@ -195,7 +202,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -227,7 +234,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -266,7 +273,7 @@ const CheckoutWebView = () => {
               iconName={IconName.Close}
               size={ButtonIconSizes.Lg}
               iconColor={IconColor.Default}
-              testID="checkout-close-button"
+              testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
               onPress={handleClosePress}
             />
           }
@@ -294,8 +301,9 @@ const CheckoutWebView = () => {
           paymentRequestEnabled
           mediaPlaybackRequiresUserAction={false}
           onNavigationStateChange={handleNavigationStateChange}
+          onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
           userAgent={provider?.features?.buy?.userAgent ?? undefined}
-          testID="checkout-webview"
+          testID={CHECKOUT_TEST_IDS.WEBVIEW}
         />
       </BottomSheet>
     );
@@ -314,7 +322,7 @@ const CheckoutWebView = () => {
             iconName={IconName.Close}
             size={ButtonIconSizes.Lg}
             iconColor={IconColor.Default}
-            testID="checkout-close-button"
+            testID={CHECKOUT_TEST_IDS.CLOSE_BUTTON}
             onPress={handleClosePress}
           />
         }

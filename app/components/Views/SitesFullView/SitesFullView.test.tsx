@@ -7,11 +7,6 @@ import type { SiteData } from '../../UI/Sites/components/SiteRowItem/SiteRowItem
 // Mock dependencies
 jest.mock('../../UI/Sites/hooks/useSiteData/useSitesData');
 
-jest.mock('react-native-safe-area-context', () => ({
-  SafeAreaView: jest.requireActual('react-native').View,
-  useSafeAreaInsets: () => ({ top: 50, bottom: 34, left: 0, right: 0 }),
-}));
-
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
@@ -378,7 +373,7 @@ describe('SitesFullView', () => {
   });
 
   describe('Data Fetching', () => {
-    it('fetches sites with limit of 100', () => {
+    it('fetches sites on mount', () => {
       mockUseSitesData.mockReturnValue({
         sites: mockSites,
         isLoading: false,
@@ -387,7 +382,7 @@ describe('SitesFullView', () => {
 
       render(<SitesFullView />);
 
-      expect(mockUseSitesData).toHaveBeenCalledWith('', 100);
+      expect(mockUseSitesData).toHaveBeenCalledWith('');
     });
 
     it('calls refetch when refresh is triggered', async () => {

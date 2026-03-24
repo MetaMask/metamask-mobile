@@ -13,7 +13,8 @@ import Icon, {
   IconColor,
 } from '../../../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../../../locales/i18n';
-import { formatCurrency, hasDepositOrderField } from '../../utils';
+import { hasDepositOrderField } from '../../utils';
+import { useFormatters } from '../../../../../hooks/useFormatters';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../../selectors/networkController';
 import { getNetworkImageSource } from '../../../../../../util/networks';
 import { useAccountGroupName } from '../../../../../hooks/multichainAccounts/useAccountGroupName';
@@ -40,6 +41,7 @@ interface DepositOrderContentProps {
 
 const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
   const { styles, theme } = useStyles(styleSheet, {});
+  const { formatCurrency } = useFormatters();
   const accountName = useAccountGroupName();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
@@ -97,9 +99,11 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
 
   const shortOrderId = providerOrderId?.slice(-6) ?? order.id.slice(-6);
 
+  const currency = order.currency || 'USD';
+
   const orderFee = formatCurrency(
-    order.fee || order.cryptoFee || 0,
-    order.currency,
+    Number(order.fee || order.cryptoFee || 0),
+    currency,
   );
 
   return (
@@ -225,7 +229,7 @@ const DepositOrderContent: React.FC<DepositOrderContentProps> = ({ order }) => {
             {strings('deposit.order_processing.total')}
           </Text>
           <Text variant={TextVariant.BodyMD}>
-            {formatCurrency(order.amount, order.currency)}
+            {formatCurrency(Number(order.amount), currency)}
           </Text>
         </View>
       </View>

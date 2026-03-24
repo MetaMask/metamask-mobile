@@ -35,6 +35,18 @@ const styleSheet = (params: { theme: Theme }) => {
     errorContainer: {
       marginVertical: 8,
     },
+    phoneFlagRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: 4,
+    },
+    phoneFlagEmoji: {
+      fontSize: 18,
+    },
+    phonePrefix: {
+      color: theme.colors.text.default,
+      fontSize: 14,
+    },
   });
 };
 

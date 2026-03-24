@@ -75,7 +75,6 @@ jest.mock(
       HOME: 'home',
       SWAP: 'swap',
       PERPS: 'perps',
-      DEPOSIT: 'deposit',
       TRANSACTION: 'transaction',
       BUY: 'buy',
       INVALID: 'invalid',
@@ -95,6 +94,7 @@ const mockGoBack = jest.fn();
 (useNavigation as jest.Mock).mockReturnValue({
   navigate: mockNavigate,
   goBack: mockGoBack,
+  isFocused: jest.fn(() => true),
 } as never);
 
 describe('DeepLinkModal', () => {
@@ -143,7 +143,7 @@ describe('DeepLinkModal', () => {
           }),
           build: jest.fn().mockImplementation(function (this: MockBuilder) {
             return {
-              name: 'Deep link Used',
+              name: 'Deep Link Used',
               properties: {
                 route: 'invalid',
                 was_app_installed: true,

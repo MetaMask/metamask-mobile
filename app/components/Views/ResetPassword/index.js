@@ -6,11 +6,11 @@ import {
   ActivityIndicator,
   Alert,
   View,
-  SafeAreaView,
   StyleSheet,
   ScrollView,
   InteractionManager,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
 import Text, {
   TextColor,
@@ -24,9 +24,8 @@ import Engine from '../../../core/Engine';
 import Device from '../../../util/device';
 import { fontStyles, baseStyles } from '../../../styles/common';
 import { strings } from '../../../../locales/i18n';
-import { getNavigationOptionsTitle } from '../../UI/Navbar';
+import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import AppConstants from '../../../core/AppConstants';
-import zxcvbn from 'zxcvbn';
 import { PREVIOUS_SCREEN } from '../../../constants/navigation';
 import {
   TRUE,
@@ -34,15 +33,11 @@ import {
   PASSCODE_DISABLED,
 } from '../../../constants/storage';
 import {
-  getPasswordStrengthWord,
   passwordRequirementsMet,
   MIN_PASSWORD_LENGTH,
 } from '../../../util/password';
 import NotificationManager from '../../../core/NotificationManager';
-import {
-  passcodeType,
-  updateAuthTypeStorageFlags,
-} from '../../../util/authentication';
+import { passcodeType } from '../../../util/authentication';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { ThemeContext, mockTheme } from '../../../util/theme';
@@ -51,23 +46,26 @@ import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import Logger from '../../../util/Logger';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.testIds';
-import TextField, {
-  TextFieldSize,
-} from '../../../component-library/components/Form/TextField';
+import TextField from '../../../component-library/components/Form/TextField';
 import Button, {
   ButtonVariants,
   ButtonSize,
   ButtonWidthTypes,
 } from '../../../component-library/components/Buttons/Button';
-import Label from '../../../component-library/components/Form/Label';
+import {
+  Label,
+  FontWeight,
+  TextColor as DSTextColor,
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
 import Routes from '../../../constants/navigation/Routes';
 import NavigationService from '../../../core/NavigationService';
-import { MetaMetricsEvents, MetaMetrics } from '../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../util/analytics/analytics';
 import Checkbox from '../../../component-library/components/Checkbox';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
@@ -257,15 +255,6 @@ const createStyles = (colors) =>
       top: 0,
       right: 0,
     },
-    strength_weak: {
-      color: colors.error.default,
-    },
-    strength_good: {
-      color: colors.primary.default,
-    },
-    strength_strong: {
-      color: colors.success.default,
-    },
     showMatchingPasswords: {
       position: 'absolute',
       top: 50,
@@ -314,6 +303,10 @@ const createStyles = (colors) =>
     },
     warningButton: {
       flex: 1,
+    },
+    errorBorder: {
+      borderColor: colors.error.default,
+      borderWidth: 1,
     },
   });
 
@@ -370,6 +363,7 @@ class ResetPassword extends PureComponent {
     ready: true,
     showPasswordIndex: [0, 1],
     showPasswordChangeWarning: false,
+    isPasswordFieldFocused: false,
   };
 
   mounted = true;
@@ -385,22 +379,7 @@ class ResetPassword extends PureComponent {
   // Helper method to get styles
   getStyles = () => createStyles(this.getThemeColors());
 
-  updateNavBar = () => {
-    const { navigation } = this.props;
-    const colors = this.getThemeColors();
-    navigation.setOptions(
-      getNavigationOptionsTitle(
-        strings('password_reset.change_password'),
-        navigation,
-        false,
-        colors,
-      ),
-    );
-  };
-
   async componentDidMount() {
-    this.updateNavBar();
-
     const state = { view: CONFIRM_PASSWORD };
     const authData = await Authentication.getType();
     const previouslyDisabled = await StorageWrapper.getItem(
@@ -433,19 +412,6 @@ class ResetPassword extends PureComponent {
         inputWidth: { width: '100%' },
       });
     }, 100);
-  }
-
-  componentDidUpdate(_, prevState) {
-    this.updateNavBar();
-    const prevLoading = prevState.loading;
-    const { loading } = this.state;
-    const { navigation } = this.props;
-    if (!prevLoading && loading) {
-      // update navigationOptions
-      navigation.setParams({
-        headerLeft: () => <View />,
-      });
-    }
   }
 
   componentWillUnmount() {
@@ -538,15 +504,11 @@ class ResetPassword extends PureComponent {
           this.state.biometryChoice,
           this.state.rememberMe,
         );
-        await Authentication.storePasswordWithFallback(password, authData);
-        if (
-          Authentication.authData.currentAuthType ===
-          AUTHENTICATION_TYPE.BIOMETRIC
-        ) {
-          await updateAuthTypeStorageFlags(this.state.biometryChoice);
-        } else {
-          await updateAuthTypeStorageFlags(false);
-        }
+        await Authentication.storePassword(
+          password,
+          authData.currentAuthType,
+          true,
+        );
       } catch (error) {
         Logger.error(error);
       }
@@ -555,14 +517,14 @@ class ResetPassword extends PureComponent {
       this.props.passwordSet();
 
       // Track password changed event
-      const { biometryChoice, passwordStrength } = this.state;
-      const eventBuilder = MetricsEventBuilder.createEventBuilder(
+      const { biometryChoice } = this.state;
+      const eventBuilder = AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.PASSWORD_CHANGED,
       ).addProperties({
         biometry_type: this.state.biometryType,
         biometrics_enabled: Boolean(biometryChoice),
       });
-      MetaMetrics.getInstance().trackEvent(eventBuilder.build());
+      analytics.trackEvent(eventBuilder.build());
 
       this.setState({ loading: false });
       this.props.navigation.navigate('SecuritySettings');
@@ -685,13 +647,18 @@ class ResetPassword extends PureComponent {
   };
 
   onPasswordChange = (val) => {
-    const passInfo = zxcvbn(val);
-
     this.setState((prevState) => ({
       password: val,
-      passwordStrength: passInfo.score,
       confirmPassword: val === '' ? '' : prevState.confirmPassword,
     }));
+  };
+
+  handlePasswordFocus = () => {
+    this.setState({ isPasswordFieldFocused: true });
+  };
+
+  handlePasswordBlur = () => {
+    this.setState({ isPasswordFieldFocused: false });
   };
 
   learnMore = () => {
@@ -718,35 +685,34 @@ class ResetPassword extends PureComponent {
 
   setConfirmPassword = (val) => this.setState({ confirmPassword: val });
 
-  // Helper method to render password strength text
-  renderPasswordStrengthText = (password, passwordStrengthWord, styles) => {
-    if (!password) return null;
+  // Method to check if password field should show error state
+  isPasswordTooShort = () => {
+    const { isPasswordFieldFocused, password } = this.state;
+    return (
+      !isPasswordFieldFocused &&
+      !!password &&
+      password.length < MIN_PASSWORD_LENGTH
+    );
+  };
 
-    if (password.length < MIN_PASSWORD_LENGTH) {
-      return (
-        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
-          {strings('reset_password.must_be_at_least', {
-            number: MIN_PASSWORD_LENGTH,
-          })}
-        </Text>
-      );
+  // Helper method to render password helper text
+  renderPasswordHelperText = () => {
+    // Only show helper text when password doesn't meet minimum length
+    const { password } = this.state;
+    if (password && password.length >= MIN_PASSWORD_LENGTH) {
+      return null;
     }
 
+    // Show error color only when field has been touched and password is too short
+    const showError = this.isPasswordTooShort();
     return (
       <Text
         variant={TextVariant.BodySM}
-        color={TextColor.Alternative}
-        testID={ChoosePasswordSelectorsIDs.PASSWORD_STRENGTH_ID}
+        color={showError ? TextColor.Error : TextColor.Alternative}
       >
-        {strings('reset_password.password_strength')}
-        <Text
-          variant={TextVariant.BodySM}
-          color={TextColor.Alternative}
-          style={styles[`strength_${passwordStrengthWord}`]}
-        >
-          {' '}
-          {strings(`reset_password.strength_${passwordStrengthWord}`)}
-        </Text>
+        {strings('reset_password.must_be_at_least', {
+          number: MIN_PASSWORD_LENGTH,
+        })}
       </Text>
     );
   };
@@ -813,16 +779,14 @@ class ResetPassword extends PureComponent {
           <View style={styles.confirmPasswordWrapper}>
             <View style={[styles.content, styles.passwordRequiredContent]}>
               <Label
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Default}
+                fontWeight={FontWeight.Medium}
+                color={DSTextColor.TextDefault}
                 style={styles.confirm_label}
               >
                 {strings('manual_backup_step_1.enter_current_password')}
               </Label>
               <TextField
-                size={TextFieldSize.Lg}
                 placeholder={'Password'}
-                placeholderTextColor={colors.text.muted}
                 onChangeText={this.onPasswordChange}
                 secureTextEntry
                 value={this.state.password}
@@ -907,14 +871,12 @@ class ResetPassword extends PureComponent {
   };
 
   renderResetPassword() {
-    const { isSelected, password, passwordStrength, confirmPassword, loading } =
-      this.state;
+    const { isSelected, password, confirmPassword, loading } = this.state;
     const colors = this.getThemeColors();
     const themeAppearance = this.getThemeAppearance();
     const styles = this.getStyles();
     const passwordsMatch = password !== '' && password === confirmPassword;
     const previousScreen = this.props.route.params?.[PREVIOUS_SCREEN];
-    const passwordStrengthWord = getPasswordStrengthWord(passwordStrength);
 
     const canSubmit =
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
@@ -924,7 +886,7 @@ class ResetPassword extends PureComponent {
       this.props.authConnection !== AuthConnection.Google;
 
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <View style={styles.mainWrapper}>
         {loading ? (
           this.renderLoadingState(previousScreen, colors, styles)
         ) : (
@@ -949,27 +911,28 @@ class ResetPassword extends PureComponent {
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    fontWeight={FontWeight.Medium}
+                    color={DSTextColor.TextDefault}
                     style={styles.passwordLabel}
                   >
                     {strings('reset_password.password')}
                   </Label>
                   <TextField
-                    size={TextFieldSize.Lg}
                     value={password}
                     onChangeText={this.onPasswordChange}
+                    onFocus={this.handlePasswordFocus}
+                    onBlur={this.handlePasswordBlur}
                     secureTextEntry={this.state.showPasswordIndex.includes(0)}
                     placeholder={strings(
                       'reset_password.new_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
                     onSubmitEditing={this.jumpToConfirmPassword}
                     returnKeyType="next"
                     autoComplete="new-password"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
+                    isError={this.isPasswordTooShort()}
                     endAccessory={
                       <Icon
                         name={
@@ -986,23 +949,18 @@ class ResetPassword extends PureComponent {
                       />
                     }
                   />
-                  {this.renderPasswordStrengthText(
-                    password,
-                    passwordStrengthWord,
-                    styles,
-                  )}
+                  {this.renderPasswordHelperText()}
                 </View>
 
                 <View style={styles.field}>
                   <Label
-                    variant={TextVariant.BodyMDMedium}
-                    color={TextColor.Default}
+                    fontWeight={FontWeight.Medium}
+                    color={DSTextColor.TextDefault}
                     style={styles.passwordLabel}
                   >
                     {strings('reset_password.confirm_password')}
                   </Label>
                   <TextField
-                    size={TextFieldSize.Lg}
                     ref={this.confirmPasswordInput}
                     value={confirmPassword}
                     onChangeText={this.setConfirmPassword}
@@ -1010,7 +968,6 @@ class ResetPassword extends PureComponent {
                     placeholder={strings(
                       'reset_password.confirm_password_placeholder',
                     )}
-                    placeholderTextColor={colors.text.muted}
                     testID={
                       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
                     }
@@ -1094,17 +1051,23 @@ class ResetPassword extends PureComponent {
             </View>
           </KeyboardAwareScrollView>
         )}
-      </SafeAreaView>
+      </View>
     );
   }
 
   render() {
-    const { view, ready } = this.state;
+    const { view, ready, loading } = this.state;
     const styles = this.getStyles();
 
     if (!ready) return this.renderLoader();
     return (
-      <SafeAreaView style={styles.mainWrapper}>
+      <SafeAreaView edges={{ bottom: 'additive' }} style={styles.mainWrapper}>
+        <HeaderCompactStandard
+          title={strings('password_reset.change_password')}
+          onBack={() => this.props.navigation.goBack()}
+          backButtonProps={{ isDisabled: loading }}
+          includesTopInset
+        />
         <ScrollView
           contentContainerStyle={styles.scrollviewWrapper}
           style={styles.mainWrapper}

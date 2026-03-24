@@ -7,19 +7,27 @@ import {
   Icon,
   IconName,
   IconSize,
+  BoxProps,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  NavigationProp,
-  ParamListBase,
-  useNavigation,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { selectSearchEngine } from '../../../../../reducers/browser/selectors';
+import { SEARCH_ENGINE_URLS, SearchEngine } from '../../../../../util/browser';
+import AppConstants from '../../../../../core/AppConstants';
 
 export interface SitesSearchFooterProps {
   searchQuery: string;
+  /**
+   * Callback for when pressing a sites footer link
+   * Defaults to browser navigation.
+   * @default useSearchFooterBrowserNavigation - default to explore feature browser navigation
+   * @param {string} url - Url to navigate
+   * @returns
+   */
+  onPress?: (url: string) => void;
+  containerStyle?: BoxProps['style'];
 }
 
 /**
@@ -29,14 +37,10 @@ function looksLikeUrl(str: string): boolean {
   return /^(https?:\/\/)?[A-Za-z0-9-]+(\.[A-Za-z0-9-]+)+([/?].*)?$/.test(str);
 }
 
-const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
-  searchQuery,
-}) => {
-  const tw = useTailwind();
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
-  const searchEngine = useSelector(selectSearchEngine);
+export const useSearchFooterBrowserNavigation = () => {
+  const navigation = useNavigation();
 
-  const onPressLink = useCallback(
+  const onPress = useCallback(
     (url: string) => {
       navigation.navigate(Routes.BROWSER.HOME, {
         screen: Routes.BROWSER.VIEW,
@@ -50,26 +54,43 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
     [navigation],
   );
 
+  return { onPress };
+};
+
+const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
+  searchQuery,
+  onPress,
+  containerStyle,
+}) => {
+  const tw = useTailwind();
+  const searchEngine = useSelector(selectSearchEngine);
+  const { onPress: exploreOnPress } = useSearchFooterBrowserNavigation();
+
+  const handlePress = onPress ?? exploreOnPress;
+
   if (!searchQuery || searchQuery.length === 0) {
     return null;
   }
 
   const isUrl = looksLikeUrl(searchQuery.toLowerCase());
 
+  const engineKey = searchEngine ?? AppConstants.DEFAULT_SEARCH_ENGINE;
+  const resolvedEngine: SearchEngine = SEARCH_ENGINE_URLS[
+    engineKey as SearchEngine
+  ]
+    ? (engineKey as SearchEngine)
+    : AppConstants.DEFAULT_SEARCH_ENGINE;
   const searchUrl =
-    searchEngine === 'DuckDuckGo'
-      ? `https://duckduckgo.com/?q=${encodeURIComponent(searchQuery)}`
-      : `https://www.google.com/search?q=${encodeURIComponent(searchQuery)}`;
+    SEARCH_ENGINE_URLS[resolvedEngine] + encodeURIComponent(searchQuery);
 
-  const searchEngineLabel =
-    searchEngine === 'DuckDuckGo' ? 'DuckDuckGo' : 'Google';
+  const searchEngineLabel = resolvedEngine;
 
   return (
-    <Box>
+    <Box style={containerStyle}>
       {isUrl && (
         <TouchableOpacity
           style={tw.style('flex-row items-center py-4')}
-          onPress={() => onPressLink(searchQuery)}
+          onPress={() => handlePress(searchQuery)}
           testID="trending-search-footer-url-link"
         >
           <Box twClassName="flex-1">
@@ -93,8 +114,8 @@ const SitesSearchFooter: React.FC<SitesSearchFooterProps> = ({
 
       <TouchableOpacity
         style={tw.style('flex-row items-center py-4')}
-        onPress={() => onPressLink(searchUrl)}
-        testID="trending-search-footer-google-link"
+        onPress={() => handlePress(searchUrl)}
+        testID="trending-search-footer-search-link"
       >
         <Box twClassName="flex-1 flex-row items-center">
           <Text

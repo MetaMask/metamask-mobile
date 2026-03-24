@@ -1,7 +1,6 @@
 import { StyleSheet } from 'react-native';
 
 import { Theme } from '../../../../../../util/theme/models';
-import { fontStyles } from '../../../../../../styles/common';
 
 const styleSheet = (params: {
   theme: Theme;
@@ -12,7 +11,7 @@ const styleSheet = (params: {
 
   return StyleSheet.create({
     container: {
-      backgroundColor: theme.colors.background.default,
+      backgroundColor: theme.colors.background.muted,
       borderRadius: 8,
       display: 'flex',
       flexDirection: 'row',
@@ -22,24 +21,19 @@ const styleSheet = (params: {
       marginBottom: isCompact ? 0 : 8,
     },
     modalContent: {
-      backgroundColor: theme.colors.background.alternative,
-      paddingTop: 24,
+      backgroundColor: theme.colors.background.section,
       paddingBottom: 34,
-      paddingHorizontal: 16,
       borderTopLeftRadius: 8,
       borderTopRightRadius: 8,
     },
-    modalHeader: {
-      display: 'flex',
-      flexDirection: 'row',
-      alignItems: 'center',
-      paddingBottom: 16,
+    modalExpandedContent: {
+      paddingHorizontal: 16,
     },
-    expandedContentTitle: {
-      color: theme.colors.text.default,
-      ...fontStyles.bold,
-      width: '90%',
-      textAlign: 'center',
+    copyButtonContainer: {
+      position: 'absolute',
+      top: 6,
+      right: 18,
+      zIndex: 1,
     },
   });
 };

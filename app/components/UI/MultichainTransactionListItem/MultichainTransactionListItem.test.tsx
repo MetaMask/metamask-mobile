@@ -1,12 +1,30 @@
 import React from 'react';
-import { TouchableHighlight } from 'react-native';
 import { render, fireEvent } from '@testing-library/react-native';
 import { SolScope, Transaction, TransactionType } from '@metamask/keyring-api';
 import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
-import MultichainTransactionDetailsModal from '../MultichainTransactionDetailsModal';
 import MultichainTransactionListItem from '../MultichainTransactionListItem';
+import Routes from '../../../constants/navigation/Routes';
+import {
+  TRANSACTION_DETAIL_EVENTS,
+  TransactionDetailLocation,
+} from '../../../core/Analytics/events/transactions';
+
+const mockTrackEvent = jest.fn();
+const mockAddProperties = jest.fn().mockReturnThis();
+const mockBuild = jest.fn(() => ({ name: 'test-event' }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+  build: mockBuild,
+}));
+
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 const mockUseTheme = jest.fn();
 jest.mock('../../../util/theme', () => ({
@@ -21,10 +39,6 @@ jest.mock('../../../../locales/i18n', () => ({
 jest.mock('../../../util/date', () => ({
   toDateFormat: jest.fn(() => 'Mar 15, 2025'),
 }));
-jest.mock(
-  '../MultichainTransactionDetailsModal',
-  () => 'MultichainTransactionDetailsModal',
-);
 
 // Create a mock store with the necessary state
 const createMockStore = () =>
@@ -197,8 +211,8 @@ describe('MultichainTransactionListItem', () => {
     expect(getByText('-0.00001 SOL')).toBeTruthy();
   });
 
-  it('opens transaction details modal when pressed', () => {
-    const { UNSAFE_getByType } = renderWithProvider(
+  it('navigates to transaction details sheet when pressed', () => {
+    const { getByTestId } = renderWithProvider(
       <MultichainTransactionListItem
         transaction={mockTransaction}
         chainId={SolScope.Mainnet}
@@ -206,11 +220,17 @@ describe('MultichainTransactionListItem', () => {
       />,
     );
 
-    const touchable = UNSAFE_getByType(TouchableHighlight);
-    fireEvent.press(touchable);
+    fireEvent.press(getByTestId('transaction-item-0'));
 
-    const modal = UNSAFE_getByType(MultichainTransactionDetailsModal);
-    expect(modal.props.isVisible).toBe(true);
+    expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      Routes.MODAL.ROOT_MODAL_FLOW,
+      expect.objectContaining({
+        screen: Routes.SHEET.MULTICHAIN_TRANSACTION_DETAILS,
+        params: expect.objectContaining({
+          transaction: mockTransaction,
+        }),
+      }),
+    );
   });
 
   it('handles failed transaction status', () => {
@@ -223,5 +243,54 @@ describe('MultichainTransactionListItem', () => {
     );
 
     expect(getByTestId('transaction-status-tx-123')).toBeTruthy();
+  });
+
+  describe('analytics tracking', () => {
+    it('tracks Transaction Detail List Item Clicked with default home location', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+        />,
+      );
+
+      fireEvent.press(getByTestId('transaction-item-0'));
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        TRANSACTION_DETAIL_EVENTS.LIST_ITEM_CLICKED,
+      );
+      expect(mockAddProperties).toHaveBeenCalledWith({
+        transaction_type: 'send',
+        transaction_status: 'confirmed',
+        location: TransactionDetailLocation.Home,
+        chain_id_source: String(SolScope.Mainnet),
+        chain_id_destination: String(SolScope.Mainnet),
+      });
+      expect(mockTrackEvent).toHaveBeenCalledWith({ name: 'test-event' });
+    });
+
+    it('tracks with asset_details location when provided', () => {
+      const { getByTestId } = renderWithProvider(
+        <MultichainTransactionListItem
+          transaction={mockTransaction}
+          chainId={SolScope.Mainnet}
+          navigation={
+            mockNavigation as unknown as NavigationProp<ParamListBase>
+          }
+          location={TransactionDetailLocation.AssetDetails}
+        />,
+      );
+
+      fireEvent.press(getByTestId('transaction-item-0'));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          location: TransactionDetailLocation.AssetDetails,
+        }),
+      );
+    });
   });
 });

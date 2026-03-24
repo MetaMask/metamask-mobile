@@ -25,14 +25,20 @@ import TextComponent, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
 import AvatarGroup from '../../../../component-library/components/Avatars/AvatarGroup';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
 import { getHost } from '../../../../util/browser';
 import WebsiteIcon from '../../../UI/WebsiteIcon';
 import styleSheet from './MultichainPermissionsSummary.styles';
 import { useStyles } from '../../../../component-library/hooks';
+import {
+  MaliciousDappUrlIcon,
+  getConnectButtonContent,
+} from '../../../UI/PermissionsSummary/MaliciousDappIndicators';
 import Routes from '../../../../constants/navigation/Routes';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -95,6 +101,7 @@ export interface MultichainPermissionsSummaryProps {
   tabIndex?: number;
   showPermissionsOnly?: boolean;
   showAccountsOnly?: boolean;
+  isMaliciousDapp?: boolean;
 }
 
 const MultichainPermissionsSummary = ({
@@ -119,6 +126,7 @@ const MultichainPermissionsSummary = ({
   tabIndex = 0,
   showAccountsOnly = false,
   showPermissionsOnly = false,
+  isMaliciousDapp = false,
 }: MultichainPermissionsSummaryProps) => {
   const nonTabView = showAccountsOnly || showPermissionsOnly;
   const { colors } = useTheme();
@@ -577,6 +585,11 @@ const MultichainPermissionsSummary = ({
             <TextComponent
               style={styles.connectionTitle}
               variant={TextVariant.HeadingMD}
+              color={
+                isMaliciousDapp && !isAlreadyConnected
+                  ? TextColor.Error
+                  : undefined
+              }
             >
               {isNonDappNetworkSwitch
                 ? strings('permissions.title_add_network_permission')
@@ -586,6 +599,7 @@ const MultichainPermissionsSummary = ({
                       dappUrl: hostname,
                     })}
             </TextComponent>
+            {isMaliciousDapp && !isAlreadyConnected && <MaliciousDappUrlIcon />}
             <TextComponent variant={TextVariant.BodyMD}>
               {strings('account_dapp_connections.account_summary_header')}
             </TextComponent>
@@ -611,19 +625,20 @@ const MultichainPermissionsSummary = ({
           {isAlreadyConnected && isDisconnectAllShown && (
             <View style={styles.disconnectAllContainer}>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 testID={
                   ConnectedAccountsSelectorsIDs.DISCONNECT_ALL_ACCOUNTS_NETWORKS
                 }
-                label={strings('accounts.disconnect_all')}
                 onPress={toggleRevokeAllPermissionsModal}
-                startIconName={IconName.Logout}
+                startIconName={DesignSystemIconName.Logout}
                 isDanger
-                size={ButtonSize.Lg}
+                size={ButtonBaseSize.Lg}
                 style={{
                   ...styles.disconnectButton,
                 }}
-              />
+              >
+                {strings('accounts.disconnect_all')}
+              </Button>
             </View>
           )}
           {showActionButtons && !isNonDappNetworkSwitch && (
@@ -637,7 +652,7 @@ const MultichainPermissionsSummary = ({
                 {strings('permissions.cancel')}
               </StyledButton>
               <StyledButton
-                type={'confirm'}
+                type={isMaliciousDapp ? 'danger' : 'confirm'}
                 onPress={confirm}
                 disabled={
                   !isNetworkSwitch &&
@@ -650,9 +665,7 @@ const MultichainPermissionsSummary = ({
                 ]}
                 testID={CommonSelectorsIDs.CONNECT_BUTTON}
               >
-                {isNetworkSwitch
-                  ? strings('confirmation_modal.confirm_cta')
-                  : strings('accounts.connect')}
+                {getConnectButtonContent(isMaliciousDapp, isNetworkSwitch)}
               </StyledButton>
             </View>
           )}
@@ -660,31 +673,33 @@ const MultichainPermissionsSummary = ({
             <View style={styles.nonDappNetworkSwitchButtons}>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Primary}
-                  label={strings('permissions.add_this_network')}
+                  variant={ButtonVariant.Primary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.ADD_THIS_NETWORK_BUTTON
                   }
                   onPress={onAddNetwork}
-                  size={ButtonSize.Lg}
+                  size={ButtonBaseSize.Lg}
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.add_this_network')}
+                </Button>
               </View>
               <View style={styles.actionButtonsContainer}>
                 <Button
-                  variant={ButtonVariants.Secondary}
-                  label={strings('permissions.choose_from_permitted_networks')}
+                  variant={ButtonVariant.Secondary}
                   testID={
                     NetworkNonPemittedBottomSheetSelectorsIDs.CHOOSE_FROM_PERMITTED_NETWORKS_BUTTON
                   }
                   onPress={onChooseFromPermittedNetworks}
-                  size={ButtonSize.Lg}
+                  size={ButtonBaseSize.Lg}
                   style={{
                     ...styles.disconnectButton,
                   }}
-                />
+                >
+                  {strings('permissions.choose_from_permitted_networks')}
+                </Button>
               </View>
             </View>
           )}

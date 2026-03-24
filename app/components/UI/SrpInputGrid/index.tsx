@@ -13,7 +13,6 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import SrpInput from '../../Views/SrpInput';
-import { TextFieldSize } from '../../../component-library/components/Form/TextField';
 import { useAppTheme } from '../../../util/theme';
 import { createStyles } from './SrpInputGrid.styles';
 import { SrpInputGridProps } from './SrpInputGrid.types';
@@ -400,7 +399,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                   onSubmitEditing={() => Keyboard.dismiss()}
                   placeholder=""
                   placeholderTextColor={colors.text.muted}
-                  size={TextFieldSize.Md}
                   style={
                     isFirstInput
                       ? styles.hiddenInput
@@ -453,7 +451,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
                 }}
                 placeholder={placeholderText}
                 placeholderTextColor={colors.text.alternative}
-                size={TextFieldSize.Md}
                 style={
                   isFirstInput
                     ? styles.seedPhraseDefaultInput

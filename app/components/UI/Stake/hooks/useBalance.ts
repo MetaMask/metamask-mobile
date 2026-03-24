@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { Hex } from '@metamask/utils';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { selectAccountsByChainId } from '../../../../selectors/accountTrackerController';
 import {
@@ -8,6 +9,7 @@ import {
   selectCurrentCurrency,
 } from '../../../../selectors/currencyRateController';
 import { selectEvmChainId } from '../../../../selectors/networkController';
+import { RootState } from '../../../../reducers';
 import {
   hexToBN,
   renderFromWei,
@@ -16,6 +18,7 @@ import {
 } from '../../../../util/number';
 import { getFormattedAddressFromInternalAccount } from '../../../../core/Multichain/utils';
 import { EVM_SCOPE } from '../../Earn/constants/networks';
+import { selectAsset } from '../../../../selectors/assets/assets-list';
 
 const useBalance = (chainId?: Hex) => {
   const accountsByChainId = useSelector(selectAccountsByChainId);
@@ -68,17 +71,29 @@ const useBalance = (chainId?: Hex) => {
     [stakedBalance, conversionRate],
   );
 
-  const formattedStakedBalanceFiat = useMemo(
-    () =>
-      weiToFiat(
-        // TODO: Replace "any" with type
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        hexToBN(stakedBalance) as any,
-        conversionRate,
-        currentCurrency,
-      ),
-    [currentCurrency, stakedBalance, conversionRate],
+  const stakedNativeAssetBalanceFiat = useSelector(
+    (state: RootState) =>
+      selectAsset(state, {
+        address: getNativeTokenAddress(balanceChainId),
+        chainId: balanceChainId,
+        isStaked: true,
+      })?.balanceFiat,
   );
+
+  const formattedStakedBalanceFiat = useMemo(() => {
+    // Match the fiat balance seen in the asset list.
+    // Fallback to the weiToFiat function if the staked native asset balance fiat is not available.
+    if (stakedNativeAssetBalanceFiat) {
+      return stakedNativeAssetBalanceFiat;
+    }
+
+    return weiToFiat(hexToBN(stakedBalance), conversionRate, currentCurrency);
+  }, [
+    conversionRate,
+    currentCurrency,
+    stakedBalance,
+    stakedNativeAssetBalanceFiat,
+  ]);
 
   return {
     balanceETH,

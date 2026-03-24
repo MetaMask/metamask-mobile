@@ -5,11 +5,8 @@ import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
-import {
-  CANDLE_PERIODS,
-  PERPS_CHART_CONFIG,
-  CandlePeriod,
-} from '../../constants/chartConfig';
+import { CANDLE_PERIODS, CandlePeriod } from '@metamask/perps-controller';
+import { PERPS_CHART_CONFIG } from '../../constants/chartConfig';
 import { selectorStyleSheet } from './PerpsCandlestickChartIntervalSelector.styles.ts';
 
 interface PerpsCandlestickChartIntervalSelectorProps {

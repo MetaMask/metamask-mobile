@@ -1,4 +1,5 @@
 import {
+  SimulationErrorCode,
   TransactionMeta,
   TransactionStatus,
   TransactionType,
@@ -11,11 +12,11 @@ import {
 } from '../../../../../../util/test/confirm-data-helpers';
 import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import useBalanceChanges from '../../../../../UI/SimulationDetails/useBalanceChanges';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as EditNonceHook from '../../../../../../components/hooks/useEditNonce';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useConfirmationMetricEvents } from '../../../hooks/metrics/useConfirmationMetricEvents';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as TransactionMetadataRequestHook from '../../../hooks/transactions/useTransactionMetadataRequest';
 import ContractInteraction from './contract-interaction';
 
@@ -192,5 +193,41 @@ describe('ContractInteraction', () => {
     });
     expect(getByText('Now')).toBeDefined();
     expect(getByText('Switching to')).toBeDefined();
+  });
+
+  describe('ValueRow rendering', () => {
+    it('renders ValueRow when simulation reverts', () => {
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue({
+          simulationData: { error: { code: SimulationErrorCode.Reverted } },
+          txParams: { value: '0x1' },
+          id: 'mock-id',
+          chainId: '0x1',
+        } as unknown as TransactionMeta);
+
+      const { getByText } = renderWithProvider(<ContractInteraction />, {
+        state: generateContractInteractionState,
+      });
+
+      expect(getByText('Amount')).toBeOnTheScreen();
+    });
+
+    it('does not render ValueRow when simulation succeeds', () => {
+      jest
+        .spyOn(TransactionMetadataRequestHook, 'useTransactionMetadataRequest')
+        .mockReturnValue({
+          simulationData: { error: undefined }, // Success
+          txParams: { value: '0x1' },
+          id: 'mock-id',
+          chainId: '0x1',
+        } as unknown as TransactionMeta);
+
+      const { queryByText } = renderWithProvider(<ContractInteraction />, {
+        state: generateContractInteractionState,
+      });
+
+      expect(queryByText('Amount')).toBeNull();
+    });
   });
 });

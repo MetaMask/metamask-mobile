@@ -38,6 +38,11 @@ export function useBridgeTxHistoryData({
     const srcTxMetaId = evmTxMeta?.id;
     bridgeHistoryItem = srcTxMetaId ? bridgeHistory[srcTxMetaId] : undefined;
 
+    // If not found, try to find by actionId (history items can be keyed by actionId)
+    if (!bridgeHistoryItem && evmTxMeta.actionId) {
+      bridgeHistoryItem = bridgeHistory[evmTxMeta.actionId];
+    }
+
     // If not found, try to find by originalTransactionId for intent transactions
     if (!bridgeHistoryItem && srcTxMetaId) {
       const matchingEntry = Object.entries(bridgeHistory).find(

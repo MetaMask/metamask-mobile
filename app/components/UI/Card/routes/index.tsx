@@ -10,6 +10,8 @@ import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { StyleSheet, View } from 'react-native';
 import CardAuthentication from '../Views/CardAuthentication/CardAuthentication';
 import SpendingLimit from '../Views/SpendingLimit/SpendingLimit';
+import ChooseYourCard from '../Views/ChooseYourCard/ChooseYourCard';
+import ReviewOrder from '../Views/ReviewOrder/ReviewOrder';
 import OnboardingNavigator from './OnboardingNavigator';
 import {
   selectIsAuthenticatedCard,
@@ -19,9 +21,15 @@ import { useSelector } from 'react-redux';
 import { withCardSDK } from '../sdk';
 import AddFundsBottomSheet from '../components/AddFundsBottomSheet/AddFundsBottomSheet';
 import AssetSelectionBottomSheet from '../components/AssetSelectionBottomSheet/AssetSelectionBottomSheet';
+import PasswordBottomSheet from '../components/PasswordBottomSheet';
 import { colors } from '../../../../styles/common';
 import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
+import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
+import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
+import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
+import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
+import Cashback from '../Views/Cashback/Cashback';
 import {
   ButtonIcon,
   ButtonIconSize,
@@ -60,31 +68,6 @@ export const cardDefaultNavigationOptions = ({
   headerRight: () => <View />,
 });
 
-export const cardCloseOnlyNavigationOptions = ({
-  navigation,
-}: {
-  navigation: NavigationProp<ParamListBase>;
-}): StackNavigationOptions => {
-  const innerStyles = StyleSheet.create({
-    accessories: {
-      marginHorizontal: 8,
-    },
-  });
-
-  return {
-    headerLeft: () => <View />,
-    headerTitle: () => <View />,
-    headerRight: () => (
-      <ButtonIcon
-        size={ButtonIconSize.Lg}
-        iconName={IconName.Close}
-        onPress={() => navigation?.goBack()}
-        style={innerStyles.accessories}
-      />
-    ),
-  };
-};
-
 export const cardSpendingLimitNavigationOptions = ({
   navigation,
   route,
@@ -114,12 +97,44 @@ export const cardSpendingLimitNavigationOptions = ({
           style={headerStyle.icon}
           size={ButtonIconSize.Md}
           iconName={IconName.Close}
-          onPress={() => navigation.navigate(Routes.CARD.HOME)}
+          onPress={() =>
+            navigation.reset({
+              index: 0,
+              routes: [{ name: Routes.CARD.HOME }],
+            })
+          }
         />
       ) : (
         <View />
       ),
     gestureEnabled: !isOnboardingFlow,
+  };
+};
+
+export const cardChooseYourCardNavigationOptions = ({
+  navigation,
+  route,
+}: {
+  navigation: NavigationProp<ParamListBase>;
+  route: { params?: { flow?: 'onboarding' | 'upgrade' | 'home' } };
+}): StackNavigationOptions => {
+  const flow = route.params?.flow || 'onboarding';
+  const showBackButton = flow === 'upgrade' || flow === 'home';
+
+  return {
+    headerLeft: () =>
+      showBackButton ? (
+        <ButtonIcon
+          style={headerStyle.icon}
+          size={ButtonIconSize.Md}
+          iconName={IconName.ArrowLeft}
+          onPress={() => navigation.goBack()}
+        />
+      ) : (
+        <View />
+      ),
+    headerTitle: () => <View />,
+    headerRight: () => <View />,
   };
 };
 
@@ -138,12 +153,32 @@ const MainRoutes = () => {
       <Stack.Screen
         name={Routes.CARD.HOME}
         component={CardHome}
-        options={cardCloseOnlyNavigationOptions}
+        options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.WELCOME}
         component={CardWelcome}
         options={{ headerShown: false }}
+      />
+      <Stack.Screen
+        name={Routes.CARD.CHOOSE_YOUR_CARD}
+        component={ChooseYourCard}
+        options={cardChooseYourCardNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.REVIEW_ORDER}
+        component={ReviewOrder}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.ORDER_COMPLETED}
+        component={OrderCompleted}
+        options={cardDefaultNavigationOptions}
+      />
+      <Stack.Screen
+        name={Routes.CARD.CASHBACK}
+        component={Cashback}
+        options={cardDefaultNavigationOptions}
       />
       <Stack.Screen
         name={Routes.CARD.AUTHENTICATION}
@@ -184,6 +219,22 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.CONFIRM_MODAL}
       component={ConfirmModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.PASSWORD}
+      component={PasswordBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.RECURRING_FEE}
+      component={RecurringFeeModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.DAIMO_PAY}
+      component={DaimoPayModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.VIEW_PIN}
+      component={ViewPinBottomSheet}
     />
   </ModalsStack.Navigator>
 );

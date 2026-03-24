@@ -7,7 +7,7 @@ import { toHex } from '@metamask/controller-utils';
 import Engine from '../../../core/Engine';
 import { networkSwitched } from '../../../actions/onboardNetwork';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../useMetrics';
+import { useAnalytics } from '../useAnalytics/useAnalytics';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../selectors/networkController';
 import { addItemToChainIdList } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { Network } from '../../Views/Settings/NetworksSettings/NetworkSettings/CustomNetworkView/CustomNetwork.types';
@@ -36,7 +36,7 @@ interface UseAddPopularNetworkResult {
  */
 export const useAddPopularNetwork = (): UseAddPopularNetworkResult => {
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder, addTraitsToUser } = useMetrics();
+  const { trackEvent, createEventBuilder, addTraitsToUser } = useAnalytics();
   const networkConfigurationByChainId = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );

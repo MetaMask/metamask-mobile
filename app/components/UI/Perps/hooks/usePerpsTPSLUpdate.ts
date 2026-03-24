@@ -1,9 +1,14 @@
 import { useCallback, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsTrading } from './usePerpsTrading';
-import type { Position, TPSLTrackingData } from '../controllers/types';
-import { captureException } from '@sentry/react-native';
+import {
+  PERPS_CONSTANTS,
+  type Position,
+  type TPSLTrackingData,
+} from '@metamask/perps-controller';
 import usePerpsToasts from './usePerpsToasts';
 import { usePerpsStream } from '../providers/PerpsStreamManager';
 
@@ -30,7 +35,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
       takeProfitPrice: string | undefined,
       stopLossPrice: string | undefined,
       trackingData?: TPSLTrackingData,
-    ) => {
+    ): Promise<{ success: boolean }> => {
       setIsUpdating(true);
       DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to true');
 
@@ -40,6 +45,7 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
           takeProfitPrice,
           stopLossPrice,
           trackingData,
+          position, // Pass live WebSocket position to avoid REST API fetch (prevents rate limiting)
         });
 
         if (result.success) {
@@ -59,45 +65,52 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
           // Call success callback if provided
           options?.onSuccess?.();
-        } else {
-          DevLogger.log('Failed to update position TP/SL:', result.error);
 
-          const errorMessage = result.error || strings('perps.errors.unknown');
-
-          showToast(
-            PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
-              errorMessage,
-            ),
-          );
-
-          // Call error callback if provided
-          options?.onError?.(errorMessage);
+          return { success: true };
         }
+        DevLogger.log('Failed to update position TP/SL:', result.error);
+
+        const errorMessage = result.error || strings('perps.errors.unknown');
+
+        showToast(
+          PerpsToastOptions.positionManagement.tpsl.updateTPSLError(
+            errorMessage,
+          ),
+        );
+
+        // Call error callback if provided
+        options?.onError?.(errorMessage);
+
+        return { success: false };
       } catch (error) {
         DevLogger.log('Error updating position TP/SL:', error);
 
-        // Capture exception with position context
-        captureException(
-          error instanceof Error ? error : new Error(String(error)),
-          {
-            tags: {
-              component: 'usePerpsTPSLUpdate',
-              action: 'position_tpsl_update',
-              operation: 'position_management',
-            },
-            extra: {
-              positionContext: {
-                symbol: position.symbol,
-                size: position.size,
-                entryPrice: position.entryPrice,
-                unrealizedPnl: position.unrealizedPnl,
-                leverage: position.leverage,
-                takeProfitPrice,
-                stopLossPrice,
-              },
+        Logger.error(ensureError(error, 'usePerpsTPSLUpdate.handle'), {
+          tags: {
+            feature: PERPS_CONSTANTS.FeatureName,
+            component: 'usePerpsTPSLUpdate',
+            action: 'position_tpsl_update',
+            operation: 'position_management',
+          },
+          context: {
+            name: 'usePerpsTPSLUpdate',
+            data: {
+              symbol: position.symbol,
+              size: position.size,
+              entryPrice: position.entryPrice,
+              unrealizedPnl: position.unrealizedPnl,
+              leverage: position.leverage,
+              takeProfitPrice,
+              stopLossPrice,
+              rawError:
+                error instanceof Error
+                  ? undefined
+                  : error === undefined
+                    ? 'undefined'
+                    : String(error),
             },
           },
-        );
+        });
 
         const errorMessage =
           error instanceof Error
@@ -112,6 +125,8 @@ export function usePerpsTPSLUpdate(options?: UseTPSLUpdateOptions) {
 
         // Call error callback if provided
         options?.onError?.(errorMessage);
+
+        return { success: false };
       } finally {
         DevLogger.log('usePerpsTPSLUpdate: Setting isUpdating to false');
         setIsUpdating(false);

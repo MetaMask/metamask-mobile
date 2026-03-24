@@ -4,6 +4,14 @@ import Url from 'url-parse';
 import { regex, hasProtocol } from '../../util/regex';
 import AppConstants from '../../core/AppConstants';
 
+export type SearchEngine = 'Google' | 'DuckDuckGo' | 'Brave';
+
+export const SEARCH_ENGINE_URLS: Record<SearchEngine, string> = {
+  Google: 'https://www.google.com/search?q=',
+  DuckDuckGo: 'https://duckduckgo.com/?q=',
+  Brave: 'https://search.brave.com/search?q=',
+};
+
 /**
  * Returns URL prefixed with protocol
  *
@@ -44,7 +52,10 @@ const safeDecodeUrl = (url: string): string => {
   }
 };
 
-export function processUrlForBrowser(input: string, searchEngine = 'Google') {
+export function processUrlForBrowser(
+  input: string,
+  searchEngine: string = AppConstants.DEFAULT_SEARCH_ENGINE,
+) {
   const defaultProtocol = 'https://';
 
   // Decode the URL first to handle URL-encoded characters
@@ -57,13 +68,10 @@ export function processUrlForBrowser(input: string, searchEngine = 'Google') {
       !decodedInput.startsWith('http://localhost') &&
       !decodedInput.startsWith('localhost')
     ) {
-      // In case of keywords we default to google search
-      let searchUrl =
-        'https://www.google.com/search?q=' + encodeURIComponent(input);
-      if (searchEngine === 'DuckDuckGo') {
-        searchUrl = 'https://duckduckgo.com/?q=' + encodeURIComponent(input);
-      }
-      return searchUrl;
+      const baseUrl =
+        SEARCH_ENGINE_URLS[searchEngine as SearchEngine] ??
+        SEARCH_ENGINE_URLS[AppConstants.DEFAULT_SEARCH_ENGINE];
+      return baseUrl + encodeURIComponent(input);
     }
   }
   return prefixUrlWithProtocol(input, defaultProtocol);
@@ -136,6 +144,60 @@ export const trustedProtocolToDeeplink = [
   // app store deeplink
   'itms-apps:',
 ];
+
+export const paymentProtocolList = ['paytmmp:', 'phonepe:', 'gpay:', 'upi:'];
+
+/**
+ * Handles payment protocol URLs by checking if they can be opened and opening them
+ * Logs appropriate messages for success/failure scenarios
+ *
+ * @param url - URL string to handle
+ * @param Logger - Logger instance for logging
+ * @returns Promise that resolves when the operation completes
+ */
+export const handlePaymentProtocolUrl = (
+  url: string,
+  Logger: {
+    log: (message: string) => void;
+    error: (error: Error, message: string) => void;
+  },
+): Promise<void> =>
+  Linking.canOpenURL(url)
+    .then((canOpen) => {
+      if (canOpen) {
+        return Linking.openURL(url);
+      }
+      Logger.log(`Cannot open URL: ${url} - payment app not installed`);
+      return Promise.resolve();
+    })
+    .catch((err: Error) => {
+      Logger.error(err, `Failed to open payment URL: ${url}`);
+    });
+
+/**
+ * Determines if a WebView should start loading a URL based on its protocol
+ * Payment protocol URLs are handled by the OS, other URLs load normally in WebView
+ *
+ * @param url - URL string to evaluate
+ * @param Logger - Logger instance for logging
+ * @returns boolean - true to allow WebView to load URL, false to prevent it
+ */
+export const shouldStartLoadWithRequest = (
+  url: string,
+  Logger: {
+    log: (message: string) => void;
+    error: (error: Error, message: string) => void;
+  },
+): boolean => {
+  const { protocol } = new Url(url);
+
+  if (paymentProtocolList.includes(protocol)) {
+    handlePaymentProtocolUrl(url, Logger);
+    return false;
+  }
+
+  return true;
+};
 
 /**
  * Returns translated warning message for the

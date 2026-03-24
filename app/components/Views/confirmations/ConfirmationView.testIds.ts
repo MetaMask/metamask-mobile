@@ -45,8 +45,9 @@ export const ConfirmationRowComponentIDs = {
   STAKING_DETAILS: 'staking-details',
   TOKEN_HERO: 'token-hero',
   TOTAL: 'total',
+  RECEIVE: 'receive',
   TRANSACTION_FEE: 'transaction-fee',
-  NETWORK_FEE: 'network-fee',
+  AMOUNT: 'amount',
 } as const;
 
 export const ConfirmationFooterSelectorIDs = {
@@ -62,7 +63,7 @@ export const ConfirmAlertModalSelectorsIDs = {
 
 export const AlertModalSelectorsIDs = {
   ALERT_MODAL_CHECKBOX: 'alert-modal-checkbox',
-  ALERT_MODAL_GOT_IT_BUTTON: 'alert-modal-got-it-button',
+  ALERT_MODAL_ACKNOWLEDGE_BUTTON: 'alert-modal-acknowledge-button',
 } as const;
 
 export const AlertModalSelectorsText = {
@@ -99,4 +100,5 @@ export const TransactionPayComponentIDs = {
   PAY_WITH_BALANCE: 'pay-with-balance',
   PAY_WITH_FIAT: 'pay-with-fiat',
   PAY_WITH_SYMBOL: 'pay-with-symbol',
+  PAY_WITH_TOKEN_LIST: 'pay-with-token-list',
 };

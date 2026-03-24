@@ -142,16 +142,16 @@ describe('GasFeeTokenModal', () => {
     jest.clearAllMocks();
   });
 
-  it('renders modal, header, back button', () => {
+  it('renders modal, header, close button', () => {
     const { getByTestId, getByText } = setupTest();
     expect(getByTestId('gas-fee-token-modal')).toBeTruthy();
-    expect(getByTestId('back-button')).toBeTruthy();
+    expect(getByTestId('close-button')).toBeTruthy();
     expect(getByText('Select a token')).toBeTruthy();
   });
 
-  it('calls onClose when back button is pressed', () => {
+  it('calls onClose when close button is pressed', () => {
     const { getByTestId } = setupTest();
-    fireEvent.press(getByTestId('back-button'));
+    fireEvent.press(getByTestId('close-button'));
     expect(mockOnClose).toHaveBeenCalled();
   });
 

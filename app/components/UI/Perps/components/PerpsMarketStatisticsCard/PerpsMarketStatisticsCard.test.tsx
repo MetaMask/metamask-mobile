@@ -3,6 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import PerpsMarketStatisticsCard from './PerpsMarketStatisticsCard';
 import type { PerpsMarketStatisticsCardProps } from './PerpsMarketStatisticsCard.types';
 import { FUNDING_RATE_CONFIG } from '../../constants/perpsConfig';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 // Navigation mock functions
 const mockNavigate = jest.fn();
@@ -39,7 +40,7 @@ jest.mock('../../../../hooks/useStyles', () => ({
       },
       statisticsItem: {
         flex: 1,
-        backgroundColor: '#f0f0f0',
+        backgroundColor: mockTheme.colors.background.alternative,
         padding: 16,
         borderRadius: 8,
       },
@@ -151,7 +152,7 @@ describe('PerpsMarketStatisticsCard', () => {
   it('displays zero funding rate in default color', () => {
     const zeroFundingStats = {
       ...mockMarketStats,
-      fundingRate: FUNDING_RATE_CONFIG.ZERO_DISPLAY,
+      fundingRate: FUNDING_RATE_CONFIG.ZeroDisplay,
     };
 
     const { getByText } = render(
@@ -161,7 +162,7 @@ describe('PerpsMarketStatisticsCard', () => {
       />,
     );
 
-    const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY);
+    const fundingRateText = getByText(FUNDING_RATE_CONFIG.ZeroDisplay);
     expect(fundingRateText).toBeOnTheScreen();
   });
 
@@ -337,7 +338,7 @@ describe('PerpsMarketStatisticsCard', () => {
       );
 
       // Should display zero funding rate
-      expect(getByText(FUNDING_RATE_CONFIG.ZERO_DISPLAY)).toBeOnTheScreen();
+      expect(getByText(FUNDING_RATE_CONFIG.ZeroDisplay)).toBeOnTheScreen();
     });
   });
 });

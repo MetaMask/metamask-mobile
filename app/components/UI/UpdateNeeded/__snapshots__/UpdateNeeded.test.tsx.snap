@@ -341,7 +341,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#3f434a66",
+                                "backgroundColor": "#0a0d135c",
                                 "bottom": 0,
                                 "left": 0,
                                 "position": "absolute",
@@ -399,6 +399,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 "flexDirection": "row",
                                 "gap": 16,
                                 "height": "auto",
+                                "minHeight": 56,
                               },
                               {
                                 "marginTop": 0,
@@ -464,7 +465,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                                 testID="update-needed-modal-close-button"
                               >
                                 <SvgMock
-                                  color="#121314"
+                                  color="#131416"
                                   fill="currentColor"
                                   height={20}
                                   name="Close"
@@ -519,7 +520,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Bold",
                                   "fontSize": 24,
                                   "letterSpacing": 0,
@@ -535,7 +536,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               accessibilityRole="text"
                               style={
                                 {
-                                  "color": "#121314",
+                                  "color": "#131416",
                                   "fontFamily": "Geist-Regular",
                                   "fontSize": 16,
                                   "letterSpacing": 0,
@@ -567,7 +568,7 @@ exports[`UpdateNeeded should render snapshot correctly 1`] = `
                               {
                                 "alignItems": "center",
                                 "alignSelf": "stretch",
-                                "backgroundColor": "#121314",
+                                "backgroundColor": "#131416",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
                                 "height": undefined,

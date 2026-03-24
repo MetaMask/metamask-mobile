@@ -1,7 +1,6 @@
 import { useSelector } from 'react-redux';
 
 import { selectInternalAccountsById } from '../../../selectors/accountsController';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts';
 import {
   selectAccountToWalletMap,
   selectWalletsMap,
@@ -12,12 +11,9 @@ export function useAccountWalletNames(requests: UseDisplayNameRequest[]) {
   const internalAccountsById = useSelector(selectInternalAccountsById);
   const accountToWalletMap = useSelector(selectAccountToWalletMap);
   const walletsMap = useSelector(selectWalletsMap) || {};
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const haveMoreThanOneWallet = Object.keys(walletsMap).length > 1;
 
-  if (isMultichainAccountsState2Enabled && haveMoreThanOneWallet) {
+  if (haveMoreThanOneWallet) {
     const accountWalletNames = Object.entries(accountToWalletMap).reduce(
       (acc, [accountId, walletId]) => {
         const account = internalAccountsById[accountId];

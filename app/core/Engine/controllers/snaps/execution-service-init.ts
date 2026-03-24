@@ -1,5 +1,5 @@
 import { AbstractExecutionService } from '@metamask/snaps-controllers';
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 import { Duplex } from 'stream';
 import { ControllerInitFunction } from '../../types';
 import { ExecutionServiceMessenger } from '../../messengers/snaps';
@@ -47,15 +47,11 @@ export const executionServiceInit: ControllerInitFunction<
           navigation: null,
           title: { current: 'Snap' },
           icon: { current: undefined },
-          isHomepage: () => false,
-          fromHomepage: { current: false },
-          toggleUrlModal: () => null,
           tabId: false,
-          isWalletConnect: true,
+          isWalletConnect: false,
           isMMSDK: false,
           url: { current: '' },
           analytics: {},
-          injectHomePageScripts: () => null,
         }),
     });
 

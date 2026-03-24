@@ -13,7 +13,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
     style={
       {
         "alignItems": "center",
-        "backgroundColor": "#f3f5f9",
+        "backgroundColor": "#f3f3f4",
         "borderRadius": 999,
         "flex": 1,
         "flexDirection": "row",
@@ -39,14 +39,14 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Search by token, site or address"
-        placeholderTextColor="#b7bbc8"
+        placeholder="Search by site or address"
+        placeholderTextColor="#babbbe"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
@@ -84,7 +84,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         onStartShouldSetResponder={[Function]}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,
@@ -127,7 +127,7 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
       testID="url-clear-icon"
     >
       <SvgMock
-        color="#686e7d"
+        color="#66676a"
         fill="currentColor"
         height={20}
         name="CircleX"
@@ -171,9 +171,10 @@ exports[`BrowserUrlBar render matches snapshot when focused 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#4459ff",
-            "fontFamily": "Geist-Regular",
+            "color": "#131416",
+            "fontFamily": "Geist-Medium",
             "fontSize": 14,
+            "fontWeight": "500",
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -209,7 +210,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
     testID="url-input"
   >
     <SvgMock
-      color="#686e7d"
+      color="#66676a"
       fill="currentColor"
       height={16}
       name="Lock"
@@ -239,14 +240,14 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         onChangeText={[Function]}
         onFocus={[Function]}
         onSubmitEditing={[Function]}
-        placeholder="Search by token, site or address"
-        placeholderTextColor="#b7bbc8"
+        placeholder="Search by site or address"
+        placeholderTextColor="#babbbe"
         returnKeyType="go"
         selectTextOnFocus={true}
         style={
           [
             {
-              "color": "#121314",
+              "color": "#131416",
               "flex": 1,
               "fontFamily": "Geist-Regular",
               "fontSize": 14,
@@ -287,7 +288,7 @@ exports[`BrowserUrlBar render matches snapshot when not focused 1`] = `
         onStartShouldSetResponder={[Function]}
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
             "letterSpacing": 0,

@@ -20,7 +20,6 @@ jest.mock('../../../../../../../selectors/multichainNetworkController', () => ({
   selectNonEvmNetworkConfigurationsByChainId: jest.fn(),
 }));
 
-// Mock network blacklist selector
 jest.mock(
   '../../../../../../../selectors/featureFlagController/networkBlacklist',
   () => ({
@@ -45,16 +44,6 @@ const mockSelectAdditionalNetworksBlacklistFeatureFlag =
   selectAdditionalNetworksBlacklistFeatureFlag as jest.MockedFunction<
     typeof selectAdditionalNetworksBlacklistFeatureFlag
   >;
-
-// Mock i18n strings
-jest.mock('../../../../../../../../locales/i18n', () => ({
-  strings: jest.fn((key: string) => {
-    const mockStrings: Record<string, string> = {
-      'rewards.ways_to_earn.supported_networks': 'Supported networks',
-    };
-    return mockStrings[key] || key;
-  }),
-}));
 
 // Mock getNetworkImageSource
 jest.mock('../../../../../../../util/networks', () => ({
@@ -105,10 +94,34 @@ describe('SwapSupportedNetworksSection', () => {
     'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': { name: 'Solana Mainnet' },
   };
 
+  const mockSupportedNetworks = [
+    { chainId: NETWORKS_CHAIN_ID.MAINNET, name: 'Ethereum Mainnet' },
+    {
+      chainId: NETWORKS_CHAIN_ID.LINEA_MAINNET,
+      name: 'Linea Mainnet',
+      boost: '+100%',
+    },
+    { chainId: NETWORKS_CHAIN_ID.OPTIMISM, name: 'Optimism' },
+    { chainId: NETWORKS_CHAIN_ID.BSC, name: 'BNB Smart Chain' },
+    { chainId: NETWORKS_CHAIN_ID.POLYGON, name: 'Polygon Mainnet' },
+    { chainId: NETWORKS_CHAIN_ID.BASE, name: 'Base' },
+    { chainId: NETWORKS_CHAIN_ID.ARBITRUM, name: 'Arbitrum One' },
+    { chainId: NETWORKS_CHAIN_ID.AVAXCCHAIN, name: 'Avalanche C-Chain' },
+    { chainId: NETWORKS_CHAIN_ID.ZKSYNC_ERA, name: 'zkSync Era Mainnet' },
+    {
+      chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      name: 'Solana Mainnet',
+    },
+  ];
+
+  const defaultProps = {
+    supportedNetworksTitle: 'Supported networks',
+    supportedNetworks: mockSupportedNetworks,
+  };
+
   beforeEach(() => {
     jest.clearAllMocks();
 
-    // Set up mock selector returns with the simplified data
     mockSelectEvmNetworkConfigurationsByChainId.mockReturnValue(
       mockEvmNetworks as unknown as Record<string, NetworkConfiguration>,
     );
@@ -119,7 +132,6 @@ describe('SwapSupportedNetworksSection', () => {
       [] as never,
     );
 
-    // Mock useSelector to directly return the mocked data
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
         return mockEvmNetworks;
@@ -134,17 +146,34 @@ describe('SwapSupportedNetworksSection', () => {
     });
   });
 
-  it('renders the section title', () => {
+  it('renders the section title from props', () => {
     // Arrange & Act
-    const { getByText } = render(<SwapSupportedNetworksSection />);
+    const { getByText } = render(
+      <SwapSupportedNetworksSection {...defaultProps} />,
+    );
 
     // Assert
     expect(getByText('Supported networks')).toBeOnTheScreen();
   });
 
-  it('renders supported networks', () => {
+  it('renders a custom title from props', () => {
     // Arrange & Act
-    const { getByText } = render(<SwapSupportedNetworksSection />);
+    const { getByText } = render(
+      <SwapSupportedNetworksSection
+        {...defaultProps}
+        supportedNetworksTitle="Custom Title"
+      />,
+    );
+
+    // Assert
+    expect(getByText('Custom Title')).toBeOnTheScreen();
+  });
+
+  it('renders supported networks with names resolved from Redux', () => {
+    // Arrange & Act
+    const { getByText } = render(
+      <SwapSupportedNetworksSection {...defaultProps} />,
+    );
 
     // Assert
     expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
@@ -159,9 +188,11 @@ describe('SwapSupportedNetworksSection', () => {
     expect(getByText('Solana Mainnet')).toBeOnTheScreen();
   });
 
-  it('displays boost for Linea network', () => {
+  it('displays boost from DTO data', () => {
     // Arrange & Act
-    const { getByText } = render(<SwapSupportedNetworksSection />);
+    const { getByText } = render(
+      <SwapSupportedNetworksSection {...defaultProps} />,
+    );
 
     // Assert
     expect(getByText('+100%')).toBeOnTheScreen();
@@ -169,7 +200,9 @@ describe('SwapSupportedNetworksSection', () => {
 
   it('renders network avatars for each supported network', () => {
     // Arrange & Act
-    const { getByTestId } = render(<SwapSupportedNetworksSection />);
+    const { getByTestId } = render(
+      <SwapSupportedNetworksSection {...defaultProps} />,
+    );
 
     // Assert
     expect(getByTestId('avatar-Ethereum Mainnet')).toBeOnTheScreen();
@@ -181,7 +214,6 @@ describe('SwapSupportedNetworksSection', () => {
     // Arrange - Mock network configurations without some networks
     const limitedEvmNetworks = {
       [NETWORKS_CHAIN_ID.MAINNET]: { name: 'Ethereum Mainnet' },
-      // Missing other networks
     };
 
     mockSelectEvmNetworkConfigurationsByChainId.mockReturnValue(
@@ -189,7 +221,6 @@ describe('SwapSupportedNetworksSection', () => {
     );
     mockSelectNonEvmNetworkConfigurationsByChainId.mockReturnValue({} as never);
 
-    // Override useSelector for this test
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
         return limitedEvmNetworks;
@@ -204,38 +235,46 @@ describe('SwapSupportedNetworksSection', () => {
     });
 
     // Act
-    const { getByText, queryByText } = render(<SwapSupportedNetworksSection />);
+    const { getByText, queryByText } = render(
+      <SwapSupportedNetworksSection {...defaultProps} />,
+    );
 
     // Assert
     expect(getByText('Ethereum Mainnet')).toBeOnTheScreen();
     expect(queryByText('Unknown Network')).not.toBeOnTheScreen();
   });
 
-  it('displays only Linea boost and no other networks have boost', () => {
+  it('displays only boost badges for networks that have them', () => {
     // Arrange & Act
-    const { getAllByText } = render(<SwapSupportedNetworksSection />);
+    const { getAllByText } = render(
+      <SwapSupportedNetworksSection {...defaultProps} />,
+    );
 
-    // Assert - Only one boost should be displayed
+    // Assert - Only Linea has boost in the mock data
     const boostElements = getAllByText('+100%');
     expect(boostElements).toHaveLength(1);
   });
 
   it('uses useMemo to optimize network calculations', () => {
     // Arrange
-    const { rerender } = render(<SwapSupportedNetworksSection />);
+    const { rerender } = render(
+      <SwapSupportedNetworksSection {...defaultProps} />,
+    );
 
     // Act - Rerender with same props
-    rerender(<SwapSupportedNetworksSection />);
+    rerender(<SwapSupportedNetworksSection {...defaultProps} />);
 
     // Assert - Component should render without errors (memoization working)
-    expect(() => rerender(<SwapSupportedNetworksSection />)).not.toThrow();
+    expect(() =>
+      rerender(<SwapSupportedNetworksSection {...defaultProps} />),
+    ).not.toThrow();
   });
 
   describe('network item rendering', () => {
     it('renders network items with correct structure', () => {
       // Arrange & Act
       const { getByText, getByTestId } = render(
-        <SwapSupportedNetworksSection />,
+        <SwapSupportedNetworksSection {...defaultProps} />,
       );
 
       // Assert - Check a specific network has both avatar and text
@@ -244,7 +283,7 @@ describe('SwapSupportedNetworksSection', () => {
     });
 
     it('handles network names with ellipsis for long names', () => {
-      // Arrange - Mock a network with a very long name
+      // Arrange - Mock a network with a very long name resolved from config
       const longNameNetworks = {
         [NETWORKS_CHAIN_ID.MAINNET]: {
           name: 'Very Long Network Name That Should Be Truncated',
@@ -258,7 +297,6 @@ describe('SwapSupportedNetworksSection', () => {
         {} as never,
       );
 
-      // Override useSelector for this test
       mockUseSelector.mockImplementation((selector) => {
         if (selector === mockSelectEvmNetworkConfigurationsByChainId) {
           return longNameNetworks;
@@ -273,7 +311,14 @@ describe('SwapSupportedNetworksSection', () => {
       });
 
       // Act
-      const { getByText } = render(<SwapSupportedNetworksSection />);
+      const { getByText } = render(
+        <SwapSupportedNetworksSection
+          supportedNetworksTitle="Supported networks"
+          supportedNetworks={[
+            { chainId: NETWORKS_CHAIN_ID.MAINNET, name: 'Ethereum Mainnet' },
+          ]}
+        />,
+      );
 
       // Assert
       expect(
@@ -302,7 +347,9 @@ describe('SwapSupportedNetworksSection', () => {
       });
 
       // Act
-      const { queryByText } = render(<SwapSupportedNetworksSection />);
+      const { queryByText } = render(
+        <SwapSupportedNetworksSection {...defaultProps} />,
+      );
 
       // Assert - Linea should be excluded and boost not shown
       expect(queryByText('Linea Mainnet')).not.toBeOnTheScreen();
@@ -328,7 +375,9 @@ describe('SwapSupportedNetworksSection', () => {
       });
 
       // Act
-      const { getByText } = render(<SwapSupportedNetworksSection />);
+      const { getByText } = render(
+        <SwapSupportedNetworksSection {...defaultProps} />,
+      );
 
       // Assert - Linea and others remain
       expect(getByText('Linea Mainnet')).toBeOnTheScreen();

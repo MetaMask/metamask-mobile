@@ -1,4 +1,4 @@
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 import URL from 'url-parse';
 import {
   createSelectedNetworkMiddleware,
@@ -50,7 +50,7 @@ const createFilterMiddleware = require('@metamask/eth-json-rpc-filters');
 const createSubscriptionManager = require('@metamask/eth-json-rpc-filters/subscriptionManager');
 import { providerAsMiddleware } from '@metamask/eth-json-rpc-middleware';
 const pump = require('pump');
-// eslint-disable-next-line import/no-nodejs-modules
+// eslint-disable-next-line import-x/no-nodejs-modules
 const EventEmitter = require('events').EventEmitter;
 const { NOTIFICATION_NAMES } = AppConstants;
 import DevLogger from '../SDKConnect/utils/DevLogger';
@@ -100,6 +100,8 @@ import { selectSmartTransactionsEnabled } from '../../selectors/smartTransaction
 import { AccountTreeController } from '@metamask/account-tree-controller';
 import { createTrustSignalsMiddleware } from '../RPCMethods/TrustSignalsMiddleware';
 import createDupeReqFilterStream from './createDupeReqFilterStream';
+import { asLegacyMiddleware } from '@metamask/json-rpc-engine/v2';
+import { createWalletSnapPermissionMiddleware } from '@metamask/snaps-rpc-methods';
 
 const legacyNetworkId = () => {
   const { networksMetadata, selectedNetworkClientId } =
@@ -673,6 +675,8 @@ export class BackgroundBridge extends EventEmitter {
         networkController: Engine.context.NetworkController,
       }),
     );
+
+    engine.push(asLegacyMiddleware(createWalletSnapPermissionMiddleware()));
 
     // user-facing RPC methods
     engine.push(

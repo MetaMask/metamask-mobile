@@ -1,5 +1,9 @@
 import { Order } from '@consensys/on-ramp-sdk';
-import type { Provider } from '@metamask/ramps-controller';
+import {
+  type Provider,
+  type RampsOrder,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
 import type { FiatOrder } from '../../../../reducers/fiatOrders/types';
 import {
   FIAT_ORDER_PROVIDERS,
@@ -7,59 +11,94 @@ import {
 } from '../../../../constants/on-ramp';
 
 /**
- * Determines the preferred provider based on user's order history and available providers.
+ * Minimal representation of a completed order used for provider selection
+ * and "previously used" logic. Both FiatOrder and RampsOrder map into this.
+ */
+export interface CompletedOrderInfo {
+  providerId: string;
+  completedAt: number;
+}
+
+export function completedOrdersFromFiatOrders(
+  orders: FiatOrder[],
+): CompletedOrderInfo[] {
+  return orders
+    .filter((order) => order.state === FIAT_ORDER_STATES.COMPLETED)
+    .reduce<CompletedOrderInfo[]>((acc, order) => {
+      let providerId: string | undefined;
+
+      if (
+        order.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR ||
+        order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+      ) {
+        const orderData =
+          order.provider === FIAT_ORDER_PROVIDERS.RAMPS_V2
+            ? (order.data as RampsOrder)
+            : (order.data as Order);
+        providerId = orderData?.provider?.id;
+      } else if (
+        order.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||
+        order.provider === FIAT_ORDER_PROVIDERS.TRANSAK
+      ) {
+        providerId = 'TRANSAK';
+      } else {
+        providerId = order.provider;
+      }
+
+      if (providerId) {
+        acc.push({ providerId, completedAt: order.createdAt });
+      }
+      return acc;
+    }, []);
+}
+
+export function completedOrdersFromRampsOrders(
+  orders: RampsOrder[],
+): CompletedOrderInfo[] {
+  return orders
+    .filter((order) => order.status === RampsOrderStatus.Completed)
+    .reduce<CompletedOrderInfo[]>((acc, order) => {
+      const providerId = order.provider?.id;
+      if (providerId) {
+        acc.push({ providerId, completedAt: order.createdAt });
+      }
+      return acc;
+    }, []);
+}
+
+/**
+ * Determines the preferred provider based on user's completed order history.
  *
- * Logic:
- * 1. If user has completed orders, use the provider from the most recent completed order
- * 2. Find that provider in the available providers list
- * 3. If no orders or provider not found, default to Transak
- * 4. If Transak is not available, use the first provider in the list
+ * Fallback order:
+ * 1. Provider from most recent completed order
+ * 2. Transak
+ * 3. First available provider
  *
- * @param orders - Array of fiat orders
- * @param availableProviders - Array of available providers from RampsController
+ * @param completedOrders - Completed orders from any source (legacy + controller)
+ * @param availableProviders - Available providers from RampsController
  * @returns The preferred provider, or null if no providers are available
  */
 export function determinePreferredProvider(
-  orders: FiatOrder[],
+  completedOrders: CompletedOrderInfo[],
   availableProviders: Provider[],
 ): Provider | null {
   if (availableProviders.length === 0) {
     return null;
   }
 
-  const completedOrders = orders.filter(
-    (order) => order.state === FIAT_ORDER_STATES.COMPLETED,
-  );
-
   if (completedOrders.length > 0) {
-    const [lastCompletedOrder] = [...completedOrders].sort(
-      (a, b) => b.createdAt - a.createdAt,
+    const [mostRecent] = [...completedOrders].sort(
+      (a, b) => b.completedAt - a.completedAt,
     );
 
-    let providerId: string | undefined;
+    const foundProvider = availableProviders.find(
+      (provider) =>
+        provider.id?.toLowerCase() === mostRecent.providerId.toLowerCase() ||
+        provider.name?.toLowerCase() === mostRecent.providerId.toLowerCase(),
+    );
 
-    if (lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.AGGREGATOR) {
-      const orderData = lastCompletedOrder.data as Order;
-      providerId = orderData?.provider?.id;
-    } else if (
-      lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.DEPOSIT ||
-      lastCompletedOrder.provider === FIAT_ORDER_PROVIDERS.TRANSAK
-    ) {
-      providerId = 'TRANSAK';
-    } else {
-      providerId = lastCompletedOrder.provider;
-    }
-
-    if (providerId) {
-      const foundProvider = availableProviders.find(
-        (provider) =>
-          provider.id?.toLowerCase() === providerId?.toLowerCase() ||
-          provider.name?.toLowerCase() === providerId?.toLowerCase(),
-      );
-
-      if (foundProvider) {
-        return foundProvider;
-      }
+    if (foundProvider) {
+      return foundProvider;
     }
   }
 

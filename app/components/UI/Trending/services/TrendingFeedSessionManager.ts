@@ -1,8 +1,89 @@
 import { AppState, AppStateStatus } from 'react-native';
 import { v4 as uuidv4 } from 'uuid';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
-import { MetaMetrics, MetaMetricsEvents } from '../../../../core/Analytics';
-import { MetricsEventBuilder } from '../../../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import { analytics } from '../../../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+
+/**
+ * Interaction types for Trending Feed analytics events
+ */
+export enum TrendingInteractionType {
+  SessionStart = 'session_start',
+  SessionEnd = 'session_end',
+  TokenClick = 'token_click',
+  Search = 'search',
+  FilterChange = 'filter_change',
+}
+
+/**
+ * Properties for token click tracking
+ */
+export interface TokenClickProperties {
+  /** Token symbol clicked */
+  token_symbol: string;
+  /** Token contract address */
+  token_address: string;
+  /** Token display name */
+  token_name: string;
+  /** Network chain ID (hex format) */
+  chain_id: string;
+  /** 0-indexed position in list */
+  position: number;
+  /** Token price at click time (USD) */
+  price_usd: number;
+  /** Price change percentage */
+  price_change_pct: number;
+  /** Active time filter (e.g., '24h', '6h', '1h', '5m') */
+  time_filter: string;
+  /** Active sort option (e.g., 'price_change', 'volume', 'market_cap') */
+  sort_option: string;
+  /** Active network filter (e.g., 'all' or specific chain ID) */
+  network_filter: string;
+  /** Was this from search results? */
+  is_search_result: boolean;
+}
+
+/**
+ * Properties for search tracking
+ */
+export interface SearchProperties {
+  /** The search query entered */
+  search_query: string;
+  /** Number of results returned */
+  results_count: number;
+  /** Whether search returned any results */
+  has_results: boolean;
+  /** Active time filter (e.g., '24h', '6h', '1h', '5m') */
+  time_filter: string;
+  /** Active sort option (e.g., 'price_change', 'volume', 'market_cap') */
+  sort_option: string;
+  /** Active network filter (e.g., 'all' or specific chain ID) */
+  network_filter: string;
+}
+
+/**
+ * Filter types for filter change tracking
+ */
+type FilterType = 'time' | 'sort' | 'network';
+
+/**
+ * Properties for filter change tracking
+ */
+export interface FilterChangeProperties {
+  /** Type of filter that changed */
+  filter_type: FilterType;
+  /** Previous filter value */
+  previous_value: string;
+  /** New filter value */
+  new_value: string;
+  /** Active time filter (e.g., '24h', '6h', '1h', '5m') */
+  time_filter: string;
+  /** Active sort option (e.g., 'price_change', 'volume', 'market_cap') */
+  sort_option: string;
+  /** Active network filter (e.g., 'all' or specific chain ID) */
+  network_filter: string;
+}
 
 /**
  * Singleton manager for Trending Feed session tracking
@@ -159,24 +240,122 @@ class TrendingFeedSessionManager {
   }
 
   /**
-   * Track feed viewed event
+   * Track feed viewed event with interaction type
    */
-  private trackEvent(isSessionEnd: boolean = false): void {
+  private trackEvent(
+    interactionType: TrendingInteractionType,
+    isSessionEnd: boolean = false,
+  ): void {
     if (!this.sessionId) return;
 
     const analyticsProperties = {
       session_id: this.sessionId,
+      interaction_type: interactionType,
       session_time: this.getElapsedTime(),
       is_session_end: isSessionEnd,
       entry_point: this.entryPoint,
     };
 
-    MetaMetrics.getInstance().trackEvent(
-      MetricsEventBuilder.createEventBuilder(
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.TRENDING_FEED_VIEWED,
       )
         .addProperties(analyticsProperties)
         .build(),
+    );
+  }
+
+  /**
+   * Private helper to track interaction events with shared logic
+   * Encapsulates session validation, analytics properties building, logging, and event tracking
+   *
+   * @param interactionType - The type of interaction being tracked
+   * @param properties - Additional properties to include in the event
+   * @param logMessage - Message for DevLogger
+   * @param logContext - Additional context for DevLogger (merged with sessionId)
+   */
+  private trackInteraction(
+    interactionType: TrendingInteractionType,
+    properties:
+      | TokenClickProperties
+      | SearchProperties
+      | FilterChangeProperties,
+    logMessage: string,
+    logContext: Record<string, string | number | boolean>,
+  ): void {
+    if (!this.sessionId) {
+      DevLogger.log(
+        `TrendingFeedSessionManager: Cannot track ${interactionType} - no active session`,
+      );
+      return;
+    }
+
+    const analyticsProperties = {
+      session_id: this.sessionId,
+      interaction_type: interactionType,
+      ...properties,
+    };
+
+    DevLogger.log(logMessage, {
+      sessionId: this.sessionId,
+      ...logContext,
+    });
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.TRENDING_FEED_VIEWED,
+      )
+        .addProperties(analyticsProperties)
+        .build(),
+    );
+  }
+
+  /**
+   * Track token click event
+   * @param properties - Token click properties including position, filters, etc.
+   */
+  public trackTokenClick(properties: TokenClickProperties): void {
+    this.trackInteraction(
+      TrendingInteractionType.TokenClick,
+      properties,
+      'TrendingFeedSessionManager: Token click tracked',
+      {
+        token_symbol: properties.token_symbol,
+        position: properties.position,
+      },
+    );
+  }
+
+  /**
+   * Track search event
+   * @param properties - Search properties including query, results count, etc.
+   */
+  public trackSearch(properties: SearchProperties): void {
+    this.trackInteraction(
+      TrendingInteractionType.Search,
+      properties,
+      'TrendingFeedSessionManager: Search tracked',
+      {
+        search_query: properties.search_query,
+        results_count: properties.results_count,
+      },
+    );
+  }
+
+  /**
+   * Track filter change event
+   * @param properties - Filter change properties including type, previous/new values
+   */
+  public trackFilterChange(properties: FilterChangeProperties): void {
+    this.trackInteraction(
+      TrendingInteractionType.FilterChange,
+      properties,
+      'TrendingFeedSessionManager: Filter change tracked',
+      {
+        filter_type: properties.filter_type,
+        previous_value: properties.previous_value,
+        new_value: properties.new_value,
+      },
     );
   }
 
@@ -213,8 +392,8 @@ class TrendingFeedSessionManager {
       entryPoint,
     });
 
-    // Track initial event
-    this.trackEvent(false);
+    // Track initial event with session_start interaction type
+    this.trackEvent(TrendingInteractionType.SessionStart, false);
   }
 
   /**
@@ -234,8 +413,8 @@ class TrendingFeedSessionManager {
       finalTime: this.getElapsedTime(),
     });
 
-    // Send final event
-    this.trackEvent(true);
+    // Send final event with session_end interaction type
+    this.trackEvent(TrendingInteractionType.SessionEnd, true);
 
     // Mark as ended (but keep state for debugging until next startSession)
     this.sessionEnded = true;

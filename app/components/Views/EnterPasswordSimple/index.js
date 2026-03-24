@@ -91,6 +91,8 @@ export default class EnterPasswordSimple extends PureComponent {
   };
 
   componentWillUnmount = () => {
+    // Used by Settings/SecuritySettings/Sections/DeviceSecurityToggle.tsx to clear optimistic toggle value
+    this.props.route?.params?.onCancel?.();
     this.mounted = false;
   };
 
@@ -102,7 +104,7 @@ export default class EnterPasswordSimple extends PureComponent {
         strings('choose_password.password_length_error'),
       );
     } else {
-      this.props.route.params.onPasswordSet(this.state.password);
+      await this.props.route.params.onPasswordSet(this.state.password);
       this.props.navigation.pop();
       return;
     }

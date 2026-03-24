@@ -234,6 +234,11 @@ export const createAnalyticsQueueManager = (
         type: 'SET_PROCESSING',
         payload: { processing: false, promise: null },
       });
+
+      // Drain any operations that were queued while this batch was running
+      if (canProcessQueue(state)) {
+        await processQueue();
+      }
     });
 
     // Set processing promise in state (mark as processing) - must happen BEFORE the promise starts executing

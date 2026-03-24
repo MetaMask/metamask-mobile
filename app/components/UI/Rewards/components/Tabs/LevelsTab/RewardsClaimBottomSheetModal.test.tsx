@@ -123,16 +123,9 @@ jest.mock(
         value,
       });
 
-    TextFieldComponent.Size = {
-      Lg: 'lg',
-    };
-
     return {
       __esModule: true,
       default: TextFieldComponent,
-      TextFieldSize: {
-        Lg: 'lg',
-      },
     };
   },
 );

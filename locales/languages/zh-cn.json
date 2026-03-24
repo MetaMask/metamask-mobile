@@ -562,6 +562,7 @@
     "ok": "确定",
     "cancel": "取消",
     "error": "错误",
+    "open_settings": "设置",
     "attempting_sync_from_wallet_error": "好像您正尝试与扩展程序同步。要进行同步，请转至“设置”>“高级”>“与 MetaMask 扩展程序同步”"
   },
   "action_view": {

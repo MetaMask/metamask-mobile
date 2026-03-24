@@ -8,15 +8,13 @@ import {
   IconName,
   IconColor,
 } from '@metamask/design-system-react-native';
-import { NavigationProp, useNavigation } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import React from 'react';
 import { TouchableOpacity } from 'react-native';
 import { PredictMarket as PredictMarketType } from '../../types';
-import {
-  PredictNavigationParamList,
-  PredictEntryPoint,
-} from '../../types/navigation';
+import { PredictEntryPoint } from '../../types/navigation';
 import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictEntryPoint } from '../../contexts';
 import Routes from '../../../../../constants/navigation/Routes';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 import PredictSportScoreboard from '../PredictSportScoreboard/PredictSportScoreboard';
@@ -28,28 +26,35 @@ interface PredictMarketSportCardProps {
   testID?: string;
   entryPoint?: PredictEntryPoint;
   onDismiss?: () => void;
+  isCarousel?: boolean;
 }
 
 const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint: propEntryPoint,
   onDismiss,
+  isCarousel,
 }) => {
   const tw = useTailwind();
+  const contextEntryPoint = usePredictEntryPoint();
+  const baseEntryPoint =
+    contextEntryPoint ??
+    propEntryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : entryPoint;
+    : baseEntryPoint;
 
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
 
   const game = market.game;
 
   return (
     <TouchableOpacity
-      style={tw.style('my-[8px]')}
+      style={tw.style(isCarousel ? '' : 'my-[8px]')}
       testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -63,7 +68,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
         });
       }}
     >
-      <Box twClassName="bg-muted rounded-xl">
+      <Box twClassName="bg-muted rounded-[12px]">
         {onDismiss && (
           <Box twClassName="absolute top-3 right-3 z-10">
             <ButtonIcon
@@ -96,6 +101,7 @@ const PredictMarketSportCard: React.FC<PredictMarketSportCardProps> = ({
             market={market}
             entryPoint={resolvedEntryPoint}
             testID={testID ? `${testID}-footer` : undefined}
+            isCarousel={isCarousel}
           />
         </Box>
       </Box>

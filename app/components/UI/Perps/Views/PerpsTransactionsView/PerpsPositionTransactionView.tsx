@@ -1,9 +1,5 @@
-import {
-  NavigationProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
-import React, { useMemo } from 'react';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import React, { useLayoutEffect, useMemo } from 'react';
 import { ScrollView, View } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
@@ -22,11 +18,13 @@ import { useStyles } from '../../../../../component-library/hooks';
 import { selectSelectedInternalAccountByScope } from '../../../../../selectors/multichainAccounts/accounts';
 import Routes from '../../../../../constants/navigation/Routes';
 import ScreenView from '../../../../Base/ScreenView';
-import { getPerpsTransactionsDetailsNavbar } from '../../../Navbar';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import PerpsTransactionDetailAssetHero from '../../components/PerpsTransactionDetailAssetHero';
 import { usePerpsBlockExplorerUrl } from '../../hooks';
-import { PerpsNavigationParamList } from '../../types/navigation';
-import type { PerpsMarketData } from '../../controllers/types';
+import {
+  PERPS_EVENT_VALUE,
+  type PerpsMarketData,
+} from '@metamask/perps-controller';
 import {
   PerpsPositionTransactionRouteProp,
   PerpsTransaction,
@@ -38,11 +36,10 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import { styleSheet } from './PerpsPositionTransactionView.styles';
-import { PerpsEventValues } from '../../constants/eventNames';
 
 const PerpsPositionTransactionView: React.FC = () => {
   const { styles } = useStyles(styleSheet, {});
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
   const route = useRoute<PerpsPositionTransactionRouteProp>();
   const selectedInternalAccount = useSelector(
     selectSelectedInternalAccountByScope,
@@ -62,17 +59,20 @@ const PerpsPositionTransactionView: React.FC = () => {
     [transaction?.asset],
   );
 
-  navigation.setOptions(
-    getPerpsTransactionsDetailsNavbar(
-      navigation,
-      transaction?.fill?.shortTitle || '',
-    ),
-  );
+  useLayoutEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
 
   if (!transaction) {
     // Handle missing transaction data
     return (
       <ScreenView>
+        <HeaderCompactStandard
+          includesTopInset
+          onBack={() => navigation.goBack()}
+        />
         <View style={styles.content}>
           <Text>{strings('perps.transactions.not_found')}</Text>
         </View>
@@ -104,7 +104,7 @@ const PerpsPositionTransactionView: React.FC = () => {
       screen: Routes.PERPS.MARKET_DETAILS,
       params: {
         market,
-        source: PerpsEventValues.SOURCE.TRADE_DETAILS,
+        source: PERPS_EVENT_VALUE.SOURCE.TRADE_DETAILS,
       },
     });
   };
@@ -174,6 +174,11 @@ const PerpsPositionTransactionView: React.FC = () => {
 
   return (
     <ScreenView>
+      <HeaderCompactStandard
+        title={transaction?.fill?.shortTitle || ''}
+        onBack={() => navigation.goBack()}
+        includesTopInset
+      />
       <ScrollView style={styles.container}>
         <View style={styles.content}>
           <PerpsTransactionDetailAssetHero

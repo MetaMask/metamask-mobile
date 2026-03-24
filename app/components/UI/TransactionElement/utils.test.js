@@ -48,7 +48,6 @@ jest.mock('../../../core/Engine', () => ({
           },
         },
       },
-      preventPollingOnNetworkRestart: false,
     },
   },
 }));
@@ -385,6 +384,10 @@ describe('Transaction Element Utils', () => {
       [
         TransactionType.predictWithdraw,
         strings('transactions.tx_review_predict_withdraw'),
+      ],
+      [
+        TransactionType.musdConversion,
+        strings('transactions.tx_review_musd_conversion'),
       ],
     ])('if %s', async (transactionType, title) => {
       const args = {

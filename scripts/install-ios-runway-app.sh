@@ -13,7 +13,7 @@ BUNDLE_ID="io.metamask.MetaMask"
 # Get the repo root directory (script is in scripts/, so go up one level)
 readonly SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 readonly REPO_ROOT="$(cd "$SCRIPT_DIR/.." && pwd)"
-readonly RUNWAY_DIR="$REPO_ROOT/runway-artifacts"
+readonly RUNWAY_DIR="$REPO_ROOT/build"
 RUNWAY_API_URL="https://app.runway.team/api/bucket/aCddXOkg1p_nDryri-FMyvkC9KRqQeVT_12sf6Nw0u6iGygGo6BlNzjD6bOt-zma260EzAxdpXmlp2GQphp3TN1s6AJE4i6d_9V0Tv5h4pHISU49dFk=/builds"
 
 # Ensure script is run from the repo root
@@ -26,6 +26,7 @@ if [[ "$(pwd)" != "$REPO_ROOT" ]]; then
 fi
 UNINSTALL=false
 SKIP_DOWNLOAD=false
+SKIP_INSTALL=false
 
 # Track files for cleanup
 ZIP_PATH=""
@@ -70,9 +71,13 @@ while [[ $# -gt 0 ]]; do
       SKIP_DOWNLOAD=true
       shift
       ;;
+    --skipInstall)
+      SKIP_INSTALL=true
+      shift
+      ;;
     *)
       echo -e "${RED}Unknown option: $1${NC}"
-      echo "Usage: $0 [--skip-download] [--uninstall]"
+      echo "Usage: $0 [--skip-download] [--skipInstall] [--uninstall]"
       exit 1
       ;;
   esac
@@ -162,13 +167,8 @@ download_latest_app() {
   
   # Extract the .app bundle
   # The zip contains the contents of the .app, so we create the .app directory first
-  APP_NAME="${ARTIFACT_NAME%.zip}"
-  
-  # Validate APP_NAME ends with .app
-  if [[ ! "$APP_NAME" =~ \.app$ ]]; then
-    echo -e "${RED}❌ Invalid app name (must end with .app): $APP_NAME${NC}"
-    exit 1
-  fi
+  # Always name the app "MetaMask.app" regardless of the artifact filename
+  APP_NAME="MetaMask.app"
   
   EXTRACTED_APP_PATH="$RUNWAY_DIR/$APP_NAME"
   
@@ -205,6 +205,12 @@ if [ "$SKIP_DOWNLOAD" = false ]; then
   download_latest_app
 fi
 
+# Skip installation if requested
+if [ "$SKIP_INSTALL" = true ]; then
+  echo -e "${GREEN}✓ Download complete. Installation skipped (--skipInstall flag).${NC}"
+  exit 0
+fi
+
 echo -e "${GREEN}Checking for running iOS simulator...${NC}"
 
 # Check if a simulator is booted
@@ -219,14 +225,14 @@ fi
 echo -e "${GREEN}✓ Simulator is running:${NC}"
 echo "  $BOOTED_DEVICE"
 
-# Check if runway-artifacts directory exists
+# Check if build directory exists
 if [[ ! -d "$RUNWAY_DIR" ]]; then
   echo -e "${RED}❌ Directory $RUNWAY_DIR does not exist${NC}"
   echo -e "${YELLOW}Run without --skip-download to download an app first${NC}"
   exit 1
 fi
 
-# Find the .app file with the highest version number in runway-artifacts
+# Find the .app file with the highest version number in build
 APP_PATH=$(find "$RUNWAY_DIR" -name "*.app" -type d -maxdepth 1 2>/dev/null | sort -V | tail -1 || true)
 
 if [[ -z "$APP_PATH" ]]; then

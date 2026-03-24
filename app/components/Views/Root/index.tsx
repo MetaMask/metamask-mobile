@@ -20,6 +20,9 @@ import { ScreenOrientationService } from '../../../core/ScreenOrientation';
 import { SnapsExecutionWebView } from '../../../lib/snaps';
 ///: END:ONLY_INCLUDE_IF
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
+import { QueryClientProvider } from '@tanstack/react-query';
+import reactQueryService from '../../../core/ReactQueryService';
+import { HardwareWalletProvider } from '../../../core/HardwareWallet';
 
 /**
  * Top level of the component hierarchy
@@ -76,20 +79,24 @@ const Root = ({ foxCode }: RootProps) => {
             <SnapsExecutionWebView />
             ///: END:ONLY_INCLUDE_IF
           }
-          <FeatureFlagOverrideProvider>
-            <ThemeProvider>
-              <NavigationProvider>
-                <ControllersGate>
-                  <ToastContextWrapper>
-                    <ErrorBoundary view="Root">
-                      <ReducedMotionConfig mode={ReduceMotion.Never} />
-                      <App />
-                    </ErrorBoundary>
-                  </ToastContextWrapper>
-                </ControllersGate>
-              </NavigationProvider>
-            </ThemeProvider>
-          </FeatureFlagOverrideProvider>
+          <QueryClientProvider client={reactQueryService.queryClient}>
+            <FeatureFlagOverrideProvider>
+              <ThemeProvider>
+                <NavigationProvider>
+                  <ControllersGate>
+                    <ToastContextWrapper>
+                      <HardwareWalletProvider>
+                        <ErrorBoundary view="Root">
+                          <ReducedMotionConfig mode={ReduceMotion.Never} />
+                          <App />
+                        </ErrorBoundary>
+                      </HardwareWalletProvider>
+                    </ToastContextWrapper>
+                  </ControllersGate>
+                </NavigationProvider>
+              </ThemeProvider>
+            </FeatureFlagOverrideProvider>
+          </QueryClientProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>

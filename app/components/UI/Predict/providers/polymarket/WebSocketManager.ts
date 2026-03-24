@@ -161,6 +161,11 @@ export class WebSocketManager {
       const data: SportsWebSocketEvent = JSON.parse(event.data);
       const gameId = String(data.gameId);
 
+      const callbacks = this.gameSubscriptions.get(gameId);
+      if (!callbacks || callbacks.size === 0) {
+        return;
+      }
+
       const update: GameUpdate = {
         gameId,
         score: data.score,
@@ -171,11 +176,7 @@ export class WebSocketManager {
       };
 
       GameCache.getInstance().updateGame(gameId, update);
-
-      const callbacks = this.gameSubscriptions.get(gameId);
-      if (callbacks && callbacks.size > 0) {
-        callbacks.forEach((callback) => callback(update));
-      }
+      callbacks.forEach((callback) => callback(update));
     } catch (error) {
       DevLogger.log('WebSocketManager: Failed to parse sports message', {
         error,

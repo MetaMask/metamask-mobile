@@ -1,7 +1,14 @@
 import { IUseMetricsHook } from './useMetrics.types';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
-import { MetaMetrics } from '../../../core/Analytics';
+import {
+  createDataDeletionTask as createDataDeletionTaskUtil,
+  checkDataDeleteStatus as checkDataDeleteStatusUtil,
+  getDeleteRegulationCreationDate as getDeleteRegulationCreationDateUtil,
+  getDeleteRegulationId as getDeleteRegulationIdUtil,
+  isDataRecorded as isDataRecordedUtil,
+  updateDataRecordingFlag as updateDataRecordingFlagUtil,
+} from '../../../util/analytics/analyticsDataDeletion';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import { useMemo } from 'react';
 import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
@@ -99,11 +106,7 @@ const useMetrics = (): IUseMetricsHook =>
           .build();
         analytics.trackEvent(analyticsEvent);
 
-        // Update data recording flag if needed
-        // TODO: Remove this call when data recording flag logic is migrated out of MetaMetrics
-        MetaMetrics.getInstance().updateDataRecordingFlag(
-          analyticsEvent.saveDataRecording,
-        );
+        updateDataRecordingFlagUtil(analyticsEvent.saveDataRecording);
       },
       enable: async (enable?: boolean): Promise<void> => {
         if (enable === false) {
@@ -115,12 +118,11 @@ const useMetrics = (): IUseMetricsHook =>
       addTraitsToUser: async (userTraits: UserTraits): Promise<void> => {
         analytics.identify(userTraits as unknown as AnalyticsUserTraits);
       },
-      createDataDeletionTask: MetaMetrics.getInstance().createDataDeletionTask,
-      checkDataDeleteStatus: MetaMetrics.getInstance().checkDataDeleteStatus,
-      getDeleteRegulationCreationDate:
-        MetaMetrics.getInstance().getDeleteRegulationCreationDate,
-      getDeleteRegulationId: MetaMetrics.getInstance().getDeleteRegulationId,
-      isDataRecorded: MetaMetrics.getInstance().isDataRecorded,
+      createDataDeletionTask: createDataDeletionTaskUtil,
+      checkDataDeleteStatus: checkDataDeleteStatusUtil,
+      getDeleteRegulationCreationDate: getDeleteRegulationCreationDateUtil,
+      getDeleteRegulationId: getDeleteRegulationIdUtil,
+      isDataRecorded: isDataRecordedUtil,
       isEnabled: (): boolean => analytics.isEnabled(),
       getMetaMetricsId: async (): Promise<string | undefined> => {
         const id = await analytics.getAnalyticsId();

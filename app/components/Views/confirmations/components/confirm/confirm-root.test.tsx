@@ -12,6 +12,7 @@ import { ConfirmRoot } from './confirm-root';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
+  useRoute: () => ({ params: {} }),
   useNavigation: () => ({
     navigate: mockNavigate,
     addListener: jest.fn(),

@@ -27,6 +27,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
 // Mock usePredictBalance hook
 const mockUsePredictBalance = jest.fn();
 jest.mock('../../hooks/usePredictBalance', () => ({
@@ -97,7 +106,8 @@ describe('PredictMarketOutcome', () => {
     });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
   });
 
@@ -201,44 +211,6 @@ describe('PredictMarketOutcome', () => {
     expect(getByText('Crypto Markets')).toBeOnTheScreen();
   });
 
-  it('navigates to add funds sheet when user has no balance - Yes button', () => {
-    // Mock user has no balance
-    mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
-      { state: initialState },
-    );
-
-    const yesButton = getByText(/65¢/);
-    fireEvent.press(yesButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
-  });
-
-  it('navigates to add funds sheet when user has no balance - No button', () => {
-    // Mock user has no balance
-    mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <PredictMarketOutcome outcome={mockOutcome} market={mockMarket} />,
-      { state: initialState },
-    );
-
-    const noButton = getByText(/35¢/);
-    fireEvent.press(noButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
-  });
-
   it('navigates to unavailable modal when user is not eligible - Yes button', () => {
     // Mock user is not eligible
     mockUsePredictEligibility.mockReturnValue({
@@ -286,7 +258,8 @@ describe('PredictMarketOutcome', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(
@@ -313,7 +286,8 @@ describe('PredictMarketOutcome', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(

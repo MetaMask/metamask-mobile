@@ -316,6 +316,29 @@ describe('AssetDetails', () => {
     runAfterInteractionsSpy.mockRestore();
   });
 
+  it('hides the Hide token button for mUSD tokens', () => {
+    const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+    const { queryByText } = render(
+      <Provider store={mockStore(initialState)}>
+        <AssetDetails
+          route={{
+            params: {
+              address: musdAddress,
+              chainId: CHAIN_IDS.MAINNET,
+              asset: {
+                ...mockAsset,
+                address: musdAddress,
+              } as unknown as TokenI,
+            },
+          }}
+        />
+      </Provider>,
+    );
+
+    expect(queryByText('Hide token')).toBeNull();
+  });
+
   it('renders warning banner if balance is undefined', () => {
     const mockEmptyState = {
       ...initialState,

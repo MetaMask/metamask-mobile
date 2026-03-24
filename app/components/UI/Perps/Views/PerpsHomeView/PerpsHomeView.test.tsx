@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import { Linking } from 'react-native';
 import PerpsHomeView from './PerpsHomeView';
-import { PerpsEventValues } from '../../constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPerpsFeedbackEnabledFlag } from '../../selectors/featureFlags';
+import { mockTheme } from '../../../../../util/theme';
 
 // Mock navigation
 const mockNavigate = jest.fn();
@@ -18,7 +18,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
   useRoute: () => ({
     params: {
-      source: 'main_action_button', // PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON
+      source: 'main_action_button', // PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON
     },
   }),
   useFocusEffect: (callback: () => void) => {
@@ -95,7 +95,9 @@ jest.mock('../../hooks/usePerpsHomeActions', () => ({
 }));
 
 jest.mock('../../hooks/usePerpsEventTracking', () => ({
-  usePerpsEventTracking: jest.fn(),
+  usePerpsEventTracking: jest.fn(() => ({
+    track: jest.fn(),
+  })),
 }));
 
 jest.mock('../../hooks/stream', () => ({
@@ -115,8 +117,8 @@ jest.mock('../../hooks/stream', () => ({
 
 // Use real BigNumber library - mocking it causes issues with module initialization
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn((props: Record<string, unknown>) => ({
@@ -125,11 +127,6 @@ jest.mock('../../../../hooks/useMetrics', () => ({
       build: jest.fn(() => ({})),
     })),
   }),
-  MetaMetricsEvents: {
-    NAVIGATION_TAPS_GET_HELP: 'NAVIGATION_TAPS_GET_HELP',
-    PERPS_SCREEN_VIEWED: 'PERPS_SCREEN_VIEWED',
-    PERPS_UI_INTERACTION: 'PERPS_UI_INTERACTION',
-  },
 }));
 
 // Mock design system
@@ -149,19 +146,29 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-jest.mock('@metamask/design-system-react-native', () => ({
-  Box: 'Box',
-  BoxFlexDirection: {
-    Row: 'Row',
-  },
-  BoxAlignItems: {
-    Center: 'Center',
-  },
-  TextVariant: {
-    HeadingSm: 'heading-sm',
-    HeadingLg: 'heading-lg',
-  },
-}));
+// Mock design system - needed because real module requires tailwind setup
+jest.mock('@metamask/design-system-react-native', () => {
+  const { TouchableOpacity, Text: RNText } = jest.requireActual('react-native');
+  const React = jest.requireActual('react');
+  return {
+    ...jest.requireActual('@metamask/design-system-react-native'),
+    ButtonIcon: ({
+      testID,
+      onPress,
+    }: {
+      testID?: string;
+      onPress?: () => void;
+    }) => React.createElement(TouchableOpacity, { testID, onPress }),
+    Text: ({
+      children,
+      testID,
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+    }) => React.createElement(RNText, { testID }, children),
+    Box: 'Box',
+  };
+});
 
 // Mock stylesheet
 jest.mock('./PerpsHomeView.styles', () => ({}));
@@ -187,12 +194,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       bottomSpacer: {},
       tabBarContainer: {},
     },
-    theme: {
-      colors: {
-        primary: { default: '#0000ff' },
-        icon: { default: '#000000' },
-      },
-    },
+    theme: mockTheme,
   }),
 }));
 
@@ -209,8 +211,8 @@ jest.mock('../../../../../util/trace', () => ({
   },
 }));
 
-jest.mock('../../constants/eventNames', () => ({
-  PerpsEventProperties: {
+jest.mock('@metamask/perps-controller', () => ({
+  PERPS_EVENT_PROPERTY: {
     SCREEN_TYPE: 'screen_type',
     SOURCE: 'source',
     BUTTON_CLICKED: 'button_clicked',
@@ -218,7 +220,7 @@ jest.mock('../../constants/eventNames', () => ({
     INTERACTION_TYPE: 'interaction_type',
     LOCATION: 'location',
   },
-  PerpsEventValues: {
+  PERPS_EVENT_VALUE: {
     SCREEN_TYPE: {
       MARKETS: 'markets',
       HOMESCREEN: 'homescreen',
@@ -228,6 +230,7 @@ jest.mock('../../constants/eventNames', () => ({
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
       HOMESCREEN_TAB: 'homescreen_tab',
+      PERPS_HOME: 'perps_home',
     },
     BUTTON_LOCATION: {
       PERPS_HOME: 'perps_home',
@@ -243,6 +246,17 @@ jest.mock('../../constants/eventNames', () => ({
       BUTTON_CLICKED: 'button_clicked',
       CONTACT_SUPPORT: 'contact_support',
     },
+  },
+  DECIMAL_PRECISION_CONFIG: {
+    MaxPriceDecimals: 6,
+    MaxSignificantFigures: 5,
+    FallbackSizeDecimals: 6,
+  },
+  PERPS_CONSTANTS: {
+    FeatureFlagKey: 'perpsEnabled',
+    FeatureName: 'perps',
+    PerpsBalanceTokenDescription: 'perps-balance',
+    PerpsBalanceTokenSymbol: 'USD',
   },
 }));
 
@@ -543,10 +557,9 @@ describe('PerpsHomeView', () => {
     // Act - Press search toggle
     fireEvent.press(getByTestId('perps-home-search-toggle'));
 
-    // Assert - Should navigate to MarketListView with search enabled
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
-      defaultSearchVisible: true,
-      source: PerpsEventValues.SOURCE.HOMESCREEN_TAB,
+      defaultMarketTypeFilter: 'all',
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',
@@ -741,7 +754,7 @@ describe('PerpsHomeView', () => {
     // Assert - Verify navigation card is rendered (if it has a testID)
     // Or just verify component renders without error
     // The navigation card is tested separately
-    expect(getByTestId('perps-home-back-button')).toBeTruthy();
+    expect(getByTestId('back-button')).toBeTruthy();
   });
 
   it('renders main sections', () => {
@@ -793,14 +806,6 @@ describe('PerpsHomeView', () => {
   });
 
   describe('Feedback Feature', () => {
-    beforeEach(() => {
-      jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
-    });
-
-    afterEach(() => {
-      jest.restoreAllMocks();
-    });
-
     it('does not show feedback button when feature flag is disabled', () => {
       // Arrange - Feature flag disabled (default)
       mockUseSelector.mockReturnValue(false);
@@ -828,7 +833,7 @@ describe('PerpsHomeView', () => {
       expect(getByTestId('perps-home-feedback-button')).toBeTruthy();
     });
 
-    it('opens survey URL in external browser when feedback button is pressed', () => {
+    it('opens survey URL in in-app browser when feedback button is pressed', () => {
       // Arrange - Enable feedback feature flag
       mockUseSelector.mockImplementation((selector: unknown) => {
         if (selector === selectPerpsFeedbackEnabledFlag) {
@@ -842,10 +847,14 @@ describe('PerpsHomeView', () => {
       // Act
       fireEvent.press(getByTestId('perps-home-feedback-button'));
 
-      // Assert
-      expect(Linking.openURL).toHaveBeenCalledWith(
-        'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
-      );
+      // Assert - Should navigate to in-app browser (same pattern as Contact Support)
+      expect(mockNavigate).toHaveBeenCalledWith('Webview', {
+        screen: 'SimpleWebview',
+        params: {
+          url: 'https://survey.alchemer.com/s3/8649911/MetaMask-Perps-Trading-Feedback',
+          title: 'perps.feedback.title',
+        },
+      });
     });
   });
 });

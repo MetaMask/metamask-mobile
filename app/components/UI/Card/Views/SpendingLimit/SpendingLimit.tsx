@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useMemo } from 'react';
+import React, { useEffect, useCallback, useMemo, useRef } from 'react';
 import { ActivityIndicator } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -119,7 +119,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     cancel,
     skip,
     isValid,
-    isSolanaSelected,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -130,14 +129,18 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     routeParams: route?.params as Record<string, unknown> | undefined,
   });
 
-  // Prevent navigation while loading
+  const isLoadingRef = useRef(isLoading);
+  useEffect(() => {
+    isLoadingRef.current = isLoading;
+  }, [isLoading]);
+
   useEffect(() => {
     const unsubscribe = navigation.addListener('beforeRemove', (e) => {
-      if (!isLoading) return;
+      if (!isLoadingRef.current) return;
       e.preventDefault();
     });
     return unsubscribe;
-  }, [navigation, isLoading]);
+  }, [navigation]);
 
   // Check if a quick-select token is selected
   const isQuickSelectTokenSelected = useCallback(
@@ -234,13 +237,13 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
         alwaysBounceVertical={false}
         enableOnAndroid
         enableAutomaticScroll
-        contentContainerStyle={tw.style('flex-grow pt-2 pb-4')}
+        contentContainerStyle={tw.style('flex-grow pb-4')}
       >
         {/* Header copy */}
         <Box twClassName="mb-6">
           <Text
             variant={TextVariant.HeadingLg}
-            twClassName="text-text-default mb-2"
+            twClassName="text-text-default py-4"
           >
             {screenTitle}
           </Text>
@@ -324,26 +327,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
 
         {/* Footer Buttons */}
         <Box twClassName="gap-3 mt-6">
-          {/* Solana Warning */}
-          {isSolanaSelected && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="p-3 bg-warning-muted rounded-lg items-center"
-            >
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.WarningDefault}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="flex-1 ml-2 text-warning-default"
-              >
-                {strings('card.card_spending_limit.solana_not_supported')}
-              </Text>
-            </Box>
-          )}
-
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
             <Box twClassName="flex-1">
               <Button

@@ -9,6 +9,7 @@ import {
 import { selectUserLoggedIn } from '../../../../reducers/user';
 import Logger from '../../../../util/Logger';
 import useIsBaanxLoginEnabled from './isBaanxLoginEnabled';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 /**
  * Hook that automatically verifies card authentication status when the app loads.
@@ -20,6 +21,7 @@ export const useCardAuthenticationVerification = () => {
   const userLoggedIn = useSelector(selectUserLoggedIn);
   const isBaanxLoginEnabled = useIsBaanxLoginEnabled();
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
+  const geolocationLocation = useSelector(selectGeolocationLocation);
 
   const checkAuthentication = useCallback(() => {
     dispatch(
@@ -30,10 +32,6 @@ export const useCardAuthenticationVerification = () => {
   }, [isBaanxLoginEnabled, dispatch]);
 
   useEffect(() => {
-    // Only run authentication check when:
-    // 1. User is logged in
-    // 2. Baanx login is enabled
-    // As a fallback, set the authentication state to false
     if (userLoggedIn && isBaanxLoginEnabled) {
       try {
         checkAuthentication();
@@ -43,19 +41,17 @@ export const useCardAuthenticationVerification = () => {
           'useCardAuthenticationVerification::Error verifying authentication',
         );
       }
-    } else if (userLoggedIn && !isBaanxLoginEnabled) {
-      if (isAuthenticated) {
-        Logger.log(
-          'useCardAuthenticationVerification::User is logged in but Baanx login is disabled, setting authentication state to false',
-        );
+    } else if (userLoggedIn && !isBaanxLoginEnabled && isAuthenticated) {
+      if (!!geolocationLocation && geolocationLocation !== 'UNKNOWN') {
         dispatch(resetAuthenticatedData());
       }
     }
   }, [
     userLoggedIn,
     isBaanxLoginEnabled,
+    isAuthenticated,
+    geolocationLocation,
     checkAuthentication,
     dispatch,
-    isAuthenticated,
   ]);
 };

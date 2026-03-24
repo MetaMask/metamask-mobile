@@ -14,7 +14,8 @@ const styleSheet = (params: {
   const { colors } = theme;
   return StyleSheet.create({
     wrapper: {
-      paddingHorizontal: 16,
+      padding: 16,
+      gap: 4,
     },
     priceDiff: {
       color:

@@ -1,0 +1,94 @@
+import { withFixtures } from '../../framework/fixtures/FixtureHelper';
+import { LocalNode, LocalNodeType } from '../../framework/types';
+import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
+import Assertions from '../../framework/Assertions';
+import WalletView from '../../page-objects/wallet/WalletView';
+import { SmokeTrade } from '../../tags';
+import { loginToApp } from '../../flows/wallet.flow';
+import { logger } from '../../framework/logger';
+import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
+import { AnvilManager } from '../../seeder/anvil-manager';
+import QuoteView from '../../page-objects/swaps/QuoteView';
+import { setupSSEMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import {
+  GASLESS_SWAP_QUOTES_ETH_MUSD,
+  toSSEResponse,
+} from '../../helpers/swap/constants';
+import { setupSpotPricesMock } from '../../helpers/swap/swap-mocks';
+
+describe(SmokeTrade('Gasless Swap - '), (): void => {
+  const chainId = '0x1';
+
+  beforeEach(async (): Promise<void> => {
+    jest.setTimeout(120000);
+  });
+
+  it('displays included label for gasless ETH to MUSD swap quote', async (): Promise<void> => {
+    await withFixtures(
+      {
+        fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
+          const node = localNodes?.[0] as unknown as AnvilManager;
+          const rpcPort =
+            node instanceof AnvilManager
+              ? (node.getPort() ?? AnvilPort())
+              : undefined;
+
+          return new FixtureBuilder()
+            .withNetworkController({
+              chainId,
+              rpcUrl: `http://localhost:${rpcPort ?? AnvilPort()}`,
+              type: 'custom',
+              nickname: 'Localhost',
+              ticker: 'ETH',
+            })
+            .withMetaMetricsOptIn()
+            .build();
+        },
+        localNodeOptions: [
+          {
+            type: LocalNodeType.anvil,
+            options: {
+              chainId: 1,
+            },
+          },
+        ],
+        testSpecificMock: async (mockServer) => {
+          await setupSpotPricesMock(mockServer);
+          // Mock ETH->MUSD quote — SSE path (getQuoteStream)
+          await setupSSEMockRequest(
+            mockServer,
+            /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
+            toSSEResponse(GASLESS_SWAP_QUOTES_ETH_MUSD),
+          );
+        },
+        restartDevice: true,
+        endTestfn: async () => {
+          logger.debug('Gasless swap test completed');
+        },
+      },
+      async () => {
+        await loginToApp();
+        await WalletView.tapWalletSwapButton();
+        await device.disableSynchronization();
+        await Assertions.expectElementToBeVisible(QuoteView.sourceTokenArea, {
+          description: 'Swap quote view (source token area) visible',
+          timeout: 20000,
+        });
+
+        // Tap Max to use maximum balance
+        await QuoteView.tapMax();
+
+        // Verify network fee shows "Included" for gasless swap
+        await Assertions.expectElementToBeVisible(QuoteView.networkFeeLabel, {
+          timeout: 60000,
+          description: 'Network fee label visible',
+        });
+
+        await Assertions.expectElementToBeVisible(QuoteView.includedLabel, {
+          timeout: 10000,
+          description: 'Gas included in quote',
+        });
+      },
+    );
+  });
+});

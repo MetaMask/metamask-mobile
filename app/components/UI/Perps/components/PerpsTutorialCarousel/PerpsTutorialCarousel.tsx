@@ -12,6 +12,11 @@ import {
   useColorScheme,
   ScrollView,
 } from 'react-native';
+import {
+  useRoute,
+  StackActions,
+  type RouteProp,
+} from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import ScrollableTabView from '@tommasini/react-native-scrollable-tab-view';
 import { strings } from '../../../../../../locales/i18n';
@@ -27,22 +32,23 @@ import { useStyles } from '../../../../../component-library/hooks';
 import Routes from '../../../../../constants/navigation/Routes';
 import NavigationService from '../../../../../core/NavigationService';
 import { EXTERNAL_LINK_TYPE } from '../../../../../constants/browser';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 
+import type { PerpsNavigationParamList } from '../../types/navigation';
 import { usePerpsFirstTimeUser } from '../../hooks';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { PerpsConnectionManager } from '../../services/PerpsConnectionManager';
 import createStyles from './PerpsTutorialCarousel.styles';
 import Rive, { Alignment, Fit } from 'rive-react-native';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const PerpsOnboardingAnimationLight = require('../../animations/perps-onboarding-carousel-light.riv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const PerpsOnboardingAnimationDark = require('../../animations/perps-onboarding-carousel-dark.riv');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 import Character from '../../../../../images/character_3x.png';
 import { PerpsTutorialSelectorsIDs } from '../../Perps.testIds';
 import { selectPerpsEligibility } from '../../selectors/perpsController';
@@ -130,6 +136,12 @@ const getTutorialScreens = (isEligible: boolean): TutorialScreen[] => {
 };
 
 const PerpsTutorialCarousel: React.FC = () => {
+  const route =
+    useRoute<RouteProp<PerpsNavigationParamList, 'PerpsTutorial'>>();
+  const tutorialSource =
+    route.params?.source ?? PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON;
+  const redirectScreen = route.params?.redirectScreen;
+  const redirectParams = route.params?.redirectParams;
   const { markTutorialCompleted } = usePerpsFirstTimeUser();
   const { track } = usePerpsEventTracking();
   const [currentTab, setCurrentTab] = useState(0);
@@ -175,14 +187,13 @@ const PerpsTutorialCarousel: React.FC = () => {
   useEffect(() => {
     if (!hasTrackedViewed.current) {
       track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PerpsEventProperties.SCREEN_TYPE]:
-          PerpsEventValues.SCREEN_TYPE.TUTORIAL,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+          PERPS_EVENT_VALUE.SCREEN_TYPE.TUTORIAL,
+        [PERPS_EVENT_PROPERTY.SOURCE]: tutorialSource,
       });
       hasTrackedViewed.current = true;
     }
-  }, [track]);
+  }, [track, tutorialSource]);
 
   // Initialize connection in background while user views tutorial
   useEffect(() => {
@@ -222,16 +233,16 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Only track if tab actually changed (user swipe)
       if (newTab !== previousTab) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
-          [PerpsEventProperties.PREVIOUS_SCREEN]:
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
+          [PERPS_EVENT_PROPERTY.PREVIOUS_SCREEN]:
             tutorialScreens[previousTab]?.id || 'unknown',
-          [PerpsEventProperties.CURRENT_SCREEN]:
+          [PERPS_EVENT_PROPERTY.CURRENT_SCREEN]:
             tutorialScreens[newTab]?.id || 'unknown',
-          [PerpsEventProperties.SCREEN_POSITION]: newTab + 1,
-          [PerpsEventProperties.TOTAL_SCREENS]: tutorialScreens.length,
-          [PerpsEventProperties.NAVIGATION_METHOD]:
-            PerpsEventValues.NAVIGATION_METHOD.SWIPE,
+          [PERPS_EVENT_PROPERTY.SCREEN_POSITION]: newTab + 1,
+          [PERPS_EVENT_PROPERTY.TOTAL_SCREENS]: tutorialScreens.length,
+          [PERPS_EVENT_PROPERTY.NAVIGATION_METHOD]:
+            PERPS_EVENT_VALUE.NAVIGATION_METHOD.SWIPE,
         });
 
         previousTabRef.current = newTab;
@@ -242,22 +253,27 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial started when user moves to second screen
       if (newTab === 1 && !hasTrackedStarted.current) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_STARTED,
+          [PERPS_EVENT_PROPERTY.SOURCE]: tutorialSource,
         });
         hasTrackedStarted.current = true;
       }
     },
-    [track, tutorialScreens],
+    [track, tutorialScreens, tutorialSource],
   );
 
-  const navigateToMarketsList = useCallback(() => {
-    NavigationService.navigation.navigate(Routes.PERPS.ROOT, {
-      screen: Routes.PERPS.PERPS_HOME,
-    });
-  }, []);
+  const navigateAfterTutorial = useCallback(() => {
+    const navParams: Record<string, unknown> = {
+      screen: redirectScreen ?? Routes.PERPS.PERPS_HOME,
+    };
+    if (redirectParams) {
+      navParams.params = redirectParams;
+    }
+    NavigationService.navigation.dispatch(
+      StackActions.replace(Routes.PERPS.ROOT, navParams),
+    );
+  }, [redirectScreen, redirectParams]);
 
   const handleContinue = useCallback(async () => {
     // Prevent double-tap on Android - if timeout exists, we're still debouncing
@@ -274,19 +290,17 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial completed
       const completionDuration = Date.now() - tutorialStartTime.current;
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-        [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
-        [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
-        [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_COMPLETED,
+        [PERPS_EVENT_PROPERTY.SOURCE]: tutorialSource,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION_TUTORIAL]: completionDuration,
+        [PERPS_EVENT_PROPERTY.STEPS_VIEWED]: currentTab + 1,
+        [PERPS_EVENT_PROPERTY.VIEW_OCCURRENCES]: 1,
       });
 
       // Mark tutorial as completed
       markTutorialCompleted();
-      // Navigate all users to perps home screen for a more natural experience
-      navigateToMarketsList();
+      navigateAfterTutorial();
     } else {
       // Go to next screen using the ref
       const nextTab = Math.min(currentTab + 1, tutorialScreens.length - 1);
@@ -294,16 +308,16 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track carousel navigation via continue button (immediate, no debounce needed for button clicks)
       if (nextTab !== currentTab) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
-          [PerpsEventProperties.PREVIOUS_SCREEN]:
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_NAVIGATION,
+          [PERPS_EVENT_PROPERTY.PREVIOUS_SCREEN]:
             tutorialScreens[currentTab]?.id || 'unknown',
-          [PerpsEventProperties.CURRENT_SCREEN]:
+          [PERPS_EVENT_PROPERTY.CURRENT_SCREEN]:
             tutorialScreens[nextTab]?.id || 'unknown',
-          [PerpsEventProperties.SCREEN_POSITION]: nextTab + 1,
-          [PerpsEventProperties.TOTAL_SCREENS]: tutorialScreens.length,
-          [PerpsEventProperties.NAVIGATION_METHOD]:
-            PerpsEventValues.NAVIGATION_METHOD.CONTINUE_BUTTON,
+          [PERPS_EVENT_PROPERTY.SCREEN_POSITION]: nextTab + 1,
+          [PERPS_EVENT_PROPERTY.TOTAL_SCREENS]: tutorialScreens.length,
+          [PERPS_EVENT_PROPERTY.NAVIGATION_METHOD]:
+            PERPS_EVENT_VALUE.NAVIGATION_METHOD.CONTINUE_BUTTON,
         });
       }
 
@@ -314,10 +328,9 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial started on first continue
       if (currentTab === 0 && !hasTrackedStarted.current) {
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-          [PerpsEventProperties.INTERACTION_TYPE]:
-            PerpsEventValues.INTERACTION_TYPE.TUTORIAL_STARTED,
-          [PerpsEventProperties.SOURCE]:
-            PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
+          [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+            PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_STARTED,
+          [PERPS_EVENT_PROPERTY.SOURCE]: tutorialSource,
         });
         hasTrackedStarted.current = true;
       }
@@ -328,7 +341,8 @@ const PerpsTutorialCarousel: React.FC = () => {
     currentTab,
     tutorialScreens,
     markTutorialCompleted,
-    navigateToMarketsList,
+    navigateAfterTutorial,
+    tutorialSource,
   ]);
 
   const handleSkip = useCallback(() => {
@@ -336,25 +350,25 @@ const PerpsTutorialCarousel: React.FC = () => {
       // Track tutorial completed when skipping from last screen
       const completionDuration = Date.now() - tutorialStartTime.current;
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.TUTORIAL_COMPLETED,
-        [PerpsEventProperties.SOURCE]:
-          PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON,
-        [PerpsEventProperties.COMPLETION_DURATION_TUTORIAL]: completionDuration,
-        [PerpsEventProperties.STEPS_VIEWED]: currentTab + 1,
-        [PerpsEventProperties.VIEW_OCCURRENCES]: 1,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.TUTORIAL_COMPLETED,
+        [PERPS_EVENT_PROPERTY.SOURCE]: tutorialSource,
+        [PERPS_EVENT_PROPERTY.COMPLETION_DURATION_TUTORIAL]: completionDuration,
+        [PERPS_EVENT_PROPERTY.STEPS_VIEWED]: currentTab + 1,
+        [PERPS_EVENT_PROPERTY.VIEW_OCCURRENCES]: 1,
       });
     }
 
     // Mark tutorial as completed
     markTutorialCompleted();
-    navigateToMarketsList();
+    navigateAfterTutorial();
   }, [
     isLastScreen,
     markTutorialCompleted,
     currentTab,
+    tutorialSource,
     track,
-    navigateToMarketsList,
+    navigateAfterTutorial,
   ]);
 
   const handleLearnMore = useCallback(() => {

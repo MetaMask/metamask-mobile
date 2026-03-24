@@ -4,22 +4,19 @@ import PerpsRowSkeleton from './PerpsRowSkeleton';
 import { HOME_SCREEN_CONFIG } from '../../constants/perpsConfig';
 
 // Mock Skeleton component
-jest.mock(
-  '../../../../../component-library/components/Skeleton/Skeleton',
-  () => {
-    const ReactNative = jest.requireActual('react-native');
-    return {
-      __esModule: true,
-      default: jest.fn(({ height, width, style, testID }) => (
-        <ReactNative.View
-          testID={testID || 'skeleton'}
-          style={[{ height, width }, style]}
-          accessibilityLabel={`skeleton-${height}x${width}`}
-        />
-      )),
-    };
-  },
-);
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
+  const ReactNative = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    Skeleton: jest.fn(({ height, width, style, testID }) => (
+      <ReactNative.View
+        testID={testID || 'skeleton'}
+        style={[{ height, width }, style]}
+        accessibilityLabel={`skeleton-${height}x${width}`}
+      />
+    )),
+  };
+});
 
 describe('PerpsRowSkeleton', () => {
   describe('rendering', () => {
@@ -36,7 +33,7 @@ describe('PerpsRowSkeleton', () => {
       const { getByLabelText } = render(<PerpsRowSkeleton />);
 
       const iconSkeleton = getByLabelText(
-        `skeleton-${HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE}x${HOME_SCREEN_CONFIG.DEFAULT_ICON_SIZE}`,
+        `skeleton-${HOME_SCREEN_CONFIG.DefaultIconSize}x${HOME_SCREEN_CONFIG.DefaultIconSize}`,
       );
 
       expect(iconSkeleton).toBeTruthy();

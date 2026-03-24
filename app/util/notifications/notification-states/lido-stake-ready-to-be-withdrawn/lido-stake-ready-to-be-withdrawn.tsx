@@ -5,7 +5,7 @@ import { ExtractedNotification, isOfTypeNodeGuard } from '../node-guard';
 import { NotificationState } from '../types/NotificationState';
 import {
   formatAmount,
-  getNativeTokenDetailsByChainId,
+  getNetworkImageByChainId,
   getNotificationBadge,
 } from '../../methods/common';
 
@@ -17,7 +17,10 @@ const isLidoReadyWithDrawnNotification = isOfTypeNodeGuard([
 ]);
 
 const state: NotificationState<LidoReadyWithDrawnNotification> = {
-  guardFn: isLidoReadyWithDrawnNotification,
+  guardFn: [
+    isLidoReadyWithDrawnNotification,
+    (notification) => !!notification.payload.chain_id,
+  ],
   createMenuItem: (notification) => ({
     title: strings(`notifications.menu_item_title.${notification.type}`),
 
@@ -37,9 +40,7 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
     createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
-    );
+    const networkLogo = getNetworkImageByChainId(notification.payload.chain_id);
 
     return {
       title: strings('notifications.modal.title_untake_ready'),
@@ -63,7 +64,7 @@ const state: NotificationState<LidoReadyWithDrawnNotification> = {
             { shouldEllipse: true },
           )}`,
           tokenIconUrl: notification.payload.data.staked_eth.image,
-          tokenNetworkUrl: nativeTokenDetails?.image,
+          tokenNetworkUrl: networkLogo,
         },
         {
           type: ModalFieldType.TRANSACTION,

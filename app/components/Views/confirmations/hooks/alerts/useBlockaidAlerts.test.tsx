@@ -2,7 +2,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import {
   Reason,
   SecurityAlertResponse,
-} from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+} from '../../components/blockaid-banner/BlockaidBanner.types';
 import { RowAlertKey } from '../../components/UI/info-row/alert-row/constants';
 import { Severity } from '../../types/alerts';
 import { useSecurityAlertResponse } from '../alerts/useSecurityAlertResponse';

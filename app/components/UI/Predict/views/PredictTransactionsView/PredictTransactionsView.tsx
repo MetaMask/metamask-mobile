@@ -12,6 +12,7 @@ import { PredictEventValues } from '../../constants/eventNames';
 import { TraceName } from '../../../../../util/trace';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { TabEmptyState } from '../../../../../component-library/components-temp/TabEmptyState';
+import { PREDICT_TRANSACTIONS_VIEW_TEST_IDS } from './PredictTransactionsView.testIds';
 interface PredictTransactionsViewProps {
   transactions?: unknown[];
   tabLabel?: string;
@@ -62,8 +63,12 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
   isVisible,
 }) => {
   const tw = useTailwind();
-  const { activity, isLoading, isRefreshing, loadActivity } =
-    usePredictActivity({});
+  const {
+    data: activity = [],
+    isLoading,
+    isRefetching,
+    refetch,
+  } = usePredictActivity();
 
   // Track screen load performance (activity data loaded)
   usePredictMeasurement({
@@ -252,7 +257,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
 
   const renderContent = shouldShowLoadingState ? (
     <Box twClassName="items-center justify-center h-full">
-      <ActivityIndicator size="small" testID="activity-indicator" />
+      <ActivityIndicator
+        size="small"
+        testID={PREDICT_TRANSACTIONS_VIEW_TEST_IDS.ACTIVITY_INDICATOR}
+      />
     </Box>
   ) : sections.length === 0 ? (
     <Box twClassName="items-center justify-center py-10">
@@ -270,8 +278,10 @@ const PredictTransactionsView: React.FC<PredictTransactionsViewProps> = ({
       showsVerticalScrollIndicator={false}
       style={tw.style('flex-1')}
       stickySectionHeadersEnabled
-      refreshing={isRefreshing}
-      onRefresh={() => loadActivity({ isRefresh: true })}
+      refreshing={isRefetching}
+      onRefresh={() => {
+        void refetch();
+      }}
       maxToRenderPerBatch={20}
       initialNumToRender={20}
       windowSize={12}

@@ -47,6 +47,11 @@ const styleSheet = (params: { theme: Theme }) => {
       padding: 4,
       marginRight: 4,
     },
+    headerContainerWrapper: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      flex: 1,
+    },
     listContainer: {
       flex: 1,
     },
@@ -129,6 +134,11 @@ const styleSheet = (params: { theme: Theme }) => {
     },
     animatedListContainer: {
       flex: 1,
+    },
+    searchBarRow: {
+      paddingHorizontal: 16,
+      paddingTop: 12,
+      paddingBottom: 8,
     },
     searchContainer: {
       paddingTop: 16,

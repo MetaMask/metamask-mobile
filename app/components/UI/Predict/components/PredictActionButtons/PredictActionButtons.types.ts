@@ -3,6 +3,7 @@ import {
   PredictOutcome,
   PredictOutcomeToken,
 } from '../../types';
+import { ButtonBaseSize } from '@metamask/design-system-react-native';
 
 export type PredictBetButtonVariant = 'yes' | 'no';
 
@@ -14,6 +15,7 @@ export interface PredictBetButtonProps {
   teamColor?: string;
   disabled?: boolean;
   testID?: string;
+  size?: ButtonBaseSize;
 }
 
 export interface PredictBetButtonsProps {
@@ -27,12 +29,15 @@ export interface PredictBetButtonsProps {
   noTeamColor?: string;
   disabled?: boolean;
   testID?: string;
+  isCarousel?: boolean;
 }
 
 export interface PredictClaimButtonProps {
   amount?: number;
   onPress: () => void;
   disabled?: boolean;
+  isLoading?: boolean;
+  isHidden?: boolean;
   testID?: string;
 }
 
@@ -43,5 +48,7 @@ export interface PredictActionButtonsProps {
   onClaimPress?: () => void;
   claimableAmount?: number;
   isLoading?: boolean;
+  isClaimPending?: boolean;
   testID?: string;
+  isCarousel?: boolean;
 }

@@ -1,8 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
+import { BigNumber } from 'bignumber.js';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
-import { strings } from '../../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../../locales/i18n';
+import { formatAmountMaxPrecision } from '../../../../../UI/SimulationDetails/formatAmount';
 import { useStyles } from '../../../../../../component-library/hooks';
 import { ApproveComponentIDs } from '../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
@@ -10,6 +12,8 @@ import { useApproveTransactionData } from '../../../hooks/useApproveTransactionD
 import { useApproveTransactionActions } from '../../../hooks/useApproveTransactionActions';
 import { TokenStandard } from '../../../types/token';
 import InfoRow from '../../UI/info-row/info-row';
+import AlertRow from '../../UI/info-row/alert-row';
+import { RowAlertKey } from '../../UI/info-row/alert-row/constants';
 import Address from '../../UI/info-row/info-value/address';
 import { Pill } from '../../UI/pill';
 import { ApproveMethod } from '../../../types/approve';
@@ -107,12 +111,15 @@ export const ApproveAndPermit2 = () => {
           )}
         </View>
       </InfoRow>
-      <InfoRow label={strings('confirm.spender')}>
+      <AlertRow
+        alertField={RowAlertKey.Spender}
+        label={strings('confirm.spender')}
+      >
         <Address
           address={spender ?? ''}
           chainId={transactionMetadata.chainId}
         />
-      </InfoRow>
+      </AlertRow>
     </>
   );
 };
@@ -122,6 +129,14 @@ interface PillAndAddressProps {
   isERC20: boolean;
   tokenId?: string;
   transactionMetadata: TransactionMeta;
+}
+
+function formatDisplayAmount(amount: string | undefined): string {
+  if (!amount) {
+    return '';
+  }
+  const value = new BigNumber(amount);
+  return value.isNaN() ? amount : formatAmountMaxPrecision(I18n.locale, value);
 }
 
 function PillAndAddress({
@@ -134,7 +149,7 @@ function PillAndAddress({
     <>
       <Pill
         testID={ApproveComponentIDs.SPENDING_CAP_VALUE}
-        text={isERC20 ? (amount ?? '') : `#${tokenId}`}
+        text={isERC20 ? formatDisplayAmount(amount) : `#${tokenId}`}
       />
       <Address
         address={transactionMetadata?.txParams?.to as string}

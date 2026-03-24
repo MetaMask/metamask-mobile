@@ -294,6 +294,7 @@ export const MOCK_ANALYTICS_DEPOSIT_ORDER = {
   state: FIAT_ORDER_STATES.COMPLETED,
   network: 'eip155:1',
   data: {
+    provider: 'TRANSAK',
     cryptoCurrency: MOCK_USDC_TOKEN,
     network: { chainId: 'eip155:1', name: 'Ethereum' },
     fiatAmount: '100',

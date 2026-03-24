@@ -82,8 +82,8 @@ const mockCreateEventBuilder = jest.fn(() => ({
   build: jest.fn().mockReturnValue('mockEvent'),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     isEnabled: jest.fn(() => true),
     createEventBuilder: mockCreateEventBuilder,
@@ -232,6 +232,7 @@ describe('AssetOptions Component', () => {
   const mockNavigation = {
     navigate: jest.fn(),
     goBack: jest.fn(),
+    isFocused: jest.fn().mockReturnValue(true),
   };
 
   beforeEach(() => {
@@ -616,6 +617,40 @@ describe('AssetOptions Component', () => {
             params: {
               address: nonEvmChains.solana.wrappedNativeAddress,
               chainId: nonEvmChains.solana.chainId,
+              isNativeCurrency: false,
+              asset: mockAsset as unknown as TokenI,
+            },
+          }}
+        />,
+      );
+
+      expect(queryByText('Remove token')).not.toBeOnTheScreen();
+    });
+
+    it('hides Remove token option for mUSD token', () => {
+      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da';
+
+      (useSelector as jest.Mock).mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup)
+          return {
+            '0x1': [
+              {
+                assetId: musdAddress,
+                chainId: '0x1',
+              },
+            ],
+          };
+        if (selector.name === 'selectEvmChainId') return '0x1';
+        if (selector.name === 'selectTokenList') return {};
+        return {};
+      });
+
+      const { queryByText } = render(
+        <AssetOptions
+          route={{
+            params: {
+              address: musdAddress,
+              chainId: '0x1',
               isNativeCurrency: false,
               asset: mockAsset as unknown as TokenI,
             },

@@ -7,6 +7,7 @@ import NetworkManager from './index';
 import { useNetworksByNamespace } from '../../hooks/useNetworksByNamespace/useNetworksByNamespace';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 import Engine from '../../../core/Engine';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 
 // Create mock functions that we can spy on
 const mockNavigate = jest.fn();
@@ -128,16 +129,12 @@ jest.mock('../../../component-library/hooks/useStyles', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
     addTraitsToUser: mockAddTraitsToUser,
   }),
-  MetaMetricsEvents: {
-    ASSET_FILTER_SELECTED: 'asset_filter_selected',
-    ASSET_FILTER_CUSTOM_SELECTED: 'asset_filter_custom_selected',
-  },
 }));
 
 jest.mock('../../hooks/useNetworksByNamespace/useNetworksByNamespace', () => ({
@@ -230,14 +227,6 @@ jest.mock('../../../selectors/networkController', () => ({
   ),
 }));
 
-// Mock feature flag selectors
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(() => false),
-  }),
-);
-
 jest.mock('../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
@@ -264,14 +253,6 @@ jest.mock('../../../core/Engine', () => ({
         removeNetwork: jest.fn(),
       },
     },
-  },
-}));
-
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: () => ({
-      addTraitsToUser: mockAddTraitsToUser,
-    }),
   },
 }));
 
@@ -765,9 +746,16 @@ describe('NetworkManager Component', () => {
       expect(getByTestId('custom-network-selector')).toBeOnTheScreen();
     });
 
-    it('should set initial tab to popular networks when selectedCount > 0', () => {
-      (useNetworksByNamespace as jest.Mock).mockReturnValue({
-        selectedCount: 3,
+    it('sets initial tab to popular networks when multiple networks are enabled', () => {
+      (useNetworkEnablement as jest.Mock).mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {
+          eip155: {
+            '0x1': true,
+            '0x89': true,
+          },
+        },
       });
 
       const { getByTestId } = renderComponent();
@@ -776,9 +764,11 @@ describe('NetworkManager Component', () => {
       expect(tabView.props.initialPage).toBe(0); // Popular tab
     });
 
-    it('should set initial tab to custom networks when selectedCount is 0', () => {
-      (useNetworksByNamespace as jest.Mock).mockReturnValue({
-        selectedCount: 0,
+    it('sets initial tab to custom networks when no networks are enabled', () => {
+      (useNetworkEnablement as jest.Mock).mockReturnValue({
+        disableNetwork: mockDisableNetwork,
+        enableNetwork: mockEnableNetwork,
+        enabledNetworksByNamespace: {},
       });
 
       const { getByTestId } = renderComponent();
@@ -798,7 +788,7 @@ describe('NetworkManager Component', () => {
       // Assert - Analytics event is tracked
       expect(mockTrackEvent).toHaveBeenCalledWith({ type: 'test_event' });
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
-        'asset_filter_selected',
+        MetaMetricsEvents.ASSET_FILTER_SELECTED,
       );
     });
   });
@@ -1121,6 +1111,9 @@ describe('NetworkManager Component', () => {
           '0x89': true,
           '0xa': false,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       // The component internally processes enabledNetworksByNamespace
@@ -1156,6 +1149,9 @@ describe('NetworkManager Component', () => {
           '0x89': false,
           '0xa': false,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       // The component should handle nested namespace structures
@@ -1177,6 +1173,9 @@ describe('NetworkManager Component', () => {
         enableAllPopularNetworks: jest.fn(),
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { getByTestId } = renderComponent();
@@ -1209,6 +1208,9 @@ describe('NetworkManager Component', () => {
           '0xa': false,
           '0xa4b1': true,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       // Component should only include enabled (true) networks
@@ -1238,6 +1240,9 @@ describe('NetworkManager Component', () => {
           '0x1': true,
           '0x89': true,
         },
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { getByTestId } = renderComponent();

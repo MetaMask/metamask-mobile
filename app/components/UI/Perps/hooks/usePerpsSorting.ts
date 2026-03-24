@@ -1,14 +1,12 @@
 import { useState, useCallback, useMemo } from 'react';
-import type { PerpsMarketData } from '../controllers/types';
-import {
-  sortMarkets,
-  type SortField,
-  type SortDirection,
-} from '../utils/sortMarkets';
 import {
   MARKET_SORTING_CONFIG,
+  sortMarkets,
+  type PerpsMarketData,
+  type SortField,
+  type SortDirection,
   type SortOptionId,
-} from '../constants/perpsConfig';
+} from '@metamask/perps-controller';
 
 interface UsePerpsSortingParams {
   initialOptionId?: SortOptionId;
@@ -33,8 +31,8 @@ interface UsePerpsSortingReturn {
  * Direction can be toggled independently (used for price change option in UI)
  */
 export const usePerpsSorting = ({
-  initialOptionId = MARKET_SORTING_CONFIG.DEFAULT_SORT_OPTION_ID,
-  initialDirection = MARKET_SORTING_CONFIG.DEFAULT_DIRECTION,
+  initialOptionId = MARKET_SORTING_CONFIG.DefaultSortOptionId,
+  initialDirection = MARKET_SORTING_CONFIG.DefaultDirection,
 }: UsePerpsSortingParams = {}): UsePerpsSortingReturn => {
   const [selectedOptionId, setSelectedOptionId] =
     useState<SortOptionId>(initialOptionId);
@@ -44,10 +42,10 @@ export const usePerpsSorting = ({
 
   // Derive sortBy from selectedOptionId
   const sortBy = useMemo(() => {
-    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+    const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOptionId,
     );
-    return option?.field ?? MARKET_SORTING_CONFIG.SORT_FIELDS.VOLUME;
+    return option?.field ?? MARKET_SORTING_CONFIG.SortFields.Volume;
   }, [selectedOptionId]);
 
   const handleOptionChange = useCallback(

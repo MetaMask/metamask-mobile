@@ -4,10 +4,10 @@ import { useTheme } from '../../../../../util/theme';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import Text, {
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import Icon, {
   IconName,
   IconSize,
@@ -32,7 +32,7 @@ export interface TrendingTokenTimeBottomSheetProps {
 /**
  * Maps TimeOption to SortTrendingBy
  */
-const mapTimeOptionToSortBy = (option: TimeOption): SortTrendingBy => {
+export const mapTimeOptionToSortBy = (option: TimeOption): SortTrendingBy => {
   switch (option) {
     case TimeOption.TwentyFourHours:
       return 'h24_trending' as SortTrendingBy;
@@ -67,15 +67,6 @@ export const mapSortByToTimeOption = (
   }
 };
 
-const closeButtonStyle = StyleSheet.create({
-  closeButton: {
-    width: 24,
-    height: 24,
-    flexShrink: 0,
-    marginTop: -12,
-  },
-});
-
 const TrendingTokenTimeBottomSheet: React.FC<
   TrendingTokenTimeBottomSheetProps
 > = ({
@@ -98,16 +89,9 @@ const TrendingTokenTimeBottomSheet: React.FC<
     }
   }, [initialSelectedTime]);
 
-  // Open bottom sheet when isVisible becomes true
-  useEffect(() => {
-    if (isVisible) {
-      sheetRef.current?.onOpenBottomSheet();
-    }
-  }, [isVisible]);
-
   const optionStyles = StyleSheet.create({
     optionsList: {
-      paddingBottom: 32,
+      paddingBottom: 16,
     },
     optionRow: {
       flexDirection: 'row',
@@ -153,13 +137,13 @@ const TrendingTokenTimeBottomSheet: React.FC<
       shouldNavigateBack={false}
       ref={sheetRef}
       onClose={handleSheetClose}
+      testID="trending-token-time-bottom-sheet"
     >
-      <BottomSheetHeader
+      <HeaderCompactStandard
+        title={strings('trending.time')}
         onClose={handleClose}
-        closeButtonProps={{ style: closeButtonStyle.closeButton }}
-      >
-        <Text variant={TextVariant.HeadingMD}>{strings('trending.time')}</Text>
-      </BottomSheetHeader>
+        closeButtonProps={{ testID: 'close-button' }}
+      />
       <View style={optionStyles.optionsList}>
         <TouchableOpacity
           style={[
@@ -168,6 +152,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.TwentyFourHours)}
+          testID="time-select-24h"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.24_hours')}
@@ -183,6 +168,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.SixHours)}
+          testID="time-select-6h"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.6_hours')}
@@ -198,6 +184,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.OneHour)}
+          testID="time-select-1h"
         >
           <Text variant={TextVariant.BodyMD}>{strings('trending.1_hour')}</Text>
           {selectedTime === TimeOption.OneHour && (
@@ -211,6 +198,7 @@ const TrendingTokenTimeBottomSheet: React.FC<
               optionStyles.optionRowSelected,
           ]}
           onPress={() => onTimeOptionPress(TimeOption.FiveMinutes)}
+          testID="time-select-5m"
         >
           <Text variant={TextVariant.BodyMD}>
             {strings('trending.5_minutes')}

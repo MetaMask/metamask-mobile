@@ -8,7 +8,7 @@ import {
   personalSignatureConfirmationState,
   stakingDepositConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { Footer } from './footer';
 import { useAlerts } from '../../context/alert-system-context';
@@ -19,6 +19,7 @@ import { useConfirmationAlertMetrics } from '../../hooks/metrics/useConfirmation
 import { merge } from 'lodash';
 import { simpleSendTransactionControllerMock } from '../../__mocks__/controllers/transaction-controller-mock';
 import { transactionApprovalControllerMock } from '../../__mocks__/controllers/approval-controller-mock';
+import { emptySignatureControllerMock } from '../../__mocks__/controllers/signature-controller-mock';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 
 const mockConfirmSpy = jest.fn();
@@ -65,6 +66,12 @@ jest.mock('../../hooks/metrics/useConfirmationAlertMetrics', () => ({
 }));
 
 jest.mock('../../hooks/pay/useTransactionPayData');
+
+jest.mock('../../hooks/ui/useFullScreenConfirmation', () => ({
+  useFullScreenConfirmation: jest.fn(() => ({
+    isFullScreenConfirmation: true,
+  })),
+}));
 
 const mockTrackAlertMetrics = jest.fn();
 
@@ -223,6 +230,8 @@ describe('Footer', () => {
       {},
       simpleSendTransactionControllerMock,
       transactionApprovalControllerMock,
+      emptySignatureControllerMock,
+      { securityAlerts: { alerts: {} } },
     );
 
     const { getByTestId } = renderWithProvider(<Footer />, {
@@ -381,6 +390,8 @@ describe('Footer', () => {
           {},
           simpleSendTransactionControllerMock,
           transactionApprovalControllerMock,
+          emptySignatureControllerMock,
+          { securityAlerts: { alerts: {} } },
         ),
       });
 

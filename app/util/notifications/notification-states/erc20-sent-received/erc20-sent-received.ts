@@ -9,8 +9,9 @@ import {
 } from '../types/NotificationState';
 import {
   getAmount,
-  getNativeTokenDetailsByChainId,
   getNotificationBadge,
+  getNetworkDetailsFromNotifPayload,
+  getNetworkImageByChainId,
 } from '../../methods/common';
 import { getTokenAmount, getTokenUSDAmount } from '../token-amounts';
 import { formatAddress } from '../../../address';
@@ -49,7 +50,7 @@ const state: NotificationState<ERC20Notification> = {
   guardFn: [
     isERC20Notification,
     (notification) =>
-      !!getNativeTokenDetailsByChainId(notification.payload.chain_id),
+      !!getNetworkDetailsFromNotifPayload(notification.payload.network),
   ],
   createMenuItem: (notification) => ({
     title: menuTitle(notification),
@@ -74,9 +75,13 @@ const state: NotificationState<ERC20Notification> = {
     createdAt: notification.createdAt.toString(),
   }),
   createModalDetails: (notification) => {
-    const nativeTokenDetails = getNativeTokenDetailsByChainId(
-      notification.payload.chain_id,
+    const { networkName } = getNetworkDetailsFromNotifPayload(
+      notification?.payload?.network,
     );
+    const networkLogo = getNetworkImageByChainId(
+      notification?.payload?.chain_id,
+    );
+
     return {
       title: modalTitle(notification),
       createdAt: notification.createdAt.toString(),
@@ -102,12 +107,12 @@ const state: NotificationState<ERC20Notification> = {
           amount: getTokenAmount(notification.payload.data.token),
           usdAmount: getTokenUSDAmount(notification.payload.data.token),
           tokenIconUrl: notification.payload.data.token.image,
-          tokenNetworkUrl: nativeTokenDetails?.image,
+          tokenNetworkUrl: networkLogo,
         },
         {
           type: ModalFieldType.NETWORK,
-          iconUrl: nativeTokenDetails?.image,
-          name: nativeTokenDetails?.name,
+          iconUrl: networkLogo,
+          name: `${networkName}`,
         },
       ],
       footer: {

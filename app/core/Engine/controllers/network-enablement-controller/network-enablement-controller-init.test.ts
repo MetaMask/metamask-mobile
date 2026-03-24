@@ -62,6 +62,7 @@ describe('networkEnablementControllerInit', () => {
           [SolScope.Mainnet]: true,
         },
       },
+      nativeAssetIdentifiers: {},
     };
 
     initRequestMock.persistedState = {

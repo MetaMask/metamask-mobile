@@ -29,7 +29,6 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
@@ -59,9 +58,11 @@ import {
 import { selectEvmChainId } from '../../../selectors/networkController';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/index.ts';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
 import { strings } from '../../../../locales/i18n';
+import TagColored, {
+  TagColor,
+} from '../../../component-library/components-temp/TagColored';
 
 const SELECTION_DEBOUNCE_DELAY = 150;
 
@@ -102,9 +103,6 @@ const NetworkMultiSelectList = ({
   const selectedChainIdCaip = isEvmSelected
     ? formatChainIdToCaip(evmChainId)
     : (nonEvmChainId ?? formatChainIdToCaip(evmChainId));
-  const isMultichainAccountsState2Enabled = useSelector(
-    selectMultichainAccountsState2Enabled,
-  );
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
   );
@@ -142,10 +140,7 @@ const NetworkMultiSelectList = ({
       data.push(...filteredNetworks);
     }
 
-    if (
-      (selectAllNetworksComponent && isEvmSelected) ||
-      isMultichainAccountsState2Enabled
-    ) {
+    if (selectAllNetworksComponent) {
       data.unshift({
         id: SELECT_ALL_NETWORKS_SECTION_ID,
         type: NetworkListItemType.SelectAllNetworksListItem,
@@ -166,8 +161,6 @@ const NetworkMultiSelectList = ({
     processedNetworks,
     additionalNetworksComponent,
     selectAllNetworksComponent,
-    isEvmSelected,
-    isMultichainAccountsState2Enabled,
   ]);
 
   const debouncedSelectNetwork = useMemo(
@@ -285,14 +278,23 @@ const NetworkMultiSelectList = ({
             isSelected={isSelected}
             title={
               isGasSponsored ? (
-                <Box twClassName="flex-col">
+                <Box twClassName="flex-row gap-2">
                   <Text variant={TextVariant.BodyMD}>{name}</Text>
-                  <Text
-                    variant={TextVariant.BodySM}
-                    color={TextColor.Alternative}
+                  <TagColored
+                    color={TagColor.Success}
+                    style={styles.noNetworkFeeContainer}
+                    labelProps={{
+                      variant: TextVariant.BodySM,
+                      style: {
+                        textTransform: 'none',
+                        textAlign: 'center',
+                        bottom: 1,
+                        fontWeight: 'normal',
+                      },
+                    }}
                   >
                     {strings('networks.no_network_fee')}
-                  </Text>
+                  </TagColored>
                 </Box>
               ) : (
                 name
@@ -318,7 +320,13 @@ const NetworkMultiSelectList = ({
               isSelected,
             )}
           >
-            {renderRightAccessory?.(caipChainId, name)}
+            {showButtonIcon ? (
+              renderRightAccessory?.(caipChainId, name)
+            ) : (
+              <Box paddingRight={8}>
+                {renderRightAccessory?.(caipChainId, name)}
+              </Box>
+            )}
           </Cell>
         </View>
       );
@@ -335,6 +343,7 @@ const NetworkMultiSelectList = ({
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
       styles.centeredNetworkCell,
+      styles.noNetworkFeeContainer,
     ],
   );
 

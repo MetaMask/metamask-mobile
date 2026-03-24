@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo, useRef } from 'react';
 import { usePerpsStream } from '../../providers/PerpsStreamManager';
-import type { Order } from '../../controllers/types';
-import { isTPSLOrder } from '../../constants/orderTypes';
+import { isTPSLOrder, type Order } from '@metamask/perps-controller';
+import { hasPreloadedData, getPreloadedData } from './hasCachedPerpsData';
 
 // Stable empty array reference to prevent re-renders
 const EMPTY_ORDERS: Order[] = [];
@@ -11,6 +11,8 @@ export interface UsePerpsLiveOrdersOptions {
   throttleMs?: number;
   /** Filter out TP/SL orders (Stop Market, Stop Limit, Take Profit Limit) */
   hideTpSl?: boolean;
+  /** Filter out all reduce-only orders */
+  hideReduceOnly?: boolean;
 }
 
 export interface UsePerpsLiveOrdersReturn {
@@ -33,19 +35,26 @@ export interface UsePerpsLiveOrdersReturn {
 export function usePerpsLiveOrders(
   options: UsePerpsLiveOrdersOptions = {},
 ): UsePerpsLiveOrdersReturn {
-  const { throttleMs = 0, hideTpSl = false } = options; // No throttling by default for instant updates
+  const { throttleMs = 0, hideTpSl = false, hideReduceOnly = false } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
-  const [orders, setOrders] = useState<Order[]>(EMPTY_ORDERS);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [orders, setOrders] = useState<Order[]>(
+    () => getPreloadedData<Order[]>('cachedOrders') ?? EMPTY_ORDERS,
+  );
+  const [isInitialLoading, setIsInitialLoading] = useState(
+    () => !hasPreloadedData('cachedOrders'),
+  );
   const lastOrdersRef = useRef<Order[]>(EMPTY_ORDERS);
   const hasReceivedFirstUpdate = useRef(false);
 
   useEffect(() => {
     const unsubscribe = stream.orders.subscribe({
       callback: (newOrders) => {
-        // null/undefined means no cached data yet, keep loading state
         if (newOrders === null || newOrders === undefined) {
-          // Keep isInitialLoading as true, orders as empty array
+          // Cleared on account switch — show skeleton until first update for new account
+          hasReceivedFirstUpdate.current = false;
+          setIsInitialLoading(true);
+          lastOrdersRef.current = EMPTY_ORDERS;
+          setOrders(EMPTY_ORDERS);
           return;
         }
 
@@ -77,13 +86,23 @@ export function usePerpsLiveOrders(
     };
   }, [stream, throttleMs]);
 
-  // Filter out TP/SL orders if requested
+  // Filter orders based on requested display options
   const filteredOrders = useMemo(() => {
-    if (!hideTpSl) {
+    if (!hideTpSl && !hideReduceOnly) {
       return orders;
     }
-    return orders.filter((order) => !isTPSLOrder(order.detailedOrderType));
-  }, [orders, hideTpSl]);
+    return orders.filter((order) => {
+      if (hideTpSl && isTPSLOrder(order.detailedOrderType)) {
+        return false;
+      }
+
+      if (hideReduceOnly && order.reduceOnly === true) {
+        return false;
+      }
+
+      return true;
+    });
+  }, [orders, hideTpSl, hideReduceOnly]);
 
   return {
     orders: filteredOrders,

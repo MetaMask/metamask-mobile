@@ -1,5 +1,6 @@
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
+import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -12,6 +13,9 @@ export const selectBalanceTotal = (state: RootState) =>
 
 export const selectReferralCount = (state: RootState) =>
   state.rewards.refereeCount;
+
+export const selectReferredByCode = (state: RootState) =>
+  state.rewards.referredByCode;
 
 export const selectCurrentTier = (state: RootState) =>
   state.rewards.currentTier;
@@ -48,6 +52,9 @@ export const selectSeasonTiers = (state: RootState) =>
 
 export const selectSeasonActivityTypes = (state: RootState) =>
   state.rewards.seasonActivityTypes;
+
+export const selectSeasonWaysToEarn = (state: RootState) =>
+  state.rewards.seasonWaysToEarn;
 
 export const selectOnboardingActiveStep = (state: RootState): OnboardingStep =>
   state.rewards.onboardingActiveStep;
@@ -112,3 +119,82 @@ export const selectPointsEvents = (state: RootState) =>
 
 export const selectSeasonShouldInstallNewVersion = (state: RootState) =>
   state.rewards.seasonShouldInstallNewVersion;
+
+// Bulk link selectors
+export const selectBulkLinkState = (state: RootState) => state.rewards.bulkLink;
+
+export const selectBulkLinkIsRunning = (state: RootState) =>
+  state.rewards.bulkLink.isRunning;
+
+export const selectBulkLinkTotalAccounts = (state: RootState) =>
+  state.rewards.bulkLink.totalAccounts;
+
+export const selectBulkLinkLinkedAccounts = (state: RootState) =>
+  state.rewards.bulkLink.linkedAccounts;
+
+export const selectBulkLinkFailedAccounts = (state: RootState) =>
+  state.rewards.bulkLink.failedAccounts;
+
+/**
+ * Returns whether the bulk link process was interrupted (e.g., app closed during processing).
+ * When true, the user can resume the process by dispatching resumeBulkLink().
+ */
+export const selectBulkLinkWasInterrupted = (state: RootState) =>
+  state.rewards.bulkLink.wasInterrupted;
+
+/**
+ * Returns account-level progress as a percentage (0-1)
+ */
+export const selectBulkLinkAccountProgress = (state: RootState) => {
+  const { linkedAccounts, failedAccounts, totalAccounts } =
+    state.rewards.bulkLink;
+  if (totalAccounts === 0) return 0;
+  return (linkedAccounts + failedAccounts) / totalAccounts;
+};
+
+// Campaigns selectors
+export const selectCampaigns = (state: RootState) => state.rewards.campaigns;
+
+export const selectCampaignsLoading = (state: RootState) =>
+  state.rewards.campaignsLoading;
+
+export const selectCampaignsError = (state: RootState) =>
+  state.rewards.campaignsError;
+
+// Campaign participant status selectors
+export const selectCampaignParticipantStatuses = (state: RootState) =>
+  state.rewards.campaignParticipantStatuses;
+
+export const selectCampaignParticipantStatusById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId] ?? null)
+      : null;
+
+export const selectCampaignParticipantCount =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId
+      ? (state.rewards.campaignParticipantStatuses[campaignId]
+          ?.participantCount ?? null)
+      : null;
+
+// Version guard selectors
+export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
+  state.rewards.versionGuardMinimumMobileVersion;
+
+export const selectVersionGuardLoading = (state: RootState) =>
+  state.rewards.versionGuardLoading;
+
+export const selectVersionGuardError = (state: RootState) =>
+  state.rewards.versionGuardError;
+
+/**
+ * Returns true when the current app version is below the minimum required
+ * by the rewards backend, meaning the user must update to use Rewards.
+ * Returns false when requirements have not been fetched yet.
+ */
+export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
+  const minVersion = state.rewards.versionGuardMinimumMobileVersion;
+  if (!minVersion) return false;
+  return !hasMinimumRequiredVersion(minVersion);
+};

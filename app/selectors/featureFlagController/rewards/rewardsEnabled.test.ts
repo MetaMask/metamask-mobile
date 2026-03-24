@@ -1,12 +1,18 @@
 import {
-  selectRewardsEnabledRawFlag,
-  selectRewardsEnabledFlag,
-  selectMusdHoldingEnabledRawFlag,
-  selectMusdHoldingEnabledFlag,
-  REWARDS_ENABLED_FLAG_NAME,
-  MUSD_HOLDING_FLAG_NAME,
+  selectBitcoinRewardsEnabledRawFlag,
+  selectBitcoinRewardsEnabledFlag,
+  selectTronRewardsEnabledRawFlag,
+  selectTronRewardsEnabledFlag,
+  selectMissingEnrolledAccountsRewardsEnabledRawFlag,
+  selectMissingEnrolledAccountsRewardsEnabledFlag,
+  selectCampaignsRewardsEnabledRawFlag,
+  selectCampaignsRewardsEnabledFlag,
+  BITCOIN_REWARDS_FLAG_NAME,
+  TRON_REWARDS_FLAG_NAME,
+  MISSING_ENROLLED_ACCOUNTS_FLAG_NAME,
+  CAMPAIGNS_REWARDS_FLAG_NAME,
 } from './rewardsEnabled';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../../util/remoteFeatureFlag';
 
 jest.mock('react-native-device-info', () => ({
@@ -29,10 +35,10 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     mockHasMinimumRequiredVersion?.mockRestore();
   });
 
-  describe('selectRewardsEnabledRawFlag', () => {
+  describe('selectBitcoinRewardsEnabledRawFlag', () => {
     it('returns true when remote flag is valid and enabled', () => {
-      const result = selectRewardsEnabledRawFlag.resultFunc({
-        [REWARDS_ENABLED_FLAG_NAME]: {
+      const result = selectBitcoinRewardsEnabledRawFlag.resultFunc({
+        [BITCOIN_REWARDS_FLAG_NAME]: {
           enabled: true,
           minimumVersion: '1.0.0',
         },
@@ -42,8 +48,8 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is valid but disabled', () => {
-      const result = selectRewardsEnabledRawFlag.resultFunc({
-        [REWARDS_ENABLED_FLAG_NAME]: {
+      const result = selectBitcoinRewardsEnabledRawFlag.resultFunc({
+        [BITCOIN_REWARDS_FLAG_NAME]: {
           enabled: false,
           minimumVersion: '1.0.0',
         },
@@ -55,8 +61,8 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     it('returns false when version check fails', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(false);
 
-      const result = selectRewardsEnabledRawFlag.resultFunc({
-        [REWARDS_ENABLED_FLAG_NAME]: {
+      const result = selectBitcoinRewardsEnabledRawFlag.resultFunc({
+        [BITCOIN_REWARDS_FLAG_NAME]: {
           enabled: true,
           minimumVersion: '99.0.0',
         },
@@ -66,8 +72,8 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is invalid', () => {
-      const result = selectRewardsEnabledRawFlag.resultFunc({
-        [REWARDS_ENABLED_FLAG_NAME]: {
+      const result = selectBitcoinRewardsEnabledRawFlag.resultFunc({
+        [BITCOIN_REWARDS_FLAG_NAME]: {
           enabled: 'invalid',
           minimumVersion: 123,
         },
@@ -77,13 +83,13 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
 
     it('returns false when remote feature flags are empty', () => {
-      const result = selectRewardsEnabledRawFlag.resultFunc({});
+      const result = selectBitcoinRewardsEnabledRawFlag.resultFunc({});
 
       expect(result).toBe(false);
     });
 
     it('returns false when flag property is missing', () => {
-      const result = selectRewardsEnabledRawFlag.resultFunc({
+      const result = selectBitcoinRewardsEnabledRawFlag.resultFunc({
         someOtherFlag: true,
       });
 
@@ -91,36 +97,36 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectRewardsEnabledFlag', () => {
+  describe('selectBitcoinRewardsEnabledFlag', () => {
     it('returns true when basic functionality is enabled and raw flag is true', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(true, true);
+      const result = selectBitcoinRewardsEnabledFlag.resultFunc(true, true);
 
       expect(result).toBe(true);
     });
 
     it('returns false when basic functionality is enabled and raw flag is false', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(true, false);
+      const result = selectBitcoinRewardsEnabledFlag.resultFunc(true, false);
 
       expect(result).toBe(false);
     });
 
     it('returns false when basic functionality is disabled even if raw flag is true', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(false, true);
+      const result = selectBitcoinRewardsEnabledFlag.resultFunc(false, true);
 
       expect(result).toBe(false);
     });
 
     it('returns false when basic functionality is disabled and raw flag is false', () => {
-      const result = selectRewardsEnabledFlag.resultFunc(false, false);
+      const result = selectBitcoinRewardsEnabledFlag.resultFunc(false, false);
 
       expect(result).toBe(false);
     });
   });
 
-  describe('selectMusdHoldingEnabledRawFlag', () => {
+  describe('selectTronRewardsEnabledRawFlag', () => {
     it('returns true when remote flag is valid and enabled', () => {
-      const result = selectMusdHoldingEnabledRawFlag.resultFunc({
-        [MUSD_HOLDING_FLAG_NAME]: {
+      const result = selectTronRewardsEnabledRawFlag.resultFunc({
+        [TRON_REWARDS_FLAG_NAME]: {
           enabled: true,
           minimumVersion: '1.0.0',
         },
@@ -130,8 +136,8 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is valid but disabled', () => {
-      const result = selectMusdHoldingEnabledRawFlag.resultFunc({
-        [MUSD_HOLDING_FLAG_NAME]: {
+      const result = selectTronRewardsEnabledRawFlag.resultFunc({
+        [TRON_REWARDS_FLAG_NAME]: {
           enabled: false,
           minimumVersion: '1.0.0',
         },
@@ -143,8 +149,8 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     it('returns false when version check fails', () => {
       mockHasMinimumRequiredVersion.mockReturnValue(false);
 
-      const result = selectMusdHoldingEnabledRawFlag.resultFunc({
-        [MUSD_HOLDING_FLAG_NAME]: {
+      const result = selectTronRewardsEnabledRawFlag.resultFunc({
+        [TRON_REWARDS_FLAG_NAME]: {
           enabled: true,
           minimumVersion: '99.0.0',
         },
@@ -154,8 +160,8 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
 
     it('returns false when remote flag is invalid', () => {
-      const result = selectMusdHoldingEnabledRawFlag.resultFunc({
-        [MUSD_HOLDING_FLAG_NAME]: {
+      const result = selectTronRewardsEnabledRawFlag.resultFunc({
+        [TRON_REWARDS_FLAG_NAME]: {
           enabled: 'invalid',
           minimumVersion: 123,
         },
@@ -165,13 +171,13 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
 
     it('returns false when remote feature flags are empty', () => {
-      const result = selectMusdHoldingEnabledRawFlag.resultFunc({});
+      const result = selectTronRewardsEnabledRawFlag.resultFunc({});
 
       expect(result).toBe(false);
     });
 
     it('returns false when flag property is missing', () => {
-      const result = selectMusdHoldingEnabledRawFlag.resultFunc({
+      const result = selectTronRewardsEnabledRawFlag.resultFunc({
         someOtherFlag: true,
       });
 
@@ -179,27 +185,201 @@ describe('Rewards Enabled Feature Flag Selectors', () => {
     });
   });
 
-  describe('selectMusdHoldingEnabledFlag', () => {
+  describe('selectTronRewardsEnabledFlag', () => {
     it('returns true when basic functionality is enabled and raw flag is true', () => {
-      const result = selectMusdHoldingEnabledFlag.resultFunc(true, true);
+      const result = selectTronRewardsEnabledFlag.resultFunc(true, true);
 
       expect(result).toBe(true);
     });
 
     it('returns false when basic functionality is enabled and raw flag is false', () => {
-      const result = selectMusdHoldingEnabledFlag.resultFunc(true, false);
+      const result = selectTronRewardsEnabledFlag.resultFunc(true, false);
 
       expect(result).toBe(false);
     });
 
     it('returns false when basic functionality is disabled even if raw flag is true', () => {
-      const result = selectMusdHoldingEnabledFlag.resultFunc(false, true);
+      const result = selectTronRewardsEnabledFlag.resultFunc(false, true);
 
       expect(result).toBe(false);
     });
 
     it('returns false when basic functionality is disabled and raw flag is false', () => {
-      const result = selectMusdHoldingEnabledFlag.resultFunc(false, false);
+      const result = selectTronRewardsEnabledFlag.resultFunc(false, false);
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMissingEnrolledAccountsRewardsEnabledRawFlag', () => {
+    it('returns true when remote flag is valid and enabled', () => {
+      const result =
+        selectMissingEnrolledAccountsRewardsEnabledRawFlag.resultFunc({
+          [MISSING_ENROLLED_ACCOUNTS_FLAG_NAME]: {
+            enabled: true,
+            minimumVersion: '1.0.0',
+          },
+        });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is valid but disabled', () => {
+      const result =
+        selectMissingEnrolledAccountsRewardsEnabledRawFlag.resultFunc({
+          [MISSING_ENROLLED_ACCOUNTS_FLAG_NAME]: {
+            enabled: false,
+            minimumVersion: '1.0.0',
+          },
+        });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when version check fails', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      const result =
+        selectMissingEnrolledAccountsRewardsEnabledRawFlag.resultFunc({
+          [MISSING_ENROLLED_ACCOUNTS_FLAG_NAME]: {
+            enabled: true,
+            minimumVersion: '99.0.0',
+          },
+        });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote flag is invalid', () => {
+      const result =
+        selectMissingEnrolledAccountsRewardsEnabledRawFlag.resultFunc({
+          [MISSING_ENROLLED_ACCOUNTS_FLAG_NAME]: {
+            enabled: 'invalid',
+            minimumVersion: 123,
+          },
+        });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote feature flags are empty', () => {
+      const result =
+        selectMissingEnrolledAccountsRewardsEnabledRawFlag.resultFunc({});
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when flag property is missing', () => {
+      const result =
+        selectMissingEnrolledAccountsRewardsEnabledRawFlag.resultFunc({
+          someOtherFlag: true,
+        });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectMissingEnrolledAccountsRewardsEnabledFlag', () => {
+    it('returns true when basic functionality is enabled and raw flag is true', () => {
+      const result = selectMissingEnrolledAccountsRewardsEnabledFlag.resultFunc(
+        true,
+        true,
+      );
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when basic functionality is enabled and raw flag is false', () => {
+      const result = selectMissingEnrolledAccountsRewardsEnabledFlag.resultFunc(
+        true,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when basic functionality is disabled even if raw flag is true', () => {
+      const result = selectMissingEnrolledAccountsRewardsEnabledFlag.resultFunc(
+        false,
+        true,
+      );
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when basic functionality is disabled and raw flag is false', () => {
+      const result = selectMissingEnrolledAccountsRewardsEnabledFlag.resultFunc(
+        false,
+        false,
+      );
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectCampaignsRewardsEnabledRawFlag', () => {
+    it('returns true when remote flag is enabled and version matches', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(true);
+
+      const result = selectCampaignsRewardsEnabledRawFlag.resultFunc({
+        [CAMPAIGNS_REWARDS_FLAG_NAME]: {
+          enabled: true,
+          minimumVersion: '1.0.0',
+        },
+      });
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when remote flag is enabled but version does not match', () => {
+      mockHasMinimumRequiredVersion.mockReturnValue(false);
+
+      const result = selectCampaignsRewardsEnabledRawFlag.resultFunc({
+        [CAMPAIGNS_REWARDS_FLAG_NAME]: {
+          enabled: true,
+          minimumVersion: '99.0.0',
+        },
+      });
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when remote feature flags are empty', () => {
+      const result = selectCampaignsRewardsEnabledRawFlag.resultFunc({});
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when flag property is missing', () => {
+      const result = selectCampaignsRewardsEnabledRawFlag.resultFunc({
+        someOtherFlag: true,
+      });
+
+      expect(result).toBe(false);
+    });
+  });
+
+  describe('selectCampaignsRewardsEnabledFlag', () => {
+    it('returns true when basic functionality is enabled and raw flag is true', () => {
+      const result = selectCampaignsRewardsEnabledFlag.resultFunc(true, true);
+
+      expect(result).toBe(true);
+    });
+
+    it('returns false when basic functionality is enabled and raw flag is false', () => {
+      const result = selectCampaignsRewardsEnabledFlag.resultFunc(true, false);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when basic functionality is disabled even if raw flag is true', () => {
+      const result = selectCampaignsRewardsEnabledFlag.resultFunc(false, true);
+
+      expect(result).toBe(false);
+    });
+
+    it('returns false when basic functionality is disabled and raw flag is false', () => {
+      const result = selectCampaignsRewardsEnabledFlag.resultFunc(false, false);
 
       expect(result).toBe(false);
     });

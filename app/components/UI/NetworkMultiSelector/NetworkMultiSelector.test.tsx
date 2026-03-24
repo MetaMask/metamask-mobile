@@ -14,10 +14,10 @@ import { useNetworkSelection } from '../../hooks/useNetworkSelection/useNetworkS
 import { useNetworksToUse } from '../../hooks/useNetworksToUse/useNetworksToUse';
 import NetworkMultiSelector from './NetworkMultiSelector';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from './NetworkMultiSelector.constants';
-import { selectMultichainAccountsState2Enabled } from '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts';
 import { selectSelectedInternalAccountByScope } from '../../../selectors/multichainAccounts/accounts';
 import { InternalAccount } from '@metamask/keyring-internal-api';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   selectEvmNetworkConfigurationsByChainId,
@@ -95,25 +95,25 @@ jest.mock('react-redux', () => ({
   Provider: jest.requireActual('react-redux').Provider,
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => ({
-    selectMultichainAccountsState2Enabled: jest.fn(),
-  }),
-);
+jest.mock('../../../selectors/accountsController', () => {
+  const actual = jest.requireActual('../../../selectors/accountsController');
+  return {
+    ...actual,
+    selectSelectedInternalAccountByScope: jest.fn(() => jest.fn()),
+    selectInternalAccounts: jest.fn(),
+    selectInternalAccountsById: jest.fn(),
+  };
+});
 
-jest.mock('../../../selectors/accountsController', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(() => jest.fn()),
-  selectInternalAccounts: jest.fn(),
-  selectInternalAccountsById: jest.fn(),
-}));
-
-jest.mock(
-  '../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
+jest.mock('../../../selectors/multichainAccounts/accountTreeController', () => {
+  const actual = jest.requireActual(
+    '../../../selectors/multichainAccounts/accountTreeController',
+  );
+  return {
+    ...actual,
     selectAccountTreeControllerState: jest.fn(),
-  }),
-);
+  };
+});
 
 jest.mock('../../../selectors/multichainAccounts/accounts', () => ({
   selectSelectedInternalAccountByScope: jest.fn(() => () => null),
@@ -123,8 +123,8 @@ jest.mock('../../../util/networks/customNetworks', () => ({
   PopularList: [],
 }));
 
-jest.mock('../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../core/Engine', () => ({
@@ -191,13 +191,7 @@ jest.mock('../../../component-library/components/Texts/Text', () => {
 });
 
 // Mock store setup
-const mockStore = createStore(() => ({
-  featureFlags: {
-    multichainAccounts: {
-      enabledMultichainAccounts: true,
-    },
-  },
-}));
+const mockStore = createStore(() => ({}));
 
 describe('NetworkMultiSelector', () => {
   const mockOpenModal = jest.fn();
@@ -224,7 +218,7 @@ describe('NetworkMultiSelector', () => {
     typeof useNetworksToUse
   >;
   const mockUseSelector = jest.mocked(useSelector);
-  const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+  const mockUseAnalytics = jest.mocked(useAnalytics);
 
   // Shared helper functions for all tests
   const createMockNetwork = (
@@ -265,7 +259,6 @@ describe('NetworkMultiSelector', () => {
       : null,
     selectedBitcoinAccount: null,
     selectedTronAccount: null,
-    isMultichainAccountsState2Enabled: true,
     areAllNetworksSelectedCombined: areAllSelected,
     areAllEvmNetworksSelected: false,
     areAllSolanaNetworksSelected: false,
@@ -289,7 +282,6 @@ describe('NetworkMultiSelector', () => {
         return evmConfigs;
       if (selector === selectNonEvmNetworkConfigurationsByChainId)
         return nonEvmConfigs;
-      if (selector === selectMultichainAccountsState2Enabled) return true;
       if (selector === selectSelectedInternalAccountByScope) {
         return (scope: string) => {
           if (scope === 'eip155:0') return { id: 'evm-account' };
@@ -342,6 +334,9 @@ describe('NetworkMultiSelector', () => {
       hasOneEnabledNetwork: false,
       tryEnableEvmNetwork: jest.fn(),
       enabledNetworksForAllNamespaces: mockEnabledNetworks,
+      popularEvmNetworks: [],
+      popularMultichainNetworks: [],
+      popularNetworks: [],
     });
 
     mockUseNetworksByNamespace.mockReturnValue({
@@ -392,7 +387,6 @@ describe('NetworkMultiSelector', () => {
       selectedSolanaAccount: { id: 'solana-account' } as InternalAccount,
       selectedBitcoinAccount: { id: 'bitcoin-account' } as InternalAccount,
       selectedTronAccount: { id: 'tron-account' } as InternalAccount,
-      isMultichainAccountsState2Enabled: true,
       areAllNetworksSelectedCombined: false,
       areAllEvmNetworksSelected: false,
       areAllSolanaNetworksSelected: false,
@@ -401,9 +395,6 @@ describe('NetworkMultiSelector', () => {
     });
 
     mockUseSelector.mockImplementation((selector) => {
-      if (selector === selectMultichainAccountsState2Enabled) {
-        return true;
-      }
       if (selector === selectSelectedInternalAccountByScope) {
         return (scope: string) => {
           if (scope === 'eip155:0') {
@@ -473,19 +464,12 @@ describe('NetworkMultiSelector', () => {
       build: mockBuild,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-      isEnabled: () => true,
-      enable: jest.fn(),
-      addTraitsToUser: jest.fn(),
-      createDataDeletionTask: jest.fn(),
-      checkDataDeleteStatus: jest.fn(),
-      getDeleteRegulationCreationDate: jest.fn(),
-      getDeleteRegulationId: jest.fn(),
-      isDataRecorded: jest.fn(),
-      getMetaMetricsId: jest.fn(),
-    });
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
   });
 
   // TODO: Refactor tests - they aren't up to par
@@ -566,7 +550,7 @@ describe('NetworkMultiSelector', () => {
       );
     });
 
-    it('renders custom network component even for non-EIP155 namespace when multichain is enabled', () => {
+    it('renders custom network component for non-EIP155 namespace', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: 'solana' as KnownCaipNamespace,
         enabledNetworksByNamespace: { solana: {} },
@@ -579,6 +563,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -586,7 +573,7 @@ describe('NetworkMultiSelector', () => {
       );
 
       const networkList = getByTestId('mock-network-multi-selector-list');
-      // Since multichain is enabled, it should still render the custom network component
+      // Custom network component should always render
       expect(networkList.props.additionalNetworksComponent).toBeTruthy();
       expect(networkList.props.additionalNetworksComponent.props.testID).toBe(
         NETWORK_MULTI_SELECTOR_TEST_IDS.CUSTOM_NETWORK_CONTAINER,
@@ -617,6 +604,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {},
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       const { getByTestId } = renderWithProvider(
@@ -703,6 +693,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -724,9 +717,8 @@ describe('NetworkMultiSelector', () => {
       });
     });
 
-    it('calls useNetworksToUse when multichain is enabled', () => {
+    it('calls useNetworksToUse', () => {
       mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })); // selectedSolanaAccount
 
@@ -759,6 +751,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -789,7 +784,6 @@ describe('NetworkMultiSelector', () => {
         selectedEvmAccount: { id: 'evm-account' } as InternalAccount,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
-        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: true,
         areAllSolanaNetworksSelected: false,
@@ -800,9 +794,6 @@ describe('NetworkMultiSelector', () => {
 
       // Setup selector mock
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {
@@ -842,6 +833,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -875,16 +869,12 @@ describe('NetworkMultiSelector', () => {
         selectedTronAccount: null,
         areAllBitcoinNetworksSelected: false,
         areAllTronNetworksSelected: false,
-        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: true,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: true,
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope.includes('solana')) {
@@ -924,6 +914,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -954,7 +947,6 @@ describe('NetworkMultiSelector', () => {
         selectedEvmAccount: null,
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
-        isMultichainAccountsState2Enabled: true,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -964,9 +956,6 @@ describe('NetworkMultiSelector', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return () => null; // No accounts selected
         }
@@ -981,7 +970,7 @@ describe('NetworkMultiSelector', () => {
       expect(networkList.props.networks).toEqual(mockNetworks);
     });
 
-    it('uses regular networks when multichain is disabled', () => {
+    it('uses regular networks from hook', () => {
       // Clear all mocks for clean state
       jest.clearAllMocks();
 
@@ -998,6 +987,9 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
 
       mockUseNetworksByNamespace.mockReturnValue({
@@ -1018,7 +1010,7 @@ describe('NetworkMultiSelector', () => {
         customNetworksToReset: [],
       });
 
-      // Mock useNetworksToUse to return default networks when multichain disabled
+      // Mock useNetworksToUse to return default networks
       mockUseNetworksToUse.mockReturnValue({
         networksToUse: mockNetworks,
         evmNetworks: [],
@@ -1029,7 +1021,6 @@ describe('NetworkMultiSelector', () => {
         selectedSolanaAccount: null,
         selectedBitcoinAccount: null,
         selectedTronAccount: null,
-        isMultichainAccountsState2Enabled: false,
         areAllNetworksSelectedCombined: false,
         areAllEvmNetworksSelected: false,
         areAllSolanaNetworksSelected: false,
@@ -1038,9 +1029,6 @@ describe('NetworkMultiSelector', () => {
       });
 
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return false;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {
@@ -1101,9 +1089,6 @@ describe('NetworkMultiSelector', () => {
 
       // Override the selector for this specific test
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {
@@ -1163,7 +1148,6 @@ describe('NetworkMultiSelector', () => {
         });
 
       mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
         .mockReturnValueOnce(() => ({ id: 'evm-account' })) // selectedEvmAccount
         .mockReturnValueOnce(() => ({ id: 'solana-account' })) // selectedSolanaAccount
         .mockReturnValueOnce(() => ({ id: 'bitcoin-account' })); // selectedBitcoinAccount
@@ -2425,7 +2409,7 @@ describe('NetworkMultiSelector', () => {
       jest.clearAllMocks();
     });
 
-    it('renders custom network component for multichain enabled even with non-EIP155 namespace', () => {
+    it('always renders custom network component for any namespace', () => {
       mockUseNetworkEnablement.mockReturnValue({
         namespace: 'solana' as KnownCaipNamespace,
         enabledNetworksByNamespace: { solana: {} },
@@ -2438,13 +2422,10 @@ describe('NetworkMultiSelector', () => {
         hasOneEnabledNetwork: false,
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: mockEnabledNetworks,
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
       });
-
-      mockUseSelector
-        .mockReturnValueOnce(true) // isMultichainAccountsState2Enabled
-        .mockReturnValueOnce(() => null) // selectedEvmAccount
-        .mockReturnValueOnce(() => null) // selectedSolanaAccount
-        .mockReturnValueOnce(() => null); // selectedBitcoinAccount
 
       const { getByTestId } = renderWithProvider(
         <NetworkMultiSelector openModal={mockOpenModal} />,
@@ -2676,9 +2657,6 @@ describe('NetworkMultiSelector', () => {
 
       // Override the selector for this specific test
       mockUseSelector.mockImplementation((selector) => {
-        if (selector === selectMultichainAccountsState2Enabled) {
-          return true;
-        }
         if (selector === selectSelectedInternalAccountByScope) {
           return (scope: string) => {
             if (scope === 'eip155:0') {

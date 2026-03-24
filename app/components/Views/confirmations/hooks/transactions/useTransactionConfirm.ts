@@ -1,8 +1,6 @@
 import { useCallback } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import Routes from '../../../../../constants/navigation/Routes';
-import { resetTransaction } from '../../../../../actions/transaction';
 import useApprovalRequest from '../useApprovalRequest';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
@@ -18,6 +16,7 @@ import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
 import { cloneDeep } from 'lodash';
 import { useTransactionPayQuotes } from '../pay/useTransactionPayData';
+import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 
 const log = createProjectLogger('transaction-confirm');
 
@@ -29,7 +28,6 @@ export const GO_BACK_TYPES = [
 
 export function useTransactionConfirm() {
   const { onConfirm: onRequestConfirm } = useApprovalRequest();
-  const dispatch = useDispatch();
   const navigation = useNavigation();
   const transactionMetadata = useTransactionMetadataRequest();
   const selectedGasFeeToken = useSelectedGasFeeToken();
@@ -37,6 +35,8 @@ export function useTransactionConfirm() {
     transactionMetadata ?? {};
   const { isFullScreenConfirmation } = useFullScreenConfirmation();
   const quotes = useTransactionPayQuotes();
+  const { navigateOnConfirm: musdConversionNavigateOnConfirm } =
+    useMusdConfirmNavigation();
 
   const { tryEnableEvmNetwork } = useNetworkEnablement();
 
@@ -101,71 +101,71 @@ export function useTransactionConfirm() {
     ],
   );
 
-  const onConfirm = useCallback(async () => {
-    if (!transactionMetadata) {
-      return;
-    }
+  const onConfirm = useCallback(
+    async (options?: { onError?: (error: unknown) => void }) => {
+      if (!transactionMetadata) {
+        return;
+      }
 
-    const updatedMetadata = cloneDeep(transactionMetadata);
+      const updatedMetadata = cloneDeep(transactionMetadata);
 
-    if (isGaslessSupportedSTX) {
-      handleSmartTransaction(updatedMetadata);
-    } else if (selectedGasFeeToken) {
-      handleGasless7702(updatedMetadata);
-    }
+      if (isGaslessSupportedSTX) {
+        handleSmartTransaction(updatedMetadata);
+      } else if (selectedGasFeeToken) {
+        handleGasless7702(updatedMetadata);
+      }
 
-    try {
-      await onRequestConfirm(
-        {
-          deleteAfterResult: true,
-          // Intentionally not hiding errors so we can log
-          handleErrors: false,
-          waitForResult,
-        },
-        { txMeta: updatedMetadata },
-      );
-    } catch (error) {
-      log('Error confirming transaction', error);
-    }
+      try {
+        await onRequestConfirm(
+          {
+            deleteAfterResult: true,
+            // Intentionally not hiding errors so we can log
+            handleErrors: false,
+            waitForResult,
+          },
+          { txMeta: updatedMetadata },
+        );
+      } catch (error) {
+        log('Error confirming transaction', error);
+        options?.onError?.(error);
+      }
 
-    if (type === TransactionType.perpsDeposit) {
-      navigation.navigate(Routes.PERPS.ROOT, {
-        screen: Routes.PERPS.PERPS_HOME,
-      });
-    } else if (type === TransactionType.musdConversion) {
-      navigation.navigate(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
-    } else if (
-      isFullScreenConfirmation &&
-      !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
-    ) {
-      navigation.navigate(Routes.TRANSACTIONS_VIEW);
-    } else {
-      navigation.goBack();
-    }
+      // Perps deposit-and-order: caller handles navigation (e.g. order flow)
+      if (type === TransactionType.perpsDepositAndOrder) {
+        return;
+      } else if (type === TransactionType.perpsDeposit) {
+        navigation.navigate(Routes.PERPS.ROOT, {
+          screen: Routes.PERPS.PERPS_HOME,
+        });
+      } else if (type === TransactionType.musdConversion) {
+        musdConversionNavigateOnConfirm();
+      } else if (
+        isFullScreenConfirmation &&
+        !hasTransactionType(transactionMetadata, GO_BACK_TYPES)
+      ) {
+        navigation.navigate(Routes.TRANSACTIONS_VIEW);
+      } else {
+        navigation.goBack();
+      }
 
-    // Replace/remove this once we have redesigned send flow
-    dispatch(resetTransaction());
-    tryEnableEvmNetwork(chainId);
-  }, [
-    chainId,
-    dispatch,
-    handleGasless7702,
-    handleSmartTransaction,
-    isFullScreenConfirmation,
-    isGaslessSupportedSTX,
-    navigation,
-    onRequestConfirm,
-    selectedGasFeeToken,
-    transactionMetadata,
-    tryEnableEvmNetwork,
-    type,
-    waitForResult,
-  ]);
+      tryEnableEvmNetwork(chainId);
+    },
+    [
+      chainId,
+      handleGasless7702,
+      handleSmartTransaction,
+      isFullScreenConfirmation,
+      isGaslessSupportedSTX,
+      navigation,
+      musdConversionNavigateOnConfirm,
+      onRequestConfirm,
+      selectedGasFeeToken,
+      transactionMetadata,
+      tryEnableEvmNetwork,
+      type,
+      waitForResult,
+    ],
+  );
 
   return { onConfirm };
 }

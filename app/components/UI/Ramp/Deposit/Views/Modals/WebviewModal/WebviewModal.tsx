@@ -1,10 +1,9 @@
-import React, { useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useWindowDimensions } from 'react-native';
-
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import HeaderCenter from '../../../../../../../component-library/components-temp/HeaderCenter';
+import HeaderCompactStandard from '../../../../../../../component-library/components-temp/HeaderCompactStandard';
 import {
   createNavigationDetails,
   useParams,
@@ -17,10 +16,16 @@ import { useStyles } from '../../../../../../../component-library/hooks/useStyle
 import styleSheet from './WebviewModal.styles';
 import ErrorView from '../../../components/ErrorView';
 import Device from '../../../../../../../util/device';
+import Logger from '../../../../../../../util/Logger';
+import { shouldStartLoadWithRequest } from '../../../../../../../util/browser';
+import {
+  getCheckoutCallback,
+  removeCheckoutCallback,
+} from '../../../../utils/checkoutCallbackRegistry';
 
 export interface WebviewModalParams {
   sourceUrl: string;
-  handleNavigationStateChange?: (navState: { url: string }) => void;
+  callbackKey?: string;
 }
 
 export const createWebviewModalNavigationDetails =
@@ -32,8 +37,8 @@ export const createWebviewModalNavigationDetails =
 function WebviewModal() {
   const sheetRef = useRef<BottomSheetRef>(null);
   const previousUrlRef = useRef<string | null>(null);
-  const { sourceUrl, handleNavigationStateChange } =
-    useParams<WebviewModalParams>();
+  const { sourceUrl, callbackKey } = useParams<WebviewModalParams>();
+  const callbackKeyRef = useRef(callbackKey);
 
   const { height: screenHeight } = useWindowDimensions();
 
@@ -43,12 +48,31 @@ function WebviewModal() {
 
   const [webviewError, setWebviewError] = useState<string | null>(null);
 
-  const handleNavigationStateChangeWithDedup = (navState: { url: string }) => {
-    if (navState.url !== previousUrlRef.current) {
-      previousUrlRef.current = navState.url;
-      handleNavigationStateChange?.(navState);
-    }
-  };
+  useEffect(() => {
+    callbackKeyRef.current = callbackKey;
+    return () => {
+      if (callbackKey) {
+        removeCheckoutCallback(callbackKey);
+      }
+    };
+  }, [callbackKey]);
+
+  const handleNavigationStateChangeWithDedup = useCallback(
+    (navState: { url: string }) => {
+      if (navState.url !== previousUrlRef.current) {
+        previousUrlRef.current = navState.url;
+        if (callbackKeyRef.current) {
+          getCheckoutCallback(callbackKeyRef.current)?.(navState);
+        }
+      }
+    },
+    [],
+  );
+
+  const handleShouldStartLoadWithRequest = useCallback(
+    ({ url }: { url: string }) => shouldStartLoadWithRequest(url, Logger),
+    [],
+  );
 
   return (
     <BottomSheet
@@ -58,7 +82,9 @@ function WebviewModal() {
       isInteractable={!Device.isAndroid()}
       keyboardAvoidingViewEnabled={false}
     >
-      <HeaderCenter onClose={() => sheetRef.current?.onCloseBottomSheet()} />
+      <HeaderCompactStandard
+        onClose={() => sheetRef.current?.onCloseBottomSheet()}
+      />
 
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -69,6 +95,7 @@ function WebviewModal() {
               style={styles.webview}
               source={{ uri: sourceUrl }}
               onNavigationStateChange={handleNavigationStateChangeWithDedup}
+              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
               onHttpError={(syntheticEvent) => {
                 const { nativeEvent } = syntheticEvent;
                 if (nativeEvent.url === sourceUrl) {

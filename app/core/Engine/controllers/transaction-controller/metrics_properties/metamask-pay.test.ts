@@ -78,6 +78,17 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
+  it('returns nothing if predict_withdraw', () => {
+    request.transactionMeta.type = TransactionType.predictWithdraw;
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: {},
+      sensitiveProperties: {},
+    });
+  });
+
   it('copies properties from parent transaction if bridge', () => {
     getUIMetricsMock.mockReturnValue({
       properties: {
@@ -103,6 +114,42 @@ describe('Metamask Pay Metrics', () => {
         mm_pay: true,
         mm_pay_use_case: 'test_use_case',
         mm_pay_transaction_step_total: 3,
+      }),
+      sensitiveProperties: {},
+    });
+  });
+
+  it('copies USD value metrics from predictWithdraw parent to child', () => {
+    getUIMetricsMock.mockReturnValue({
+      properties: {
+        mm_pay: true,
+        mm_pay_use_case: 'predict_withdraw',
+        mm_pay_transaction_step_total: 2,
+        mm_pay_sending_value_usd: 1500.5,
+        mm_pay_receiving_value_usd: 1495.25,
+        mm_pay_metamask_fee_usd: 0.00435,
+      },
+      sensitiveProperties: {},
+    });
+
+    request.allTransactions = [
+      {
+        id: 'parent-1',
+        type: TransactionType.predictWithdraw,
+        requiredTransactionIds: ['child-1'],
+      } as TransactionMeta,
+    ];
+
+    const result = getMetaMaskPayProperties(request);
+
+    expect(result).toStrictEqual({
+      properties: expect.objectContaining({
+        mm_pay: true,
+        mm_pay_use_case: 'predict_withdraw',
+        mm_pay_transaction_step_total: 2,
+        mm_pay_sending_value_usd: 1500.5,
+        mm_pay_receiving_value_usd: 1495.25,
+        mm_pay_metamask_fee_usd: 0.00435,
       }),
       sensitiveProperties: {},
     });
@@ -435,6 +482,77 @@ describe('Metamask Pay Metrics', () => {
         mm_pay_token_selected: undefined,
       }),
       sensitiveProperties: {},
+    });
+  });
+
+  describe('mm_pay_time_to_complete_s', () => {
+    afterEach(() => {
+      jest.restoreAllMocks();
+    });
+
+    it('adds mm_pay_time_to_complete_s for finalized parent MM Pay transaction', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1060500);
+
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      request.transactionMeta.submittedTime = 1000000;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toStrictEqual(
+        expect.objectContaining({
+          mm_pay_time_to_complete_s: 60.5,
+        }),
+      );
+    });
+
+    it('adds mm_pay_time_to_complete_s for finalized child transaction using parent submittedTime', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(2045123);
+
+      request.allTransactions = [
+        {
+          id: 'parent-1',
+          type: TransactionType.perpsDeposit,
+          requiredTransactionIds: ['child-1'],
+          submittedTime: 2000000,
+        } as TransactionMeta,
+      ];
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toStrictEqual(
+        expect.objectContaining({
+          mm_pay_time_to_complete_s: 45.123,
+        }),
+      );
+    });
+
+    it('does not add mm_pay_time_to_complete_s for non-finalized events', () => {
+      request.eventType = TRANSACTION_EVENTS.TRANSACTION_SUBMITTED;
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      request.transactionMeta.submittedTime = 1000000;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
+    });
+
+    it('does not add mm_pay_time_to_complete_s when submittedTime is undefined', () => {
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
+    });
+
+    it('does not add mm_pay_time_to_complete_s for non-MM-Pay transactions', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1060000);
+
+      request.transactionMeta.type = TransactionType.contractInteraction;
+      request.transactionMeta.submittedTime = 1000000;
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
     });
   });
 });

@@ -9,11 +9,29 @@ import { BaseHandlerOptions, BaseLoginHandler } from '../baseHandler';
 import { OAuthErrorType, OAuthError } from '../../error';
 import Logger from '../../../../util/Logger';
 
+/**
+ * Regex patterns for Android Credential Manager (ACM) error messages.
+ *
+ * IMPORTANT: The order of checks in the login() catch block matters!
+ * Some error messages contain multiple matching patterns. For example:
+ * "During begin signin, failure response from one tap. 16: [28433] Cannot find matching credential error"
+ * matches both ONE_TAP_FAILURE and NO_MATCHING_CREDENTIAL.
+ *
+ * Current priority order (more specific patterns first):
+ * 1. CANCEL / NO_CREDENTIAL - user explicitly cancelled or dismissed the dialog
+ * 2. USER_DISABLED_FEATURE - user disabled One Tap
+ * 3. NO_MATCHING_CREDENTIAL - account exists but doesn't match (contains "matching credential")
+ * 4. ONE_TAP_FAILURE - generic One Tap failure (catch-all for other One Tap issues)
+ * 5. NO_PROVIDER_DEPENDENCIES - credential provider not available (e.g., missing Google Play Services)
+ */
 const ACM_ERRORS_REGEX = {
-  CANCEL: /cancel/i,
+  CANCEL: /user\s+cancel|cancelled|16:\s*\[.*\]\s*cancel/i,
   NO_CREDENTIAL: /no credential/i,
   NO_MATCHING_CREDENTIAL: /matching credential/i,
   USER_DISABLED_FEATURE: /user disabled the feature/i,
+  ONE_TAP_FAILURE: /failure response from one tap/i,
+  NO_PROVIDER_DEPENDENCIES:
+    /no provider dependencies|provider.{0,20}not available|provider.{0,20}configuration/i,
 };
 
 /**
@@ -21,8 +39,6 @@ const ACM_ERRORS_REGEX = {
  */
 export class AndroidGoogleLoginHandler extends BaseLoginHandler {
   readonly #scope = ['email', 'profile', 'openid'];
-
-  private retried: boolean = false;
 
   protected clientId: string;
 
@@ -80,37 +96,37 @@ export class AndroidGoogleLoginHandler extends BaseLoginHandler {
       if (error instanceof OAuthError) {
         throw error;
       } else if (error instanceof Error) {
-        if (ACM_ERRORS_REGEX.CANCEL.test(error.message)) {
+        if (
+          ACM_ERRORS_REGEX.CANCEL.test(error.message) ||
+          ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)
+        ) {
           throw new OAuthError(
             'handleGoogleLogin: User cancelled the login process',
             OAuthErrorType.UserCancelled,
           );
         } else if (ACM_ERRORS_REGEX.USER_DISABLED_FEATURE.test(error.message)) {
-          // User has disabled One Tap sign-in feature - treat as user cancellation
-          // This should not be sent to Sentry as it's a user preference
           throw new OAuthError(
             'handleGoogleLogin: User disabled One Tap sign-in feature',
             OAuthErrorType.GoogleLoginUserDisabledOneTapFeature,
           );
-        } else if (ACM_ERRORS_REGEX.NO_CREDENTIAL.test(error.message)) {
-          if (!this.retried) {
-            this.retried = true;
-            return await this.login();
-          }
+        } else if (
+          ACM_ERRORS_REGEX.NO_PROVIDER_DEPENDENCIES.test(error.message)
+        ) {
           throw new OAuthError(
-            'handleGoogleLogin: Google login has no credential',
-            OAuthErrorType.GoogleLoginNoCredential,
+            'handleGoogleLogin: Credential provider not available',
+            OAuthErrorType.GoogleLoginNoProviderDependencies,
           );
         } else if (
           ACM_ERRORS_REGEX.NO_MATCHING_CREDENTIAL.test(error.message)
         ) {
-          if (!this.retried) {
-            this.retried = true;
-            return await this.login();
-          }
           throw new OAuthError(
             'handleGoogleLogin: Google login has no matching credential',
             OAuthErrorType.GoogleLoginNoMatchingCredential,
+          );
+        } else if (ACM_ERRORS_REGEX.ONE_TAP_FAILURE.test(error.message)) {
+          throw new OAuthError(
+            `handleGoogleLogin: One tap failure - ${error.message}`,
+            OAuthErrorType.GoogleLoginOneTapFailure,
           );
         } else {
           throw new OAuthError(error, OAuthErrorType.UnknownError);

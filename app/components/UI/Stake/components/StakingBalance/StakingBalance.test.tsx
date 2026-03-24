@@ -24,6 +24,8 @@ import { EARN_EXPERIENCES } from '../../../Earn/constants/experiences';
 import { selectPooledStakingEnabledFlag } from '../../../Earn/selectors/featureFlags';
 import { TokenI } from '../../../Tokens/types';
 import useStakingEligibility from '../../hooks/useStakingEligibility';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 const mockEarnTokenPair = getMockUseEarnTokens(EARN_EXPERIENCES.POOLED_STAKING);
 jest.mock('../../../Earn/hooks/useEarnings', () => ({
@@ -87,6 +89,8 @@ const MOCK_APR_VALUES: { [symbol: string]: string } = {
   USDT: '4.1',
   DAI: '5.0',
 };
+
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 jest.mock('../../../../hooks/useIpfsGateway', () => jest.fn());
 
@@ -191,6 +195,7 @@ afterEach(() => {
 describe('StakingBalance', () => {
   beforeEach(() => {
     jest.resetAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockUseStakingEligibility.mockReturnValue({
       isEligible: true,
       isLoadingEligibility: false,

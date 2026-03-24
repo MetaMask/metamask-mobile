@@ -17,7 +17,11 @@ import {
 } from '@metamask/transaction-controller';
 import Engine from '../../core/Engine';
 import I18n, { strings } from '../../../locales/i18n';
-import { safeToChecksumAddress, toChecksumAddress } from '../address';
+import {
+  safeToChecksumAddress,
+  toChecksumAddress,
+  isHardwareAccount,
+} from '../address';
 import {
   balanceToFiatNumber,
   BNToHex,
@@ -217,6 +221,9 @@ const actionKeys = {
     'transactions.tx_review_lending_withdraw',
   ),
   [TransactionType.perpsDeposit]: strings(
+    'transactions.tx_review_perps_deposit',
+  ),
+  [TransactionType.perpsDepositAndOrder]: strings(
     'transactions.tx_review_perps_deposit',
   ),
   [TransactionType.predictDeposit]: strings(
@@ -569,7 +576,9 @@ export async function getTransactionActionKey(transaction, chainId) {
       TransactionType.lendingDeposit,
       TransactionType.lendingWithdraw,
       TransactionType.perpsDeposit,
+      TransactionType.perpsDepositAndOrder,
       TransactionType.musdConversion,
+      TransactionType.musdClaim,
     ].includes(type)
   ) {
     return type;
@@ -921,13 +930,6 @@ export function addAccountTimeFlagFilter(
   return (
     transaction.time <= addedAccountTime && !accountAddedTimeInsertPointFound
   );
-}
-
-//Leaving here a comment to re-visit this function since it's probably be possible to deprecate
-export function getNormalizedTxState(state) {
-  return state.transaction
-    ? { ...state.transaction, ...state.transaction.transaction }
-    : undefined;
 }
 
 export const getActiveTabUrl = ({ browser = {} }) =>
@@ -1869,12 +1871,7 @@ export const minimumTokenAllowance = (tokenDecimals) => {
 /**
  * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx OR the actual swap tx where tokens are transferred
  */
-export const getIsSwapApproveOrSwapTransaction = (
-  data,
-  origin,
-  to,
-  chainId,
-) => {
+export const getIsSwapApproveOrSwapTransaction = (data, to, chainId, type) => {
   if (!data) {
     return false;
   }
@@ -1885,50 +1882,69 @@ export const getIsSwapApproveOrSwapTransaction = (
     return false;
   }
 
-  const isLegacySwap = origin === process.env.MM_FOX_CODE;
-  const isUnifiedSwap = origin === ORIGIN_METAMASK;
-
-  // if approval data includes metaswap contract
-  // if destination address is metaswap contract
-  return (
-    (isLegacySwap || isUnifiedSwap) &&
+  const isSwap =
+    type === TransactionType.swap &&
     to &&
-    (isValidSwapsContractAddress(chainId, to) ||
-      (data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
-        decodeApproveData(data).spenderAddress?.toLowerCase() ===
-          getSwapsContractAddress(chainId)))
-  );
+    isValidSwapsContractAddress(chainId, to);
+
+  const isSwapApproval =
+    type === TransactionType.swapApproval &&
+    to &&
+    data?.startsWith(APPROVE_FUNCTION_SIGNATURE) &&
+    decodeApproveData(data).spenderAddress?.toLowerCase() ===
+      getSwapsContractAddress(chainId);
+
+  return isSwap || isSwapApproval;
 };
+
+/**
+ * Determines if the transaction is a swap approve or swap transaction
+ * from a hardware wallet (Ledger or QR).
+ * Used as an additional guard at the call site before invoking autoSign.
+ */
+export const isHardwareSwapApproveOrSwapTransaction = (
+  data,
+  to,
+  chainId,
+  type,
+  from,
+) =>
+  isHardwareAccount(from) &&
+  getIsSwapApproveOrSwapTransaction(data, to, chainId, type);
 
 /**
  * For a MM Swap tx: Determines if the transaction is an ERC20 approve tx
  */
-export const getIsSwapApproveTransaction = (data, origin, to, chainId) => {
+export const getIsSwapApproveTransaction = (data, to, chainId, type) => {
   if (!data) {
     return false;
   }
 
-  const isFromSwaps = origin === process.env.MM_FOX_CODE;
   const isApproveFunction =
     data && getFourByteSignature(data) === APPROVE_FUNCTION_SIGNATURE;
   const isSpenderSwapsContract =
     decodeApproveData(data).spenderAddress?.toLowerCase() ===
     getSwapsContractAddress(chainId);
 
-  return isFromSwaps && to && isApproveFunction && isSpenderSwapsContract;
+  return (
+    type === TransactionType.swapApproval &&
+    to &&
+    isApproveFunction &&
+    isSpenderSwapsContract
+  );
 };
 
 /**
  * For a MM Swap tx: Determines if the transaction is the actual swap tx where tokens are transferred
  */
-export const getIsSwapTransaction = (data, origin, to, chainId) => {
+export const getIsSwapTransaction = (data, to, chainId, type) => {
   const isSwapApproveOrSwapTransaction = getIsSwapApproveOrSwapTransaction(
     data,
-    origin,
     to,
     chainId,
+    type,
   );
-  const isSwapApprove = getIsSwapApproveTransaction(data, origin, to, chainId);
+  const isSwapApprove = getIsSwapApproveTransaction(data, to, chainId, type);
 
   return isSwapApproveOrSwapTransaction && !isSwapApprove;
 };

@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -35,12 +35,15 @@ import {
   getNonEvmNetworkImageSourceByChainId,
 } from '../../../../../util/networks/customNetworks';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { formatMarketStats } from './utils';
+import { formatMarketStats, getPriceChangeFieldKey } from './utils';
 import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
-import { TimeOption } from '../TrendingTokensBottomSheet';
+import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
+import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
+import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
+import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
  * Extracts CAIP chain ID from asset ID
@@ -121,29 +124,13 @@ const getPriceChangePrefix = (
   return isPositive ? '+' : '-';
 };
 
-/**
- * Maps TimeOption to the corresponding priceChangePct field key
- */
-export const getPriceChangeFieldKey = (
-  timeOption: TimeOption,
-): 'h24' | 'h6' | 'h1' | 'm5' => {
-  switch (timeOption) {
-    case TimeOption.TwentyFourHours:
-      return 'h24';
-    case TimeOption.SixHours:
-      return 'h6';
-    case TimeOption.OneHour:
-      return 'h1';
-    case TimeOption.FiveMinutes:
-      return 'm5';
-    default:
-      return 'h24';
-  }
-};
-
 interface TrendingTokenRowItemProps {
   token: TrendingAsset;
   selectedTimeOption?: TimeOption;
+  /** 0-indexed position in the list for analytics */
+  position?: number;
+  /** Filter context for analytics tracking */
+  filterContext?: TrendingFilterContext;
 }
 
 /**
@@ -174,12 +161,17 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
     isFromTrending: true,
+    source: TokenDetailsSource.Trending,
+    rwaData: token.rwaData,
+    securityData: token.securityData,
   };
 };
 
 const TrendingTokenRowItem = ({
   token,
   selectedTimeOption = TimeOption.TwentyFourHours,
+  position,
+  filterContext,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -187,6 +179,7 @@ const TrendingTokenRowItem = ({
     selectNetworkConfigurationsByCaipChainId,
   );
   const { addPopularNetwork } = useAddPopularNetwork();
+  const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Memoize derived values
   const caipChainId = useMemo(
@@ -218,6 +211,23 @@ const TrendingTokenRowItem = ({
   const handlePress = useCallback(async () => {
     if (!assetParams) return;
 
+    // Track token click event BEFORE navigation to ensure capture
+    if (position !== undefined && filterContext) {
+      sessionManager.trackTokenClick({
+        token_symbol: token.symbol,
+        token_address: assetParams.address,
+        token_name: token.name,
+        chain_id: assetParams.chainId,
+        position,
+        price_usd: parseFloat(token.price) || 0,
+        price_change_pct: pricePercentChange ?? 0,
+        time_filter: filterContext.timeFilter,
+        sort_option: filterContext.sortOption || PriceChangeOption.PriceChange,
+        network_filter: filterContext.networkFilter,
+        is_search_result: filterContext.isSearchResult,
+      });
+    }
+
     const isNetworkAdded = Boolean(networkConfigurations[caipChainId]);
 
     if (!isNetworkAdded) {
@@ -239,13 +249,21 @@ const TrendingTokenRowItem = ({
       }
     }
 
-    navigation.navigate('Asset', assetParams);
+    // Use push so we always open a new Asset screen for the tapped token.
+    // This prevents issues such as dismissing screens like Bridge instead
+    // of navigating forward to the new token.
+    navigation.dispatch(StackActions.push('Asset', assetParams));
   }, [
     assetParams,
     caipChainId,
     navigation,
     networkConfigurations,
     addPopularNetwork,
+    position,
+    filterContext,
+    pricePercentChange,
+    token,
+    sessionManager,
   ]);
 
   return (

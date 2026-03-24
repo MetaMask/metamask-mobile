@@ -5,13 +5,13 @@ import {
   PERFORMANCE_CONFIG,
   PERPS_CONSTANTS,
   VALIDATION_THRESHOLDS,
-} from '../constants/perpsConfig';
-import { TRADING_DEFAULTS } from '../constants/hyperLiquidConfig';
-import { PERPS_ERROR_CODES } from '../controllers/perpsErrorCodes';
-import type { OrderParams } from '../controllers/types';
-import type { OrderFormState } from '../types/perps-types';
+  TRADING_DEFAULTS,
+  PERPS_ERROR_CODES,
+  getMaxOrderValue,
+  type OrderParams,
+  type OrderFormState,
+} from '@metamask/perps-controller';
 import { formatPerpsFiat } from '../utils/formatUtils';
-import { getMaxOrderValue } from '../utils/hyperLiquidValidation';
 import { translatePerpsError } from '../utils/translatePerpsError';
 import { usePerpsNetwork } from './usePerpsNetwork';
 import { usePerpsTrading } from './usePerpsTrading';
@@ -153,7 +153,7 @@ export function usePerpsOrderValidation(
         ) {
           errorContext.min = 1;
           // Use default max leverage since we don't have market-specific data here
-          errorContext.max = PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE;
+          errorContext.max = PERPS_CONSTANTS.DefaultMaxLeverage;
         } else if (
           protocolValidation.error ===
           PERPS_ERROR_CODES.ORDER_LEVERAGE_BELOW_POSITION
@@ -166,7 +166,7 @@ export function usePerpsOrderValidation(
         ) {
           // Calculate max order value based on default leverage and order type
           const maxValue = getMaxOrderValue(
-            PERPS_CONSTANTS.DEFAULT_MAX_LEVERAGE,
+            PERPS_CONSTANTS.DefaultMaxLeverage,
             orderForm.type,
           );
           errorContext.maxValue = formatPerpsFiat(maxValue, {
@@ -199,7 +199,7 @@ export function usePerpsOrderValidation(
       const warnings: string[] = [];
 
       // High leverage warning
-      if (orderForm.leverage > VALIDATION_THRESHOLDS.HIGH_LEVERAGE_WARNING) {
+      if (orderForm.leverage > VALIDATION_THRESHOLDS.HighLeverageWarning) {
         warnings.push(strings('perps.order.validation.high_leverage_warning'));
       }
 
@@ -260,7 +260,7 @@ export function usePerpsOrderValidation(
     validationTimerRef.current = setTimeout(() => {
       performValidation();
       validationTimerRef.current = null;
-    }, PERFORMANCE_CONFIG.VALIDATION_DEBOUNCE_MS);
+    }, PERFORMANCE_CONFIG.ValidationDebounceMs);
 
     // Cleanup
     return () => {

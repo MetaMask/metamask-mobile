@@ -5,7 +5,6 @@ import {
   useFocusEffect,
   StackActions,
 } from '@react-navigation/native';
-import { useDispatch } from 'react-redux';
 import { SolScope } from '@metamask/keyring-api';
 import useSpendingLimit, { UseSpendingLimitParams } from './useSpendingLimit';
 import { useCardDelegation } from './useCardDelegation';
@@ -13,10 +12,10 @@ import { useCardSDK } from '../sdk';
 import { AllowanceState, CardTokenAllowance } from '../types';
 import { BAANX_MAX_LIMIT } from '../constants';
 import { LINEA_CAIP_CHAIN_ID } from '../util/buildTokenList';
-import { useMetrics } from '../../../hooks/useMetrics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { ToastContext } from '../../../../component-library/components/Toast';
 import Logger from '../../../../util/Logger';
-import { clearCacheData } from '../../../../core/redux/slices/card';
+import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 
@@ -29,8 +28,9 @@ jest.mock('@react-navigation/native', () => ({
   },
 }));
 
-jest.mock('react-redux', () => ({
-  useDispatch: jest.fn(),
+const mockInvalidateQueries = jest.fn();
+jest.mock('@tanstack/react-query', () => ({
+  useQueryClient: jest.fn(),
 }));
 
 // Create the mock class inside the factory to avoid hoisting issues
@@ -51,32 +51,21 @@ jest.mock('../sdk', () => ({
   useCardSDK: jest.fn(),
 }));
 
-const mockTheme = {
-  colors: {
-    success: { default: '#00ff00', muted: '#00ff0033' },
-    error: { default: '#ff0000', muted: '#ff000033' },
-  },
-};
+jest.mock('../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(() => mockTheme),
-}));
-
-jest.mock('../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_VIEWED: 'CARD_VIEWED',
-    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
-  },
+jest.mock('../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 jest.mock('../../../../util/Logger', () => ({
   log: jest.fn(),
   error: jest.fn(),
-}));
-
-jest.mock('../../../../core/redux/slices/card', () => ({
-  clearCacheData: jest.fn(),
 }));
 
 jest.mock('../components/AssetSelectionBottomSheet', () => ({
@@ -89,12 +78,13 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 const mockUseFocusEffect = useFocusEffect as jest.MockedFunction<
   typeof useFocusEffect
 >;
-const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockUseCardDelegation = useCardDelegation as jest.MockedFunction<
   typeof useCardDelegation
 >;
 const mockUseCardSDK = useCardSDK as jest.MockedFunction<typeof useCardSDK>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 const mockCreateAssetSelectionModalNavigationDetails =
   createAssetSelectionModalNavigationDetails as jest.MockedFunction<
     typeof createAssetSelectionModalNavigationDetails
@@ -149,7 +139,6 @@ describe('useSpendingLimit', () => {
     dispatch: jest.Mock;
     setParams: jest.Mock;
   };
-  let mockDispatch: jest.Mock;
   let mockSubmitDelegation: jest.Mock;
   let mockTrackEvent: jest.Mock;
   let mockCreateEventBuilder: jest.Mock;
@@ -161,6 +150,15 @@ describe('useSpendingLimit', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     jest.useFakeTimers();
+
+    mockInvalidateQueries.mockResolvedValue(undefined);
+    (
+      jest.requireMock('@tanstack/react-query') as {
+        useQueryClient: jest.Mock;
+      }
+    ).useQueryClient.mockReturnValue({
+      invalidateQueries: mockInvalidateQueries,
+    });
 
     // Setup navigation mock
     mockNavigation = {
@@ -175,10 +173,6 @@ describe('useSpendingLimit', () => {
     mockUseFocusEffect.mockImplementation((callback) => {
       callback();
     });
-
-    // Setup dispatch mock
-    mockDispatch = jest.fn();
-    mockUseDispatch.mockReturnValue(mockDispatch);
 
     // Setup delegation mock
     mockSubmitDelegation = jest.fn().mockResolvedValue(undefined);
@@ -203,7 +197,7 @@ describe('useSpendingLimit', () => {
       addProperties: mockAddProperties,
     });
     mockTrackEvent = jest.fn();
-    mockUseMetrics.mockReturnValue({
+    mockUseAnalytics.mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     } as never);
@@ -264,7 +258,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.selectedToken).toEqual(priorityToken);
     });
 
-    it('falls back to mUSD when Solana is priority token', () => {
+    it('selects Solana priority token when provided', () => {
       const priorityToken = createMockToken({
         symbol: 'SOL',
         caipChainId: SolScope.Mainnet,
@@ -273,8 +267,7 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ priorityToken })),
       );
 
-      // mUSD is selected as fallback when priorityToken is Solana
-      expect(result.current.selectedToken?.symbol).toBe('mUSD');
+      expect(result.current.selectedToken?.symbol).toBe('SOL');
     });
   });
 
@@ -366,40 +359,6 @@ describe('useSpendingLimit', () => {
     });
   });
 
-  describe('isSolanaSelected', () => {
-    it('returns false when no token is selected', () => {
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams()),
-      );
-
-      expect(result.current.isSolanaSelected).toBe(false);
-    });
-
-    it('returns true when Solana token is selected', () => {
-      const initialToken = createMockToken({
-        symbol: 'SOL',
-        caipChainId: SolScope.Mainnet,
-      });
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ initialToken })),
-      );
-
-      expect(result.current.isSolanaSelected).toBe(true);
-    });
-
-    it('returns true when token has solana: prefix', () => {
-      const initialToken = createMockToken({
-        symbol: 'SOL',
-        caipChainId: 'solana:mainnet' as never,
-      });
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ initialToken })),
-      );
-
-      expect(result.current.isSolanaSelected).toBe(true);
-    });
-  });
-
   describe('Limit Type and Custom Limit', () => {
     it('setLimitType changes limit type', () => {
       const { result } = renderHook(() =>
@@ -472,7 +431,7 @@ describe('useSpendingLimit', () => {
       expect(result.current.isValid).toBe(true);
     });
 
-    it('returns false when Solana token is selected', () => {
+    it('returns true when Solana token is selected', () => {
       const initialToken = createMockToken({
         caipChainId: SolScope.Mainnet,
       });
@@ -480,7 +439,7 @@ describe('useSpendingLimit', () => {
         useSpendingLimit(createDefaultParams({ initialToken })),
       );
 
-      expect(result.current.isValid).toBe(false);
+      expect(result.current.isValid).toBe(true);
     });
 
     it('returns false for restricted limit with empty custom limit', () => {
@@ -649,9 +608,9 @@ describe('useSpendingLimit', () => {
         await submitPromise;
       });
 
-      expect(mockDispatch).toHaveBeenCalledWith(
-        clearCacheData('card-external-wallet-details'),
-      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith({
+        queryKey: cardQueries.dashboard.keys.externalWalletDetails(),
+      });
     });
 
     it('shows success toast for non-onboarding flow', async () => {
@@ -923,6 +882,58 @@ describe('useSpendingLimit', () => {
         returnedSelectedToken: undefined,
         selectedToken: undefined,
       });
+    });
+
+    it('does not overwrite user selection when quickSelectTokens loads after returning from bottom sheet', () => {
+      const userSelectedToken = createMockToken({
+        symbol: 'ETH',
+        caipChainId: LINEA_CAIP_CHAIN_ID,
+      });
+
+      // Store the focus callback
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      // Start with empty allTokens (simulating async loading)
+      const { result, rerender } = renderHook(
+        (props: UseSpendingLimitParams) => useSpendingLimit(props),
+        {
+          initialProps: createDefaultParams({
+            allTokens: [],
+            delegationSettings: null,
+            routeParams: { returnedSelectedToken: userSelectedToken },
+          }),
+        },
+      );
+
+      // Simulate user returning from bottom sheet with their selection
+      act(() => {
+        if (focusCallback) {
+          focusCallback();
+        }
+      });
+
+      // Verify user's selection is set
+      expect(result.current.selectedToken).toEqual(userSelectedToken);
+
+      // Now simulate quickSelectTokens loading with mUSD available
+      const loadedTokens = [
+        createMockToken({ symbol: 'mUSD' }),
+        createMockToken({ symbol: 'USDC' }),
+      ];
+
+      rerender(
+        createDefaultParams({
+          allTokens: loadedTokens,
+          delegationSettings: createMockDelegationSettings(),
+          routeParams: {},
+        }),
+      );
+
+      // User's selection should NOT be overwritten by mUSD fallback
+      expect(result.current.selectedToken).toEqual(userSelectedToken);
     });
   });
 

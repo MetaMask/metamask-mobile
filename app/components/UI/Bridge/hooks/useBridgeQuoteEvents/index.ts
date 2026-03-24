@@ -12,7 +12,8 @@ import {
 } from '@metamask/bridge-controller';
 
 /**
- * Hook for publishing the QuotesReceived event
+ * Hook for publishing the QuotesReceived event.
+ * Location is automatically injected by the bridge controller via setLocation().
  */
 export const useBridgeQuoteEvents = ({
   hasInsufficientBalance,

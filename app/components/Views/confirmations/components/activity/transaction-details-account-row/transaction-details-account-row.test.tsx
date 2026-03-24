@@ -47,6 +47,7 @@ describe('TransactionDetailsAccountRow', () => {
   });
 
   it('renders address if no account name', () => {
+    // @ts-expect-error - testing undefined return value
     useAccountNamesMock.mockReturnValue([undefined]);
 
     const { getByText } = render();

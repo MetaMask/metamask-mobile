@@ -1,0 +1,191 @@
+import { SmokeConfirmations } from '../../../tags';
+import { loginToApp } from '../../../flows/wallet.flow';
+import { navigateToBrowserView } from '../../../flows/browser.flow';
+import Browser from '../../../page-objects/Browser/BrowserView';
+import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
+import TabBarComponent from '../../../page-objects/wallet/TabBarComponent';
+import ConfirmationUITypes from '../../../page-objects/Browser/Confirmations/ConfirmationUITypes';
+import FooterActions from '../../../page-objects/Browser/Confirmations/FooterActions';
+import Assertions from '../../../framework/Assertions';
+import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
+import { buildPermissions } from '../../../framework/fixtures/FixtureUtils';
+import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
+import {
+  SEND_ETH_SIMULATION_MOCK,
+  SIMULATION_ENABLED_NETWORKS_MOCK,
+} from '../../../api-mocking/mock-responses/simulations';
+import TestDApp from '../../../page-objects/Browser/TestDApp';
+import { DappVariants } from '../../../framework/Constants';
+import { Mockttp } from 'mockttp';
+import {
+  setupMockRequest,
+  setupMockPostRequest,
+} from '../../../api-mocking/helpers/mockHelpers';
+import Gestures from '../../../framework/Gestures';
+import {
+  SECURITY_ALERTS_BENIGN_RESPONSE,
+  SECURITY_ALERTS_REQUEST_BODY,
+  securityAlertsUrl,
+} from '../../../api-mocking/mock-responses/security-alerts-mock';
+import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
+import { DEFAULT_ANVIL_PORT } from '../../../seeder/anvil-manager';
+import { dappInitiatedTransferAnalyticsExpectations } from '../../../helpers/analytics/expectations/dapp-initiated-transfer.analytics';
+
+describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
+  const testSpecificMock = async (mockServer: Mockttp) => {
+    await setupMockPostRequest(
+      mockServer,
+      securityAlertsUrl('0x539'),
+      SECURITY_ALERTS_REQUEST_BODY,
+      SECURITY_ALERTS_BENIGN_RESPONSE,
+      {
+        statusCode: 201,
+        ignoreFields: [
+          'networkClientId',
+          'id',
+          'toNative',
+          'origin',
+          'params[0].to',
+          'params[0].gas',
+          'params[0].gasPrice',
+        ],
+      },
+    );
+
+    await setupMockRequest(mockServer, {
+      requestMethod: 'GET',
+      url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,
+      response: SIMULATION_ENABLED_NETWORKS_MOCK.response,
+      responseCode: 200,
+    });
+
+    const {
+      urlEndpoint: simulationEndpoint,
+      requestBody,
+      response: simulationResponse,
+      ignoreFields,
+    } = SEND_ETH_SIMULATION_MOCK;
+
+    await setupMockPostRequest(
+      mockServer,
+      simulationEndpoint,
+      requestBody,
+      simulationResponse,
+      {
+        statusCode: 200,
+        ignoreFields,
+      },
+    );
+    await setupRemoteFeatureFlagsMock(
+      mockServer,
+      Object.assign({}, ...confirmationFeatureFlags),
+    );
+  };
+
+  beforeAll(async () => {
+    jest.setTimeout(2500000);
+  });
+
+  it('sends native asset and validates MetaMetrics transaction events', async () => {
+    await withFixtures(
+      {
+        dapps: [
+          {
+            dappVariant: DappVariants.TEST_DAPP,
+          },
+        ],
+        fixture: new FixtureBuilder()
+          .withNetworkController({
+            chainId: '0x539',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Local RPC',
+            ticker: 'ETH',
+          })
+          .withNetworkEnabledMap({
+            eip155: { '0x539': true },
+          })
+          .withMetaMetricsOptIn()
+          .withPermissionControllerConnectedToTestDapp(
+            buildPermissions(['0x539']),
+          )
+          .build(),
+        restartDevice: true,
+        testSpecificMock,
+        analyticsExpectations: dappInitiatedTransferAnalyticsExpectations,
+      },
+      async () => {
+        await loginToApp();
+
+        await navigateToBrowserView();
+        await Browser.navigateToTestDApp();
+        await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
+          description: 'Test dapp page title should be visible',
+        });
+        await Assertions.expectElementToBeVisible(TestDApp.sendEIP1559Button, {
+          description: 'Send EIP1559 button should be visible',
+        });
+        await TestDApp.tapSendEIP1559Button();
+
+        await Assertions.expectElementToBeVisible(
+          ConfirmationUITypes.ModalConfirmationContainer,
+          {
+            description: 'Transaction confirmation modal should be visible',
+          },
+        );
+        await Assertions.expectElementToBeVisible(RowComponents.TokenHero, {
+          description: 'Token hero row should be visible',
+        });
+        await Assertions.expectTextDisplayed('0 ETH');
+        await Assertions.expectElementToBeVisible(RowComponents.FromTo);
+        await Assertions.expectElementToBeVisible(
+          RowComponents.SimulationDetails,
+        );
+
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(RowComponents.SimulationDetails, 'up');
+        }
+
+        await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
+
+        if (device.getPlatform() === 'android') {
+          await Gestures.swipe(
+            ConfirmationUITypes.ModalConfirmationContainer,
+            'up',
+            {
+              elemDescription: 'Scroll transaction confirmation content',
+            },
+          );
+        }
+
+        await Assertions.expectElementToBeVisible(
+          RowComponents.SimulationDetails,
+          {
+            description: 'Simulation details row should be visible',
+            timeout: 30000,
+          },
+        );
+        await Assertions.expectElementToBeVisible(
+          RowComponents.GasFeesDetails,
+          {
+            description: 'Gas fees details row should be visible',
+            timeout: 30000,
+          },
+        );
+        await Assertions.expectElementToBeVisible(
+          RowComponents.AdvancedDetails,
+          {
+            description: 'Advanced details row should be visible',
+          },
+        );
+
+        await FooterActions.tapConfirmButton();
+
+        await Browser.tapCloseBrowserButton();
+        await TabBarComponent.tapActivity();
+        await Assertions.expectTextDisplayed('Confirmed');
+      },
+    );
+  });
+});

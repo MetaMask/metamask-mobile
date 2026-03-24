@@ -1,22 +1,17 @@
-import {
-  NavigationProp,
-  RouteProp,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import React, { useMemo, useEffect } from 'react';
-import { Pressable } from 'react-native';
-import {
-  SafeAreaView,
-  useSafeAreaInsets,
-} from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useTheme } from '../../../../../util/theme';
 import Engine from '../../../../../core/Engine';
 import { PredictNavigationParamList } from '../../types/navigation';
 import {
@@ -33,24 +28,19 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import UsdcIcon from './usdc.svg';
 import { PredictActivityDetailsSelectorsIDs } from '../../Predict.testIds';
 interface PredictActivityDetailProps {}
 
 const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
-  const navigation =
-    useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const navigation = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictActivityDetail'>>();
   const { activity } = route.params || {};
-  const { colors } = useTheme();
   const tw = useTailwind();
-  const insets = useSafeAreaInsets();
+  const privacyMode = useSelector(selectPrivacyMode);
 
   // Determine activity type for analytics
   const activityType = useMemo(() => {
@@ -89,6 +79,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     label: string;
     value: string;
     color?: TextColor;
+    isMonetary?: boolean;
   }
 
   const activityDetails = useMemo(() => {
@@ -194,6 +185,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           label: strings('predict.transactions.total_net_pnl'),
           value: totalNetPnlValue,
           color: TextColor.Success,
+          isMonetary: true,
         });
       }
 
@@ -210,6 +202,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
           label: marketLabel,
           value: marketNetPnlValue,
           color: TextColor.Success,
+          isMonetary: true,
         });
       }
     } else {
@@ -217,6 +210,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.predicted_amount'),
           value: predictedAmount,
+          isMonetary: true,
         });
       }
 
@@ -226,6 +220,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             ? strings('predict.transactions.shares_sold')
             : strings('predict.transactions.shares_bought'),
           value: `${formattedShares}`,
+          isMonetary: true,
         });
       }
 
@@ -233,6 +228,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.price_per_share'),
           value: pricePerShare,
+          isMonetary: true,
         });
       }
 
@@ -240,6 +236,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         transactionRows.push({
           label: strings('predict.transactions.price_impact'),
           value: priceImpact,
+          isMonetary: true,
         });
       }
     }
@@ -255,6 +252,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
         label: strings('predict.transactions.net_pnl'),
         value: netPnlValue,
         color: isNegative ? TextColor.Error : TextColor.Success,
+        isMonetary: true,
       });
     }
 
@@ -268,61 +266,44 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
     };
   }, [activity]);
 
-  const renderHeader = () => (
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="mb-6"
-    >
-      <Pressable
-        onPress={handleBackPress}
-        hitSlop={12}
-        accessibilityRole="button"
-        accessibilityLabel={strings('back')}
-        style={tw.style('items-center justify-center rounded-full w-10 h-10')}
-        testID={PredictActivityDetailsSelectorsIDs.BACK_BUTTON}
-      >
-        <Icon
-          name={IconName.ArrowLeft}
-          size={IconSize.Md}
-          color={colors.icon.default}
-        />
-      </Pressable>
-      <Text
-        variant={TextVariant.HeadingMD}
-        color={TextColor.Default}
-        testID={PredictActivityDetailsSelectorsIDs.TITLE_TEXT}
-      >
-        {activityDetails?.headerTitle ??
-          strings('predict.transactions.activity_details')}
-      </Text>
-      <Box twClassName="w-10" />
-    </Box>
-  );
-
   const renderDetailRow = (
     label: string,
     value: string,
     valueColor?: TextColor,
     key?: React.Key,
+    isMonetary?: boolean,
   ) => (
     <Box
       key={key ?? label}
       flexDirection={BoxFlexDirection.Row}
       alignItems={BoxAlignItems.Center}
       justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3"
+      twClassName="py-3 gap-2"
     >
-      <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
-        {label}
-      </Text>
       <Text
         variant={TextVariant.BodyMD}
-        color={valueColor || TextColor.Default}
+        color={TextColor.Alternative}
+        style={tw.style('flex-1')}
       >
-        {value}
+        {label}
       </Text>
+      {isMonetary ? (
+        <SensitiveText
+          variant={TextVariant.BodyMD}
+          color={valueColor || TextColor.Default}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
+        >
+          {value}
+        </SensitiveText>
+      ) : (
+        <Text
+          variant={TextVariant.BodyMD}
+          color={valueColor || TextColor.Default}
+        >
+          {value}
+        </Text>
+      )}
     </Box>
   );
 
@@ -341,13 +322,15 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             accessibilityLabel="USDC"
           />
         </Box>
-        <Text
+        <SensitiveText
           variant={TextVariant.HeadingLG}
           color={TextColor.Default}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Medium}
           testID={PredictActivityDetailsSelectorsIDs.AMOUNT_DISPLAY}
         >
           {activityDetails.amountDisplay}
-        </Text>
+        </SensitiveText>
       </Box>
     );
   };
@@ -361,7 +344,13 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       <Box twClassName="mb-6">
         {activityDetails.marketRows.map((row, index) => (
           <React.Fragment key={`${row.label}-${index}`}>
-            {renderDetailRow(row.label, row.value, row.color)}
+            {renderDetailRow(
+              row.label,
+              row.value,
+              row.color,
+              undefined,
+              row.isMonetary,
+            )}
             {index < activityDetails.marketRows.length - 1 ? (
               <Box twClassName="w-full h-px" />
             ) : null}
@@ -384,7 +373,13 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       <Box twClassName="mb-6">
         {activityDetails.transactionRows.map((row, index) => {
           const key = `${row.label}-${index}`;
-          const rowNode = renderDetailRow(row.label, row.value, row.color, key);
+          const rowNode = renderDetailRow(
+            row.label,
+            row.value,
+            row.color,
+            key,
+            row.isMonetary,
+          );
           return <React.Fragment key={key}>{rowNode}</React.Fragment>;
         })}
       </Box>
@@ -404,6 +399,7 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
             row.value,
             row.color,
             `${row.label}-${index}`,
+            row.isMonetary,
           ),
         )}
       </Box>
@@ -417,8 +413,18 @@ const PredictActivityDetails: React.FC<PredictActivityDetailProps> = () => {
       testID={PredictActivityDetailsSelectorsIDs.CONTAINER}
     >
       <Box twClassName="flex-1">
-        <Box twClassName="px-4" style={{ paddingTop: insets.top + 12 }}>
-          {renderHeader()}
+        <HeaderCompactStandard
+          title={
+            activityDetails?.headerTitle ??
+            strings('predict.transactions.activity_details')
+          }
+          onBack={handleBackPress}
+          backButtonProps={{
+            testID: PredictActivityDetailsSelectorsIDs.BACK_BUTTON,
+          }}
+          includesTopInset
+        />
+        <Box twClassName="px-4">
           {renderAmountDisplay()}
           {renderPredictionMarketDetails()}
           {renderTransactionDetails()}

@@ -1,27 +1,40 @@
 import { StyleSheet } from 'react-native';
 
-const styleSheet = () =>
-  StyleSheet.create({
+import { Theme } from '../../../../../../../util/theme/models';
+
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
     container: {
+      flexDirection: 'column',
+      paddingHorizontal: 8,
+    },
+    row: {
+      paddingBottom: 12,
+    },
+    rowSeparator: {
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: theme.colors.border.muted,
+      paddingTop: 12,
+      paddingBottom: 8,
+    },
+    label: {
+      paddingBottom: 4,
+    },
+    labelRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      paddingTop: 2,
-      paddingBottom: 5,
-      paddingHorizontal: 4,
+      gap: 4,
+      marginLeft: -8,
     },
-    nameContainer: {
-      flex: 1,
-      display: 'flex',
+    addressRow: {
       flexDirection: 'row',
+      alignItems: 'center',
+      gap: 8,
     },
-    leftNameContainer: {
-      justifyContent: 'flex-start',
-    },
-    rightNameContainer: {
-      justifyContent: 'flex-end',
-    },
-    iconContainer: {
-      paddingHorizontal: 8,
+    addressContent: {
+      flex: 1,
     },
     skeletonBorderRadiusLarge: {
       borderRadius: 18,
@@ -30,5 +43,6 @@ const styleSheet = () =>
       borderRadius: 4,
     },
   });
+};
 
 export default styleSheet;

@@ -3,6 +3,7 @@ import { Hex } from '@metamask/utils';
 import Logger from '../../../../util/Logger';
 import { validateDepositTransactions } from './validateTransactions';
 
+import { POLYMARKET_PROVIDER_ID } from '../providers/polymarket/constants';
 jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -24,7 +25,7 @@ function createValidTransaction(overrides = {}) {
 }
 
 describe('validateDepositTransactions', () => {
-  const context = { providerId: 'polymarket' };
+  const context = { providerId: POLYMARKET_PROVIDER_ID };
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -164,13 +165,13 @@ describe('validateDepositTransactions', () => {
       expect.objectContaining({
         tags: expect.objectContaining({
           feature: 'Predict',
-          provider: 'polymarket',
+          provider: POLYMARKET_PROVIDER_ID,
         }),
         context: expect.objectContaining({
           name: 'PredictController',
           data: expect.objectContaining({
             method: 'depositWithConfirmation',
-            providerId: 'polymarket',
+            providerId: POLYMARKET_PROVIDER_ID,
             transactionIndex: 0,
           }),
         }),

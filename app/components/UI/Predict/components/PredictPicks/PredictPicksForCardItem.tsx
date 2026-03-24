@@ -7,9 +7,9 @@ import {
 } from '@metamask/design-system-react-native';
 import { formatPrice } from '../../utils/format';
 import { strings } from '../../../../../../locales/i18n';
-import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { usePredictOptimisticPositionRefresh } from '../../hooks/usePredictOptimisticPositionRefresh';
+import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import type { PredictPosition } from '../../types';
+import { PREDICT_PICKS_FOR_CARD_ITEM_TEST_IDS } from './PredictPicksForCardItem.testIds';
 
 interface PredictPicksForCardItemProps {
   position: PredictPosition;
@@ -20,11 +20,7 @@ const PredictPicksForCardItem: React.FC<PredictPicksForCardItemProps> = ({
   position,
   testID,
 }) => {
-  const currentPosition = usePredictOptimisticPositionRefresh({
-    position,
-  });
-
-  const isOptimistic = currentPosition.optimistic ?? false;
+  const isOptimistic = position.optimistic ?? false;
 
   return (
     <Box
@@ -54,7 +50,7 @@ const PredictPicksForCardItem: React.FC<PredictPicksForCardItemProps> = ({
                   : TextColor.SuccessDefault
               }
               variant={TextVariant.BodyMd}
-              testID={`predict-picks-for-card-pnl-${position.id}`}
+              testID={`${PREDICT_PICKS_FOR_CARD_ITEM_TEST_IDS.PREDICT_PICKS_FOR_CARD_PNL}-${position.id}`}
             >
               {formatPrice(position.cashPnl, { maximumDecimals: 2 })}
             </Text>

@@ -7,79 +7,155 @@ import {
 } from '../../../util/remoteFeatureFlag';
 import { selectBasicFunctionalityEnabled } from '../../settings';
 
-const DEFAULT_REWARDS_ENABLED = false;
-export const REWARDS_ENABLED_FLAG_NAME = 'rewardsEnabled';
+export const BITCOIN_REWARDS_FLAG_NAME = 'rewardsBitcoinEnabled';
+export const TRON_REWARDS_FLAG_NAME = 'rewardsTronEnabled';
+export const MISSING_ENROLLED_ACCOUNTS_FLAG_NAME =
+  'rewards-missing-enrolled-accounts';
+export const CAMPAIGNS_REWARDS_FLAG_NAME = 'rewardsCampaignsEnabled';
 
-export const MUSD_HOLDING_FLAG_NAME = 'rewardsEnableMusdHolding';
-const DEFAULT_MUSD_HOLDING_ENABLED = false;
+const DEFAULT_BITCOIN_REWARDS_ENABLED = false;
+const DEFAULT_TRON_REWARDS_ENABLED = false;
+const DEFAULT_MISSING_ENROLLED_ACCOUNTS_ENABLED = false;
+const DEFAULT_CAMPAIGNS_REWARDS_ENABLED = false;
 
 /**
- * Selector for the raw rewards enabled remote flag value.
+ * Selector for the raw Bitcoin rewards enabled remote flag value.
  * Returns the flag value without considering basic functionality.
  */
-export const selectRewardsEnabledRawFlag = createSelector(
+export const selectBitcoinRewardsEnabledRawFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
-    if (!hasProperty(remoteFeatureFlags, REWARDS_ENABLED_FLAG_NAME)) {
-      return DEFAULT_REWARDS_ENABLED;
+    if (!hasProperty(remoteFeatureFlags, BITCOIN_REWARDS_FLAG_NAME)) {
+      return DEFAULT_BITCOIN_REWARDS_ENABLED;
     }
     const remoteFlag = remoteFeatureFlags[
-      REWARDS_ENABLED_FLAG_NAME
-    ] as unknown as VersionGatedFeatureFlag;
-
-    return (
-      validatedVersionGatedFeatureFlag(remoteFlag) ?? DEFAULT_REWARDS_ENABLED
-    );
-  },
-);
-
-/**
- * Selector for the rewards enabled flag.
- * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
- */
-export const selectRewardsEnabledFlag = createSelector(
-  selectBasicFunctionalityEnabled,
-  selectRewardsEnabledRawFlag,
-  (isBasicFunctionalityEnabled, rewardsEnabledRawFlag) => {
-    if (!isBasicFunctionalityEnabled) {
-      return false;
-    }
-    return rewardsEnabledRawFlag;
-  },
-);
-
-/**
- * Selector for the raw mUSD holding enabled remote flag value.
- * Returns the flag value without considering basic functionality.
- */
-export const selectMusdHoldingEnabledRawFlag = createSelector(
-  selectRemoteFeatureFlags,
-  (remoteFeatureFlags) => {
-    if (!hasProperty(remoteFeatureFlags, MUSD_HOLDING_FLAG_NAME)) {
-      return DEFAULT_MUSD_HOLDING_ENABLED;
-    }
-    const remoteFlag = remoteFeatureFlags[
-      MUSD_HOLDING_FLAG_NAME
+      BITCOIN_REWARDS_FLAG_NAME
     ] as unknown as VersionGatedFeatureFlag;
 
     return (
       validatedVersionGatedFeatureFlag(remoteFlag) ??
-      DEFAULT_MUSD_HOLDING_ENABLED
+      DEFAULT_BITCOIN_REWARDS_ENABLED
     );
   },
 );
 
 /**
- * Selector for the mUSD holding enabled flag.
+ * Selector for the Bitcoin rewards enabled flag.
  * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
  */
-export const selectMusdHoldingEnabledFlag = createSelector(
+export const selectBitcoinRewardsEnabledFlag = createSelector(
   selectBasicFunctionalityEnabled,
-  selectMusdHoldingEnabledRawFlag,
-  (isBasicFunctionalityEnabled, musdHoldingEnabledRawFlag) => {
+  selectBitcoinRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, bitcoinRewardsEnabledRawFlag) => {
     if (!isBasicFunctionalityEnabled) {
       return false;
     }
-    return musdHoldingEnabledRawFlag;
+    return bitcoinRewardsEnabledRawFlag;
+  },
+);
+
+/**
+ * Selector for the raw Tron rewards enabled remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectTronRewardsEnabledRawFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, TRON_REWARDS_FLAG_NAME)) {
+      return DEFAULT_TRON_REWARDS_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      TRON_REWARDS_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_TRON_REWARDS_ENABLED
+    );
+  },
+);
+
+/**
+ * Selector for the Tron rewards enabled flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectTronRewardsEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectTronRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, tronRewardsEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return tronRewardsEnabledRawFlag;
+  },
+);
+
+/**
+ * Selector for the raw missing enrolled accounts remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectMissingEnrolledAccountsRewardsEnabledRawFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, MISSING_ENROLLED_ACCOUNTS_FLAG_NAME)) {
+      return DEFAULT_MISSING_ENROLLED_ACCOUNTS_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      MISSING_ENROLLED_ACCOUNTS_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_MISSING_ENROLLED_ACCOUNTS_ENABLED
+    );
+  });
+
+/**
+ * Selector for the missing enrolled accounts flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectMissingEnrolledAccountsRewardsEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectMissingEnrolledAccountsRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, missingEnrolledAccountsEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return missingEnrolledAccountsEnabledRawFlag;
+  },
+);
+
+/**
+ * Selector for the raw campaigns rewards enabled remote flag value.
+ * Returns the flag value without considering basic functionality.
+ */
+export const selectCampaignsRewardsEnabledRawFlag = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags) => {
+    if (!hasProperty(remoteFeatureFlags, CAMPAIGNS_REWARDS_FLAG_NAME)) {
+      return DEFAULT_CAMPAIGNS_REWARDS_ENABLED;
+    }
+    const remoteFlag = remoteFeatureFlags[
+      CAMPAIGNS_REWARDS_FLAG_NAME
+    ] as unknown as VersionGatedFeatureFlag;
+
+    return (
+      validatedVersionGatedFeatureFlag(remoteFlag) ??
+      DEFAULT_CAMPAIGNS_REWARDS_ENABLED
+    );
+  },
+);
+
+/**
+ * Selector for the campaigns rewards enabled flag.
+ * Returns false if basic functionality is disabled, otherwise returns the remote flag value.
+ */
+export const selectCampaignsRewardsEnabledFlag = createSelector(
+  selectBasicFunctionalityEnabled,
+  selectCampaignsRewardsEnabledRawFlag,
+  (isBasicFunctionalityEnabled, campaignsRewardsEnabledRawFlag) => {
+    if (!isBasicFunctionalityEnabled) {
+      return false;
+    }
+    return campaignsRewardsEnabledRawFlag;
   },
 );

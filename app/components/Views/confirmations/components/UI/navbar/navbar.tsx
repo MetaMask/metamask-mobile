@@ -20,6 +20,8 @@ export interface NavbarOverrides {
   headerTitle?: () => ReactNode;
   /** Custom header left component. Receives onBackPress for rejection handling. */
   headerLeft?: (onBackPress: () => void) => ReactNode;
+  /** Custom header right component. */
+  headerRight?: (onPress: () => void) => ReactNode;
   /** Additional styles to merge with header */
   headerStyle?: ViewStyle;
   headerTitleAlign?: 'left' | 'center';
@@ -50,7 +52,7 @@ export function getNavbar({
       marginRight: Device.isAndroid() ? 60 : undefined,
     },
     headerStyle: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -70,7 +72,7 @@ export function getNavbar({
 
   const defaultHeaderLeft = () => (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
       onPress={handleBackPress}
       style={innerStyles.headerLeft}
@@ -79,6 +81,7 @@ export function getNavbar({
   );
 
   const customHeaderLeft = overrides?.headerLeft;
+  const customHeaderRight = overrides?.headerRight;
 
   return {
     headerTitleAlign: overrides?.headerTitleAlign ?? ('center' as const),
@@ -86,6 +89,9 @@ export function getNavbar({
     headerLeft: customHeaderLeft
       ? () => customHeaderLeft(handleBackPress)
       : defaultHeaderLeft,
+    headerRight: customHeaderRight
+      ? () => customHeaderRight(handleBackPress)
+      : () => null,
     headerStyle: {
       ...innerStyles.headerStyle,
       ...overrides?.headerStyle,

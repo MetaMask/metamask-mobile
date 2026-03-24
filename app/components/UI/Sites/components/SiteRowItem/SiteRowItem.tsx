@@ -40,7 +40,7 @@ const SiteRowItem = ({ site, onPress }: SiteRowItemProps) => {
 
   return (
     <TouchableOpacity
-      testID="site-row-item"
+      testID={`site-row-item-${site.name}`}
       onPress={onPress}
       style={tw.style('flex-row items-center py-2')}
     >

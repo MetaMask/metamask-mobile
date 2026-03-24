@@ -14,7 +14,7 @@ import Icon, {
 } from '../../../../../component-library/components/Icons/Icon';
 import { styleSheet } from './PerpsMarketSortDropdowns.styles';
 import type { PerpsMarketSortDropdownsProps } from './PerpsMarketSortDropdowns.types';
-import { MARKET_SORTING_CONFIG } from '../../constants/perpsConfig';
+import { MARKET_SORTING_CONFIG } from '@metamask/perps-controller';
 
 /**
  * PerpsMarketSortDropdowns Component
@@ -44,7 +44,7 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
 
   // Get display label for current sort option
   const sortLabel = useMemo(() => {
-    const option = MARKET_SORTING_CONFIG.SORT_OPTIONS.find(
+    const option = MARKET_SORTING_CONFIG.SortOptions.find(
       (opt) => opt.id === selectedOptionId,
     );
     return option ? strings(option.labelKey) : strings('perps.sort.volume');
@@ -61,12 +61,12 @@ const PerpsMarketSortDropdowns: React.FC<PerpsMarketSortDropdownsProps> = ({
         onPress={onSortPress}
         testID={`${testID}-sort-field`}
       >
-        <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+        <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
           {sortLabel}
         </Text>
         <Icon
-          name={IconName.ArrowDown}
-          size={IconSize.Xs}
+          name={IconName.SwapVertical}
+          size={IconSize.Sm}
           color={IconColor.Alternative}
         />
       </Pressable>

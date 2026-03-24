@@ -11,13 +11,14 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import { createStyles } from './PerpsOrderTypeBottomSheet.styles';
 import { strings } from '../../../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+  type OrderType,
+} from '@metamask/perps-controller';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import type { OrderType } from '../../controllers/types';
+import { PerpsOrderTypeBottomSheetSelectorsIDs } from '../../Perps.testIds';
 
 interface PerpsOrderTypeBottomSheetProps {
   isVisible?: boolean;
@@ -55,11 +56,13 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       type: 'market' as OrderType,
       title: strings('perps.order.type.market.title'),
       description: strings('perps.order.type.market.description'),
+      testID: PerpsOrderTypeBottomSheetSelectorsIDs.MARKET_OPTION,
     },
     {
       type: 'limit' as OrderType,
       title: strings('perps.order.type.limit.title'),
       description: strings('perps.order.type.limit.description'),
+      testID: PerpsOrderTypeBottomSheetSelectorsIDs.LIMIT_OPTION,
     },
   ];
 
@@ -67,17 +70,17 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
     // Track order type selected only if it's different from current
     if (type !== currentOrderType) {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]:
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.ORDER_TYPE_SELECTED,
+        [PERPS_EVENT_PROPERTY.ASSET]: asset,
+        [PERPS_EVENT_PROPERTY.DIRECTION]:
           direction === 'long'
-            ? PerpsEventValues.DIRECTION.LONG
-            : PerpsEventValues.DIRECTION.SHORT,
-        [PerpsEventProperties.ORDER_TYPE]:
+            ? PERPS_EVENT_VALUE.DIRECTION.LONG
+            : PERPS_EVENT_VALUE.DIRECTION.SHORT,
+        [PERPS_EVENT_PROPERTY.ORDER_TYPE]:
           type === 'market'
-            ? PerpsEventValues.ORDER_TYPE.MARKET
-            : PerpsEventValues.ORDER_TYPE.LIMIT,
+            ? PERPS_EVENT_VALUE.ORDER_TYPE.MARKET
+            : PERPS_EVENT_VALUE.ORDER_TYPE.LIMIT,
       });
     }
 
@@ -100,9 +103,10 @@ const PerpsOrderTypeBottomSheet: React.FC<PerpsOrderTypeBottomSheetProps> = ({
       </BottomSheetHeader>
 
       <View style={styles.container}>
-        {orderTypes.map(({ type, title, description }) => (
+        {orderTypes.map(({ type, title, description, testID }) => (
           <TouchableOpacity
             key={type}
+            testID={testID}
             style={[
               styles.option,
               currentOrderType === type && styles.optionSelected,

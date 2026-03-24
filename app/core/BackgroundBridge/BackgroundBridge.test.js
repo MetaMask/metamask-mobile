@@ -43,17 +43,6 @@ jest.mock('../Engine', () => ({
     tryUnsubscribe: jest.fn(),
     unsubscribe: jest.fn(),
   },
-  datamodel: {
-    state: {
-      PreferencesController: {
-        selectedAddress: '0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571',
-      },
-      AccountTreeController: {
-        selectedAccountGroup:
-          'eip155:1:0x742C3cF9Af45f91B109a81EfEaf11535ECDe9571',
-      },
-    },
-  },
   context: {
     AccountsController: {
       listAccounts: jest.fn(),

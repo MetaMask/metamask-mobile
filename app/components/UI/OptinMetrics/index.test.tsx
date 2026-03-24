@@ -5,6 +5,8 @@ import { strings } from '../../../../locales/i18n';
 import { MetaMetricsOptInSelectorsIDs } from './MetaMetricsOptIn.testIds';
 import { Platform } from 'react-native';
 import Device from '../../../util/device';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { AccountType } from '../../../constants/onboarding';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -145,6 +147,16 @@ describe('OptinMetrics', () => {
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({
             name: 'Analytics Preference Selected',
             properties: expect.objectContaining({
               has_marketing_consent: false,
@@ -176,6 +188,16 @@ describe('OptinMetrics', () => {
         expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
           1,
           expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenNthCalledWith(
+          2,
+          expect.objectContaining({
             name: 'Analytics Preference Selected',
             properties: expect.objectContaining({
               has_marketing_consent: true,
@@ -190,6 +212,101 @@ describe('OptinMetrics', () => {
           deviceProp: 'Device value',
           userProp: 'User value',
         });
+      });
+    });
+  });
+
+  describe('account_type property in events', () => {
+    it('includes account_type in ANALYTICS_PREFERENCE_SELECTED when accountType route param is provided', async () => {
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+        { accountType: AccountType.Imported },
+      );
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_IN.category,
+            properties: expect.objectContaining({
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+              account_type: AccountType.Imported,
+            }),
+          }),
+        );
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.objectContaining({
+              is_metrics_opted_in: true,
+              location: 'onboarding_metametrics',
+              updated_after_onboarding: false,
+              account_type: AccountType.Imported,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('includes account_type in METRICS_OPT_OUT when accountType route param is provided', async () => {
+      renderScreen(
+        OptinMetrics,
+        { name: 'OptinMetrics' },
+        { state: {} },
+        { accountType: AccountType.Metamask },
+      );
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+              account_type: AccountType.Metamask,
+            }),
+          }),
+        );
+      });
+    });
+
+    it('does not include account_type when accountType route param is not provided', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      fireEvent.press(
+        screen.getByRole('button', {
+          name: strings('privacy_policy.continue'),
+        }),
+      );
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Analytics Preference Selected',
+            properties: expect.not.objectContaining({
+              account_type: expect.anything(),
+            }),
+          }),
+        );
       });
     });
   });
@@ -273,6 +390,94 @@ describe('OptinMetrics', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.optOut).toHaveBeenCalled();
+      });
+    });
+
+    it('tracks METRICS_OPT_OUT when user navigates out with basic usage unchecked', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+
+      fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('tracks METRICS_OPT_OUT when navigating out via checkbox component uncheck', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const checkboxes = screen.getAllByRole('checkbox');
+      const basicUsageCheckbox = checkboxes[0];
+
+      fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+            }),
+          }),
+        );
+      });
+    });
+
+    it('unchecks marketing when basic usage is unchecked and fires METRICS_OPT_OUT on navigate out', async () => {
+      renderScreen(OptinMetrics, { name: 'OptinMetrics' }, { state: {} });
+
+      const marketingCheckbox = screen.getByText(
+        strings('privacy_policy.checkbox_marketing'),
+      );
+      fireEvent.press(marketingCheckbox);
+
+      const basicUsageCheckbox = screen.getByText(
+        strings('privacy_policy.gather_basic_usage_title'),
+      );
+      fireEvent.press(basicUsageCheckbox);
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: MetaMetricsEvents.METRICS_OPT_OUT.category,
+            properties: expect.objectContaining({
+              updated_after_onboarding: false,
+              location: 'onboarding_metametrics',
+            }),
+          }),
+        );
+      });
+
+      fireEvent.press(screen.getByText(strings('privacy_policy.continue')));
+
+      await waitFor(() => {
+        expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            properties: expect.objectContaining({
+              has_marketing_consent: false,
+              is_metrics_opted_in: false,
+            }),
+          }),
+        );
       });
     });
   });

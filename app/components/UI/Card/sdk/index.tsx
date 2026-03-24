@@ -7,7 +7,9 @@ import React, {
   useCallback,
 } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useQueryClient } from '@tanstack/react-query';
 
+import Logger from '../../../../util/Logger';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
@@ -15,16 +17,15 @@ import {
 } from '../../../../selectors/featureFlagController/card';
 import { useCardholderCheck } from '../hooks/useCardholderCheck';
 import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
-import { removeCardBaanxToken } from '../util/cardTokenVault';
 import {
   selectUserCardLocation,
   selectOnboardingId,
   resetOnboardingState,
   resetAuthenticatedData,
-  clearAllCache,
   setContactVerificationId,
   setUserCardLocation,
 } from '../../../../core/redux/slices/card';
+import { cardQueries } from '../queries';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
 import { mapCountryToLocation } from '../util/mapCountryToLocation';
@@ -61,6 +62,7 @@ export const CardSDKProvider = ({
   const userCardLocation = useSelector(selectUserCardLocation);
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
+  const queryClient = useQueryClient();
   const [sdk, setSdk] = useState<CardSDK | null>(null);
   // Start with true to indicate initialization in progress
   const [isLoading, setIsLoading] = useState(true);
@@ -76,12 +78,11 @@ export const CardSDKProvider = ({
         userCardLocation,
       });
       setSdk(cardSDK);
+      setIsLoading(false);
     } else {
       setSdk(null);
       setIsLoading(false);
     }
-
-    setIsLoading(false);
   }, [cardFeatureFlag, userCardLocation]);
 
   const fetchUserData = useCallback(async () => {
@@ -92,7 +93,10 @@ export const CardSDKProvider = ({
     setIsLoading(true);
 
     try {
-      const userData = await sdk.getRegistrationStatus(onboardingId);
+      const userData = await sdk.getRegistrationStatus(
+        onboardingId,
+        userCardLocation,
+      );
 
       if (userData.contactVerificationId) {
         dispatch(setContactVerificationId(userData.contactVerificationId));
@@ -112,7 +116,7 @@ export const CardSDKProvider = ({
     } finally {
       setIsLoading(false);
     }
-  }, [sdk, onboardingId, dispatch]);
+  }, [sdk, onboardingId, dispatch, userCardLocation]);
 
   // Track whether onboardingId existed at initial mount (for resuming incomplete onboarding)
   const [hasInitialOnboardingId] = useState(() => !!onboardingId);
@@ -135,12 +139,19 @@ export const CardSDKProvider = ({
       throw new Error('SDK not available for logout');
     }
 
-    await removeCardBaanxToken();
+    try {
+      await sdk.logout();
+    } catch (error) {
+      Logger.error(error as Error, {
+        message: '[CardSDK] Logout failed, clearing local state anyway',
+      });
+    }
+
     dispatch(resetAuthenticatedData());
-    dispatch(clearAllCache());
+    queryClient.removeQueries({ queryKey: cardQueries.keys.all() });
     dispatch(resetOnboardingState());
     setUser(null);
-  }, [sdk, dispatch]);
+  }, [sdk, dispatch, queryClient]);
 
   // Memoized context value to prevent unnecessary re-renders
   const contextValue = useMemo(

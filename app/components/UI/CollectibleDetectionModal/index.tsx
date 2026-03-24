@@ -16,7 +16,7 @@ import {
 import { useTheme } from '../../../util/theme';
 import Engine from '../../../core/Engine';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { useNftDetection } from '../../hooks/useNftDetection';
 
 const styles = StyleSheet.create({
@@ -29,7 +29,7 @@ const styles = StyleSheet.create({
 const CollectibleDetectionModal = () => {
   const { colors } = useTheme();
   const { toastRef } = useContext(ToastContext);
-  const { addTraitsToUser } = useMetrics();
+  const { addTraitsToUser } = useAnalytics();
   const { detectNfts } = useNftDetection();
 
   const showToastAndEnableNFtDetection = useCallback(() => {

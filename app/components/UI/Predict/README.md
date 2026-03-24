@@ -23,12 +23,12 @@ The Predict feature enables users to participate in prediction markets within Me
 ├── /components                  # Reusable UI components
 │   ├── /MarketListContent       # Market list display component
 │   ├── /MarketsWonCard          # Won markets display card
+│   ├── /PredictHome             # Homepage components (positions, featured markets)
 │   ├── /PredictMarket           # Market wrapper component (routes to single/multiple)
 │   ├── /PredictMarketSingle     # Single outcome market card component
 │   ├── /PredictMarketMultiple   # Multiple outcome market selection component
 │   ├── /PredictNewButton        # New prediction creation button
 │   ├── /PredictPosition         # Position display component
-│   ├── /PredictPositionEmpty    # Empty state for positions
 │   └── /SearchBox               # Market search component
 ├── /controllers                 # Controllers for PredictMarket
 │   └── PredictController.ts     # Main controller with tests

@@ -6,7 +6,13 @@ import {
   LoginHandlerResult,
 } from '../OAuthInterface';
 import { OAuthError, OAuthErrorType } from '../error';
-import { fromBase64UrlSafe, toBase64UrlSafe } from './utils';
+import {
+  fromBase64UrlSafe,
+  isRetryableError,
+  retryWithDelay,
+  toBase64UrlSafe,
+} from './utils';
+import Logger from '../../../util/Logger';
 import { bytesToString } from '@metamask/utils';
 import { toByteArray, fromByteArray } from 'react-native-quick-base64';
 import QuickCrypto from 'react-native-quick-crypto';
@@ -47,6 +53,9 @@ export async function getAuthTokens(
       res.status
     }]: ${await res.text()}`,
     OAuthErrorType.AuthServerError,
+    {
+      status: res.status,
+    },
   );
 }
 
@@ -92,14 +101,45 @@ export abstract class BaseLoginHandler {
   abstract getAuthTokenRequestData(params: HandleFlowParams): AuthRequestParams;
 
   /**
-   * Get the auth tokens from the auth server
+   * Get the auth tokens from the auth server with automatic retry logic.
+   *
+   * Retries are performed with exponential backoff and jitter for transient failures
+   * (network errors, 5xx server errors). Client errors (4xx) are not retried as they
+   * indicate issues with the request itself.
    *
    * @param params - The params from the login handler
    * @param authServerUrl - The url of the auth server
+   * @returns Promise resolving to the auth response
    */
   getAuthTokens(params: HandleFlowParams, authServerUrl: string) {
     const requestData = this.getAuthTokenRequestData(params);
-    return getAuthTokens(requestData, this.authServerPath, authServerUrl);
+    const authConnection = this.authConnection;
+
+    return retryWithDelay(
+      () => getAuthTokens(requestData, this.authServerPath, authServerUrl),
+      {
+        maxRetries: 3,
+        baseDelayMs: 500,
+        maxDelayMs: 5000,
+        jitterFactor: 0.25,
+        shouldRetry: isRetryableError,
+        onRetry: ({ attempt, willRetry, delayMs, error }) => {
+          const errorMessage =
+            error instanceof Error ? error.message : String(error);
+          if (willRetry) {
+            Logger.log(
+              `[OAuth:${authConnection}] getAuthTokens failed (attempt ${attempt + 1}/4), ` +
+                `retrying in ${delayMs}ms: ${errorMessage}`,
+            );
+          } else {
+            Logger.log(
+              `[OAuth:${authConnection}] getAuthTokens failed (attempt ${attempt + 1}/4), ` +
+                `not retrying: ${errorMessage}`,
+            );
+          }
+        },
+      },
+    );
   }
 
   /**

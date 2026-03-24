@@ -1,27 +1,37 @@
 import { useCallback } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useCardSDK } from '../sdk';
-import { useWrapWithCache } from './useWrapWithCache';
+import { cardQueries } from '../queries';
 
 /**
- * Hook to fetch and cache registration settings from the Card SDK
+ * Hook to fetch and cache registration settings from the Card SDK.
  *
  * @returns Object containing registration settings data, loading state, error, and fetch function
  */
 const useRegistrationSettings = () => {
   const { sdk } = useCardSDK();
 
-  const fetchRegistrationSettings = useCallback(async () => {
-    if (!sdk) {
-      throw new Error('Card SDK not available');
-    }
-    return sdk.getRegistrationSettings();
-  }, [sdk]);
+  const { data, isLoading, error, refetch } = useQuery({
+    queryKey: cardQueries.dashboard.keys.registrationSettings(),
+    queryFn: () => {
+      if (!sdk) throw new Error('SDK not initialized');
+      return sdk.getRegistrationSettings();
+    },
+    enabled: !!sdk,
+    staleTime: 5 * 60 * 1000,
+  });
 
-  return useWrapWithCache(
-    'registration-settings',
-    fetchRegistrationSettings,
-    { cacheDuration: 5 * 60 * 1000 }, // 5 minutes cache
-  );
+  const fetchData = useCallback(async () => {
+    const result = await refetch();
+    return result.data ?? null;
+  }, [refetch]);
+
+  return {
+    data: data ?? null,
+    isLoading,
+    error: error as Error | null,
+    fetchData,
+  };
 };
 
 export default useRegistrationSettings;

@@ -21,29 +21,31 @@ jest.mock('../../../util/metrics/MultichainAPI/networkMetricUtils', () => ({
   }),
 }));
 
-jest.mock('../../../components/hooks/useMetrics', () => ({
-  useMetrics: () => ({
+jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn(() => ({
         build: jest.fn(),
       })),
+      build: jest.fn(),
     })),
   }),
 }));
 
-jest.mock('../../../core/Analytics', () => ({
-  MetaMetrics: {
-    getInstance: jest.fn().mockReturnValue({
-      addTraitsToUser: jest.fn(),
-    }),
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    identify: jest.fn(),
   },
+}));
+
+jest.mock('../../../core/Analytics', () => ({
   MetaMetricsEvents: {
     NETWORK_SWITCHED: 'Network Switched',
   },
 }));
 
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as selectedNetworkControllerFcts from '../../../selectors/selectedNetworkController';
 
 const mockEngine = Engine;
@@ -308,13 +310,19 @@ const initialState = {
 
 const Stack = createStackNavigator();
 
+const createMockRoute = () => ({
+  params: {},
+  key: 'NetworkSelector',
+  name: 'NetworkSelector' as const,
+});
+
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const renderComponent = (state: any = {}) =>
   renderWithProvider(
     <Stack.Navigator>
       <Stack.Screen name="NETWORK_SELECTOR">
-        {() => <NetworkSelector />}
+        {() => <NetworkSelector route={createMockRoute()} />}
       </Stack.Screen>
     </Stack.Navigator>,
     { state },

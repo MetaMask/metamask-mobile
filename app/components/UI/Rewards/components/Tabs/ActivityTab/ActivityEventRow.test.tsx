@@ -88,6 +88,7 @@ jest.mock('../../../../../../util/networks', () => ({
 }));
 
 jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
   parseCaipAssetType: jest.fn(),
 }));
 
@@ -309,15 +310,15 @@ describe('ActivityEventRow', () => {
 
   const mockActivityTypes: SeasonActivityTypeDto[] = [
     {
+      id: 'activity-swap',
       type: 'SWAP',
       title: 'Swap',
-      description: 'Swap desc',
       icon: 'SwapVertical',
     },
     {
+      id: 'activity-card',
       type: 'CARD',
       title: 'Card spend',
-      description: 'Spend',
       icon: 'Card',
     },
   ];

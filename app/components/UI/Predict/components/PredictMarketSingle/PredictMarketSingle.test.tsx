@@ -33,6 +33,15 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
 // Mock usePredictEligibility hook
 const mockUsePredictEligibility = jest.fn();
 jest.mock('../../hooks/usePredictEligibility', () => ({
@@ -53,6 +62,11 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
       isFromTrending: false,
     }),
   },
+}));
+
+// Mock PredictEntryPointContext
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
 }));
 
 // Mock hooks
@@ -115,7 +129,8 @@ describe('PredictMarketSingle', () => {
     });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
   });
 
@@ -344,25 +359,6 @@ describe('PredictMarketSingle', () => {
     expect(getByText('No')).toBeOnTheScreen();
   });
 
-  it('navigates to add funds sheet when user has no balance', () => {
-    // Mock user has no balance
-    mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
-    });
-
-    const { getByText } = renderWithProvider(
-      <PredictMarketSingle market={mockMarket} />,
-      { state: initialState },
-    );
-
-    const yesButton = getByText('Yes');
-    fireEvent.press(yesButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith('PredictModals', {
-      screen: 'PredictAddFundsSheet',
-    });
-  });
-
   it('checks eligibility before balance for Yes button', () => {
     // Mock user is not eligible AND has no balance
     mockUsePredictEligibility.mockReturnValue({
@@ -370,7 +366,8 @@ describe('PredictMarketSingle', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(
@@ -397,7 +394,8 @@ describe('PredictMarketSingle', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getByText } = renderWithProvider(

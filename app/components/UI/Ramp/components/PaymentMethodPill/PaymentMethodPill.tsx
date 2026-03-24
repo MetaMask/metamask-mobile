@@ -1,5 +1,10 @@
 import React from 'react';
 import { TouchableOpacity, View } from 'react-native';
+import {
+  IconColor as DsIconColor,
+  IconSize as DsIconSize,
+} from '@metamask/design-system-react-native';
+import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 
 import Icon, {
   IconName,
@@ -12,12 +17,15 @@ import Text, {
 import { useStyles } from '../../../../../component-library/hooks';
 
 import styleSheet from './PaymentMethodPill.styles';
+import { PAYMENT_METHOD_PILL_TEST_IDS } from './PaymentMethodPill.testIds';
 
 export interface PaymentMethodPillProps {
   /** Payment method label (e.g., "Debit card") */
   label: string;
   /** Optional press handler */
   onPress?: () => void;
+  /** When true, shows loading indicator instead of carat and disables press */
+  isLoading?: boolean;
   /** Test ID for testing */
   testID?: string;
 }
@@ -25,9 +33,21 @@ export interface PaymentMethodPillProps {
 const PaymentMethodPill: React.FC<PaymentMethodPillProps> = ({
   label,
   onPress,
-  testID = 'payment-method-pill',
+  isLoading = false,
+  testID = PAYMENT_METHOD_PILL_TEST_IDS.CONTAINER,
 }) => {
-  const { styles } = useStyles(styleSheet, {});
+  const { styles } = useStyles(styleSheet);
+
+  if (isLoading) {
+    return (
+      <View style={[styles.container, styles.loadingContainer]} testID={testID}>
+        <Spinner
+          color={DsIconColor.IconDefault}
+          spinnerIconProps={{ size: DsIconSize.Sm }}
+        />
+      </View>
+    );
+  }
 
   return (
     <TouchableOpacity

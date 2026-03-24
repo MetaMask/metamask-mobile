@@ -20,7 +20,7 @@ import { getActiveTabUrl } from '../../../../../../util/transactions';
 import { isEqual } from 'lodash';
 import { AssetWatcherSelectorsIDs } from './AssetWatcher.testIds';
 import { getDecimalChainId } from '../../../../../../util/networks';
-import { useMetrics } from '../../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../../../components/hooks/useAnalytics/useAnalytics';
 import Logger from '../../../../../../util/Logger';
 
 const createStyles = (colors) =>
@@ -105,7 +105,7 @@ const WatchAssetRequest = ({
   const { asset, interactingAddress } = suggestedAssetMeta;
   // TODO - Once TokensController is updated, interactingAddress should always be defined
   const { colors } = useTheme();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = createStyles(colors);
   const [balance, , error] = useTokenBalance(asset.address, interactingAddress);
   const chainId = useSelector(selectEvmChainId);

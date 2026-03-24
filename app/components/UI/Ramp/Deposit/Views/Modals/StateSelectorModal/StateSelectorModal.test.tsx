@@ -63,6 +63,7 @@ jest.mock('@react-navigation/native', () => {
       navigate: mockNavigate,
       goBack: mockGoBack,
       dangerouslyGetParent: mockDangerouslyGetParent,
+      isFocused: jest.fn(() => true),
     }),
   };
 });
@@ -186,6 +187,15 @@ describe('StateSelectorModal Component', () => {
       fireEvent.changeText(searchInput, 'Nonexistent');
 
       expect(getByText('No states match "Nonexistent"')).toBeOnTheScreen();
+    });
+
+    it('closes the modal when close button is pressed', () => {
+      const { getByTestId } = renderWithProvider(StateSelectorModal);
+
+      const closeButton = getByTestId('state-selector-close-button');
+      fireEvent.press(closeButton);
+
+      expect(mockGoBack).toHaveBeenCalled();
     });
   });
 });

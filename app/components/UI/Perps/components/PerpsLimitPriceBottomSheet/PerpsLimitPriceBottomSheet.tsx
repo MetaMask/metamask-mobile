@@ -21,20 +21,19 @@ import {
   formatWithSignificantDigits,
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
-import { getPerpsDisplaySymbol } from '../../utils/marketUtils';
-import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
-import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import {
+  getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
-  LIMIT_PRICE_CONFIG,
-} from '../../constants/perpsConfig';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
+import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
+import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
+import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
+import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -137,12 +136,12 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
     // Track limit price input method
     if (inputMethod) {
       track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
-        [PerpsEventProperties.INTERACTION_TYPE]:
-          PerpsEventValues.INTERACTION_TYPE.SETTING_CHANGED,
-        [PerpsEventProperties.SETTING_TYPE]: 'limit_price',
-        [PerpsEventProperties.INPUT_METHOD]: inputMethod,
-        [PerpsEventProperties.ASSET]: asset,
-        [PerpsEventProperties.DIRECTION]: direction,
+        [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+          PERPS_EVENT_VALUE.INTERACTION_TYPE.SETTING_CHANGED,
+        [PERPS_EVENT_PROPERTY.SETTING_TYPE]: 'limit_price',
+        [PERPS_EVENT_PROPERTY.INPUT_METHOD]: inputMethod,
+        [PERPS_EVENT_PROPERTY.ASSET]: asset,
+        [PERPS_EVENT_PROPERTY.DIRECTION]: direction,
       });
     }
 
@@ -159,7 +158,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         return; // Ignore input that would exceed 9 digits
       }
       setLimitPrice(value || '');
-      setInputMethod(PerpsEventValues.INPUT_METHOD.KEYBOARD);
+      setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.KEYBOARD);
     },
     [],
   );
@@ -314,6 +313,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const footerButtonProps = [
     {
       label: strings('perps.order.limit_price_modal.set'),
+      testID: PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
@@ -344,7 +344,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         <Text style={styles.inputLabel}>
           {strings('perps.order.limit_price')}
         </Text>
-        <View style={styles.limitPriceDisplay}>
+        <View
+          testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRICE_DISPLAY}
+          style={styles.limitPriceDisplay}
+        >
           <View style={tw.style('flex-row items-center flex-1')}>
             <Text style={getLimitPriceTextStyle(limitPrice)}>
               {formatLimitPriceValue(limitPrice)}
@@ -364,7 +367,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             ? formatPerpsFiat(currentPrice, {
                 ranges: PRICE_RANGES_UNIVERSAL,
               })
-            : PERPS_CONSTANTS.FALLBACK_PRICE_DISPLAY}
+            : PERPS_CONSTANTS.FallbackPriceDisplay}
         </Text>
 
         {/* Quick preset buttons - Mid/Bid/Ask + percentage presets */}
@@ -377,7 +380,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                 setLimitPrice(
                   formatWithSignificantDigits(currentPrice, 4).value.toString(),
                 );
-                setInputMethod(PerpsEventValues.INPUT_METHOD.PRESET);
+                setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
               }
             }}
           >
@@ -401,7 +404,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                         4,
                       ).value.toString(),
                     );
-                    setInputMethod(PerpsEventValues.INPUT_METHOD.PRESET);
+                    setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
                   }
                 }}
               >
@@ -411,7 +414,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               </TouchableOpacity>
 
               {/* Percentage presets */}
-              {LIMIT_PRICE_CONFIG.LONG_PRESETS.map((percentage) => (
+              {LIMIT_PRICE_CONFIG.LongPresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
@@ -426,7 +429,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                         ).value.toString(),
                       );
                       setInputMethod(
-                        PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON,
+                        PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
                       );
                     }
                   }}
@@ -453,7 +456,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                         4,
                       ).value.toString(),
                     );
-                    setInputMethod(PerpsEventValues.INPUT_METHOD.PRESET);
+                    setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
                   }
                 }}
               >
@@ -463,7 +466,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               </TouchableOpacity>
 
               {/* Percentage presets */}
-              {LIMIT_PRICE_CONFIG.SHORT_PRESETS.map((percentage) => (
+              {LIMIT_PRICE_CONFIG.ShortPresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
                   style={styles.percentageButton}
@@ -478,7 +481,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                         ).value.toString(),
                       );
                       setInputMethod(
-                        PerpsEventValues.INPUT_METHOD.PERCENTAGE_BUTTON,
+                        PERPS_EVENT_VALUE.INPUT_METHOD.PERCENTAGE_BUTTON,
                       );
                     }
                   }}

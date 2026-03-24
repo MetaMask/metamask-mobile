@@ -34,7 +34,6 @@ import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
 import { RootState } from '../../../reducers';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { earnSelectors } from '../../../selectors/earnController';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectChainId } from '../../../selectors/networkController';
 import { getDecimalChainId } from '../../../util/networks';
 import {
@@ -50,7 +49,8 @@ import { selectPerpsEnabledFlag } from '../../UI/Perps';
 import { selectPredictEnabledFlag } from '../../UI/Predict';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 
 import BottomShape from './components/BottomShape';
 import OverlayWithHole from './components/OverlayWithHole';
@@ -89,7 +89,7 @@ function TradeWalletActions() {
   );
   const isPooledStakingEnabled = useSelector(selectPooledStakingEnabledFlag);
 
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
 
   const { isEligible: isEarnEligible } = useStakingEligibility();
@@ -97,7 +97,6 @@ function TradeWalletActions() {
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
 
   const isStablecoinLendingEnabled = useSelector(
     selectStablecoinLendingEnabledFlag,
@@ -284,7 +283,7 @@ function TradeWalletActions() {
                     isDisabled={!isSwapsEnabled}
                   />
                 )}
-                {isPerpsEnabled && isEvmSelected && (
+                {isPerpsEnabled && (
                   <ActionListItem
                     label={strings('asset_overview.perps_button')}
                     description={strings('asset_overview.perps_description')}

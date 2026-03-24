@@ -21,7 +21,7 @@ import { WalletActionsBottomSheetSelectorsIDs } from './WalletActionsBottomSheet
 
 // Internal dependencies
 import styleSheet from './WalletActions.styles';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { EVENT_LOCATIONS as STAKE_EVENT_LOCATIONS } from '../../UI/Stake/constants/events';
 import {
@@ -29,7 +29,7 @@ import {
   selectStablecoinLendingEnabledFlag,
 } from '../../UI/Earn/selectors/featureFlags';
 import { selectPerpsEnabledFlag } from '../../UI/Perps';
-import { PerpsEventValues } from '../../UI/Perps/constants/eventNames';
+import { PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { selectPredictEnabledFlag } from '../../UI/Predict/selectors/featureFlags';
 import { PredictEventValues } from '../../UI/Predict/constants/eventNames';
 import { EARN_INPUT_VIEW_ACTIONS } from '../../UI/Earn/Views/EarnInputView/EarnInputView.types';
@@ -40,7 +40,6 @@ import {
 } from '../../UI/Bridge/hooks/useSwapBridgeNavigation';
 import { RootState } from '../../../reducers';
 import { selectIsSwapsEnabled } from '../../../core/redux/slices/bridge';
-import { selectIsEvmNetworkSelected } from '../../../selectors/multichainNetworkController';
 import { selectIsFirstTimePerpsUser } from '../../UI/Perps/selectors/perpsController';
 import useStakingEligibility from '../../UI/Stake/hooks/useStakingEligibility';
 
@@ -61,8 +60,7 @@ const WalletActions = () => {
   );
   const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
-  const isEvmSelected = useSelector(selectIsEvmNetworkSelected);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const { goToSwaps: goToSwapsBase } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.MainView,
@@ -123,7 +121,7 @@ const WalletActions = () => {
       } else {
         navigate(Routes.PERPS.ROOT, {
           screen: Routes.PERPS.PERPS_HOME,
-          params: { source: PerpsEventValues.SOURCE.MAIN_ACTION_BUTTON },
+          params: { source: PERPS_EVENT_VALUE.SOURCE.MAIN_ACTION_BUTTON },
         });
       }
     });
@@ -172,7 +170,7 @@ const WalletActions = () => {
           />
         )}
 
-        {isPerpsEnabled && isEvmSelected && (
+        {isPerpsEnabled && (
           <ActionListItem
             label={strings('asset_overview.perps_button')}
             description={strings('asset_overview.perps_description')}

@@ -33,6 +33,5 @@ export type BrowserUrlBarProps = {
   activeUrl: string;
   setIsUrlBarFocused: (focused: boolean) => void;
   isUrlBarFocused: boolean;
-  showCloseButton?: boolean;
   showTabs?: () => void;
 };

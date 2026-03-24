@@ -13,6 +13,16 @@ global.fetch = jest.fn();
 
 const mockRandomUUID = jest.fn();
 
+// Mock Logger
+jest.mock('../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    log: jest.fn(),
+    error: jest.fn(),
+    warn: jest.fn(),
+  },
+}));
+
 jest.mock('react-native-quick-crypto', () => ({
   randomBytes: jest.fn().mockReturnValue(Buffer.from('mock-random-bytes')),
   randomUUID: () => mockRandomUUID(),

@@ -17,6 +17,7 @@ export enum ACTIONS {
   ENABLE_CARD_BUTTON = 'enable-card-button',
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
+  CARD_KYC_NOTIFICATION = 'card-kyc-notification',
   DAPP = 'dapp',
   SEND = 'send',
   APPROVE = 'approve',
@@ -30,8 +31,10 @@ export enum ACTIONS {
   BUY_CRYPTO = 'buy-crypto',
   SELL = 'sell',
   SELL_CRYPTO = 'sell-crypto',
+  /** @deprecated Cash deposit deeplink (`metamask://deposit`, `/deposit`) is no longer handled. */
   DEPOSIT = 'deposit',
   HOME = 'home',
+  ASSET = 'asset',
   SWAP = 'swap',
   EMPTY = '',
   OAUTH_REDIRECT = 'oauth-redirect',
@@ -40,9 +43,12 @@ export enum ACTIONS {
   PERPS_MARKETS = 'perps-markets',
   PERPS_ASSET = 'perps-asset',
   REWARDS = 'rewards',
+  SHIELD = 'shield',
   PREDICT = 'predict',
   ONBOARDING = 'onboarding',
   TRENDING = 'trending',
+  EARN_MUSD = 'earn-musd',
+  NFT = 'nft',
 }
 
 export const PREFIXES = {
@@ -61,6 +67,7 @@ export const PREFIXES = {
   [ACTIONS.SELL_CRYPTO]: '',
   [ACTIONS.OAUTH_REDIRECT]: '',
   [ACTIONS.HOME]: '',
+  [ACTIONS.ASSET]: '',
   [ACTIONS.SWAP]: '',
   [ACTIONS.CREATE_ACCOUNT]: '',
   [ACTIONS.PERPS]: '',
@@ -69,9 +76,13 @@ export const PREFIXES = {
   [ACTIONS.REWARDS]: '',
   [ACTIONS.PREDICT]: '',
   [ACTIONS.ONBOARDING]: '',
+  [ACTIONS.SHIELD]: '',
   [ACTIONS.ENABLE_CARD_BUTTON]: '',
   [ACTIONS.CARD_ONBOARDING]: '',
   [ACTIONS.CARD_HOME]: '',
+  [ACTIONS.CARD_KYC_NOTIFICATION]: '',
   [ACTIONS.TRENDING]: '',
+  [ACTIONS.EARN_MUSD]: '',
+  [ACTIONS.NFT]: '',
   METAMASK: 'metamask://',
 };

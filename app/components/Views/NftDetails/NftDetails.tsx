@@ -37,13 +37,12 @@ import {
   selectCurrentCurrency,
 } from '../../../selectors/currencyRateController';
 import { formatCurrency } from '../../../util/confirm-tx';
-import { newAssetTransaction } from '../../../actions/transaction';
 import CollectibleMedia from '../../../components/UI/CollectibleMedia';
 import ContentDisplay from '../../../components/UI/AssetOverview/AboutAsset/ContentDisplay';
 import BigNumber from 'bignumber.js';
 import { getDecimalChainId } from '../../../util/networks';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
@@ -61,7 +60,7 @@ const NftDetails = () => {
   const dispatch = useDispatch();
   const currentCurrency = useSelector(selectCurrentCurrency);
   const ticker = useSelector(selectEvmTicker);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const { navigateToSendPage } = useSendNavigation();
   const hasLastSalePrice = Boolean(
@@ -187,14 +186,11 @@ const NftDetails = () => {
         networkClientId as string,
       );
     }
-    dispatch(
-      newAssetTransaction({ contractName: collectible.name, ...collectible }),
-    );
     navigateToSendPage({
       location: InitSendLocation.NftDetails,
       asset: collectible,
     });
-  }, [collectible, chainId, dispatch, navigateToSendPage]);
+  }, [collectible, chainId, navigateToSendPage]);
 
   const isTradable = useCallback(
     () =>

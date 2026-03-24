@@ -7,6 +7,7 @@ import {
   getKnownDomains,
   isKnownDomain,
   extractRpcDomain,
+  isPublicRpcDomain,
   getNetworkRpcUrl,
   getModuleState,
 } from './rpc-domain-utils';
@@ -416,6 +417,28 @@ describe('rpc-domain-utils', () => {
           );
         });
       });
+    });
+  });
+
+  describe('isPublicRpcDomain', () => {
+    it('returns false for invalid URLs', () => {
+      expect(isPublicRpcDomain(':::invalid-url')).toBe(false);
+    });
+
+    it('returns false for private/localhost URLs', () => {
+      expect(isPublicRpcDomain('http://localhost:8545')).toBe(false);
+      expect(isPublicRpcDomain('http://127.0.0.1:8545')).toBe(false);
+    });
+
+    it('returns false for unknown private domains', () => {
+      expect(isPublicRpcDomain('https://unknown-domain.com')).toBe(false);
+    });
+
+    it('returns true for known public provider URLs', () => {
+      expect(isPublicRpcDomain('https://mainnet.infura.io/v3/key')).toBe(true);
+      expect(
+        isPublicRpcDomain('https://eth-mainnet.alchemyapi.io/v2/key'),
+      ).toBe(true);
     });
   });
 

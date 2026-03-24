@@ -15,7 +15,6 @@ import { transactionApprovalControllerMock } from '../../__mocks__/controllers/a
 import Routes from '../../../../../constants/navigation/Routes';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import { useFullScreenConfirmation } from '../ui/useFullScreenConfirmation';
-import { resetTransaction } from '../../../../../actions/transaction';
 import { otherControllersMock } from '../../__mocks__/controllers/other-controllers-mock';
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { flushPromises } from '../../../../../util/test/utils';
@@ -27,15 +26,16 @@ import { TransactionPayQuote } from '@metamask/transaction-pay-controller';
 import { Json } from '@metamask/utils';
 import { useIsGaslessSupported } from '../gas/useIsGaslessSupported';
 import { useGaslessSupportedSmartTransactions } from '../gas/useGaslessSupportedSmartTransactions';
+import { useMusdConfirmNavigation } from '../../../../UI/Earn/hooks/useMusdConfirmNavigation';
 
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
+const mockMusdNavigateOnConfirm = jest.fn();
 
 jest.mock('../useApprovalRequest');
 jest.mock('./useTransactionMetadataRequest');
 jest.mock('../../../../../selectors/smartTransactionsController');
 jest.mock('../ui/useFullScreenConfirmation');
-jest.mock('../../../../../actions/transaction');
 jest.mock('../../../../../util/networks');
 jest.mock('../../../../hooks/useNetworkEnablement/useNetworkEnablement');
 jest.mock('../gas/useGasFeeToken');
@@ -43,6 +43,7 @@ jest.mock('../../../../../util/transactions/sentinel-api');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../gas/useIsGaslessSupported');
 jest.mock('../gas/useGaslessSupportedSmartTransactions');
+jest.mock('../../../../UI/Earn/hooks/useMusdConfirmNavigation');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -55,7 +56,7 @@ jest.mock('@react-navigation/native', () => ({
 const CHAIN_ID_MOCK = '0x123';
 
 function renderHook() {
-  return renderHookWithProvider(useTransactionConfirm, {
+  return renderHookWithProvider(() => useTransactionConfirm(), {
     state: merge(
       {},
       simpleSendTransactionControllerMock,
@@ -69,7 +70,6 @@ describe('useTransactionConfirm', () => {
   const useApprovalRequestMock = jest.mocked(useApprovalRequest);
   const onApprovalConfirm = jest.fn();
   const useFullScreenConfirmationMock = jest.mocked(useFullScreenConfirmation);
-  const resetTransactionMock = jest.mocked(resetTransaction);
   const useNetworkEnablementMock = jest.mocked(useNetworkEnablement);
   const useSelectedGasFeeTokenMock = jest.mocked(useSelectedGasFeeToken);
   const isSendBundleSupportedMock = jest.mocked(isSendBundleSupported);
@@ -82,9 +82,15 @@ describe('useTransactionConfirm', () => {
   const useTransactionMetadataRequestMock = jest.mocked(
     useTransactionMetadataRequest,
   );
+  const useMusdConfirmNavigationMock = jest.mocked(useMusdConfirmNavigation);
 
   beforeEach(() => {
     jest.resetAllMocks();
+
+    useMusdConfirmNavigationMock.mockReturnValue({
+      navigateOnConfirm: mockMusdNavigateOnConfirm,
+    });
+
     useIsGaslessSupportedMock.mockReturnValue({
       isSmartTransaction: true,
       isSupported: true,
@@ -110,10 +116,6 @@ describe('useTransactionConfirm', () => {
 
     useFullScreenConfirmationMock.mockReturnValue({
       isFullScreenConfirmation: true,
-    });
-
-    resetTransactionMock.mockReturnValue({
-      type: 'reset',
     });
 
     useNetworkEnablementMock.mockReturnValue({
@@ -189,16 +191,6 @@ describe('useTransactionConfirm', () => {
     );
   });
 
-  it('resets transaction state', async () => {
-    const { result } = renderHook();
-
-    await act(async () => {
-      await result.current.onConfirm();
-    });
-
-    expect(resetTransactionMock).toHaveBeenCalled();
-  });
-
   it('calls tryEnableEvmNetwork', async () => {
     const tryEnableEvmNetworkMock = jest.fn();
 
@@ -216,16 +208,30 @@ describe('useTransactionConfirm', () => {
     expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
   });
 
-  it('navigates to Transactions view after approval error', async () => {
+  it('calls onError callback on approval failure', async () => {
+    const testError = new Error('Test error');
+    onApprovalConfirm.mockRejectedValueOnce(testError);
+    const onError = jest.fn();
+
+    const { result } = renderHook();
+
+    await act(async () => {
+      await result.current.onConfirm({ onError });
+    });
+
+    expect(onError).toHaveBeenCalledWith(testError);
+  });
+
+  it('still navigates on error when onError is not provided', async () => {
     onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
 
     const { result } = renderHook();
 
     await act(async () => {
-      await result.current.onConfirm();
+      await expect(result.current.onConfirm()).resolves.toBeUndefined();
     });
 
-    expect(mockNavigate).toHaveBeenCalled();
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
   });
 
   it('does nothing when transactionMetadata is missing', async () => {
@@ -282,7 +288,23 @@ describe('useTransactionConfirm', () => {
       });
     });
 
-    it('wallet home if musdConversion', async () => {
+    it('skips navigation if perps deposit and order (caller handles navigation)', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        type: TransactionType.perpsDepositAndOrder,
+      } as TransactionMeta);
+
+      const { result } = renderHook();
+
+      await act(async () => {
+        await result.current.onConfirm();
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockGoBack).not.toHaveBeenCalled();
+    });
+
+    it('calls musdConversionNavigateOnConfirm if musdConversion', async () => {
       useTransactionMetadataRequestMock.mockReturnValue({
         id: transactionIdMock,
         type: TransactionType.musdConversion,
@@ -294,12 +316,7 @@ describe('useTransactionConfirm', () => {
         await result.current.onConfirm();
       });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME, {
-        screen: Routes.WALLET.TAB_STACK_FLOW,
-        params: {
-          screen: Routes.WALLET_VIEW,
-        },
-      });
+      expect(mockMusdNavigateOnConfirm).toHaveBeenCalled();
     });
 
     it('transactions if full screen', async () => {

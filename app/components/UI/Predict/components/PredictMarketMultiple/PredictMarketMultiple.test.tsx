@@ -26,6 +26,15 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    initializeActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
 // Mock usePredictEligibility hook
 const mockUsePredictEligibility = jest.fn();
 jest.mock('../../hooks/usePredictEligibility', () => ({
@@ -46,6 +55,10 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
       isFromTrending: false,
     }),
   },
+}));
+
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
 }));
 
 const mockMarket: PredictMarket = {
@@ -95,7 +108,8 @@ describe('PredictMarketMultiple', () => {
     });
     // Default mock implementation - user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
   });
 
@@ -271,7 +285,8 @@ describe('PredictMarketMultiple', () => {
     });
     // Mock user has balance
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: false,
+      data: 100,
+      isLoading: false,
     });
 
     const { UNSAFE_getAllByType } = renderWithProvider(
@@ -324,7 +339,8 @@ describe('PredictMarketMultiple', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getAllByText } = renderWithProvider(
@@ -351,7 +367,8 @@ describe('PredictMarketMultiple', () => {
       refreshEligibility: jest.fn(),
     });
     mockUsePredictBalance.mockReturnValue({
-      hasNoBalance: true,
+      data: undefined,
+      isLoading: false,
     });
 
     const { getAllByText } = renderWithProvider(

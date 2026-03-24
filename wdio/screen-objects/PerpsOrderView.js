@@ -2,7 +2,7 @@ import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import AmountScreen from './AmountScreen';
 import { expect as appwrightExpect } from 'appwright';
-import { splitAmountIntoDigits } from 'appwright/utils/Utils';
+import { splitAmountIntoDigits } from '../utils/splitAmountIntoDigits';
 import PerpsPositionDetailsView from './PerpsPositionDetailsView';
 
 class PerpsOrderView {
@@ -36,7 +36,6 @@ class PerpsOrderView {
 
   async tapPlaceOrder() {
     await AppwrightGestures.tap(await this.placeOrderButton);
-    appwrightExpect(await PerpsPositionDetailsView.isPositionOpen()).toBe(true);
   }
 
   // Reuse logic from AmountScreen.js for Keypad interaction
@@ -58,6 +57,11 @@ class PerpsOrderView {
     await AppwrightGestures.tap(await this.leverageButton);
     await AppwrightGestures.tap(await this.leverageOption(leverage));
     await AppwrightGestures.tap(await this.confirmLeverageButton(leverage));
+  }
+
+  async checkOrderScreenVisible() {
+    const orderScreen = await this.placeOrderButton;
+    await appwrightExpect(orderScreen).toBeVisible();
   }
 }
 

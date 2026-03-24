@@ -19,6 +19,7 @@ import Button, {
 } from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
+import { usePredictNavigation } from '../../hooks/usePredictNavigation';
 import Routes from '../../../../../constants/navigation/Routes';
 import {
   PredictMarket as PredictMarketType,
@@ -31,6 +32,7 @@ import {
 import { formatVolume } from '../../utils/format';
 import styleSheet from './PredictMarketSingle.styles';
 import { PredictEventValues } from '../../constants/eventNames';
+import { usePredictEntryPoint } from '../../contexts';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
 
 interface SemiCircleYesPercentageProps {
@@ -132,23 +134,28 @@ interface PredictMarketSingleProps {
 const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   market,
   testID,
-  entryPoint = PredictEventValues.ENTRY_POINT.PREDICT_FEED,
+  entryPoint: propEntryPoint,
   isCarousel = false,
 }) => {
-  // Auto-detect entry point based on trending session state
+  const contextEntryPoint = usePredictEntryPoint();
+  const baseEntryPoint =
+    contextEntryPoint ??
+    propEntryPoint ??
+    PredictEventValues.ENTRY_POINT.PREDICT_FEED;
+
   const resolvedEntryPoint = TrendingFeedSessionManager.getInstance()
     .isFromTrending
     ? PredictEventValues.ENTRY_POINT.TRENDING
-    : entryPoint;
+    : baseEntryPoint;
 
   const outcome = market.outcomes[0];
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
+  const { navigateToBuyPreview } = usePredictNavigation();
   const { styles } = useStyles(styleSheet, { isCarousel });
   const tw = useTailwind();
 
   const { executeGuardedAction } = usePredictActionGuard({
-    providerId: market.providerId,
     navigation,
   });
 
@@ -181,18 +188,17 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
   const handleBuy = (token: PredictOutcomeToken) => {
     executeGuardedAction(
       () => {
-        navigation.navigate(Routes.PREDICT.ROOT, {
-          screen: Routes.PREDICT.MODALS.BUY_PREVIEW,
-          params: {
+        navigateToBuyPreview(
+          {
             market,
             outcome,
             outcomeToken: token,
             entryPoint: resolvedEntryPoint,
           },
-        });
+          { throughRoot: true },
+        );
       },
       {
-        checkBalance: true,
         attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
       },
     );
@@ -251,7 +257,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.SuccessDefault}
               >
@@ -267,7 +273,7 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             width={ButtonWidthTypes.Full}
             label={
               <Text
-                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodySm}
+                variant={isCarousel ? TextVariant.BodyXs : TextVariant.BodyMd}
                 style={tw.style('font-medium')}
                 color={TextColor.ErrorDefault}
               >

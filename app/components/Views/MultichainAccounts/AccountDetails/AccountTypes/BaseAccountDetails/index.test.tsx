@@ -17,20 +17,6 @@ import { AvatarAccountType } from '../../../../../../component-library/component
 const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
-// Mock multichain state 2 selector so we can control behavior per test
-jest.mock(
-  '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-  () => {
-    const actual = jest.requireActual(
-      '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-    );
-    return {
-      ...actual,
-      selectMultichainAccountsState2Enabled: jest.fn(() => false),
-    };
-  },
-);
-
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -150,70 +136,13 @@ describe('BaseAccountDetails', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to edit account name when account name is pressed (legacy mode)', () => {
-    // Mock feature flag as disabled (legacy mode)
+  it('navigates to multichain edit account name when account name is pressed', () => {
     const mockState = {
       ...mockInitialState,
       engine: {
         ...mockInitialState.engine,
         backgroundState: {
           ...mockInitialState.engine.backgroundState,
-          RemoteFeatureFlagController: {
-            ...mockInitialState.engine.backgroundState
-              .RemoteFeatureFlagController,
-            remoteFeatureFlags: {
-              enableMultichainAccounts: {
-                enabled: false,
-                featureVersion: null,
-                minimumVersion: null,
-              },
-            },
-          },
-        },
-      },
-    };
-
-    const { getByTestId } = renderWithProvider(
-      <BaseAccountDetails account={mockAccount} />,
-      { state: mockState },
-    );
-
-    const accountNameLink = getByTestId(AccountDetailsIds.ACCOUNT_NAME_LINK);
-    fireEvent.press(accountNameLink);
-
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS,
-      {
-        screen:
-          Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.LEGACY_EDIT_ACCOUNT_NAME,
-        params: { account: mockAccount },
-      },
-    );
-  });
-
-  it('navigates to multichain edit account name when account name is pressed (state 2 enabled)', () => {
-    // Mock feature flag as enabled (state 2 mode)
-    const { selectMultichainAccountsState2Enabled } = jest.requireMock(
-      '../../../../../../selectors/featureFlagController/multichainAccounts/enabledMultichainAccounts',
-    );
-    (selectMultichainAccountsState2Enabled as jest.Mock).mockReturnValue(true);
-    const mockState = {
-      ...mockInitialState,
-      engine: {
-        ...mockInitialState.engine,
-        backgroundState: {
-          ...mockInitialState.engine.backgroundState,
-          RemoteFeatureFlagController: {
-            ...mockInitialState.engine.backgroundState
-              .RemoteFeatureFlagController,
-            remoteFeatureFlags: {
-              enableMultichainAccountsState2: {
-                enabled: true,
-                featureVersion: '2',
-                minimumVersion: '1.0.0',
-              },
-            },
-          },
           AccountTreeController: {
             accountTree: {
               wallets: {

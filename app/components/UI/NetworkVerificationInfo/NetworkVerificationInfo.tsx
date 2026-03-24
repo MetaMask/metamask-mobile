@@ -373,6 +373,7 @@ const NetworkVerificationInfo = ({
       </View>
 
       <BottomSheetFooter
+        style={styles.footerPadding}
         buttonPropsArray={[
           {
             onPress: showCheckNetworkModal,
@@ -446,6 +447,7 @@ const NetworkVerificationInfo = ({
         {renderNetworkInfo()}
       </ScrollView>
       <BottomSheetFooter
+        style={styles.footerPadding}
         buttonPropsArray={[
           {
             onPress: onReject,

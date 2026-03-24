@@ -156,6 +156,54 @@ describe('useBlockExplorer', () => {
     });
   });
 
+  describe('getBlockExplorerTokenUrl', () => {
+    it('returns dedicated token page URL for Solana tokens', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const mintAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const solanaChainId = 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp';
+
+      const url = getBlockExplorerTokenUrl(mintAddress, solanaChainId);
+      expect(url).toBe(
+        'https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v',
+      );
+    });
+
+    it('returns dedicated token page URL for Solana devnet tokens', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const mintAddress = 'EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v';
+      const solanaDevnetChainId = 'solana:EtWTRABZaYq6iMfeYKouRu166VU2xqa1';
+
+      const url = getBlockExplorerTokenUrl(mintAddress, solanaDevnetChainId);
+      expect(url).toBe(
+        'https://solscan.io/token/EPjFWdd5AufqSSqeM2qN1xzybapC8G4wEGGkZwyTDt1v?cluster=devnet',
+      );
+    });
+
+    it('falls back to address URL for Bitcoin (no dedicated token page)', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const address = '1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa';
+      const bitcoinChainId = 'bip122:000000000019d6689c085ae165831e93';
+
+      const url = getBlockExplorerTokenUrl(address, bitcoinChainId);
+      expect(url).toBe(
+        'https://mempool.space/address/1A1zP1eP5QGefi2DMPTfTL5SLmv7DivfNa',
+      );
+    });
+
+    it('falls back to standard address URL for EVM chains', () => {
+      const { result } = renderHookWithProvider(() => useBlockExplorer());
+      const { getBlockExplorerTokenUrl } = result.current;
+      const address = '0x1234567890abcdef';
+      const polygonChainId = '0x89';
+
+      const url = getBlockExplorerTokenUrl(address, polygonChainId);
+      expect(url).toBe('https://polygonscan.com/address/0x1234567890abcdef');
+    });
+  });
+
   describe('RPC networks with custom block explorers', () => {
     it('uses custom RPC block explorer when available', () => {
       // This test verifies the RPC fallback path is covered

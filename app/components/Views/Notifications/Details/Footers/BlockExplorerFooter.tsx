@@ -3,18 +3,22 @@ import React, { useMemo } from 'react';
 import { Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  IconName as DesignSystemIconName,
+} from '@metamask/design-system-react-native';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
-import { getBlockExplorerByChainId } from '../../../../../util/notifications';
+import { getNetworkDetailsFromNotifPayload } from '../../../../../util/notifications';
 import { ModalFooterBlockExplorer } from '../../../../../util/notifications/notification-states/types/NotificationModalDetails';
 import useStyles from '../useStyles';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import { type INotification } from '../../../../../util/notifications/types';
-import { useMetrics } from '../../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import onChainAnalyticProperties from '../../../../../util/notifications/methods/notification-analytics';
+import {
+  INotification,
+  isOnChainRawNotification,
+} from '@metamask/notification-services-controller/notification-services';
 
 type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
   notification: INotification;
@@ -23,9 +27,8 @@ type BlockExplorerFooterProps = ModalFooterBlockExplorer & {
 export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
   const { styles } = useStyles();
   const { notification } = props;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const defaultBlockExplorer = getBlockExplorerByChainId(props.chainId);
   const networkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -36,7 +39,15 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
     )?.blockExplorerUrls?.[0];
   }, [networkConfigurations, props.chainId]);
 
-  const url = networkBlockExplorer ?? defaultBlockExplorer;
+  const isOnChainNotification = isOnChainRawNotification(notification);
+  if (!isOnChainNotification) {
+    return null;
+  }
+
+  const { blockExplorerUrl } = getNetworkDetailsFromNotifPayload(
+    notification.payload.network,
+  );
+  const url = networkBlockExplorer ?? blockExplorerUrl;
 
   if (!url) {
     return null;
@@ -60,11 +71,12 @@ export default function BlockExplorerFooter(props: BlockExplorerFooterProps) {
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      label={strings('asset_details.options.view_on_block')}
+      variant={ButtonVariant.Primary}
       style={styles.ctaBtn}
-      endIconName={IconName.Arrow2UpRight}
+      endIconName={DesignSystemIconName.Arrow2UpRight}
       onPress={onPress}
-    />
+    >
+      {strings('asset_details.options.view_on_block')}
+    </Button>
   );
 }

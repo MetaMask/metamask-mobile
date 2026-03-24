@@ -8,7 +8,8 @@ import Engine from '../../../../core/Engine';
 import { selectUseNftDetection } from '../../../../selectors/preferencesController';
 import { useTheme } from '../../../../util/theme';
 import { strings } from '../../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../core/Analytics';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Text, {
   TextVariant,
   TextColor,
@@ -20,7 +21,7 @@ import createStyles from './index.styles';
 import { NFT_AUTO_DETECT_MODE_SECTION } from './index.constants';
 
 const AutoDetectNFTSettings = () => {
-  const { trackEvent, addTraitsToUser, createEventBuilder } = useMetrics();
+  const { trackEvent, addTraitsToUser, createEventBuilder } = useAnalytics();
   const theme = useTheme();
   const { colors } = theme;
   const styles = createStyles();

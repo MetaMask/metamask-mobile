@@ -2,10 +2,7 @@ import React from 'react';
 import { renderHook } from '@testing-library/react-hooks';
 import { Provider } from 'react-redux';
 import { createStore, Store } from 'redux';
-import useIsInsufficientBalance, {
-  formatEffectiveGasFee,
-  transformEffectiveToAtomic,
-} from './index';
+import useIsInsufficientBalance, { formatAmount, parseAmount } from './index';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'ethers';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
@@ -493,7 +490,7 @@ describe('useIsInsufficientBalance', () => {
       expect(result.current).toBe(false);
     });
 
-    it('returns false when balance is undefined', () => {
+    it('returns true when balance is undefined', () => {
       const store = createMockStore({
         recommendedQuote: {
           quote: {
@@ -512,7 +509,7 @@ describe('useIsInsufficientBalance', () => {
         { wrapper: wrapper(store) },
       );
 
-      expect(result.current).toBe(false);
+      expect(result.current).toBe(true);
     });
 
     it('still checks balance when no quote is available', () => {
@@ -560,20 +557,14 @@ describe('useIsInsufficientBalance', () => {
     it('transforms effective gas fee to atomic gas fee', () => {
       const effectiveGasFee = '0.000000000000000001';
       const decimals = 18;
-      const atomicGasFee = transformEffectiveToAtomic(
-        effectiveGasFee,
-        decimals,
-      );
+      const atomicGasFee = parseAmount(effectiveGasFee, decimals);
       expect(atomicGasFee.toString()).toBe('1');
     });
 
     it('transforms effective gas fee to atomic gas fee with decimals', () => {
       const effectiveGasFee = '0.000001426955931521';
       const decimals = 6;
-      const atomicGasFee = transformEffectiveToAtomic(
-        effectiveGasFee,
-        decimals,
-      );
+      const atomicGasFee = parseAmount(effectiveGasFee, decimals);
       expect(atomicGasFee.toString()).toBe('1');
     });
   });
@@ -582,29 +573,226 @@ describe('useIsInsufficientBalance', () => {
     it('formats effective gas fee to string', () => {
       const effectiveGasFee = '0.000000000000000001';
       const decimals = 18;
-      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
       expect(formattedGasFee).toBe(effectiveGasFee);
     });
 
     it('formats effective gas fee to string for integer part > 0', () => {
       const effectiveGasFee = '23.000000000000000001';
       const decimals = 18;
-      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
       expect(formattedGasFee).toBe(effectiveGasFee);
     });
 
     it('formats effective gas fee to string when token decimals is less than effective gas fee decimals', () => {
       const effectiveGasFee = '0.000005426955931521';
       const decimals = 6;
-      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
       expect(formattedGasFee).toBe('0.000005');
     });
 
     it('formats effective gas fee to string when token decimals is more than effective gas fee decimals', () => {
       const effectiveGasFee = '0.000005';
       const decimals = 18;
-      const formattedGasFee = formatEffectiveGasFee(effectiveGasFee, decimals);
+      const formattedGasFee = formatAmount(effectiveGasFee, decimals);
       expect(formattedGasFee).toBe('0.000005');
+    });
+  });
+
+  describe('parseAmount - Cross-chain decimal handling', () => {
+    describe('Ethereum and EVM chains (18 decimals)', () => {
+      const decimals = 18;
+
+      it('parses whole number correctly', () => {
+        const amount = '1';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1000000000000000000'); // 1e18
+      });
+
+      it('parses decimal number correctly', () => {
+        const amount = '1.5';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1500000000000000000'); // 1.5e18
+      });
+
+      it('parses very small amount correctly', () => {
+        const amount = '0.000000000000000001';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1'); // 1 wei
+      });
+
+      it('handles maximum precision (18 decimals)', () => {
+        const amount = '1.123456789012345678';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1123456789012345678');
+      });
+
+      it('truncates excess decimals beyond 18', () => {
+        const amount = '1.1234567890123456789999'; // 22 decimals
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1123456789012345678'); // Truncated to 18
+      });
+    });
+
+    describe('USDC/USDT (6 decimals)', () => {
+      const decimals = 6;
+
+      it('parses whole number correctly', () => {
+        const amount = '100';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('100000000'); // 100e6
+      });
+
+      it('parses decimal number correctly', () => {
+        const amount = '0.5';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('500000'); // 0.5e6
+      });
+
+      it('parses very small amount correctly', () => {
+        const amount = '0.000001';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1'); // 1 micro unit
+      });
+
+      it('handles maximum precision (6 decimals)', () => {
+        const amount = '1.123456';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1123456');
+      });
+
+      it('truncates excess decimals beyond 6', () => {
+        const amount = '1.123456789'; // 9 decimals
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1123456'); // Truncated to 6
+      });
+
+      it('handles typical USDC amount', () => {
+        const amount = '50.25';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('50250000');
+      });
+    });
+
+    describe('Bitcoin (8 decimals)', () => {
+      const decimals = 8;
+
+      it('parses whole number correctly', () => {
+        const amount = '1';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('100000000'); // 1 BTC = 100,000,000 satoshis
+      });
+
+      it('parses decimal number correctly', () => {
+        const amount = '0.5';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('50000000'); // 0.5 BTC
+      });
+
+      it('parses very small amount (1 satoshi)', () => {
+        const amount = '0.00000001';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1'); // 1 satoshi
+      });
+
+      it('handles typical BTC amount', () => {
+        const amount = '0.0114';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1140000'); // 1,140,000 satoshis
+      });
+
+      it('truncates excess decimals beyond 8', () => {
+        const amount = '0.123456789012'; // 12 decimals
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('12345678'); // Truncated to 8
+      });
+    });
+
+    describe('Solana (9 decimals)', () => {
+      const decimals = 9;
+
+      it('parses whole number correctly', () => {
+        const amount = '1';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1000000000'); // 1 SOL = 1,000,000,000 lamports
+      });
+
+      it('parses decimal number correctly', () => {
+        const amount = '2.5';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('2500000000');
+      });
+
+      it('parses very small amount (1 lamport)', () => {
+        const amount = '0.000000001';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1'); // 1 lamport
+      });
+
+      it('handles maximum precision (9 decimals)', () => {
+        const amount = '1.123456789';
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1123456789');
+      });
+
+      it('truncates excess decimals beyond 9', () => {
+        const amount = '1.12345678901234'; // 14 decimals
+        const parsed = parseAmount(amount, decimals);
+        expect(parsed.toString()).toBe('1123456789'); // Truncated to 9
+      });
+    });
+
+    describe('Scientific notation handling (via normalizeAmount)', () => {
+      it('handles scientific notation for 18 decimals after normalization', () => {
+        // Scientific notation needs to be normalized first (as done in the hook)
+        const amount = '0.000000000000000001'; // 1e-18 normalized
+        const parsed = parseAmount(amount, 18);
+        expect(parsed.toString()).toBe('1'); // 1 wei
+      });
+
+      it('handles scientific notation for 6 decimals after normalization', () => {
+        const amount = '0.000001'; // 1e-6 normalized
+        const parsed = parseAmount(amount, 6);
+        expect(parsed.toString()).toBe('1'); // 1 micro unit
+      });
+
+      it('handles large numbers after normalization', () => {
+        const amount = '1000000'; // 1e6 normalized
+        const parsed = parseAmount(amount, 18);
+        expect(parsed.toString()).toBe('1000000000000000000000000'); // 1e24 wei
+      });
+
+      it('handles very small scientific notation (1e-9) for Solana', () => {
+        const amount = '0.000000001'; // 1e-9 normalized
+        const parsed = parseAmount(amount, 9);
+        expect(parsed.toString()).toBe('1'); // 1 lamport
+      });
+    });
+
+    describe('Edge cases', () => {
+      it('handles zero amount', () => {
+        const amount = '0';
+        const parsed = parseAmount(amount, 18);
+        expect(parsed.toString()).toBe('0');
+      });
+
+      it('handles amount with no decimal part', () => {
+        const amount = '100.';
+        const parsed = parseAmount(amount, 6);
+        expect(parsed.toString()).toBe('100000000');
+      });
+
+      it('handles very large amounts', () => {
+        const amount = '1000000';
+        const parsed = parseAmount(amount, 18);
+        expect(parsed.toString()).toBe('1000000000000000000000000'); // 1e24
+      });
+
+      it('handles amounts with trailing zeros', () => {
+        const amount = '1.100000';
+        const parsed = parseAmount(amount, 6);
+        expect(parsed.toString()).toBe('1100000');
+      });
     });
   });
 });

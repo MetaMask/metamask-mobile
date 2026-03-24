@@ -3,28 +3,13 @@ const mockNavigate = jest.fn();
 const mockGoBack = jest.fn();
 
 // Mock theme first to prevent component initialization errors
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: {
-      primary: { default: '#0376c9' },
-      success: { default: '#28a745', muted: '#d4edda' },
-      error: { default: '#d73a49', muted: '#f8d7da' },
-      background: { default: '#ffffff' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-  })),
-  mockTheme: {
-    colors: {
-      primary: { default: '#0376c9' },
-      success: { default: '#28a745', muted: '#d4edda' },
-      error: { default: '#d73a49', muted: '#f8d7da' },
-      background: { default: '#ffffff' },
-      text: { default: '#000000' },
-    },
-    themeAppearance: 'light',
-  },
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: jest.fn(() => actual.mockTheme),
+  };
+});
 
 const mockUseParams = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -32,6 +17,7 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({
     navigate: mockNavigate,
     goBack: mockGoBack,
+    isFocused: () => true,
   }),
 }));
 
@@ -85,11 +71,8 @@ const mockEventBuilder = {
   build: jest.fn().mockReturnValue({}),
 };
 
-jest.mock('../../../../hooks/useMetrics', () => ({
-  useMetrics: jest.fn(),
-  MetaMetricsEvents: {
-    CARD_BUTTON_CLICKED: 'CARD_BUTTON_CLICKED',
-  },
+jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: jest.fn(),
 }));
 
 const mockNavigateToCardPage = jest.fn();
@@ -150,7 +133,7 @@ import {
 } from '../../types';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ToastContext } from '../../../../../component-library/components/Toast';
-import { useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import { useAssetBalances } from '../../hooks/useAssetBalances';
 import { useUpdateTokenPriority } from '../../hooks/useUpdateTokenPriority';
@@ -226,7 +209,6 @@ const setupComponent = (paramsOverrides = {}) => {
     navigateToCardHomeOnPriorityToken: false,
     selectionOnly: false,
     onTokenSelect: undefined,
-    hideSolanaAssets: false,
     callerRoute: undefined,
     callerParams: undefined,
     ...paramsOverrides,
@@ -251,7 +233,7 @@ describe('AssetSelectionBottomSheet', () => {
     mockEventBuilder.addProperties = jest.fn().mockReturnThis();
     mockEventBuilder.build = jest.fn().mockReturnValue({});
 
-    (useMetrics as jest.Mock).mockReturnValue({
+    (useAnalytics as jest.Mock).mockReturnValue({
       trackEvent: mockTrackEvent,
       createEventBuilder: mockCreateEventBuilder,
     });
@@ -284,7 +266,6 @@ describe('AssetSelectionBottomSheet', () => {
       navigateToCardHomeOnPriorityToken: false,
       selectionOnly: false,
       onTokenSelect: undefined,
-      hideSolanaAssets: false,
       callerRoute: undefined,
       callerParams: undefined,
     });
@@ -389,7 +370,7 @@ describe('AssetSelectionBottomSheet', () => {
   });
 
   describe('token filtering', () => {
-    it('filters out Solana tokens when hideSolanaAssets is true', () => {
+    it('shows Solana tokens', () => {
       const solanaToken = createMockToken({
         symbol: 'SOL',
         caipChainId: SolScope.Mainnet,
@@ -400,30 +381,13 @@ describe('AssetSelectionBottomSheet', () => {
       });
       const delegationSettings = createMockDelegationSettings();
 
-      const { getByText, queryByText } = setupComponent({
+      const { getByText } = setupComponent({
         tokensWithAllowances: [solanaToken, lineaToken],
         delegationSettings,
-        hideSolanaAssets: true,
-      });
-
-      expect(getByText(/USDC on/)).toBeOnTheScreen();
-      expect(queryByText(/SOL on/)).toBeNull();
-    });
-
-    it('shows Solana tokens when hideSolanaAssets is false', () => {
-      const solanaToken = createMockToken({
-        symbol: 'SOL',
-        caipChainId: SolScope.Mainnet,
-      });
-      const delegationSettings = createMockDelegationSettings();
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [solanaToken],
-        delegationSettings,
-        hideSolanaAssets: false,
       });
 
       expect(getByText(/SOL on/)).toBeOnTheScreen();
+      expect(getByText(/USDC on/)).toBeOnTheScreen();
     });
   });
 
@@ -905,52 +869,6 @@ describe('AssetSelectionBottomSheet', () => {
       fireEvent.press(getByText(/mUSD on/));
 
       expect(mockGoBack).toHaveBeenCalled();
-    });
-  });
-
-  describe('Solana not supported footer', () => {
-    it('displays Solana not supported button when hideSolanaAssets is true', () => {
-      const token = createMockToken();
-      const delegationSettings = createMockDelegationSettings();
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-        hideSolanaAssets: true,
-      });
-
-      expect(getByText('Others tokens on Solana')).toBeOnTheScreen();
-      expect(getByText('Enable on card.metamask.io')).toBeOnTheScreen();
-    });
-
-    it('calls navigateToCardPage when Solana not supported button is pressed', () => {
-      const token = createMockToken();
-      const delegationSettings = createMockDelegationSettings();
-
-      const { getByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-        hideSolanaAssets: true,
-      });
-
-      fireEvent.press(getByText('Others tokens on Solana'));
-
-      expect(mockNavigateToCardPage).toHaveBeenCalled();
-    });
-
-    it('does not display Solana not supported button when hideSolanaAssets is false', () => {
-      const token = createMockToken();
-      const delegationSettings = createMockDelegationSettings();
-
-      const { queryByText } = setupComponent({
-        tokensWithAllowances: [token],
-        delegationSettings,
-        hideSolanaAssets: false,
-      });
-
-      expect(
-        queryByText('card.asset_selection.solana_not_supported_button_title'),
-      ).toBeNull();
     });
   });
 

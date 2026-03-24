@@ -26,6 +26,9 @@ import { BtcAccountType } from '@metamask/keyring-api';
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) =>
     key === 'asset_overview.your_balance' ? 'Your balance' : key,
+  I18nEvents: {
+    addListener: jest.fn(),
+  },
 }));
 
 jest.mock('react-redux', () => ({

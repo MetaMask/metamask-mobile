@@ -6,9 +6,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import TextField, {
-  TextFieldSize,
-} from '../../../../../component-library/components/Form/TextField';
+import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
@@ -18,40 +16,38 @@ import { CardError } from '../../types';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectSelectedCountry,
   setContactVerificationId,
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { MetaMetricsEvents, useMetrics } from '../../../../hooks/useMetrics';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-
-import { Platform, TextInputProps } from 'react-native';
+import useRegions from '../../hooks/useRegions';
 
 const CODE_LENGTH = 6;
-const autoComplete = Platform.select<TextInputProps['autoComplete']>({
-  android: 'sms-otp',
-  default: 'one-time-code',
-});
 
 const ConfirmEmail = () => {
   const navigation = useNavigation();
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const { getRegionByCode } = useRegions();
   const contactVerificationId = useSelector(selectContactVerificationId);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
 
-  const { email, password } = useParams<{
+  const { email, password, countryKey } = useParams<{
     email: string;
     password: string;
+    countryKey: string;
   }>();
+
+  const selectedCountry = getRegionByCode(countryKey);
 
   const {
     sendEmailVerification,
@@ -146,7 +142,9 @@ const ConfirmEmail = () => {
 
       if (onboardingId) {
         dispatch(setOnboardingId(onboardingId));
-        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
+          countryKey,
+        });
       } else if (hasAccount) {
         const navigateToAuthentication = () => {
           navigation.reset({
@@ -190,6 +188,7 @@ const ConfirmEmail = () => {
   }, [
     confirmCode,
     contactVerificationId,
+    countryKey,
     dispatch,
     email,
     navigation,
@@ -211,16 +210,27 @@ const ConfirmEmail = () => {
     }
   }, [resendCooldown]);
 
-  // Auto-submit when all digits are entered
   useEffect(() => {
     if (
       confirmCode.length === CODE_LENGTH &&
-      latestValueSubmitted !== confirmCode
+      latestValueSubmitted !== confirmCode &&
+      selectedCountry &&
+      email &&
+      password &&
+      contactVerificationId
     ) {
       setLatestValueSubmitted(confirmCode);
       handleContinue();
     }
-  }, [confirmCode, handleContinue, latestValueSubmitted]);
+  }, [
+    confirmCode,
+    contactVerificationId,
+    email,
+    handleContinue,
+    latestValueSubmitted,
+    password,
+    selectedCountry,
+  ]);
 
   const isDisabled =
     verifyLoading ||
@@ -238,11 +248,9 @@ const ConfirmEmail = () => {
           autoCapitalize={'none'}
           onChangeText={handleConfirmCodeChange}
           numberOfLines={1}
-          size={TextFieldSize.Lg}
           value={confirmCode}
           keyboardType="number-pad"
-          textContentType="oneTimeCode"
-          autoComplete={autoComplete}
+          autoComplete="one-time-code"
           maxLength={CODE_LENGTH}
           accessibilityLabel={strings(
             'card.card_onboarding.confirm_email.code_label',
@@ -310,16 +318,25 @@ const ConfirmEmail = () => {
   );
 
   const renderActions = () => (
-    <Button
-      variant={ButtonVariants.Primary}
-      label={strings('card.card_onboarding.continue_button')}
-      size={ButtonSize.Lg}
-      onPress={handleContinue}
-      width={ButtonWidthTypes.Full}
-      isDisabled={isDisabled}
-      loading={verifyLoading}
-      testID="confirm-email-continue-button"
-    />
+    <Box twClassName="flex flex-col items-center justify-center gap-2">
+      <Button
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
+        size={ButtonSize.Lg}
+        onPress={handleContinue}
+        width={ButtonWidthTypes.Full}
+        isDisabled={isDisabled}
+        loading={verifyLoading}
+        testID="confirm-email-continue-button"
+      />
+      <Text
+        variant={TextVariant.BodySm}
+        testID="confirm-email-legal-terms"
+        twClassName="text-text-alternative text-center"
+      >
+        {strings('card.card_onboarding.confirm_email.legal_terms')}
+      </Text>
+    </Box>
   );
 
   return (

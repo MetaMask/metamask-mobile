@@ -24,9 +24,6 @@ export const mockedEngine = {
       }
     }),
   },
-  datamodel: {
-    state: { PreferencesController: { selectedAddress: '' } },
-  },
   context: {
     AccountsController: {
       listAccounts: jest.fn(),
@@ -112,6 +109,15 @@ export const mockedEngine = {
       addTransaction: jest.fn(),
       addTransactionBatch: jest.fn(),
       isAtomicBatchSupported: jest.fn(),
+    },
+    RampsController: {
+      getQuotes: jest.fn().mockResolvedValue({
+        success: [],
+        sorted: [],
+        error: [],
+        customActions: [],
+      }),
+      getBuyWidgetData: jest.fn(),
     },
   },
   hasFunds: jest.fn(),

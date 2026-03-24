@@ -19,6 +19,7 @@ import {
 import { PredictEventValues } from '../../constants/eventNames';
 import Routes from '../../../../../constants/navigation/Routes';
 
+import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -27,13 +28,20 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
 jest.mock('../../hooks/usePredictPositions');
 jest.mock('../../hooks/usePredictActionGuard');
 jest.mock('../../hooks/usePredictClaim');
 
-const mockUsePredictPositions = usePredictPositions as jest.MockedFunction<
-  typeof usePredictPositions
->;
+const mockUsePredictPositions = usePredictPositions as jest.Mock;
 const mockUsePredictActionGuard = usePredictActionGuard as jest.MockedFunction<
   typeof usePredictActionGuard
 >;
@@ -51,6 +59,10 @@ jest.mock('../../../Trending/services/TrendingFeedSessionManager', () => ({
       },
     }),
   },
+}));
+
+jest.mock('../../contexts', () => ({
+  usePredictEntryPoint: () => undefined,
 }));
 
 jest.mock('../PredictActionButtons', () => {
@@ -139,7 +151,7 @@ const createMockPosition = (
   overrides: Partial<PredictPosition> = {},
 ): PredictPosition => ({
   id: 'position-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   marketId: 'market-1',
   outcomeId: 'outcome-1',
   outcomeTokenId: '0',
@@ -165,7 +177,7 @@ const createMockMarket = (
   overrides: Partial<PredictMarket> = {},
 ): PredictMarket => ({
   id: 'market-1',
-  providerId: 'polymarket',
+  providerId: POLYMARKET_PROVIDER_ID,
   slug: 'test-market',
   title: 'Test Market',
   description: 'Test description',
@@ -177,7 +189,7 @@ const createMockMarket = (
   outcomes: [
     {
       id: 'outcome-1',
-      providerId: 'polymarket',
+      providerId: POLYMARKET_PROVIDER_ID,
       marketId: 'market-1',
       title: 'Will it happen?',
       description: 'Test outcome',
@@ -210,11 +222,11 @@ const setupPositionsMock = (config: MockPositionsConfig = {}) => {
   } = config;
 
   mockUsePredictPositions.mockImplementation((options) => ({
-    positions: options?.claimable ? claimablePositions : activePositions,
+    data: options?.claimable ? claimablePositions : activePositions,
     isLoading,
-    isRefreshing: false,
+    isRefetching: false,
     error: null,
-    loadPositions: jest.fn(),
+    refetch: jest.fn(),
   }));
 };
 
@@ -231,11 +243,11 @@ describe('PredictSportCardFooter', () => {
     mockUsePredictActionGuard.mockReturnValue({
       executeGuardedAction: mockExecuteGuardedAction,
       isEligible: true,
-      hasNoBalance: false,
     });
 
     mockUsePredictClaim.mockReturnValue({
       claim: mockClaim,
+      isClaimPending: false,
     });
 
     mockExecuteGuardedAction.mockImplementation((callback) => callback());
@@ -291,7 +303,8 @@ describe('PredictSportCardFooter', () => {
 
       expect(mockUsePredictPositions).toHaveBeenCalledWith({
         marketId: 'specific-market-123',
-        autoRefreshTimeout: 10000,
+        claimable: false,
+        refetchInterval: 10000,
       });
     });
 
@@ -306,26 +319,24 @@ describe('PredictSportCardFooter', () => {
       });
     });
 
-    it('calls usePredictActionGuard with correct providerId', () => {
+    it('calls usePredictActionGuard with navigation', () => {
       const market = createMockMarket({ providerId: 'test-provider' });
 
       render(<PredictSportCardFooter market={market} />);
 
       expect(mockUsePredictActionGuard).toHaveBeenCalledWith(
         expect.objectContaining({
-          providerId: 'test-provider',
+          navigation: expect.any(Object),
         }),
       );
     });
 
-    it('calls usePredictClaim with correct providerId', () => {
+    it('calls usePredictClaim without provider options', () => {
       const market = createMockMarket({ providerId: 'claim-provider' });
 
       render(<PredictSportCardFooter market={market} />);
 
-      expect(mockUsePredictClaim).toHaveBeenCalledWith({
-        providerId: 'claim-provider',
-      });
+      expect(mockUsePredictClaim).toHaveBeenCalledWith();
     });
   });
 
@@ -417,13 +428,13 @@ describe('PredictSportCardFooter', () => {
       expect(screen.getByText('Claim $50')).toBeOnTheScreen();
     });
 
-    it('renders positions with claim button when claimable', () => {
+    it('renders claimable positions with claim button when claimable', () => {
       const market = createMockMarket({ status: PredictMarketStatus.RESOLVED });
       const claimablePositions = [
         createMockPosition({ claimable: true, currentValue: 50 }),
       ];
       setupPositionsMock({
-        activePositions: claimablePositions,
+        activePositions: [],
         claimablePositions,
       });
 
@@ -510,7 +521,6 @@ describe('PredictSportCardFooter', () => {
         expect(mockExecuteGuardedAction).toHaveBeenCalledWith(
           expect.any(Function),
           {
-            checkBalance: true,
             attemptedAction: PredictEventValues.ATTEMPTED_ACTION.PREDICT,
           },
         );

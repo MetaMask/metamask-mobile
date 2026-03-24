@@ -3,9 +3,9 @@ import React, { useCallback } from 'react';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { getAnalyticsParams } from '../../../../../util/confirmation/signatureUtils';
 import { useStyles } from '../../../../../component-library/hooks';
-import { useMetrics } from '../../../../hooks/useMetrics';
-import BlockaidBanner from '../../legacy/components/BlockaidBanner/BlockaidBanner';
-import { SecurityAlertResponse } from '../../legacy/components/BlockaidBanner/BlockaidBanner.types';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import BlockaidBanner from '../../components/blockaid-banner/BlockaidBanner';
+import { SecurityAlertResponse } from '../../components/blockaid-banner/BlockaidBanner.types';
 import { useSecurityAlertResponse } from '../../hooks/alerts/useSecurityAlertResponse';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
 import styleSheet from './signature-blockaid-banner.styles';
@@ -13,7 +13,7 @@ import styleSheet from './signature-blockaid-banner.styles';
 const SignatureBlockaidBanner = () => {
   const signatureRequest = useSignatureRequest();
   const { securityAlertResponse } = useSecurityAlertResponse();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { styles } = useStyles(styleSheet, {});
 
   const {

@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import NavigationService from '../../../../core/NavigationService';
-import { PERFORMANCE_CONFIG } from '../constants/perpsConfig';
+import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
 import PerpsLoader from '../components/PerpsLoader';
 import { usePerpsConnection } from '../hooks/usePerpsConnection';
 
@@ -25,7 +25,7 @@ const PerpsRedirect: React.FC = () => {
           initialTab: 'perps',
           shouldSelectPerpsTab: true,
         });
-      }, PERFORMANCE_CONFIG.NAVIGATION_PARAMS_DELAY_MS);
+      }, PERFORMANCE_CONFIG.NavigationParamsDelayMs);
     }
   }, [isConnected, isInitialized]);
 

@@ -1,6 +1,9 @@
 import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
-import Settings from './Settings';
+import Settings, {
+  RAMP_SETTINGS_BACK_BUTTON_TEST_ID,
+  RAMP_SETTINGS_HEADER_TEST_ID,
+} from './Settings';
 import useActivationKeys from '../../hooks/useActivationKeys';
 import { RampSDK, withRampSDK } from '../../sdk';
 import { ActivationKey } from '../../../../../../reducers/fiatOrders/types';
@@ -30,7 +33,7 @@ function render(Component: React.ComponentType) {
 }
 
 const mockNavigate = jest.fn();
-const mockSetOptions = jest.fn();
+const mockGoBack = jest.fn();
 
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
@@ -38,9 +41,7 @@ jest.mock('@react-navigation/native', () => {
     ...actualReactNavigation,
     useNavigation: () => ({
       navigate: mockNavigate,
-      setOptions: mockSetOptions.mockImplementation(
-        actualReactNavigation.useNavigation().setOptions,
-      ),
+      goBack: mockGoBack,
     }),
   };
 });
@@ -85,11 +86,7 @@ jest.mock('../../hooks/useActivationKeys', () =>
 );
 
 const mockSetUserRegion = jest.fn();
-const mockFetchUserRegion = jest.fn();
-const mockFetchProviders = jest.fn();
-const mockFetchTokens = jest.fn();
-const mockFetchCountries = jest.fn();
-const mockSetPreferredProvider = jest.fn();
+const mockSetSelectedProvider = jest.fn();
 
 const createMockUserRegion = (regionCode: string): UserRegion => {
   const parts = regionCode.toLowerCase().split('-');
@@ -103,13 +100,13 @@ const createMockUserRegion = (regionCode: string): UserRegion => {
       name: 'Europe Union',
       phone: { prefix: '', placeholder: '', template: '' },
       currency: '',
-      supported: true,
+      supported: { buy: true, sell: true },
     },
     state: stateCode
       ? {
           stateId: stateCode,
           name: stateCode,
-          supported: true,
+          supported: { buy: true, sell: true },
         }
       : null,
     regionCode: regionCode.toLowerCase(),
@@ -120,24 +117,36 @@ const mockUseRampsControllerInitialValues: ReturnType<
   typeof useRampsController
 > = {
   userRegion: createMockUserRegion('eu'),
-  userRegionLoading: false,
-  userRegionError: null,
   setUserRegion: mockSetUserRegion,
-  fetchUserRegion: mockFetchUserRegion,
-  preferredProvider: null,
-  setPreferredProvider: mockSetPreferredProvider,
+  selectedProvider: null,
+  setSelectedProvider: mockSetSelectedProvider,
   providers: [],
   providersLoading: false,
   providersError: null,
-  fetchProviders: mockFetchProviders,
   tokens: null,
+  selectedToken: null,
+  setSelectedToken: jest.fn(),
   tokensLoading: false,
   tokensError: null,
-  fetchTokens: mockFetchTokens,
-  countries: null,
+  countries: [],
   countriesLoading: false,
   countriesError: null,
-  fetchCountries: mockFetchCountries,
+  paymentMethods: [],
+  selectedPaymentMethod: null,
+  setSelectedPaymentMethod: jest.fn(),
+  paymentMethodsLoading: false,
+  paymentMethodsError: null,
+  paymentMethodsFetching: false,
+  paymentMethodsStatus: 'idle' as const,
+  getQuotes: jest.fn(),
+  getBuyWidgetData: jest.fn(),
+  orders: [],
+  getOrderById: jest.fn(),
+  addOrder: jest.fn(),
+  addPrecreatedOrder: jest.fn(),
+  removeOrder: jest.fn(),
+  refreshOrder: jest.fn(),
+  getOrderFromCallback: jest.fn(),
 };
 
 let mockUseRampsControllerValues = mockUseRampsControllerInitialValues;
@@ -194,6 +203,19 @@ describe('Settings', () => {
     render(Settings);
     expect(screen.toJSON()).toMatchSnapshot();
     expect(withRampSDK).toHaveBeenCalled();
+  });
+
+  it('renders inline header with title Buy & sell crypto', () => {
+    render(Settings);
+    expect(screen.getByText('Buy & sell crypto')).toBeOnTheScreen();
+    expect(screen.getByTestId(RAMP_SETTINGS_HEADER_TEST_ID)).toBeOnTheScreen();
+  });
+
+  it('navigates back when header back button is pressed', () => {
+    render(Settings);
+    const backButton = screen.getByTestId(RAMP_SETTINGS_BACK_BUTTON_TEST_ID);
+    fireEvent.press(backButton);
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('renders correctly for internal builds', () => {

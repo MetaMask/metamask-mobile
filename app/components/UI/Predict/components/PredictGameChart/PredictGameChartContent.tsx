@@ -21,6 +21,7 @@ import TimeframeSelector from './TimeframeSelector';
 import ChartTooltip from './ChartTooltip';
 import EndpointDots from './EndpointDots';
 import { CHART_HEIGHT } from './PredictGameChart.constants';
+import { PREDICT_GAME_CHART_CONTENT_TEST_IDS } from './PredictGameChartContent.testIds';
 
 const CHART_CONTENT_INSET = { top: 30, bottom: 20, left: 0, right: 80 };
 const LINE_CURVE = curveStepAfter;
@@ -176,7 +177,7 @@ const PredictGameChartContent: React.FC<PredictGameChartContentProps> = ({
               variant={ButtonVariant.Primary}
               onPress={onRetry}
               twClassName="mt-3"
-              testID="retry-button"
+              testID={PREDICT_GAME_CHART_CONTENT_TEST_IDS.RETRY_BUTTON}
             >
               Retry
             </Button>

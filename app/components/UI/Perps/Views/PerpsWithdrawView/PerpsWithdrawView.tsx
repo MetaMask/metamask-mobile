@@ -1,5 +1,4 @@
-import { useNavigation, type NavigationProp } from '@react-navigation/native';
-import { captureException } from '@sentry/react-native';
+import { useNavigation } from '@react-navigation/native';
 import React, {
   useCallback,
   useEffect,
@@ -16,6 +15,7 @@ import {
   BoxFlexDirection,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
+import HeaderCompactStandard from '../../../../../component-library/components-temp/HeaderCompactStandard';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PerpsWithdrawViewSelectorsIDs } from '../../Perps.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -29,20 +29,21 @@ import Text, {
 } from '../../../../../component-library/components/Texts/Text';
 import Engine from '../../../../../core/Engine';
 import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
+import Logger from '../../../../../util/Logger';
+import { ensureError } from '../../../../../util/errorUtils';
 import Keypad from '../../../../Base/Keypad';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import PerpsBottomSheetTooltip from '../../components/PerpsBottomSheetTooltip';
 import { PerpsTooltipContentKey } from '../../components/PerpsBottomSheetTooltip/PerpsBottomSheetTooltip.types';
 import {
   HYPERLIQUID_ASSET_CONFIGS,
+  PERPS_CONSTANTS,
   USDC_DECIMALS,
   USDC_SYMBOL,
   USDC_TOKEN_ICON_URL,
-} from '../../constants/hyperLiquidConfig';
-import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import {
   usePerpsMeasurement,
   usePerpsNetwork,
@@ -53,7 +54,6 @@ import { TraceName } from '../../../../../util/trace';
 import { usePerpsLiveAccount } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { useWithdrawValidation } from '../../hooks/useWithdrawValidation';
-import type { PerpsNavigationParamList } from '../../types/navigation';
 import { formatPerpsFiat, parseCurrencyString } from '../../utils/formatUtils';
 
 import type { Hex } from '@metamask/utils';
@@ -82,7 +82,7 @@ const MAX_INPUT_LENGTH = 20;
 const PerpsWithdrawView: React.FC = () => {
   const tw = useTailwind();
   const fadeAnim = useRef(new Animated.Value(0)).current;
-  const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
+  const navigation = useNavigation();
 
   // State
   const [withdrawAmount, setWithdrawAmount] = useState<string>(''); // Start with empty string for keypad
@@ -161,8 +161,9 @@ const PerpsWithdrawView: React.FC = () => {
   usePerpsEventTracking({
     eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
     properties: {
-      [PerpsEventProperties.SCREEN_TYPE]:
-        PerpsEventValues.SCREEN_TYPE.WITHDRAWAL,
+      [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+        PERPS_EVENT_VALUE.SCREEN_TYPE.WITHDRAWAL,
+      [PERPS_EVENT_PROPERTY.SOURCE]: PERPS_EVENT_VALUE.SOURCE.WITHDRAW_BUTTON,
     },
   });
 
@@ -257,8 +258,8 @@ const PerpsWithdrawView: React.FC = () => {
     // Execute withdrawal asynchronously
     // Get the correct assetId for USDC on Arbitrum (declare outside try block for error handling)
     const assetId = isTestnet
-      ? HYPERLIQUID_ASSET_CONFIGS.USDC.testnet
-      : HYPERLIQUID_ASSET_CONFIGS.USDC.mainnet;
+      ? HYPERLIQUID_ASSET_CONFIGS.usdc.testnet
+      : HYPERLIQUID_ASSET_CONFIGS.usdc.mainnet;
 
     try {
       // Execute withdrawal directly using controller
@@ -288,26 +289,30 @@ const PerpsWithdrawView: React.FC = () => {
       }
       // Success/error toast will be shown by usePerpsWithdrawStatus hook
     } catch (error) {
-      // Capture exception with withdrawal context
-      captureException(
-        error instanceof Error ? error : new Error(String(error)),
-        {
-          tags: {
-            component: 'PerpsWithdrawView',
-            action: 'financial_withdrawal',
-            operation: 'financial_operations',
-          },
-          extra: {
-            withdrawalContext: {
-              amount: withdrawAmountDetailed,
-              assetId,
-              destination: destToken.address,
-              chainId: destToken.chainId,
-              isTestnet,
-            },
+      Logger.error(ensureError(error, 'PerpsWithdrawView.handleWithdraw'), {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+          component: 'PerpsWithdrawView',
+          action: 'financial_withdrawal',
+          operation: 'financial_operations',
+        },
+        context: {
+          name: 'PerpsWithdrawView',
+          data: {
+            amount: withdrawAmountDetailed,
+            assetId,
+            destination: destToken.address,
+            chainId: destToken.chainId,
+            isTestnet,
+            rawError:
+              error instanceof Error
+                ? undefined
+                : error === undefined
+                  ? 'undefined'
+                  : String(error),
           },
         },
-      );
+      });
 
       DevLogger.log('Error preparing withdrawal:', error);
     } finally {
@@ -363,24 +368,13 @@ const PerpsWithdrawView: React.FC = () => {
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
       <Box twClassName="flex-1 bg-default">
         {/* Header */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          justifyContent={BoxJustifyContent.Between}
-          twClassName="px-4"
-        >
-          <Box twClassName="w-10" />
-          <Text variant={TextVariant.HeadingMD}>
-            {strings('perps.withdrawal.title')}
-          </Text>
-          <Pressable
-            onPress={handleBack}
-            style={tw.style('p-2')}
-            testID={PerpsWithdrawViewSelectorsIDs.BACK_BUTTON}
-          >
-            <Icon name={IconName.Close} size={IconSize.Md} />
-          </Pressable>
-        </Box>
+        <HeaderCompactStandard
+          title={strings('perps.withdrawal.title')}
+          onBack={handleBack}
+          backButtonProps={{
+            testID: PerpsWithdrawViewSelectorsIDs.BACK_BUTTON,
+          }}
+        />
 
         {/* Amount Display */}
         <Pressable onPress={handleAmountPress}>

@@ -3,13 +3,14 @@ import { useSelector } from 'react-redux';
 import { usePerpsMarkets } from './usePerpsMarkets';
 import { usePerpsSearch } from './usePerpsSearch';
 import { usePerpsSorting } from './usePerpsSorting';
-import type { PerpsMarketData, MarketTypeFilter } from '../controllers/types';
 import {
   sortMarkets,
+  type PerpsMarketData,
+  type MarketTypeFilter,
   type SortField,
   type SortDirection,
-} from '../utils/sortMarkets';
-import type { SortOptionId } from '../constants/perpsConfig';
+  type SortOptionId,
+} from '@metamask/perps-controller';
 import {
   selectPerpsWatchlistMarkets,
   selectPerpsMarketFilterPreferences,
@@ -17,11 +18,6 @@ import {
 import Engine from '../../../../core/Engine';
 
 interface UsePerpsMarketListViewParams {
-  /**
-   * Initial search visibility
-   * @default false
-   */
-  defaultSearchVisible?: boolean;
   /**
    * Enable polling for markets data
    * @default false
@@ -55,9 +51,6 @@ interface UsePerpsMarketListViewReturn {
   searchState: {
     searchQuery: string;
     setSearchQuery: (query: string) => void;
-    isSearchVisible: boolean;
-    setIsSearchVisible: (visible: boolean) => void;
-    toggleSearchVisibility: () => void;
     clearSearch: () => void;
   };
   /**
@@ -95,6 +88,7 @@ interface UsePerpsMarketListViewReturn {
     equity: number;
     commodity: number;
     forex: number;
+    new: number;
   };
   /**
    * Loading state
@@ -131,13 +125,11 @@ interface UsePerpsMarketListViewReturn {
  *   isLoading,
  *   error,
  * } = usePerpsMarketListView({
- *   defaultSearchVisible: false,
  *   enablePolling: false,
  * });
  * ```
  */
 export const usePerpsMarketListView = ({
-  defaultSearchVisible = false,
   enablePolling = false,
   showWatchlistOnly = false,
   defaultMarketTypeFilter = 'all',
@@ -166,51 +158,47 @@ export const usePerpsMarketListView = ({
     defaultMarketTypeFilter,
   );
 
-  // Use search hook for search state and filtering
-  // Pass ALL markets to search so it can search across all market types
-  const searchHook = usePerpsSearch({
-    markets: allMarkets,
-    initialSearchVisible: defaultSearchVisible,
-  });
+  // Use search hook for search state and filtering (search bar always visible in UI)
+  const searchHook = usePerpsSearch({ markets: allMarkets });
 
-  const { filteredMarkets: searchedMarkets, searchQuery } = searchHook;
+  const { filteredMarkets: searchedMarkets } = searchHook;
 
-  // Apply market type filter AFTER search
-  // When searching: show all search results across all market types
-  // When not searching: filter by current tab
+  // Apply market type filter to search results (search + category work together)
   const marketTypeFilteredMarkets = useMemo(() => {
-    // If searching, return search results from all markets (ignore tab filter)
-    if (searchQuery.trim()) {
+    if (marketTypeFilter === 'all') {
       return searchedMarkets;
     }
 
-    // If not searching, filter by current tab
-    if (marketTypeFilter === 'all') {
-      // 'All' shows Crypto + Stocks + Commodities (excluding forex)
-      return searchedMarkets.filter(
-        (m) =>
-          !m.marketType ||
-          m.marketType === 'equity' ||
-          m.marketType === 'commodity',
-      );
-    }
+    // Special handling for 'crypto' filter - crypto markets are non-HIP3 (main DEX)
     if (marketTypeFilter === 'crypto') {
-      // Crypto markets have no marketType set
-      return searchedMarkets.filter((m) => !m.marketType);
+      return searchedMarkets.filter((m) => !m.isHip3);
     }
-    if (marketTypeFilter === 'stocks_and_commodities') {
-      // Combined stocks and commodities filter
-      return searchedMarkets.filter(
-        (m) => m.marketType === 'equity' || m.marketType === 'commodity',
-      );
+
+    // Special handling for 'new' filter - shows uncategorized HIP-3 markets
+    if (marketTypeFilter === 'new') {
+      return searchedMarkets.filter((m) => m.isNewMarket);
     }
-    // Filter by specific market type (equity, commodity, forex)
-    return searchedMarkets.filter((m) => m.marketType === marketTypeFilter);
-  }, [searchedMarkets, searchQuery, marketTypeFilter]);
+
+    // HIP-3 categories - only show explicitly mapped markets
+    if (marketTypeFilter === 'stocks') {
+      return searchedMarkets.filter((m) => m.marketType === 'equity');
+    }
+
+    if (marketTypeFilter === 'commodities') {
+      return searchedMarkets.filter((m) => m.marketType === 'commodity');
+    }
+
+    if (marketTypeFilter === 'forex') {
+      return searchedMarkets.filter((m) => m.marketType === 'forex');
+    }
+
+    // Fallback: return all markets for unknown filter values
+    return searchedMarkets;
+  }, [searchedMarkets, marketTypeFilter]);
 
   // Use sorting hook for sort state and sorting logic
   const sortingHook = usePerpsSorting({
-    initialOptionId: savedSortPreference.optionId,
+    initialOptionId: savedSortPreference.optionId as SortOptionId,
     initialDirection: savedSortPreference.direction,
   });
 
@@ -252,17 +240,25 @@ export const usePerpsMarketListView = ({
 
   // Calculate market counts by type (for hiding empty tabs)
   const marketCounts = useMemo(() => {
-    const counts = { crypto: 0, equity: 0, commodity: 0, forex: 0 };
+    const counts = { crypto: 0, equity: 0, commodity: 0, forex: 0, new: 0 };
     allMarkets.forEach((market) => {
-      if (!market.marketType) {
+      // Count new markets (uncategorized HIP-3)
+      if (market.isNewMarket) {
+        counts.new++;
+      }
+      // Crypto = non-HIP3 markets (no DEX prefix)
+      if (!market.isHip3) {
         counts.crypto++;
       } else if (market.marketType === 'equity') {
+        // HIP-3 markets with explicit equity type
         counts.equity++;
       } else if (market.marketType === 'commodity') {
         counts.commodity++;
       } else if (market.marketType === 'forex') {
         counts.forex++;
       }
+      // Note: uncategorized HIP-3 default to 'equity' marketType,
+      // so they're counted in equity AND in new
     });
     return counts;
   }, [allMarkets]);
@@ -272,9 +268,6 @@ export const usePerpsMarketListView = ({
     searchState: {
       searchQuery: searchHook.searchQuery,
       setSearchQuery: searchHook.setSearchQuery,
-      isSearchVisible: searchHook.isSearchVisible,
-      setIsSearchVisible: searchHook.setIsSearchVisible,
-      toggleSearchVisibility: searchHook.toggleSearchVisibility,
       clearSearch: searchHook.clearSearch,
     },
     sortState: {

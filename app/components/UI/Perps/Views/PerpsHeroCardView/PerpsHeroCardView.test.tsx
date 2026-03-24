@@ -4,14 +4,16 @@ import { act } from '@testing-library/react-hooks';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import PerpsHeroCardView from './PerpsHeroCardView';
+import { selectReferralCode } from '../../../../../reducers/rewards/selectors';
+import { selectPerpsRewardsReferralCodeEnabledFlag } from '../../selectors/featureFlags';
 import { captureRef } from 'react-native-view-shot';
 import Share from 'react-native-share';
 import Logger from '../../../../../util/Logger';
-import { MetaMetricsEvents } from '../../../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import {
-  PerpsEventProperties,
-  PerpsEventValues,
-} from '../../constants/eventNames';
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from '@metamask/perps-controller';
 import {
   PerpsHeroCardViewSelectorsIDs,
   getPerpsHeroCardViewSelector,
@@ -22,24 +24,12 @@ const mockGoBack = jest.fn();
 const mockShowToast = jest.fn();
 const mockTrack = jest.fn();
 
-jest.mock('../../../../../util/theme', () => ({
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      text: { default: '#000000', alternative: '#000000' },
-      primary: { inverse: '#FFFFFF', default: '#037DD6' },
-      background: { default: '#FFFFFF', alternative: '#F2F4F6' },
-      border: { default: '#BBC0C5', muted: '#D6D9DC' },
-      icon: { default: '#24272A', alternative: '#6A737D' },
-      overlay: { default: '#00000099' },
-      shadow: { default: '#00000026' },
-      error: { default: '#D73A49', muted: '#F97583' },
-      warning: { default: '#F66A0A', muted: '#F8AA4B' },
-      success: { default: '#28A745', muted: '#85E29D' },
-      info: { default: '#037DD6', muted: '#66CAFF' },
-    },
-    themeAppearance: 'light',
-  })),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useAppThemeFromContext: jest.fn(() => mockTheme),
+  };
+});
 jest.mock('@react-navigation/native');
 jest.mock('react-native-safe-area-context', () => ({
   SafeAreaView: ({ children }: { children: React.ReactNode }) => children,
@@ -94,71 +84,15 @@ jest.mock('../../../Rewards/hooks/useReferralDetails', () => ({
 jest.mock('../../../Rewards/hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),
 }));
-jest.mock('@metamask/design-tokens', () => ({
-  brandColor: {
-    black: '#000000',
-    white: '#FFFFFF',
-  },
-  darkTheme: {
-    colors: {
-      background: {
-        mutedHover: '#color1',
-      },
-      accent04: {
-        light: '#color2',
-      },
-    },
-  },
-}));
-jest.mock('../../../../../component-library/hooks', () => ({
-  useStyles: jest.fn(() => ({
-    styles: {
-      safeAreaContainer: {},
-      header: {},
-      closeButton: {},
-      headerTitle: {},
-      carouselWrapper: {},
-      carousel: {},
-      cardContainer: {},
-      backgroundImage: {},
-      heroCardTopRow: {},
-      metamaskLogo: {},
-      heroCardAssetRow: {},
-      assetIcon: {},
-      assetName: {},
-      directionBadge: {},
-      directionBadgeText: {},
-      pnlText: {},
-      pnlPositive: {},
-      pnlNegative: {},
-      priceRowsContainer: {},
-      priceRow: {},
-      priceLabel: {},
-      priceValue: {},
-      qrCodeContainer: {},
-      carouselDotIndicator: {},
-      progressDot: {},
-      progressDotActive: {},
-      footerButtonContainer: {},
-    },
-    theme: {
-      colors: {
-        text: { default: '#000000', alternative: '#000000' },
-        primary: { inverse: '#FFFFFF', default: '#037DD6' },
-        background: { default: '#FFFFFF', alternative: '#F2F4F6' },
-        border: { default: '#BBC0C5', muted: '#D6D9DC' },
-        icon: { default: '#24272A', alternative: '#6A737D' },
-        overlay: { default: '#00000099' },
-        shadow: { default: '#00000026' },
-        error: { default: '#D73A49', muted: '#F97583' },
-        warning: { default: '#F66A0A', muted: '#F8AA4B' },
-        success: { default: '#28A745', muted: '#85E29D' },
-        info: { default: '#037DD6', muted: '#66CAFF' },
-      },
-      themeAppearance: 'light',
-    },
-  })),
-}));
+jest.mock('../../../../../component-library/hooks', () => {
+  const { mockTheme } = jest.requireActual('../../../../../util/theme');
+  return {
+    useStyles: jest.fn((styleFn, vars) => ({
+      styles: styleFn({ theme: mockTheme, vars }),
+      theme: mockTheme,
+    })),
+  };
+});
 jest.mock('../../components/PerpsTokenLogo', () => 'PerpsTokenLogo');
 jest.mock(
   '../../../Rewards/components/RewardsReferralCodeTag',
@@ -198,7 +132,16 @@ const createMockRouteParams = (overrides = {}) => ({
 describe('PerpsHeroCardView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseSelector.mockReturnValue('TESTCODE123');
+    // By default, referral flag is disabled (feature gated off)
+    mockUseSelector.mockImplementation((selector) => {
+      if (selector === selectReferralCode) {
+        return 'TESTCODE123';
+      }
+      if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
+        return false;
+      }
+      return undefined;
+    });
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
       goBack: mockGoBack,
@@ -211,6 +154,19 @@ describe('PerpsHeroCardView', () => {
   });
 
   describe('rendering with referral code', () => {
+    beforeEach(() => {
+      // Enable the referral feature flag for these tests
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return 'TESTCODE123';
+        }
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
+    });
+
     it('displays referral code tag', () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
@@ -246,13 +202,21 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('+10.0%');
+      expect(pnlText).toHaveTextContent('+10.00%');
     });
   });
 
   describe('rendering without referral code', () => {
     beforeEach(() => {
-      mockUseSelector.mockReturnValue(null);
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return null;
+        }
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('does not render referral code tag', () => {
@@ -266,6 +230,41 @@ describe('PerpsHeroCardView', () => {
     });
 
     it('renders asset symbol', () => {
+      const { getByTestId } = render(<PerpsHeroCardView />);
+
+      const assetSymbol = getByTestId(
+        getPerpsHeroCardViewSelector.assetSymbol(0),
+      );
+
+      expect(assetSymbol).toHaveTextContent('BTC');
+    });
+  });
+
+  describe('rendering with referral flag disabled', () => {
+    beforeEach(() => {
+      // Flag disabled even though code exists
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return 'TESTCODE123';
+        }
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
+          return false;
+        }
+        return undefined;
+      });
+    });
+
+    it('does not render referral code tag when flag is disabled', () => {
+      const { queryByTestId } = render(<PerpsHeroCardView />);
+
+      const referralCodeTag = queryByTestId(
+        getPerpsHeroCardViewSelector.referralCodeTag(0),
+      );
+
+      expect(referralCodeTag).toBeNull();
+    });
+
+    it('renders asset symbol when flag is disabled', () => {
       const { getByTestId } = render(<PerpsHeroCardView />);
 
       const assetSymbol = getByTestId(
@@ -300,6 +299,16 @@ describe('PerpsHeroCardView', () => {
     beforeEach(() => {
       mockCaptureRef.mockResolvedValue('file://image.png');
       mockShareOpen.mockResolvedValue({ success: true, message: 'shared' });
+      // Enable referral flag for share tests
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectReferralCode) {
+          return 'TESTCODE123';
+        }
+        if (selector === selectPerpsRewardsReferralCodeEnabledFlag) {
+          return true;
+        }
+        return undefined;
+      });
     });
 
     it('calls captureRef when share pressed', async () => {
@@ -348,9 +357,9 @@ describe('PerpsHeroCardView', () => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.INITIATED,
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.INITIATED,
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
@@ -369,9 +378,9 @@ describe('PerpsHeroCardView', () => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.SUCCESS,
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.SUCCESS,
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
@@ -411,8 +420,8 @@ describe('PerpsHeroCardView', () => {
         expect(Logger.error).toHaveBeenCalledWith(
           error,
           expect.objectContaining({
-            message: 'Error capturing Perps Hero Card',
-            context: 'PerpsHeroCardView.captureCard',
+            tags: { feature: 'perps' },
+            context: { name: 'PerpsHeroCardView.captureCard', data: {} },
           }),
         );
       });
@@ -435,10 +444,10 @@ describe('PerpsHeroCardView', () => {
         expect(mockTrack).toHaveBeenCalledWith(
           MetaMetricsEvents.PERPS_UI_INTERACTION,
           expect.objectContaining({
-            [PerpsEventProperties.STATUS]: PerpsEventValues.STATUS.FAILED,
-            [PerpsEventProperties.ERROR_MESSAGE]: 'Share failed',
-            [PerpsEventProperties.INTERACTION_TYPE]:
-              PerpsEventValues.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
+            [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.FAILED,
+            [PERPS_EVENT_PROPERTY.ERROR_MESSAGE]: 'Share failed',
+            [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
+              PERPS_EVENT_VALUE.INTERACTION_TYPE.SHARE_PNL_HERO_CARD,
           }),
         );
       });
@@ -505,8 +514,8 @@ describe('PerpsHeroCardView', () => {
         expect(Logger.error).toHaveBeenCalledWith(
           error,
           expect.objectContaining({
-            message: 'Error sharing Perps Hero Card',
-            context: 'PerpsHeroCardView.handleShare',
+            tags: { feature: 'perps' },
+            context: { name: 'PerpsHeroCardView.handleShare', data: {} },
           }),
         );
       });
@@ -550,7 +559,7 @@ describe('PerpsHeroCardView', () => {
 
       const pnlText = getByTestId(getPerpsHeroCardViewSelector.pnlText(0));
 
-      expect(pnlText).toHaveTextContent('-10.0%');
+      expect(pnlText).toHaveTextContent('-10.00%');
     });
   });
 });

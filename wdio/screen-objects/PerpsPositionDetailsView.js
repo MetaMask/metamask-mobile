@@ -1,6 +1,7 @@
 import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import Utilities from '../../tests/framework/Utilities';
+import { expect } from 'appwright';
 
 class PerpsPositionDetailsView {
   get device() {
@@ -23,14 +24,18 @@ class PerpsPositionDetailsView {
     return AppwrightSelectors.getElementByID(this._device, 'close-position-confirm-button');
   }
 
+  get marketDetailsHeader() {
+    return AppwrightSelectors.getElementByID(this._device, 'perps-market-header');
+  }
+
   async tapClosePositionButton() {
     await AppwrightGestures.tap(await this.closePositionButton);
     await AppwrightGestures.tap(await this.confirmClosePositionButton);
   }
 
-  async isPositionOpen() {
+  async isPositionOpen(timeout = 5000) {
     const closePositionButton = await this.closePositionButton;
-    return await closePositionButton.isVisible();
+    return await closePositionButton.isVisible({ timeout });
   }
 
   async closePositionWithRetry() {
@@ -48,6 +53,11 @@ class PerpsPositionDetailsView {
       description: 'close position',
       elemDescription: 'Close Position Button',
     });
+  }
+
+  async isContainerDisplayed() {
+    const container = await this.marketDetailsHeader;
+    await expect(container).toBeVisible({ timeout: 20000 });
   }
 }
 

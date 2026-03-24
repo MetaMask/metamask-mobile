@@ -17,9 +17,10 @@ import { useStyles } from '../../../../../component-library/hooks';
 import {
   EARN_CONTRACT_INTERACTION_TYPES,
   MMM_ORIGIN,
-  REDESIGNED_APPROVE_TYPES,
-  REDESIGNED_TRANSFER_TYPES,
+  APPROVE_TRANSACTION_TYPES,
+  TRANSFER_TRANSACTION_TYPES,
 } from '../../constants/confirmations';
+import useNetworkInfo from '../../hooks/useNetworkInfo';
 import { ApproveMethod } from '../../types/approve';
 import { use7702TransactionType } from '../../hooks/7702/use7702TransactionType';
 import { useSignatureRequest } from '../../hooks/signatures/useSignatureRequest';
@@ -85,6 +86,7 @@ const getTitleAndSubTitle = (
   isBatched: boolean = false,
   isUpgradeOnly: boolean = false,
   approveTransactionData?: ApproveTransactionData,
+  networkName?: string,
 ) => {
   const type = approvalRequest?.type;
   const transactionType = transactionMetadata?.type as TransactionType;
@@ -152,12 +154,10 @@ const getTitleAndSubTitle = (
             : strings('confirm.sub_title.switch_to_smart_account'),
         };
       }
-      if (REDESIGNED_TRANSFER_TYPES.includes(transactionType)) {
-        return {
-          title: strings('confirm.title.transfer'),
-        };
+      if (TRANSFER_TRANSACTION_TYPES.includes(transactionType)) {
+        return {};
       }
-      if (REDESIGNED_APPROVE_TYPES.includes(transactionType)) {
+      if (APPROVE_TRANSACTION_TYPES.includes(transactionType)) {
         const { title, subTitle } = getApproveTitle(approveTransactionData);
         return {
           title,
@@ -165,10 +165,27 @@ const getTitleAndSubTitle = (
         };
       }
 
+      if (transactionType === TransactionType.musdClaim) {
+        return {
+          title: strings('earn.claim_bonus'),
+          subTitle: strings('earn.claim_bonus_subtitle', {
+            networkName: networkName ?? '',
+          }),
+        };
+      }
+
       if (transactionType === TransactionType.deployContract) {
         return {
           title: strings('confirm.title.contract_deployment'),
           subTitle: strings('confirm.sub_title.contract_deployment'),
+        };
+      }
+
+      if (transactionType === TransactionType.musdConversion) {
+        return {
+          title: strings(
+            'earn.musd_conversion.quick_convert.confirmation.title',
+          ),
         };
       }
 
@@ -204,8 +221,17 @@ const Title = () => {
   const transactionMetadata = useTransactionMetadataRequest();
   const { isDowngrade, isBatched, isUpgradeOnly } = use7702TransactionType();
   const approveTransactionData = useApproveTransactionData();
+  const { networkName } = useNetworkInfo(transactionMetadata?.chainId);
 
   if (isFullScreenConfirmation) {
+    return null;
+  }
+
+  // Avoid rendering a fallback title while transaction metadata is still loading
+  if (
+    approvalRequest?.type === ApprovalType.Transaction &&
+    !transactionMetadata
+  ) {
     return null;
   }
 
@@ -217,7 +243,12 @@ const Title = () => {
     isBatched,
     isUpgradeOnly,
     approveTransactionData,
+    networkName,
   );
+
+  if (!title) {
+    return null;
+  }
 
   return (
     <View style={styles.titleContainer}>

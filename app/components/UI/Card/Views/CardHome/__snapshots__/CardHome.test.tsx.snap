@@ -329,7 +329,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                           }
                           onRefresh={[Function]}
                           refreshing={false}
-                          tintColor="#121314"
+                          tintColor="#131416"
                         />
                       }
                       showsVerticalScrollIndicator={false}
@@ -350,7 +350,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                           style={
                             [
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "fontWeight": 700,
@@ -360,6 +360,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                               {
                                 "paddingLeft": 16,
                                 "paddingRight": 16,
+                                "paddingTop": 16,
                               },
                             ]
                           }
@@ -370,7 +371,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#b4b4b528",
                                 "borderRadius": 8,
                                 "display": "flex",
                                 "marginLeft": 16,
@@ -866,9 +867,9 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
-                                      "fontSize": 18,
+                                      "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -882,7 +883,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   testID="privacy-toggle-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="Eye"
@@ -901,7 +902,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#686e7d",
+                                      "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": 400,
@@ -955,10 +956,8 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -973,7 +972,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -995,10 +994,8 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -1013,7 +1010,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -1073,13 +1070,17 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     card.card_home.manage_card_options.manage_spending_limit
@@ -1087,13 +1088,17 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#686e7d",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     card.card_home.manage_card_options.manage_spending_limit_description_full
@@ -1117,7 +1122,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="ArrowRight"
@@ -1171,13 +1176,17 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   Manage card
@@ -1185,13 +1194,17 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   See detailed transactions, freeze your card, etc.
@@ -1215,7 +1228,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 testID="listitemcolumn"
                               >
                                 <SvgMock
-                                  color="#121314"
+                                  color="#131416"
                                   fill="currentColor"
                                   height={20}
                                   name="Export"
@@ -1268,13 +1281,17 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   card.card_home.manage_card_options.travel_title
@@ -1282,13 +1299,17 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   card.card_home.manage_card_options.travel_description
@@ -1312,7 +1333,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                                 testID="listitemcolumn"
                               >
                                 <SvgMock
-                                  color="#121314"
+                                  color="#131416"
                                   fill="currentColor"
                                   height={20}
                                   name="Export"
@@ -1329,6 +1350,7 @@ exports[`CardHome Component renders correctly and matches snapshot 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
+                        <View />
                       </View>
                     </RCTScrollView>
                   </View>
@@ -1672,7 +1694,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                           }
                           onRefresh={[Function]}
                           refreshing={false}
-                          tintColor="#121314"
+                          tintColor="#131416"
                         />
                       }
                       showsVerticalScrollIndicator={false}
@@ -1693,7 +1715,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                           style={
                             [
                               {
-                                "color": "#121314",
+                                "color": "#131416",
                                 "fontFamily": "Geist-Bold",
                                 "fontSize": 24,
                                 "fontWeight": 700,
@@ -1703,6 +1725,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                               {
                                 "paddingLeft": 16,
                                 "paddingRight": 16,
+                                "paddingTop": 16,
                               },
                             ]
                           }
@@ -1713,7 +1736,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                           style={
                             [
                               {
-                                "backgroundColor": "#3c4d9d0f",
+                                "backgroundColor": "#b4b4b528",
                                 "borderRadius": 8,
                                 "display": "flex",
                                 "marginLeft": 16,
@@ -2209,9 +2232,9 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#131416",
                                       "fontFamily": "Geist-Bold",
-                                      "fontSize": 18,
+                                      "fontSize": 20,
                                       "letterSpacing": 0,
                                       "lineHeight": 24,
                                     }
@@ -2225,7 +2248,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   testID="privacy-toggle-button"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="EyeSlash"
@@ -2244,7 +2267,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 style={
                                   [
                                     {
-                                      "color": "#686e7d",
+                                      "color": "#66676a",
                                       "fontFamily": "Geist-Regular",
                                       "fontSize": 14,
                                       "fontWeight": 400,
@@ -2298,10 +2321,8 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -2316,7 +2337,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2338,10 +2359,8 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   {
                                     "alignItems": "center",
                                     "alignSelf": "stretch",
-                                    "backgroundColor": "#3c4d9d0f",
-                                    "borderColor": "transparent",
+                                    "backgroundColor": "#131416",
                                     "borderRadius": 12,
-                                    "borderWidth": 1,
                                     "flexDirection": "row",
                                     "height": 48,
                                     "justifyContent": "center",
@@ -2356,7 +2375,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   accessibilityRole="text"
                                   style={
                                     {
-                                      "color": "#121314",
+                                      "color": "#ffffff",
                                       "fontFamily": "Geist-Medium",
                                       "fontSize": 16,
                                       "letterSpacing": 0,
@@ -2416,13 +2435,17 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#121314",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#131416",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     card.card_home.manage_card_options.manage_spending_limit
@@ -2430,13 +2453,17 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   <Text
                                     accessibilityRole="text"
                                     style={
-                                      {
-                                        "color": "#686e7d",
-                                        "fontFamily": "Geist-Regular",
-                                        "fontSize": 14,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 22,
-                                      }
+                                      [
+                                        {
+                                          "color": "#66676a",
+                                          "fontFamily": "Geist-Regular",
+                                          "fontSize": 14,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 22,
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     card.card_home.manage_card_options.manage_spending_limit_description_full
@@ -2460,7 +2487,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                   testID="listitemcolumn"
                                 >
                                   <SvgMock
-                                    color="#121314"
+                                    color="#131416"
                                     fill="currentColor"
                                     height={20}
                                     name="ArrowRight"
@@ -2514,13 +2541,17 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   Manage card
@@ -2528,13 +2559,17 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   See detailed transactions, freeze your card, etc.
@@ -2558,7 +2593,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 testID="listitemcolumn"
                               >
                                 <SvgMock
-                                  color="#121314"
+                                  color="#131416"
                                   fill="currentColor"
                                   height={20}
                                   name="Export"
@@ -2611,13 +2646,17 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#121314",
-                                      "fontFamily": "Geist-Medium",
-                                      "fontSize": 16,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 24,
-                                    }
+                                    [
+                                      {
+                                        "color": "#131416",
+                                        "fontFamily": "Geist-Medium",
+                                        "fontSize": 16,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 24,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   card.card_home.manage_card_options.travel_title
@@ -2625,13 +2664,17 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 <Text
                                   accessibilityRole="text"
                                   style={
-                                    {
-                                      "color": "#686e7d",
-                                      "fontFamily": "Geist-Regular",
-                                      "fontSize": 14,
-                                      "letterSpacing": 0,
-                                      "lineHeight": 22,
-                                    }
+                                    [
+                                      {
+                                        "color": "#66676a",
+                                        "fontFamily": "Geist-Regular",
+                                        "fontSize": 14,
+                                        "fontWeight": 400,
+                                        "letterSpacing": 0,
+                                        "lineHeight": 22,
+                                      },
+                                      undefined,
+                                    ]
                                   }
                                 >
                                   card.card_home.manage_card_options.travel_description
@@ -2655,7 +2698,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                                 testID="listitemcolumn"
                               >
                                 <SvgMock
-                                  color="#121314"
+                                  color="#131416"
                                   fill="currentColor"
                                   height={20}
                                   name="Export"
@@ -2672,6 +2715,7 @@ exports[`CardHome Component renders correctly with privacy mode enabled 1`] = `
                             </View>
                           </View>
                         </TouchableOpacity>
+                        <View />
                       </View>
                     </RCTScrollView>
                   </View>

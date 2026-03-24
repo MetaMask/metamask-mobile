@@ -5,6 +5,7 @@ import {
   selectReferralCode,
   selectBalanceTotal,
   selectReferralCount,
+  selectReferredByCode,
   selectCurrentTier,
   selectNextTier,
   selectNextTierPointsNeeded,
@@ -18,6 +19,7 @@ import {
   selectSeasonEndDate,
   selectSeasonTiers,
   selectSeasonActivityTypes,
+  selectSeasonWaysToEarn,
   selectOnboardingActiveStep,
   selectOnboardingReferralCode,
   selectGeoLocation,
@@ -38,12 +40,34 @@ import {
   selectSeasonRewardById,
   selectPointsEvents,
   selectSeasonShouldInstallNewVersion,
+  selectBulkLinkState,
+  selectBulkLinkIsRunning,
+  selectBulkLinkTotalAccounts,
+  selectBulkLinkLinkedAccounts,
+  selectBulkLinkFailedAccounts,
+  selectBulkLinkWasInterrupted,
+  selectBulkLinkAccountProgress,
+  selectCampaigns,
+  selectCampaignsLoading,
+  selectCampaignsError,
+  selectCampaignParticipantStatuses,
+  selectCampaignParticipantStatusById,
+  selectCampaignParticipantCount,
+  selectIsRewardsVersionBlocked,
+  selectVersionGuardMinimumMobileVersion,
+  selectVersionGuardLoading,
+  selectVersionGuardError,
 } from './selectors';
+// eslint-disable-next-line import-x/no-namespace
+import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
 import { OnboardingStep } from './types';
 import {
   RewardDto,
   SeasonTierDto,
   SeasonActivityTypeDto,
+  CampaignDto,
+  CampaignType,
+  SeasonWayToEarnDto,
   PointsEventDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { RootState } from '..';
@@ -52,6 +76,10 @@ import { RewardsState, AccountOptInBannerInfoStatus } from '.';
 // Mock react-redux
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+}));
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn().mockReturnValue('7.71.0'),
 }));
 
 const mockedUseSelector = useSelector as jest.MockedFunction<
@@ -85,20 +113,20 @@ describe('Rewards selectors', () => {
       expect(result.current).toBe('overview');
     });
 
+    it('returns campaigns tab when set', () => {
+      const mockState = { rewards: { activeTab: 'campaigns' as const } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectActiveTab));
+      expect(result.current).toBe('campaigns');
+    });
+
     it('returns activity tab when set', () => {
       const mockState = { rewards: { activeTab: 'activity' as const } };
       mockedUseSelector.mockImplementation((selector) => selector(mockState));
 
       const { result } = renderHook(() => useSelector(selectActiveTab));
       expect(result.current).toBe('activity');
-    });
-
-    it('returns levels tab when set', () => {
-      const mockState = { rewards: { activeTab: 'levels' as const } };
-      mockedUseSelector.mockImplementation((selector) => selector(mockState));
-
-      const { result } = renderHook(() => useSelector(selectActiveTab));
-      expect(result.current).toBe('levels');
     });
   });
 
@@ -161,6 +189,32 @@ describe('Rewards selectors', () => {
 
       const { result } = renderHook(() => useSelector(selectReferralCount));
       expect(result.current).toBe(0);
+    });
+  });
+
+  describe('selectReferredByCode', () => {
+    it('returns null when referred by code is not set', () => {
+      const mockState = { rewards: { referredByCode: null } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectReferredByCode));
+      expect(result.current).toBeNull();
+    });
+
+    it('returns referred by code when set', () => {
+      const mockState = { rewards: { referredByCode: 'REFERRER123' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectReferredByCode));
+      expect(result.current).toBe('REFERRER123');
+    });
+
+    it('returns empty string when referred by code is empty', () => {
+      const mockState = { rewards: { referredByCode: '' } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectReferredByCode));
+      expect(result.current).toBe('');
     });
   });
 
@@ -538,15 +592,15 @@ describe('Rewards selectors', () => {
     it('returns season activity types when set', () => {
       const mockActivityTypes: SeasonActivityTypeDto[] = [
         {
+          id: 'swap',
           type: 'SWAP',
           title: 'Swap',
-          description: 'Swap tokens',
           icon: 'SwapVertical',
         },
         {
+          id: 'card',
           type: 'CARD',
           title: 'Card spend',
-          description: 'Spend with card',
           icon: 'Card',
         },
       ];
@@ -557,6 +611,51 @@ describe('Rewards selectors', () => {
         useSelector(selectSeasonActivityTypes),
       );
       expect(result.current).toEqual(mockActivityTypes);
+    });
+  });
+
+  describe('selectSeasonWaysToEarn', () => {
+    it('returns empty array when season ways to earn are not set', () => {
+      const mockState = { rewards: { seasonWaysToEarn: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns season ways to earn when set', () => {
+      const mockWaysToEarn: SeasonWayToEarnDto[] = [
+        {
+          id: 'way-swap',
+          type: 'SWAP',
+          title: 'Swap',
+          icon: 'SwapHorizontal',
+          shortDescription: '80 points per $100',
+          bottomSheetTitle: 'Swap tokens',
+          pointsEarningRule: '80 points per $100 swapped',
+          description: 'Swap tokens on supported networks.',
+          buttonLabel: 'Start a swap',
+          buttonAction: { deeplink: 'metamask://swap' },
+        },
+        {
+          id: 'way-referral',
+          type: 'REFERRAL',
+          title: 'Refer friends',
+          icon: 'People',
+          shortDescription: '10 points per 50 from friends',
+          bottomSheetTitle: 'Refer friends',
+          pointsEarningRule: '10 points per 50 pts earned',
+          description: 'Invite your friends.',
+          buttonLabel: 'Share link',
+          buttonAction: { route: { root: 'ReferralView', screen: '' } },
+        },
+      ];
+      const mockState = { rewards: { seasonWaysToEarn: mockWaysToEarn } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectSeasonWaysToEarn));
+      expect(result.current).toEqual(mockWaysToEarn);
+      expect(result.current).toHaveLength(2);
     });
   });
 
@@ -1295,6 +1394,18 @@ describe('Rewards selectors', () => {
       it('handles large referral counts correctly', () => {
         const state = createMockRootState({ refereeCount: 9999 });
         expect(selectReferralCount(state)).toBe(9999);
+      });
+    });
+
+    describe('selectReferredByCode direct calls', () => {
+      it('returns null when referred by code is null', () => {
+        const state = createMockRootState({ referredByCode: null });
+        expect(selectReferredByCode(state)).toBeNull();
+      });
+
+      it('returns referred by code when set', () => {
+        const state = createMockRootState({ referredByCode: 'REFERRER456' });
+        expect(selectReferredByCode(state)).toBe('REFERRER456');
       });
     });
 
@@ -2422,6 +2533,854 @@ describe('Rewards selectors', () => {
           seasonShouldInstallNewVersion: '2.0.0',
         });
         expect(selectSeasonShouldInstallNewVersion(state)).toBe('2.0.0');
+      });
+    });
+  });
+
+  describe('selectBulkLinkState', () => {
+    it('returns bulk link state when set', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 2,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectBulkLinkState));
+      expect(result.current).toEqual({
+        isRunning: true,
+        totalAccounts: 10,
+        linkedAccounts: 5,
+        failedAccounts: 2,
+      });
+    });
+
+    it('returns initial bulk link state when not set', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 0,
+            linkedAccounts: 0,
+            failedAccounts: 0,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectBulkLinkState));
+      expect(result.current).toEqual({
+        isRunning: false,
+        totalAccounts: 0,
+        linkedAccounts: 0,
+        failedAccounts: 0,
+      });
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns bulk link state', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 8,
+            linkedAccounts: 4,
+            failedAccounts: 1,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        expect(selectBulkLinkState(state)).toEqual({
+          isRunning: true,
+          totalAccounts: 8,
+          linkedAccounts: 4,
+          failedAccounts: 1,
+          wasInterrupted: false,
+          initialSubscriptionId: 'sub-123',
+        });
+      });
+    });
+  });
+
+  describe('selectBulkLinkIsRunning', () => {
+    it('returns true when bulk link is running', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 2,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectBulkLinkIsRunning));
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when bulk link is not running', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 2,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectBulkLinkIsRunning));
+      expect(result.current).toBe(false);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns true when running', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 5,
+            linkedAccounts: 2,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        expect(selectBulkLinkIsRunning(state)).toBe(true);
+      });
+
+      it('returns false when not running', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 5,
+            linkedAccounts: 2,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        });
+        expect(selectBulkLinkIsRunning(state)).toBe(false);
+      });
+    });
+  });
+
+  describe('selectBulkLinkTotalAccounts', () => {
+    it('returns total accounts count', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 15,
+            linkedAccounts: 8,
+            failedAccounts: 2,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkTotalAccounts),
+      );
+      expect(result.current).toBe(15);
+    });
+
+    it('returns zero when no accounts', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 0,
+            linkedAccounts: 0,
+            failedAccounts: 0,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkTotalAccounts),
+      );
+      expect(result.current).toBe(0);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns total accounts', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 20,
+            linkedAccounts: 10,
+            failedAccounts: 3,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        expect(selectBulkLinkTotalAccounts(state)).toBe(20);
+      });
+    });
+  });
+
+  describe('selectBulkLinkLinkedAccounts', () => {
+    it('returns linked accounts count', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 7,
+            failedAccounts: 1,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkLinkedAccounts),
+      );
+      expect(result.current).toBe(7);
+    });
+
+    it('returns zero when no accounts linked', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 5,
+            linkedAccounts: 0,
+            failedAccounts: 0,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkLinkedAccounts),
+      );
+      expect(result.current).toBe(0);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns linked accounts count', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 8,
+            linkedAccounts: 5,
+            failedAccounts: 1,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        expect(selectBulkLinkLinkedAccounts(state)).toBe(5);
+      });
+    });
+  });
+
+  describe('selectBulkLinkFailedAccounts', () => {
+    it('returns failed accounts count', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 6,
+            failedAccounts: 3,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkFailedAccounts),
+      );
+      expect(result.current).toBe(3);
+    });
+
+    it('returns zero when no accounts failed', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 5,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkFailedAccounts),
+      );
+      expect(result.current).toBe(0);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns failed accounts count', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 7,
+            failedAccounts: 2,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        expect(selectBulkLinkFailedAccounts(state)).toBe(2);
+      });
+    });
+  });
+
+  describe('selectBulkLinkWasInterrupted', () => {
+    it('returns true when bulk link was interrupted', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 2,
+            wasInterrupted: true,
+            initialSubscriptionId: 'sub-123',
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(true);
+    });
+
+    it('returns false when bulk link was not interrupted', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 10,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('returns false when bulk link is currently running', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(false);
+    });
+
+    it('handles state changes correctly', () => {
+      let mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123' as string | null,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result, rerender } = renderHook(() =>
+        useSelector(selectBulkLinkWasInterrupted),
+      );
+      expect(result.current).toBe(false);
+
+      // Simulate app closing during process - wasInterrupted becomes true on rehydrate
+      mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: true,
+            initialSubscriptionId: 'sub-123',
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(true);
+
+      // Simulate resuming and completing the process
+      mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 10,
+            linkedAccounts: 10,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+      rerender();
+      expect(result.current).toBe(false);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns true when wasInterrupted is true', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 8,
+            linkedAccounts: 4,
+            failedAccounts: 1,
+            wasInterrupted: true,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        expect(selectBulkLinkWasInterrupted(state)).toBe(true);
+      });
+
+      it('returns false when wasInterrupted is false', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 5,
+            linkedAccounts: 5,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        });
+        expect(selectBulkLinkWasInterrupted(state)).toBe(false);
+      });
+
+      it('returns false for initial bulk link state', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 0,
+            linkedAccounts: 0,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        });
+        expect(selectBulkLinkWasInterrupted(state)).toBe(false);
+      });
+    });
+  });
+
+  describe('selectBulkLinkAccountProgress', () => {
+    it('returns 0 when totalAccounts is 0', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 0,
+            linkedAccounts: 0,
+            failedAccounts: 0,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkAccountProgress),
+      );
+      expect(result.current).toBe(0);
+    });
+
+    it('returns correct progress percentage', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 5,
+            failedAccounts: 2,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkAccountProgress),
+      );
+      // (5 + 2) / 10 = 0.7
+      expect(result.current).toBe(0.7);
+    });
+
+    it('returns 1.0 when all accounts are processed', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 10,
+            linkedAccounts: 8,
+            failedAccounts: 2,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkAccountProgress),
+      );
+      // (8 + 2) / 10 = 1.0
+      expect(result.current).toBe(1.0);
+    });
+
+    it('returns correct progress for partial completion', () => {
+      const mockState = {
+        rewards: {
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 20,
+            linkedAccounts: 10,
+            failedAccounts: 5,
+          },
+        },
+      };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() =>
+        useSelector(selectBulkLinkAccountProgress),
+      );
+      // (10 + 5) / 20 = 0.75
+      expect(result.current).toBe(0.75);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns 0 when totalAccounts is 0', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: false,
+            totalAccounts: 0,
+            linkedAccounts: 0,
+            failedAccounts: 0,
+            wasInterrupted: false,
+            initialSubscriptionId: null,
+          },
+        });
+        expect(selectBulkLinkAccountProgress(state)).toBe(0);
+      });
+
+      it('returns correct progress percentage', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 8,
+            linkedAccounts: 4,
+            failedAccounts: 2,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        // (4 + 2) / 8 = 0.75
+        expect(selectBulkLinkAccountProgress(state)).toBe(0.75);
+      });
+
+      it('returns 1.0 when all accounts are processed', () => {
+        const state = createMockRootState({
+          bulkLink: {
+            isRunning: true,
+            totalAccounts: 5,
+            linkedAccounts: 3,
+            failedAccounts: 2,
+            wasInterrupted: false,
+            initialSubscriptionId: 'sub-123',
+          },
+        });
+        // (3 + 2) / 5 = 1.0
+        expect(selectBulkLinkAccountProgress(state)).toBe(1.0);
+      });
+    });
+  });
+
+  const mockCampaign: CampaignDto = {
+    id: 'campaign-1',
+    type: 'ONDO_HOLDING' as CampaignType,
+    name: 'ONDO Holding Campaign',
+    startDate: '2025-01-01T00:00:00.000Z',
+    endDate: '2027-01-01T00:00:00.000Z',
+    termsAndConditions: null,
+    excludedRegions: [],
+    statusLabel: 'Active',
+    details: null,
+  };
+
+  describe('selectCampaigns', () => {
+    it('returns empty array when campaigns is empty', () => {
+      const mockState = { rewards: { campaigns: [] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([]);
+    });
+
+    it('returns campaigns array when campaigns exist', () => {
+      const mockState = { rewards: { campaigns: [mockCampaign] } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaigns));
+      expect(result.current).toEqual([mockCampaign]);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns empty array when campaigns is empty', () => {
+        const state = createMockRootState({ campaigns: [] });
+        expect(selectCampaigns(state)).toEqual([]);
+      });
+
+      it('returns campaigns when they exist', () => {
+        const state = createMockRootState({ campaigns: [mockCampaign] });
+        expect(selectCampaigns(state)).toEqual([mockCampaign]);
+      });
+    });
+  });
+
+  describe('selectCampaignsLoading', () => {
+    it('returns false when campaigns are not loading', () => {
+      const mockState = { rewards: { campaignsLoading: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when campaigns are loading', () => {
+      const mockState = { rewards: { campaignsLoading: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsLoading));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when campaignsLoading is false', () => {
+        const state = createMockRootState({ campaignsLoading: false });
+        expect(selectCampaignsLoading(state)).toBe(false);
+      });
+
+      it('returns true when campaignsLoading is true', () => {
+        const state = createMockRootState({ campaignsLoading: true });
+        expect(selectCampaignsLoading(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectCampaignsError', () => {
+    it('returns false when there is no campaigns error', () => {
+      const mockState = { rewards: { campaignsError: false } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(false);
+    });
+
+    it('returns true when there is a campaigns error', () => {
+      const mockState = { rewards: { campaignsError: true } };
+      mockedUseSelector.mockImplementation((selector) => selector(mockState));
+
+      const { result } = renderHook(() => useSelector(selectCampaignsError));
+      expect(result.current).toBe(true);
+    });
+
+    describe('Direct selector calls', () => {
+      it('returns false when campaignsError is false', () => {
+        const state = createMockRootState({ campaignsError: false });
+        expect(selectCampaignsError(state)).toBe(false);
+      });
+
+      it('returns true when campaignsError is true', () => {
+        const state = createMockRootState({ campaignsError: true });
+        expect(selectCampaignsError(state)).toBe(true);
+      });
+    });
+  });
+
+  describe('selectCampaignParticipantStatuses', () => {
+    it('returns empty object when no statuses exist', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual({});
+    });
+
+    it('returns all participant statuses', () => {
+      const statuses = {
+        'campaign-1': { optedIn: true, participantCount: 42 },
+        'campaign-2': { optedIn: false, participantCount: 0 },
+      };
+      const state = createMockRootState({
+        campaignParticipantStatuses: statuses,
+      });
+      expect(selectCampaignParticipantStatuses(state)).toEqual(statuses);
+    });
+  });
+
+  describe('selectCampaignParticipantStatusById', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantStatusById(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(
+        selectCampaignParticipantStatusById('campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns status for a specific campaign', () => {
+      const status = { optedIn: true, participantCount: 42 };
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': status,
+        },
+      });
+      expect(selectCampaignParticipantStatusById('campaign-1')(state)).toEqual(
+        status,
+      );
+    });
+  });
+
+  describe('selectCampaignParticipantCount', () => {
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount(undefined)(state)).toBeNull();
+    });
+
+    it('returns null when campaign has no status', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {},
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBeNull();
+    });
+
+    it('returns participantCount for a specific campaign', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: true, participantCount: 42 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(42);
+    });
+
+    it('returns 0 when participantCount is zero', () => {
+      const state = createMockRootState({
+        campaignParticipantStatuses: {
+          'campaign-1': { optedIn: false, participantCount: 0 },
+        },
+      });
+      expect(selectCampaignParticipantCount('campaign-1')(state)).toBe(0);
+    });
+  });
+
+  describe('version guard selectors', () => {
+    it('selectVersionGuardMinimumMobileVersion returns minimum version', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: '7.30.0',
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBe('7.30.0');
+    });
+
+    it('selectVersionGuardMinimumMobileVersion returns null when not set', () => {
+      const state = createMockRootState({
+        versionGuardMinimumMobileVersion: null,
+      });
+      expect(selectVersionGuardMinimumMobileVersion(state)).toBeNull();
+    });
+
+    it('selectVersionGuardLoading returns loading state', () => {
+      const state = createMockRootState({ versionGuardLoading: true });
+      expect(selectVersionGuardLoading(state)).toBe(true);
+    });
+
+    it('selectVersionGuardError returns error state', () => {
+      const state = createMockRootState({ versionGuardError: true });
+      expect(selectVersionGuardError(state)).toBe(true);
+    });
+
+    describe('selectIsRewardsVersionBlocked', () => {
+      let mockHasMinimumRequiredVersion: jest.SpyInstance;
+
+      beforeEach(() => {
+        mockHasMinimumRequiredVersion = jest.spyOn(
+          remoteFeatureFlagModule,
+          'hasMinimumRequiredVersion',
+        );
+      });
+
+      afterEach(() => {
+        mockHasMinimumRequiredVersion?.mockRestore();
+      });
+
+      it('returns false when minimumMobileVersion is null', () => {
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: null,
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns false when current version meets minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(true);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '7.50.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(false);
+      });
+
+      it('returns true when current version is below minimum', () => {
+        mockHasMinimumRequiredVersion.mockReturnValue(false);
+        const state = createMockRootState({
+          versionGuardMinimumMobileVersion: '99.0.0',
+        });
+        expect(selectIsRewardsVersionBlocked(state)).toBe(true);
       });
     });
   });

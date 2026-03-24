@@ -13,7 +13,7 @@ const createStyles = (colors: Colors) =>
     scrollViewContent: {
       flexGrow: 1,
       paddingBottom: 120, // Space for fixed button
-      paddingTop: 32,
+      paddingTop: 0,
     },
     fixedBottomContainer: {
       position: 'absolute',
@@ -83,6 +83,13 @@ const createStyles = (colors: Colors) =>
     },
     validationContainer: {
       marginBottom: 12,
+    },
+    insufficientPayTokenWarning: {
+      backgroundColor: colors.warning.muted,
+      paddingHorizontal: 12,
+      paddingVertical: 10,
+      borderRadius: 8,
+      marginTop: 12,
     },
     bottomSection: {
       paddingVertical: 24,

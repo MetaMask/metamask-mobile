@@ -6,6 +6,8 @@ export enum AlertKeys {
   BurnAddress = 'burn_address',
   DomainMismatch = 'domain_mismatch',
   GasEstimateFailed = 'gas_estimate_failed',
+  GasSponsorshipReserveBalance = 'gas_sponsorship_reserve_balance',
+  FirstTimeInteraction = 'first_time_interaction',
   InsufficientBalance = 'insufficient_balance',
   InsufficientPayTokenBalance = 'insufficient_pay_token_balance',
   InsufficientPayTokenNative = 'insufficient_pay_token_native',
@@ -18,6 +20,7 @@ export enum AlertKeys {
   PerpsDepositMinimum = 'perps_deposit_minimum',
   PerpsHardwareAccount = 'perps_hardware_account',
   SignedOrSubmitted = 'signed_or_submitted',
+  TokenContractAddress = 'token_contract_address',
   TokenTrustSignalMalicious = 'token_trust_signal_malicious',
   TokenTrustSignalWarning = 'token_trust_signal_warning',
 }

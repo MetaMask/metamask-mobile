@@ -1,16 +1,10 @@
 import React, { ReactNode, useState } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 
-import ButtonIcon, {
-  ButtonIconSizes,
-} from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import {
-  IconColor,
-  IconName,
-} from '../../../../../../component-library/components/Icons/Icon';
-import Text from '../../../../../../component-library/components/Texts/Text';
 import { useStyles } from '../../../../../../component-library/hooks';
+import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 import BottomModal from '../bottom-modal';
+import CopyButton from '../copy-button';
 import styleSheet from './expandable.styles';
 
 interface ExpandableProps {
@@ -20,6 +14,7 @@ interface ExpandableProps {
   collapseButtonTestID?: string;
   testID?: string;
   isCompact?: boolean;
+  copyText?: string;
 }
 
 export enum IconVerticalPosition {
@@ -33,6 +28,7 @@ const Expandable = ({
   collapseButtonTestID,
   testID,
   isCompact,
+  copyText,
 }: ExpandableProps) => {
   const { styles } = useStyles(styleSheet, { isCompact });
   const [expanded, setExpanded] = useState(false);
@@ -52,19 +48,21 @@ const Expandable = ({
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <ButtonIcon
-                iconColor={IconColor.Default}
-                size={ButtonIconSizes.Sm}
-                onPress={() => setExpanded(false)}
-                iconName={IconName.ArrowLeft}
-                testID={collapseButtonTestID ?? 'collapseButtonTestID'}
-              />
-              <Text style={styles.expandedContentTitle}>
-                {expandedContentTitle}
-              </Text>
+            <HeaderCompactStandard
+              title={expandedContentTitle}
+              onClose={() => setExpanded(false)}
+              closeButtonProps={{
+                testID: collapseButtonTestID ?? 'collapseButtonTestID',
+              }}
+            />
+            <View style={styles.modalExpandedContent}>
+              {copyText && (
+                <View style={styles.copyButtonContainer}>
+                  <CopyButton copyText={copyText} />
+                </View>
+              )}
+              {expandedContent}
             </View>
-            {expandedContent}
           </View>
         </BottomModal>
       )}

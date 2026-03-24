@@ -4,6 +4,13 @@ import Engine from '../../core/Engine';
 import { getAllowedSmartTransactionsChainIds } from '../../constants/smartTransactions';
 import { isNonEvmChainId } from '../../core/Multichain/utils';
 import { selectSmartTransactionsOptInStatus } from '../../selectors/preferencesController';
+import {
+  isCaipChainId,
+  parseCaipChainId,
+  Hex,
+  CaipChainId,
+} from '@metamask/utils';
+import { toHex } from '@metamask/controller-utils';
 
 /**
  * Hook that fetches smart transactions liveness for a given chain.
@@ -14,7 +21,7 @@ import { selectSmartTransactionsOptInStatus } from '../../selectors/preferencesC
  *
  */
 export function useRefreshSmartTransactionsLiveness(
-  chainId: string | null | undefined,
+  chainId: Hex | CaipChainId | null | undefined,
 ): void {
   const smartTransactionsOptInStatus = useSelector(
     selectSmartTransactionsOptInStatus,
@@ -29,9 +36,13 @@ export function useRefreshSmartTransactionsLiveness(
       return;
     }
 
+    const chainIdHex = isCaipChainId(chainId)
+      ? toHex(parseCaipChainId(chainId).reference)
+      : chainId;
+
     // TODO: will be replaced with feature flags once we have them.
     const allowedChainId = getAllowedSmartTransactionsChainIds().find(
-      (id) => id === chainId,
+      (id) => id === chainIdHex,
     );
 
     if (allowedChainId) {

@@ -29,8 +29,11 @@ export function Nft({ asset, onPress }: NftProps) {
     onPress(asset);
   }, [asset, onPress]);
 
+  const testID = `nft-${asset.name || asset.collectionName || 'NFT'}-${asset.tokenId}`;
+
   return (
     <Pressable
+      testID={testID}
       style={({ pressed }) =>
         tw.style(
           'w-full flex-row items-center justify-between py-2',
@@ -75,7 +78,7 @@ export function Nft({ asset, onPress }: NftProps) {
             color={TextColor.TextAlternative}
             numberOfLines={1}
           >
-            {asset.standard === 'ERC1155' && `(${asset.balance}) `}
+            {asset.standard === 'ERC1155' && `(${asset.balance || 0}) `}
             {asset.standard === 'ERC721' ? `#${asset.tokenId}` : asset.name}
           </Text>
         </Box>

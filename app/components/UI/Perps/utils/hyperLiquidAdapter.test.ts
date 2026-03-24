@@ -2,6 +2,15 @@
  * Unit tests for HyperLiquid SDK adapter utilities
  */
 
+// Avoid loading @metamask/swaps-controller (and thus controller-utils logger) in tests
+jest.mock('../constants/perpsConfig', () => ({
+  DECIMAL_PRECISION_CONFIG: {
+    MaxPriceDecimals: 6,
+    MaxSignificantFigures: 5,
+    FallbackSizeDecimals: 6,
+  },
+}));
+
 import {
   adaptOrderToSDK,
   adaptOrderFromSDK,
@@ -11,22 +20,22 @@ import {
   buildAssetMapping,
   formatHyperLiquidPrice,
   formatHyperLiquidSize,
-  calculatePositionSize,
   adaptHyperLiquidLedgerUpdateToUserHistoryItem,
-  type RawHyperLiquidLedgerUpdate,
-} from './hyperLiquidAdapter';
-import type { OrderParams } from '../controllers/types';
-import type {
-  AssetPosition,
-  SpotBalance,
-  ClearinghouseStateResponse,
-  SpotClearinghouseStateResponse,
-  PerpsUniverse,
-  FrontendOrder,
-} from '../types/hyperliquid-types';
+  type RawLedgerUpdate,
+  type OrderParams,
+  type AssetPosition,
+  type SpotBalance,
+  type ClearinghouseStateResponse,
+  type SpotClearinghouseStateResponse,
+  type PerpsUniverse,
+  type FrontendOrder,
+} from '@metamask/perps-controller';
+// Import adapter-specific calculatePositionSize (different signature from orderCalculations)
+import { calculatePositionSize } from '@metamask/perps-controller/utils/hyperLiquidAdapter';
 
 // Mock the isHexString utility
 jest.mock('@metamask/utils', () => ({
+  ...jest.requireActual('@metamask/utils'),
   isHexString: (value: string) => value.startsWith('0x'),
 }));
 
@@ -167,7 +176,48 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
+    });
+
+    it('omits isPositionTpsl when the SDK payload does not include the field', () => {
+      const frontendOrder = {
+        oid: 12346,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.5',
+        origSz: '1.0',
+        limitPx: '50000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        tif: null,
+        cloid: null,
+      } as unknown as FrontendOrder;
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '12346',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.5',
+        originalSize: '1.0',
+        price: '50000',
+        filledSize: '0.5',
+        remainingSize: '0.5',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+      });
+      expect(result).not.toHaveProperty('isPositionTpsl');
     });
 
     it('should convert sell order from SDK', () => {
@@ -207,6 +257,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: true,
+        isPositionTpsl: false,
       });
     });
 
@@ -247,6 +298,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Market',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -287,6 +339,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Stop Market',
         isTrigger: true,
         reduceOnly: true,
+        isPositionTpsl: false,
         triggerPrice: '25.50',
       });
     });
@@ -365,11 +418,175 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
         takeProfitPrice: '12',
         takeProfitOrderId: '22223',
         stopLossPrice: '8',
         stopLossOrderId: '22224',
       });
+    });
+
+    it('preserves parent-level TP/SL metadata when child orders are absent', () => {
+      const frontendOrder = {
+        oid: 77777,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 88888,
+        stopLossOrderId: 99999,
+      } as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: number;
+        stopLossOrderId: number;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result).toEqual({
+        orderId: '77777',
+        symbol: 'BTC',
+        side: 'buy',
+        orderType: 'limit',
+        size: '0.25',
+        originalSize: '0.25',
+        price: '90000',
+        filledSize: '0',
+        remainingSize: '0.25',
+        status: 'open',
+        timestamp: 1234567890000,
+        detailedOrderType: 'Limit',
+        isTrigger: false,
+        reduceOnly: false,
+        isPositionTpsl: false,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: '88888',
+        stopLossOrderId: '99999',
+      });
+    });
+
+    it('preserves parent-level TP/SL metadata when isPositionTpsl is omitted', () => {
+      const frontendOrder = {
+        oid: 77778,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 88889,
+        stopLossOrderId: 99998,
+      } as unknown as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: number;
+        stopLossOrderId: number;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBe('95000');
+      expect(result.stopLossPrice).toBe('88000');
+      expect(result.takeProfitOrderId).toBe('88889');
+      expect(result.stopLossOrderId).toBe('99998');
+      expect(result).not.toHaveProperty('isPositionTpsl');
+    });
+
+    it('ignores parent-level TP/SL metadata with invalid runtime types', () => {
+      const frontendOrder = {
+        oid: 77779,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        takeProfitPrice: 95000,
+        stopLossPrice: { price: '88000' },
+        takeProfitOrderId: { id: 88890 },
+        stopLossOrderId: true,
+      } as unknown as FrontendOrder & {
+        takeProfitPrice: unknown;
+        stopLossPrice: unknown;
+        takeProfitOrderId: unknown;
+        stopLossOrderId: unknown;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitPrice).toBeUndefined();
+      expect(result.stopLossPrice).toBeUndefined();
+      expect(result.takeProfitOrderId).toBeUndefined();
+      expect(result.stopLossOrderId).toBeUndefined();
+    });
+
+    it('preserves string parent-level TP/SL order IDs', () => {
+      const frontendOrder = {
+        oid: 77780,
+        coin: 'BTC',
+        side: 'B',
+        sz: '0.25',
+        origSz: '0.25',
+        limitPx: '90000',
+        orderType: 'Limit',
+        timestamp: 1234567890000,
+        isTrigger: false,
+        reduceOnly: false,
+        triggerCondition: '',
+        triggerPx: '',
+        children: [],
+        isPositionTpsl: false,
+        tif: null,
+        cloid: null,
+        takeProfitPrice: '95000',
+        stopLossPrice: '88000',
+        takeProfitOrderId: 'tp-parent-1',
+        stopLossOrderId: 'sl-parent-1',
+      } as unknown as FrontendOrder & {
+        takeProfitPrice: string;
+        stopLossPrice: string;
+        takeProfitOrderId: string;
+        stopLossOrderId: string;
+      };
+
+      const result = adaptOrderFromSDK(frontendOrder);
+
+      expect(result.takeProfitOrderId).toBe('tp-parent-1');
+      expect(result.stopLossOrderId).toBe('sl-parent-1');
     });
 
     it('should handle partially filled order', () => {
@@ -409,6 +626,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -449,6 +667,7 @@ describe('hyperLiquidAdapter', () => {
         detailedOrderType: 'Limit',
         isTrigger: false,
         reduceOnly: false,
+        isPositionTpsl: false,
       });
     });
 
@@ -673,7 +892,8 @@ describe('hyperLiquidAdapter', () => {
 
       const result = adaptOrderFromSDK(frontendOrder);
 
-      // price should fall back to triggerPx when limitPx is empty
+      // price falls back to triggerPx when limitPx is empty
+      // so downstream UIs can compute best-available estimate rows.
       expect(result.price).toBe('70000');
       // triggerPrice should be set to triggerPx
       expect(result.triggerPrice).toBe('70000');
@@ -859,7 +1079,7 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '700.25',
         marginUsed: '300.25',
         unrealizedPnl: '24.5', // 50.0 + (-25.5)
-        returnOnEquity: '8.0', // Calculated from weighted return and margin
+        returnOnEquity: '7.991673605328893', // Calculated from weighted return and margin
         totalBalance: '1000.5', // Perps only (no spot balance provided)
       });
     });
@@ -902,7 +1122,7 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '350.0',
         marginUsed: '150.0',
         unrealizedPnl: '100',
-        returnOnEquity: '0.0',
+        returnOnEquity: '0',
         totalBalance: '1000.5',
       });
     });
@@ -940,7 +1160,7 @@ describe('hyperLiquidAdapter', () => {
         availableBalance: '800.0',
         marginUsed: '200.0',
         unrealizedPnl: '0',
-        returnOnEquity: '0.0',
+        returnOnEquity: '0',
         totalBalance: '1000',
       });
     });
@@ -1212,7 +1432,7 @@ describe('hyperLiquidAdapter', () => {
     const createLedgerUpdate = (
       type: string,
       hash = '0x123',
-    ): RawHyperLiquidLedgerUpdate => ({
+    ): RawLedgerUpdate => ({
       hash,
       time: 1000,
       delta: { type, usdc: '100' },
@@ -1272,7 +1492,7 @@ describe('hyperLiquidAdapter', () => {
 
     describe('internalTransfer USDC amount validation', () => {
       it('includes internalTransfer with positive USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x001',
             time: 1000,
@@ -1286,7 +1506,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with zero USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x002',
             time: 2000,
@@ -1300,7 +1520,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with negative USDC amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x003',
             time: 3000,
@@ -1314,7 +1534,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with invalid USDC value', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x004',
             time: 4000,
@@ -1328,7 +1548,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with missing USDC field', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x005',
             time: 5000,
@@ -1342,7 +1562,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('excludes internalTransfer with undefined USDC value', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x006',
             time: 6000,
@@ -1356,7 +1576,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('includes internalTransfer with small positive decimal amount', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x007',
             time: 7000,
@@ -1370,7 +1590,7 @@ describe('hyperLiquidAdapter', () => {
       });
 
       it('filters mixed internalTransfer entries keeping only valid positive amounts', () => {
-        const updates: RawHyperLiquidLedgerUpdate[] = [
+        const updates: RawLedgerUpdate[] = [
           {
             hash: '0x008',
             time: 8000,

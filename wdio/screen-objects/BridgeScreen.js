@@ -3,10 +3,9 @@ import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import { SWAP_SCREEN_DESTINATION_TOKEN_INPUT_ID, SWAP_SCREEN_QUOTE_DISPLAYED_ID, SWAP_SCREEN_SOURCE_TOKEN_INPUT_ID } from './testIDs/Screens/SwapScreen.testIds';
 import { expect as appwrightExpect } from 'appwright';
 import { PerpsWithdrawViewSelectorsIDs } from '../../app/components/UI/Perps/Perps.testIds';
-import { QuoteViewSelectorText } from '../../e2e/selectors/Bridge/QuoteView.selectors';
+import { QuoteViewSelectorText } from '../../tests/selectors/Bridge/QuoteView.selectors';
 import Selectors from '../helpers/Selectors.js';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
-import { splitAmountIntoDigits } from 'appwright/utils/Utils.js';
 import AmountScreen from './AmountScreen';
 
 class BridgeScreen {
@@ -32,11 +31,6 @@ class BridgeScreen {
   }
   get destinationTokenArea(){
     return AppwrightSelectors.getElementByID(this._device, PerpsWithdrawViewSelectorsIDs.DEST_TOKEN_AREA);
-
-  }
-  get seeAllDropDown(){
-    return AppwrightSelectors.getElementByText(this._device, "See all");
-
   }
 
   getNetworkButton(networkName) {
@@ -48,30 +42,37 @@ class BridgeScreen {
       if (AppwrightSelectors.isAndroid(this._device)) {
         return AppwrightSelectors.getElementByCatchAll(this._device, networkName);
       } else {
-        return AppwrightSelectors.getElementByID(this._device, `${networkName}`);
+        return AppwrightSelectors.getElementByXpath(this._device, `//XCUIElementTypeButton[@name="${networkName}"]`);
       }
     }
   }
 
   async isQuoteDisplayed() {
-      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MM fee");
+      const mmFee = await AppwrightSelectors.getElementByCatchAll(this._device, "Includes 0.875% MetaMask fee");
       await appwrightExpect(mmFee).toBeVisible({ timeout: 30000 });
 
 
   }
 
   async enterSourceTokenAmount(amount) {
+    // Tap each digit on the numeric keypad
+    const digits = amount.split('');
     AmountScreen.device = this._device;
-    await AmountScreen.enterAmount(amount);
+    await AppwrightGestures.tap(this.sourceTokenInput);
+    for (const digit of digits) {
+      const digitButton = await AppwrightSelectors.getElementByText(this._device, digit, true);
+      await appwrightExpect(digitButton).toBeVisible({ timeout: 10000 });
+      await AmountScreen.tapNumberKey(digit);
+    }
   }
 
   async selectNetworkAndTokenTo(network, token) {
     const destinationToken = await this.destinationTokenArea;
     await AppwrightGestures.tap(destinationToken);
-    const filterNetworkButton = await AppwrightSelectors.getElementByCatchAll(this._device, 'See all');
-    await AppwrightGestures.tap(filterNetworkButton);
     const networkButton = await this.getNetworkButton(network);
-    await AppwrightGestures.tap(networkButton);
+    if (network !== 'Ethereum'){
+      await AppwrightGestures.tap(networkButton);
+    }
     let tokenNetworkId;
     if (network == 'Ethereum'){
       tokenNetworkId = `0x1`;
@@ -82,7 +83,8 @@ class BridgeScreen {
     else if (network == 'Solana'){
       tokenNetworkId = `solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp`;
     }
-    const tokenButton = await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`);
+    const tokenButton = AppwrightSelectors.isAndroid(this._device) ? await AppwrightSelectors.getElementByID(this._device, `asset-${tokenNetworkId}-${token}`) : await AppwrightSelectors.getElementByNameiOS(this._device, `asset-${tokenNetworkId}-${token}`);
+    await appwrightExpect(tokenButton).toBeVisible({ timeout: 30000 });
     await AppwrightGestures.tap(tokenButton);
   }
 

@@ -59,7 +59,7 @@ export const usePerpsRewards = ({
     () =>
       __DEV__ &&
       Number.parseFloat(orderAmount) ===
-        DEVELOPMENT_CONFIG.SIMULATE_REWARDS_ERROR_AMOUNT,
+        DEVELOPMENT_CONFIG.SimulateRewardsErrorAmount,
     [orderAmount],
   );
 
@@ -68,7 +68,7 @@ export const usePerpsRewards = ({
     () =>
       __DEV__ &&
       Number.parseFloat(orderAmount) ===
-        DEVELOPMENT_CONFIG.SIMULATE_REWARDS_LOADING_AMOUNT,
+        DEVELOPMENT_CONFIG.SimulateRewardsLoadingAmount,
     [orderAmount],
   );
 

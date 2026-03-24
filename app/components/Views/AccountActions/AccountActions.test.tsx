@@ -22,9 +22,9 @@ import { KeyringTypes } from '@metamask/keyring-controller';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
 
 import { strings } from '../../../../locales/i18n';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as Networks7702 from '../confirmations/hooks/7702/useEIP7702Networks';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as AddressUtils from '../../../util/address';
 import { act } from '@testing-library/react-hooks';
 import { RPC } from '../../../constants/network';
@@ -43,7 +43,7 @@ jest.mock('../../../selectors/tokensController', () => ({
 }));
 
 jest.mock('../../../core/redux/slices/bridge', () => ({
-  selectAllBridgeableNetworks: jest.fn(() => []),
+  selectEnabledSourceChains: jest.fn(() => []),
 }));
 
 // Mock swaps selectors
@@ -218,6 +218,7 @@ jest.mock('@react-navigation/native', () => {
     useNavigation: () => ({
       navigate: mockNavigate,
       goBack: mockGoBack,
+      isFocused: jest.fn(() => true),
     }),
     useRoute: jest.fn(),
   };
