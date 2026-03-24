@@ -230,7 +230,6 @@ module.exports = {
       ],
       plugins: ['tailwindcss'],
       rules: {
-        '@metamask/design-tokens/color-no-hex': 'error',
         'tailwindcss/classnames-order': 'error',
         'tailwindcss/enforces-negative-arbitrary-values': 'error',
         'tailwindcss/enforces-shorthand': 'error',

@@ -39,6 +39,7 @@ import {
 import TokenDetailsStickyFooter from '../../TokenDetails/components/TokenDetailsStickyFooter';
 import useBlockExplorer from '../../../hooks/useBlockExplorer';
 import { useTokenActions } from '../../TokenDetails/hooks/useTokenActions';
+import { brandColor } from '@metamask/design-tokens';
 
 const SectionHeader: React.FC<{ title: string }> = ({ title }) => (
   <Text
@@ -266,8 +267,8 @@ const SecurityTrustScreen: React.FC = () => {
               }`}
             >
               <Box
-                twClassName="h-full bg-primary-default"
-                style={barFillStyle}
+                twClassName="h-full"
+                style={[tw.style(`bg-[${brandColor.purple500}]`), barFillStyle]}
               />
             </Box>
           </Box>
@@ -285,7 +286,10 @@ const SecurityTrustScreen: React.FC = () => {
               gap={2}
               twClassName="flex-1"
             >
-              <Box twClassName="w-3 h-3 rounded-full bg-primary-default" />
+              <Box
+                twClassName="w-3 h-3 rounded-full"
+                style={tw.style(`bg-[${brandColor.purple500}]`)}
+              />
               <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
                 {strings('security_trust.top_10_holders')}
               </Text>
