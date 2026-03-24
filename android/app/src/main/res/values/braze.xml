@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+  <!--
+    Braze SDK configuration.
+    API key (com_braze_api_key) and endpoint (com_braze_custom_endpoint)
+    are injected via resValue in build.gradle from environment variables:
+      - BRAZE_ANDROID_API_KEY
+      - BRAZE_ENDPOINT
+  -->
+
+  <!-- Automatic FCM token registration — Braze will obtain and register a push token when permissions are granted -->
+  <bool translatable="false" name="com_braze_firebase_cloud_messaging_registration_enabled">true</bool>
+  <string translatable="false" name="com_braze_firebase_cloud_messaging_sender_id">882726480239</string>
+
+  <!-- Forward non-Braze push notifications to the existing RN Firebase service -->
+  <bool name="com_braze_fallback_firebase_cloud_messaging_service_enabled">true</bool>
+  <string name="com_braze_fallback_firebase_cloud_messaging_service_classpath">io.invertase.firebase.messaging.ReactNativeFirebaseMessagingService</string>
+</resources>

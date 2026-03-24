@@ -2103,6 +2103,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@braze/react-native-sdk@npm:^19.1.0":
+  version: 19.1.0
+  resolution: "@braze/react-native-sdk@npm:19.1.0"
+  checksum: 10/2d279c2e40783eb73bd8d508e00cd36afec7da4bab3e0d34a0a5ef32cfd75badc2443428d37405b8e46f6d9eb959e1b9dd7e7ec6e555364b2e9c685f7ce2a63f
+  languageName: node
+  linkType: hard
+
 "@callstack/reassure-cli@npm:1.4.0":
   version: 1.4.0
   resolution: "@callstack/reassure-cli@npm:1.4.0"
@@ -13167,6 +13174,16 @@ __metadata:
   peerDependencies:
     ajv: ^8.0.0
   checksum: 10/0524da5bde47416bbffe8e7eafc4e4a6498aabc57a8c4507b91c30717c180d6b67d57cebfc21a8f827411e6840fa85fade1286fd2ad02285f9d7ea07a8537792
+  languageName: node
+  linkType: hard
+
+"@segment/analytics-react-native-plugin-braze@npm:^0.9.0":
+  version: 0.9.0
+  resolution: "@segment/analytics-react-native-plugin-braze@npm:0.9.0"
+  peerDependencies:
+    "@braze/react-native-sdk": ^16.x
+    "@segment/analytics-react-native": ^2.18.0
+  checksum: 10/d94e5c118d356c09bf946ae0047123e40737f820c04a571e35d4d06b94fd8e5a91ebca59367c588fa3fbdd622749117dd0f32aecbccc47dcaf0a82ad2ec6d05f
   languageName: node
   linkType: hard
 
@@ -35488,6 +35505,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.25.3"
     "@babel/register": "npm:^7.24.6"
     "@babel/runtime": "npm:^7.25.0"
+    "@braze/react-native-sdk": "npm:^19.1.0"
     "@config-plugins/detox": "npm:^9.0.0"
     "@consensys/native-ramps-sdk": "npm:^2.1.7"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
@@ -35668,6 +35686,7 @@ __metadata:
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
     "@segment/analytics-react-native": "npm:^2.20.3"
+    "@segment/analytics-react-native-plugin-braze": "npm:^0.9.0"
     "@segment/sovran-react-native": "npm:^1.0.4"
     "@sentry/browser": "npm:~8.54.0"
     "@sentry/core": "npm:~8.54.0"
