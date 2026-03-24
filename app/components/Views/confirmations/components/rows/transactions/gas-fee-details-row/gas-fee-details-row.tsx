@@ -363,14 +363,17 @@ const GasFeesDetailsRow = ({
             </View>
           )}
         </AlertRow>
-        {isUserFeeLevelExists && !hideSpeed && (
-          <AlertRow
-            alertField={RowAlertKey.PendingTransaction}
-            label={strings('transactions.gas_modal.speed')}
-          >
-            <GasSpeed />
-          </AlertRow>
-        )}
+        {isUserFeeLevelExists &&
+          !hideSpeed &&
+          !gasFeeToken &&
+          !isSimulationLoading && (
+            <AlertRow
+              alertField={RowAlertKey.PendingTransaction}
+              label={strings('transactions.gas_modal.speed')}
+            >
+              <GasSpeed />
+            </AlertRow>
+          )}
       </Container>
       {gasModalVisible && (
         <GasFeeModal setGasModalVisible={setGasModalVisible} />
