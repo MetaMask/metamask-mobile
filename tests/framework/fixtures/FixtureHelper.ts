@@ -18,7 +18,7 @@ import {
 import Utilities from '../Utilities';
 import { dismissDevScreens } from '../../flows/general.flow';
 import TestHelpers from '../../helpers';
-import MockServerE2E from '../../api-mocking/MockServerE2E';
+import GoMockServer from '../../api-mocking/GoMockServer';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { AnvilSeeder } from '../../seeder/anvil-seeder';
 import {
@@ -445,10 +445,10 @@ export const loadFixture = async (
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
 ): Promise<{
-  mockServerInstance: MockServerE2E;
+  mockServerInstance: GoMockServer;
   mockServerPort: number;
 }> => {
-  const mockServerInstance = new MockServerE2E({
+  const mockServerInstance = new GoMockServer({
     events: DEFAULT_MOCKS,
     testSpecificMock,
   });
@@ -739,7 +739,7 @@ export async function withFixtures(
     if (mockServerInstance) {
       try {
         // Validate live requests
-        mockServerInstance.validateLiveRequests();
+        await mockServerInstance.validateLiveRequests();
       } catch (cleanupError) {
         logger.error('Error during live request validation:', cleanupError);
         cleanupErrors.push(cleanupError as Error);
