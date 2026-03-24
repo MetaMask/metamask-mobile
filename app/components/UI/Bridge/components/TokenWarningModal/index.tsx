@@ -26,6 +26,7 @@ import {
   BottomSheetHeader,
   Box,
   BoxAlignItems,
+  ButtonIconSize,
   ButtonsAlignment,
   Icon,
   IconColor,
@@ -106,16 +107,21 @@ export const TokenWarningModal = () => {
 
   return (
     <BottomSheet ref={sheetRef}>
-      <BottomSheetHeader onClose={handleClose}>
+      <BottomSheetHeader
+        onClose={handleClose}
+        closeButtonProps={{ size: ButtonIconSize.Md }}
+      >
         <Icon name={iconName} size={IconSize.Xl} color={iconColor} />
       </BottomSheetHeader>
       <Box
         alignItems={BoxAlignItems.Center}
         paddingBottom={4}
         paddingHorizontal={4}
-        gap={3}
+        gap={2}
       >
-        <Text variant={TextVariant.HeadingMd}>{title}</Text>
+        <Text variant={TextVariant.BodyLg} twClassName="text-center">
+          {title}
+        </Text>
         <Text variant={TextVariant.BodyMd} twClassName="text-center">
           {description}
         </Text>
