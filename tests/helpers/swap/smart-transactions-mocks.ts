@@ -156,17 +156,18 @@ export async function setupSmartTransactionsMocks(
     responseCode: 200,
   });
 
-  // Mock GET /getTxStatus – mirrors the extension's mockGetTxStatus.
-  // The BridgeStatusController polls this endpoint to determine if the swap
-  // is complete. It must return status: 'COMPLETE' (uppercase) with srcChain
-  // and destChain txHash fields so the controller marks the tx as finished.
+  // Mock GET /getTxStatus – fallback for same-chain swap tests.
+  // Registered at priority 1 so bridge-mocks.ts (priority 999) always wins
+  // for bridge tests, where src and dest tx hashes legitimately differ.
+  // For same-chain swaps srcChainId == destChainId so reusing srcTxHash for
+  // both chains is correct.
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
       const url = getDecodedProxiedURL(request.url);
       return url.includes('getTxStatus');
     })
-    .asPriority(999)
+    .asPriority(1)
     .thenCallback((request) => {
       const decodedUrl = getDecodedProxiedURL(request.url);
       const urlObj = new URL(decodedUrl);
