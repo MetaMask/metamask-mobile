@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import { Text as RNText } from 'react-native';
 import { TokenSelectorItem } from './TokenSelectorItem';
 import { ethers } from 'ethers';
+import { useABTest } from '../../../../hooks';
 import { createMockTokenWithBalance } from '../testUtils/fixtures';
 import {
   TOKEN_BALANCE_LOADING,
@@ -11,6 +13,10 @@ import {
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => []),
+}));
+
+jest.mock('../../../../hooks', () => ({
+  useABTest: jest.fn(),
 }));
 
 jest.mock('../../../../../locales/i18n', () => ({
@@ -91,9 +97,18 @@ jest.mock('../../../../component-library/components/Tags/Tag', () => {
 
 describe('TokenSelectorItem', () => {
   const mockOnPress = jest.fn();
+  const mockUseABTest = jest.mocked(useABTest);
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseABTest.mockReturnValue({
+      variant: {
+        showTokenBalanceFirst: false,
+        removeTickerFromTokenBalance: false,
+      },
+      variantName: 'control',
+      isActive: false,
+    });
   });
 
   describe('rendering', () => {
@@ -380,6 +395,58 @@ describe('TokenSelectorItem', () => {
       const fiatBalanceElement = getByText('$1,234.56');
 
       expect(fiatBalanceElement.props.numberOfLines).toBe(1);
+    });
+  });
+
+  describe('A/B variants', () => {
+    it('keeps fiat above token balance in the control layout', () => {
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+        symbol: 'USDC',
+      });
+
+      const controlRender = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+      expect(controlRender.getByText('50 USDC')).toBeOnTheScreen();
+
+      const controlTextOrder = controlRender
+        .UNSAFE_getAllByType(RNText)
+        .map((textNode) => String(textNode.props.children));
+      expect(controlTextOrder.indexOf('$500')).toBeLessThan(
+        controlTextOrder.indexOf('50 USDC'),
+      );
+    });
+
+    it('shows token balance first without the ticker in the treatment layout', () => {
+      mockUseABTest.mockReturnValue({
+        variant: {
+          showTokenBalanceFirst: true,
+          removeTickerFromTokenBalance: true,
+        },
+        variantName: 'treatment',
+        isActive: true,
+      });
+
+      const token = createMockTokenWithBalance({
+        balance: '50.0',
+        balanceFiat: '$500',
+        symbol: 'USDC',
+      });
+
+      const treatmentRender = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+      expect(treatmentRender.getByText('50')).toBeOnTheScreen();
+      expect(treatmentRender.queryByText('50 USDC')).not.toBeOnTheScreen();
+
+      const treatmentTextOrder = treatmentRender
+        .UNSAFE_getAllByType(RNText)
+        .map((textNode) => String(textNode.props.children));
+      expect(treatmentTextOrder.indexOf('50')).toBeLessThan(
+        treatmentTextOrder.indexOf('$500'),
+      );
     });
   });
 });

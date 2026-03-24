@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render, fireEvent, act } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import {
   NavigationContainer,
@@ -229,7 +229,7 @@ describe('OnboardingNavigator', () => {
       user: null,
       setUser: jest.fn(),
       logoutFromProvider: jest.fn(),
-      fetchUserData: jest.fn(),
+      fetchUserData: jest.fn().mockResolvedValue(undefined),
       isReturningSession: false,
     });
 
@@ -1078,7 +1078,7 @@ describe('OnboardingNavigator', () => {
 
   describe('fetchUserData on mount', () => {
     it('calls fetchUserData when onboardingId exists and user is null', () => {
-      const mockFetchUserData = jest.fn();
+      const mockFetchUserData = jest.fn().mockResolvedValue(undefined);
       mockUseSelector.mockReturnValue('onboarding-123');
       mockUseCardSDK.mockReturnValue({
         user: null,
@@ -1093,6 +1093,154 @@ describe('OnboardingNavigator', () => {
       renderWithNavigation(<OnboardingNavigator />);
 
       expect(mockFetchUserData).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call fetchUserData when onboardingId is null', () => {
+      const mockFetchUserData = jest.fn().mockResolvedValue(undefined);
+      mockUseSelector.mockReturnValue(null);
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: mockFetchUserData,
+        isReturningSession: false,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockFetchUserData).not.toHaveBeenCalled();
+    });
+
+    it('does not call fetchUserData when user is already loaded', () => {
+      const mockFetchUserData = jest.fn().mockResolvedValue(undefined);
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: { id: 'user-123', verificationState: 'VERIFIED' },
+        isLoading: false,
+        sdk: {} as CardSDK,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: mockFetchUserData,
+        isReturningSession: false,
+      });
+
+      renderWithNavigation(<OnboardingNavigator />);
+
+      expect(mockFetchUserData).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isFetchingUserData guard (race condition fix)', () => {
+    it('shows loading indicator when onboardingId exists, user is null, and isLoading is false', async () => {
+      // Simulates the race condition: SDK re-init resets isLoading to false
+      // mid-fetch, but isFetchingUserData keeps the loading guard active.
+      const mockFetchUserData = jest.fn(
+        () =>
+          new Promise<void>(() => {
+            // never resolves — fetch still in progress
+          }),
+      );
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false, // SDK incorrectly reset this during re-init
+        sdk: {} as CardSDK,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: mockFetchUserData,
+        isReturningSession: false,
+      });
+
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <OnboardingNavigator />,
+      );
+
+      expect(getByTestId('activity-indicator')).toBeTruthy();
+      expect(queryByTestId('stack-navigator')).toBeNull();
+    });
+
+    it('does not show loading indicator when onboardingId is null (new user flow)', () => {
+      mockUseSelector.mockReturnValue(null);
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false,
+        sdk: null,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: jest.fn().mockResolvedValue(undefined),
+        isReturningSession: false,
+      });
+
+      const { queryByTestId } = renderWithNavigation(<OnboardingNavigator />);
+
+      expect(queryByTestId('activity-indicator')).toBeNull();
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.SIGN_UP,
+      );
+    });
+
+    it('shows correct route once fetchUserData resolves and user data is available', async () => {
+      let resolveFetch!: () => void;
+      const fetchPromise = new Promise<void>((resolve) => {
+        resolveFetch = resolve;
+      });
+      const mockFetchUserData = jest.fn().mockReturnValue(fetchPromise);
+
+      mockUseSelector.mockReturnValue('onboarding-123');
+      mockUseCardSDK.mockReturnValue({
+        user: null,
+        isLoading: false,
+        sdk: {} as CardSDK,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: mockFetchUserData,
+        isReturningSession: false,
+      });
+
+      const { getByTestId, queryByTestId, rerender } = renderWithNavigation(
+        <OnboardingNavigator />,
+      );
+
+      // Loading indicator is shown while fetch is pending
+      expect(getByTestId('activity-indicator')).toBeTruthy();
+
+      // Simulate the SDK completing the fetch and setting user data
+      mockUseCardSDK.mockReturnValue({
+        user: {
+          id: 'user-123',
+          verificationState: 'PENDING',
+          firstName: 'John',
+          contactVerificationId: 'contact-123',
+        },
+        isLoading: false,
+        sdk: {} as CardSDK,
+        setUser: jest.fn(),
+        logoutFromProvider: jest.fn(),
+        fetchUserData: mockFetchUserData,
+        isReturningSession: false,
+      });
+
+      await act(async () => {
+        resolveFetch();
+        await fetchPromise;
+      });
+
+      rerender(
+        <NavigationContainer>
+          <OnboardingNavigator />
+        </NavigationContainer>,
+      );
+
+      expect(queryByTestId('activity-indicator')).toBeNull();
+      const stackNavigator = queryByTestId('stack-navigator');
+      expect(stackNavigator).not.toBeNull();
+      expect(stackNavigator?.props.initialRouteName).toBe(
+        Routes.CARD.ONBOARDING.VERIFYING_VERIFF_KYC,
+      );
     });
   });
 

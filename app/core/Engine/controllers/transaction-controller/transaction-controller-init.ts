@@ -50,6 +50,7 @@ import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
 } from '@metamask/transaction-pay-controller';
+import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { trace } from '../../../../util/trace';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
@@ -210,8 +211,10 @@ async function publishHook({
     transactionMeta.chainId,
   );
 
+  const { stxDisabled } = selectMetaMaskPayFlags(state);
+
   const payResult = await new TransactionPayPublishHook({
-    isSmartTransaction: () => shouldUseSmartTransaction,
+    isSmartTransaction: () => shouldUseSmartTransaction && !stxDisabled,
     messenger: initMessenger as TransactionPayControllerMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 

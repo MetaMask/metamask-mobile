@@ -43,7 +43,7 @@ export function getIconForErrorCode(errorCode: ErrorCode): IconName {
  */
 export function getIconColorForErrorCode(errorCode: ErrorCode): IconColor {
   const ext = MOBILE_ERROR_EXTENSIONS[errorCode];
-  return ext?.iconColor ?? IconColor.Error;
+  return ext?.iconColor ?? IconColor.Warning;
 }
 
 /**

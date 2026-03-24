@@ -31,6 +31,7 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import AgentStepHud from '../../../core/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
@@ -71,6 +72,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
+import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -379,6 +381,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
       component={MoreTokenActionsMenu}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET}
+      component={SecurityBadgeBottomSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}
@@ -1182,6 +1188,7 @@ const App: React.FC = () => {
       <AppFlow />
       <Toast ref={toastRef} />
       <PerpsWebSocketHealthToast />
+      {__DEV__ && <AgentStepHud />}
       <ControllerEventToastBridge registrations={predictRegistrations} />
       <ProfilerManager />
     </WebSocketHealthToastProvider>

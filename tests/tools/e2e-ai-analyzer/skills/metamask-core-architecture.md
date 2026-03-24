@@ -1,6 +1,6 @@
 ---
 name: metamask-core-architecture
-description: Deep architectural knowledge of MetaMask Mobile's core Engine and controller patterns. Load this when you see changes to ANY file matching these patterns - *Controller.ts files (PerpsController, SwapsController, NetworkController, TransactionController, etc.), app/core/Engine/ directory, BaseController implementations, messenger configurations (app/core/Engine/messengers/), Engine.ts initialization, or controller state management. Provides critical context on controller dependencies, initialization order, breaking change patterns, and cascade effects.
+description: Deep architectural knowledge of MetaMask Mobile's core Engine and controller patterns. Load this when you see changes to ANY file matching these patterns - *Controller.ts files (PerpsController, NetworkController, TransactionController, etc.), app/core/Engine/ directory, BaseController implementations, messenger configurations (app/core/Engine/messengers/), Engine.ts initialization, or controller state management. Provides critical context on controller dependencies, initialization order, breaking change patterns, and cascade effects.
 ---
 
 # MetaMask Core Architecture Skill
@@ -15,7 +15,7 @@ Load this skill when analyzing changes to:
 - ANY controller integrated into the Engine - check if there's a corresponding entry in:
   - `app/core/Engine/types.ts` (controller type definitions)
   - `app/core/Engine/messengers/` (restricted messenger configurations)
-  - Examples: PerpsController (app/components/UI/Perps/controllers/), SwapsController, etc.
+  - Examples: PerpsController (app/components/UI/Perps/controllers/), BridgeController, etc.
 - Controller implementations that extend `BaseController` or use restricted messengers
 - Controller initialization or messenger configuration
 - State management or Redux integration
@@ -80,7 +80,7 @@ Understanding these phases helps assess impact magnitude:
 
 **Phase 6 - Business Logic & Features:**
 
-- BridgeController, SwapsController, EarnController, DeFiPositionsController, plus 30+ specialized controllers
+- BridgeController, EarnController, DeFiPositionsController, plus 30+ specialized controllers
 - **Impact Scope:** Specific features, more isolated
 
 ### Interpreting Phase Changes
@@ -493,7 +493,7 @@ export const transactionControllerInit = ({ getController, ... }) => {
 
 **Typical Test Coverage:** SmokeWalletPlatform, SmokeWalletUX
 
-### Trading Domain (SwapsController, BridgeController changes)
+### Trading Domain (BridgeController changes)
 
 **Affected Areas:**
 

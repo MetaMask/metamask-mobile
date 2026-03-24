@@ -182,7 +182,7 @@ export const usePerpsHomeData = ({
   const perpsMarkets = useMemo(
     () =>
       sortMarkets({
-        markets: allMarkets.filter((m) => !m.marketType), // Crypto markets have no marketType
+        markets: allMarkets.filter((m) => !m.marketType && !m.isHip3),
         sortBy,
         direction,
       }).slice(0, trendingLimit),
@@ -321,7 +321,7 @@ export const usePerpsHomeData = ({
     if (!searchQuery.trim()) {
       return perpsMarkets;
     }
-    return filteredData.markets.filter((m) => !m.marketType);
+    return filteredData.markets.filter((m) => !m.marketType && !m.isHip3);
   }, [searchQuery, perpsMarkets, filteredData.markets]);
 
   const searchedStocksMarkets = useMemo(() => {
