@@ -119,6 +119,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Stop loss must be {{direction}} {{priceType}} price. Update or clear it to place the order.',
       'perps.tpsl.below': 'below',
       'perps.tpsl.above': 'above',
+      'perps.tpsl.current': 'current',
+      'perps.tpsl.entry': 'entry',
       'perps.points': 'Points',
       'perps.estimated_points': 'perps.estimated_points',
       'perps.points_error': 'Points Error',

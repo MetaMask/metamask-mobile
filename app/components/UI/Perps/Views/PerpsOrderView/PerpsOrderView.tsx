@@ -1228,7 +1228,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     ? parseFloat(String(orderForm.limitPrice))
     : assetData.price;
 
-  const tpslPriceType = isLimitWithPrice ? 'entry' : 'current';
+  const tpslPriceType = isLimitWithPrice
+    ? strings('perps.tpsl.entry')
+    : strings('perps.tpsl.current');
 
   const isTakeProfitPriceInvalid = Boolean(
     orderForm.takeProfitPrice?.trim() &&

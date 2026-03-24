@@ -1475,6 +1475,8 @@
       "stop_loss_wrong_side_warning": "Stop loss must be {{direction}} {{priceType}} price. Update or clear it to place the order.",
       "above": "above",
       "below": "below",
+      "current": "current",
+      "entry": "entry",
       "done": "Done",
       "cancel": "Cancel",
       "set": "Set",

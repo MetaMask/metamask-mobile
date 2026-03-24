@@ -46,6 +46,8 @@ jest.mock('../../../../../locales/i18n', () => ({
       'perps.tpsl.take_profit_invalid_price': `Take profit must be ${params?.direction} ${params?.priceType} price`,
       'perps.tpsl.stop_loss_invalid_price': `Stop loss must be ${params?.direction} ${params?.priceType} price`,
       'perps.tpsl.stop_loss_beyond_liquidation_error': `Stop loss must be ${params?.direction} liquidation price`,
+      'perps.tpsl.current': 'current',
+      'perps.tpsl.entry': 'entry',
     };
     return strings[key] || key;
   },

@@ -843,18 +843,24 @@ export function usePerpsTPSLForm(
   const { referencePrice, priceType } = useMemo(() => {
     if (position) {
       // Existing position: validate against current price
-      return { referencePrice: currentPrice, priceType: 'current' };
+      return {
+        referencePrice: currentPrice,
+        priceType: strings('perps.tpsl.current'),
+      };
     }
 
     if (orderType === 'market') {
       // New market order: validate against current price
-      return { referencePrice: currentPrice, priceType: 'current' };
+      return {
+        referencePrice: currentPrice,
+        priceType: strings('perps.tpsl.current'),
+      };
     }
 
     // New limit order: validate against entry price (limit price)
     return {
       referencePrice: entryPrice || currentPrice,
-      priceType: 'entry',
+      priceType: strings('perps.tpsl.entry'),
     };
   }, [position, currentPrice, orderType, entryPrice]);
 
