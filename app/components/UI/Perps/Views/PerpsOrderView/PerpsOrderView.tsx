@@ -1318,7 +1318,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   : styles.detailItemOnly,
               ]}
             >
-              <TouchableOpacity onPress={() => setIsLeverageVisible(true)}>
+              <TouchableOpacity
+                testID={PerpsOrderViewSelectorsIDs.LEVERAGE_ROW}
+                onPress={() => setIsLeverageVisible(true)}
+              >
                 <ListItem style={styles.detailItemWrapper}>
                   <ListItemColumn widthType={WidthType.Fill}>
                     <View style={styles.detailLeft}>
@@ -1362,7 +1365,10 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
                   hideTPSL && !isPayRowVisible && styles.detailItemLast,
                 ]}
               >
-                <TouchableOpacity onPress={() => setIsLimitPriceVisible(true)}>
+                <TouchableOpacity
+                  testID={PerpsOrderViewSelectorsIDs.LIMIT_PRICE_ROW}
+                  onPress={() => setIsLimitPriceVisible(true)}
+                >
                   <ListItem style={styles.detailItemWrapper}>
                     <ListItemColumn widthType={WidthType.Fill}>
                       <Text
@@ -1651,6 +1657,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         >
           <View style={styles.percentageButtonsContainer}>
             <Button
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_25_PCT}
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               label="25%"
@@ -1658,6 +1665,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               style={styles.percentageButton}
             />
             <Button
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_50_PCT}
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               label="50%"
@@ -1665,6 +1673,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               style={styles.percentageButton}
             />
             <Button
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_MAX}
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               label={strings('perps.deposit.max_button')}
@@ -1672,6 +1681,7 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
               style={styles.percentageButton}
             />
             <Button
+              testID={PerpsOrderViewSelectorsIDs.KEYPAD_DONE}
               variant={ButtonVariants.Secondary}
               size={ButtonSize.Md}
               label={strings('perps.deposit.done_button')}
