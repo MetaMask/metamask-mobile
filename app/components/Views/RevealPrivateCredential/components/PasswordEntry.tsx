@@ -1,13 +1,20 @@
 import React from 'react';
-import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
-import Text, {
+import {
+  TextField,
+  IconName,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import TextField from '../../../../component-library/components/Form/TextField/TextField';
+  Text,
+  TextFieldSize,
+  Box,
+  FontWeight,
+  ButtonIcon,
+  TextColor,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { useTheme } from '../../../../util/theme';
 import { PasswordEntryProps } from '../types';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PasswordEntry = ({
   onPasswordChange,
@@ -15,13 +22,18 @@ const PasswordEntry = ({
   warningMessage,
   showPassword,
   onToggleShowPassword,
-  styles,
 }: PasswordEntryProps) => {
+  const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
 
   return (
     <>
-      <Text style={styles.enterPassword} variant={TextVariant.BodyMDMedium}>
+      <Text
+        twClassName="mb-1"
+        color={TextColor.TextDefault}
+        variant={TextVariant.BodyMd}
+        fontWeight={FontWeight.Medium}
+      >
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextField
@@ -41,9 +53,12 @@ const PasswordEntry = ({
             onPress={onToggleShowPassword}
           />
         }
+        size={TextFieldSize.Lg}
       />
       <Text
-        style={styles.warningText}
+        twClassName="mt-2"
+        color={TextColor.ErrorDefault}
+        variant={TextVariant.BodySm}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID}
       >
         {warningMessage}
