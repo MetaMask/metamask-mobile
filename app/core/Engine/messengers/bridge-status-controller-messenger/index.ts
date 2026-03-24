@@ -40,7 +40,6 @@ export function getBridgeStatusControllerMessenger(
       'TransactionController:estimateGasFee',
       'TransactionController:updateTransaction',
       'TransactionController:isAtomicBatchSupported',
-      'RemoteFeatureFlagController:getState',
       'AuthenticationController:getBearerToken',
     ],
     events: [
