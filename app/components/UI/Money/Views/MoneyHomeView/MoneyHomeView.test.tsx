@@ -1,4 +1,5 @@
 import React from 'react';
+import { fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MoneyHomeView from './MoneyHomeView';
 import { MoneyHomeViewTestIds } from './MoneyHomeView.testIds';
@@ -150,5 +151,13 @@ describe('MoneyHomeView', () => {
     const { getByTestId } = renderWithProvider(<MoneyHomeView />);
 
     expect(getByTestId(MoneyFooterTestIds.CONTAINER)).toBeOnTheScreen();
+  });
+
+  it('pressing the back button calls navigation.goBack', () => {
+    const { getByTestId } = renderWithProvider(<MoneyHomeView />);
+
+    fireEvent.press(getByTestId(MoneyHeaderTestIds.BACK_BUTTON));
+
+    expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 });

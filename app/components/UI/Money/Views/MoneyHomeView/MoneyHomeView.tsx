@@ -18,8 +18,6 @@ import styleSheet from './MoneyHomeView.styles';
 import { MUSD_CONVERSION_APY } from '../../../Earn/constants/musd';
 import { useMusdConversionTokens } from '../../../Earn/hooks/useMusdConversionTokens';
 
-const HARDCODED_BALANCE = '$0.00';
-
 const Divider = () => <Box twClassName="h-px bg-border-muted my-5" />;
 
 // eslint-disable-next-line no-alert
@@ -46,8 +44,7 @@ const MoneyHomeView = () => {
   const handleHeaderPress = TEMP_ALERT_HANDLER;
 
   const handleTokenAddPress = (tokenName: string) => {
-    // eslint-disable-next-line no-alert
-    alert('Under construction 🚧');
+    TEMP_ALERT_HANDLER();
   };
 
   const handleSeeEarningsPress = TEMP_ALERT_HANDLER;
@@ -73,10 +70,7 @@ const MoneyHomeView = () => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}
         >
-          <MoneyBalanceSummary
-            balance={HARDCODED_BALANCE}
-            apy={String(MUSD_CONVERSION_APY)}
-          />
+          <MoneyBalanceSummary apy={String(MUSD_CONVERSION_APY)} />
           <MoneyActionButtonRow
             onAddPress={handleAddPress}
             onTransferPress={handleTransferPress}

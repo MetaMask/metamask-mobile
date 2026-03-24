@@ -15,9 +15,9 @@ import { strings } from '../../../../../../locales/i18n';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 
 interface MoneyActionButtonRowProps {
-  onAddPress?: () => void;
-  onTransferPress?: () => void;
-  onCardPress?: () => void;
+  onAddPress: () => void;
+  onTransferPress: () => void;
+  onCardPress: () => void;
 }
 
 const ActionButton = ({
@@ -50,9 +50,9 @@ const ActionButton = ({
 );
 
 const MoneyActionButtonRow = ({
-  onAddPress = () => undefined,
-  onTransferPress = () => undefined,
-  onCardPress = () => undefined,
+  onAddPress,
+  onTransferPress,
+  onCardPress,
 }: MoneyActionButtonRowProps) => {
   const handleAddPress = useCallback(() => onAddPress(), [onAddPress]);
   const handleTransferPress = useCallback(

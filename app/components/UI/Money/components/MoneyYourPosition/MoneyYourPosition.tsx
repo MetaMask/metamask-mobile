@@ -100,7 +100,7 @@ const MoneyYourPosition = () => (
     >
       <Box
         twClassName="flex-1 gap-0.5"
-        testID={MoneyYourPositionTestIds.CURRENT_RATE}
+        testID={MoneyYourPositionTestIds.AVAILABLE_BALANCE}
       >
         <Text
           variant={TextVariant.BodySm}
@@ -122,7 +122,7 @@ const MoneyYourPosition = () => (
             iconName={IconName.Info}
             size={ButtonIconSize.Sm}
             iconProps={{ color: IconColor.IconAlternative }}
-            accessibilityLabel="APY info"
+            accessibilityLabel="Available balance info"
           />
         </Box>
       </Box>

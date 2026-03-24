@@ -9,18 +9,15 @@ import {
 import { strings } from '../../../../../../locales/i18n';
 import { MoneyBalanceSummaryTestIds } from './MoneyBalanceSummary.testIds';
 
+const HARDCODED_BALANCE = '$0.00';
 interface MoneyBalanceSummaryProps {
-  /**
-   * Formatted balance string (e.g. "$0.00")
-   */
-  balance: string;
   /**
    * APY percentage string (e.g. "4")
    */
   apy: string;
 }
 
-const MoneyBalanceSummary = ({ balance, apy }: MoneyBalanceSummaryProps) => (
+const MoneyBalanceSummary = ({ apy }: MoneyBalanceSummaryProps) => (
   <Box testID={MoneyBalanceSummaryTestIds.CONTAINER}>
     <Box twClassName="px-4 pb-2">
       <Text
@@ -39,7 +36,7 @@ const MoneyBalanceSummary = ({ balance, apy }: MoneyBalanceSummaryProps) => (
         testID={MoneyBalanceSummaryTestIds.BALANCE}
         twClassName="mb-1"
       >
-        {balance}
+        {HARDCODED_BALANCE}
       </Text>
       <Text
         variant={TextVariant.BodySm}

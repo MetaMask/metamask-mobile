@@ -6,27 +6,13 @@ import { strings } from '../../../../../../locales/i18n';
 
 describe('MoneyBalanceSummary', () => {
   it('renders the title', () => {
-    const { getByTestId } = render(
-      <MoneyBalanceSummary balance="$0.00" apy="4" />,
-    );
+    const { getByTestId } = render(<MoneyBalanceSummary apy="4" />);
 
     expect(getByTestId(MoneyBalanceSummaryTestIds.TITLE)).toBeOnTheScreen();
   });
 
-  it('renders the provided balance', () => {
-    const { getByTestId } = render(
-      <MoneyBalanceSummary balance="$1,234.56" apy="4" />,
-    );
-
-    expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
-      '$1,234.56',
-    );
-  });
-
   it('renders the APY label with the provided percentage', () => {
-    const { getByTestId } = render(
-      <MoneyBalanceSummary balance="$0.00" apy="5.5" />,
-    );
+    const { getByTestId } = render(<MoneyBalanceSummary apy="5.5" />);
 
     expect(getByTestId(MoneyBalanceSummaryTestIds.APY)).toHaveTextContent(
       strings('money.apy_label', { percentage: '5.5' }),
@@ -34,9 +20,7 @@ describe('MoneyBalanceSummary', () => {
   });
 
   it('renders zero balance', () => {
-    const { getByTestId } = render(
-      <MoneyBalanceSummary balance="$0.00" apy="4" />,
-    );
+    const { getByTestId } = render(<MoneyBalanceSummary apy="4" />);
 
     expect(getByTestId(MoneyBalanceSummaryTestIds.BALANCE)).toHaveTextContent(
       '$0.00',

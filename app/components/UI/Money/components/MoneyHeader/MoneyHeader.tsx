@@ -14,11 +14,11 @@ interface MoneyHeaderProps {
   /**
    * Handler for the back/navigation button
    */
-  onBackPress?: () => void;
+  onBackPress: () => void;
   /**
-   * Handler for the overflow menu button
+   * Handler for the options menu button
    */
-  onMenuPress?: () => void;
+  onMenuPress: () => void;
 }
 
 const MoneyHeader = ({ onBackPress, onMenuPress }: MoneyHeaderProps) => (
