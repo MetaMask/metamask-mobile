@@ -4,9 +4,17 @@ import MoneyActionButtonRow from './MoneyActionButtonRow';
 import { MoneyActionButtonRowTestIds } from './MoneyActionButtonRow.testIds';
 import { strings } from '../../../../../../locales/i18n';
 
+const noop = jest.fn();
+
 describe('MoneyActionButtonRow', () => {
   it('renders all three action buttons', () => {
-    const { getByText } = render(<MoneyActionButtonRow />);
+    const { getByText } = render(
+      <MoneyActionButtonRow
+        onAddPress={noop}
+        onTransferPress={noop}
+        onCardPress={noop}
+      />,
+    );
 
     expect(getByText(strings('money.action.add'))).toBeOnTheScreen();
     expect(getByText(strings('money.action.transfer'))).toBeOnTheScreen();
@@ -16,7 +24,11 @@ describe('MoneyActionButtonRow', () => {
   it('calls onAddPress when Add button is pressed', () => {
     const mockAdd = jest.fn();
     const { getByTestId } = render(
-      <MoneyActionButtonRow onAddPress={mockAdd} />,
+      <MoneyActionButtonRow
+        onAddPress={mockAdd}
+        onTransferPress={noop}
+        onCardPress={noop}
+      />,
     );
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
@@ -27,7 +39,11 @@ describe('MoneyActionButtonRow', () => {
   it('calls onTransferPress when Transfer button is pressed', () => {
     const mockTransfer = jest.fn();
     const { getByTestId } = render(
-      <MoneyActionButtonRow onTransferPress={mockTransfer} />,
+      <MoneyActionButtonRow
+        onAddPress={noop}
+        onTransferPress={mockTransfer}
+        onCardPress={noop}
+      />,
     );
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.TRANSFER_BUTTON));
@@ -38,19 +54,15 @@ describe('MoneyActionButtonRow', () => {
   it('calls onCardPress when Card button is pressed', () => {
     const mockCard = jest.fn();
     const { getByTestId } = render(
-      <MoneyActionButtonRow onCardPress={mockCard} />,
+      <MoneyActionButtonRow
+        onAddPress={noop}
+        onTransferPress={noop}
+        onCardPress={mockCard}
+      />,
     );
 
     fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.CARD_BUTTON));
 
     expect(mockCard).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not throw when no callbacks are provided', () => {
-    const { getByTestId } = render(<MoneyActionButtonRow />);
-
-    expect(() => {
-      fireEvent.press(getByTestId(MoneyActionButtonRowTestIds.ADD_BUTTON));
-    }).not.toThrow();
   });
 });

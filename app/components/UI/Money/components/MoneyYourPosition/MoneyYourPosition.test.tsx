@@ -45,9 +45,12 @@ describe('MoneyYourPosition', () => {
     const { getByTestId, getAllByTestId } = render(<MoneyYourPosition />);
 
     expect(getByTestId(MoneyYourPositionTestIds.CONTAINER)).toBeOnTheScreen();
-    expect(getAllByTestId(MoneyYourPositionTestIds.CURRENT_RATE).length).toBe(
-      2,
-    );
+    expect(
+      getByTestId(MoneyYourPositionTestIds.CURRENT_RATE),
+    ).toBeOnTheScreen();
+    expect(
+      getByTestId(MoneyYourPositionTestIds.AVAILABLE_BALANCE),
+    ).toBeOnTheScreen();
     expect(
       getByTestId(MoneyYourPositionTestIds.LIFETIME_EARNINGS),
     ).toBeOnTheScreen();
