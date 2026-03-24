@@ -29,14 +29,6 @@ jest.mock('@metamask/react-native-webview', () => ({
   )),
 }));
 
-// Mock the BottomSheet component
-jest.mock('../../BottomSheets/BottomSheet', () => ({
-  __esModule: true,
-  default: jest.fn(({ children }) => (
-    <div data-testid="mock-bottom-sheet">{children}</div>
-  )),
-}));
-
 // Mock useNavigation
 jest.mock('@react-navigation/native', () => ({
   useNavigation: jest.fn(),
