@@ -4,7 +4,12 @@ import { SmokeWalletPlatform } from '../../../tags';
 import { CreateNewWallet } from '../../../flows/wallet.flow';
 import TestHelpers from '../../../helpers';
 import Assertions from '../../../framework/Assertions';
-import { createLogger } from '../../../framework';
+import {
+  createLogger,
+  countProxiedRequestsMatching,
+  waitForAdditionalProxiedRequestsMatching,
+} from '../../../framework';
+import { AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER } from '../../../api-mocking/helpers/mockHelpers';
 import {
   getEventsPayloads,
   onboardingEvents,
@@ -12,12 +17,6 @@ import {
 import SoftAssert from '../../../framework/SoftAssert';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import {
-  AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
-  collectSeenProxiedRequests,
-  filterProxiedRequests,
-  waitForProxiedRequestsMatching,
-} from '../../../api-mocking/helpers/mockHelpers';
 
 const logger = createLogger({
   name: 'NewWalletAnalyticsSpec',
@@ -60,11 +59,10 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
           urlSubstring: AUTHENTICATION_PROFILE_ACCOUNTS_URL_MARKER,
         };
 
-        const seenBeforeWallet = await collectSeenProxiedRequests(mockServer);
-        const profileAccountsBaseline = filterProxiedRequests(
-          seenBeforeWallet,
+        const profileAccountsBaseline = await countProxiedRequestsMatching(
+          mockServer,
           profileAccountsMatcher,
-        ).length;
+        );
 
         await CreateNewWallet();
 
@@ -158,27 +156,20 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
 
         softAssert.throwIfErrors();
 
-        await waitForProxiedRequestsMatching(
+        // MMQA-1384: PUT authentication profile/accounts after new wallet
+        await waitForAdditionalProxiedRequestsMatching(
           mockServer,
           profileAccountsMatcher,
+          profileAccountsBaseline,
           {
-            minCount: profileAccountsBaseline + 1,
             description:
               'New PUT authentication.api.cx.metamask.io/api/v2/profile/accounts observed after wallet creation',
+            successLog: {
+              logger,
+              label:
+                'PUT authentication.api.cx.metamask.io/api/v2/profile/accounts after new wallet',
+            },
           },
-        );
-
-        const seenAfterProfileAccountsWait =
-          await collectSeenProxiedRequests(mockServer);
-        const profileAccountsAfter = filterProxiedRequests(
-          seenAfterProfileAccountsWait,
-          profileAccountsMatcher,
-        ).length;
-
-        logger.info(
-          `PUT authentication.api.cx.metamask.io/api/v2/profile/accounts after new wallet: new count=${String(
-            profileAccountsAfter - profileAccountsBaseline,
-          )}`,
         );
       },
     );

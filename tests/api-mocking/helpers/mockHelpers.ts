@@ -1,12 +1,11 @@
 import type { Mockttp, MockttpServer } from 'mockttp';
 import _ from 'lodash';
-import {
-  createLogger,
-  LogLevel,
+import { createLogger, LogLevel } from '../../framework/logger.ts';
+import type {
   MockApiEndpoint,
   MockEventsObject,
-  sleep,
-} from '../../framework';
+} from '../../framework/types.ts';
+import { sleep } from '../../framework/Utilities.ts';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
 import { safeGetBodyText } from '../MockServerE2E.ts';
 
@@ -537,6 +536,62 @@ export function filterProxiedRequests(
     }
     return true;
   });
+}
+
+/**
+ * Count of proxied requests matching `matcher` (for baselines before a flow).
+ */
+export async function countProxiedRequestsMatching(
+  mockServer: Mockttp | MockttpServer,
+  matcher: ProxiedRequestMatcher,
+): Promise<number> {
+  const seen = await collectSeenProxiedRequests(mockServer);
+  return filterProxiedRequests(seen, matcher).length;
+}
+
+export interface WaitForAdditionalProxiedRequestsOptions {
+  description: string;
+  /** Matching requests beyond baseline required (default 1). */
+  additional?: number;
+  timeout?: number;
+  interval?: number;
+  /**
+   * After a successful wait, logs `label: new count=<delta>` at INFO on `logger`.
+   */
+  successLog?: {
+    logger: { info: (message: string) => void };
+    label: string;
+  };
+}
+
+/**
+ * Waits until at least `baselineMatchCount + additional` proxied requests match,
+ * then optionally logs how many new matches appeared since baseline.
+ * Use with {@link countProxiedRequestsMatching} before the flow under test.
+ */
+export async function waitForAdditionalProxiedRequestsMatching(
+  mockServer: Mockttp | MockttpServer,
+  matcher: ProxiedRequestMatcher,
+  baselineMatchCount: number,
+  options: WaitForAdditionalProxiedRequestsOptions,
+): Promise<SeenProxiedRequest[]> {
+  const additional = options.additional ?? 1;
+  const matches = await waitForProxiedRequestsMatching(mockServer, matcher, {
+    minCount: baselineMatchCount + additional,
+    description: options.description,
+    timeout: options.timeout,
+    interval: options.interval,
+  });
+
+  if (options.successLog) {
+    const afterCount = await countProxiedRequestsMatching(mockServer, matcher);
+    const delta = afterCount - baselineMatchCount;
+    options.successLog.logger.info(
+      `${options.successLog.label}: new count=${String(delta)}`,
+    );
+  }
+
+  return matches;
 }
 
 /**
