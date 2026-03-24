@@ -38,8 +38,8 @@ import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar';
 
 /**
  * Fixed chart block height for line and candle (design: same height when toggling; only axis
- * show/hide changes). Horizontal: line bleeds to screen edges via `chartContainerLineBleed`;
- * candle keeps inset — Y-axis uses the right gutter.
+ * show/hide changes). Line full width: TradingView webview (hidden right scale, detachNoScale,
+ * zero time-scale right offset). Candle keeps Y-axis gutter.
  */
 const CHART_HEIGHT = Dimensions.get('screen').height * 0.24;
 
@@ -178,39 +178,6 @@ const Price = ({
   return (
     <>
       <View style={styles.wrapper}>
-        {asset.name ? (
-          stockTokenBadge ? (
-            <View>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {asset.name}
-              </Text>
-              <View style={styles.assetWrapper}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
-                >
-                  {ticker}
-                </Text>
-                {stockTokenBadge}
-              </View>
-            </View>
-          ) : (
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {asset.name} ({ticker})
-            </Text>
-          )
-        ) : (
-          <View style={styles.assetWrapper}>
-            <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
-            {stockTokenBadge}
-          </View>
-        )}
         {!isNaN(currentPrice) && (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
