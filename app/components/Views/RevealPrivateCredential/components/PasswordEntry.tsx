@@ -44,6 +44,7 @@ const PasswordEntry = ({
         onSubmitEditing={onSubmit}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
+        accessibilityLabel={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
         returnKeyType="done"
         autoComplete="password"
         endAccessory={
