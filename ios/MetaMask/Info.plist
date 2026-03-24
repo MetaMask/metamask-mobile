@@ -145,5 +145,9 @@
 	<string>$(MM_FOX_CODE)</string>
 	<key>mixpanel_token</key>
 	<string>$(MM_MIXPANEL_TOKEN)</string>
+	<key>braze_api_key</key>
+	<string>$(BRAZE_IOS_API_KEY)</string>
+	<key>braze_sdk_endpoint</key>
+	<string>$(BRAZE_ENDPOINT)</string>
 </dict>
 </plist>

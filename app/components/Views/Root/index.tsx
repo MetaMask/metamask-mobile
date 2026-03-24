@@ -22,6 +22,7 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
+import { subscribeToBrazePushEvents } from '../../../core/Braze';
 import { HardwareWalletProvider } from '../../../core/HardwareWallet';
 
 /**
@@ -54,6 +55,7 @@ const Root = ({ foxCode }: RootProps) => {
     SecureKeychain.init(foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();
+    const unsubBrazePush = subscribeToBrazePushEvents();
     // Lock screen orientation to portrait on app start
     ScreenOrientationService.lockToPortrait();
     // Wait for store to be initialized in Detox tests
@@ -62,6 +64,9 @@ const Root = ({ foxCode }: RootProps) => {
     } else {
       setIsStoreLoading(false);
     }
+    return () => {
+      unsubBrazePush();
+    };
   }, [foxCode]);
 
   // Only wait for store in test mode, fonts are handled inside theme context
