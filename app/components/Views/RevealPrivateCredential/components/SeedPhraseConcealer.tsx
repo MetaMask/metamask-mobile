@@ -20,6 +20,9 @@ import darkBlurImage from '../../../../images/dark-blur.png';
 import { SeedPhraseConcealerProps } from '../types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
+const FILL_STYLE =
+  'absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1';
+
 const SeedPhraseConcealer = ({ onReveal }: SeedPhraseConcealerProps) => {
   const { themeAppearance } = useTheme();
   const tw = useTailwind();
@@ -28,18 +31,14 @@ const SeedPhraseConcealer = ({ onReveal }: SeedPhraseConcealerProps) => {
     <Box twClassName="flex-1 rounded-lg">
       <TouchableOpacity
         onPress={onReveal}
-        style={tw.style(
-          'absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1',
-        )}
+        style={tw.style(FILL_STYLE)}
         testID={RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_BUTTON_ID}
       >
         <ImageBackground
           source={
             themeAppearance === AppThemeKey.dark ? darkBlurImage : blurImage
           }
-          style={tw.style(
-            'absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1 opacity-50',
-          )}
+          style={tw.style(`${FILL_STYLE} opacity-50`)}
           resizeMode="cover"
         />
         <Box twClassName="items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1">
