@@ -4,7 +4,6 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  BoxJustifyContent,
   FontWeight,
   Icon,
   IconColor,
