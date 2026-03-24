@@ -25,6 +25,7 @@ interface RequestOptions {
   tokenSet?: CardAuthTokens;
   timeout?: number;
   headers?: Record<string, string>;
+  location?: CardLocation;
 }
 
 export class BaanxService {
@@ -57,8 +58,9 @@ export class BaanxService {
   }
 
   async request<T>(path: string, opts: RequestOptions = {}): Promise<T> {
+    const effectiveLocation = opts.location ?? this.currentLocation;
     const headers: Record<string, string> = {
-      'x-us-env': String(this.currentLocation === 'us'),
+      'x-us-env': String(effectiveLocation === 'us'),
       ...opts.headers,
     };
 
@@ -108,23 +110,29 @@ export class BaanxService {
     }
   }
 
-  async get<T>(path: string, tokenSet?: CardAuthTokens): Promise<T> {
-    return this.request<T>(path, { tokenSet });
+  async get<T>(
+    path: string,
+    tokenSet?: CardAuthTokens,
+    location?: CardLocation,
+  ): Promise<T> {
+    return this.request<T>(path, { tokenSet, location });
   }
 
   async post<T>(
     path: string,
     body: unknown,
     tokenSet?: CardAuthTokens,
+    location?: CardLocation,
   ): Promise<T> {
-    return this.request<T>(path, { method: 'POST', body, tokenSet });
+    return this.request<T>(path, { method: 'POST', body, tokenSet, location });
   }
 
   async put<T>(
     path: string,
     body: unknown,
     tokenSet?: CardAuthTokens,
+    location?: CardLocation,
   ): Promise<T> {
-    return this.request<T>(path, { method: 'PUT', body, tokenSet });
+    return this.request<T>(path, { method: 'PUT', body, tokenSet, location });
   }
 }

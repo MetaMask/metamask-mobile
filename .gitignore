@@ -1,6 +1,9 @@
 # typescript incremental build cache
 .tsbuildinfo
 
+# task working directory (agent-local, not shipped)
+.task/
+
 # osx
 .DS_Store
 # don't save asdf tools-version config as nvm is prioritized.
@@ -185,3 +188,8 @@ temp/
 tests/coverage-systems/
 
 runway-artifacts/
+
+# E2E AI Analyzer output files
+release-test-plan.json
+release-delta.json
+release-signoffs.json

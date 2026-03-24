@@ -92,6 +92,7 @@ import HelpText, {
 } from '../../../component-library/components/Form/HelpText';
 import { useAuthentication } from '../../../core/Authentication';
 import { containsErrorMessage } from '../../../util/errorHandling';
+import { ensureError } from '../../../util/errorUtils';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
@@ -174,7 +175,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   const [biometryChoice, setBiometryChoice] = useState(true);
 
   const promptBiometricFailedAlert = useCallback(async () => {
-    const authData = await getAuthType();
+    let authData: AuthData;
+    try {
+      authData = await getAuthType();
+    } catch (err) {
+      throw ensureError(err, 'Get auth type failed');
+    }
     if (
       authData.currentAuthType === AUTHENTICATION_TYPE.PASSWORD &&
       authData.availableBiometryType
@@ -383,9 +389,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     trackErrorAsAnalytics('Login: Invalid Password', loginErrorMessage);
   }, []);
 
+  // Handles login/unlock errors from onRehydrateLogin and newGlobalPasswordLogin.
+  // Call chain: onRehydrateLogin/newGlobalPasswordLogin → unlockWallet() →
+  // Authentication wraps rethrown errors via ensureError, so loginError is always
+  // an Error instance. We still guard against an empty .message with .trim() fallback.
   const handleLoginError = useCallback(
     async (loginError: Error) => {
-      const loginErrorMessage = loginError.message || loginError.toString();
+      const loginErrorMessage =
+        loginError.message?.trim() ||
+        loginError.name?.trim() ||
+        String(loginError);
 
       if (route.params?.onboardingTraceCtx) {
         trace({
@@ -407,15 +420,14 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
-      if (isWrongPasswordError && isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: accountType,
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'incorrect_password',
-        });
-      }
-
       if (isWrongPasswordError) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: accountType,
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: 'incorrect_password',
+          });
+        }
         handlePasswordError(loginErrorMessage);
         return;
       }
@@ -497,12 +509,16 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authData });
-
-          // TODO: This should probably derive auth capabilities from getAuthCapabilities
-          // prompt biometric failed alert if biometric failed
-          await promptBiometricFailedAlert();
         },
       );
+
+      // Best-effort post-unlock UX: show biometric cancelled alert if needed.
+      // Failure here must not be treated as a login error — unlock already succeeded.
+      try {
+        await promptBiometricFailedAlert();
+      } catch (alertErr) {
+        Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
+      }
 
       track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
         account_type: accountType,
@@ -520,7 +536,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      await handleLoginError(loginErr as Error);
+      await handleLoginError(ensureError(loginErr, 'Rehydrate login failed'));
     }
   }, [
     password,
@@ -560,17 +576,23 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
         async () => {
           await unlockWallet({ password, authPreference: authData });
-
-          // TODO: This should probably derive auth capabilities from getAuthCapabilities
-          // prompt biometric failed alert if biometric failed
-          await promptBiometricFailedAlert();
         },
       );
+
+      // Best-effort post-unlock UX: show biometric cancelled alert if needed.
+      // Failure here must not be treated as a login error — unlock already succeeded.
+      try {
+        await promptBiometricFailedAlert();
+      } catch (alertErr) {
+        Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
+      }
 
       setLoading(false);
       setError(null);
     } catch (loginErr) {
-      await handleLoginError(loginErr as Error);
+      await handleLoginError(
+        ensureError(loginErr, 'Global password login failed'),
+      );
     }
   }, [
     password,

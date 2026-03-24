@@ -16,7 +16,8 @@ import {
   LedgerCommunicationErrors,
 } from '../../../core/Ledger/ledgerErrors';
 import SelectOptionSheet, { ISelectOption } from '../../UI/SelectOptionSheet';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
 import { ledgerDeviceUUIDToModelName } from '../../../util/hardwareWallet/deviceNameUtils';
 
@@ -53,7 +54,7 @@ const Scan = ({
   ledgerError,
 }: ScanProps) => {
   const { colors } = useAppThemeFromContext() || mockTheme;
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const styles = useMemo(() => createStyles(colors), [colors]);
   const [selectedDevice, setSelectedDevice] = useState<
     BluetoothDevice | undefined

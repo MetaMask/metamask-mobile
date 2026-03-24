@@ -1046,9 +1046,10 @@ describe('PerpsStreamManager', () => {
         await Promise.resolve();
       });
 
-      // Now subscribeToPrices should have been called
+      // Now subscribeToPrices should have been called without includeMarketData
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['BTC-PERP', 'ETH-PERP'],
+        includeMarketData: false,
         callback: expect.any(Function),
       });
 
@@ -1237,6 +1238,7 @@ describe('PerpsStreamManager', () => {
       expect(mockSubscribeToPrices).toHaveBeenCalledTimes(1);
       expect(mockSubscribeToPrices).toHaveBeenCalledWith({
         symbols: ['ETH-PERP'],
+        includeMarketData: false,
         callback: expect.any(Function),
       });
 

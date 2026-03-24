@@ -9,6 +9,8 @@ export enum TokenDetailsSource {
   MobileTokenList = 'mobile-token-list',
   /** Token list in full page view */
   MobileTokenListPage = 'mobile-token-list-page',
+  /** Homepage section entry point */
+  HomeSection = 'home_section',
   /** Trending tokens section */
   Trending = 'trending',
   /** Swap/Bridge token selector */

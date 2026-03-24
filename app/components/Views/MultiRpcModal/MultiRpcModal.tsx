@@ -37,7 +37,7 @@ import { IconName } from '../../../component-library/components/Icons/Icon';
 import { getNetworkImageSource } from '../../../util/networks';
 import Routes from '../../../constants/navigation/Routes';
 
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const networkImage = require('../../../images/networks1.png');
 
 const MultiRpcModal = () => {

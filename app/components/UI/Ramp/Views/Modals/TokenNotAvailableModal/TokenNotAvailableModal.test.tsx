@@ -244,4 +244,57 @@ describe('TokenNotAvailableModal', () => {
     });
     expect(mockTrackEvent).toHaveBeenCalledTimes(1);
   });
+
+  describe('buyFlowOrigin: tokenInfo', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({
+        assetId: MOCK_ASSET_ID,
+        buyFlowOrigin: 'tokenInfo',
+      });
+    });
+
+    it('navigates to Tokens Full View when Change token is pressed', () => {
+      const { getByText } = render(TokenNotAvailableModal);
+
+      fireEvent.press(getByText('Change token'));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.TOKENS_FULL_VIEW);
+    });
+
+    it('calls goBack once when modal is dismissed without a pending action', () => {
+      render(TokenNotAvailableModal);
+
+      capturedOnClose?.(false);
+
+      expect(mockGoBack).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('buyFlowOrigin: homeTokenList', () => {
+    beforeEach(() => {
+      mockUseParams.mockReturnValue({
+        assetId: MOCK_ASSET_ID,
+        buyFlowOrigin: 'homeTokenList',
+      });
+    });
+
+    it('navigates to Home when Change token is pressed', () => {
+      const { getByText } = render(TokenNotAvailableModal);
+
+      fireEvent.press(getByText('Change token'));
+
+      expect(mockOnCloseBottomSheet).toHaveBeenCalledWith(expect.any(Function));
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+
+    it('navigates to Home when modal is dismissed without a pending action', () => {
+      render(TokenNotAvailableModal);
+
+      capturedOnClose?.(false);
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.HOME);
+    });
+  });
 });
