@@ -83,6 +83,12 @@ import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../../util/networks';
 
+const feedbackByDigest = new Map<string, 'up' | 'down'>();
+
+export function resetFeedbackCache() {
+  feedbackByDigest.clear();
+}
+
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
 const SECTION_VERTICAL_OFFSET = 25;
@@ -234,6 +240,9 @@ const MarketInsightsView: React.FC = () => {
     typeof setTimeout
   > | null>(null);
   const [isFeedbackSheetVisible, setIsFeedbackSheetVisible] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState<'up' | 'down' | null>(
+    null,
+  );
 
   // Build BridgeToken from route params for swap navigation
   const sourceToken = useMemo(() => {
@@ -436,10 +445,26 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = false;
   }, [assetIdentifier]);
 
+  useEffect(() => {
+    setFeedbackGiven(
+      report?.generatedAt
+        ? (feedbackByDigest.get(report.generatedAt) ?? null)
+        : null,
+    );
+  }, [report?.generatedAt]);
+
   const handleThumbsUpPress = useCallback(() => {
+    setFeedbackGiven('up');
+    if (report?.generatedAt) {
+      feedbackByDigest.set(report.generatedAt, 'up');
+    }
     trackMarketInsightsInteraction('thumbs_up');
     showFeedbackSubmittedToast();
-  }, [trackMarketInsightsInteraction, showFeedbackSubmittedToast]);
+  }, [
+    trackMarketInsightsInteraction,
+    showFeedbackSubmittedToast,
+    report?.generatedAt,
+  ]);
 
   const handleThumbsDownPress = useCallback(() => {
     setIsFeedbackSheetVisible(true);
@@ -457,6 +482,10 @@ const MarketInsightsView: React.FC = () => {
       reason: MarketInsightsFeedbackReason;
       feedbackText?: string;
     }) => {
+      setFeedbackGiven('down');
+      if (report?.generatedAt) {
+        feedbackByDigest.set(report.generatedAt, 'down');
+      }
       trackMarketInsightsInteraction('thumbs_down', {
         feedbackReason: reason,
         ...(feedbackText ? { feedbackText } : {}),
@@ -464,7 +493,11 @@ const MarketInsightsView: React.FC = () => {
       setIsFeedbackSheetVisible(false);
       showFeedbackSubmittedToast();
     },
-    [trackMarketInsightsInteraction, showFeedbackSubmittedToast],
+    [
+      trackMarketInsightsInteraction,
+      showFeedbackSubmittedToast,
+      report?.generatedAt,
+    ],
   );
 
   const handleSourcePress = useCallback(
@@ -631,9 +664,17 @@ const MarketInsightsView: React.FC = () => {
               testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
             >
               <Icon
-                name={IconName.ThumbUp}
+                name={
+                  feedbackGiven === 'up'
+                    ? IconName.ThumbUpFilled
+                    : IconName.ThumbUp
+                }
                 size={IconSize.Lg}
-                color={IconColor.IconAlternative}
+                color={
+                  feedbackGiven === 'up'
+                    ? IconColor.IconDefault
+                    : IconColor.IconAlternative
+                }
               />
             </Pressable>
             <Pressable
@@ -647,9 +688,17 @@ const MarketInsightsView: React.FC = () => {
               testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
             >
               <Icon
-                name={IconName.ThumbDown}
+                name={
+                  feedbackGiven === 'down'
+                    ? IconName.ThumbDownFilled
+                    : IconName.ThumbDown
+                }
                 size={IconSize.Lg}
-                color={IconColor.IconAlternative}
+                color={
+                  feedbackGiven === 'down'
+                    ? IconColor.IconDefault
+                    : IconColor.IconAlternative
+                }
               />
             </Pressable>
           </Box>

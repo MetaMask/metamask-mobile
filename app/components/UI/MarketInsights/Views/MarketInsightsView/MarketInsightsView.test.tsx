@@ -2,7 +2,7 @@ import React from 'react';
 import { Linking } from 'react-native';
 import { fireEvent, act } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import MarketInsightsView from './MarketInsightsView';
+import MarketInsightsView, { resetFeedbackCache } from './MarketInsightsView';
 import { MarketInsightsSelectorsIDs } from '../../MarketInsights.testIds';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -222,10 +222,28 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const buildMockReport = (overrides?: Record<string, unknown>) => ({
+  asset: 'eth',
+  generatedAt: '2026-02-17T11:55:00.000Z',
+  headline: 'ETH extends gains',
+  summary: 'Momentum improves on macro risk-on signals',
+  trends: [
+    {
+      title: 'ETF inflows',
+      description: 'Spot ETF inflows remain elevated',
+      articles: [],
+      tweets: [],
+    },
+  ],
+  sources: [],
+  ...overrides,
+});
+
 describe('MarketInsightsView', () => {
   beforeEach(() => {
     jest.spyOn(Linking, 'openURL').mockResolvedValue(undefined);
     jest.clearAllMocks();
+    resetFeedbackCache();
     mockRouteParams = {
       assetSymbol: 'ETH',
       assetIdentifier: 'eip155:1/erc20:0x123',
@@ -865,5 +883,149 @@ describe('MarketInsightsView', () => {
         }),
       }),
     );
+  });
+
+  describe('feedback filled state', () => {
+    it('shows filled thumbs-up icon after pressing thumbs up', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: buildMockReport(),
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+
+      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps } =
+        renderWithProvider(<MarketInsightsView />);
+
+      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
+
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
+
+      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+      expect(UNSAFE_queryByProps({ name: 'ThumbUp' })).toBeNull();
+      expect(UNSAFE_getByProps({ name: 'ThumbDown' })).toBeTruthy();
+    });
+
+    it('shows filled thumbs-down icon after submitting negative feedback', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: buildMockReport(),
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+
+      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps } =
+        renderWithProvider(<MarketInsightsView />);
+
+      fireEvent.press(
+        getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON),
+      );
+      fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
+
+      expect(UNSAFE_getByProps({ name: 'ThumbDownFilled' })).toBeTruthy();
+      expect(UNSAFE_queryByProps({ name: 'ThumbDown' })).toBeNull();
+      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
+    });
+
+    it('keeps thumbs-up filled when thumbs-down sheet is dismissed without submit', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: buildMockReport(),
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+
+      const { getByTestId, UNSAFE_getByProps } = renderWithProvider(
+        <MarketInsightsView />,
+      );
+
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
+      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+
+      fireEvent.press(
+        getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON),
+      );
+      fireEvent.press(getByTestId('market-insights-feedback-close-button'));
+
+      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+    });
+
+    it('switches from thumbs-up to thumbs-down when negative feedback is submitted', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: buildMockReport(),
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+
+      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps } =
+        renderWithProvider(<MarketInsightsView />);
+
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
+      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+
+      fireEvent.press(
+        getByTestId(MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON),
+      );
+      fireEvent.press(getByTestId('market-insights-feedback-submit-button'));
+
+      expect(UNSAFE_getByProps({ name: 'ThumbDownFilled' })).toBeTruthy();
+      expect(UNSAFE_queryByProps({ name: 'ThumbUpFilled' })).toBeNull();
+      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
+    });
+
+    it('resets feedback state when report generatedAt changes', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: buildMockReport(),
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+
+      const { getByTestId, UNSAFE_getByProps, UNSAFE_queryByProps, rerender } =
+        renderWithProvider(<MarketInsightsView />);
+
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
+      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+
+      mockUseMarketInsights.mockReturnValue({
+        report: buildMockReport({
+          generatedAt: '2026-02-17T13:00:00.000Z',
+        }),
+        isLoading: false,
+        error: null,
+        timeAgo: '1m ago',
+      });
+
+      rerender(<MarketInsightsView />);
+
+      expect(UNSAFE_queryByProps({ name: 'ThumbUpFilled' })).toBeNull();
+      expect(UNSAFE_getByProps({ name: 'ThumbUp' })).toBeTruthy();
+      expect(UNSAFE_getByProps({ name: 'ThumbDown' })).toBeTruthy();
+    });
+
+    it('persists feedback state across unmount and remount for the same digest', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: buildMockReport(),
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+
+      const { getByTestId, UNSAFE_getByProps, unmount } = renderWithProvider(
+        <MarketInsightsView />,
+      );
+
+      fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON));
+      expect(UNSAFE_getByProps({ name: 'ThumbUpFilled' })).toBeTruthy();
+
+      unmount();
+
+      const { UNSAFE_getByProps: getByPropsAfterRemount } = renderWithProvider(
+        <MarketInsightsView />,
+      );
+
+      expect(getByPropsAfterRemount({ name: 'ThumbUpFilled' })).toBeTruthy();
+    });
   });
 });
