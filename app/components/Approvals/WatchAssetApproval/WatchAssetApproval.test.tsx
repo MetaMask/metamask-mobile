@@ -4,17 +4,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import WatchAssetApproval from './WatchAssetApproval';
-import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-
-const mockInitialState = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-    },
-  },
-};
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -48,7 +39,7 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -60,7 +51,7 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -68,7 +59,7 @@ describe('WatchAssetApproval', () => {
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -80,7 +71,7 @@ describe('WatchAssetApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { toJSON } = renderWithProvider(<WatchAssetApproval />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<WatchAssetApproval />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

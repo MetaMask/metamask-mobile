@@ -4,17 +4,8 @@ import renderWithProvider from '../../../util/test/renderWithProvider';
 import { ApprovalTypes } from '../../../core/RPCMethods/RPCMethodMiddleware';
 import { ApprovalRequest } from '@metamask/approval-controller';
 import ConnectApproval from './ConnectApproval';
-import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
-
-const mockInitialState = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-    },
-  },
-};
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -43,7 +34,7 @@ describe('ConnectApproval', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } as any);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -51,7 +42,7 @@ describe('ConnectApproval', () => {
   it('sets isVisible to false if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -60,7 +51,7 @@ describe('ConnectApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />, { state: mockInitialState });
+    const { toJSON } = renderWithProvider(<ConnectApproval navigation={{}} />);
     expect(toJSON()).toMatchSnapshot();
   });
 });

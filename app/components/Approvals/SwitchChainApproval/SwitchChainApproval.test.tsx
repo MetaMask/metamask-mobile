@@ -10,20 +10,11 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { backgroundState } from '../../../util/test/initial-root-state';
 
 jest.mock('../../Views/confirmations/hooks/useApprovalRequest');
 jest.mock('../../../actions/onboardNetwork', () => ({
   networkSwitched: jest.fn(() => ({ type: 'NETWORK_SWITCHED' })),
 }));
-
-const initialState = {
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-    },
-  },
-};
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -76,7 +67,7 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />);
 
     expect(toJSON()).toMatchSnapshot();
   });
@@ -84,7 +75,7 @@ describe('SwitchChainApproval', () => {
   it('returns null if no approval request', () => {
     mockApprovalRequest(undefined);
 
-    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -93,7 +84,7 @@ describe('SwitchChainApproval', () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     mockApprovalRequest({ type: ApprovalTypes.ADD_ETHEREUM_CHAIN } as any);
 
-    const { toJSON } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    const { toJSON } = renderWithProvider(<SwitchChainApproval />);
     expect(toJSON()).toMatchSnapshot();
   });
 
@@ -103,7 +94,7 @@ describe('SwitchChainApproval', () => {
       requestData: mockApprovalRequestData,
     });
 
-    const { UNSAFE_getByType } = renderWithProvider(<SwitchChainApproval />, { state: initialState });
+    const { UNSAFE_getByType } = renderWithProvider(<SwitchChainApproval />);
     const switchCustomNetwork = UNSAFE_getByType(SwitchCustomNetwork);
     fireEvent(switchCustomNetwork, 'confirm');
 
