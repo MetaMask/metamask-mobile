@@ -21,7 +21,7 @@ import {
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureEip7702 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   TRANSACTION_RELAY_STATUS_NETWORKS_MOCK,
   TRANSACTION_RELAY_SUBMIT_NETWORKS_MOCK,
@@ -146,7 +146,7 @@ describe(
       jest.setTimeout(2500000);
     });
 
-    const setupCommonMocks = async (mockServer: Mockttp) => {
+    const setupCommonMocks = async (mockServer: MockttpCompat) => {
       await setupMockRequest(mockServer, {
         requestMethod: 'GET',
         url: SIMULATION_ENABLED_NETWORKS_WITH_RELAY.urlEndpoint,
@@ -211,7 +211,7 @@ describe(
           fixture: createFixture,
           restartDevice: true,
           localNodeOptions,
-          testSpecificMock: async (mockServer: Mockttp) => {
+          testSpecificMock: async (mockServer: MockttpCompat) => {
             await setupCommonMocks(mockServer);
 
             // Mock eth_sendRelayTransaction

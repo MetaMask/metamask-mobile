@@ -3,7 +3,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import TrendingView from '../../page-objects/Trending/TrendingView';
 import { TrendingViewSelectorsText } from '../../locators/Trending/TrendingView.selectors';
 import {
@@ -17,7 +17,7 @@ import {
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 describe(SmokeWalletPlatform('Trending Feed View All Navigation'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     // Enable the trending feature flag and predict trading (needed for Predictions section)
     await setupRemoteFeatureFlagsMock(mockServer, {
       ...remoteFeatureFlagTrendingTokensEnabled(),

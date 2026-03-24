@@ -1,4 +1,4 @@
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -23,7 +23,7 @@ describe(SmokeWalletPlatform('Apple Login - New User'), () => {
       {
         fixture: new FixtureBuilder({ onboarding: true }).build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           const oAuthMockttpService = createOAuthMockttpService();
           oAuthMockttpService.configureAppleNewUser();
           await oAuthMockttpService.setup(mockServer);

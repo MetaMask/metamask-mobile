@@ -1,4 +1,4 @@
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
@@ -35,7 +35,7 @@ describe(SmokeWalletPlatform('Google Login - Lock and Unlock'), () => {
       {
         fixture,
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           const oAuthMockttpService = createOAuthMockttpService();
           oAuthMockttpService.configureGoogleNewUser();
           await oAuthMockttpService.setup(mockServer);

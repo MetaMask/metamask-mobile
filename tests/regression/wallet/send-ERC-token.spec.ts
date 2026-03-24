@@ -16,7 +16,7 @@ import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { SMART_CONTRACTS } from '../../../app/util/test/smart-contracts';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { LocalNode } from '../../framework/types';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
@@ -56,7 +56,7 @@ describe(RegressionWalletPlatform('Send ERC Token'), () => {
         },
         restartDevice: true,
         smartContracts: [SMART_CONTRACTS.HST],
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
             ...Object.assign({}, ...confirmationFeatureFlags),

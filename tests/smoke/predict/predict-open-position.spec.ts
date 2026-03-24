@@ -11,7 +11,7 @@ import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   POLYMARKET_COMPLETE_MOCKS,
@@ -41,7 +41,7 @@ const positionDetails = {
   marketIndex: 1,
 };
 
-const PredictionMarketFeature = async (mockServer: Mockttp) => {
+const PredictionMarketFeature = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),

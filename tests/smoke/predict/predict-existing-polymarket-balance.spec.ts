@@ -6,7 +6,7 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
 import WalletView from '../../page-objects/wallet/WalletView';
 import Assertions from '../../framework/Assertions';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
@@ -18,7 +18,9 @@ import PredictDetailsPage from '../../page-objects/Predict/PredictDetailsPage';
 
 const EXPECTED_BALANCE_TEXT = '$28.16';
 
-const PredictionExistingPolyMarketBalance = async (mockServer: Mockttp) => {
+const PredictionExistingPolyMarketBalance = async (
+  mockServer: MockttpCompat,
+) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),

@@ -8,7 +8,7 @@ import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import Assertions from '../../framework/Assertions';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { remoteFeatureFlagRampsUnifiedMatrixForE2E } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -39,7 +39,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
           .withRampsSelectedPaymentMethod()
           .withRampsSelectedRegion(selectedRegion)
           .build(),
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             remoteFeatureFlagRampsUnifiedMatrixForE2E(true, false),
@@ -77,7 +77,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
           .withRampsSelectedRegion(selectedRegion)
           .withRampsSelectedPaymentMethod()
           .build(),
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             remoteFeatureFlagRampsUnifiedMatrixForE2E(true, false),
@@ -113,7 +113,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
             .withRampsSelectedRegion(selectedRegion)
             .withRampsSelectedPaymentMethod()
             .build(),
-          testSpecificMock: async (mockServer: Mockttp) => {
+          testSpecificMock: async (mockServer: MockttpCompat) => {
             await setupRemoteFeatureFlagsMock(
               mockServer,
               remoteFeatureFlagRampsUnifiedMatrixForE2E(true, false),
@@ -143,7 +143,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
             .withRampsSelectedRegion(selectedRegion)
             .withRampsSelectedPaymentMethod()
             .build(),
-          testSpecificMock: async (mockServer: Mockttp) => {
+          testSpecificMock: async (mockServer: MockttpCompat) => {
             await setupRemoteFeatureFlagsMock(
               mockServer,
               remoteFeatureFlagRampsUnifiedMatrixForE2E(false, true),
@@ -173,7 +173,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks'), () => {
             .withRampsSelectedRegion(selectedRegion)
             .withRampsSelectedPaymentMethod()
             .build(),
-          testSpecificMock: async (mockServer: Mockttp) => {
+          testSpecificMock: async (mockServer: MockttpCompat) => {
             await setupRemoteFeatureFlagsMock(
               mockServer,
               remoteFeatureFlagRampsUnifiedMatrixForE2E(false, false),

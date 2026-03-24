@@ -15,7 +15,7 @@ import {
 import { DappVariants } from '../../framework/Constants';
 import { LocalNode } from '../../framework';
 import { AnvilManager } from '../../seeder/anvil-manager';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
@@ -57,7 +57,7 @@ describe.skip(RegressionAssets('NFT Details page'), () => {
         ],
         restartDevice: true,
         smartContracts: [NFT_CONTRACT],
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });

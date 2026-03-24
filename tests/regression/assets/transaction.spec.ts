@@ -11,7 +11,7 @@ import Assertions from '../../framework/Assertions';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TokenOverview from '../../page-objects/wallet/TokenOverview';
 import ToastModal from '../../page-objects/wallet/ToastModal';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   confirmationFeatureFlags,
@@ -55,7 +55,7 @@ describe(RegressionAssets('Transaction'), () => {
             .build();
         },
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
             ...Object.assign({}, ...confirmationFeatureFlags),

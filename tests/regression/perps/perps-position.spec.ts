@@ -9,7 +9,7 @@ import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsV
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
 import { createLogger, LogLevel } from '../../framework/logger';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
@@ -26,7 +26,7 @@ describe(RegressionTrade('Perps Position'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });

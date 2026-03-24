@@ -6,11 +6,11 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { loginToApp } from '../../flows/wallet.flow';
 import ConfirmAddAssetView from '../../page-objects/wallet/ImportTokenFlow/ConfirmAddAsset';
 import Assertions from '../../framework/Assertions';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 
 describe(RegressionAssets('Import Tokens'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupMockRequest(mockServer, {
       url: 'https://token.api.cx.metamask.io/token/1?address=0xC011a73ee8576Fb46F5E1c5751cA3B9Fe0af2a6F',
       requestMethod: 'GET',
@@ -88,7 +88,7 @@ describe(RegressionAssets('Import Tokens'), () => {
   });
 
   it('allows importing multiple tokens from search', async () => {
-    const multiTokenMocks = async (mockServer: Mockttp) => {
+    const multiTokenMocks = async (mockServer: MockttpCompat) => {
       // Mock LINK token metadata
       await setupMockRequest(mockServer, {
         url: 'https://token.api.cx.metamask.io/token/1?address=0x514910771AF9Ca656af840dff83E8264EcF986CA',

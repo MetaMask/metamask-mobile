@@ -1,4 +1,4 @@
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
 
 /**
@@ -6,7 +6,7 @@ import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
  *
  * @param mockServer - The mock server.
  */
-export async function mockGenesisBlocks(mockServer: Mockttp) {
+export async function mockGenesisBlocks(mockServer: MockttpCompat) {
   await setupMockPostRequest(
     mockServer,
     /^https:\/\/mainnet\.infura\.io\/v3*/u,

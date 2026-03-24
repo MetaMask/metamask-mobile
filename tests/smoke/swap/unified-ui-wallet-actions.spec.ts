@@ -1,5 +1,5 @@
 'use strict';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { loginToApp } from '../../flows/wallet.flow';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
@@ -11,7 +11,7 @@ import Assertions from '../../framework/Assertions';
 import TestHelpers from '../../helpers.js';
 
 describe(SmokeTrade('Trade: Unified UI Wallet Actions'), () => {
-  let mockServer: Mockttp | undefined;
+  let mockServer: MockttpCompat | undefined;
 
   beforeAll(async () => {
     // No server port setup needed for simplified tests

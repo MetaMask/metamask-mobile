@@ -16,7 +16,7 @@ import {
 } from '../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../page-objects/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   setupMockRequest,
   setupMockPostRequest,
@@ -33,7 +33,7 @@ import { DEFAULT_ANVIL_PORT } from '../../../seeder/anvil-manager';
 import { dappInitiatedTransferAnalyticsExpectations } from '../../../helpers/analytics/expectations/dapp-initiated-transfer.analytics';
 
 describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupMockPostRequest(
       mockServer,
       securityAlertsUrl('0x539'),

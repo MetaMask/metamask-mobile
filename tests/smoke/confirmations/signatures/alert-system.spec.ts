@@ -14,7 +14,7 @@ import {
   getTestDappLocalUrl,
 } from '../../../framework/fixtures/FixtureUtils';
 import { DappVariants } from '../../../framework/Constants';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   setupMockRequest,
   setupMockPostRequest,
@@ -39,7 +39,7 @@ const typedSignRequestBody = {
 
 describe(SmokeConfirmations('Alert System - Signature'), () => {
   const runTest = async (
-    testSpecificMock: (mockServer: Mockttp) => Promise<void>,
+    testSpecificMock: (mockServer: MockttpCompat) => Promise<void>,
     alertAssertion: () => Promise<void>,
   ) => {
     await withFixtures(
@@ -73,7 +73,7 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
 
   describe('Security Alert API', () => {
     it('should sign typed message', async () => {
-      const testSpecificMock = async (mockServer: Mockttp) => {
+      const testSpecificMock = async (mockServer: MockttpCompat) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
           Object.assign({}, ...confirmationFeatureFlags),
@@ -105,7 +105,7 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
     });
 
     it('should show security alert for malicious request, acknowledge and confirm the signature', async () => {
-      const testSpecificMock = async (mockServer: Mockttp) => {
+      const testSpecificMock = async (mockServer: MockttpCompat) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
           Object.assign({}, ...confirmationFeatureFlags),
@@ -156,7 +156,7 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
     });
 
     it('should show security alert for error when validating request fails', async () => {
-      const testSpecificMock = async (mockServer: Mockttp) => {
+      const testSpecificMock = async (mockServer: MockttpCompat) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
           Object.assign({}, ...confirmationFeatureFlags),
@@ -205,7 +205,7 @@ describe(SmokeConfirmations('Alert System - Signature'), () => {
 
   describe('Inline Alert', () => {
     it('should show mismatch field alert, click the alert, acknowledge and confirm the signature', async () => {
-      const testSpecificMock = async (mockServer: Mockttp) => {
+      const testSpecificMock = async (mockServer: MockttpCompat) => {
         await setupRemoteFeatureFlagsMock(
           mockServer,
           Object.assign({}, ...confirmationFeatureFlags),

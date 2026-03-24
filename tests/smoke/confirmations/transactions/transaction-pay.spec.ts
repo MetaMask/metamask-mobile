@@ -6,7 +6,7 @@ import {
   remoteFeatureEip7702,
   remoteFeatureFlagPredictEnabled,
 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { POLYMARKET_COMPLETE_MOCKS } from '../../../api-mocking/mock-responses/polymarket/polymarket-mocks';
 import PredictAddFunds from '../../../page-objects/Predict/PredictAddFunds';
@@ -77,7 +77,7 @@ describe(SmokeConfirmations('Transaction Pay'), () => {
   });
 });
 
-async function testSpecificMock(mockServer: Mockttp) {
+async function testSpecificMock(mockServer: MockttpCompat) {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureEip7702[1],

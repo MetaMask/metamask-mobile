@@ -7,7 +7,7 @@ import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
@@ -27,7 +27,7 @@ describe(
             .build(),
           restartDevice: true,
           // Ensure Hyperliquid icons and Arbitrum RPC are mocked (no live requests)
-          testSpecificMock: async (mockServer: Mockttp) => {
+          testSpecificMock: async (mockServer: MockttpCompat) => {
             await setupRemoteFeatureFlagsMock(mockServer, {
               ...remoteFeatureFlagHomepageSectionsV1Enabled(),
             });

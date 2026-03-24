@@ -4,7 +4,7 @@ import { importWalletWithRecoveryPhrase } from '../../../flows/wallet.flow';
 import TestHelpers from '../../../helpers';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   remoteFeatureMultichainAccountsAccountDetails,
@@ -42,7 +42,8 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureMultichainAccountsAccountDetails(),
             ...remoteFeaturePredictGtmOnboardingModalDisabled(),
@@ -96,7 +97,8 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureMultichainAccountsAccountDetails(),
             ...remoteFeaturePredictGtmOnboardingModalDisabled(),

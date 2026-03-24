@@ -12,7 +12,7 @@ import TokenSelectScreen from '../../page-objects/Ramps/TokenSelectScreen';
 
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { getRegionLocationCode } from '../../framework/types';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import {
   setupDepositOnRampMocks,
   setupBuyOnRampMocks,
@@ -32,7 +32,7 @@ import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import KYCScreen from '../../page-objects/Ramps/KYCScreen';
 const selectedRegion = RampsRegions[RampsRegionsEnum.UNITED_STATES];
 
-const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
+const newUserUnifiedBuyV2Mocks = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagRampsUnifiedEnabled(true),
     depositConfig: {
@@ -45,7 +45,7 @@ const newUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
   await setupDepositOnRampMocks(mockServer, selectedRegion);
 };
 
-const returningUserUnifiedBuyV2Mocks = async (mockServer: Mockttp) => {
+const returningUserUnifiedBuyV2Mocks = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     remoteFeatureFlagRampsUnifiedEnabled(true),

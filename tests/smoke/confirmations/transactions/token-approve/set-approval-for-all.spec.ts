@@ -19,7 +19,7 @@ import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../../api-mocking/mock-r
 import TestDApp from '../../../../page-objects/Browser/TestDApp';
 import { DappVariants } from '../../../../framework/Constants';
 import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../../framework/types';
@@ -29,7 +29,7 @@ describe(SmokeConfirmations('Token Approve - setApprovalForAll method'), () => {
   const ERC_721_CONTRACT = SMART_CONTRACTS.NFTS;
   const ERC_1155_CONTRACT = SMART_CONTRACTS.ERC1155;
 
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,

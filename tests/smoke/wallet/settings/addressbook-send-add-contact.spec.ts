@@ -7,7 +7,7 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../framework/Assertions';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   setupMockRequest,
   setupMockPostRequest,
@@ -33,7 +33,7 @@ const TEST_CONTACT = {
   editedNetwork: 'Sepolia',
 };
 
-const testSpecificMock = async (mockServer: Mockttp) => {
+const testSpecificMock = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     Object.assign({}, ...confirmationFeatureFlags),

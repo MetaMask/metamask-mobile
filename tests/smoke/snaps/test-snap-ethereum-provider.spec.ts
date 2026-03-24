@@ -7,7 +7,7 @@ import Assertions from '../../framework/Assertions';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import RequestTypes from '../../page-objects/Browser/Confirmations/RequestTypes';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { mockGenesisBlocks } from './mocks';
@@ -21,7 +21,7 @@ describe(FlaskBuildTests('Ethereum Provider Snap Tests'), () => {
         fixture: new FixtureBuilder().withMultiSRPKeyringController().build(),
         restartDevice: true,
         skipReactNativeReload: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             Object.assign({}, ...confirmationFeatureFlags),

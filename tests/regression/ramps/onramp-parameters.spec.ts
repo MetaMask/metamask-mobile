@@ -19,7 +19,7 @@ import {
 import SoftAssert from '../../framework/SoftAssert';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import Matchers from '../../framework/Matchers';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
 
 const eventsToCheck: EventPayload[] = [];
@@ -35,7 +35,7 @@ const setupOnRampTest = async (testFn: () => Promise<void>) => {
         .withMetaMetricsOptIn()
         .build(),
       restartDevice: true,
-      testSpecificMock: async (mockServer: Mockttp) => {
+      testSpecificMock: async (mockServer: MockttpCompat) => {
         await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
       },
       endTestfn: async ({ mockServer }) => {

@@ -8,7 +8,7 @@ import Assertions from '../../framework/Assertions';
 import ConfirmAddAssetView from '../../page-objects/wallet/ImportTokenFlow/ConfirmAddAsset';
 import ImportTokensView from '../../page-objects/wallet/ImportTokenFlow/ImportTokensView';
 import { MockApiEndpoint } from '../../framework';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -71,7 +71,7 @@ describe(RegressionAssets('Import Tokens'), () => {
       {
         fixture: new FixtureBuilder().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });
@@ -110,7 +110,7 @@ describe(RegressionAssets('Import Tokens'), () => {
           .withMetaMetricsOptIn()
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });
@@ -152,7 +152,7 @@ describe(RegressionAssets('Import Tokens'), () => {
           .withTokens([AAVE_MAINNET_DETAILS])
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(mockServer, {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });

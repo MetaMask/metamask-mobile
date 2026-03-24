@@ -4,7 +4,7 @@ import { navigateToBrowserView } from '../../flows/browser.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { DappVariants } from '../../framework/Constants';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { Assertions } from '../../framework';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
@@ -14,7 +14,7 @@ import Browser from '../../page-objects/Browser/BrowserView';
 import TestDApp from '../../page-objects/Browser/TestDApp';
 
 describe(SmokeWalletPlatform('Trending Feature Browser Test'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     // Enable the trending feature flag
     await setupRemoteFeatureFlagsMock(
       mockServer,

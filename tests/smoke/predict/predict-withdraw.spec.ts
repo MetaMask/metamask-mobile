@@ -16,7 +16,7 @@ import {
   POLYMARKET_USDC_BALANCE_MOCKS,
   POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
@@ -25,7 +25,7 @@ import PredictMarketList from '../../page-objects/Predict/PredictMarketList';
 import TransactionPayConfirmation from '../../page-objects/Confirmation/TransactionPayConfirmation';
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 
-const PredictionMarketFeature = async (mockServer: Mockttp) => {
+const PredictionMarketFeature = async (mockServer: MockttpCompat) => {
   // Polygon predict withdraw publishes via EIP-7702 transaction relay, not Infura eth_sendRawTransaction.
   await POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS(mockServer);
   await POLYMARKET_POLYGON_RELAY_POLLING_MOCKS(mockServer);

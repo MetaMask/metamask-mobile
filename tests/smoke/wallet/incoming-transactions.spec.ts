@@ -1,5 +1,5 @@
 import { TransactionType } from '@metamask/transaction-controller';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 
 import { SmokeWalletPlatform } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
@@ -111,7 +111,7 @@ function mockAccountsApi(
 function createAccountsTestSpecificMock(
   transactions: Record<string, unknown>[] = [],
 ): TestSpecificMock {
-  return async (mockServer: Mockttp) => {
+  return async (mockServer: MockttpCompat) => {
     const mock = mockAccountsApi(transactions);
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',

@@ -14,7 +14,7 @@ import {
 } from '../../../framework/fixtures/FixtureUtils';
 import RowComponents from '../../../page-objects/Browser/Confirmations/RowComponents';
 import { DappVariants } from '../../../framework/Constants';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { LocalNode } from '../../../framework/types';
@@ -48,7 +48,7 @@ const SIGNATURE_LIST = [
 ];
 
 describe(SmokeConfirmations('Typed Signature Requests'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
       Object.assign({}, ...confirmationFeatureFlags),

@@ -18,7 +18,7 @@ import { navigateToBrowserView } from '../../../flows/browser.flow';
 import { DappVariants } from '../../../framework/Constants';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { LocalNode } from '../../../framework/types';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 
@@ -32,7 +32,7 @@ async function changeNetworkFromNetworkListModal(networkName: string) {
 }
 
 describe(SmokeConfirmations('Dapp Network Switching'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
       Object.assign({}, ...confirmationFeatureFlags),

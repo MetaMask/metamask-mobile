@@ -13,7 +13,7 @@ import {
   remoteFeatureFlagHomepageSectionsV1Enabled,
   remoteFeatureFlagPredictEnabled,
 } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   POLYMARKET_MARKET_FEEDS_MOCKS,
@@ -25,7 +25,7 @@ import { getEventsPayloads } from '../../helpers/analytics/helpers';
 import SoftAssert from '../../framework/SoftAssert';
 
 //Enable the Predictions feature flag and force Polymarket geoblock
-const setupGeoBlockedBase = async (mockServer: Mockttp) => {
+const setupGeoBlockedBase = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagPredictEnabled(true),
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
@@ -35,12 +35,12 @@ const setupGeoBlockedBase = async (mockServer: Mockttp) => {
   await POLYMARKET_GEO_BLOCKED_MOCKS(mockServer);
 };
 
-const PredictionGeoBlockedFeature = async (mockServer: Mockttp) => {
+const PredictionGeoBlockedFeature = async (mockServer: MockttpCompat) => {
   await setupGeoBlockedBase(mockServer);
 };
 
 const PredictionGeoBlockedWithPositionsFeature = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await setupGeoBlockedBase(mockServer);
   await POLYMARKET_COMPLETE_MOCKS(mockServer);

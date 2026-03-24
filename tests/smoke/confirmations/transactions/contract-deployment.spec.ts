@@ -16,7 +16,7 @@ import RowComponents from '../../../page-objects/Browser/Confirmations/RowCompon
 import { SIMULATION_ENABLED_NETWORKS_MOCK } from '../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../page-objects/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
@@ -25,7 +25,7 @@ import { AnvilManager } from '../../../seeder/anvil-manager';
 import { Gestures } from '../../../framework';
 
 describe(SmokeConfirmations('Contract Deployment'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,

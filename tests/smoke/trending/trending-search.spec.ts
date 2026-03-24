@@ -3,7 +3,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { Assertions } from '../../framework';
 import TrendingView from '../../page-objects/Trending/TrendingView';
 import { TRENDING_API_MOCKS } from '../../api-mocking/mock-responses/trending-api-mocks';
@@ -12,7 +12,7 @@ import { remoteFeatureFlagTrendingTokensEnabled } from '../../api-mocking/mock-r
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 
 describe(SmokeWalletPlatform('Trending Search Smoke Test'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     // Enable the trending feature flag
     await setupRemoteFeatureFlagsMock(
       mockServer,

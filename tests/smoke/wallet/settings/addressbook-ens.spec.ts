@@ -7,7 +7,7 @@ import { loginToApp } from '../../../flows/wallet.flow';
 import FixtureBuilder from '../../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import Assertions from '../../../framework/Assertions';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   setupMockRequest,
   setupMockPostRequest,
@@ -26,7 +26,7 @@ import { device } from 'detox';
 const MEMO = 'Test adding ENS';
 const INVALID_ADDRESS = '0xB8B4EE5B1b693971eB60bDa15211570df2dB221L';
 
-const testSpecificMock = async (mockServer: Mockttp) => {
+const testSpecificMock = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     Object.assign({}, ...confirmationFeatureFlags),

@@ -26,7 +26,7 @@ import {
   LocalNode,
   LocalNodeType,
 } from '../../../../framework';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../../api-mocking/MockttpCompat';
 import { setupMockRequest } from '../../../../api-mocking/helpers/mockHelpers';
 import { confirmationFeatureFlags } from '../../../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -86,7 +86,7 @@ async function connectTestDappToLocalhost() {
  * Once that is fixed, the test cases can be uncommented and unskipped.
  */
 describe(SmokeConfirmations('7702 - smart account'), () => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupMockRequest(mockServer, {
       requestMethod: 'GET',
       url: SIMULATION_ENABLED_NETWORKS_MOCK.urlEndpoint,

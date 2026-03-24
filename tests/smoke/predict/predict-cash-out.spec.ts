@@ -17,7 +17,7 @@ import {
   POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS,
   POLYMARKET_UPDATE_USDC_BALANCE_MOCKS,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import PredictCashOutPage from '../../page-objects/Predict/PredictCashOutPage';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
@@ -39,7 +39,7 @@ const positionDetails = {
   newBalance: '$58.66',
 };
 
-const PredictionMarketFeature = async (mockServer: Mockttp) => {
+const PredictionMarketFeature = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),

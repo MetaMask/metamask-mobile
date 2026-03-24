@@ -16,7 +16,7 @@ import {
   buildPermissions,
 } from '../../framework/fixtures/FixtureUtils';
 import { setupMockPostRequest } from '../../api-mocking/helpers/mockHelpers';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import {
   SECURITY_ALERTS_BENIGN_RESPONSE,
   SECURITY_ALERTS_REQUEST_BODY,
@@ -62,7 +62,7 @@ describe(RegressionAccounts('Error Boundary Screen'), () => {
             .build();
         },
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupMockPostRequest(
             mockServer,
             securityAlertsUrl('0x539'),

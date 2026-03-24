@@ -11,7 +11,7 @@ import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { LocalNode } from '../../../framework/types';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagExtensionUxPna25 } from '../../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { validateTransactionHashInTransactionFinalizedEvent } from './metricsValidationHelper';
 
@@ -37,7 +37,7 @@ describe(SmokeConfirmations('Send native asset'), () => {
           .withMetaMetricsOptIn()
           .withPreferencesController({})
           .build(),
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             remoteFeatureFlagExtensionUxPna25(true),

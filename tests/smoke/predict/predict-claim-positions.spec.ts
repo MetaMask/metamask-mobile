@@ -18,7 +18,7 @@ import {
   POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS,
   POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK,
 } from '../../api-mocking/mock-responses/polymarket/polymarket-mocks';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
@@ -53,7 +53,7 @@ Test Scenario: Claim winning positions
   4. Complete claim transaction
   */
 
-const PredictionMarketFeature = async (mockServer: Mockttp) => {
+const PredictionMarketFeature = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(mockServer, {
     ...remoteFeatureFlagHomepageSectionsV1Enabled(),
     ...remoteFeatureFlagPredictEnabled(true),
@@ -65,7 +65,9 @@ const PredictionMarketFeature = async (mockServer: Mockttp) => {
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true); // Include winnings for claim flow
 };
 
-const PredictionMarketFeatureForMarketDetails = async (mockServer: Mockttp) => {
+const PredictionMarketFeatureForMarketDetails = async (
+  mockServer: MockttpCompat,
+) => {
   await PredictionMarketFeature(mockServer);
   await POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS(mockServer, true, {
     showWinningsAsActive: true,
@@ -75,7 +77,7 @@ const PredictionMarketFeatureForMarketDetails = async (mockServer: Mockttp) => {
 /**
  * Mocks to updates balance, removes claimed positions, and adds them to activity
  */
-const postClaimMocks = async (mockServer: Mockttp) => {
+const postClaimMocks = async (mockServer: MockttpCompat) => {
   await POLYMARKET_UPDATE_USDC_BALANCE_MOCKS(mockServer, 'claim');
   await POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS(mockServer);
   await POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS(mockServer);

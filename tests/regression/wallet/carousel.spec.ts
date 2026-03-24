@@ -4,7 +4,7 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { Assertions } from '../../framework';
 import WalletView from '../../page-objects/wallet/WalletView';
-import { Mockttp } from 'mockttp';
+import { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupContentfulPromotionalBannersMock } from '../../api-mocking/helpers/contentfulHelper';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 
@@ -13,7 +13,7 @@ describe(RegressionWalletUX('Carousel Tests'), () => {
     jest.setTimeout(150000);
   });
 
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupRemoteFeatureFlagsMock(mockServer, {
       carouselBanners: true,
       contentfulCarouselEnabled: true,
