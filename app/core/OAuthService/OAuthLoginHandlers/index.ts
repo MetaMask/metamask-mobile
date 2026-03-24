@@ -44,8 +44,8 @@ export function createLoginHandler(
       switch (provider) {
         case AuthConnection.Google:
           return new IosGoogleLoginHandler({
-            clientId: AndroidGoogleWebGID,
-            redirectUri: AndroidGoogleRedirectUri,
+            clientId: IosGID,
+            redirectUri: IosGoogleRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
