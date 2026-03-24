@@ -7,7 +7,14 @@ import React, {
   useMemo,
   useContext,
 } from 'react';
-import { View, TextInput, Linking } from 'react-native';
+import {
+  View,
+  TextInput,
+  Linking,
+  Platform,
+  ScrollViewProps,
+} from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 import { useSelector } from 'react-redux';
 import { FlashList } from '@shopify/flash-list';
 import { KeyringTypes } from '@metamask/keyring-controller';
@@ -88,6 +95,13 @@ export const PrivateKeyList = () => {
   const { styles } = useStyles(styleSheet, {});
   const { toastRef } = useContext(ToastContext);
   const sheetRef = useRef<BottomSheetRef>(null);
+  /**
+   * Ref to FlashList's RNGH ScrollView; linked to the sheet pan via
+   * `simultaneousHandlers` on Android so list scrolling is not captured by dismiss.
+   */
+  const flashListScrollGestureRef = useRef<React.ComponentRef<
+    typeof ScrollView
+  > | null>(null);
   const [password, setPassword] = useState<string>('');
   const [wrongPassword, setWrongPassword] = useState<boolean>(false);
   const [reveal, setReveal] = useState<boolean>(false);
@@ -266,6 +280,28 @@ export const PrivateKeyList = () => {
     ],
   );
 
+  const renderGestureScrollComponent = useCallback(
+    (scrollProps: ScrollViewProps & { ref?: React.Ref<unknown> }) => {
+      const { ref: upstreamScrollRef, ...restScrollProps } = scrollProps;
+      return (
+        <ScrollView
+          {...restScrollProps}
+          ref={(node) => {
+            flashListScrollGestureRef.current = node;
+            if (typeof upstreamScrollRef === 'function') {
+              upstreamScrollRef(node);
+            } else if (upstreamScrollRef) {
+              (
+                upstreamScrollRef as React.MutableRefObject<typeof node | null>
+              ).current = node;
+            }
+          }}
+        />
+      );
+    },
+    [],
+  );
+
   const renderPrivateKeyList = useCallback(
     () => (
       <View style={styles.container}>
@@ -273,6 +309,7 @@ export const PrivateKeyList = () => {
           data={filteredAccounts()}
           keyExtractor={(item) => item.scope}
           renderItem={renderAddressItem}
+          renderScrollComponent={renderGestureScrollComponent}
           testID={PrivateKeyListIds.LIST}
           onLoad={() => {
             endTrace({ name: TraceName.ShowAccountPrivateKeyList });
@@ -280,7 +317,12 @@ export const PrivateKeyList = () => {
         />
       </View>
     ),
-    [filteredAccounts, renderAddressItem, styles.container],
+    [
+      filteredAccounts,
+      renderAddressItem,
+      renderGestureScrollComponent,
+      styles.container,
+    ],
   );
 
   const privateKeyBannerDescription = useMemo(
@@ -301,7 +343,13 @@ export const PrivateKeyList = () => {
   );
 
   return (
-    <BottomSheet style={styles.bottomSheetContent} ref={sheetRef}>
+    <BottomSheet
+      style={styles.bottomSheetContent}
+      ref={sheetRef}
+      simultaneousHandlers={
+        Platform.OS === 'android' ? flashListScrollGestureRef : undefined
+      }
+    >
       <Fragment>
         <SheetHeader title={title} />
         <Banner

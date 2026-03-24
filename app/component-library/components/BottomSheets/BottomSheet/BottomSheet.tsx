@@ -42,6 +42,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
       shouldNavigateBack = true,
       isFullscreen = false,
       keyboardAvoidingViewEnabled = true,
+      simultaneousHandlers,
       ...props
     },
     ref,
@@ -157,6 +158,7 @@ const BottomSheet = forwardRef<BottomSheetRef, BottomSheetProps>(
           isFullscreen={isFullscreen}
           style={style}
           keyboardAvoidingViewEnabled={keyboardAvoidingViewEnabled}
+          simultaneousHandlers={simultaneousHandlers}
         >
           {children}
         </BottomSheetDialog>

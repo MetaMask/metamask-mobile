@@ -32,6 +32,12 @@ export interface BottomSheetDialogProps extends ViewProps {
    * Optional callback that gets triggered when sheet is opened.
    */
   onOpen?: (hasPendingAction?: boolean) => void;
+  /**
+   * Ref(s) to native views or gesture-handler-wrapped scroll views that should
+   * recognize touches simultaneously with the sheet dismiss pan (e.g. FlashList
+   * using `ScrollView` from `react-native-gesture-handler` on Android).
+   */
+  simultaneousHandlers?: React.Ref<unknown> | React.Ref<unknown>[];
 }
 
 export interface BottomSheetDialogRef {
