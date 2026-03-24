@@ -74,10 +74,16 @@ describe('displayOrder', () => {
       expect(result).toMatchSnapshot();
     });
 
-    it('defaults cryptoAmount to 0 when undefined', () => {
-      const fiatOrder = createMockFiatOrder({ cryptoAmount: undefined });
-      const result = fiatOrderToDisplayOrder(fiatOrder);
-      expect(result.cryptoAmount).toBe(0);
+    it('uses placeholder when cryptoAmount is undefined or zero', () => {
+      expect(
+        fiatOrderToDisplayOrder(
+          createMockFiatOrder({ cryptoAmount: undefined }),
+        ).cryptoAmount,
+      ).toBe('...');
+      expect(
+        fiatOrderToDisplayOrder(createMockFiatOrder({ cryptoAmount: 0 }))
+          .cryptoAmount,
+      ).toBe('...');
     });
   });
 
@@ -140,6 +146,23 @@ describe('displayOrder', () => {
       });
       const result = rampsOrderToDisplayOrder(order);
       expect(result.createdAt).toBe(0);
+    });
+
+    it('uses placeholder when cryptoAmount is 0 or missing', () => {
+      expect(
+        rampsOrderToDisplayOrder(createMockRampsOrder({ cryptoAmount: 0 }))
+          .cryptoAmount,
+      ).toBe('...');
+      expect(
+        rampsOrderToDisplayOrder(
+          createMockRampsOrder({ cryptoAmount: undefined }),
+        ).cryptoAmount,
+      ).toBe('...');
+      expect(
+        rampsOrderToDisplayOrder(
+          createMockRampsOrder({ cryptoAmount: null as unknown as string }),
+        ).cryptoAmount,
+      ).toBe('...');
     });
   });
 

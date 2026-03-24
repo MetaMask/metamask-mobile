@@ -402,6 +402,41 @@ describe('BuildQuote', () => {
     });
   });
 
+  describe('amount param initialization', () => {
+    it('uses DEFAULT_AMOUNT (100) when no amount param is provided', () => {
+      mockUseParams.mockReturnValue({});
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('100');
+    });
+
+    it('uses amount param as initial value when provided via route params', () => {
+      mockUseParams.mockReturnValue({ amount: 30 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('30');
+    });
+
+    it('does not override amount with region default when amount param is provided', () => {
+      mockUseParams.mockReturnValue({ amount: 50 });
+
+      const { getByTestId } = renderWithProvider(<BuildQuote />, {
+        state: initialRootState,
+      });
+
+      const amountInput = getByTestId(BuildQuoteSelectors.AMOUNT_INPUT);
+      expect(amountInput.props.children).toContain('50');
+    });
+  });
+
   describe('navigateAfterExternalBrowser', () => {
     it('resets to BuildQuote when returnDestination is buildQuote (Android external browser path)', async () => {
       mockDeviceIsAndroid.mockReturnValue(true);
@@ -441,12 +476,6 @@ describe('BuildQuote', () => {
         type: 'success',
         url: 'metamask://on-ramp/providers/moonpay?orderId=ord-123',
       });
-      mockGetOrderFromCallback.mockResolvedValue({
-        providerOrderId: 'ord-123',
-        status: 'Pending',
-        cryptoAmount: '0.05',
-        cryptoCurrency: { symbol: 'ETH' },
-      });
       mockGetBuyWidgetData.mockResolvedValue({
         url: 'https://widget.example.com/checkout',
         browser: 'IN_APP_OS_BROWSER',
@@ -462,14 +491,18 @@ describe('BuildQuote', () => {
       });
 
       await waitFor(() => {
-        expect(mockAddOrder).toHaveBeenCalled();
+        expect(mockAddOrder).not.toHaveBeenCalled();
+        expect(mockGetOrderFromCallback).not.toHaveBeenCalled();
         expect(mockNavigationReset).toHaveBeenCalledWith({
           index: 0,
           routes: [
             {
               name: Routes.RAMP.RAMPS_ORDER_DETAILS,
               params: {
-                orderId: 'ord-123',
+                callbackUrl:
+                  'metamask://on-ramp/providers/moonpay?orderId=ord-123',
+                providerCode: 'moonpay',
+                walletAddress: '0x1234567890123456789012345678901234567890',
                 showCloseButton: true,
               },
             },
@@ -725,7 +758,7 @@ describe('BuildQuote', () => {
         '/payments/debit-credit-card',
         '100',
       );
-      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE);
+      expect(mockRouteAfterAuth).toHaveBeenCalledWith(MOCK_TRANSAK_QUOTE, 100);
     });
 
     it('navigates to VerifyIdentity when user has no token', async () => {
