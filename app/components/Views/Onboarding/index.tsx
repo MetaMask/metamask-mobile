@@ -781,6 +781,7 @@ const Onboarding = () => {
             onPrimaryButtonPress: () => {
               navigation.goBack();
             },
+            isInteractable: false,
           });
         }
         setLoading();
