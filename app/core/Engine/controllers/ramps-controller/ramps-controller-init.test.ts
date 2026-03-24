@@ -207,6 +207,40 @@ describe('ramps controller init', () => {
       });
     });
 
+    it('calls init when remote flags were off at startup then V2 enables on RemoteFeatureFlagController:stateChange', async () => {
+      let remoteEnabled = false;
+      const subscribeMock = jest.fn();
+      const initMessenger = {
+        call: jest.fn(() => ({
+          remoteFeatureFlags: {
+            rampsUnifiedBuyV2: remoteEnabled
+              ? { enabled: true, minimumVersion: '1.0.0' }
+              : { enabled: false },
+          },
+        })),
+        subscribe: subscribeMock,
+      } as unknown as RampsControllerInitMessenger;
+
+      initRequestMock.initMessenger = initMessenger;
+
+      rampsControllerInit(initRequestMock);
+
+      expect(mockInit).not.toHaveBeenCalled();
+
+      const stateChangeHandler = subscribeMock.mock.calls.find(
+        (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+      )?.[1] as () => void;
+
+      expect(stateChangeHandler).toBeDefined();
+
+      remoteEnabled = true;
+      stateChangeHandler();
+
+      await waitFor(() => {
+        expect(mockInit).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('handles init failure gracefully', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
         enabled: true,
@@ -253,6 +287,7 @@ describe('ramps controller init', () => {
         call: jest.fn().mockImplementation(() => {
           throw new Error('Controller not ready');
         }),
+        subscribe: jest.fn(),
       } as unknown as RampsControllerInitMessenger;
 
       rampsControllerInit(initRequestMock);

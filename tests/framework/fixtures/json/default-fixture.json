@@ -480,6 +480,55 @@
           "useTransactionSimulations": true
         },
         "RampsController": {
+          "countries": {
+            "data": [],
+            "error": null,
+            "isLoading": false,
+            "selected": null
+          },
+          "nativeProviders": {
+            "transak": {
+              "buyQuote": {
+                "data": null,
+                "error": null,
+                "isLoading": false,
+                "selected": null
+              },
+              "isAuthenticated": false,
+              "kycRequirement": {
+                "data": null,
+                "error": null,
+                "isLoading": false,
+                "selected": null
+              },
+              "userDetails": {
+                "data": null,
+                "error": null,
+                "isLoading": false,
+                "selected": null
+              }
+            }
+          },
+          "orders": [],
+          "paymentMethods": {
+            "data": [],
+            "error": null,
+            "isLoading": false,
+            "selected": null
+          },
+          "providers": {
+            "data": [],
+            "error": null,
+            "isLoading": false,
+            "selected": null
+          },
+          "requests": {},
+          "tokens": {
+            "data": null,
+            "error": null,
+            "isLoading": false,
+            "selected": null
+          },
           "userRegion": null
         },
         "RemoteFeatureFlagController": {
