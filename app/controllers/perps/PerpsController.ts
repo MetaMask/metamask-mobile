@@ -8,7 +8,6 @@ import type { StateChangeListener } from '@metamask/base-controller';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
 import type { Messenger } from '@metamask/messenger';
 import type { Json } from '@metamask/utils';
-import { addBreadcrumb } from '@sentry/react-native';
 import { v4 as uuidv4 } from 'uuid';
 
 import { CandlePeriod } from './constants/chartConfig';
@@ -616,6 +615,12 @@ export type PerpsControllerOptions = {
    * Must be provided by the platform (mobile/extension) at instantiation time.
    */
   infrastructure: PerpsPlatformDependencies;
+  /**
+   * When true, defers the initial eligibility (geolocation) check until
+   * `startEligibilityMonitoring()` is called. This prevents the eager
+   * geolocation fetch from firing during wallet onboarding (privacy compliance).
+   */
+  deferEligibilityCheck?: boolean;
 };
 
 type BlockedRegionList = {
@@ -658,6 +663,7 @@ const MESSENGER_EXPOSED_METHODS = [
   'saveOrderBookGrouping',
   'setSelectedPaymentToken',
   'resetSelectedPaymentToken',
+  'startEligibilityMonitoring',
 ] as const;
 
 /**
@@ -772,6 +778,8 @@ export class PerpsController extends BaseController<
 
   #standaloneProviderHip3Version: number | null = null;
 
+  #eligibilityCheckDeferred: boolean;
+
   // Store options for dependency injection (allows core package to inject platform-specific services)
   readonly #options: PerpsControllerOptions;
 
@@ -797,6 +805,7 @@ export class PerpsController extends BaseController<
     state = {},
     clientConfig = {},
     infrastructure,
+    deferEligibilityCheck = false,
   }: PerpsControllerOptions) {
     super({
       name: 'PerpsController',
@@ -804,6 +813,8 @@ export class PerpsController extends BaseController<
       messenger,
       state: { ...getDefaultPerpsControllerState(), ...state },
     });
+
+    this.#eligibilityCheckDeferred = deferEligibilityCheck;
 
     // Store options for dependency injection
     this.#options = {
@@ -2044,7 +2055,7 @@ export class PerpsController extends BaseController<
         skipInitialGasEstimate: true,
       };
 
-      addBreadcrumb({
+      this.#options.infrastructure.tracer.addBreadcrumb({
         category: 'perps',
         message: 'Deposit action started',
         level: 'info',
@@ -4020,7 +4031,33 @@ export class PerpsController extends BaseController<
   /**
    * Refresh eligibility status
    */
+  /**
+   * Resume eligibility monitoring after onboarding completes.
+   * Clears the deferred flag and triggers an immediate eligibility check
+   * using the current remote feature flag state.
+   */
+  startEligibilityMonitoring(): void {
+    this.#eligibilityCheckDeferred = false;
+    try {
+      const currentState = this.messenger.call(
+        'RemoteFeatureFlagController:getState',
+      );
+      this.refreshEligibilityOnFeatureFlagChange(currentState);
+    } catch (error) {
+      this.#logError(
+        ensureError(error, 'PerpsController.startEligibilityMonitoring'),
+        this.#getErrorContext('startEligibilityMonitoring', {
+          operation: 'readRemoteFeatureFlags',
+        }),
+      );
+    }
+  }
+
   async refreshEligibility(): Promise<void> {
+    if (this.#eligibilityCheckDeferred) {
+      return;
+    }
+
     // Capture the current version before starting the async operation.
     // This prevents race conditions where stale eligibility checks
     // (started with fallback config) overwrite results from newer checks

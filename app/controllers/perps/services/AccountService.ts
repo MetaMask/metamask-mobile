@@ -1,5 +1,6 @@
 import { v4 as uuidv4 } from 'uuid';
 
+import type { ServiceContext } from './ServiceContext';
 import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
@@ -21,7 +22,6 @@ import type {
   WithdrawResult,
   PerpsPlatformDependencies,
 } from '../types';
-import type { ServiceContext } from './ServiceContext';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { TransactionStatus } from '../types/transactionTypes';
 import { getSelectedEvmAccount } from '../utils/accountUtils';

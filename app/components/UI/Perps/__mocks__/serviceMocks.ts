@@ -61,6 +61,7 @@ export const createMockInfrastructure =
         trace: jest.fn(() => undefined),
         endTrace: jest.fn(),
         setMeasurement: jest.fn(),
+        addBreadcrumb: jest.fn(),
       },
 
       // === Platform Services ===

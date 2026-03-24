@@ -22,6 +22,7 @@ import BankDetailRow from '../../Deposit/components/BankDetailRow';
 import {
   RampsOrderStatus,
   type TransakDepositOrder,
+  normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
 import Button, {
@@ -38,6 +39,7 @@ import { selectTokens } from '../../../../../selectors/rampsController';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
 import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useSelector } from 'react-redux';
+import { BANK_DETAILS_TEST_IDS } from './BankDetails.testIds';
 import { isHttpUnauthorized } from '../../utils/isHttpUnauthorized';
 
 export interface BankDetailsParams {
@@ -113,10 +115,7 @@ const V2BankDetails = () => {
         setDepositOrder(updatedDepositOrder);
       }
 
-      const providerCode = (order.provider?.id ?? '').replace(
-        '/providers/',
-        '',
-      );
+      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -315,7 +314,7 @@ const V2BankDetails = () => {
   return (
     <ScreenLayout>
       <ScrollView
-        testID="bank-details-refresh-control-scrollview"
+        testID={BANK_DETAILS_TEST_IDS.REFRESH_CONTROL_SCROLLVIEW}
         refreshControl={
           <RefreshControl
             colors={[colors.primary.default]}
@@ -477,7 +476,7 @@ const V2BankDetails = () => {
                 style={styles.button}
                 variant={ButtonVariants.Primary}
                 onPress={handleBankTransferSent}
-                testID="main-action-button"
+                testID={BANK_DETAILS_TEST_IDS.MAIN_ACTION_BUTTON}
                 label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
                 disabled={isLoadingCancelOrder || isLoadingConfirmPayment}

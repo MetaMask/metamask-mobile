@@ -571,6 +571,7 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={takeProfitPriceRef}
+                  testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
                   style={styles.input}
                   value={takeProfitPrice}
                   onChangeText={(text) => {
@@ -741,6 +742,7 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={stopLossPriceRef}
+                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
                   style={styles.input}
                   value={stopLossPrice}
                   onChangeText={(text) => {
