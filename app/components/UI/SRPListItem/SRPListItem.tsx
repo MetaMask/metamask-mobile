@@ -1,8 +1,13 @@
 import React, { useMemo, useState } from 'react';
-import { TouchableWithoutFeedback, View } from 'react-native';
+import { TouchableWithoutFeedback } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-import { useStyles } from '../../hooks/useStyles';
-import styleSheet from './SRPListItem.styles';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+} from '@metamask/design-system-react-native';
 import { SRPListItemProps } from './SRPListItem.type';
 import Text, {
   TextColor,
@@ -30,10 +35,6 @@ import { RootState } from '../../../reducers';
 import { selectIconSeedAddressByAccountGroupId } from '../../../selectors/multichainAccounts/accounts';
 import { AccountGroupWithInternalAccounts } from '../../../selectors/multichainAccounts/accounts.type';
 
-/**
- * Renders an individual account group item with avatar and name.
- * Used in the expanded account list within SRPListItem.
- */
 const AccountGroupItem = ({
   accountGroup,
   accountAvatarType,
@@ -41,7 +42,6 @@ const AccountGroupItem = ({
   accountGroup: AccountGroupWithInternalAccounts;
   accountAvatarType: ReturnType<typeof selectAvatarAccountType>;
 }) => {
-  const { styles } = useStyles(styleSheet, {});
   const selectSeedAddress = useMemo(
     () => selectIconSeedAddressByAccountGroupId(accountGroup.id),
     [accountGroup.id],
@@ -49,7 +49,11 @@ const AccountGroupItem = ({
   const seedAddress = useSelector(selectSeedAddress);
 
   return (
-    <View style={styles.accountItem}>
+    <Box
+      flexDirection={BoxFlexDirection.Row}
+      alignItems={BoxAlignItems.Center}
+      twClassName="gap-2 mb-1"
+    >
       <Avatar
         variant={AvatarVariant.Account}
         type={accountAvatarType}
@@ -59,7 +63,7 @@ const AccountGroupItem = ({
       <Text variant={TextVariant.BodySM} color={TextColor.Default}>
         {accountGroup.metadata.name}
       </Text>
-    </View>
+    </Box>
   );
 };
 
@@ -70,7 +74,7 @@ const SRPListItem = ({
   testID,
   showArrowName = '',
 }: SRPListItemProps) => {
-  const { styles } = useStyles(styleSheet, {});
+  const tw = useTailwind();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [showAccounts, setShowAccounts] = useState(false);
   const accountAvatarType = useSelector(selectAvatarAccountType);
@@ -100,17 +104,36 @@ const SRPListItem = ({
         `${SRPListItemSelectorsIDs.SRP_LIST_ITEM}-${keyring.metadata.id}`
       }
     >
-      <View style={styles.srpItem}>
-        <View style={styles.srpItemContent}>
-          <View>
-            <View style={styles.srpItemIconContainer}>
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        justifyContent={BoxJustifyContent.Between}
+        alignItems={BoxAlignItems.Center}
+        twClassName="w-full p-4 rounded-lg bg-alternative"
+      >
+        <Box
+          flexDirection={BoxFlexDirection.Column}
+          justifyContent={BoxJustifyContent.Center}
+          alignItems={BoxAlignItems.Start}
+          twClassName="shrink w-full"
+        >
+          <Box>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              justifyContent={BoxJustifyContent.Between}
+              alignItems={BoxAlignItems.Center}
+              twClassName="w-full"
+            >
               <Text
                 variant={TextVariant.BodyMDMedium}
                 color={TextColor.Default}
               >
                 {name}
               </Text>
-              <View style={styles.srpIconContainer}>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Center}
+                twClassName="gap-1"
+              >
                 {Boolean(showArrowName) && (
                   <Text
                     variant={TextVariant.BodyMDMedium}
@@ -121,11 +144,11 @@ const SRPListItem = ({
                 )}
                 <Icon
                   name={IconName.ArrowRight}
-                  style={styles.srpItemIcon}
+                  style={tw.style('flex-col justify-center')}
                   color={IconColor.Alternative}
                 />
-              </View>
-            </View>
+              </Box>
+            </Box>
 
             <Button
               testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_TOGGLE_SHOW}-${keyring.metadata.id}`}
@@ -155,14 +178,14 @@ const SRPListItem = ({
                 </Text>
               }
             />
-          </View>
+          </Box>
           {showAccounts && (
             <>
-              <View style={styles.horizontalLine} />
-              <View style={styles.accountsList}>
+              <Box twClassName="h-px w-full border-b border-muted my-4" />
+              <Box twClassName="w-full shrink max-h-[200px]">
                 <FlatList
                   testID={`${SRPListItemSelectorsIDs.SRP_LIST_ITEM_ACCOUNTS_LIST}-${keyring.metadata.id}`}
-                  contentContainerStyle={styles.accountsListContentContainer}
+                  contentContainerStyle={tw.style('py-1')}
                   data={accountGroups}
                   keyExtractor={(item) => item.id}
                   renderItem={({ item }) => (
@@ -176,11 +199,11 @@ const SRPListItem = ({
                   nestedScrollEnabled
                   alwaysBounceVertical
                 />
-              </View>
+              </Box>
             </>
           )}
-        </View>
-      </View>
+        </Box>
+      </Box>
     </TouchableWithoutFeedback>
   );
 };
