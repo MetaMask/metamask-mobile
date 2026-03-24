@@ -129,8 +129,14 @@ const Price = ({
               variant={TextVariant.BodyMDMedium}
               allowFontScaling={false}
             >
-              {diff > 0 ? '+' : ''}
-              {addCurrencySymbol(diff, currentCurrency, true)} (
+              {diff > 0 ? '+' : diff < 0 ? '-' : ''}
+              {diff !== 0
+                ? formatPriceWithSubscriptNotation(
+                    Math.abs(diff),
+                    currentCurrency,
+                  )
+                : addCurrencySymbol(0, currentCurrency, true)}{' '}
+              {'('}
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %){' '}
