@@ -5910,6 +5910,7 @@
     "account_name_existed": "Account {{accountName}} already exists"
   },
   "account_actions": {
+    "add_wallet": "Add a wallet",
     "edit_name": "Edit account name",
     "add_account_or_hardware_wallet": "Add account or hardware wallet",
     "connect_hardware_wallet": "Connect an account",

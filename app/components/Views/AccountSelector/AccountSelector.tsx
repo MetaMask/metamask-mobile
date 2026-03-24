@@ -81,6 +81,7 @@ import {
   JustifyContent,
 } from '../../UI/Box/box.types';
 import { AnimationDuration } from '../../../component-library/constants/animation.constants';
+import Routes from '../../../constants/navigation/Routes';
 
 const AccountSelector = ({ route }: AccountSelectorProps) => {
   const { styles } = useStyles(styleSheet, {});
@@ -131,11 +132,22 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
 
   const { accounts } = useAccounts(accountsParams);
 
-  const [screen, setScreen] = useState<AccountSelectorScreens>(
-    () => navigateToAddAccountActions ?? AccountSelectorScreens.AccountSelector,
+  const [screen, setScreen] = useState<AccountSelectorScreens>(() =>
+    navigateToAddAccountActions === AccountSelectorScreens.AddAccountActions
+      ? AccountSelectorScreens.AddAccountActions
+      : AccountSelectorScreens.AccountSelector,
   );
   const [keyboardAvoidingViewEnabled, setKeyboardAvoidingViewEnabled] =
     useState(false);
+
+  useEffect(() => {
+    if (
+      navigateToAddAccountActions ===
+      AccountSelectorScreens.MultichainAddWalletActions
+    ) {
+      navigation.navigate(Routes.SHEET.ADD_WALLET);
+    }
+  }, [navigateToAddAccountActions, navigation]);
 
   // Tracing for the account list rendering:
   const isAccountSelector = useMemo(
@@ -217,8 +229,8 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
   );
 
   const handleAddAccount = useCallback(() => {
-    setScreen(AccountSelectorScreens.MultichainAddWalletActions);
-  }, []);
+    navigation.navigate(Routes.SHEET.ADD_WALLET);
+  }, [navigation]);
 
   const handleBackToSelector = useCallback(() => {
     setScreen(AccountSelectorScreens.AccountSelector);
@@ -304,28 +316,16 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
     [handleBackToSelector],
   );
 
-  const renderMultichainAddWalletActions = useCallback(
-    () => <MultichainAddWalletActions onBack={handleBackToSelector} />,
-    [handleBackToSelector],
-  );
-
   const renderAccountScreens = useCallback(() => {
     switch (screen) {
       case AccountSelectorScreens.AccountSelector:
         return renderAccountSelector();
       case AccountSelectorScreens.AddAccountActions:
         return renderAddAccountActions();
-      case AccountSelectorScreens.MultichainAddWalletActions:
-        return renderMultichainAddWalletActions();
       default:
         return renderAccountSelector();
     }
-  }, [
-    screen,
-    renderAccountSelector,
-    renderAddAccountActions,
-    renderMultichainAddWalletActions,
-  ]);
+  }, [screen, renderAccountSelector, renderAddAccountActions]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }],
@@ -363,20 +363,15 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         </KeyboardAvoidingView>
 
         {/* Add Wallet bottom sheet overlay */}
-        {(screen === AccountSelectorScreens.AddAccountActions ||
-          screen === AccountSelectorScreens.MultichainAddWalletActions) && (
+        {screen === AccountSelectorScreens.AddAccountActions && (
           <BottomSheet
             onClose={handleBackToSelector}
             shouldNavigateBack={false}
           >
             <BottomSheetHeader onBack={handleBackToSelector}>
-              {screen === AccountSelectorScreens.AddAccountActions
-                ? strings('account_actions.add_account')
-                : strings('multichain_accounts.add_wallet')}
+              {strings('account_actions.add_account')}
             </BottomSheetHeader>
-            {screen === AccountSelectorScreens.AddAccountActions
-              ? renderAddAccountActions()
-              : renderMultichainAddWalletActions()}
+            {renderAddAccountActions()}
           </BottomSheet>
         )}
       </>
@@ -394,9 +389,7 @@ const AccountSelector = ({ route }: AccountSelectorProps) => {
         title={
           screen === AccountSelectorScreens.AddAccountActions
             ? strings('account_actions.add_account')
-            : screen === AccountSelectorScreens.MultichainAddWalletActions
-              ? strings('multichain_accounts.add_wallet')
-              : strings('accounts.accounts_title')
+            : strings('accounts.accounts_title')
         }
         onClose={() => sheetRef.current?.onCloseBottomSheet()}
       />

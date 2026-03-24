@@ -39,6 +39,7 @@ import { ControllerEventToastBridge } from './ControllerEventToastBridge';
 import { usePredictToastRegistrations } from '../../UI/Predict/hooks/usePredictToastRegistrations';
 import AccountSelector from '../../../components/Views/AccountSelector';
 import AddressSelector from '../../../components/Views/AddressSelector';
+import AddWallet from '../../../components/Views/AddWallet';
 import { TokenSortBottomSheet } from '../../UI/Tokens/TokenSortBottomSheet/TokenSortBottomSheet';
 import ProfilerManager from '../../../components/UI/ProfilerManager';
 import NetworkManager from '../../../components/UI/NetworkManager';
@@ -425,6 +426,19 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_SELECTOR}
       component={AccountSelector}
+      options={{
+        cardStyle: { backgroundColor: importedColors.transparent },
+        cardStyleInterpolator: () => ({
+          overlayStyle: {
+            opacity: 0,
+          },
+        }),
+        detachPreviousScreen: false,
+      }}
+    />
+    <Stack.Screen
+      name={Routes.SHEET.ADD_WALLET}
+      component={AddWallet}
       options={{
         cardStyle: { backgroundColor: importedColors.transparent },
         cardStyleInterpolator: () => ({

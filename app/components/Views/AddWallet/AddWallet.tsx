@@ -1,0 +1,153 @@
+import React, { useCallback, useMemo } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { SafeAreaView } from 'react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  ButtonBase,
+  ButtonIcon,
+  FontWeight,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+
+import { strings } from '../../../../locales/i18n';
+import Routes from '../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { IMetaMetricsEvent } from '../../../core/Analytics/MetaMetrics.types';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { AddWalletTestIds } from './AddWallet.testIds';
+
+interface ActionConfig {
+  analyticsEvent: IMetaMetricsEvent;
+  description: string;
+  iconName: IconName;
+  routeName: string;
+  testID: string;
+  title: string;
+}
+
+const AddWallet = () => {
+  const tw = useTailwind();
+  const navigation = useNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
+  const actionConfigs = useMemo<ActionConfig[]>(
+    () => [
+      {
+        analyticsEvent: MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
+        description: 'Using a 12, 18 or 24-word seed phrase',
+        iconName: IconName.Wallet,
+        routeName: Routes.MULTI_SRP.IMPORT,
+        testID: AddWalletTestIds.IMPORT_WALLET_BUTTON,
+        title: strings('account_actions.import_wallet'),
+      },
+      {
+        analyticsEvent: MetaMetricsEvents.ACCOUNTS_IMPORTED_NEW_ACCOUNT,
+        description: 'Via a private key',
+        iconName: IconName.Download,
+        routeName: 'ImportPrivateKeyView',
+        testID: AddWalletTestIds.IMPORT_ACCOUNT_BUTTON,
+        title: strings('accounts.import_account'),
+      },
+      {
+        analyticsEvent: MetaMetricsEvents.ADD_HARDWARE_WALLET,
+        description: 'Using Bluetooth or a QR Code',
+        iconName: IconName.Hardware,
+        routeName: Routes.HW.CONNECT,
+        testID: AddWalletTestIds.CONNECT_HARDWARE_BUTTON,
+        title: strings('connect_hardware.title_select_hardware'),
+      },
+    ],
+    [],
+  );
+
+  const handleBack = useCallback(() => navigation.goBack(), [navigation]);
+
+  const handleActionPress = useCallback(
+    (config: ActionConfig) => {
+      navigation.navigate(config.routeName as never);
+      trackEvent(createEventBuilder(config.analyticsEvent).build());
+    },
+    [createEventBuilder, navigation, trackEvent],
+  );
+
+  return (
+    <SafeAreaView style={tw`flex-1 bg-default`}>
+      <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
+        <Box twClassName="px-2 py-4">
+          <ButtonIcon
+            accessibilityLabel="Back"
+            iconName={IconName.ArrowLeft}
+            onPress={handleBack}
+            testID={AddWalletTestIds.BACK_BUTTON}
+          />
+        </Box>
+
+        <Box gap={6} paddingHorizontal={4}>
+          <Text variant={TextVariant.HeadingLg}>Add a wallet</Text>
+
+          <Box gap={3}>
+            {actionConfigs.map((config) => (
+              <ButtonBase
+                key={config.testID}
+                accessibilityRole="button"
+                onPress={() => handleActionPress(config)}
+                testID={config.testID}
+                twClassName={(pressed) =>
+                  `w-full rounded-xl bg-background-muted px-4 py-3 ${
+                    pressed ? 'opacity-70' : ''
+                  }`
+                }
+              >
+                <Box
+                  alignItems={BoxAlignItems.Center}
+                  flexDirection={BoxFlexDirection.Row}
+                  gap={4}
+                >
+                  <Box
+                    alignItems={BoxAlignItems.Center}
+                    justifyContent={BoxJustifyContent.Center}
+                    twClassName="h-10 w-10 rounded-xl bg-muted"
+                  >
+                    <Icon
+                      color={IconColor.IconAlternative}
+                      name={config.iconName}
+                      size={IconSize.Md}
+                    />
+                  </Box>
+
+                  <Box twClassName="flex-1">
+                    <Text
+                      fontWeight={FontWeight.Medium}
+                      variant={TextVariant.BodyMd}
+                    >
+                      {config.title}
+                    </Text>
+                    <Text
+                      color={TextColor.TextAlternative}
+                      fontWeight={FontWeight.Medium}
+                      variant={TextVariant.BodySm}
+                    >
+                      {config.description}
+                    </Text>
+                  </Box>
+                </Box>
+              </ButtonBase>
+            ))}
+          </Box>
+        </Box>
+      </Box>
+    </SafeAreaView>
+  );
+};
+
+export default AddWallet;
