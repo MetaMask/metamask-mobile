@@ -169,29 +169,20 @@ const OptinMetrics = () => {
     dispatch(setDataCollectionForMarketing(isMarketingChecked));
 
     // Track opt-in / opt-out for metrics
-    if (isBasicUsageChecked) {
-      metrics.trackEvent(
-        metrics
-          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_IN)
-          .addProperties({
-            updated_after_onboarding: false,
-            location: 'onboarding_metametrics',
-            ...(accountType && { account_type: accountType }),
-          })
-          .build(),
-      );
-    } else {
-      metrics.trackEvent(
-        metrics
-          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_OUT)
-          .addProperties({
-            updated_after_onboarding: false,
-            location: 'onboarding_metametrics',
-            ...(accountType && { account_type: accountType }),
-          })
-          .build(),
-      );
-    }
+    metrics.trackEvent(
+      metrics
+        .createEventBuilder(
+          isBasicUsageChecked
+            ? MetaMetricsEvents.METRICS_OPT_IN
+            : MetaMetricsEvents.METRICS_OPT_OUT,
+        )
+        .addProperties({
+          updated_after_onboarding: false,
+          location: 'onboarding_metametrics',
+          ...(accountType && { account_type: accountType }),
+        })
+        .build(),
+    );
 
     metrics.trackEvent(
       metrics
