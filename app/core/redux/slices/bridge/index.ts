@@ -683,7 +683,7 @@ export const selectIsBridgeEnabledSource = createSelector(
 export const selectDestTokenWarning = createSelector(
   selectControllerFields,
   (controllerFields): TokenFeature | undefined =>
-    selectTokenWarningsBase(controllerFields)[0],
+    selectTokenWarningsBase(controllerFields)?.[0],
 );
 
 // Actions
