@@ -93,14 +93,20 @@ const TransactionsFooter = ({
       return null;
     }
 
-    if (isMainnetByChainId(chainId) || (providerType && providerType !== RPC)) {
-      return strings('transactions.view_full_history_on_etherscan');
+    // Prefer deriving the label from the explorer URL when present. Unified
+    // activity can pass chainId for one enabled network while providerType
+    // reflects the globally selected network — the URL matches the list we show.
+    if (rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER) {
+      const explorerName = getBlockExplorerName(rpcBlockExplorer);
+      if (explorerName) {
+        return `${strings(
+          'transactions.view_full_history_on',
+        )} ${explorerName}`;
+      }
     }
 
-    if (rpcBlockExplorer && rpcBlockExplorer !== NO_RPC_BLOCK_EXPLORER) {
-      return `${strings(
-        'transactions.view_full_history_on',
-      )} ${getBlockExplorerName(rpcBlockExplorer)}`;
+    if (isMainnetByChainId(chainId) || (providerType && providerType !== RPC)) {
+      return strings('transactions.view_full_history_on_etherscan');
     }
 
     return null;
