@@ -269,6 +269,10 @@ const MarketInsightsView: React.FC = () => {
       isPerps ? { perps_market: assetIdentifier } : { caip19: assetIdentifier },
     [isPerps, assetIdentifier],
   );
+  const assetSymbolProperty = useMemo(
+    () => (report?.asset ? { asset_symbol: report.asset } : {}),
+    [report?.asset],
+  );
   const { goToBuy } = useRampNavigation();
 
   // Collect all tweets from all trends for the "What people are saying" section
@@ -292,12 +296,19 @@ const MarketInsightsView: React.FC = () => {
     )
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: 'swap',
       })
       .build();
     trackEvent(event);
     goToSwaps();
-  }, [goToSwaps, trackEvent, createEventBuilder, assetIdProperty]);
+  }, [
+    goToSwaps,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
 
   const handlePerpsDirectionPress = useCallback(
     (direction: 'long' | 'short') => {
@@ -306,6 +317,7 @@ const MarketInsightsView: React.FC = () => {
       )
         .addProperties({
           ...assetIdProperty,
+          ...assetSymbolProperty,
           interaction_type: direction,
         })
         .build();
@@ -316,7 +328,14 @@ const MarketInsightsView: React.FC = () => {
         params: { direction, asset: assetSymbol },
       });
     },
-    [navigation, trackEvent, createEventBuilder, assetIdProperty, assetSymbol],
+    [
+      navigation,
+      trackEvent,
+      createEventBuilder,
+      assetIdProperty,
+      assetSymbolProperty,
+      assetSymbol,
+    ],
   );
 
   const handleBuyPress = useCallback(() => {
@@ -325,6 +344,7 @@ const MarketInsightsView: React.FC = () => {
     )
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: 'buy',
       })
       .build();
@@ -350,6 +370,7 @@ const MarketInsightsView: React.FC = () => {
     trackEvent,
     createEventBuilder,
     assetIdProperty,
+    assetSymbolProperty,
     tokenAddress,
     tokenChainId,
   ]);
@@ -402,6 +423,7 @@ const MarketInsightsView: React.FC = () => {
     ) => {
       const properties = {
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: interactionType,
         ...(options?.source ? { source: options.source } : {}),
         ...(options?.feedbackReason
@@ -418,7 +440,7 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
     },
-    [trackEvent, createEventBuilder, assetIdProperty],
+    [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -499,11 +521,18 @@ const MarketInsightsView: React.FC = () => {
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
       })
       .build();
     trackEvent(event);
     hasTrackedViewRef.current = true;
-  }, [report, assetIdProperty, trackEvent, createEventBuilder]);
+  }, [
+    report,
+    assetIdProperty,
+    assetSymbolProperty,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   if (showLoadingSkeleton && !report && !error) {
     return (

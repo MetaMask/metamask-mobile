@@ -3291,6 +3291,7 @@ describe('PerpsMarketDetailsView', () => {
 
   describe('Market Insights analytics', () => {
     const mockReport = {
+      asset: 'BTC',
       summary: 'BTC momentum is building with increased buying pressure.',
       sentiment: 'bullish',
       generatedAt: new Date().toISOString(),
@@ -3346,7 +3347,10 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(mockTrack).toHaveBeenCalledWith(
         MetaMetricsEvents.MARKET_INSIGHTS_OPENED,
-        expect.objectContaining({ perps_market: 'BTC' }),
+        expect.objectContaining({
+          perps_market: 'BTC',
+          asset_symbol: 'BTC',
+        }),
       );
     });
 

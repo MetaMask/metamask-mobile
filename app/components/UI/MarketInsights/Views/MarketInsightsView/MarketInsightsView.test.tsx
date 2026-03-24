@@ -433,6 +433,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
+          asset_symbol: 'eth',
         }),
       }),
     );
@@ -441,6 +442,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
+          asset_symbol: 'eth',
           interaction_type: 'swap',
         }),
       }),
@@ -450,6 +452,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
+          asset_symbol: 'eth',
           interaction_type: 'buy',
         }),
       }),
@@ -458,6 +461,7 @@ describe('MarketInsightsView', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
+          asset_symbol: 'eth',
           interaction_type: 'thumbs_up',
         }),
       }),
@@ -466,6 +470,7 @@ describe('MarketInsightsView', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
+          asset_symbol: 'eth',
           interaction_type: 'thumbs_down',
           feedback_reason: 'something_else',
           feedback_text: 'Need confidence score',
@@ -476,6 +481,7 @@ describe('MarketInsightsView', () => {
       expect.objectContaining({
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
+          asset_symbol: 'eth',
           interaction_type: 'source_click',
           source: 'https://www.coindesk.com/article',
         }),
@@ -801,6 +807,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
         properties: expect.objectContaining({
           perps_market: 'ETH',
+          asset_symbol: 'eth',
         }),
       }),
     );
@@ -820,6 +827,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           perps_market: 'ETH',
+          asset_symbol: 'eth',
           interaction_type: 'long',
         }),
       }),
@@ -841,6 +849,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           perps_market: 'ETH',
+          asset_symbol: 'eth',
           interaction_type: 'short',
         }),
       }),
@@ -852,6 +861,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_INTERACTION,
         properties: expect.objectContaining({
           perps_market: 'ETH',
+          asset_symbol: 'eth',
           interaction_type: 'thumbs_up',
         }),
       }),

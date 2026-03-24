@@ -352,6 +352,7 @@ describe('AssetOverviewContent', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith({
         caip19: 'eip155:1/erc20:0x123',
+        asset_symbol: 'eth',
       });
       expect(mockTrackEvent).toHaveBeenCalledWith({
         category: 'market-insights-opened',

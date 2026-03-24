@@ -540,6 +540,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_OPENED)
         .addProperties({
           caip19: marketInsightsCaip19Id,
+          ...(marketInsightsReport?.asset
+            ? { asset_symbol: marketInsightsReport.asset }
+            : {}),
         })
         .build();
       trackEvent(event);
@@ -572,6 +575,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     token.decimals,
     token.name,
     token.chainId,
+    marketInsightsReport?.asset,
     priceDiff,
     comparePrice,
   ]);
