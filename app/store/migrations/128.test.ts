@@ -1,5 +1,5 @@
 import { captureException } from '@sentry/react-native';
-import migrate from './126';
+import migrate from './128';
 import { ensureValidState } from './util';
 
 jest.mock('@sentry/react-native', () => ({
@@ -35,7 +35,7 @@ interface TestState {
 const mockedEnsureValidState = jest.mocked(ensureValidState);
 const mockedCaptureException = jest.mocked(captureException);
 
-describe('Migration 126: Clear deposit and withdrawal request queues from PerpsController', () => {
+describe('Migration 128: Clear deposit and withdrawal request queues from PerpsController', () => {
   beforeEach(() => {
     jest.resetAllMocks();
   });
@@ -388,7 +388,7 @@ describe('Migration 126: Clear deposit and withdrawal request queues from PerpsC
       expect(mockedCaptureException).toHaveBeenCalledWith(
         expect.objectContaining({
           message: expect.stringContaining(
-            'Migration 126: Failed to clear transaction request queues',
+            'Migration 128: Failed to clear transaction request queues',
           ),
         }),
       );

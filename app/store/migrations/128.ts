@@ -3,7 +3,7 @@ import { ensureValidState } from './util';
 import { captureException } from '@sentry/react-native';
 
 /**
- * Migration 123: Clear deposit and withdrawal request queues from PerpsController
+ * Migration 128: Clear deposit and withdrawal request queues from PerpsController
  *
  * Clears depositRequests and withdrawalRequests arrays to ensure users start fresh
  * with the new FIFO queue-based pending transaction tracking.
@@ -15,7 +15,7 @@ import { captureException } from '@sentry/react-native';
  * This also resets related progress/status flags to ensure a clean state.
  */
 const migration = (state: unknown): unknown => {
-  const migrationVersion = 126;
+  const migrationVersion = 128;
 
   if (!ensureValidState(state, migrationVersion)) {
     return state;
