@@ -250,15 +250,18 @@ describe(SmokeWalletPlatform('Incoming Transactions'), () => {
   });
 
   it('displays nothing if privacyMode is enabled', async () => {
+    const fixture = new FixtureBuilder()
+      .withAccountTreeController(
+        EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
+      )
+      .withNetworkEnabledMap({ eip155: { '0x1': true } })
+      .withPrivacyModePreferences(true)
+      .build();
+    mergeTrustedSenderForIncomingNative(fixture);
+
     await withFixtures(
       {
-        fixture: new FixtureBuilder()
-          .withAccountTreeController(
-            EVM_ONLY_ACCOUNT_TREE as unknown as Partial<AccountTreeControllerState>,
-          )
-          .withNetworkEnabledMap({ eip155: { '0x1': true } })
-          .withPrivacyModePreferences(true)
-          .build(),
+        fixture,
         restartDevice: true,
         testSpecificMock: createAccountsTestSpecificMock(),
       },
