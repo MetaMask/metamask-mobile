@@ -1142,7 +1142,7 @@ const App: React.FC = () => {
       }
     },
     {
-      delay: Duration.Minute * 5,
+      delay: Duration.Minute * 10,
       immediate: true,
     },
   );
