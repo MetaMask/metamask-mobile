@@ -785,6 +785,20 @@ jobs:
 
           echo "ALL_JOBS_PASSED=true" >> "$GITHUB_OUTPUT"
 
+  check-go-mock-server-binaries:
+    name: Check Go mock server binaries are up to date
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.21'
+      - name: Rebuild binaries and check for drift
+        run: |
+          cd tests/mock-server
+          make build-all
+          git diff --exit-code tests/bin/ || (echo "Go mock server binaries are stale. Run 'make build-all' in tests/mock-server/ on macOS and commit the results." && exit 1)
+
   check-all-jobs-pass:
     name: Check all jobs pass
     if: ${{ !cancelled() }}
