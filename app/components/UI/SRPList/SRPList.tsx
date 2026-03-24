@@ -31,7 +31,10 @@ const SRPList = ({
     <Box
       twClassName="py-4 px-4 bg-default m-2"
       style={
-        [{ maxHeight }, containerStyle] as ComponentProps<typeof Box>['style']
+        {
+          maxHeight,
+          ...(containerStyle ?? {}),
+        } as ComponentProps<typeof Box>['style']
       }
       testID={SRPListSelectorsIDs.SRP_LIST}
     >
