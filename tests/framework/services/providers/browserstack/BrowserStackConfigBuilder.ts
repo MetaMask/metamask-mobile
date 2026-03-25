@@ -1,7 +1,13 @@
 /* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
-import type { BrowserStackConfig } from '../../../types.ts';
-import type { ProjectConfig } from '../../common/types.ts';
+import type { BrowserStackConfig } from '../../../types';
+import type { ProjectConfig } from '../../common/types';
+import { createLogger, LogLevel } from '../../../logger';
+
+const logger = createLogger({
+  name: 'BrowserStackConfigBuilder',
+  level: LogLevel.INFO,
+});
 
 /**
  * Builder for BrowserStack WebDriver configuration
@@ -34,6 +40,28 @@ export class BrowserStackConfigBuilder {
         'BROWSERSTACK_USERNAME and BROWSERSTACK_ACCESS_KEY environment variables are required',
       );
     }
+
+    logger.debug(
+      `Building BrowserStack config with device name: ${device.name}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device os version: ${device.osVersion}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device orientation: ${device.orientation}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device platform name: ${platformName}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device build name: ${process.env.BROWSERSTACK_BUILD_NAME || `${projectName} ${platformName}`}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device session name: ${`${projectName} ${platformName} test`}`,
+    );
+    logger.debug(
+      `Building BrowserStack config with device build identifier: ${process.env.GITHUB_ACTIONS === 'true' ? `CI ${process.env.GITHUB_RUN_ID}` : process.env.USER}`,
+    );
 
     return {
       port: 443,

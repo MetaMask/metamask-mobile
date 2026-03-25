@@ -12,7 +12,7 @@ import {
   QualityGatesValidator,
 } from '../quality-gates';
 import { getTeamInfoFromTags } from '../utils/teams';
-import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher.ts';
+import { publishPerformanceScenarioToSentry } from '../../reporters/providers/sentry/PerformanceSentryPublisher';
 
 // Extend globalThis to include driver property
 declare global {
@@ -21,6 +21,12 @@ declare global {
 }
 
 interface TestLevelFixtures {
+  /**
+   * Platform detector to be used for the test.
+   * This detects the platform of the device being tested.
+   */
+  currentPlatform: 'android' | 'ios';
+
   /**
    * Device provider to be used for the test.
    * This creates and manages the device lifecycle for the test
@@ -43,6 +49,20 @@ interface TestLevelFixtures {
 }
 
 export const test = base.extend<TestLevelFixtures>({
+  // eslint-disable-next-line no-empty-pattern
+  currentPlatform: async ({}, use, testInfo) => {
+    const project = testInfo.project as FullProject<WebDriverConfig>;
+    const platform = project.use.platform;
+
+    if (!platform) {
+      throw new Error(
+        `Missing "use.platform" for project "${project.name}" in tests/playwright.config.ts.`,
+      );
+    }
+
+    await use(platform);
+  },
+
   // eslint-disable-next-line no-empty-pattern
   deviceProvider: async ({}, use, testInfo) => {
     const deviceProvider = createServiceProvider(testInfo.project);
