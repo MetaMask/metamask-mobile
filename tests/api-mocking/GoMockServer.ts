@@ -640,14 +640,16 @@ export default class GoMockServer implements Resource {
           await makeTerminal(method, urlPredicate, null).thenCallback(handler);
         },
         matching: (predicate: MockttpPredicate) => {
-          const terminal = makeTerminal(method, predicate, null);
+          const combinedPredicate: MockttpPredicate = async (request) =>
+            (await urlPredicate(request)) && (await predicate(request));
+          const terminal = makeTerminal(method, combinedPredicate, null);
           return {
             ...terminal,
-            always: () => makeTerminal(method, predicate, null),
+            always: () => makeTerminal(method, combinedPredicate, null),
             withJsonBodyIncluding: (bodyMatcher: Record<string, unknown>) =>
-              makeTerminal(method, predicate, bodyMatcher),
+              makeTerminal(method, combinedPredicate, bodyMatcher),
             asPriority: (priority: number) =>
-              makeTerminal(method, predicate, null, priority),
+              makeTerminal(method, combinedPredicate, null, priority),
           };
         },
         asPriority: (priority: number) =>
