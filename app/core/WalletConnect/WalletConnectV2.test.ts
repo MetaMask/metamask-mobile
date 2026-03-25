@@ -864,7 +864,7 @@ describe('WC2Manager', () => {
         },
         topic: 'test-topic',
       });
-      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-topic');
+      expect(revokeAllPermissionsSpy).toHaveBeenCalledWith('test-pairing');
     });
   });
 
