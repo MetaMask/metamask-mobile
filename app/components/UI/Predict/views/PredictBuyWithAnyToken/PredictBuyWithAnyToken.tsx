@@ -155,6 +155,7 @@ const PredictBuyWithAnyToken = () => {
     isPreviewCalculating,
     isUserInputChange,
     isConfirming,
+    depositAmount,
   });
 
   const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
@@ -166,6 +167,7 @@ const PredictBuyWithAnyToken = () => {
       isInsufficientBalance,
       maxBetAmount,
       isConfirming,
+      depositAmount,
     });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({

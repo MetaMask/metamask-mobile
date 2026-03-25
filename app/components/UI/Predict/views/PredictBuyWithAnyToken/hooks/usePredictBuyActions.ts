@@ -83,8 +83,9 @@ export const usePredictBuyActions = ({
 
     return navigation.addListener('beforeRemove', () => {
       onApprovalRejectRef.current();
+      PredictController.onOrderCancelled();
     });
-  }, [navigation, payWithAnyTokenEnabled]);
+  }, [navigation, payWithAnyTokenEnabled, PredictController]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {

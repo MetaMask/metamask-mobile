@@ -1,5 +1,3 @@
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
-import { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
 import {
   useIsTransactionPayLoading,
@@ -12,8 +10,11 @@ import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
-import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { Hex } from '@metamask/utils';
+import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
@@ -23,6 +24,7 @@ interface UsePredictBuyConditionsParams {
   isPreviewCalculating: boolean;
   isUserInputChange: boolean;
   isConfirming: boolean;
+  depositAmount: number;
 }
 
 const normalizeQuoteComparableAddress = (
@@ -47,17 +49,21 @@ export const usePredictBuyConditions = ({
   isPreviewCalculating,
   isUserInputChange,
   isConfirming,
+  depositAmount,
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
-  const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
+  const { isDepositPending } = usePredictDeposit();
+  const payTotals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
   const requiredTokens = useTransactionPayRequiredTokens();
   const { isPredictBalanceSelected, selectedPaymentToken } =
     usePredictPaymentToken();
-  const { isDepositPending } = usePredictDeposit();
+
+  const [insufficientPayTokenBalanceAlert] =
+    useInsufficientPayTokenBalanceAlert();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
 
@@ -82,6 +88,11 @@ export const usePredictBuyConditions = ({
   const isInsufficientBalance = useMemo(
     () => !isConfirming && currentValue > 0 && currentValue > maxBetAmount,
     [isConfirming, currentValue, maxBetAmount],
+  );
+
+  const isInsufficientPayTokenBalance = useMemo(
+    () => !isPredictBalanceSelected && !!insufficientPayTokenBalanceAlert,
+    [isPredictBalanceSelected, insufficientPayTokenBalanceAlert],
   );
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
@@ -158,7 +169,8 @@ export const usePredictBuyConditions = ({
       !!preview &&
       !isRateLimited &&
       !isBalanceLoading &&
-      !isPayFeesLoading,
+      !isPayFeesLoading &&
+      !isInsufficientPayTokenBalance,
     [
       isConfirming,
       isBelowMinimum,
@@ -167,6 +179,7 @@ export const usePredictBuyConditions = ({
       isRateLimited,
       isBalanceLoading,
       isPayFeesLoading,
+      isInsufficientPayTokenBalance,
     ],
   );
 

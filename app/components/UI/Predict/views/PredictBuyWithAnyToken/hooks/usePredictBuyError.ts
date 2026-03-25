@@ -6,6 +6,8 @@ import { OrderPreview } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import { checkPlaceOrderError } from '../../../utils/predictErrorHandler';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 
 interface UsePredictBuyInfoParams {
   preview?: OrderPreview | null;
@@ -15,6 +17,7 @@ interface UsePredictBuyInfoParams {
   isBelowMinimum: boolean;
   isInsufficientBalance: boolean;
   maxBetAmount: number;
+  depositAmount: number;
 }
 
 export const usePredictBuyError = ({
@@ -25,14 +28,25 @@ export const usePredictBuyError = ({
   isBelowMinimum,
   isInsufficientBalance,
   maxBetAmount,
+  depositAmount,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
+  const { isPredictBalanceSelected } = usePredictPaymentToken();
+  const [insufficientPayTokenBalanceAlert] =
+    useInsufficientPayTokenBalanceAlert();
 
   const errorResult = useMemo(() => {
     if (isBalanceLoading || isPlacingOrder || isConfirming || !preview) {
       return undefined;
+    }
+
+    if (!isPredictBalanceSelected && !!insufficientPayTokenBalanceAlert) {
+      return {
+        status: 'error',
+        error: insufficientPayTokenBalanceAlert.message,
+      };
     }
 
     return activeOrder?.error
@@ -46,6 +60,8 @@ export const usePredictBuyError = ({
     isPlacingOrder,
     isConfirming,
     preview,
+    isPredictBalanceSelected,
+    insufficientPayTokenBalanceAlert,
     activeOrder?.error,
   ]);
 

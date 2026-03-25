@@ -17,6 +17,7 @@ const mockShowOrderPlacedToast = jest.fn();
 const mockTrackPredictOrderEvent = jest.fn();
 const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
 const mockOnPlaceOrderEnd = jest.fn();
+const mockOnOrderCancelled = jest.fn();
 const mockInitiPayWithAnyToken = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockTransitionEndUnsubscribe = jest.fn();
@@ -87,6 +88,7 @@ jest.mock('../../../../../../core/Engine', () => ({
   context: {
     PredictController: {
       onPlaceOrderEnd: (...args: unknown[]) => mockOnPlaceOrderEnd(...args),
+      onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       trackPredictOrderEvent: (...args: unknown[]) =>
         mockTrackPredictOrderEvent(...args),
       initiPayWithAnyToken: (...args: unknown[]) =>
@@ -175,10 +177,13 @@ describe('usePredictBuyActions', () => {
       expect(mockTransitionEndUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockBeforeRemoveUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockOnApprovalReject).toHaveBeenCalledTimes(1);
+      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
 
     it('only calls initiPayWithAnyToken once even if transitionEnd fires again', () => {
-      const transitionEndCallbacks: ((e: { data: { closing: boolean } }) => void)[] = [];
+      const transitionEndCallbacks: ((e: {
+        data: { closing: boolean };
+      }) => void)[] = [];
 
       mockAddListener.mockImplementation(
         (
