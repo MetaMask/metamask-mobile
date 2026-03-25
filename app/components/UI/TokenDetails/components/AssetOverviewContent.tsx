@@ -94,6 +94,7 @@ import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/
 import TronUnstakedBanner from '../../Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner';
 import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/TronStakingButtons';
 import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
+import TronStakingRewardsRows from '../../Earn/components/Tron/TronStakingRewardsRows/TronStakingRewardsRows';
 import useTronStakeApy from '../../Earn/hooks/useTronStakeApy';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
@@ -521,7 +522,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   }
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
+  const {
+    apyPercent: tronApyPercent,
+    apyDecimal: tronApyDecimal,
+    isLoading: tronApyLoading,
+  } = useTronStakeApy();
   ///: END:ONLY_INCLUDE_IF
 
   const goToBrowserUrl = (url: string) => {
@@ -861,6 +866,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 hideTitleHeading
                 hidePercentageChange
               />
+            )
+            ///: END:ONLY_INCLUDE_IF
+          }
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(tron)
+            isTronNative && stakedTrxAsset && (
+              <Box paddingHorizontal={4}>
+                <TronStakingRewardsRows
+                  token={token}
+                  apyDecimal={tronApyDecimal}
+                  isApyLoading={tronApyLoading}
+                />
+              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
