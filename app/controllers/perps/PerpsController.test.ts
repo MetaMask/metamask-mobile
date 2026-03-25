@@ -26,6 +26,11 @@ import {
   InitializationState,
 } from './PerpsController';
 import type { PerpsControllerState } from './PerpsController';
+import {
+  PERPS_CONSTANTS,
+  PERPS_DISK_CACHE_MARKETS,
+  PERPS_DISK_CACHE_USER_DATA,
+} from './constants/perpsConfig';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
@@ -4912,6 +4917,198 @@ describe('PerpsController', () => {
     it('stopMarketDataPreload is safe to call when not started', () => {
       expect(() => controller.stopMarketDataPreload()).not.toThrow();
     });
+
+    it('hydrates market data from disk on start', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      // Preload never resolves — we only care about the disk hydration path
+      mockProvider.getMarketDataWithPrices.mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      const diskMarkets = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        data: [
+          {
+            symbol: 'BTC',
+            name: 'Bitcoin',
+            price: '50000',
+            change24h: '+100',
+            change24hPercent: '+0.2%',
+            maxLeverage: '50x',
+            volume: '$1B',
+          },
+        ],
+        timestamp: Date.now(),
+      };
+      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_MARKETS) {
+            return Promise.resolve(JSON.stringify(diskMarkets));
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      const cached =
+        controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
+      expect(cached).not.toBeNull();
+      expect(cached?.data).toHaveLength(1);
+      expect(cached?.data[0].symbol).toBe('BTC');
+      // Prices are stripped to placeholder values
+      expect(cached?.data[0].price).toBe(PERPS_CONSTANTS.FallbackPriceDisplay);
+      expect(cached?.data[0].change24h).toBe(
+        PERPS_CONSTANTS.FallbackDataDisplay,
+      );
+      expect(cached?.data[0].change24hPercent).toBe(
+        PERPS_CONSTANTS.FallbackPercentageDisplay,
+      );
+    });
+
+    it('hydrates user data from disk when address matches', async () => {
+      const mockAddress = '0x1234567890123456789012345678901234567890';
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      const diskUserData = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        address: mockAddress,
+        positions: [{ symbol: 'ETH', size: '2.0', entryPrice: '3000' }],
+        orders: [],
+        accountState: {
+          totalBalance: '5000',
+          availableBalance: '4000',
+          marginUsed: '1000',
+          unrealizedPnl: '0',
+          returnOnEquity: '0',
+        },
+        timestamp: Date.now(),
+      };
+      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_USER_DATA) {
+            return Promise.resolve(JSON.stringify(diskUserData));
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      const cached =
+        controller.state.cachedUserDataByProvider['hyperliquid:mainnet'];
+      expect(cached).not.toBeNull();
+      expect(cached?.positions).toHaveLength(1);
+      expect(cached?.positions[0].symbol).toBe('ETH');
+      expect(cached?.address).toBe(mockAddress);
+    });
+
+    it('skips user data hydration when address does not match', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      const diskUserData = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        address: '0xDEADBEEF00000000000000000000000000000000',
+        positions: [{ symbol: 'ETH', size: '2.0' }],
+        orders: [],
+        accountState: null,
+        timestamp: Date.now(),
+      };
+      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_USER_DATA) {
+            return Promise.resolve(JSON.stringify(diskUserData));
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      const cached =
+        controller.state.cachedUserDataByProvider['hyperliquid:mainnet'];
+      expect(cached).toBeUndefined();
+    });
+
+    it('does not overwrite fresher in-memory data from disk', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      const freshTimestamp = Date.now();
+      controller.testUpdate((state) => {
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [{ symbol: 'ETH', name: 'Ethereum', price: '3000' } as any],
+          timestamp: freshTimestamp,
+        };
+      });
+
+      const diskMarkets = {
+        providerNetworkKey: 'hyperliquid:mainnet',
+        data: [{ symbol: 'BTC', name: 'Bitcoin', price: '50000' }],
+        timestamp: freshTimestamp - 60_000, // older than in-memory
+      };
+      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
+        (key: string) => {
+          if (key === PERPS_DISK_CACHE_MARKETS) {
+            return Promise.resolve(JSON.stringify(diskMarkets));
+          }
+          return Promise.resolve(null);
+        },
+      );
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      const cached =
+        controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
+      expect(cached?.data[0].symbol).toBe('ETH');
+      expect(cached?.timestamp).toBe(freshTimestamp);
+    });
+
+    it('handles corrupt disk JSON gracefully', async () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      (mockInfrastructure.diskCache.getItem as jest.Mock).mockResolvedValue(
+        'not valid json{{{',
+      );
+
+      controller.startMarketDataPreload();
+      await jest.advanceTimersByTimeAsync(100);
+
+      // Corrupt JSON is silently ignored — no market data hydrated from disk
+      expect(
+        controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'],
+      ).toBeUndefined();
+    });
   });
 
   describe('performMarketDataPreload', () => {
@@ -5382,6 +5579,25 @@ describe('PerpsController', () => {
       expect(result).toBeNull();
     });
 
+    it('returns expired data when skipTTL is true', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+        state.cachedMarketDataByProvider['hyperliquid:mainnet'] = {
+          data: [{ symbol: 'BTC', name: 'BTC', price: '50000' } as any],
+          timestamp: Date.now() - 999_999_999, // very old
+        };
+      });
+
+      const result = controller.getCachedMarketDataForActiveProvider({
+        skipTTL: true,
+      });
+
+      expect(result).toHaveLength(1);
+      expect(result?.[0].symbol).toBe('BTC');
+    });
+
     it('assembles data from multiple providers in aggregated mode', () => {
       const mockMYXProvider = createMockHyperLiquidProvider();
       markControllerAsInitialized();
@@ -5575,6 +5791,31 @@ describe('PerpsController', () => {
       const result = controller.getCachedUserDataForActiveProvider();
 
       expect(result).toBeNull();
+    });
+
+    it('returns stale data when skipTTL is true', () => {
+      const mockPosition = createMockPosition({ symbol: 'BTC', size: '1.0' });
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      controller.testUpdate((state) => {
+        state.activeProvider = 'hyperliquid';
+        state.cachedUserDataByProvider['hyperliquid:mainnet'] = {
+          positions: [mockPosition],
+          orders: [],
+          accountState: null,
+          timestamp: Date.now() - 999_999_999, // very old
+          address: mockAddress,
+        };
+      });
+
+      const withoutSkip = controller.getCachedUserDataForActiveProvider();
+      const withSkip = controller.getCachedUserDataForActiveProvider({
+        skipTTL: true,
+      });
+
+      expect(withoutSkip).toBeNull();
+      expect(withSkip).not.toBeNull();
+      expect(withSkip?.positions).toHaveLength(1);
     });
   });
 
