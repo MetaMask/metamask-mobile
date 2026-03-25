@@ -4696,6 +4696,35 @@ describe('PerpsController', () => {
       expect(controller.state.activeProvider).toBe('hyperliquid');
     });
 
+    it('registers MYX provider via init when MYX is enabled', async () => {
+      // Arrange — enable MYX via clientConfig
+      const testInfrastructure = createMockInfrastructure();
+      const myxMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return { remoteFeatureFlags: {} };
+        }
+        return undefined;
+      });
+
+      const myxController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: myxMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: testInfrastructure,
+        clientConfig: {
+          providerCredentials: {
+            myx: { enabled: true },
+          },
+        },
+      });
+
+      // Act
+      await myxController.init();
+
+      // Assert — MYX provider was registered via the require() + registerMYXProvider path
+      const providers = myxController.testGetProviders();
+      expect(providers.has('myx')).toBe(true);
+    });
+
     it('registerMYXProvider creates and registers the MYX provider', () => {
       // Arrange
       const mockMYXInstance = createMockHyperLiquidProvider();
