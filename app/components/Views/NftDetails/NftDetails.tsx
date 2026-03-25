@@ -47,9 +47,6 @@ import { renderShortText } from '../../../util/general';
 import { prefixUrlWithProtocol } from '../../../util/browser';
 import { formatTimestampToYYYYMMDD } from '../../../util/date';
 import MAX_TOKEN_ID_LENGTH from './nftDetails.utils';
-import Engine from '../../../core/Engine';
-import { toHex } from '@metamask/controller-utils';
-import { Hex } from '@metamask/utils';
 import { InitSendLocation } from '../confirmations/constants/send';
 import { useSendNavigation } from '../confirmations/hooks/useSendNavigation';
 
@@ -174,23 +171,6 @@ const NftDetails = () => {
   const onSend = useCallback(async () => {
     setIsSending(true);
     try {
-      const chainIdHex = toHex(collectible?.chainId as number) as Hex;
-      if (chainIdHex !== chainId) {
-        const { NetworkController, MultichainNetworkController } =
-          Engine.context;
-        const networkConfiguration =
-          NetworkController.getNetworkConfigurationByChainId(chainIdHex);
-
-        const networkClientId =
-          networkConfiguration?.rpcEndpoints?.[
-            networkConfiguration.defaultRpcEndpointIndex
-          ]?.networkClientId;
-
-        await MultichainNetworkController.setActiveNetwork(
-          networkClientId as string,
-        );
-      }
-
       navigateToSendPage({
         location: InitSendLocation.NftDetails,
         asset: collectible,
@@ -198,7 +178,7 @@ const NftDetails = () => {
     } finally {
       setIsSending(false);
     }
-  }, [collectible, chainId, navigateToSendPage]);
+  }, [collectible, navigateToSendPage]);
 
   const isTradable = useCallback(
     () =>
