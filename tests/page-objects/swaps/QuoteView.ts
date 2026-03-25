@@ -186,10 +186,6 @@ class QuoteView {
             this.getTokenElementId(chainId, symbol),
           );
         }
-        tokenElement = await PlaywrightMatchers.getElementById(
-          this.getTokenElementId(chainId, symbol),
-          { exact: false },
-        );
         await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
           timeout: TIMEOUT.TOKEN_SELECT,
           description: `Token ${symbol} should be visible`,
