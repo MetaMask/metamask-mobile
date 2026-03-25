@@ -1,6 +1,10 @@
 import { execFileSync, spawn } from 'child_process';
 import { rmSync } from 'fs';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
+import MockServerE2E from '../../api-mocking/MockServerE2E';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
 import { buildFromTag } from '../fixtures/presets';
 import { parseFixtureTag } from './parse-fixture-tag';
 import { rewriteFlowForCapture } from './rewrite-flow';
@@ -11,6 +15,10 @@ const APP_BUNDLE_ID = 'io.metamask.MetaMask';
 // This avoids the need to pass dynamic ports via xcrun simctl launch args, which
 // react-native-launch-arguments doesn't reliably pick up outside of Detox.
 const FIXTURE_SERVER_PORT = 12345;
+
+// The app's shim.js defaults to this port for the mock server when LaunchArguments
+// are unavailable. Matches FALLBACK_MOCKSERVER_PORT from tests/framework/Constants.ts.
+const MOCK_SERVER_PORT = 8000;
 
 export interface RunFlowOptions {
   flowPath: string;
@@ -73,6 +81,7 @@ function killProcessOnPort(port: number): void {
 export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
   const { flowPath, deviceUdid, updateBaselines } = options;
   const fixtureServer = new FixtureServer();
+  const mockServer = new MockServerE2E({ events: DEFAULT_MOCKS });
   let tempFlowPath: string | null = null;
 
   try {
@@ -89,32 +98,29 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     // 2. Build fixture
     const fixture = buildFromTag(fixtureTag);
 
-    // 3. Start fixture server on the well-known fallback port.
-    // We use a fixed port because react-native-launch-arguments doesn't reliably
-    // receive args from xcrun simctl launch (it works with Detox but not standalone).
-    // The app's ReadOnlyNetworkStore defaults to FALLBACK_FIXTURE_SERVER_PORT (12345)
-    // when no launch arg is provided, so we bind to the same port.
-    //
-    // Kill any stale server on this port from a prior crashed run.
+    // 3. Start mock server for deterministic API responses and feature flags.
+    // The app's shim.js auto-detects this via health check on localhost:8000
+    // and proxies all HTTP traffic through it, giving us stable UI state.
+    killProcessOnPort(MOCK_SERVER_PORT);
+    mockServer.setServerPort(MOCK_SERVER_PORT);
+    await mockServer.start();
+    await mockNotificationServices(mockServer.server);
+    await setupRemoteFeatureFlagsMock(mockServer.server);
+    console.log(`  Mock server started on port ${MOCK_SERVER_PORT}`);
+
+    // 4. Start fixture server on the well-known fallback port.
     killProcessOnPort(FIXTURE_SERVER_PORT);
     fixtureServer.setServerPort(FIXTURE_SERVER_PORT);
     await fixtureServer.start();
-
-    // Load fixture state into the server.
-    // Note: We call loadJsonState directly rather than the loadFixture helper from
-    // FixtureHelper.ts, because loadFixture also updates RPC/dapp/mock server URLs
-    // with allocated ports. Visual tests don't use Anvil/Ganache/MockServer, so
-    // those URL substitutions are unnecessary and would fail (no ports allocated).
     fixtureServer.loadJsonState(fixture, null);
-
     console.log(`  Fixture server started on port ${FIXTURE_SERVER_PORT}`);
 
-    // 4. The flow itself handles app launch via Maestro's clearState + launchApp
+    // 5. The flow itself handles app launch via Maestro's clearState + launchApp
     //    commands, which ensures the app starts fresh and refetches from the fixture
     //    server. We just terminate any stale instance before Maestro takes over.
     terminateApp(deviceUdid);
 
-    // 5. Determine which flow file to pass to Maestro
+    // 6. Determine which flow file to pass to Maestro
     let maestroFlowPath = flowPath;
     if (updateBaselines) {
       tempFlowPath = rewriteFlowForCapture(flowPath);
@@ -124,8 +130,8 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
       );
     }
 
-    // 6. Run Maestro (async spawn so the Node event loop stays unblocked
-    //    and the fixture server can serve requests while Maestro runs)
+    // 7. Run Maestro (async spawn so the Node event loop stays unblocked
+    //    and the fixture/mock servers can serve requests while Maestro runs)
     const maestroPassed = await new Promise<boolean>((resolve) => {
       const child = spawn(
         'maestro',
@@ -150,10 +156,14 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     // Teardown — always clean up to prevent zombie processes
     terminateApp(deviceUdid);
 
+    if (mockServer.isStarted()) {
+      await mockServer.stop();
+    }
+    killProcessOnPort(MOCK_SERVER_PORT);
+
     if (fixtureServer.isStarted()) {
       await fixtureServer.stop();
     }
-    // Safety net: kill anything still on the fixture port (e.g. if stop() failed)
     killProcessOnPort(FIXTURE_SERVER_PORT);
 
     if (tempFlowPath) {
