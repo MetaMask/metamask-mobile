@@ -1283,10 +1283,13 @@ export class MYXProvider implements PerpsProvider {
       // Determine close size — keep as string to avoid float precision loss.
       // parseFloat round-trips lose least-significant digits, leaving dust
       // when the 18-decimal integer is reconstructed by toMYXSize().
-      // Treat empty string as "close full position" (same as undefined)
-      const closeSizeStr =
+      // Treat empty string as "close full position" (same as undefined).
+      // Math.abs: adapted positions carry sign convention (negative for shorts)
+      // but SDK expects unsigned size — direction is determined from rawPos.
+      const rawSizeStr =
         (params.size === '' ? undefined : params.size) ?? rawPos.size;
-      const closeSizeNum = Number.parseFloat(closeSizeStr);
+      const closeSizeNum = Math.abs(Number.parseFloat(rawSizeStr));
+      const closeSizeStr = String(closeSizeNum);
 
       if (!closeSizeNum || Number.isNaN(closeSizeNum)) {
         return {
