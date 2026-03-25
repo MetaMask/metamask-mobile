@@ -272,9 +272,10 @@ class PerformanceReporter {
           metricsEntry.failureReason = result.status;
         }
 
-        // Ensure consistent device info
-        const deviceInfo: DeviceInfo = DeviceInfoExtractor.extract(test);
-        metricsEntry.device = deviceInfo;
+        // Ensure consistent device info — prefer what the tracker already embedded
+        if (!metricsEntry.device || metricsEntry.device.name === 'Unknown') {
+          metricsEntry.device = DeviceInfoExtractor.extract(test);
+        }
 
         // Ensure team info is included
         if (!metricsEntry.team) {
