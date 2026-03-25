@@ -203,6 +203,12 @@ export class MYXProvider implements PerpsProvider {
   // Ticker cache for price data
   readonly #tickersCache: Map<string, MYXTicker> = new Map();
 
+  // Pool-level config cache (min order sizes) — refreshed every 60s
+  readonly #poolConfigCache: Map<
+    string,
+    { minOrderSizeInUsd: number; timestamp: number }
+  > = new Map();
+
   // Market detail cache (funding rate, OI, volume, oracle price) — refreshed every 60s
   readonly #marketDetailCache: Map<
     string,
@@ -426,6 +432,7 @@ export class MYXProvider implements PerpsProvider {
       this.#poolsCache = [];
       this.#poolSymbolMap.clear();
       this.#tickersCache.clear();
+      this.#poolConfigCache.clear();
 
       return { success: true };
     } catch (caughtError) {
@@ -602,13 +609,27 @@ export class MYXProvider implements PerpsProvider {
       this.#poolsCache = filterMYXExclusiveMarkets(pools);
       this.#poolSymbolMap = buildPoolSymbolMap(this.#poolsCache);
 
-      // Fetch per-pool minimum order sizes in parallel
+      // Fetch per-pool minimum order sizes in parallel (cached for 60s)
+      const now = Date.now();
       const poolMinSizes = await Promise.all(
         this.#poolsCache.map(async (pool) => {
+          const cached = this.#poolConfigCache.get(pool.poolId);
+          if (
+            cached &&
+            now - cached.timestamp < MYX_MARKET_DETAIL_CACHE_TTL_MS
+          ) {
+            return cached.minOrderSizeInUsd > 0
+              ? cached.minOrderSizeInUsd
+              : undefined;
+          }
           try {
             const config = await this.#clientService.getPoolLevelConfig(
               pool.poolId,
             );
+            this.#poolConfigCache.set(pool.poolId, {
+              minOrderSizeInUsd: config.minOrderSizeInUsd,
+              timestamp: now,
+            });
             return config.minOrderSizeInUsd > 0
               ? config.minOrderSizeInUsd
               : undefined;
