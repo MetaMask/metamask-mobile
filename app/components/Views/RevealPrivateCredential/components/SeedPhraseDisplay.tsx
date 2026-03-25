@@ -1,20 +1,20 @@
 import React from 'react';
-import { FlatList, View } from 'react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
-import Text, {
+import { FlatList } from 'react-native';
+import {
+  Box,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-import { Box } from '../../../UI/Box/Box';
-import {
-  AlignItems,
-  FlexDirection,
-  JustifyContent,
-} from '../../../UI/Box/box.types';
-import { IconName as IconNameLibrary } from '../../../../component-library/components/Icons/Icon';
+  TextButton,
+  TextButtonSize,
+  IconName,
+  BoxFlexDirection,
+  BoxAlignItems,
+  BoxJustifyContent,
+  BoxBorderColor,
+  BoxBackgroundColor,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { ManualBackUpStepsSelectorsIDs } from '../../ManualBackupStep1/ManualBackUpSteps.testIds';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
@@ -25,58 +25,69 @@ const SeedPhraseDisplay = ({
   showSeedPhrase,
   clipboardEnabled,
   onCopyToClipboard,
-  styles,
 }: SeedPhraseDisplayProps) => (
   <Box
-    style={styles.seedPhraseListContainer}
-    flexDirection={FlexDirection.Column}
-    alignItems={AlignItems.center}
-    justifyContent={JustifyContent.center}
-    gap={12}
+    twClassName="flex-1 w-full h-full gap-y-4"
+    flexDirection={BoxFlexDirection.Column}
+    alignItems={BoxAlignItems.Center}
+    justifyContent={BoxJustifyContent.Center}
   >
-    <View style={styles.seedPhraseContainer}>
+    <Box twClassName="min-h-[200px] flex-1 w-full h-full">
       <FlatList
         data={words}
         numColumns={3}
         keyExtractor={(_, index) => index.toString()}
         renderItem={({ item, index }) => (
-          <View style={[styles.inputContainer]}>
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            borderWidth={1}
+            borderColor={BoxBorderColor.BorderMuted}
+            paddingHorizontal={2}
+            paddingVertical={1}
+            backgroundColor={BoxBackgroundColor.BackgroundMuted}
+            margin={1}
+            twClassName="flex-1 rounded-lg h-10 gap-x-1.5"
+          >
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Alternative}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
               maxFontSizeMultiplier={1}
             >
               {index + 1}.
             </Text>
             <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Default}
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextDefault}
               key={index}
               ellipsizeMode="tail"
               numberOfLines={1}
               maxFontSizeMultiplier={1}
-              style={styles.word}
+              twClassName="flex-1"
               testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
             >
               {item}
             </Text>
-          </View>
+          </Box>
         )}
       />
-    </View>
+    </Box>
     {clipboardEnabled ? (
-      <Button
-        label={strings('reveal_credential.copy_to_clipboard')}
-        variant={ButtonVariants.Link}
-        size={ButtonSize.Sm}
+      <TextButton
+        size={TextButtonSize.BodyMd}
         onPress={onCopyToClipboard}
         testID={
           RevealSeedViewSelectorsIDs.REVEAL_CREDENTIAL_COPY_TO_CLIPBOARD_BUTTON
         }
-        style={styles.clipboardButton}
-        startIconName={IconNameLibrary.Copy}
-        disabled={!showSeedPhrase}
-      />
+        twClassName="self-center w-full flex-1 items-center justify-center mb-2"
+        startIconName={IconName.Copy}
+        startIconProps={{
+          size: IconSize.Md,
+        }}
+        isDisabled={!showSeedPhrase}
+      >
+        {strings('reveal_credential.copy_to_clipboard')}
+      </TextButton>
     ) : null}
   </Box>
 );
