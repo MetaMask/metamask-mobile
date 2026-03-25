@@ -335,7 +335,10 @@ export function usePerpsTPSLForm(
         return;
 
       if (
-        hasExceededSignificantFigures(sanitized) &&
+        hasExceededSignificantFigures(
+          sanitized,
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        ) &&
         sanitized.length >= takeProfitPrice.length
       )
         return;
@@ -442,7 +445,10 @@ export function usePerpsTPSLForm(
         return;
 
       if (
-        hasExceededSignificantFigures(sanitized) &&
+        hasExceededSignificantFigures(
+          sanitized,
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        ) &&
         sanitized.length >= stopLossPrice.length
       )
         return;

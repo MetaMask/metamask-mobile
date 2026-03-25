@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useRef, useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -9,7 +9,6 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -34,6 +33,7 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
+  DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -110,16 +110,20 @@ const PerpsTPSLView: React.FC = () => {
     orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
   const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
 
-  useEffect(() => {
-    DevLogger.log(
-      '[PR-27901] BUG_MARKER: keypadDecimals=' +
-        TP_SL_VIEW_CONFIG.KeypadDecimals +
-        ' currentPrice=' +
-        currentPrice +
-        ' asset=' +
-        asset,
-    );
-  }, [currentPrice, asset]);
+  // Compute keypad decimal places from current price so low-value assets
+  // (e.g. PUMP at ~$0.002) get enough decimal places to enter a trigger price.
+  // Formula: floor(-log10(price)) + MaxSignificantFigures, clamped to [2, MaxPriceDecimals].
+  const keypadDecimals =
+    currentPrice > 0 && isFinite(currentPrice)
+      ? Math.min(
+          Math.max(
+            2,
+            Math.floor(-Math.log10(currentPrice)) +
+              DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+          ),
+          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
+        )
+      : DECIMAL_PRECISION_CONFIG.MaxPriceDecimals;
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
@@ -881,7 +885,7 @@ const PerpsTPSLView: React.FC = () => {
                 })()}
                 onChange={handleKeypadChange}
                 currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
-                decimals={TP_SL_VIEW_CONFIG.KeypadDecimals}
+                decimals={keypadDecimals}
               />
             </View>
           </>
