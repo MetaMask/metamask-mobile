@@ -314,24 +314,27 @@ describe('CustomAmountInfo', () => {
     });
   });
 
-  it('renders alternate confirm label if predict withdraw', async () => {
-    useTransactionMetadataRequestMock.mockReturnValue({
-      type: TransactionType.predictWithdraw,
-      txParams: { from: '0x123' },
-    } as never);
+  it.each([TransactionType.predictWithdraw, TransactionType.perpsWithdraw])(
+    'renders the withdraw confirm label for %s transactions',
+    async (transactionType) => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        type: transactionType,
+        txParams: { from: '0x123' },
+      } as never);
 
-    const { getByText, findByText } = render({
-      transactionType: TransactionType.predictWithdraw,
-    });
+      const { getByText, findByText } = render({ transactionType });
 
-    await act(async () => {
-      fireEvent.press(getByText(strings('confirm.edit_amount_done')));
-    });
+      await act(async () => {
+        fireEvent.press(getByText(strings('confirm.edit_amount_done')));
+      });
 
-    expect(
-      await findByText(strings('confirm.deposit_edit_amount_predict_withdraw')),
-    ).toBeDefined();
-  });
+      expect(
+        await findByText(
+          strings('confirm.deposit_edit_amount_predict_withdraw'),
+        ),
+      ).toBeOnTheScreen();
+    },
+  );
 
   it('calls overrideContent with amountHuman and hides default content', () => {
     const mockOverrideContent = jest.fn().mockReturnValue(null);
