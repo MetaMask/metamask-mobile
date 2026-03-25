@@ -177,6 +177,9 @@ class PerpsConnectionManagerClass {
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
 
+        // Reset throttle so the next data arrival persists immediately
+        streamManager.resetDiskCacheThrottles();
+
         // Invalidate disk-persisted cold-start cache (fire-and-forget)
         if (accountOnly) {
           StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(

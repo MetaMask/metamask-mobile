@@ -1609,6 +1609,11 @@ export class PerpsStreamManager {
   private marketDiskWriteTime = 0;
   private userDiskWriteTime = 0;
 
+  resetDiskCacheThrottles(): void {
+    this.marketDiskWriteTime = 0;
+    this.userDiskWriteTime = 0;
+  }
+
   /**
    * Persist current market data snapshot to disk (throttled).
    * Called after MarketDataChannel receives fresh data.
