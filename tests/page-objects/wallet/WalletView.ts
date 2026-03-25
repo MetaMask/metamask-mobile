@@ -17,6 +17,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import Utilities from '../../framework/Utilities';
 import {
   encapsulated,
@@ -234,6 +235,80 @@ class WalletView {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
       1,
+    );
+  }
+  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  }
+
+  get walletSwapButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+          ),
+      },
+    });
+  }
+
+  get walletBridgeButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
+  }
+
+  get walletSendButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  }
+
+  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
+  get musdConversionCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
+    );
+  }
+
+  get getMusdButton(): DetoxElement {
+    return Matchers.getElementByText('Get mUSD');
+  }
+
+  get getStartedButton(): DetoxElement {
+    return Matchers.getElementByText('Get Started');
+  }
+
+  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
+  get tokenListItemConvertToMusdCta(): DetoxElement {
+    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
+  }
+
+  get assetOverviewMusdCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
+    );
+  }
+
+  get walletReceiveButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
+    );
+  }
+  // Balance Empty State - displayed when account group has zero balance across all networks
+  get balanceEmptyStateContainer(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
+    );
+  }
+
+  get balanceEmptyStateActionButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
     );
   }
   getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
@@ -929,84 +1004,29 @@ class WalletView {
     }
   }
 
-  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
-  }
-
-  get walletSwapButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-          ),
-      },
-    });
-  }
-
-  get walletBridgeButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
-  }
-
-  get walletSendButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
-  }
-
-  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
-  get musdConversionCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
-    );
-  }
-
-  get getMusdButton(): DetoxElement {
-    return Matchers.getElementByText('Get mUSD');
-  }
-
-  get getStartedButton(): DetoxElement {
-    return Matchers.getElementByText('Get Started');
-  }
-
-  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
-  get tokenListItemConvertToMusdCta(): DetoxElement {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
-  }
-
-  get assetOverviewMusdCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
-    );
-  }
-
-  get walletReceiveButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
-    );
-  }
-  // Balance Empty State - displayed when account group has zero balance across all networks
-  get balanceEmptyStateContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
-    );
-  }
-
-  get balanceEmptyStateActionButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
-    );
-  }
-
   async tapWalletBuyButton(): Promise<void> {
     await Gestures.waitAndTap(this.walletBuyButton, {
       elemDescription: 'Wallet Buy Button',
+    });
+  }
+
+  async waitForScreenToDisplay(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(this.container, {
+          timeout: 30000,
+          description: 'Wallet view should be visible',
+        });
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.walletSwapButton),
+          {
+            timeout: 30000,
+            description: 'Wallet swap button should be visible',
+          },
+        );
+      },
     });
   }
 

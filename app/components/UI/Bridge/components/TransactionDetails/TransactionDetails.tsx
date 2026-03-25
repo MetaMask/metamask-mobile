@@ -25,9 +25,7 @@ import { StyleSheet, TouchableOpacity } from 'react-native';
 import { calcHexGasTotal } from '../../utils/transactionGas';
 import { strings } from '../../../../../../locales/i18n';
 import BridgeStepList from './BridgeStepList';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Routes from '../../../../../constants/navigation/Routes';
 import { BridgeToken } from '../../types';
 import {
@@ -417,8 +415,7 @@ export const BridgeTransactionDetails = (
         {isIntentNotCompletedItem || (
           <Button
             style={styles.blockExplorerButton}
-            variant={ButtonVariants.Secondary}
-            label={strings('bridge_transaction_details.view_on_block_explorer')}
+            variant={ButtonVariant.Secondary}
             onPress={() => {
               // For swaps, go directly to block explorer web view
               if (isSwap && swapSrcExplorerData?.explorerTxUrl) {
@@ -440,7 +437,9 @@ export const BridgeTransactionDetails = (
                 });
               }
             }}
-          />
+          >
+            {strings('bridge_transaction_details.view_on_block_explorer')}
+          </Button>
         )}
       </Box>
     </ScreenView>

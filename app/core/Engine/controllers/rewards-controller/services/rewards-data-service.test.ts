@@ -4491,6 +4491,112 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getOndoCampaignLeaderboard', () => {
+    const mockCampaignId = 'campaign-ondo-123';
+    const mockLeaderboard = {
+      campaign_id: mockCampaignId,
+      computed_at: '2024-03-20T12:00:00.000Z',
+      tiers: {
+        STARTER: { entries: [], total_participants: 100 },
+        MID: { entries: [], total_participants: 50 },
+      },
+    };
+
+    beforeEach(() => {
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockLeaderboard),
+      } as unknown as Response);
+    });
+
+    it('calls the correct public endpoint with GET and returns leaderboard data', async () => {
+      const result = await service.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/leaderboard`,
+        expect.objectContaining({
+          method: 'GET',
+        }),
+      );
+      expect(result).toEqual(mockLeaderboard);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignLeaderboard(mockCampaignId),
+      ).rejects.toThrow('Get campaign leaderboard failed: 500');
+    });
+  });
+
+  describe('getOndoCampaignLeaderboardPosition', () => {
+    const mockCampaignId = 'campaign-ondo-456';
+    const mockSubscriptionId = 'sub-789';
+    const mockToken = 'test-bearer-token';
+    const mockPosition = {
+      projected_tier: 'MID',
+      rank: 5,
+      total_in_tier: 150,
+      rate_of_return: 0.15,
+      current_usd_value: 12500.5,
+      total_usd_deposited: 10000.0,
+      net_deposit: 8500.0,
+      computed_at: '2024-03-20T12:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPosition),
+      } as unknown as Response);
+    });
+
+    it('calls the correct authenticated endpoint with GET and returns position', async () => {
+      const result = await service.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/leaderboard/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockPosition);
+    });
+
+    it('returns null when response status is 404', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      const result = await service.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('throws when response is not ok with non-404 status', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get campaign leaderboard position failed: 500');
+    });
+  });
+
   describe('getClientVersionRequirements', () => {
     const mockVersionRequirements = {
       minimumMobileVersion: '7.72.0',

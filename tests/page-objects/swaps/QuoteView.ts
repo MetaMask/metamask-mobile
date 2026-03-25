@@ -3,6 +3,7 @@ import {
   Assertions,
   Gestures,
   Matchers,
+  PlaywrightAssertions,
   PlaywrightMatchers,
   UnifiedGestures,
   encapsulated,
@@ -191,7 +192,10 @@ class QuoteView {
           this.getTokenElementId(chainId, symbol),
           { exact: false },
         );
-        await tokenElement.waitForDisplayed({ timeout: TIMEOUT.TOKEN_SELECT });
+        await PlaywrightAssertions.expectElementToBeVisible(tokenElement, {
+          timeout: TIMEOUT.TOKEN_SELECT,
+          description: `Token ${symbol} should be visible`,
+        });
         await tokenElement.click();
       },
     });
@@ -280,8 +284,9 @@ class QuoteView {
       appium: async () => {
         const networkElement =
           await PlaywrightMatchers.getElementByCatchAll(network);
-        await networkElement.waitForDisplayed({
+        await PlaywrightAssertions.expectElementToBeVisible(networkElement, {
           timeout: TIMEOUT.NETWORK_SELECT,
+          description: `Network ${network} should be visible`,
         });
         await networkElement.click();
       },
@@ -329,8 +334,13 @@ class QuoteView {
         );
       },
       appium: async () => {
-        const el = await asPlaywrightElement(this.amountInput);
-        await el.waitForDisplayed({ timeout: TIMEOUT.SWAP_SCREEN_VISIBLE });
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.amountInput),
+          {
+            timeout: TIMEOUT.SWAP_SCREEN_VISIBLE,
+            description: 'Swap screen source token input should be visible',
+          },
+        );
       },
     });
   }
@@ -351,8 +361,13 @@ class QuoteView {
         );
       },
       appium: async () => {
-        const el = await asPlaywrightElement(this.feeDisclaimerLabel);
-        await el.waitForDisplayed({ timeout: TIMEOUT.QUOTE_DISPLAYED });
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.feeDisclaimerLabel),
+          {
+            timeout: TIMEOUT.QUOTE_DISPLAYED,
+            description: 'Fee disclaimer (quote) should be visible',
+          },
+        );
       },
     });
   }
@@ -385,7 +400,10 @@ class QuoteView {
         });
         for (const digit of amount) {
           const digitEl = await PlaywrightMatchers.getElementByText(digit);
-          await digitEl.waitForDisplayed({ timeout: TIMEOUT.KEYPAD_DIGIT });
+          await PlaywrightAssertions.expectElementToBeVisible(digitEl, {
+            timeout: TIMEOUT.KEYPAD_DIGIT,
+            description: `Keypad digit ${digit} should be visible`,
+          });
           await digitEl.click();
         }
       },
