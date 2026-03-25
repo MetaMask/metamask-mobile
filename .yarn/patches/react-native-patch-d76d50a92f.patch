@@ -26,7 +26,7 @@ index 283d16b5f751040c051c98f38f140b5896f4a3e0..d4ff6f54122d1c33ed871318b4550599
 +++ b/settings.gradle.kts
 @@ -24,8 +24,3 @@ rootProject.name = "react-native-build-from-source"
  include(":packages:react-native:ReactAndroid")
- 
+
  project(":packages:react-native:ReactAndroid").projectDir = file("ReactAndroid/")
 -
 -include(":packages:react-native:ReactAndroid:hermes-engine")
