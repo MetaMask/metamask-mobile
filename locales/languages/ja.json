@@ -7872,6 +7872,7 @@
     "active_boosts_title": "有効なブースト",
     "season_1": "シーズン1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSDボーナス計算ツール",
       "description": "ステーブルコインをmUSDに交換することで、どれだけの利益が得られるか確認しましょう。",
       "amount_label": "変換金額",

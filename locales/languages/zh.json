@@ -7872,6 +7872,7 @@
     "active_boosts_title": "活跃加成",
     "season_1": "第 1 季",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD 奖励计算器",
       "description": "看看您将稳定币兑换为 mUSD 能赚取多少收益。",
       "amount_label": "已兑换金额",
