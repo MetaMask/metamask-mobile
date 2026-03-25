@@ -22,6 +22,9 @@ import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import OldButton, {
+  ButtonVariants as OldButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
@@ -354,14 +357,13 @@ export const TokenInputArea = forwardRef<
                     tokenBalance &&
                     onMaxPress &&
                     shouldShowMaxButton && (
-                      <Button
-                        variant={ButtonVariant.Tertiary}
+                      <OldButton
+                        variant={OldButtonVariants.Link}
+                        label={strings('bridge.max')}
                         onPress={onMaxPress}
-                        isDisabled={!subtitle}
+                        disabled={!subtitle}
                         testID="token-input-area-max-button"
-                      >
-                        {strings('bridge.max')}
-                      </Button>
+                      />
                     )}
                 </Box>
               </>
