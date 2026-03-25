@@ -1,0 +1,11 @@
+{
+  "extends": "../../tsconfig.json",
+  "compilerOptions": {
+    "paths": {
+      "@metamask/native-utils": [
+        "../../app/__mocks__/@metamask/native-utils.js"
+      ]
+    }
+  },
+  "include": ["orchestrator/**/*.ts", "fixtures/**/*.ts"]
+}

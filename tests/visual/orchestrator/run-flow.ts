@@ -1,13 +1,16 @@
-import { execFileSync } from 'child_process';
+import { execFileSync, spawn } from 'child_process';
 import { rmSync } from 'fs';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
-import { startResourceWithRetry } from '../../framework/fixtures/FixtureUtils';
-import { ResourceType } from '../../framework/PortManager';
 import { buildFromTag } from '../fixtures/presets';
 import { parseFixtureTag } from './parse-fixture-tag';
 import { rewriteFlowForCapture } from './rewrite-flow';
 
 const APP_BUNDLE_ID = 'io.metamask.MetaMask';
+
+// Use the same fallback port the app defaults to when LaunchArguments are unavailable.
+// This avoids the need to pass dynamic ports via xcrun simctl launch args, which
+// react-native-launch-arguments doesn't reliably pick up outside of Detox.
+const FIXTURE_SERVER_PORT = 12345;
 
 export interface RunFlowOptions {
   flowPath: string;
@@ -28,6 +31,33 @@ function terminateApp(deviceUdid: string): void {
     });
   } catch {
     // App may not be running — ignore
+  }
+}
+
+/**
+ * Kill any stale process listening on the given port.
+ * Prevents "address in use" errors and zombie servers from prior crashed runs.
+ */
+function killProcessOnPort(port: number): void {
+  try {
+    const output = execFileSync('lsof', ['-ti', `:${port}`], {
+      encoding: 'utf-8',
+    }).trim();
+    if (output) {
+      const pids = output.split('\n');
+      for (const pid of pids) {
+        try {
+          execFileSync('kill', [pid.trim()], { stdio: 'ignore' });
+        } catch {
+          // Process may have already exited
+        }
+      }
+      console.log(
+        `  Killed stale process(es) on port ${port}: ${pids.join(', ')}`,
+      );
+    }
+  } catch {
+    // No process on port — nothing to kill
   }
 }
 
@@ -59,12 +89,16 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     // 2. Build fixture
     const fixture = buildFromTag(fixtureTag);
 
-    // 3. Start fixture server using the battle-tested startResourceWithRetry utility.
-    // This handles port allocation, setServerPort, start(), and EADDRINUSE retry.
-    const port = await startResourceWithRetry(
-      ResourceType.FIXTURE_SERVER,
-      fixtureServer,
-    );
+    // 3. Start fixture server on the well-known fallback port.
+    // We use a fixed port because react-native-launch-arguments doesn't reliably
+    // receive args from xcrun simctl launch (it works with Detox but not standalone).
+    // The app's ReadOnlyNetworkStore defaults to FALLBACK_FIXTURE_SERVER_PORT (12345)
+    // when no launch arg is provided, so we bind to the same port.
+    //
+    // Kill any stale server on this port from a prior crashed run.
+    killProcessOnPort(FIXTURE_SERVER_PORT);
+    fixtureServer.setServerPort(FIXTURE_SERVER_PORT);
+    await fixtureServer.start();
 
     // Load fixture state into the server.
     // Note: We call loadJsonState directly rather than the loadFixture helper from
@@ -73,21 +107,12 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     // those URL substitutions are unnecessary and would fail (no ports allocated).
     fixtureServer.loadJsonState(fixture, null);
 
-    console.log(`  Fixture server started on port ${port}`);
+    console.log(`  Fixture server started on port ${FIXTURE_SERVER_PORT}`);
 
-    // 4. Terminate any existing app instance, then launch with fixture port
+    // 4. The flow itself handles app launch via Maestro's clearState + launchApp
+    //    commands, which ensures the app starts fresh and refetches from the fixture
+    //    server. We just terminate any stale instance before Maestro takes over.
     terminateApp(deviceUdid);
-
-    execFileSync('xcrun', [
-      'simctl',
-      'launch',
-      deviceUdid,
-      APP_BUNDLE_ID,
-      '--fixtureServerPort',
-      String(port),
-    ]);
-
-    console.log(`  App launched on ${deviceUdid}`);
 
     // 5. Determine which flow file to pass to Maestro
     let maestroFlowPath = flowPath;
@@ -99,32 +124,37 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
       );
     }
 
-    // 6. Run Maestro
-    try {
-      execFileSync(
+    // 6. Run Maestro (async spawn so the Node event loop stays unblocked
+    //    and the fixture server can serve requests while Maestro runs)
+    const maestroPassed = await new Promise<boolean>((resolve) => {
+      const child = spawn(
         'maestro',
         ['test', maestroFlowPath, '--device', deviceUdid, '--no-ansi'],
         { stdio: 'inherit' },
       );
+      child.on('close', (code: number | null) => resolve(code === 0));
+      child.on('error', () => resolve(false));
+    });
 
-      return { flowPath, passed: true };
-    } catch {
-      return {
-        flowPath,
-        passed: false,
-        error: 'Maestro test failed (screenshot mismatch or flow error)',
-      };
-    }
+    return maestroPassed
+      ? { flowPath, passed: true }
+      : {
+          flowPath,
+          passed: false,
+          error: 'Maestro test failed (screenshot mismatch or flow error)',
+        };
   } catch (err) {
     const message = err instanceof Error ? err.message : String(err);
     return { flowPath, passed: false, error: message };
   } finally {
-    // Teardown
+    // Teardown — always clean up to prevent zombie processes
     terminateApp(deviceUdid);
 
     if (fixtureServer.isStarted()) {
       await fixtureServer.stop();
     }
+    // Safety net: kill anything still on the fixture port (e.g. if stop() failed)
+    killProcessOnPort(FIXTURE_SERVER_PORT);
 
     if (tempFlowPath) {
       try {

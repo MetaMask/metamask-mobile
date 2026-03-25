@@ -1,0 +1,12 @@
+# Shared sub-flow: unlock the app with the fixture default password.
+# The fixture loads a pre-configured wallet, but the app still requires
+# password entry on launch. Default fixture password is "123123123".
+appId: io.metamask.MetaMask
+---
+
+- extendedWaitUntil:
+    visible: "Enter password"
+    timeout: 90000
+- tapOn: "Enter password"
+- inputText: "123123123"
+- tapOn: "Unlock"

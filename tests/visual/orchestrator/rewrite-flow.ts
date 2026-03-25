@@ -33,6 +33,19 @@ export function rewriteFlowForCapture(flowPath: string): string {
   const relativePath = path.relative(FLOWS_DIR, flowPath);
   const tempPath = path.join(TMP_DIR, relativePath);
   mkdirSync(path.dirname(tempPath), { recursive: true });
+
+  // Rewrite relative runFlow paths to absolute paths so they resolve correctly
+  // from the temp directory (the original relative paths are relative to flows/)
+  const originalDir = path.dirname(flowPath);
+  content = content.replace(
+    /(-\s+runFlow:\s+)([^\n]+\.yaml)/g,
+    (match, prefix, relPath) => {
+      if (path.isAbsolute(relPath)) return match;
+      const absPath = path.resolve(originalDir, relPath);
+      return `${prefix}${absPath}`;
+    },
+  );
+
   writeFileSync(tempPath, content, 'utf-8');
 
   return tempPath;

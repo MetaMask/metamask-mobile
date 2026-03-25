@@ -6,19 +6,23 @@ tags:
   - fixture:default
 ---
 
-# Wait for wallet home to load (fixture provides logged-in state).
-# This also ensures the screen has settled before any conditional runFlow,
-# since runFlow's when: visible: check is instant and does not wait.
-#
-# testID from: e2e/selectors/wallet/WalletView.selectors.js
+# Clear app state and relaunch so ReadOnlyNetworkStore refetches from fixture server.
+- clearState
+- launchApp
+
+# Dismiss developer screens (debug builds only)
+- runFlow: ../shared/dismiss-dev-screens.yaml
+
+# Unlock the app with fixture default password
+- runFlow: ../shared/unlock-app.yaml
+
+# Wait for wallet home to load
 - extendedWaitUntil:
     visible:
       id: "wallet-screen"
-    timeout: 15000
+    timeout: 30000
 
 # Capture wallet home — tokens tab (default view)
 - assertScreenshot:
     path: ios/wallet/home-default.png
-    cropOn:
-      id: "wallet-screen"
     thresholdPercentage: 95
