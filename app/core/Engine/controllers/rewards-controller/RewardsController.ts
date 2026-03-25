@@ -3912,6 +3912,18 @@ export class RewardsController extends BaseController<
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
         delete state.subscriptionReferralDetails[compositeKey];
+        // Invalidate campaign data for this subscription (not season-specific)
+        delete state.campaigns[subscriptionId];
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
       });
     } else {
       // Invalidate all seasons for this subscription
@@ -3948,6 +3960,18 @@ export class RewardsController extends BaseController<
             OffDeviceSubscriptionAccountsState
           >
         )[subscriptionId];
+        // Invalidate campaign data for this subscription
+        delete state.campaigns[subscriptionId];
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
       });
     }
 

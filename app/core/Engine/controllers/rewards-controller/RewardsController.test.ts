@@ -18,6 +18,9 @@ import {
   type SeasonStateDto,
   SeasonRewardType,
   type LineaTokenRewardDto,
+  type CampaignsState,
+  type CampaignParticipantStatusState,
+  type CampaignLeaderboardPositionState,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -16857,6 +16860,147 @@ describe('RewardsController', () => {
         testController.state.subscriptionReferralDetails[compositeKey],
       ).toBeUndefined();
       expect(testController.state.pointsEvents[compositeKey]).toBeUndefined();
+    });
+
+    it('invalidates campaign and ondo leaderboard data when seasonId is provided', async () => {
+      // Arrange
+      const subscriptionId = 'test-subscription-id';
+      const seasonId = 'test-season-id';
+      const campaignId = 'test-campaign-id';
+
+      const initialState = getRewardsControllerDefaultState();
+      const seasonCompositeKey = `${seasonId}:${subscriptionId}`;
+      const campaignCompositeKey = `${subscriptionId}:${campaignId}`;
+
+      initialState.seasonStatuses[seasonCompositeKey] = {} as SeasonStatusState;
+      initialState.campaigns[subscriptionId] = {
+        campaigns: [
+          {
+            id: campaignId,
+            type: CampaignType.ONDO_HOLDING,
+            name: 'Test Campaign',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            excludedRegions: [],
+            statusLabel: null,
+            details: null,
+            isFeatured: false,
+          },
+        ],
+        lastFetched: Date.now(),
+      } as CampaignsState;
+      initialState.campaignParticipantStatus[campaignCompositeKey] = {
+        optedIn: true,
+        participantCount: 10,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.ondoCampaignLeaderboardPositions[campaignCompositeKey] = {
+        projected_tier: 'MID',
+        rank: 5,
+        total_in_tier: 100,
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      // Act
+      testController.invalidateSubscriptionCache(subscriptionId, seasonId);
+
+      // Assert - season data cleared
+      expect(
+        testController.state.seasonStatuses[seasonCompositeKey],
+      ).toBeUndefined();
+      // Assert - campaign data cleared
+      expect(testController.state.campaigns[subscriptionId]).toBeUndefined();
+      expect(
+        testController.state.campaignParticipantStatus[campaignCompositeKey],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[
+          campaignCompositeKey
+        ],
+      ).toBeUndefined();
+    });
+
+    it('invalidates campaign and ondo leaderboard data when no seasonId is provided', async () => {
+      // Arrange
+      const subscriptionId = 'test-subscription-id';
+      const otherSubscriptionId = 'other-subscription-id';
+      const campaignId1 = 'campaign-1';
+      const campaignId2 = 'campaign-2';
+
+      const initialState = getRewardsControllerDefaultState();
+      const campaignKey1 = `${subscriptionId}:${campaignId1}`;
+      const campaignKey2 = `${subscriptionId}:${campaignId2}`;
+      const otherCampaignKey = `${otherSubscriptionId}:${campaignId1}`;
+
+      initialState.campaigns[subscriptionId] = {
+        campaigns: [],
+        lastFetched: Date.now(),
+      } as CampaignsState;
+      initialState.campaigns[otherSubscriptionId] = {
+        campaigns: [],
+        lastFetched: Date.now(),
+      } as CampaignsState;
+      initialState.campaignParticipantStatus[campaignKey1] = {
+        optedIn: true,
+        participantCount: 5,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.campaignParticipantStatus[campaignKey2] = {
+        optedIn: false,
+        participantCount: 3,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.campaignParticipantStatus[otherCampaignKey] = {
+        optedIn: true,
+        participantCount: 7,
+        lastFetched: Date.now(),
+      } as CampaignParticipantStatusState;
+      initialState.ondoCampaignLeaderboardPositions[campaignKey1] = {
+        projected_tier: 'STARTER',
+        rank: 10,
+        total_in_tier: 200,
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+      initialState.ondoCampaignLeaderboardPositions[otherCampaignKey] = {
+        projected_tier: 'UPPER',
+        rank: 1,
+        total_in_tier: 50,
+        lastFetched: Date.now(),
+      } as CampaignLeaderboardPositionState;
+
+      const testController = new RewardsController({
+        messenger: mockMessenger,
+        state: initialState,
+      });
+
+      // Act
+      testController.invalidateSubscriptionCache(subscriptionId);
+
+      // Assert - target subscription campaign data cleared
+      expect(testController.state.campaigns[subscriptionId]).toBeUndefined();
+      expect(
+        testController.state.campaignParticipantStatus[campaignKey1],
+      ).toBeUndefined();
+      expect(
+        testController.state.campaignParticipantStatus[campaignKey2],
+      ).toBeUndefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[campaignKey1],
+      ).toBeUndefined();
+
+      // Assert - other subscription data untouched
+      expect(testController.state.campaigns[otherSubscriptionId]).toBeDefined();
+      expect(
+        testController.state.campaignParticipantStatus[otherCampaignKey],
+      ).toBeDefined();
+      expect(
+        testController.state.ondoCampaignLeaderboardPositions[otherCampaignKey],
+      ).toBeDefined();
     });
   });
 
