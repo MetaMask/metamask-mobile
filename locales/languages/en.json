@@ -7956,7 +7956,7 @@
       "total_deposited": "Total Deposited",
       "current_value": "Current Value",
       "updated_at": "Updated {{time}}",
-      "not_found": "Not on the leaderboard yet",
+      "not_found": "Not on the leaderboard yet. Please check back later.",
       "error_loading": "Failed to load your position",
       "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
       "retry": "Retry"

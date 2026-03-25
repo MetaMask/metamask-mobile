@@ -267,8 +267,8 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         </Box>
       )}
 
-      {/* Error banner when has error but also has data */}
-      {hasError && !isLoading && (
+      {/* Error banner when has error but no data to display */}
+      {hasError && !isLoading && entries.length === 0 && (
         <Box
           twClassName="bg-error-muted rounded-lg p-3 mb-4"
           flexDirection={BoxFlexDirection.Row}

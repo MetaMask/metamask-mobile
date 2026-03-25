@@ -9,10 +9,17 @@ import {
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
+import formatFiat from '../../../../../util/formatFiat';
+import { BigNumber } from 'bignumber.js';
+import {
+  selectRewardsSubscriptionId,
+  selectCampaignParticipantOptedIn,
+} from '../../../../../selectors/rewards';
 
 export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
   CONTAINER: 'ondo-leaderboard-position-container',
@@ -32,12 +39,7 @@ interface OndoLeaderboardPositionProps {
 }
 
 const formatUsd = (value: number): string =>
-  value.toLocaleString(undefined, {
-    style: 'currency',
-    currency: 'USD',
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  });
+  formatFiat(new BigNumber(value), 'USD');
 
 const PositionSkeleton: React.FC = () => {
   const tw = useTailwind();
@@ -46,26 +48,36 @@ const PositionSkeleton: React.FC = () => {
       twClassName="bg-muted rounded-xl p-4 gap-3"
       testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.LOADING}
     >
-      <Skeleton style={tw.style('h-5 w-32 rounded-lg')} />
+      {/* Title row */}
+      <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+        {strings('rewards.ondo_campaign_leaderboard_position.title')}
+      </Text>
+      {/* Divider */}
+      <Box twClassName="border-b border-border-muted" />
+      {/* Row 1: Rank | Tier */}
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
-        <Skeleton style={tw.style('h-12 w-24 rounded-lg')} />
-        <Skeleton style={tw.style('h-12 w-24 rounded-lg')} />
-        <Skeleton style={tw.style('h-12 w-24 rounded-lg')} />
+        <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
+        <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
+        <Box twClassName="flex-1" />
       </Box>
+      {/* Row 2: Total Deposited | Current Value | Return */}
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
-        <Skeleton style={tw.style('h-12 w-28 rounded-lg')} />
-        <Skeleton style={tw.style('h-12 w-28 rounded-lg')} />
+        <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
+        <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
+        <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
       </Box>
-      <Skeleton style={tw.style('h-4 w-36 rounded-lg')} />
     </Box>
   );
 };
+
+const CELL_STYLE = { flex: 1 } as const;
 
 interface StatCellProps {
   label: string;
   value: string;
   valueColor?: TextColor;
   testID?: string;
+  style?: { flex: number };
 }
 
 const StatCell: React.FC<StatCellProps> = ({
@@ -73,8 +85,9 @@ const StatCell: React.FC<StatCellProps> = ({
   value,
   valueColor = TextColor.TextDefault,
   testID,
+  style,
 }) => (
-  <Box twClassName="flex-1">
+  <Box style={style}>
     <Text
       variant={TextVariant.BodySm}
       color={TextColor.TextAlternative}
@@ -101,8 +114,16 @@ const StatCell: React.FC<StatCellProps> = ({
 const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
   campaignId,
 }) => {
-  const { position, isLoading, hasError, refetch } =
+  const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isOptedIn = useSelector(
+    selectCampaignParticipantOptedIn(subscriptionId, campaignId),
+  );
+  const { position, isLoading, hasError, hasFetched, refetch } =
     useGetOndoLeaderboardPosition(campaignId);
+
+  if (!isOptedIn) {
+    return null;
+  }
 
   if (isLoading && !position) {
     return <PositionSkeleton />;
@@ -127,16 +148,19 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
   }
 
   if (!position) {
-    return (
-      <Box
-        twClassName="bg-muted rounded-xl p-4 items-center"
-        testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_FOUND}
-      >
-        <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-          {strings('rewards.ondo_campaign_leaderboard_position.not_found')}
-        </Text>
-      </Box>
-    );
+    if (hasFetched) {
+      return (
+        <Box
+          twClassName="bg-muted rounded-xl p-4 items-center"
+          testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_FOUND}
+        >
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+            {strings('rewards.ondo_campaign_leaderboard_position.not_found')}
+          </Text>
+        </Box>
+      );
+    }
+    return null;
   }
 
   const rorColor =
@@ -149,39 +173,53 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
       twClassName="bg-muted rounded-xl p-4 gap-3"
       testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER}
     >
-      <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-        {strings('rewards.ondo_campaign_leaderboard_position.title')}
-      </Text>
+      {/* Row 1: Title + Last Updated */}
+      <Box
+        flexDirection={BoxFlexDirection.Row}
+        twClassName="justify-between items-start"
+      >
+        <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
+          {strings('rewards.ondo_campaign_leaderboard_position.title')}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.TextAlternative}
+          testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.COMPUTED_AT}
+        >
+          {strings('rewards.ondo_campaign_leaderboard_position.updated_at', {
+            time: formatComputedAt(position.computed_at),
+          })}
+        </Text>
+      </Box>
 
-      {/* Row 1: Rank | Tier | Rate of Return */}
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
+      {/* Divider */}
+      <Box twClassName="border-b border-border-muted" />
+
+      {/* Grid row 1: Rank | Tier | (empty) */}
+      <Box flexDirection={BoxFlexDirection.Row}>
         <StatCell
           label={strings('rewards.ondo_campaign_leaderboard_position.rank')}
           value={`#${position.rank}`}
+          style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.RANK}
         />
         <StatCell
           label={strings('rewards.ondo_campaign_leaderboard_position.tier')}
           value={position.projected_tier}
+          style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.TIER}
         />
-        <StatCell
-          label={strings(
-            'rewards.ondo_campaign_leaderboard_position.rate_of_return',
-          )}
-          value={formatRateOfReturn(position.rate_of_return)}
-          valueColor={rorColor}
-          testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.RATE_OF_RETURN}
-        />
+        <Box style={CELL_STYLE} />
       </Box>
 
-      {/* Row 2: Total Deposited | Current Value */}
-      <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
+      {/* Grid row 2: Total Deposited | Current Value | Return */}
+      <Box flexDirection={BoxFlexDirection.Row}>
         <StatCell
           label={strings(
             'rewards.ondo_campaign_leaderboard_position.total_deposited',
           )}
           value={formatUsd(position.total_usd_deposited)}
+          style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.TOTAL_DEPOSITED}
         />
         <StatCell
@@ -189,20 +227,19 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
             'rewards.ondo_campaign_leaderboard_position.current_value',
           )}
           value={formatUsd(position.current_usd_value)}
+          style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.CURRENT_VALUE}
         />
+        <StatCell
+          label={strings(
+            'rewards.ondo_campaign_leaderboard_position.rate_of_return',
+          )}
+          value={formatRateOfReturn(position.rate_of_return)}
+          valueColor={rorColor}
+          style={CELL_STYLE}
+          testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.RATE_OF_RETURN}
+        />
       </Box>
-
-      {/* Last updated */}
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextAlternative}
-        testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.COMPUTED_AT}
-      >
-        {strings('rewards.ondo_campaign_leaderboard_position.updated_at', {
-          time: formatComputedAt(position.computed_at),
-        })}
-      </Text>
     </Box>
   );
 };

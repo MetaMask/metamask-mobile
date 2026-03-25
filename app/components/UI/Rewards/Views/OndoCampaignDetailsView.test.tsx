@@ -578,6 +578,42 @@ describe('OndoCampaignDetailsView', () => {
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('ondo-leaderboard')).toBeNull();
     });
+
+    it('does not show leaderboard section header when campaign is complete and not opted in', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { queryByText } = render(<OndoCampaignDetailsView />);
+      expect(queryByText('rewards.ondo_campaign_leaderboard.title')).toBeNull();
+    });
+
+    it('shows leaderboard section header when opted in', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByText } = render(<OndoCampaignDetailsView />);
+      expect(
+        getByText('rewards.ondo_campaign_leaderboard.title'),
+      ).toBeDefined();
+    });
   });
 
   describe('navigation', () => {

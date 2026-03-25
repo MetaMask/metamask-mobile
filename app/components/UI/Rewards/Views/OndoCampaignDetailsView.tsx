@@ -141,43 +141,47 @@ const OndoCampaignDetailsView: React.FC = () => {
 
           {campaign && (
             <>
-              <CampaignStatus campaign={campaign} />
+              <CampaignStatus campaign={campaign} optedIn={isOptedIn} />
 
-              {campaign.details?.howItWorks && !isOptedIn && (
-                <>
-                  <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="px-4 py-4">
-                    <CampaignHowItWorks
-                      howItWorks={campaign.details.howItWorks}
-                    />
-                  </Box>
-                </>
-              )}
+              {campaign.details?.howItWorks &&
+                !isOptedIn &&
+                getCampaignStatus(campaign) !== 'complete' && (
+                  <>
+                    <Box twClassName="border-b border-border-muted" />
+                    <Box twClassName="px-4 py-4">
+                      <CampaignHowItWorks
+                        howItWorks={campaign.details.howItWorks}
+                      />
+                    </Box>
+                  </>
+                )}
 
               {/* Leaderboard section - shown when opted in, or when campaign is complete */}
               {(isOptedIn || Boolean(leaderboardCampaignId)) && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="px-4 pt-4">
-                    <Pressable
-                      onPress={() =>
-                        navigation.navigate(
-                          Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
-                          { campaignId },
-                        )
-                      }
-                    >
-                      <Box
-                        flexDirection={BoxFlexDirection.Row}
-                        alignItems={BoxAlignItems.Center}
-                        twClassName="gap-2 mb-4"
+                    {isOptedIn && (
+                      <Pressable
+                        onPress={() =>
+                          navigation.navigate(
+                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
+                            { campaignId },
+                          )
+                        }
                       >
-                        <Text variant={TextVariant.HeadingMd}>
-                          {strings('rewards.ondo_campaign_leaderboard.title')}
-                        </Text>
-                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                      </Box>
-                    </Pressable>
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          twClassName="gap-2 mb-4"
+                        >
+                          <Text variant={TextVariant.HeadingMd}>
+                            {strings('rewards.ondo_campaign_leaderboard.title')}
+                          </Text>
+                          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                        </Box>
+                      </Pressable>
+                    )}
                     {isOptedIn ? (
                       <OndoLeaderboardPosition campaignId={campaignId} />
                     ) : (

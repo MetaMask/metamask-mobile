@@ -1,7 +1,10 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import {
+  selectRewardsSubscriptionId,
+  selectCampaignParticipantOptedIn,
+} from '../../../../selectors/rewards';
 import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
 import { setOndoCampaignLeaderboardPosition } from '../../../../reducers/rewards';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -14,6 +17,8 @@ export interface UseGetOndoLeaderboardPositionResult {
   isLoading: boolean;
   /** Whether there was an error fetching the position */
   hasError: boolean;
+  /** Whether at least one fetch attempt has completed (success or error) */
+  hasFetched: boolean;
   /** Manually re-fetch the position */
   refetch: () => Promise<void>;
 }
@@ -28,6 +33,9 @@ export const useGetOndoLeaderboardPosition = (
 ): UseGetOndoLeaderboardPositionResult => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isOptedIn = useSelector(
+    selectCampaignParticipantOptedIn(subscriptionId, campaignId),
+  );
   const position = useSelector(
     selectOndoCampaignLeaderboardPositionById(
       subscriptionId ?? undefined,
@@ -36,11 +44,13 @@ export const useGetOndoLeaderboardPosition = (
   );
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
 
   const fetchPosition = useCallback(async (): Promise<void> => {
-    if (!subscriptionId || !campaignId) {
+    if (!subscriptionId || !campaignId || !isOptedIn) {
       setIsLoading(false);
       setHasError(false);
+      setHasFetched(false);
       return;
     }
 
@@ -63,8 +73,9 @@ export const useGetOndoLeaderboardPosition = (
       setHasError(true);
     } finally {
       setIsLoading(false);
+      setHasFetched(true);
     }
-  }, [dispatch, subscriptionId, campaignId]);
+  }, [dispatch, subscriptionId, campaignId, isOptedIn]);
 
   useEffect(() => {
     fetchPosition();
@@ -77,7 +88,7 @@ export const useGetOndoLeaderboardPosition = (
   );
   useInvalidateByRewardEvents(invalidationEvents, fetchPosition);
 
-  return { position, isLoading, hasError, refetch: fetchPosition };
+  return { position, isLoading, hasError, hasFetched, refetch: fetchPosition };
 };
 
 export default useGetOndoLeaderboardPosition;

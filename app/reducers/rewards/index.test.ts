@@ -2604,6 +2604,21 @@ describe('rewardsReducer', () => {
         'sub-1:campaign-1': mockPosition,
       });
     });
+
+    it('should default ondoCampaignLeaderboardPositions to {} when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        ondoCampaignLeaderboardPositions: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignLeaderboardPositions).toEqual({});
+    });
   });
 
   describe('unknown actions', () => {

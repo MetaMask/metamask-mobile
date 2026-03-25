@@ -1,10 +1,24 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import OndoLeaderboardPosition, {
   ONDO_LEADERBOARD_POSITION_TEST_IDS,
 } from './OndoLeaderboardPosition';
 import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
 import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  selectRewardsSubscriptionId,
+  selectCampaignParticipantOptedIn,
+} from '../../../../../selectors/rewards';
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../../../../selectors/rewards', () => ({
+  selectRewardsSubscriptionId: jest.fn(),
+  selectCampaignParticipantOptedIn: jest.fn(),
+}));
 
 jest.mock('../../hooks/useGetOndoLeaderboardPosition');
 
@@ -12,6 +26,24 @@ const mockUseGetOndoLeaderboardPosition =
   useGetOndoLeaderboardPosition as jest.MockedFunction<
     typeof useGetOndoLeaderboardPosition
   >;
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockSelectCampaignParticipantOptedIn =
+  selectCampaignParticipantOptedIn as jest.MockedFunction<
+    typeof selectCampaignParticipantOptedIn
+  >;
+
+const SUBSCRIPTION_ID = 'sub-456';
+
+function setupSelectors({ isOptedIn = true }: { isOptedIn?: boolean } = {}) {
+  const mockOptedInSelector = jest.fn().mockReturnValue(isOptedIn);
+  mockSelectCampaignParticipantOptedIn.mockReturnValue(mockOptedInSelector);
+
+  mockUseSelector.mockImplementation((selector) => {
+    if (selector === selectRewardsSubscriptionId) return SUBSCRIPTION_ID;
+    if (selector === mockOptedInSelector) return isOptedIn;
+    return undefined;
+  });
+}
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -53,6 +85,15 @@ jest.mock('../RewardsErrorBanner', () => {
   };
 });
 
+jest.mock('../../../../../util/formatFiat', () => ({
+  __esModule: true,
+  default: (amount: { toFixed: (dp: number) => string }) =>
+    `$${Number(amount.toFixed(2)).toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    })}`,
+}));
+
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
@@ -92,6 +133,56 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
 describe('OndoLeaderboardPosition', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    setupSelectors();
+  });
+
+  describe('opt-in guard', () => {
+    it('renders nothing when user is not opted in', () => {
+      setupSelectors({ isOptedIn: false });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
+        isLoading: false,
+        hasError: false,
+        hasFetched: false,
+        refetch: mockRefetch,
+      });
+
+      const { queryByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.LOADING),
+      ).toBeNull();
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.ERROR),
+      ).toBeNull();
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_FOUND),
+      ).toBeNull();
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER),
+      ).toBeNull();
+    });
+
+    it('renders nothing when not opted in even if position data exists', () => {
+      setupSelectors({ isOptedIn: false });
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: MOCK_POSITION,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+
+      const { queryByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER),
+      ).toBeNull();
+    });
   });
 
   describe('loading state', () => {
@@ -100,6 +191,7 @@ describe('OndoLeaderboardPosition', () => {
         position: null,
         isLoading: true,
         hasError: false,
+        hasFetched: false,
         refetch: mockRefetch,
       });
 
@@ -117,6 +209,7 @@ describe('OndoLeaderboardPosition', () => {
         position: MOCK_POSITION,
         isLoading: true,
         hasError: false,
+        hasFetched: true,
         refetch: mockRefetch,
       });
 
@@ -139,6 +232,7 @@ describe('OndoLeaderboardPosition', () => {
         position: null,
         isLoading: false,
         hasError: true,
+        hasFetched: true,
         refetch: mockRefetch,
       });
 
@@ -151,30 +245,64 @@ describe('OndoLeaderboardPosition', () => {
       ).toBeDefined();
     });
 
-    it('shows data when has error but position is present', () => {
+    it('shows data and hides error banner when has error but position is present', () => {
       mockUseGetOndoLeaderboardPosition.mockReturnValue({
         position: MOCK_POSITION,
         isLoading: false,
         hasError: true,
+        hasFetched: true,
         refetch: mockRefetch,
       });
 
-      const { getByTestId } = render(
+      const { getByTestId, queryByTestId } = render(
         <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
       );
 
       expect(
         getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER),
       ).toBeDefined();
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.ERROR),
+      ).toBeNull();
     });
   });
 
-  describe('not found state', () => {
-    it('renders not found message when no data and not loading', () => {
+  describe('initial/unfetched state', () => {
+    it('renders nothing before any fetch has completed', () => {
       mockUseGetOndoLeaderboardPosition.mockReturnValue({
         position: null,
         isLoading: false,
         hasError: false,
+        hasFetched: false,
+        refetch: mockRefetch,
+      });
+
+      const { queryByTestId } = render(
+        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.LOADING),
+      ).toBeNull();
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.ERROR),
+      ).toBeNull();
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_FOUND),
+      ).toBeNull();
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER),
+      ).toBeNull();
+    });
+  });
+
+  describe('not found state', () => {
+    it('renders not found message when fetch completed with no data', () => {
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: mockRefetch,
       });
 
@@ -194,6 +322,7 @@ describe('OndoLeaderboardPosition', () => {
         position: MOCK_POSITION,
         isLoading: false,
         hasError: false,
+        hasFetched: true,
         refetch: mockRefetch,
       });
     });
@@ -264,6 +393,7 @@ describe('OndoLeaderboardPosition', () => {
         position: { ...MOCK_POSITION, rate_of_return: -0.05 },
         isLoading: false,
         hasError: false,
+        hasFetched: true,
         refetch: mockRefetch,
       });
 
@@ -304,6 +434,7 @@ describe('OndoLeaderboardPosition', () => {
         position: null,
         isLoading: false,
         hasError: false,
+        hasFetched: false,
         refetch: mockRefetch,
       });
 
@@ -319,6 +450,7 @@ describe('OndoLeaderboardPosition', () => {
         position: null,
         isLoading: false,
         hasError: false,
+        hasFetched: false,
         refetch: mockRefetch,
       });
 

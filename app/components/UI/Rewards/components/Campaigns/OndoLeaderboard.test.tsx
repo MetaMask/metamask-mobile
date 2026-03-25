@@ -170,15 +170,15 @@ describe('OndoLeaderboard', () => {
       expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR)).toBeDefined();
     });
 
-    it('renders inline error banner when has error but also has data', () => {
-      const { getByTestId } = render(
+    it('does not render error banner when has error but data is present', () => {
+      const { getByTestId, queryByTestId } = render(
         <OndoLeaderboard {...defaultProps} hasError />,
       );
 
       expect(
         getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
       ).toBeDefined();
-      expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR)).toBeDefined();
+      expect(queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR)).toBeNull();
     });
 
     it('calls onRetry when error retry is pressed', () => {

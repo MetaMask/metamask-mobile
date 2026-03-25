@@ -216,8 +216,12 @@ export const selectOndoCampaignLeaderboardError = (state: RootState) =>
 export const selectOndoCampaignLeaderboardSelectedTier = (state: RootState) =>
   state.rewards.ondoCampaignLeaderboardSelectedTier;
 
+// Stable fallbacks to avoid returning new references from input selectors
+const EMPTY_TIERS: Record<string, never> = {};
+const EMPTY_ENTRIES: never[] = [];
+
 export const selectOndoCampaignLeaderboardTiers = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard?.tiers ?? {};
+  state.rewards.ondoCampaignLeaderboard?.tiers ?? EMPTY_TIERS;
 
 export const selectOndoCampaignLeaderboardComputedAt = (state: RootState) =>
   state.rewards.ondoCampaignLeaderboard?.computed_at ?? null;
@@ -231,7 +235,7 @@ export const selectOndoCampaignLeaderboardEntriesByTier =
   (tierName: string | null) => (state: RootState) =>
     tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
       ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].entries
-      : [];
+      : EMPTY_ENTRIES;
 
 export const selectOndoCampaignLeaderboardTotalParticipantsByTier =
   (tierName: string | null) => (state: RootState) =>
