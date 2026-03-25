@@ -169,25 +169,13 @@ export type OndoCampaignStepState = {
 };
 
 /**
- * Serializable version of OndoCampaignPhase for state storage.
- */
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type OndoCampaignPhaseState = {
-  name: string;
-  daysLabel: string;
-  sortOrder: number;
-  steps: OndoCampaignStepState[];
-  days?: number | null;
-};
-
-/**
  * Serializable version of OndoCampaignHowItWorks for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type OndoCampaignHowItWorksState = {
   title: string;
   description: string;
-  phases: OndoCampaignPhaseState[];
+  steps: OndoCampaignStepState[];
   notes?: Json | null;
 };
 
@@ -205,7 +193,6 @@ export type ThemeImageState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
-  image: ThemeImageState;
   howItWorks: OndoCampaignHowItWorksState;
 };
 
@@ -223,6 +210,7 @@ export type CampaignDtoState = {
   termsAndConditions: Json | null;
   excludedRegions: string[];
   statusLabel: string;
+  image: ThemeImageState | null;
   details: CampaignDetailsState | null;
   featured: boolean;
 };
@@ -425,21 +413,10 @@ export interface OndoCampaignStep {
   iconName: string;
 }
 
-export interface OndoCampaignPhase {
-  name: string;
-  daysLabel: string;
-  sortOrder: number;
-  steps: OndoCampaignStep[];
-  /**
-   * Number of days in the phase, used to calculate phase cut-off dates
-   */
-  days?: number | null;
-}
-
 export interface OndoCampaignHowItWorks {
   title: string;
   description: string;
-  phases: OndoCampaignPhase[];
+  steps: OndoCampaignStep[];
   notes?: Json | null;
 }
 

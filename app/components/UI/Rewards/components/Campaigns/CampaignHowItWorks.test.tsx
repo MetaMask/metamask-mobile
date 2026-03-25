@@ -40,18 +40,11 @@ const createHowItWorks = (
 ): OndoCampaignHowItWorks => ({
   title: 'How it works',
   description: 'Hold tokens to earn rewards',
-  phases: [
+  steps: [
     {
-      name: 'Phase 1',
-      daysLabel: 'Days 1-30',
-      sortOrder: 1,
-      steps: [
-        {
-          iconName: 'star',
-          title: 'Step 1',
-          description: 'Do step 1',
-        },
-      ],
+      iconName: 'star',
+      title: 'Step 1',
+      description: 'Do step 1',
     },
   ],
   ...overrides,
@@ -74,96 +67,44 @@ describe('CampaignHowItWorks', () => {
     );
   });
 
-  it('renders a phase chip with daysLabel', () => {
-    const { getByTestId } = render(
-      <CampaignHowItWorks howItWorks={createHowItWorks()} />,
-    );
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE_CHIP}-0`),
-    ).toHaveTextContent('Days 1-30');
-  });
-
   it('renders a step title and description', () => {
     const { getByTestId } = render(
       <CampaignHowItWorks howItWorks={createHowItWorks()} />,
     );
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0`),
     ).toHaveTextContent('Step 1');
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_DESCRIPTION}-0`),
     ).toHaveTextContent('Do step 1');
   });
 
-  it('sorts phases by sortOrder ascending', () => {
+  it('renders multiple steps', () => {
     const howItWorks = createHowItWorks({
-      phases: [
-        { name: 'Phase B', daysLabel: 'Days 31-60', sortOrder: 2, steps: [] },
-        { name: 'Phase A', daysLabel: 'Days 1-30', sortOrder: 1, steps: [] },
+      steps: [
+        { iconName: 'star', title: 'Step A', description: 'Desc A' },
+        { iconName: 'circle', title: 'Step B', description: 'Desc B' },
       ],
     });
     const { getByTestId } = render(
       <CampaignHowItWorks howItWorks={howItWorks} />,
     );
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE_CHIP}-0`),
-    ).toHaveTextContent('Days 1-30');
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE_CHIP}-1`),
-    ).toHaveTextContent('Days 31-60');
-  });
-
-  it('renders multiple phases', () => {
-    const howItWorks = createHowItWorks({
-      phases: [
-        { name: 'Phase 1', daysLabel: 'Days 1-30', sortOrder: 1, steps: [] },
-        { name: 'Phase 2', daysLabel: 'Days 31-60', sortOrder: 2, steps: [] },
-      ],
-    });
-    const { getByTestId } = render(
-      <CampaignHowItWorks howItWorks={howItWorks} />,
-    );
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE}-0`),
-    ).toBeDefined();
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE}-1`),
-    ).toBeDefined();
-  });
-
-  it('renders multiple steps in a phase', () => {
-    const howItWorks = createHowItWorks({
-      phases: [
-        {
-          name: 'Phase 1',
-          daysLabel: 'Days 1-30',
-          sortOrder: 1,
-          steps: [
-            { iconName: 'star', title: 'Step A', description: 'Desc A' },
-            { iconName: 'circle', title: 'Step B', description: 'Desc B' },
-          ],
-        },
-      ],
-    });
-    const { getByTestId } = render(
-      <CampaignHowItWorks howItWorks={howItWorks} />,
-    );
-    expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0`),
     ).toHaveTextContent('Step A');
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-0-1`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_TITLE}-1`),
     ).toHaveTextContent('Step B');
   });
 
-  it('renders gracefully with no phases', () => {
-    const howItWorks = createHowItWorks({ phases: [] });
+  it('renders gracefully with no steps', () => {
+    const howItWorks = createHowItWorks({ steps: [] });
     const { getByTestId, queryByTestId } = render(
       <CampaignHowItWorks howItWorks={howItWorks} />,
     );
     expect(getByTestId(CAMPAIGN_HOW_IT_WORKS_TEST_IDS.CONTAINER)).toBeDefined();
     expect(
-      queryByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.PHASE}-0`),
+      queryByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP}-0`),
     ).toBeNull();
   });
 
@@ -172,7 +113,7 @@ describe('CampaignHowItWorks', () => {
       <CampaignHowItWorks howItWorks={createHowItWorks()} />,
     );
     expect(
-      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_ICON}-0-0`),
+      getByTestId(`${CAMPAIGN_HOW_IT_WORKS_TEST_IDS.STEP_ICON}-0`),
     ).toBeDefined();
   });
 });
