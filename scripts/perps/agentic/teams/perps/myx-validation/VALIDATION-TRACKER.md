@@ -87,17 +87,17 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
   - **BUG FIXED**: MYX positions had `takeProfitPrice: undefined` because TP/SL are separate trigger orders, not position attributes. Fixed `getPositions()` to cross-reference open orders by `positionId` and inject TP/SL prices. Also fixed `adaptOrderItemFromMYX` to detect trigger orders (`orderType 2/3`) and set `isTrigger: true`, `isPositionTpsl: true`, `detailedOrderType: "Take Profit"/"Stop Loss"`.
   - Learning: MYX TP/SL are separate decrease trigger orders. TP uses GTE trigger (LONG) / LTE (SHORT), SL uses LTE (LONG) / GTE (SHORT). Cross-reference by `positionId` on `MYXOrderItem`.
 
-- [ ] **08-add-margin** — Add $10 margin to open position
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx addMargin.ts --usd 10` — _pending_
-  - Tier 2: recipe + `myx-qa/08-add-margin.mp4` — _pending_
+- [x] **08-add-margin** — Add $10 margin to open position
+  - Tier 1: PASS — Margin $150 -> $160 (+$10), tx `0x0e91e9...`
+  - Tier 2: PASS (15/15, flow 13/13) — `myx-qa/08-add-margin.mp4`. Opens position → shows Margin $150 → adds $10 → shows Margin $160 → cleanup
   - Tier 3: human review — _pending_
   - Codepath: `updateMargin()`
 
-- [ ] **09-close-position** — Close single position, verify removed
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx closeOrder.ts --close <positionId>` — _pending_
-  - Tier 2: recipe + `myx-qa/09-close-position.mp4` — _pending_
+- [x] **09-close-position** — Close single position, verify removed
+  - Tier 1: PASS — Position opened and closed, tx confirmed
+  - Tier 2: PASS (11/11, flow 13/13) — `myx-qa/09-close-position.mp4`. Shows "Modify / Close Long" before → closes → shows "Long / Short" after (position gone)
   - Tier 3: human review — _pending_
-  - Codepath: `closePosition()`
+  - Learning: Testnet keeper can get stuck when multiple orders queue. Cancel stale orders before placing new ones.
 
 - [ ] **10-place-and-close-all** — Place order -> close all -> verify zero positions
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 11 --leverage 2 --type market` then `npx tsx closeOrder.ts --close-all` — _pending_

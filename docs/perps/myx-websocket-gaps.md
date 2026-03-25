@@ -1,80 +1,112 @@
 # MYX SDK WebSocket Gaps
 
-## Context
+## Summary
 
-MetaMask's perps UI requires real-time streaming for positions, orders, fills, and account state. The MYX SDK currently supports WebSocket for prices/candles but NOT for account-level data. We're forced to REST-poll every 5 seconds, which is:
+MetaMask has fully wired WebSocket subscriptions for positions and orders using the MYX SDK (`@myx-trade/sdk` v1.0.6). Authentication, subscription, and callback handling are all implemented. However, **the MYX WebSocket server does not push data through `subscribePosition()` or `subscribeOrder()` channels**, forcing us to rely on REST polling as a fallback.
 
-- Higher latency (5s delay vs instant)
-- More network traffic (repeated full fetches vs incremental updates)
-- Worse UX (positions/balance appear with delay after trades)
+We have a standalone PoC that reproduces this: `scripts/perps/myx-poc/wsSubscriptions.ts`.
 
-## Currently Available WebSocket Channels
+## What We Implemented
 
-| Channel          | SDK Method          | Status    |
-| ---------------- | ------------------- | --------- |
-| Tickers (prices) | `subscribeTickers`  | Working   |
-| Klines (candles) | `subscribeKline`    | Working   |
-| Positions        | `subscribePosition` | Unclear\* |
+1. **WebSocket auth**: `subscription.auth()` called after REST `myxClient.auth()` in `MYXClientService.#doAuthenticate()` — succeeds on both testnet and mainnet
+2. **Position subscription**: `subscription.subscribePosition(callback)` — resolves without error
+3. **Order subscription**: `subscription.subscribeOrder(callback)` — resolves without error
+4. **Hybrid approach**: WS subscriptions wired alongside REST polling heartbeat — when WS starts pushing, updates will be instant with REST as safety net
 
-\*`subscribePosition` exists in the SDK types but behavior is unclear — does it push updates when positions change (open/close/liquidation)?
+## The Problem: Server Does Not Push
 
-## Missing WebSocket Channels (currently REST-polled)
+| Step                                     | Result                        |
+| ---------------------------------------- | ----------------------------- |
+| `subscription.connect()`                 | OK                            |
+| `subscription.auth()`                    | OK (after `myxClient.auth()`) |
+| `subscription.subscribePosition(cb)`     | Resolves without error        |
+| `subscription.subscribeOrder(cb)`        | Resolves without error        |
+| Callback invocations after 60s           | **0 events**                  |
+| Open a position during listening window  | **Still 0 events**            |
+| Close a position during listening window | **Still 0 events**            |
 
-### 1. Account State (Balance)
+Tested on:
 
-- **Current**: REST polling `getAccountInfo(poolId, address)` every 5s across all pools
-- **Need**: WebSocket push when balance changes (deposit, withdrawal, order fill, funding payment)
-- **Payload**: `{ freeAmount, walletBalance, reservedAmount, orderHoldInUSD, totalCollateral, lockedRealizedPnl, unrealizedPnl }`
+- **Testnet** (chainId 59141, Linea Sepolia) — 0 events
+- **Mainnet** (chainId 56, BNB Chain) — 0 events
 
-### 2. Positions
+For comparison, `subscribeKline()` and `subscribeTickers()` on the same WebSocket connection work correctly and deliver real-time data.
 
-- **Current**: REST polling `listPositions(address)` every 5s
-- **Need**: WebSocket push on position open/close/modify/liquidation
-- **Payload**: Full `PositionType` array (or incremental delta)
-- **Note**: If `subscribePosition` already does this, we need documentation/examples
+## PoC to Reproduce
 
-### 3. Open Orders
+```bash
+# From repo root
+cd scripts/perps/myx-poc
+NETWORK=testnet npx tsx wsSubscriptions.ts
 
-- **Current**: REST polling `getOrderHistory(params, address)` every 5s, filtering for open orders
-- **Need**: WebSocket push on order create/fill/cancel/expire
-- **Payload**: `{ orderId, status, orderType, direction, size, price, ... }`
+# Or with a position opened during the listening window:
+NETWORK=testnet npx tsx wsSubscriptions.ts --with-trade
+```
 
-### 4. Order Fills
+**Requirements**: `.myx.env` file with `ADDRESS`, `PRIVATE_KEY`, `MYX_APP_ID_TESTNET`, `MYX_API_SECRET_TESTNET`.
 
-- **Current**: REST polling `getOrderHistory` filtered by status=Successful
-- **Need**: WebSocket push on each fill
-- **Payload**: `{ orderId, symbol, side, size, price, fee, timestamp, ... }`
+**Expected output** (current):
 
-## Questions for MYX Team
+```
+subscribePosition: registered
+subscribeOrder: registered
+Listening for WS events (60s)...
+Total WS events received: 0
+NO WebSocket push events received.
+```
 
-1. Does `subscribePosition` push real-time updates when positions change? What events trigger updates?
-2. Is there a roadmap for WebSocket account/order/fill streaming?
-3. What is the recommended way to detect position changes in real-time?
-4. Are there rate limits on the REST endpoints we're polling?
-5. Can `getAccountInfo` be called without specifying a poolId (aggregate across all pools)?
+**Expected output** (desired):
 
-## Market Data Parity Status
+```
+subscribePosition: registered
+subscribeOrder: registered
+[2.1s] WS POSITION event: isArray: true, length: 1
+[2.1s] WS ORDER event: isArray: true, length: 0
+```
 
-| Data Point    | Source                | Update Method         | Parity with HL     |
-| ------------- | --------------------- | --------------------- | ------------------ |
-| Volume (24h)  | Ticker `volume` field | REST polling (~5s)    | Equivalent         |
-| Funding rate  | `getBaseDetail` REST  | Cached, refreshed 60s | HL is real-time WS |
-| Open interest | `getBaseDetail` REST  | Cached, refreshed 60s | HL is real-time WS |
-| Oracle price  | Ticker `price` field  | REST polling (~5s)    | Equivalent         |
-| TP/SL orders  | Not supported by MYX  | N/A                   | Gap                |
+## Impact on MetaMask
 
-## Remaining Gaps
+Without WS push for positions/orders, we REST-poll every 5 seconds. This means:
 
-- No WebSocket for positions/orders/account (REST-polled every 5s)
-- TP/SL (take profit / stop loss) orders not supported by MYX protocol
-- Funding rate and OI are REST-cached (60s TTL) vs HL's real-time WebSocket push
+- **5s latency** after opening/closing positions before UI updates
+- **Higher API load** — repeated full fetches vs incremental WS updates
+- **Worse UX** compared to providers with full WS streaming
 
-## Impact
+## Questions for MYX
 
-With WebSocket streaming, we could:
+1. Are `subscribePosition` / `subscribeOrder` intended to push real-time updates? If so, what conditions must be met?
+2. Is there a server-side configuration or feature flag needed to enable private WS push?
+3. Is there a timeline for enabling these channels?
+4. Are there any additional parameters or setup steps not documented in the SDK?
 
-- Show instant balance updates after trades
-- Show positions appearing/disappearing in real-time
-- Show order status changes immediately
-- Reduce network traffic by ~90% (no polling)
-- Match feature parity with HyperLiquid provider (which uses full WebSocket streaming)
+## Current Architecture
+
+```
+MYXClientService.#doAuthenticate()
+  ├── myxClient.auth({ signer, walletClient, getAccessToken })   ← REST auth
+  └── myxClient.subscription.auth()                               ← WS auth (works)
+
+MYXProvider.subscribeToPositions()
+  ├── clientService.subscribeToPositions(wsCallback)               ← WS (registered, no push)
+  └── REST poll every 5s via getPositions()                        ← Fallback (works)
+
+MYXProvider.subscribeToOrders()
+  ├── clientService.subscribeToOrders(wsCallback)                  ← WS (registered, no push)
+  └── REST poll every 5s via getOpenOrders()                       ← Fallback (works)
+```
+
+## Working WebSocket Channels
+
+| Channel          | SDK Method         | Status  |
+| ---------------- | ------------------ | ------- |
+| Tickers (prices) | `subscribeTickers` | Working |
+| Klines (candles) | `subscribeKline`   | Working |
+
+## Non-Functional WebSocket Channels
+
+| Channel   | SDK Method          | Status                            |
+| --------- | ------------------- | --------------------------------- |
+| Positions | `subscribePosition` | Registers OK, server doesn't push |
+| Orders    | `subscribeOrder`    | Registers OK, server doesn't push |
+| Account   | (none)              | No SDK method exists              |
+| Fills     | (none)              | No SDK method exists              |

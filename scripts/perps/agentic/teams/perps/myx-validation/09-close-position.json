@@ -1,5 +1,5 @@
 {
-  "title": "MYX: Close Single Position",
+  "title": "MYX: Close Single Position (PR #myx-write-integration)",
   "pr": "myx-write-integration",
   "initial_conditions": { "testnet": true },
   "validate": {
@@ -26,7 +26,7 @@
         },
         {
           "id": "wait-position",
-          "description": "Poll until position appears (MYX chain ~30-60s)",
+          "description": "Poll until position appears",
           "action": "wait_for",
           "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
           "timeout_ms": 60000,
@@ -35,19 +35,49 @@
         },
         {
           "id": "close-position",
-          "description": "Close the position via eval ref (UI close flow has 10s timeout, too short for MYX)",
-          "action": "eval_ref",
-          "ref": "myx/close-position",
-          "assert": { "operator": "eq", "field": "success", "value": true }
+          "description": "Close position via UI: press Close Long -> confirm",
+          "action": "flow_ref",
+          "ref": "trade-close-position",
+          "params": { "symbol": "META" }
         },
         {
-          "id": "wait-closed",
-          "description": "Poll until position is gone (MYX chain ~30-60s)",
+          "id": "verify-closed",
+          "description": "Verify position is gone",
           "action": "wait_for",
           "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
           "timeout_ms": 60000,
           "poll_ms": 2000,
           "assert": { "operator": "eq", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-market-after",
+          "description": "Navigate to market detail to show Long/Short buttons (no position)",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-long-button",
+          "description": "Wait for Long button (confirms position is gone)",
+          "action": "wait_for",
+          "test_id": "perps-market-details-long-button",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "screenshot-after",
+          "description": "Capture market detail with no position",
+          "action": "screenshot",
+          "filename": "09-close-position-after"
         }
       ]
     }

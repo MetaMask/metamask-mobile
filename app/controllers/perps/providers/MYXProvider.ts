@@ -1261,7 +1261,9 @@ export class MYXProvider implements PerpsProvider {
       // Determine close size — keep as string to avoid float precision loss.
       // parseFloat round-trips lose least-significant digits, leaving dust
       // when the 18-decimal integer is reconstructed by toMYXSize().
-      const closeSizeStr = params.size ?? rawPos.size;
+      // Treat empty string as "close full position" (same as undefined)
+      const closeSizeStr =
+        (params.size === '' ? undefined : params.size) ?? rawPos.size;
       const closeSizeNum = Number.parseFloat(closeSizeStr);
 
       if (!closeSizeNum || Number.isNaN(closeSizeNum)) {
@@ -1676,80 +1678,7 @@ export class MYXProvider implements PerpsProvider {
         return [];
       }
 
-      const activePositions = result.data.filter(
-        (pos) => pos.size && pos.size !== '0',
-      );
-
-      if (activePositions.length === 0) {
-        return [];
-      }
-
-      // Fetch tickers for mark prices (PnL + liquidation calculation)
-      const posPoolIds = [...new Set(activePositions.map((pos) => pos.poolId))];
-      const tickerPriceMap = new Map<string, number>();
-      try {
-        const tickers = await this.#clientService.getTickers(posPoolIds);
-        for (const ticker of tickers) {
-          const price = Number.parseFloat(ticker.price);
-          if (!Number.isNaN(price) && price > 0) {
-            tickerPriceMap.set(ticker.poolId, price);
-          }
-        }
-      } catch {
-        // Non-fatal: positions still returned without PnL
-      }
-
-      // Fetch open orders to cross-reference TP/SL trigger orders with positions.
-      // MYX TP/SL are separate trigger orders, not position attributes.
-      // We match by positionId and inject takeProfitPrice/stopLossPrice.
-      const tpslByPosition = new Map<
-        string,
-        { takeProfitPrice?: string; stopLossPrice?: string }
-      >();
-      try {
-        const ordersResult = await this.#clientService.getOrders(address);
-        if (ordersResult.data && Array.isArray(ordersResult.data)) {
-          for (const order of ordersResult.data) {
-            // Trigger orders: orderType 2 (Stop) or 3 (Conditional), operation 1 (decrease)
-            if (
-              (order.orderType === 2 || order.orderType === 3) &&
-              order.operation === 1 &&
-              order.positionId
-            ) {
-              const existing = tpslByPosition.get(order.positionId) ?? {};
-              const priceStr = fromMYXPrice(order.price).toString();
-              // For LONG: GTE (triggerType=1) = TP, LTE (triggerType=2) = SL
-              // For SHORT: LTE (triggerType=2) = TP, GTE (triggerType=1) = SL
-              const isLong = order.direction === 0;
-              const isGTE = order.triggerType === 1;
-              const isTakeProfit = isLong ? isGTE : !isGTE;
-              if (isTakeProfit) {
-                existing.takeProfitPrice = priceStr;
-              } else {
-                existing.stopLossPrice = priceStr;
-              }
-              tpslByPosition.set(order.positionId, existing);
-            }
-          }
-        }
-      } catch {
-        // Non-fatal: positions still returned without TP/SL
-      }
-
-      return activePositions.map((pos) => {
-        const position = adaptPositionFromMYX(
-          pos,
-          this.#poolSymbolMap,
-          tickerPriceMap.get(pos.poolId),
-        );
-        // Inject TP/SL from trigger orders
-        const tpsl = tpslByPosition.get(pos.positionId);
-        if (tpsl) {
-          position.takeProfitPrice = tpsl.takeProfitPrice;
-          position.stopLossPrice = tpsl.stopLossPrice;
-        }
-        return position;
-      });
+      return this.#adaptAndEnrichPositions(result.data, address);
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getPositions');
       this.#deps.debugLogger.log('[MYXProvider] getPositions failed', {
@@ -1758,6 +1687,110 @@ export class MYXProvider implements PerpsProvider {
       });
       return [];
     }
+  }
+
+  /**
+   * Adapt raw MYX positions and enrich with ticker prices and TP/SL from trigger orders.
+   * Shared by getPositions() (REST) and WS position subscription callback.
+   *
+   * @param rawPositions - Raw MYX position data from SDK.
+   * @param address - User wallet address for TP/SL order lookup.
+   * @returns Adapted positions with ticker prices and TP/SL injected.
+   */
+  async #adaptAndEnrichPositions(
+    rawPositions: import('../types/myx-types').MYXPositionType[],
+    address: string,
+  ): Promise<Position[]> {
+    const activePositions = rawPositions.filter(
+      (pos) => pos.size && pos.size !== '0',
+    );
+
+    if (activePositions.length === 0) {
+      return [];
+    }
+
+    // Fetch tickers for mark prices (PnL + liquidation calculation)
+    const posPoolIds = [...new Set(activePositions.map((pos) => pos.poolId))];
+    const tickerPriceMap = new Map<string, number>();
+    try {
+      const tickers = await this.#clientService.getTickers(posPoolIds);
+      for (const ticker of tickers) {
+        const price = Number.parseFloat(ticker.price);
+        if (!Number.isNaN(price) && price > 0) {
+          tickerPriceMap.set(ticker.poolId, price);
+        }
+      }
+    } catch {
+      // Non-fatal: positions still returned without PnL
+    }
+
+    // Fetch open orders to cross-reference TP/SL trigger orders with positions.
+    // MYX TP/SL are separate trigger orders, not position attributes.
+    // We match by positionId and inject takeProfitPrice/stopLossPrice.
+    const tpslByPosition = await this.#fetchTpslByPosition(address);
+
+    return activePositions.map((pos) => {
+      const position = adaptPositionFromMYX(
+        pos,
+        this.#poolSymbolMap,
+        tickerPriceMap.get(pos.poolId),
+      );
+      // Inject TP/SL from trigger orders
+      const tpsl = tpslByPosition.get(pos.positionId);
+      if (tpsl) {
+        position.takeProfitPrice = tpsl.takeProfitPrice;
+        position.stopLossPrice = tpsl.stopLossPrice;
+      }
+      return position;
+    });
+  }
+
+  /**
+   * Fetch TP/SL trigger order prices grouped by positionId.
+   * Used by both REST getPositions and WS position callback.
+   *
+   * @param address - User wallet address for order lookup.
+   * @returns Map of positionId to TP/SL prices.
+   */
+  async #fetchTpslByPosition(
+    address: string,
+  ): Promise<
+    Map<string, { takeProfitPrice?: string; stopLossPrice?: string }>
+  > {
+    const tpslByPosition = new Map<
+      string,
+      { takeProfitPrice?: string; stopLossPrice?: string }
+    >();
+    try {
+      const ordersResult = await this.#clientService.getOrders(address);
+      if (ordersResult.data && Array.isArray(ordersResult.data)) {
+        for (const order of ordersResult.data) {
+          // Trigger orders: orderType 2 (Stop) or 3 (Conditional), operation 1 (decrease)
+          if (
+            (order.orderType === 2 || order.orderType === 3) &&
+            order.operation === 1 &&
+            order.positionId
+          ) {
+            const existing = tpslByPosition.get(order.positionId) ?? {};
+            const priceStr = fromMYXPrice(order.price).toString();
+            // For LONG: GTE (triggerType=1) = TP, LTE (triggerType=2) = SL
+            // For SHORT: LTE (triggerType=2) = TP, GTE (triggerType=1) = SL
+            const isLong = order.direction === 0;
+            const isGTE = order.triggerType === 1;
+            const isTakeProfit = isLong ? isGTE : !isGTE;
+            if (isTakeProfit) {
+              existing.takeProfitPrice = priceStr;
+            } else {
+              existing.stopLossPrice = priceStr;
+            }
+            tpslByPosition.set(order.positionId, existing);
+          }
+        }
+      }
+    } catch {
+      // Non-fatal: positions still returned without TP/SL
+    }
+    return tpslByPosition;
   }
 
   async getAccountState(
@@ -2216,15 +2249,20 @@ export class MYXProvider implements PerpsProvider {
   }
 
   // ============================================================================
-  // Subscriptions (Stage 1 - No-op)
+  // Subscriptions (WS + REST heartbeat hybrid)
   // ============================================================================
 
   subscribeToPositions(params: SubscribePositionsParams): () => void {
-    // MYX SDK has no WebSocket position streaming — use REST polling.
+    // Hybrid: WS subscription for instant pushes + REST heartbeat as safety net.
+    // MYX SDK subscribePosition() is wired but server doesn't push yet
+    // (verified via PoC wsSubscriptions.ts). REST heartbeat ensures freshness.
+    // When MYX enables push, the WS callback will deliver instant updates
+    // and the REST poll acts as a fallback only.
     let cancelled = false;
+    let wsCallback: ((data: unknown) => void) | null = null;
     let pollTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const fetchAndNotify = async (): Promise<void> => {
+    const pollPositions = async (): Promise<void> => {
       if (cancelled) {
         return;
       }
@@ -2237,11 +2275,60 @@ export class MYXProvider implements PerpsProvider {
         // Non-fatal: keep polling
       }
       if (!cancelled) {
-        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
+        pollTimeout = setTimeout(pollPositions, MYX_PRICE_POLLING_INTERVAL_MS);
       }
     };
 
-    fetchAndNotify().catch((error) => {
+    const setup = async (): Promise<void> => {
+      try {
+        await this.#ensureAuthenticated();
+        const address = this.#getWalletService().getUserAddress();
+
+        // Attempt WS subscription (non-fatal if it fails)
+        try {
+          wsCallback = async (rawData: unknown): Promise<void> => {
+            if (cancelled) {
+              return;
+            }
+            try {
+              const rawPositions = Array.isArray(rawData) ? rawData : [];
+              const positions = await this.#adaptAndEnrichPositions(
+                rawPositions as import('../types/myx-types').MYXPositionType[],
+                address,
+              );
+              if (!cancelled) {
+                params.callback(positions);
+              }
+            } catch (adaptError) {
+              this.#deps.debugLogger.log(
+                '[MYXProvider] WS position adapt error',
+                { error: String(adaptError) },
+              );
+            }
+          };
+
+          await this.#clientService.subscribeToPositions(wsCallback);
+          this.#deps.debugLogger.log(
+            '[MYXProvider] Position WS subscription active, REST heartbeat continues',
+          );
+        } catch (wsError) {
+          wsCallback = null;
+          this.#deps.debugLogger.log(
+            '[MYXProvider] Position WS subscription failed, REST-only mode',
+            { error: String(wsError) },
+          );
+        }
+      } catch {
+        // Auth failed — REST polling still works (getPositions calls ensureAuthenticated)
+      }
+
+      // Always run REST heartbeat polling
+      pollPositions().catch(() => {
+        // Error handled inside
+      });
+    };
+
+    setup().catch((error) => {
       this.#deps.debugLogger.log('[MYXProvider] subscribeToPositions error', {
         error: String(error),
       });
@@ -2249,6 +2336,9 @@ export class MYXProvider implements PerpsProvider {
 
     return () => {
       cancelled = true;
+      if (wsCallback) {
+        this.#clientService.unsubscribeFromPositions(wsCallback);
+      }
       if (pollTimeout) {
         clearTimeout(pollTimeout);
       }
@@ -2292,11 +2382,12 @@ export class MYXProvider implements PerpsProvider {
   }
 
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
-    // MYX SDK has no WebSocket order streaming — use REST polling.
+    // Hybrid: WS subscription for instant pushes + REST heartbeat as safety net.
     let cancelled = false;
+    let wsCallback: ((data: unknown) => void) | null = null;
     let pollTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const fetchAndNotify = async (): Promise<void> => {
+    const pollOrders = async (): Promise<void> => {
       if (cancelled) {
         return;
       }
@@ -2309,11 +2400,60 @@ export class MYXProvider implements PerpsProvider {
         // Non-fatal: keep polling
       }
       if (!cancelled) {
-        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
+        pollTimeout = setTimeout(pollOrders, MYX_PRICE_POLLING_INTERVAL_MS);
       }
     };
 
-    fetchAndNotify().catch((error) => {
+    const setup = async (): Promise<void> => {
+      try {
+        await this.#ensureAuthenticated();
+
+        // Attempt WS subscription (non-fatal if it fails)
+        try {
+          wsCallback = async (rawData: unknown): Promise<void> => {
+            if (cancelled) {
+              return;
+            }
+            try {
+              const rawOrders = Array.isArray(rawData) ? rawData : [];
+              const orders = rawOrders.map((order) =>
+                adaptOrderItemFromMYX(
+                  order as import('../types/myx-types').MYXOrderItem,
+                  this.#poolSymbolMap,
+                ),
+              );
+              if (!cancelled) {
+                params.callback(orders);
+              }
+            } catch (adaptError) {
+              this.#deps.debugLogger.log('[MYXProvider] WS order adapt error', {
+                error: String(adaptError),
+              });
+            }
+          };
+
+          await this.#clientService.subscribeToOrders(wsCallback);
+          this.#deps.debugLogger.log(
+            '[MYXProvider] Order WS subscription active, REST heartbeat continues',
+          );
+        } catch (wsError) {
+          wsCallback = null;
+          this.#deps.debugLogger.log(
+            '[MYXProvider] Order WS subscription failed, REST-only mode',
+            { error: String(wsError) },
+          );
+        }
+      } catch {
+        // Auth failed — REST polling still works (getOpenOrders calls ensureAuthenticated)
+      }
+
+      // Always run REST heartbeat polling
+      pollOrders().catch(() => {
+        // Error handled inside
+      });
+    };
+
+    setup().catch((error) => {
       this.#deps.debugLogger.log('[MYXProvider] subscribeToOrders error', {
         error: String(error),
       });
@@ -2321,6 +2461,9 @@ export class MYXProvider implements PerpsProvider {
 
     return () => {
       cancelled = true;
+      if (wsCallback) {
+        this.#clientService.unsubscribeFromOrders(wsCallback);
+      }
       if (pollTimeout) {
         clearTimeout(pollTimeout);
       }

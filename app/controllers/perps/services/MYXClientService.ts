@@ -500,6 +500,22 @@ export class MYXClientService {
 
       this.#authenticatedAddress = address.toLowerCase();
 
+      // Authenticate the WebSocket connection for private subscriptions
+      // (positions, orders). Must be called after myxClient.auth() which
+      // registers the getAccessToken callback used by subscription.auth().
+      try {
+        await this.#myxClient.subscription.auth();
+        this.#deps.debugLogger.log(
+          '[MYXClientService] WebSocket auth successful',
+        );
+      } catch (wsAuthError) {
+        // Non-fatal: REST auth succeeded, WS subscriptions will fall back to polling
+        this.#deps.debugLogger.log(
+          '[MYXClientService] WebSocket auth failed (REST auth OK, WS subscriptions will use polling fallback)',
+          { error: String(wsAuthError) },
+        );
+      }
+
       this.#deps.debugLogger.log(
         '[MYXClientService] Authentication successful',
       );
@@ -1092,6 +1108,72 @@ export class MYXClientService {
       this.#deps.debugLogger.log(
         '[MYXClientService] Kline unsubscribe failed (expected during disconnect)',
         { globalId, resolution, error: String(error) },
+      );
+    }
+  }
+
+  // ============================================================================
+  // Position & Order WebSocket Subscriptions
+  // ============================================================================
+
+  /**
+   * Subscribe to real-time position updates via WebSocket.
+   * Requires prior WebSocket auth (called automatically in #doAuthenticate).
+   *
+   * @param callback - Called on each position update from the WebSocket.
+   */
+  async subscribeToPositions(callback: (data: unknown) => void): Promise<void> {
+    this.#deps.debugLogger.log(
+      '[MYXClientService] Subscribing to positions WS',
+    );
+    await this.#myxClient.subscription.subscribePosition(callback);
+  }
+
+  /**
+   * Unsubscribe from position WebSocket updates.
+   *
+   * @param callback - The same callback reference passed to subscribeToPositions.
+   */
+  unsubscribeFromPositions(callback: (data: unknown) => void): void {
+    this.#deps.debugLogger.log(
+      '[MYXClientService] Unsubscribing from positions WS',
+    );
+    try {
+      this.#myxClient.subscription.unsubscribePosition(callback);
+    } catch (error) {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Position unsubscribe failed (expected during disconnect)',
+        { error: String(error) },
+      );
+    }
+  }
+
+  /**
+   * Subscribe to real-time order updates via WebSocket.
+   * Requires prior WebSocket auth (called automatically in #doAuthenticate).
+   *
+   * @param callback - Called on each order update from the WebSocket.
+   */
+  async subscribeToOrders(callback: (data: unknown) => void): Promise<void> {
+    this.#deps.debugLogger.log('[MYXClientService] Subscribing to orders WS');
+    await this.#myxClient.subscription.subscribeOrder(callback);
+  }
+
+  /**
+   * Unsubscribe from order WebSocket updates.
+   *
+   * @param callback - The same callback reference passed to subscribeToOrders.
+   */
+  unsubscribeFromOrders(callback: (data: unknown) => void): void {
+    this.#deps.debugLogger.log(
+      '[MYXClientService] Unsubscribing from orders WS',
+    );
+    try {
+      this.#myxClient.subscription.unsubscribeOrder(callback);
+    } catch (error) {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] Order unsubscribe failed (expected during disconnect)',
+        { error: String(error) },
       );
     }
   }
