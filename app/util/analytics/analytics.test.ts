@@ -366,7 +366,7 @@ describe('analytics', () => {
     it('returns true when user opted in', async () => {
       mockedSelectAnalyticsOptedIn.mockReturnValue(true);
 
-      const result = await analytics.isOptedIn();
+      const result = analytics.isOptedIn();
 
       expect(result).toBe(true);
       expect(mockedSelectAnalyticsOptedIn).toHaveBeenCalledWith({});
@@ -375,7 +375,7 @@ describe('analytics', () => {
     it('returns false when user opted out', async () => {
       mockedSelectAnalyticsOptedIn.mockReturnValue(false);
 
-      const result = await analytics.isOptedIn();
+      const result = analytics.isOptedIn();
 
       expect(result).toBe(false);
     });
@@ -385,7 +385,7 @@ describe('analytics', () => {
         (() => undefined) as unknown as () => boolean,
       );
 
-      const result = await analytics.isOptedIn();
+      const result = analytics.isOptedIn();
 
       expect(result).toBe(false);
     });
@@ -396,7 +396,7 @@ describe('analytics', () => {
         throw error;
       });
 
-      const result = await analytics.isOptedIn();
+      const result = analytics.isOptedIn();
 
       expect(result).toBe(false);
       expect(mockedLoggerLog).toHaveBeenCalledWith(
@@ -411,7 +411,7 @@ describe('analytics', () => {
         throw error;
       });
 
-      const result = await analytics.isOptedIn();
+      const result = analytics.isOptedIn();
 
       expect(result).toBe(false);
       expect(mockedLoggerLog).toHaveBeenCalledWith(
