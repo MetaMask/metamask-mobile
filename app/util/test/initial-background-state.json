@@ -708,6 +708,8 @@
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "campaigns": {},
+    "campaignLeaderboardPositions": {},
+    "campaignLeaderboards": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
