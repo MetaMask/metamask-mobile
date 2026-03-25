@@ -118,7 +118,6 @@ export class WC2Manager {
         delete this.sessions[event.topic];
       },
     );
-
   }
 
   // Milliseconds to wait between consecutive session restorations on startup.
@@ -207,11 +206,7 @@ export class WC2Manager {
           DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
         }
 
-        updatePermittedChains(
-          pairingTopic,
-          wcSession.getAllowedChainIds,
-          true,
-        );
+        updatePermittedChains(pairingTopic, wcSession.getAllowedChainIds, true);
 
         const chainId = wcSession.getCurrentChainId();
 

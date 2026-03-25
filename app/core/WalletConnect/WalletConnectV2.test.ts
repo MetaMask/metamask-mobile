@@ -509,7 +509,10 @@ describe('WC2Manager', () => {
         let maxConcurrentCalls = 0;
         const mockUpdateSession = jest.fn().mockImplementation(async () => {
           concurrentCallCount++;
-          maxConcurrentCalls = Math.max(maxConcurrentCalls, concurrentCallCount);
+          maxConcurrentCalls = Math.max(
+            maxConcurrentCalls,
+            concurrentCallCount,
+          );
           await Promise.resolve();
           concurrentCallCount--;
         });
@@ -553,7 +556,9 @@ describe('WC2Manager', () => {
           {
             topic: 'internal-topic',
             pairingTopic: 'internal-pairing',
-            peer: { metadata: { url: internalUrl, name: 'Internal', icons: [] } },
+            peer: {
+              metadata: { url: internalUrl, name: 'Internal', icons: [] },
+            },
           },
           makeSession(2),
         ];
