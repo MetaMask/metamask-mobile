@@ -371,10 +371,10 @@ export class WC2Manager {
         }
       ).PermissionController;
       DevLogger.log(
-        `WC2::removeSession revokeAllPermissions for ${session.topic}`,
+        `WC2::removeSession revokeAllPermissions for ${session.pairingTopic}`,
         permissionsController.state,
       );
-      permissionsController.revokeAllPermissions(session.topic);
+      permissionsController.revokeAllPermissions(session.pairingTopic);
     } catch (err) {
       DevLogger.log(`WC2::removeSession error while disconnecting`, err);
     }
