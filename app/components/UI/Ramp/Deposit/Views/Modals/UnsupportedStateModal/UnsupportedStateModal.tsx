@@ -10,11 +10,15 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
+import OldButton, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 import styleSheet from './UnsupportedStateModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
@@ -114,7 +118,7 @@ function UnsupportedStateModal() {
       </View>
 
       <View style={styles.footer}>
-        <Button
+        <OldButton
           size={ButtonSize.Lg}
           onPress={handleSelectDifferentState}
           label={strings('deposit.unsupported_state_modal.change_state')}
@@ -124,10 +128,11 @@ function UnsupportedStateModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={handleTryAnotherOption}
-          label={strings('deposit.unsupported_state_modal.try_another_option')}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('deposit.unsupported_state_modal.try_another_option')}
+        </Button>
       </View>
     </BottomSheet>
   );

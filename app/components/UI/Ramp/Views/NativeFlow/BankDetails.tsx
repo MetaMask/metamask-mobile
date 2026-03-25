@@ -25,10 +25,11 @@ import {
   normalizeProviderCode,
 } from '@metamask/ramps-controller';
 import { useTheme } from '../../../../../util/theme';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import useAnalytics from '../../hooks/useAnalytics';
 
@@ -464,24 +465,26 @@ const V2BankDetails = () => {
             <View style={styles.buttonContainer}>
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 onPress={handleCancelOrder}
-                label={strings('deposit.order_processing.cancel_order_button')}
                 size={ButtonSize.Lg}
-                loading={isLoadingCancelOrder}
-                disabled={isLoadingConfirmPayment || isLoadingCancelOrder}
-              />
+                isLoading={isLoadingCancelOrder}
+                isDisabled={isLoadingConfirmPayment || isLoadingCancelOrder}
+              >
+                {strings('deposit.order_processing.cancel_order_button')}
+              </Button>
 
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 onPress={handleBankTransferSent}
                 testID={BANK_DETAILS_TEST_IDS.MAIN_ACTION_BUTTON}
-                label={strings('deposit.bank_details.button')}
                 size={ButtonSize.Lg}
-                disabled={isLoadingCancelOrder || isLoadingConfirmPayment}
-                loading={isLoadingConfirmPayment}
-              />
+                isDisabled={isLoadingCancelOrder || isLoadingConfirmPayment}
+                isLoading={isLoadingConfirmPayment}
+              >
+                {strings('deposit.bank_details.button')}
+              </Button>
             </View>
           </View>
         </ScreenLayout.Content>

@@ -10,11 +10,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 import styleSheet from './UnsupportedRegionModal.styles.ts';
 import { useStyles } from '../../../../../hooks/useStyles';
@@ -102,10 +102,11 @@ function UnsupportedRegionModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={handleSelectDifferentRegion}
-          label={strings('fiat_on_ramp_aggregator.region.select_region')}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('fiat_on_ramp_aggregator.region.select_region')}
+        </Button>
       </View>
     </BottomSheet>
   );

@@ -16,11 +16,11 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import { KycStatus } from '../../Deposit/constants';
 import Logger from '../../../../../util/Logger';
@@ -190,10 +190,11 @@ const V2KycProcessing = () => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleContinue}
-              label={strings('deposit.kyc_processing.error_button')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
-            />
+              variant={ButtonVariant.Primary}
+              isFullWidth
+            >
+              {strings('deposit.kyc_processing.error_button')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>
@@ -229,10 +230,11 @@ const V2KycProcessing = () => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleContinue}
-              label={strings('deposit.kyc_processing.success_button')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
-            />
+              variant={ButtonVariant.Primary}
+              isFullWidth
+            >
+              {strings('deposit.kyc_processing.success_button')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

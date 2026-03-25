@@ -26,16 +26,17 @@ import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import Row from '../../Aggregator/components/Row';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { trace, TraceName } from '../../../../../util/trace';
-import { Box, BoxAlignItems } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useTransakController } from '../../hooks/useTransakController';
 import { useTransakRouting } from '../../hooks/useTransakRouting';
 import { useRampsController } from '../../hooks/useRampsController';
@@ -414,13 +415,14 @@ const V2OtpCode = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.otp_code.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading || value.length !== CELL_COUNT}
             testID={OtpCodeSelectorsIDs.SUBMIT_BUTTON}
-          />
+          >
+            {strings('deposit.otp_code.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

@@ -17,10 +17,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import DepositOrderContent from '../../components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../../constants/on-ramp';
 import { TRANSAK_SUPPORT_URL } from '../../constants';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Loader from '../../../../../../component-library/components-temp/Loader/Loader';
 import { ORDER_PROCESSING_TEST_IDS } from './OrderProcessing.testIds';
 
@@ -98,27 +99,25 @@ const OrderProcessing = () => {
                 order.state === FIAT_ORDER_STATES.FAILED) && (
                 <Button
                   style={styles.button}
-                  variant={ButtonVariants.Secondary}
+                  variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
                   onPress={handleContactSupport}
-                  label={strings(
-                    'deposit.order_processing.contact_support_button',
-                  )}
-                />
+                >
+                  {strings('deposit.order_processing.contact_support_button')}
+                </Button>
               )}
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={handleMainAction}
                 testID={ORDER_PROCESSING_TEST_IDS.MAIN_ACTION_BUTTON}
-                label={
-                  order.state === FIAT_ORDER_STATES.CANCELLED ||
-                  order.state === FIAT_ORDER_STATES.FAILED
-                    ? strings('deposit.order_processing.error_button')
-                    : strings('deposit.order_processing.button')
-                }
-              />
+              >
+                {order.state === FIAT_ORDER_STATES.CANCELLED ||
+                order.state === FIAT_ORDER_STATES.FAILED
+                  ? strings('deposit.order_processing.error_button')
+                  : strings('deposit.order_processing.button')}
+              </Button>
             </View>
           </View>
         </ScreenLayout.Content>

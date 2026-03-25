@@ -11,11 +11,11 @@ import Row from '../../components/Row';
 import Text, {
   TextVariant,
 } from '../../../../../../component-library/components/Texts/Text';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 
 import { strings } from '../../../../../../../locales/i18n';
@@ -91,12 +91,13 @@ function Settings() {
                     </ListItemColumn>
                   </ListItem>
                   <Button
-                    variant={ButtonVariants.Primary}
+                    variant={ButtonVariant.Primary}
                     size={ButtonSize.Lg}
-                    width={ButtonWidthTypes.Full}
+                    isFullWidth
                     onPress={handleChangeRegion}
-                    label={strings('app_settings.fiat_on_ramp.change_region')}
-                  />
+                  >
+                    {strings('app_settings.fiat_on_ramp.change_region')}
+                  </Button>
                 </Row>
               ) : (
                 <Row first>
@@ -122,12 +123,13 @@ function Settings() {
                   </ListItem>
                   {selectedRegion ? (
                     <Button
-                      variant={ButtonVariants.Secondary}
+                      variant={ButtonVariant.Secondary}
                       size={ButtonSize.Lg}
-                      width={ButtonWidthTypes.Full}
+                      isFullWidth
                       onPress={handleResetRegion}
-                      label={strings('app_settings.fiat_on_ramp.reset_region')}
-                    />
+                    >
+                      {strings('app_settings.fiat_on_ramp.reset_region')}
+                    </Button>
                   ) : null}
                 </Row>
               )}

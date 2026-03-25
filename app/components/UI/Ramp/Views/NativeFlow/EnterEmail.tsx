@@ -18,11 +18,11 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import { createV2OtpCodeNavDetails } from './OtpCode';
 import { validateEmail } from '../../Deposit/utils';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -181,12 +181,13 @@ const V2EnterEmail = () => {
             testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.enter_email.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading}
-          />
+          >
+            {strings('deposit.enter_email.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

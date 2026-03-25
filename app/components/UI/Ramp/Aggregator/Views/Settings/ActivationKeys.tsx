@@ -15,11 +15,11 @@ import {
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 import Row from '../../components/Row';
 import { strings } from '../../../../../../../locales/i18n';
@@ -180,13 +180,14 @@ function ActivationKeys() {
       ))}
       <Row>
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           isDisabled={isLoadingKeys}
           onPress={handleAddNewKeyPress}
-          label={strings('app_settings.fiat_on_ramp.add_activation_key')}
-        />
+        >
+          {strings('app_settings.fiat_on_ramp.add_activation_key')}
+        </Button>
       </Row>
     </>
   );

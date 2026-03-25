@@ -22,11 +22,11 @@ import { useDepositSdkMethod } from '../../hooks/useDepositSdkMethod';
 import { BuyQuote } from '@consensys/native-ramps-sdk';
 import PoweredByTransak from '../../components/PoweredByTransak';
 import { BasicInfoFormData } from '../BasicInfo/BasicInfo';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import PrivacySection from '../../components/PrivacySection';
 import { useDepositSDK } from '../../sdk';
 import StateSelector from '../../components/StateSelector';
@@ -376,13 +376,14 @@ const EnterAddress = (): JSX.Element => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleOnPressContinue}
-              label={strings('deposit.enter_address.continue')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
+              variant={ButtonVariant.Primary}
+              isFullWidth
               isDisabled={loading || !!error}
-              loading={loading}
+              isLoading={loading}
               testID={ENTER_ADDRESS_TEST_IDS.CONTINUE_BUTTON}
-            />
+            >
+              {strings('deposit.enter_address.continue')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

@@ -7,11 +7,14 @@ import styleSheet from './NetworksFilterSelector.styles';
 
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
-import Button, {
-  ButtonSize,
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Checkbox from '../../../../../../component-library/components/Checkbox';
 import ListItemColumn, {
   WidthType,
@@ -58,7 +61,7 @@ function NetworksFilterSelector({
   );
   return (
     <>
-      <Button
+      <OldButton
         variant={ButtonVariants.Link}
         size={ButtonSize.Sm}
         label={
@@ -104,10 +107,9 @@ function NetworksFilterSelector({
       ></FlatList>
       <View style={styles.buttonContainer}>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          width={ButtonWidthTypes.Full}
-          label={strings('deposit.networks_filter_selector.apply')}
+          isFullWidth
           onPress={() => {
             if (
               networkFilter?.length === networks.length ||
@@ -117,7 +119,9 @@ function NetworksFilterSelector({
             }
             setIsEditingNetworkFilter(false);
           }}
-        />
+        >
+          {strings('deposit.networks_filter_selector.apply')}
+        </Button>
       </View>
     </>
   );

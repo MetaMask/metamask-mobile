@@ -13,11 +13,11 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import { strings } from '../../../../../../locales/i18n';
 import VerifyIdentityImage from '../../Deposit/assets/verifyIdentityIllustration.png';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import {
   TRANSAK_TERMS_URL_US,
   TRANSAK_TERMS_URL_WORLD,
@@ -239,10 +239,11 @@ const V2VerifyIdentity = () => {
             testID={VerifyIdentitySelectorsIDs.CONTINUE_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.verify_identity.button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-          />
+            variant={ButtonVariant.Primary}
+            isFullWidth
+          >
+            {strings('deposit.verify_identity.button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

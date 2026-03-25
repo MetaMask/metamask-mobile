@@ -15,11 +15,11 @@ import useThunkDispatch from '../../../../../hooks/useThunkDispatch';
 import ScreenLayout from '../../components/ScreenLayout';
 import OrderDetail from '../../components/OrderDetails';
 import Row from '../../components/Row';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import {
   FiatOrder,
   getOrderById,
@@ -290,12 +290,13 @@ const OrderDetails = () => {
                 <Button
                   size={ButtonSize.Lg}
                   onPress={navigateToSendTransaction}
-                  label={strings(
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
+                >
+                  {strings(
                     'fiat_on_ramp_aggregator.order_details.continue_order',
                   )}
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                />
+                </Button>
               </Row>
             ) : null}
 
@@ -304,12 +305,13 @@ const OrderDetails = () => {
                 <Button
                   size={ButtonSize.Lg}
                   onPress={handleMakeAnotherPurchase}
-                  label={strings(
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
+                >
+                  {strings(
                     'fiat_on_ramp_aggregator.order_details.start_new_order',
                   )}
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                />
+                </Button>
               )}
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

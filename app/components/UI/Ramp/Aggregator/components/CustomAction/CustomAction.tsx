@@ -12,11 +12,11 @@ import Animated, {
 import { PaymentCustomAction } from '@consensys/on-ramp-sdk/dist/API';
 import Box from '../Box';
 import Title from '../../../../../Base/Title';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../../locales/i18n';
 import RemoteImage from '../../../../../Base/RemoteImage';
 import TagColored from '../../../../../../component-library/components-temp/TagColored';
@@ -146,14 +146,15 @@ const CustomAction: React.FC<Props> = ({
                 <Button
                   size={ButtonSize.Lg}
                   onPress={() => onPressCTA?.()}
-                  label={strings('fiat_on_ramp_aggregator.continue_with', {
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
+                  isDisabled={isLoading}
+                  isLoading={isLoading}
+                >
+                  {strings('fiat_on_ramp_aggregator.continue_with', {
                     provider: provider.name,
                   })}
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
-                  isDisabled={isLoading}
-                  loading={isLoading}
-                />
+                </Button>
               </View>
             </Animated.View>
           }

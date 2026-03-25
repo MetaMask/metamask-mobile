@@ -15,11 +15,11 @@ import DepositTextField from '../../Deposit/components/DepositTextField';
 import { useForm } from '../../Deposit/hooks/useForm';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import PrivacySection from '../../Deposit/components/PrivacySection';
 import { VALIDATION_REGEX } from '../../Deposit/constants/constants';
 import Logger from '../../../../../util/Logger';
@@ -356,13 +356,14 @@ const V2EnterAddress = (): JSX.Element => {
             <Button
               size={ButtonSize.Lg}
               onPress={handleOnPressContinue}
-              label={strings('deposit.enter_address.continue')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
+              variant={ButtonVariant.Primary}
+              isFullWidth
               isDisabled={loading || !!error}
-              loading={loading}
+              isLoading={loading}
               testID={ENTER_ADDRESS_TEST_IDS.CONTINUE_BUTTON}
-            />
+            >
+              {strings('deposit.enter_address.continue')}
+            </Button>
             <PoweredByTransak name="powered-by-transak-logo" />
           </ScreenLayout.Content>
         </ScreenLayout.Footer>

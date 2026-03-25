@@ -8,11 +8,11 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 
 import styleSheet from './EligibilityFailedModal.styles';
 import { useStyles } from '../../../../hooks/useStyles';
@@ -73,21 +73,21 @@ function EligibilityFailedModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={navigateToContactSupport}
-          label={strings(
+          variant={ButtonVariant.Secondary}
+          isFullWidth
+        >
+          {strings(
             'fiat_on_ramp_aggregator.eligibility_failed_modal.contact_support',
           )}
-          variant={ButtonVariants.Secondary}
-          width={ButtonWidthTypes.Full}
-        />
+        </Button>
         <Button
           size={ButtonSize.Lg}
           onPress={handleClose}
-          label={strings(
-            'fiat_on_ramp_aggregator.eligibility_failed_modal.got_it',
-          )}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('fiat_on_ramp_aggregator.eligibility_failed_modal.got_it')}
+        </Button>
       </View>
     </BottomSheet>
   );
