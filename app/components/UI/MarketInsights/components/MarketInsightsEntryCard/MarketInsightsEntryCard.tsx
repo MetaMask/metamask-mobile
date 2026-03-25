@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -154,13 +154,19 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       return;
     }
 
+    const digestId =
+      'digestId' in report &&
+      typeof (report as { digestId?: unknown }).digestId === 'string'
+        ? (report as { digestId: string }).digestId
+        : undefined;
+
     const event = createEventBuilder(
       generateOpt(EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW),
     )
       .addProperties({
         caip19: caip19Id,
         asset_symbol: report.asset,
-        digest_id: report.digestId,
+        ...(digestId !== undefined ? { digest_id: digestId } : {}),
       })
       .build();
     trackEvent(event);
@@ -194,68 +200,66 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   );
 
   return (
-    <Pressable
-      collapsable={false}
-      ref={cardRef}
+    <TouchableOpacity
+      activeOpacity={0.7}
       onPress={onPress}
-      onLayout={onVisibilityLayout}
-      style={({ pressed }) =>
-        tw.style('px-4 mt-2 mb-4', pressed && 'opacity-80')
-      }
+      style={tw.style('px-4 mt-2 mb-4')}
       testID={testID}
     >
-      <Box
-        twClassName="bg-background-muted rounded-xl"
-        padding={4}
-        gap={1}
-        onLayout={handleLayout}
-      >
-        <AnimatedGradientBorder
-          dimensions={cardDimensions}
-          animationKey={borderAnimationKey}
-        />
-
-        {/* Title row */}
+      <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
+          twClassName="bg-background-muted rounded-xl"
+          padding={4}
           gap={1}
+          onLayout={handleLayout}
         >
-          <GradientText
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-          >
-            {strings('market_insights.title')}
-          </GradientText>
-          <ArrowRightSVG
-            name="arrow-right"
-            width={ARROW_ICON_SIZE}
-            height={ARROW_ICON_SIZE}
-            fill={GRADIENT_COLORS[1]}
+          <AnimatedGradientBorder
+            dimensions={cardDimensions}
+            animationKey={borderAnimationKey}
           />
-        </Box>
 
-        {/* Body text: rotating trend descriptions */}
-        <SlidingTextCarousel
-          texts={displayTexts}
-          onSlideComplete={handleSlideComplete}
-        />
+          {/* Title row */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <GradientText
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+            >
+              {strings('market_insights.title')}
+            </GradientText>
+            <ArrowRightSVG
+              name="arrow-right"
+              width={ARROW_ICON_SIZE}
+              height={ARROW_ICON_SIZE}
+              fill={GRADIENT_COLORS[1]}
+            />
+          </Box>
 
-        {/* Footer disclaimer */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          <GradientSparkleIcon />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('market_insights.footer_disclaimer')}
-            {' • '}
-            {timeAgo}
-          </Text>
+          {/* Body text: rotating trend descriptions */}
+          <SlidingTextCarousel
+            texts={displayTexts}
+            onSlideComplete={handleSlideComplete}
+          />
+
+          {/* Footer disclaimer */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <GradientSparkleIcon />
+            <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+              {strings('market_insights.footer_disclaimer')}
+              {' • '}
+              {timeAgo}
+            </Text>
+          </Box>
         </Box>
-      </Box>
-    </Pressable>
+      </View>
+    </TouchableOpacity>
   );
 };
 

@@ -13,6 +13,8 @@ import Animated, {
 import {
   BORDER_FADE_IN_FRACTION,
   BORDER_FADE_OUT_FRACTION,
+  BORDER_GLOW_OPACITY,
+  BORDER_GLOW_STROKE_WIDTH,
   BORDER_GRADIENT_COLORS,
   BORDER_RADIUS,
   BORDER_STROKE_WIDTH,
@@ -180,9 +182,18 @@ const AnimatedGradientBorder: React.FC<AnimatedGradientBorderProps> = ({
       <Defs>
         <LinearGradient id={GRADIENT_ID} x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0" stopColor={BORDER_GRADIENT_COLORS[0]} />
-          <Stop offset="1" stopColor={BORDER_GRADIENT_COLORS[1]} />
+          <Stop offset="0.5" stopColor={BORDER_GRADIENT_COLORS[1]} />
+          <Stop offset="1" stopColor={BORDER_GRADIENT_COLORS[2]} />
         </LinearGradient>
       </Defs>
+
+      <SweepPath
+        pathData={pathData}
+        perimeter={perimeter}
+        progress={progress}
+        strokeWidth={BORDER_GLOW_STROKE_WIDTH}
+        opacityScale={BORDER_GLOW_OPACITY}
+      />
 
       <SweepPath
         pathData={pathData}
