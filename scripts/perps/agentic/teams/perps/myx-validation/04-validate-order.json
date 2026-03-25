@@ -1,5 +1,5 @@
 {
-  "title": "MYX: Validate Order (small + valid)",
+  "title": "MYX: Validate Order — small + valid (PR #myx-write-integration)",
   "pr": "myx-write-integration",
   "validate": {
     "runtime": {
@@ -20,8 +20,85 @@
           }
         },
         {
+          "id": "nav-market",
+          "description": "Navigate to META market detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "description": "Wait for long button to appear",
+          "action": "wait_for",
+          "test_id": "perps-market-details-long-button"
+        },
+        {
+          "id": "press-long",
+          "description": "Press Long to open trade form",
+          "action": "press",
+          "test_id": "perps-market-details-long-button"
+        },
+        {
+          "id": "wait-form",
+          "description": "Wait for order form to render",
+          "action": "wait_for",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "press-amount",
+          "description": "Tap amount field to open keypad",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad",
+          "description": "Wait for keypad",
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad",
+          "description": "Clear any existing amount",
+          "action": "clear_keypad",
+          "count": 8
+        },
+        {
+          "id": "type-small-amount",
+          "description": "Type $5 — below minimum order size",
+          "action": "type_keypad",
+          "value": "5"
+        },
+        {
+          "id": "press-done-small",
+          "description": "Dismiss keypad to show validation",
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done"
+        },
+        {
+          "id": "wait-validation",
+          "description": "Wait for validation to process",
+          "action": "wait_for",
+          "test_id": "perps-order-view-place-order-button"
+        },
+        {
+          "id": "screenshot-small-invalid",
+          "description": "Capture order form with $5 — should show validation error",
+          "action": "screenshot",
+          "filename": "04-validate-order-small-invalid"
+        },
+        {
           "id": "validate-small",
-          "description": "Validate a $5 order (expect invalid — below per-pool min ~$11)",
+          "description": "Confirm $5 order is rejected via controller",
           "action": "eval_ref",
           "ref": "myx/validate-order-small",
           "assert": {
@@ -31,8 +108,50 @@
           }
         },
         {
+          "id": "press-amount-again",
+          "description": "Tap amount to re-open keypad for valid amount",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad-2",
+          "description": "Wait for keypad",
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad-2",
+          "description": "Clear $5",
+          "action": "clear_keypad",
+          "count": 8
+        },
+        {
+          "id": "type-valid-amount",
+          "description": "Type $150 — above minimum order size",
+          "action": "type_keypad",
+          "value": "150"
+        },
+        {
+          "id": "press-done-valid",
+          "description": "Dismiss keypad to show validation",
+          "action": "press",
+          "test_id": "perps-order-view-keypad-done"
+        },
+        {
+          "id": "wait-validation-2",
+          "description": "Wait for validation to process",
+          "action": "wait_for",
+          "test_id": "perps-order-view-place-order-button"
+        },
+        {
+          "id": "screenshot-valid",
+          "description": "Capture order form with $150 — should show place order button enabled",
+          "action": "screenshot",
+          "filename": "04-validate-order-valid"
+        },
+        {
           "id": "validate-valid",
-          "description": "Validate a $150 order (expect valid — above per-pool min)",
+          "description": "Confirm $150 order is valid via controller",
           "action": "eval_ref",
           "ref": "myx/validate-order-valid",
           "assert": {

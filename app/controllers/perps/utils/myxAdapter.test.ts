@@ -473,17 +473,16 @@ describe('myxAdapter', () => {
     // Testnet uses USDC with 6 decimals, so 100 USDC = '100000000'
     const toUsdc = (usd: number) => String(usd * 1e6);
 
-    it('parses 7-element tuple and computes balances correctly', () => {
-      // Tuple: [freeAmount, walletBalance, reservedAmount, orderHoldInUSD,
-      //         totalCollateral, lockedRealizedPnl, unrealizedPnl]
+    it('parses 7-element tuple (legacy) and computes balances correctly', () => {
+      // Legacy array format: [freeAmount, walletBalance, reservedAmount, ...]
       const accountTuple = [
         toUsdc(100), // freeAmount
         toUsdc(400), // walletBalance
         toUsdc(200), // reservedAmount
-        '0', // orderHoldInUSD
-        toUsdc(300), // totalCollateral
-        '0', // lockedRealizedPnl
-        toUsdc(50), // unrealizedPnl
+        '0',
+        '0',
+        '0',
+        '0',
       ];
 
       const result = adaptAccountStateFromMYX(accountTuple, 'testnet');
@@ -492,30 +491,30 @@ describe('myxAdapter', () => {
       expect(Number(result.availableBalance)).toBe(500);
       // marginUsed = reservedAmount = 200
       expect(Number(result.marginUsed)).toBe(200);
-      // unrealizedPnl = 50
-      expect(Number(result.unrealizedPnl)).toBe(50);
-      // totalBalance = freeAmount + walletBalance + reservedAmount + unrealizedPnl
-      // = 100 + 400 + 200 + 50 = 750
-      expect(Number(result.totalBalance)).toBe(750);
+      // unrealizedPnl comes from positions, not the tuple — 0 when no positions
+      expect(Number(result.unrealizedPnl)).toBe(0);
+      // totalBalance = freeAmount + walletBalance + reservedAmount = 700
+      expect(Number(result.totalBalance)).toBe(700);
     });
 
-    it('handles keyed object fallback', () => {
+    it('handles keyed object (SDK AccountInfo shape)', () => {
       const accountObj = {
-        freeAmount: toUsdc(100),
+        freeMargin: toUsdc(100),
         walletBalance: toUsdc(400),
         reservedAmount: toUsdc(200),
-        orderHoldInUSD: '0',
-        totalCollateral: toUsdc(300),
-        lockedRealizedPnl: '0',
-        unrealizedPnl: toUsdc(50),
+        quoteProfit: '0',
+        freeBaseAmount: '0',
+        baseProfit: '0',
+        releaseTime: '0',
       };
 
       const result = adaptAccountStateFromMYX(accountObj, 'testnet');
 
       expect(Number(result.availableBalance)).toBe(500);
       expect(Number(result.marginUsed)).toBe(200);
-      expect(Number(result.unrealizedPnl)).toBe(50);
-      expect(Number(result.totalBalance)).toBe(750);
+      // unrealizedPnl comes from positions, not getAccountInfo
+      expect(Number(result.unrealizedPnl)).toBe(0);
+      expect(Number(result.totalBalance)).toBe(700);
     });
 
     it('returns zeros when accountInfo is undefined', () => {

@@ -546,9 +546,24 @@ export function adaptOrderItemFromMYX(
   const remainingSize = Math.max(0, sizeNum - filledSizeNum);
 
   const side: 'buy' | 'sell' = order.direction === 0 ? 'buy' : 'sell';
+  // MYX OrderTypeEnum: 0=Market, 1=Limit, 2=Stop (trigger), 3=Conditional
+  const isTrigger = order.orderType === 2 || order.orderType === 3;
   const orderType: 'market' | 'limit' =
     order.orderType === 1 ? 'limit' : 'market';
   const reduceOnly = order.operation === 1 ? true : undefined;
+  // TP/SL trigger orders are tied to the full position (decrease with trigger)
+  const isPositionTpsl = isTrigger && order.operation === 1;
+
+  // Determine if this is a TP or SL based on triggerType:
+  // For LONG positions: TP triggers when price >= target (GTE=1), SL when price <= target (LTE=2)
+  // For SHORT positions: TP triggers when price <= target (LTE=2), SL when price >= target (GTE=1)
+  let detailedOrderType: string | undefined;
+  if (isTrigger) {
+    const isLong = order.direction === 0;
+    const isGTE = order.triggerType === 1;
+    const isTakeProfit = isLong ? isGTE : !isGTE;
+    detailedOrderType = isTakeProfit ? 'Take Profit' : 'Stop Loss';
+  }
 
   return {
     orderId: String(order.orderId),
@@ -562,7 +577,10 @@ export function adaptOrderItemFromMYX(
     remainingSize: remainingSize.toString(),
     status: 'open',
     timestamp: order.txTime,
-    isTrigger: false,
+    isTrigger,
+    isPositionTpsl,
+    triggerPrice: isTrigger ? priceNum.toString() : undefined,
+    detailedOrderType,
     reduceOnly,
     providerId: 'myx',
   };
@@ -582,6 +600,24 @@ export function adaptOrderItemFromMYX(
  * @param data - Raw response data (array or object)
  * @returns Parsed account fields as strings
  */
+// SDK AccountInfo type (from @myx-trade/sdk v1.0.6):
+//   { freeMargin, walletBalance, freeBaseAmount, baseProfit, quoteProfit,
+//     reservedAmount, releaseTime }
+//
+// Mapping to our internal representation:
+//   SDK field        | MYX UI label              | Our field
+//   -----------------|---------------------------|------------------
+//   freeMargin       | Free Margin               | freeAmount
+//   walletBalance    | Wallet Balance            | walletBalance
+//   reservedAmount   | Reserved Amount           | reservedAmount
+//   quoteProfit      | Locked Realized PnL USDC  | lockedRealizedPnl
+//   freeBaseAmount   | Withdrawable META         | (not mapped)
+//   baseProfit       | Locked Realized PnL META  | (not mapped)
+//   releaseTime      | Unlock timer              | (not mapped)
+//
+// Note: the SDK does NOT return orderHoldInUSD, totalCollateral, or unrealizedPnl.
+// Those were assumed in an earlier version. Unrealized PnL comes from positions,
+// not from getAccountInfo().
 function parseAccountTuple(data: unknown): {
   freeAmount: string;
   walletBalance: string;
@@ -617,16 +653,14 @@ function parseAccountTuple(data: unknown): {
 
   if (data && typeof data === 'object') {
     const obj = data as Record<string, unknown>;
-    // SDK 1.0.2 renamed freeAmount → freeMargin and unrealizedPnl → quoteProfit;
-    // support both field names for compatibility
     return {
       freeAmount: str(obj.freeMargin ?? obj.freeAmount),
       walletBalance: str(obj.walletBalance),
       reservedAmount: str(obj.reservedAmount),
-      orderHoldInUSD: str(obj.orderHoldInUSD),
-      totalCollateral: str(obj.totalCollateral),
-      lockedRealizedPnl: str(obj.lockedRealizedPnl),
-      unrealizedPnl: str(obj.unrealizedPnl ?? obj.quoteProfit),
+      orderHoldInUSD: '0',
+      totalCollateral: '0',
+      lockedRealizedPnl: str(obj.quoteProfit ?? obj.lockedRealizedPnl),
+      unrealizedPnl: '0',
     };
   }
 
@@ -653,33 +687,49 @@ export function adaptAccountStateFromMYX(
   network: MYXNetwork = 'mainnet',
   positions?: Position[],
 ): AccountState {
+  // MYX getAccountInfo() returns an AccountInfo object. Mapping to AccountState:
+  //
+  //   SDK field        | MYX UI label              | AccountState field
+  //   -----------------|---------------------------|-------------------
+  //   freeMargin       | Free Margin               | (part of availableBalance)
+  //   walletBalance    | Wallet Balance            | (part of availableBalance)
+  //   reservedAmount   | Reserved Amount           | marginUsed
+  //   quoteProfit      | Locked Realized PnL USDC  | NOT MAPPED (parsed but not in AccountState)
+  //   freeBaseAmount   | Withdrawable META         | NOT MAPPED (base-asset, not quote)
+  //   baseProfit       | Locked Realized PnL META  | NOT MAPPED (base-asset, not quote)
+  //   releaseTime      | Unlock timer              | NOT MAPPED
+  //
+  // Unrealized PnL is NOT in getAccountInfo() — it comes from summing
+  // position-level unrealized PnL via getPositions().
+  //
+  // The "NOT MAPPED" quote fields could be exposed via subAccountBreakdown
+  // if the UI needs the full MYX margin breakdown.
   const acct = parseAccountTuple(accountInfo);
 
   const freeAmount = fromMYXCollateral(acct.freeAmount, network);
   const walletBal = fromMYXCollateral(acct.walletBalance, network);
   const reservedAmount = fromMYXCollateral(acct.reservedAmount, network);
-  const unrealizedPnl = fromMYXCollateral(acct.unrealizedPnl, network);
+
+  // Unrealized PnL is not in getAccountInfo() — sum from positions
+  let unrealizedPnl = 0;
+  let returnOnEquity = '0';
+  if (positions && positions.length > 0) {
+    let weightedRoe = 0;
+    let totalMargin = 0;
+    for (const pos of positions) {
+      unrealizedPnl += parseFloat(pos.unrealizedPnl || '0');
+      const roe = parseFloat(pos.returnOnEquity || '0');
+      const margin = parseFloat(pos.marginUsed || '0');
+      weightedRoe += roe * margin;
+      totalMargin += margin;
+    }
+    returnOnEquity =
+      totalMargin > 0 ? ((weightedRoe / totalMargin) * 100).toString() : '0';
+  }
 
   const availableBalance = freeAmount + walletBal;
   const totalBalance = freeAmount + walletBal + reservedAmount + unrealizedPnl;
   const marginUsed = reservedAmount;
-
-  // Compute weighted-average ROE from positions (same pattern as hyperLiquidAdapter)
-  let returnOnEquity = '0';
-  if (positions && positions.length > 0) {
-    const { weightedRoe, totalMargin } = positions.reduce(
-      (acc, pos) => {
-        const roe = parseFloat(pos.returnOnEquity || '0');
-        const margin = parseFloat(pos.marginUsed || '0');
-        acc.weightedRoe += roe * margin;
-        acc.totalMargin += margin;
-        return acc;
-      },
-      { weightedRoe: 0, totalMargin: 0 },
-    );
-    returnOnEquity =
-      totalMargin > 0 ? ((weightedRoe / totalMargin) * 100).toString() : '0';
-  }
 
   return {
     availableBalance: availableBalance.toString(),

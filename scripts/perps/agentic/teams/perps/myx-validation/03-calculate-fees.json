@@ -1,5 +1,5 @@
 {
-  "title": "MYX: Calculate Fees",
+  "title": "MYX: Calculate Fees (PR #myx-write-integration)",
   "pr": "myx-write-integration",
   "validate": {
     "runtime": {
@@ -18,6 +18,35 @@
             "field": "ready",
             "value": true
           }
+        },
+        {
+          "id": "nav-market",
+          "description": "Navigate to META market detail to show trade context",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-market-render",
+          "description": "Wait for market detail to render",
+          "action": "wait_for",
+          "test_id": "perps-market-details-long-button"
+        },
+        {
+          "id": "screenshot-market",
+          "description": "Capture market detail screen",
+          "action": "screenshot",
+          "filename": "03-calculate-fees-market"
         },
         {
           "id": "calculate-fees",

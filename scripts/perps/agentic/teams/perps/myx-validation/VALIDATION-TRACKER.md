@@ -33,51 +33,59 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 
 ### Read-Only Operations (no on-chain cost)
 
-- [ ] **01-read-markets** — Fetch MYX markets with prices
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx listMarkets.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/01-read-markets.mp4` — _pending_
-  - Tier 3: human review — _pending_
-  - Codepath: `getMarkets()`, `getMarketDataWithPrices()`
+- [x] **01-read-markets** — Fetch MYX markets with prices
+  - Tier 1: PASS — 8 markets found, META @ $2160, most pools inactive (expected on testnet)
+  - Tier 2: PASS (2/2) — `myx-qa/01-read-markets.mp4`
+  - Tier 3: PASS — human confirmed
 
-- [ ] **02-read-account** — Fetch account state (availableBalance, totalBalance)
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx showAccount.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/02-read-account.mp4` — _pending_
-  - Tier 3: human review — _pending_
-  - Codepath: `getAccountState()`
+- [x] **02-read-account** — Fetch account state (availableBalance, totalBalance)
+  - Tier 1: PASS — Available Margin $10,273.55 (Free Margin $620.87 + Wallet Balance $9,652.68)
+  - Tier 2: PASS (2/2) — `myx-qa/02-read-account.mp4`
+  - Tier 3: PASS — human confirmed
+  - Learning: SDK returns typed `AccountInfo` object (not a tuple). Fixed `parseAccountTuple` to use correct field names (`freeMargin`, `quoteProfit`, etc.). Unrealized PnL comes from positions, not `getAccountInfo()`. All 7 MYX UI fields now captured: Available Margin, Free Margin, Wallet Balance, Locked Realized PnL USDC, Unrealized PnL, Withdrawable META, Locked Realized PnL META.
 
-- [ ] **03-calculate-fees** — Calculate fees for $1000 trade
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx feeBreakdown.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/03-calculate-fees.mp4` — _pending_
-  - Tier 3: human review — _pending_
-  - Codepath: `calculateFees()`
+- [x] **03-calculate-fees** — Calculate fees for $1000 trade
+  - Tier 1: PASS — Taker 0.02% (testnet), protocol fee $0.20 for $1000, referrer/referral rebates both $0
+  - Tier 2: PASS (4/4) — `myx-qa/03-calculate-fees.mp4`
+  - Tier 3: PASS — human confirmed
+  - Learning: Testnet taker rate (0.02%) differs from mainnet (0.055%). Historical trades confirm execution fees of -$1 per order. Referrer rebates are $0 because `setUserFeeData` has not been called yet.
+  - **Broker validation** (`brokerValidation.ts`): 5/5 tests PASS:
+    1. Broker address matches MYX-provided credentials (Linea Sepolia `0x30b1bc...`)
+    2. SDK client accepts broker address in config
+    3. `setUserFeeData` is callable on-chain (contract at broker address, reverts with `ECDSAInvalidSignature` on dummy sig)
+    4. `referrals.claimRebate()` method exists and is a function
+    5. Trade history includes `referrerRebate`, `referralRebate`, `rebateClaimedAmount` fields (currently null/0)
+  - **Broker rebate activation** (`activateBrokerRebate.ts`): BLOCKED — `setUserFeeData` is an on-chain contract call on the broker contract itself. It requires an EIP-712 signature from the broker owner. We have the owner private key (`0xAdA1c1...`) and the contract name is "Metamask Broker", but the exact EIP-712 domain (version) and struct type hash are unknown. Contract reverts with `NotBrokerSigner(recovered_address)` — the recovered signer doesn't match because our EIP-712 typed data hash doesn't match the contract's.
+  - **ACTION NEEDED**: Ask MYX team for the exact EIP-712 domain spec (version string, struct name/layout) used by the broker contract's `setUserFeeData`, or ask them to provide a working example of calling `setUserFeeData` with a valid signature. PoC script `activateBrokerRebate.ts` is ready — just needs the correct EIP-712 types.
 
-- [ ] **04-validate-order** — Validate small ($1, expect invalid) and valid ($120, expect valid) orders
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx checkPoolMinOrder.ts` (verifies per-pool min order size) — _pending_
-  - Tier 2: recipe + `myx-qa/04-validate-order.mp4` — _pending_
-  - Tier 3: human review — _pending_
-  - Codepath: `validateOrder()`
+- [x] **04-validate-order** — Validate small ($5, expect invalid) and valid ($150, expect valid) orders
+  - Tier 1: PASS — Per-pool min order $10 for META/CXY/MASK. Most pools return N/A (no level config).
+  - Tier 2: PASS (21/21) — `myx-qa/04-validate-order.mp4`. Navigates to META market, opens trade form, types $5 (rejected `ORDER_SIZE_MIN` min $11), types $150 (accepted). Screenshots both states.
+  - Tier 3: PASS — human confirmed
+  - Learning: Controller returns `minimumRequired: 11` (adds safety margin over the $10 on-chain min). Validation is synchronous — no on-chain call needed. Does NOT place the order — that's tested in 06.
 
-- [ ] **05-read-fills** — Read order fills (needs prior trades)
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx listOrders.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/05-read-fills.mp4` — _pending_
+- [x] **05-read-fills** — Read order fills (needs prior trades)
+  - Tier 1: PASS — 20 orders in history (7 filled market orders, 13 rejected/cancelled limit/trigger orders)
+  - Tier 2: PASS (5/5) — `myx-qa/05-read-fills.mp4`. Navigates to Perps home, shows activity section with recent trades.
   - Tier 3: human review — _pending_
-  - Codepath: `getOrderFills()`
+  - Learning: Fills include filled market orders and rejected orders with `cancelReason`. Type `2` orders are trigger (TP/SL) orders.
 
 ### Market Orders
 
-- [ ] **06-place-market-order** — Place market buy, verify position created
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 11 --leverage 2 --type market` — _pending_
-  - Tier 2: recipe + `myx-qa/06-place-market-order.mp4` — _pending_
+- [x] **06-place-market-order** — Place market buy, verify position created
+  - Tier 1: PASS — PoC placed $150 META LONG 2x, tx `0x98789a...`, position confirmed at entry $2156.05
+  - Tier 2: PASS (7/7, flow 13/13) — `myx-qa/06-place-market-order.mp4`. Full UI: market detail → Long → $150 → Place Order → position appeared (META entry $2155.55) → cleanup closed position → 0 positions
   - Tier 3: human review — _pending_
-  - Codepath: `placeOrder()`
+  - Learning: MYX chain confirmation ~10s on testnet. Position appeared within first poll cycle. Cleanup via eval_ref close is faster than UI close for recipe cleanup.
 
 ### Position Management
 
-- [ ] **07-update-tpsl** — Set TP/SL on open position
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx addTpSl.ts --tp 2500 --sl 2000` — _pending_
-  - Tier 2: recipe + `myx-qa/07-update-tpsl.mp4` — _pending_
+- [x] **07-update-tpsl** — Set TP/SL on open position
+  - Tier 1: PASS — TP $2500 + SL $2000 set on META LONG, tx `0x6846ef...`, 2 trigger orders created. PoC shows TP/SL columns in position table.
+  - Tier 2: PASS (21/21, flow 13/13) — `myx-qa/07-update-tpsl.mp4`. Full UI: opens position → presses auto-close toggle → TP/SL screen → +25% TP / -10% SL → Set → navigates back → scrolls to show "Auto close: TP $X / SL $Y" with Edit button → cleanup
   - Tier 3: human review — _pending_
-  - Codepath: `updatePositionTPSL()`
+  - **BUG FIXED**: MYX positions had `takeProfitPrice: undefined` because TP/SL are separate trigger orders, not position attributes. Fixed `getPositions()` to cross-reference open orders by `positionId` and inject TP/SL prices. Also fixed `adaptOrderItemFromMYX` to detect trigger orders (`orderType 2/3`) and set `isTrigger: true`, `isPositionTpsl: true`, `detailedOrderType: "Take Profit"/"Stop Loss"`.
+  - Learning: MYX TP/SL are separate decrease trigger orders. TP uses GTE trigger (LONG) / LTE (SHORT), SL uses LTE (LONG) / GTE (SHORT). Cross-reference by `positionId` on `MYXOrderItem`.
 
 - [ ] **08-add-margin** — Add $10 margin to open position
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx addMargin.ts --usd 10` — _pending_
@@ -140,6 +148,8 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 | Medium | Protocol coupling | 116 | `hyperLiquidValidation` import | OK -- `validateOrderParams` is generic despite file name |
 | Low | Missing ensureError | 1910, 1976 | Manual `instanceof Error` | FIXED -> `ensureError()` + `logger.error()` |
 | Low | Missing Sentry log | 1910, 1976 | Missing `logger.error` | FIXED -> added Sentry logging |
+| Medium | Wrong SDK type mapping | myxAdapter.ts | `parseAccountTuple` used array indices instead of SDK `AccountInfo` field names | FIXED -> correct field mapping (`freeMargin`, `quoteProfit`, etc.) |
+| Medium | Misattributed field | myxAdapter.ts | `quoteProfit` (locked realized PnL) mapped as `unrealizedPnl` | FIXED -> unrealized PnL now computed from positions |
 
 ## MYX SDK Missing Exports (report to MYX team)
 
@@ -148,6 +158,17 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 | `OrderItem` | `MYXOrderItem` | `getOrders()` return type, `adaptOrderItemFromMYX` | Active/pending orders (limit, trigger). 28 fields. |
 | `UpdateOrderParams` | `MYXUpdateOrderParams` | `editOrder()` | 12 fields including orderId, size, price, TP/SL. |
 | `KlineData` | `MYXKlineWsData` | WebSocket kline subscription callback | Single-char property names (E, T, c, h, l, o, t, v). |
+
+## Testnet Broker Credentials
+
+MYX team provided dedicated broker addresses for MetaMask (2026-03-22):
+
+| Network | Chain | Owner Address | Broker Address |
+|---------|-------|--------------|----------------|
+| Arb Sepolia | 421614 | `0x49F983F21379D70b7756588E6C9b11f26fF3a4Bd` | `0xc777bf4cdd0afc3d2b4d0f46d23a1c1c25c39176` |
+| Linea Sepolia | 59141 | `0xAdA1c11226C0c1EFb001049334C14B0C70a0D84e` | `0x30b1bc9234fea72daba5253bf96d56a91483cbc0` |
+
+Owner private keys are in `.myx.env` (gitignored). The broker address is set via `MM_PERPS_MYX_BROKER_ADDRESS_TESTNET` in `.js.env` and tags every trade for referral rebate attribution. Revenue activation requires calling `setUserFeeData()` with an EIP-712 signature from MYX's backend — not yet available.
 
 ## Testnet Environment Status
 
@@ -164,4 +185,8 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 3. **Collateral token**: USDC `0xD984fd34...` on Linea Sepolia (6 decimals). No deposit step needed.
 4. **Eval ref resolution**: `myx/X` -> `perps/myx/X` (3-part) via validate-recipe.sh.
 5. **Provider-direct evals**: Must use `c.providers.get('myx')` — controller-level calls lack `providerId`.
-6. **Fee rate precision**: 1e8 (not 1e6). SDK returns `55000` for 0.055% taker fee.
+6. **Fee rate precision**: 1e8 (not 1e6). SDK returns `55000` for 0.055% taker fee. Testnet rate is `20000` (0.02%).
+7. **SDK AccountInfo type**: Returns a typed object `{ freeMargin, walletBalance, freeBaseAmount, baseProfit, quoteProfit, reservedAmount, releaseTime }` — NOT a 7-element tuple. `quoteProfit` = Locked Realized PnL USDC. Unrealized PnL is NOT in this response — it comes from per-position data.
+8. **Broker revenue model**: MYX uses referral rebates, not a direct fee. Broker address tags trades (done). Revenue requires `setUserFeeData()` — this is an on-chain call to the broker contract (NOT a backend API). Requires EIP-712 signature from broker owner (`0xAdA1c1...`). We have the owner private key but don't know the exact EIP-712 domain version/struct layout. Contract name is "Metamask Broker". Need MYX team to provide the EIP-712 spec or a working example.
+9. **`setUserFeeData` is on `client.account`** (not `client.utils` as the SDK types suggest). Method: `client.account.setUserFeeData(address, chainId, deadline, params, signature)`.
+10. **`referrals.claimRebate`** exists and is callable. Takes `tokenAddress` (collateral token). This is how MetaMask withdraws accumulated rebates after activation.

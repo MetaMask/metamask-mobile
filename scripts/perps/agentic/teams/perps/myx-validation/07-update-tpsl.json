@@ -1,5 +1,5 @@
 {
-  "title": "MYX: Update TP/SL on Position",
+  "title": "MYX: Update TP/SL on Position (PR #myx-write-integration)",
   "pr": "myx-write-integration",
   "initial_conditions": { "testnet": true },
   "validate": {
@@ -26,7 +26,7 @@
         },
         {
           "id": "wait-position",
-          "description": "Poll until position appears (MYX chain ~30-60s)",
+          "description": "Poll until position appears",
           "action": "wait_for",
           "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
           "timeout_ms": 60000,
@@ -34,15 +34,132 @@
           "assert": { "operator": "gt", "field": "count", "value": 0 }
         },
         {
-          "id": "set-tpsl",
-          "description": "Set TP/SL via eval ref (shared flow has 10s timeout, too short for MYX)",
-          "action": "eval_ref",
-          "ref": "myx/update-tpsl",
-          "assert": { "operator": "eq", "field": "success", "value": true }
+          "id": "nav-market-detail",
+          "description": "Navigate to META market detail with position",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-auto-close-toggle",
+          "description": "Wait for position card auto-close toggle",
+          "action": "wait_for",
+          "test_id": "position-card-auto-close-toggle",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "screenshot-before",
+          "description": "Capture position before TP/SL",
+          "action": "screenshot",
+          "filename": "07-tpsl-before"
+        },
+        {
+          "id": "press-auto-close",
+          "description": "Press auto-close toggle to open TP/SL screen",
+          "action": "press",
+          "test_id": "position-card-auto-close-toggle"
+        },
+        {
+          "id": "wait-tpsl-route",
+          "description": "Wait for TP/SL screen",
+          "action": "wait_for",
+          "route": "PerpsTPSL"
+        },
+        {
+          "id": "wait-tp-button",
+          "description": "Wait for TP preset buttons",
+          "action": "wait_for",
+          "test_id": "perps-tpsl-take-profit-percentage-button-25"
+        },
+        {
+          "id": "press-tp-25",
+          "description": "Press +25% TP preset",
+          "action": "press",
+          "test_id": "perps-tpsl-take-profit-percentage-button-25"
+        },
+        {
+          "id": "wait-sl-button",
+          "description": "Wait for SL preset buttons",
+          "action": "wait_for",
+          "test_id": "perps-tpsl-stop-loss-percentage-button--10"
+        },
+        {
+          "id": "press-sl-10",
+          "description": "Press -10% SL preset",
+          "action": "press",
+          "test_id": "perps-tpsl-stop-loss-percentage-button--10"
+        },
+        {
+          "id": "screenshot-tpsl-form",
+          "description": "Capture TP/SL form with values filled in",
+          "action": "screenshot",
+          "filename": "07-tpsl-form-filled"
+        },
+        {
+          "id": "press-set",
+          "description": "Press Set TP/SL button",
+          "action": "press",
+          "test_id": "perps-tpsl-bottomsheet"
+        },
+        {
+          "id": "wait-tpsl-set",
+          "description": "Wait for TP/SL trigger orders to appear (MYX creates separate orders)",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){var tpsl=r.filter(function(o){return o.reduceOnly});return JSON.stringify({tpslCount:tpsl.length,orders:tpsl.map(function(o){return{price:o.price,side:o.side,reduceOnly:o.reduceOnly}})})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "tpslCount", "value": 0 }
+        },
+        {
+          "id": "nav-back-to-market",
+          "description": "Navigate to market detail to see TP/SL in position card",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "META",
+              "name": "META",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-position-card",
+          "description": "Wait for position card to render with TP/SL",
+          "action": "wait_for",
+          "test_id": "position-card-auto-close-toggle",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "scroll-to-autoclose",
+          "description": "Scroll down to show auto-close section with TP/SL values",
+          "action": "scroll",
+          "test_id": "perps-market-details-scroll-view",
+          "offset": 600
+        },
+        {
+          "id": "screenshot-after",
+          "description": "Capture position card showing TP $X / SL $Y and Edit button",
+          "action": "screenshot",
+          "filename": "07-tpsl-after-set"
         },
         {
           "id": "cleanup",
-          "description": "Close the position via eval ref",
+          "description": "Close the position",
           "action": "eval_ref",
           "ref": "myx/close-position",
           "assert": { "operator": "eq", "field": "success", "value": true }

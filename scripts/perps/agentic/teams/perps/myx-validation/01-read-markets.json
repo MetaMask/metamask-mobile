@@ -1,5 +1,5 @@
 {
-  "title": "MYX: Read Markets",
+  "title": "MYX: Read Markets (PR #myx-write-integration)",
   "pr": "myx-write-integration",
   "validate": {
     "runtime": {
@@ -20,8 +20,37 @@
           }
         },
         {
+          "id": "nav-perps-home",
+          "description": "Navigate to Perps home to show MYX markets",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-perps-home",
+          "description": "Wait for Perps home to render",
+          "action": "wait_for",
+          "route": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-markets-loaded",
+          "description": "Wait for market data to load in controller",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getMarketDataWithPrices().then(function(ms){return JSON.stringify({count:ms.length})})",
+          "assert": {
+            "operator": "gt",
+            "field": "count",
+            "value": 0
+          }
+        },
+        {
+          "id": "screenshot-markets",
+          "description": "Capture Perps home with MYX markets visible",
+          "action": "screenshot",
+          "filename": "01-read-markets-home"
+        },
+        {
           "id": "read-markets",
-          "description": "Fetch MYX markets with prices",
+          "description": "Fetch MYX markets with prices via provider",
           "action": "eval_ref",
           "ref": "myx/markets",
           "assert": {

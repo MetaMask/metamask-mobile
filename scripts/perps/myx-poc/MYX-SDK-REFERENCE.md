@@ -21,17 +21,19 @@ Two layers of funds, both **global** (not per-pool):
 
 Per-pool fields only diverge from zero when positions/orders exist in that pool.
 
-### `getAccountInfo(chainId, address, poolId)` → 7-element tuple
+### `getAccountInfo(chainId, address, poolId)` → `AccountInfo`
 
-| Index | Field | Scope | Description |
-|-------|-------|-------|-------------|
-| 0 | Free Margin | Global | Deposited funds available for trading |
-| 1 | Wallet Balance | Global | Quote token in wallet |
-| 2 | Reserved Amount | Per-pool | Margin locked for open positions |
-| 3 | Order Hold | Per-pool | Margin reserved for pending orders |
-| 4 | Total Collateral | Per-pool | Total collateral backing positions |
-| 5 | Locked Realized PnL | Per-pool | Realized PnL not yet settled |
-| 6 | Unrealized PnL | Per-pool | Mark-to-market PnL |
+| SDK Field | MYX UI Label | Scope | Description |
+|-----------|-------------|-------|-------------|
+| `freeMargin` | Free Margin | Global | Settled balance, withdrawable anytime |
+| `walletBalance` | Wallet Balance | Global | Quote token in on-chain wallet |
+| `reservedAmount` | Reserved Amount | Per-pool | Margin locked for open positions |
+| `quoteProfit` | Locked Realized PnL (USDC) | Per-pool | Realized PnL in unlocking cycle |
+| `freeBaseAmount` | Withdrawable (base token) | Per-pool | Base token (e.g. META) available to withdraw |
+| `baseProfit` | Locked Realized PnL (base) | Per-pool | Base token PnL in unlocking cycle |
+| `releaseTime` | Unlock timer | Per-pool | Timestamp when locked PnL becomes withdrawable |
+
+Note: `Available Margin = freeMargin + walletBalance`. Unrealized PnL is NOT in this response — it comes from `listPositions()` per-position data.
 
 ### Collateral decimals
 

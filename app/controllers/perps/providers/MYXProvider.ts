@@ -48,6 +48,7 @@ import {
   toMYXSize,
   toMYXCollateral,
   toMYXContractPrice,
+  fromMYXPrice,
 } from '../constants/myxConfig';
 import { PERPS_CONSTANTS } from '../constants/perpsConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
@@ -1698,13 +1699,57 @@ export class MYXProvider implements PerpsProvider {
         // Non-fatal: positions still returned without PnL
       }
 
-      return activePositions.map((pos) =>
-        adaptPositionFromMYX(
+      // Fetch open orders to cross-reference TP/SL trigger orders with positions.
+      // MYX TP/SL are separate trigger orders, not position attributes.
+      // We match by positionId and inject takeProfitPrice/stopLossPrice.
+      const tpslByPosition = new Map<
+        string,
+        { takeProfitPrice?: string; stopLossPrice?: string }
+      >();
+      try {
+        const ordersResult = await this.#clientService.getOrders(address);
+        if (ordersResult.data && Array.isArray(ordersResult.data)) {
+          for (const order of ordersResult.data) {
+            // Trigger orders: orderType 2 (Stop) or 3 (Conditional), operation 1 (decrease)
+            if (
+              (order.orderType === 2 || order.orderType === 3) &&
+              order.operation === 1 &&
+              order.positionId
+            ) {
+              const existing = tpslByPosition.get(order.positionId) ?? {};
+              const priceStr = fromMYXPrice(order.price).toString();
+              // For LONG: GTE (triggerType=1) = TP, LTE (triggerType=2) = SL
+              // For SHORT: LTE (triggerType=2) = TP, GTE (triggerType=1) = SL
+              const isLong = order.direction === 0;
+              const isGTE = order.triggerType === 1;
+              const isTakeProfit = isLong ? isGTE : !isGTE;
+              if (isTakeProfit) {
+                existing.takeProfitPrice = priceStr;
+              } else {
+                existing.stopLossPrice = priceStr;
+              }
+              tpslByPosition.set(order.positionId, existing);
+            }
+          }
+        }
+      } catch {
+        // Non-fatal: positions still returned without TP/SL
+      }
+
+      return activePositions.map((pos) => {
+        const position = adaptPositionFromMYX(
           pos,
           this.#poolSymbolMap,
           tickerPriceMap.get(pos.poolId),
-        ),
-      );
+        );
+        // Inject TP/SL from trigger orders
+        const tpsl = tpslByPosition.get(pos.positionId);
+        if (tpsl) {
+          position.takeProfitPrice = tpsl.takeProfitPrice;
+          position.stopLossPrice = tpsl.stopLossPrice;
+        }
+        return position;
+      });
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.getPositions');
       this.#deps.debugLogger.log('[MYXProvider] getPositions failed', {
