@@ -847,6 +847,153 @@ git commit -m "fix(visual): address issues found during orchestrator smoke test"
 
 ---
 
+### Task 10: Mock Server Integration
+
+**Files:**
+
+- Modify: `tests/visual/orchestrator/run-flow.ts`
+
+**Context:** Without a mock server, the E2E app's `shim.js` routes all HTTP traffic to real MetaMask API endpoints. This causes:
+
+1. **Flaky tests** — real API calls are slow and unreliable, causing timeouts
+2. **Non-deterministic UI** — production feature flags control promos, banners, and modals (e.g. "Perps are here") that change the UI unpredictably
+3. **Fragile baselines** — every new feature-flagged overlay requires a new dismissal step in flows
+
+The existing Detox infrastructure already solves this via `MockServerE2E` (a `mockttp` proxy server) + `DEFAULT_MOCKS` (responses for ~30 API endpoint groups) + `setupRemoteFeatureFlagsMock` (deterministic feature flags). The app's `shim.js` auto-detects the mock server via a health check to `localhost:<port>/health-check` and patches `global.fetch` + `XMLHttpRequest` to proxy all traffic through it.
+
+**How it works in Detox (from `FixtureHelper.ts:createMockAPIServer`):**
+
+```typescript
+const mockServerInstance = new MockServerE2E({ events: DEFAULT_MOCKS });
+const mockServerPort = await startResourceWithRetry(
+  ResourceType.MOCK_SERVER,
+  mockServerInstance,
+);
+await mockNotificationServices(mockServerInstance.server);
+await setupRemoteFeatureFlagsMock(mockServerInstance.server);
+```
+
+**For visual tests we need:**
+
+- Start `MockServerE2E` on port 8000 (`FALLBACK_MOCKSERVER_PORT`) — same fixed-port pattern as the fixture server, since `shim.js` defaults to this port when `LaunchArguments` aren't available
+- Load `DEFAULT_MOCKS` for baseline API responses
+- Call `setupRemoteFeatureFlagsMock` for deterministic feature flags
+- Call `mockNotificationServices` to prevent notification-related network calls
+- Clean up (stop + kill port) in the `finally` block alongside the fixture server
+
+**Key port detail:** The app's `shim.js` reads `mockServerPort` from LaunchArguments (which don't work outside Detox) and falls back to `defaultMockPort` from `tests/api-mocking/mock-config/mockUrlCollection.json`. That default is `8000`. So we bind to port 8000, matching what the fixture server approach does with port 12345.
+
+- [ ] **Step 1: Add mock server startup and teardown to `run-flow.ts`**
+
+Add these imports at the top of `run-flow.ts`:
+
+```typescript
+import MockServerE2E from '../../api-mocking/MockServerE2E';
+import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
+import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+```
+
+Add `MOCK_SERVER_PORT` constant:
+
+```typescript
+const MOCK_SERVER_PORT = 8000;
+```
+
+In the `runFlow` function, after building the fixture and before starting the fixture server:
+
+```typescript
+// 3. Start mock server for deterministic API responses and feature flags.
+// The app's shim.js auto-detects this via health check and proxies all
+// HTTP traffic through it, giving us stable, fast, predictable UI state.
+killProcessOnPort(MOCK_SERVER_PORT);
+const mockServer = new MockServerE2E({ events: DEFAULT_MOCKS });
+mockServer.setServerPort(MOCK_SERVER_PORT);
+await mockServer.start();
+await mockNotificationServices(mockServer.server);
+await setupRemoteFeatureFlagsMock(mockServer.server);
+console.log(`  Mock server started on port ${MOCK_SERVER_PORT}`);
+```
+
+In the `finally` teardown block, add mock server cleanup:
+
+```typescript
+if (mockServer.isStarted()) {
+  await mockServer.stop();
+}
+killProcessOnPort(MOCK_SERVER_PORT);
+```
+
+Note: `mockServer` must be declared in the outer scope (alongside `fixtureServer`) so the `finally` block can access it.
+
+- [ ] **Step 2: Verify the mock server is detected by the app**
+
+Run:
+
+```bash
+yarn maestro:visual:update-baselines tests/visual/flows/wallet/wallet-home.yaml
+```
+
+Check Metro console output for:
+
+```
+[E2E SHIM] Mock server connected via localhost
+```
+
+If this line appears (instead of "health check failed"), the app is proxying traffic through our mock server.
+
+- [ ] **Step 3: Verify feature flags are now deterministic**
+
+After the mock server is integrated, the "Perps are here" promo and similar feature-flagged overlays should no longer appear (they'll be controlled by the mock's feature flag response instead of production). The existing `runFlow: when: visible: "Not now"` dismissal in `wallet-home.yaml` acts as a safety net but shouldn't be needed once flags are mocked.
+
+- [ ] **Step 4: Commit**
+
+```bash
+git add tests/visual/orchestrator/run-flow.ts
+git commit -m "feat(visual): add MockServerE2E for deterministic API responses and feature flags"
+```
+
+---
+
+### Task 11: Update wallet-home flow for mock server
+
+**Files:**
+
+- Modify: `tests/visual/flows/wallet/wallet-home.yaml`
+
+**Context:** With the mock server providing deterministic feature flags, the promo overlay dismissal may no longer be needed. However, we should keep it as a conditional safety net and verify the baseline screenshot is clean and stable.
+
+- [ ] **Step 1: Run update-baselines twice and compare**
+
+```bash
+yarn maestro:visual:update-baselines tests/visual/flows/wallet/wallet-home.yaml
+# Save the first baseline
+cp <baseline-path>/home-default.png /tmp/baseline-1.png
+
+yarn maestro:visual:update-baselines tests/visual/flows/wallet/wallet-home.yaml
+# Compare
+diff <baseline-path>/home-default.png /tmp/baseline-1.png
+```
+
+If the screenshots are identical (or very close), the mock server is providing stable state.
+
+- [ ] **Step 2: Run assert mode to verify comparison works**
+
+```bash
+yarn maestro:visual tests/visual/flows/wallet/wallet-home.yaml
+```
+
+Expected: PASS (screenshot matches baseline within 95% threshold).
+
+- [ ] **Step 3: Commit any flow adjustments**
+
+```bash
+git add tests/visual/flows/wallet/wallet-home.yaml
+git commit -m "fix(visual): stabilize wallet-home flow with mock server"
+```
+
+---
+
 ## Execution Notes
 
 - Tasks 1-4 are independent and can be implemented in parallel
@@ -854,4 +1001,20 @@ git commit -m "fix(visual): address issues found during orchestrator smoke test"
 - Task 6 depends on Task 5
 - Tasks 7-8 are independent of each other but should come after Task 6
 - Task 9 requires all previous tasks and a running simulator with the app installed
-- The `xcrun simctl launch` approach for passing `--fixtureServerPort` needs validation in Task 9. If it doesn't work with `react-native-launch-arguments`, fall back to using the fixed port 12345.
+- Tasks 1-9 are COMPLETE
+- Task 10 (mock server) depends on Task 9 (needs a working pipeline to validate against)
+- Task 11 depends on Task 10
+
+## Lessons Learned (from Task 9 smoke testing)
+
+These issues were discovered and fixed during the smoke test. They inform the current implementation but are not in the original plan:
+
+1. **`execFileSync` blocks the event loop** — Must use `spawn()` (async) for Maestro so the fixture server (Koa) can serve HTTP requests while Maestro runs
+2. **Fixed ports required** — `react-native-launch-arguments` doesn't work outside Detox. Fixture server uses port 12345 (`FALLBACK_FIXTURE_SERVER_PORT`), mock server will use port 8000 (`FALLBACK_MOCKSERVER_PORT`)
+3. **Stale port cleanup is essential** — Zombie processes from crashed runs hold ports. `killProcessOnPort()` runs before start and in `finally` teardown
+4. **`clearState` + `launchApp` required in flows** — Ensures `ReadOnlyNetworkStore._initialized` resets so it refetches from the fixture server
+5. **Default fixture password is `123123123`** — Not `12345678`
+6. **Dev menu dismissal** — Tap server row → wait for Continue → tap Continue → tap X at coordinates `93%,37%`
+7. **`register.js` shims** — ESM-only `@metamask/native-utils` needs Module.\_resolveFilename redirect; `global.device` stub needed for PlatformDetector
+8. **`takeScreenshot` doesn't support `cropOn`** — Only `assertScreenshot` does
+9. **Rewritten flows need absolute `runFlow` paths** — Temp files in `.tmp/` break relative paths
