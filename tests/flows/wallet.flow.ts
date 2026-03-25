@@ -2,7 +2,6 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
-  Gestures,
   PortManager,
   ResourceType,
   sleep,
@@ -33,6 +32,10 @@ import ToastModal from '../page-objects/wallet/ToastModal';
 import { waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import PredictGTMModal from '../page-objects/Predict/PredictGTMModal';
+import PerpsGTMModal from '../page-objects/Perps/PerpsGTMModal';
+import Matchers from '../framework/Matchers';
+import { WalletViewSelectorsIDs } from '../../app/components/Views/Wallet/WalletView.testIds';
+import { TabBarSelectorIDs } from '../../app/components/Nav/Main/TabBar.testIds';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -376,6 +379,71 @@ export const switchToSepoliaNetwork = async (): Promise<void> => {
   }
 };
 
+/**
+ * The wallet tab is mounted when the safe area, the loading placeholder, or the main screen exists.
+ * Prefer this over safe-area-only checks: SafeAreaView testIDs can be flaky on iOS Detox, while the
+ * loading container uses a plain View testID (see {@link WalletViewSelectorsIDs.WALLET_LOADING_CONTAINER}).
+ */
+export async function expectWalletRouteReady(
+  options: { timeout?: number; description?: string } = {},
+): Promise<void> {
+  const { timeout = 60000, description = 'wallet route ready' } = options;
+  const safeArea = Matchers.getElementByID(
+    WalletViewSelectorsIDs.WALLET_SAFE_AREA,
+  );
+  const loading = Matchers.getElementByID(
+    WalletViewSelectorsIDs.WALLET_LOADING_CONTAINER,
+  );
+  const screen = Matchers.getElementByID(
+    WalletViewSelectorsIDs.WALLET_CONTAINER,
+  );
+
+  await Utilities.executeWithRetry(
+    async () => {
+      try {
+        await Assertions.expectElementToBeVisible(safeArea, {
+          timeout: 8000,
+          description: `${description} (safe area)`,
+        });
+        return;
+      } catch {
+        // try next marker
+      }
+      try {
+        await Assertions.expectElementToBeVisible(loading, {
+          timeout: 8000,
+          description: `${description} (loading)`,
+        });
+        return;
+      } catch {
+        // try next marker
+      }
+      try {
+        await Assertions.expectElementToBeVisible(screen, {
+          timeout: 8000,
+          description: `${description} (wallet screen)`,
+        });
+        return;
+      } catch {
+        // try next marker
+      }
+      // Home tab content can lag behind the tab bar after navigation.reset to HomeNav.
+      await Assertions.expectElementToBeVisible(
+        Matchers.getElementByID(TabBarSelectorIDs.WALLET),
+        {
+          timeout: 8000,
+          description: `${description} (tab bar wallet tab)`,
+        },
+      );
+    },
+    {
+      timeout,
+      interval: 2000,
+      description: `${description} — wallet route marker`,
+    },
+  );
+}
+
 export interface LoginToAppOptions {
   /**
    * Use after an explicit lock: skip the "wallet already visible" probe so we do not
@@ -410,6 +478,7 @@ export const loginToApp = async (
   );
 
   await PredictGTMModal.dismissIfVisible();
+  await PerpsGTMModal.dismissIfVisible();
 
   await Utilities.executeWithRetry(
     async () => {
@@ -417,14 +486,14 @@ export const loginToApp = async (
       // after login looked stable in waitForAppReady. Re-check wallet on every retry.
       if (!skipWalletAutoUnlock) {
         try {
-          await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+          await expectWalletRouteReady({
+            timeout: 20000,
             description:
-              'Wallet home mounted (keychain auto-unlock or already signed in)',
-            timeout: 12000,
+              'Wallet route after rehydration (keychain auto-unlock or already signed in)',
           });
           await Assertions.expectElementToBeVisible(WalletView.container, {
             description:
-              'Wallet after rehydration (keychain auto-unlock or already signed in)',
+              'Wallet container after rehydration (keychain auto-unlock or already signed in)',
             timeout: 12000,
           });
           await Assertions.expectElementToBeVisible(WalletView.container, {
@@ -449,29 +518,21 @@ export const loginToApp = async (
         },
       );
 
-      // Do not rely on a trailing newline to fire onSubmitEditing; iOS Detox + TextField
-      // can leave the user on the login screen with a filled field. Submit via the unlock button.
-      await Gestures.typeText(
-        asDetoxElement(LoginView.passwordInput),
-        PASSWORD,
-        {
-          elemDescription: 'Password Input',
-          hideKeyboard: false,
-        },
-      );
-      await LoginView.tapLoginButton();
+      // UnifiedGestures + newline fires onSubmitEditing and keeps React state in sync with the
+      // TextField (same pattern as change-password and post-lock unlock in seedless utils).
+      await LoginView.enterPassword(PASSWORD);
 
-      // Predict GTM can present immediately after navigation to home and block wallet testIDs.
+      // Predict / Perps GTM modals can present after navigation to home and block wallet testIDs.
       await PredictGTMModal.dismissIfVisible();
+      await PerpsGTMModal.dismissIfVisible();
 
-      // Home mounts before the internal account is selected; wallet-screen only exists then.
-      await Assertions.expectElementToBeVisible(WalletView.safeArea, {
-        description: 'Wallet safe area visible after unlock (home mounted)',
-        timeout: 35000,
+      await expectWalletRouteReady({
+        timeout: 60000,
+        description: 'Wallet route after password login',
       });
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should be visible after login',
-        timeout: 35000,
+        timeout: 45000,
       });
 
       await sleep(1000);

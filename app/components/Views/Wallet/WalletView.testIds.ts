@@ -91,6 +91,8 @@ export const WalletViewSelectorsIDs = {
   BALANCE_EMPTY_STATE_ACTION_BUTTON:
     'account-group-balance-empty-state-action-button',
   WALLET_HEADER_ROOT: 'wallet-header-root',
+  /** Shown while the wallet route is mounted but the selected account is not ready yet (E2E-friendly). */
+  WALLET_LOADING_CONTAINER: 'wallet-loading-container',
   WALLET_SAFE_AREA: 'wallet-safe-area',
   WALLET_SCROLL_VIEW: 'wallet-scroll-view',
   HOMEPAGE_SECTION_TITLE: (sectionName: string): string =>
