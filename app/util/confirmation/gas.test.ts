@@ -2,7 +2,12 @@ import {
   GasFeeEstimateType,
   GasFeeEstimateLevel,
 } from '@metamask/transaction-controller';
-import { getMediumGasPriceHex } from './gas';
+import {
+  getMediumGasPriceHex,
+  addTenPercentAndRound,
+  getMediumEstimateGwei,
+  gasEstimateGreaterThanGasUsedPlusTenPercent,
+} from './gas';
 
 jest.mock('../conversions', () => ({
   decGWEIToHexWEI: jest.fn((value: string) => {
@@ -135,5 +140,162 @@ describe('getMediumGasPriceHex', () => {
 
     expect(mockDecGWEIToHexWEI).toHaveBeenCalledWith('0');
     expect(result).toBeDefined();
+  });
+});
+
+describe('addTenPercentAndRound', () => {
+  it('returns undefined when input is undefined', () => {
+    expect(addTenPercentAndRound(undefined)).toBeUndefined();
+  });
+
+  it('returns undefined when input is empty string', () => {
+    expect(addTenPercentAndRound('')).toBeUndefined();
+  });
+
+  it('bumps a hex wei value by 10% and rounds down', () => {
+    // 100 decimal = 0x64; 100 * 1.1 = 110 = 0x6e
+    const result = addTenPercentAndRound('0x64');
+    expect(result).toBe('0x6e');
+  });
+
+  it('rounds fractional result down to integer', () => {
+    // 15 decimal = 0xf; 15 * 1.1 = 16.5 -> floor = 16 = 0x10
+    const result = addTenPercentAndRound('0xf');
+    expect(result).toBe('0x10');
+  });
+
+  it('handles large values', () => {
+    // 0x59682f10 = 1500000016 decimal; * 1.1 = 1650000017.6 -> floor = 1650000017 = 0x62590091
+    const result = addTenPercentAndRound('0x59682f10');
+    expect(result).toBe('0x62590091');
+  });
+});
+
+describe('getMediumEstimateGwei', () => {
+  it('returns undefined for null estimates', () => {
+    expect(getMediumEstimateGwei(null)).toBeUndefined();
+  });
+
+  it('returns undefined for undefined estimates', () => {
+    expect(getMediumEstimateGwei(undefined)).toBeUndefined();
+  });
+
+  it('extracts suggestedMaxFeePerGas from FeeMarket type', () => {
+    const estimates = {
+      type: GasFeeEstimateType.FeeMarket,
+      [GasFeeEstimateLevel.Medium]: { suggestedMaxFeePerGas: '25' },
+    };
+    expect(getMediumEstimateGwei(estimates)).toBe('25');
+  });
+
+  it('extracts medium value from Legacy type', () => {
+    const estimates = {
+      type: GasFeeEstimateType.Legacy,
+      [GasFeeEstimateLevel.Medium]: '20',
+    };
+    expect(getMediumEstimateGwei(estimates)).toBe('20');
+  });
+
+  it('extracts gasPrice from GasPrice type', () => {
+    const estimates = {
+      type: GasFeeEstimateType.GasPrice,
+      gasPrice: '15',
+    };
+    expect(getMediumEstimateGwei(estimates)).toBe('15');
+  });
+
+  it('extracts from untyped object shape with suggestedMaxFeePerGas', () => {
+    const estimates = {
+      medium: { suggestedMaxFeePerGas: '30' },
+    };
+    expect(getMediumEstimateGwei(estimates)).toBe('30');
+  });
+
+  it('extracts from untyped string shape', () => {
+    const estimates = { medium: '22' };
+    expect(getMediumEstimateGwei(estimates)).toBe('22');
+  });
+
+  it('falls back to gasPrice when medium is not available', () => {
+    const estimates = { gasPrice: '10' };
+    expect(getMediumEstimateGwei(estimates)).toBe('10');
+  });
+
+  it('returns undefined when no usable estimate', () => {
+    expect(getMediumEstimateGwei({})).toBeUndefined();
+  });
+});
+
+describe('gasEstimateGreaterThanGasUsedPlusTenPercent', () => {
+  it('returns true when EIP-1559 medium estimate exceeds bumped maxFeePerGas', () => {
+    // maxFeePerGas = 0x59682f10 = 1500000016 wei ≈ 1.500000016 GWEI
+    // bumped = 1.500000016 * 1.1 ≈ 1.650000018 GWEI
+    // medium suggestedMaxFeePerGas = 70 GWEI -> 70 > ~1.65 -> true
+    const txParams = {
+      maxFeePerGas: '0x59682f10',
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+    const estimates = {
+      medium: { suggestedMaxFeePerGas: '70' },
+    };
+    expect(
+      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
+    ).toBe(true);
+  });
+
+  it('returns false when EIP-1559 medium estimate is below bumped maxFeePerGas', () => {
+    const txParams = {
+      maxFeePerGas: '0x59682f10',
+      maxPriorityFeePerGas: '0x59682f00',
+    };
+    const estimates = {
+      medium: { suggestedMaxFeePerGas: '1' },
+    };
+    expect(
+      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
+    ).toBe(false);
+  });
+
+  it('returns false when txParams has no maxFeePerGas and no gasPrice', () => {
+    const txParams = { gas: '0x5208' };
+    const estimates = {
+      medium: { suggestedMaxFeePerGas: '70' },
+    };
+    expect(
+      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
+    ).toBe(false);
+  });
+
+  it('returns true with legacy gasPrice when medium is higher', () => {
+    const txParams = { gasPrice: '0x59682f10' };
+    const estimates = { medium: '70' };
+    expect(
+      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
+    ).toBe(true);
+  });
+
+  it('returns false with legacy gasPrice when medium is lower', () => {
+    const txParams = { gasPrice: '0x59682f10' };
+    const estimates = { medium: '1' };
+    expect(
+      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
+    ).toBe(false);
+  });
+
+  it('returns false when gasFeeEstimates is null', () => {
+    const txParams = { maxFeePerGas: '0x59682f10' };
+    expect(gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, null)).toBe(
+      false,
+    );
+  });
+
+  it('handles fee-market estimates with legacy txParams', () => {
+    const txParams = { gasPrice: '0x59682f10' };
+    const estimates = {
+      medium: { suggestedMaxFeePerGas: '70' },
+    };
+    expect(
+      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
+    ).toBe(true);
   });
 });

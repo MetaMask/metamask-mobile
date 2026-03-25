@@ -1,10 +1,11 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet } from 'react-native';
 import Modal from 'react-native-modal';
-import type {
-  FeeMarketEIP1559Values,
-  GasPriceValue,
-  TransactionMeta,
+import {
+  isEIP1559Transaction,
+  type FeeMarketEIP1559Values,
+  type GasPriceValue,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import { Hex } from '@metamask/utils';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -40,7 +41,10 @@ import {
   useCancelSpeedupGas,
 } from '../../../hooks/gas/useCancelSpeedupGas';
 import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
-import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
+import {
+  updatePreviousGasParams,
+  updateTransactionGasFees,
+} from '../../../../../../util/transaction-controller';
 import { GasFeeModal } from '../gas-fee-modal';
 import { GasSpeed } from '../../gas/gas-speed';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
@@ -180,18 +184,40 @@ export function CancelSpeedupModal({
     networkFeeNative,
     networkFeeFiat,
     nativeTokenSymbol,
+    isInitialGasReady,
   } = useCancelSpeedupGas({ txId: tx?.id });
 
   // Seed the transaction with bump params when cancel/speed up modal opens so the gas modal shows suggested values.
+  // Stores the original gas as previousGas first (prevents re-seeding on subsequent renders).
   useEffect(() => {
-    if (!isVisible || !tx?.id || !tx) return;
-    const bumpParams = getBumpParamsForCancelSpeedup(
+    if (!isVisible || !tx?.id) return;
+    if (tx.previousGas) return;
+
+    const { txParams } = tx;
+    if (txParams) {
+      if (isEIP1559Transaction(txParams)) {
+        updatePreviousGasParams(tx.id, {
+          maxFeePerGas: txParams.maxFeePerGas as string,
+          maxPriorityFeePerGas: txParams.maxPriorityFeePerGas as string,
+          gasLimit: (txParams.gasLimit ?? txParams.gas) as string,
+        });
+      } else {
+        updatePreviousGasParams(tx.id, {
+          gasLimit: (txParams.gasLimit ?? txParams.gas) as string,
+        });
+      }
+    }
+
+    const bumpResult = getBumpParamsForCancelSpeedup(
       tx,
       isCancel,
       gasFeeEstimates,
     );
-    if (bumpParams) {
-      updateTransactionGasFees(tx.id, bumpParams);
+    if (bumpResult) {
+      updateTransactionGasFees(tx.id, {
+        ...bumpResult.gasValues,
+        userFeeLevel: bumpResult.userFeeLevel,
+      });
     }
   }, [isVisible, tx?.id, isCancel, gasFeeEstimates, tx]);
 
@@ -212,10 +238,12 @@ export function CancelSpeedupModal({
     });
   }, [onClose]);
 
+  const effectiveConfirmDisabled = confirmDisabled || !isInitialGasReady;
+
   const handleConfirm = useCallback(() => {
-    if (confirmDisabled) return;
+    if (effectiveConfirmDisabled) return;
     onConfirm(paramsForController);
-  }, [onConfirm, paramsForController, confirmDisabled]);
+  }, [onConfirm, paramsForController, effectiveConfirmDisabled]);
 
   const title = isCancel
     ? strings('transaction.cancel_speedup_cancel_title')
@@ -232,7 +260,7 @@ export function CancelSpeedupModal({
       label: strings('transaction.confirm'),
       size: ButtonSize.Lg,
       onPress: handleConfirm,
-      isDisabled: confirmDisabled,
+      isDisabled: effectiveConfirmDisabled,
     },
   ];
 
