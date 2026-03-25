@@ -12,12 +12,12 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "AccountTreeController": {
         "accountGroupsMetadata": {},
         "accountTree": {
-          "selectedAccountGroup": "",
           "wallets": {},
         },
         "accountWalletsMetadata": {},
         "hasAccountTreeSyncingSyncedAtLeastOnce": false,
         "isAccountTreeSyncingInProgress": false,
+        "selectedAccountGroup": "",
       },
       "AccountsController": {
         "accountIdByAddress": {},
@@ -826,12 +826,12 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "AccountTreeController": {
         "accountGroupsMetadata": {},
         "accountTree": {
-          "selectedAccountGroup": "",
           "wallets": {},
         },
         "accountWalletsMetadata": {},
         "hasAccountTreeSyncingSyncedAtLeastOnce": false,
         "isAccountTreeSyncingInProgress": false,
+        "selectedAccountGroup": "",
       },
       "AccountsController": {
         "accountIdByAddress": {},
