@@ -222,6 +222,8 @@ jest.mock(
 );
 
 const mockNavigate = jest.fn();
+const mockSetParams = jest.fn();
+const mockFocusEffects: (() => void | (() => void))[] = [];
 const mockRoute = {
   params: {
     sourcePage: 'test',
@@ -232,8 +234,12 @@ jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
+    useFocusEffect: jest.fn((callback: () => void | (() => void)) => {
+      mockFocusEffects.push(callback);
+    }),
     useNavigation: () => ({
       navigate: mockNavigate,
+      setParams: mockSetParams,
       setOptions: jest.fn(),
     }),
     useRoute: () => mockRoute,
@@ -354,6 +360,10 @@ describe('BridgeView', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockFocusEffects.length = 0;
+    mockRoute.params = {
+      sourcePage: 'test',
+    } as BridgeRouteParams;
   });
 
   it('renders source and destination token areas', async () => {
@@ -369,6 +379,29 @@ describe('BridgeView', () => {
     expect(
       getByTestId(BridgeViewSelectorsIDs.DESTINATION_TOKEN_AREA),
     ).toBeTruthy();
+  });
+
+  it('scrolls to top and clears the route param when requested on focus', () => {
+    mockRoute.params = {
+      sourcePage: 'test',
+      scrollToTopOnNav: true,
+    } as BridgeRouteParams;
+
+    renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    act(() => {
+      mockFocusEffects[mockFocusEffects.length - 1]?.();
+    });
+
+    expect(mockSetParams).toHaveBeenCalledWith({
+      scrollToTopOnNav: undefined,
+    });
   });
 
   it('should open BridgeTokenSelector when clicking source token', async () => {
