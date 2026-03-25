@@ -49,7 +49,7 @@ export async function createMusdFixture(
       address: toChecksumHexAddress(USDC_MAINNET),
       symbol: 'USDC',
       decimals: USDC_DECIMALS,
-      name: 'USDCoin',
+      name: 'USD Coin',
     },
     ...(options.hasMusdBalance
       ? [

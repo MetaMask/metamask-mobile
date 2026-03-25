@@ -7,8 +7,9 @@ import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import WalletView from '../../page-objects/wallet/WalletView';
 import RedesignedSendView from '../../page-objects/Send/RedesignedSendView';
-import { Assertions, Gestures, LocalNode, Matchers } from '../../framework';
+import { Assertions, Gestures, LocalNode } from '../../framework';
 import BrowserView from '../../page-objects/Browser/BrowserView';
+import RowComponents from '../../page-objects/Browser/Confirmations/RowComponents';
 import { AnvilPort } from '../../framework/fixtures/FixtureUtils';
 import { AnvilManager } from '../../seeder/anvil-manager';
 import TransactionConfirmView from '../../page-objects/Send/TransactionConfirmView';
@@ -70,10 +71,7 @@ describe(FlaskBuildTests('Name Lookup Snap Tests'), () => {
         await TransactionConfirmView.tapAdvancedDetails();
 
         await Gestures.waitAndTap(
-          Matchers.getElementByText(
-            domain,
-            device.getPlatform() === 'ios' ? 1 : 0,
-          ),
+          RowComponents.recipientDisplayNameInFromToRow(domain),
           {
             elemDescription: 'Recipient address',
             delay: 1000, // There's a animation that can cause flakiness
