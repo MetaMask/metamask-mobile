@@ -382,6 +382,15 @@ export class WC2Manager {
 
   public async removeAll() {
     this.deeplinkSessions = {};
+    // Tear down WalletConnect2Session (Redux subscription, BackgroundBridge)
+    // before clearing the map. Otherwise session_delete may run after this.sessions
+    // is empty and skip removeListeners(), leaking listeners and relay churn.
+    const wcSessions = Object.values(this.sessions);
+    await Promise.allSettled(
+      wcSessions.map((wcSession) => wcSession.removeListeners()),
+    );
+    this.sessions = {};
+
     const actives = this.web3Wallet.getActiveSessions() || {};
     Object.values(actives).forEach(async (session) => {
       this.web3Wallet
@@ -393,9 +402,6 @@ export class WC2Manager {
           console.warn(`Can't remove active session ${session.topic}`, err);
         });
     });
-
-    // Clear local sessions
-    this.sessions = {};
 
     await StorageWrapper.setItem(
       AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,

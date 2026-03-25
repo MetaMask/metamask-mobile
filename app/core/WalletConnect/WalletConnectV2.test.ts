@@ -735,6 +735,23 @@ describe('WC2Manager', () => {
         JSON.stringify({}),
       );
     });
+
+    it('calls removeListeners on each WalletConnect2Session before clearing local sessions', async () => {
+      const removeListenersA = jest.fn().mockResolvedValue(undefined);
+      const removeListenersB = jest.fn().mockResolvedValue(undefined);
+      (manager as unknown as { sessions: Record<string, unknown> }).sessions = {
+        'topic-a': { removeListeners: removeListenersA },
+        'topic-b': { removeListeners: removeListenersB },
+      };
+
+      await manager.removeAll();
+
+      expect(removeListenersA).toHaveBeenCalledTimes(1);
+      expect(removeListenersB).toHaveBeenCalledTimes(1);
+      expect(
+        (manager as unknown as { sessions: Record<string, unknown> }).sessions,
+      ).toEqual({});
+    });
   });
 
   describe('WC2Manager isWalletConnect', () => {

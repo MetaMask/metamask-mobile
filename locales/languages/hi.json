@@ -7872,6 +7872,7 @@
     "active_boosts_title": "सक्रिय बूस्ट्स",
     "season_1": "सीज़न 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD बोनस कैलकुलेटर",
       "description": "देखें कि आप अपने स्टेबलकॉइन को mUSD में बदलकर कितना कमा सकते हैं।",
       "amount_label": "कन्वर्ट किया गया अमाउंट",
