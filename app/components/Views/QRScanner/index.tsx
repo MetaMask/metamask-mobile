@@ -255,10 +255,9 @@ const QRScanner = ({
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           onHandled: () => {
-            const stackNavigation = navigation as {
-              pop?: (count: number) => void;
-            };
-            stackNavigation.pop?.(2);
+            // With QRTabSwitcher, we need to go back to the previous screen
+            // The navigation stack is: Wallet -> QRTabSwitcher -> QRScanner
+            navigation.goBack();
           },
         });
 
@@ -555,10 +554,9 @@ const QRScanner = ({
         const handledByDeeplink = await SharedDeeplinkManager.parse(content, {
           origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
           onHandled: () => {
-            const stackNavigation = navigation as {
-              pop?: (count: number) => void;
-            };
-            stackNavigation.pop?.(2);
+            // With QRTabSwitcher, we need to go back to the previous screen
+            // The navigation stack is: Wallet -> QRTabSwitcher -> QRScanner
+            navigation.goBack();
           },
         });
 
@@ -634,6 +632,9 @@ const QRScanner = ({
               })
               .build(),
           );
+          
+          // Show user feedback for unrecognized QR codes instead of silent failure
+          showAlertForInvalidAddress();
         }
         onScanSuccess(data, content);
       }

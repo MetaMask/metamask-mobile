@@ -1114,11 +1114,12 @@ const Wallet = ({
           strings('wallet.logout_to_import_seed'),
         );
       } else {
-        setTimeout(() => {
-          SharedDeeplinkManager.parse(content, {
-            origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
-          });
-        }, 500);
+        // Handle EIP-681 and other deeplinks immediately
+        // QRScanner already handles private_key, seed, and EIP-681 URLs internally
+        // This callback is only for fallback cases or when QRScanner delegates handling
+        SharedDeeplinkManager.parse(content, {
+          origin: AppConstants.DEEPLINKS.ORIGIN_QR_CODE,
+        });
       }
     },
     [navigation],
