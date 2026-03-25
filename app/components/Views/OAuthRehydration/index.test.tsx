@@ -239,6 +239,47 @@ describe('OAuthRehydration', () => {
         expect(mockTrackOnboarding).toHaveBeenCalled();
       });
     });
+
+    it('logs error when post-unlock biometric prompt fails', async () => {
+      const biometricError = new Error('Biometric prompt failed');
+      mockRequestBiometricsAccessControlForIOS.mockRejectedValueOnce(
+        biometricError,
+      );
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(mockUnlockWallet).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          biometricError,
+          'OAuthRehydration: post-unlock biometric preference',
+        );
+      });
+    });
+
+    it('logs error when updateAuthPreference fails after choosing device auth', async () => {
+      mockRequestBiometricsAccessControlForIOS.mockResolvedValueOnce(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+      const preferenceError = new Error('Keychain preference update failed');
+      mockUpdateAuthPreference.mockRejectedValueOnce(preferenceError);
+
+      const { getByTestId } = renderWithProvider(<OAuthRehydration />);
+      await enterPasswordAndSubmit(getByTestId);
+
+      await waitFor(() => {
+        expect(mockUpdateAuthPreference).toHaveBeenCalled();
+      });
+      await waitFor(() => {
+        expect(Logger.error).toHaveBeenCalledWith(
+          preferenceError,
+          'OAuthRehydration: post-unlock biometric preference',
+        );
+      });
+    });
   });
 
   describe('Password validation', () => {
