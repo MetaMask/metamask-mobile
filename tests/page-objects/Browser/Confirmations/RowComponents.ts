@@ -27,11 +27,13 @@ class RowComponents {
    * send-screen recipient field still present under the modal (visibility flake).
    */
   recipientDisplayNameInFromToRow(domain: string): DetoxElement {
-    return detoxElement(
-      detoxBy
-        .text(domain)
-        .withAncestor(detoxBy.id(ConfirmationRowComponentIDs.FROM_TO)),
-    ) as Detox.IndexableNativeElement;
+    return Promise.resolve(
+      detoxElement(
+        detoxBy
+          .text(domain)
+          .withAncestor(detoxBy.id(ConfirmationRowComponentIDs.FROM_TO)),
+      ) as Detox.IndexableNativeElement,
+    );
   }
 
   get GasFeesDetails(): DetoxElement {
