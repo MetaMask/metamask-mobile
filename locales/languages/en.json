@@ -6807,7 +6807,7 @@
     "no_internet_connection_button": "Try again",
     "ios_need_update_title": "iOS update required",
     "ios_need_update_description": "MetaMask Google Sign-In will soon require iOS 17.4 or later. Please update your device to continue using Google Sign-In on this device.",
-    "ios_need_update_description2": "You can still access your wallet with the same Google login and password on any supported device or the MetaMask extension. We also advise backing up your Secret Recovery Phrase.",
+    "ios_need_update_description2": "You can still access your wallet with the same Google login and password on any supported device or the MetaMask extension. We also advise backing up your Secret Recovery Phrase if you proceed login with iOS < 17.4.",
     "ios_need_update_button": "Continue"
   },
   "password_hint": {
