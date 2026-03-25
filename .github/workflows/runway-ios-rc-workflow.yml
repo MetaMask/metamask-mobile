@@ -30,7 +30,7 @@ permissions:
 
 jobs:
   runway-rc:
-    uses: ./.github/workflows/runway-rc-core.yml
+    uses: ./.github/workflows/runway-ota-build-core.yml
     with:
       platform: ios
       source_branch: ${{ inputs.source_branch }}
