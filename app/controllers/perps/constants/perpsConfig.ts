@@ -106,6 +106,14 @@ export const ORDER_SLIPPAGE_CONFIG = {
 } as const;
 
 /**
+ * Max order amount buffer to reduce "Insufficient margin" rejections from the exchange.
+ * When the user selects 100% (slider or Max), we cap the order at (1 - this) of the
+ * theoretical max so that fees, rounding, and exchange-side margin checks are covered.
+ * Value as decimal (e.g. 0.005 = 0.5%).
+ */
+export const MAX_ORDER_MARGIN_BUFFER = 0.005; // 0.5%
+
+/**
  * Performance optimization constants
  * These values control debouncing and throttling for better performance
  */
