@@ -750,8 +750,6 @@
       "ondoCampaignLeaderboard": null,
       "ondoCampaignLeaderboardError": false,
       "ondoCampaignLeaderboardLoading": false,
-      "ondoCampaignLeaderboardPositionError": false,
-      "ondoCampaignLeaderboardPositionLoading": false,
       "ondoCampaignLeaderboardPositions": {},
       "ondoCampaignLeaderboardSelectedTier": null,
       "campaignParticipantStatuses": {},

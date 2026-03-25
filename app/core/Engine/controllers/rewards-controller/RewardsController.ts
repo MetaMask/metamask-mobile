@@ -197,7 +197,7 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  ondoCampaignLeaderboards: {
+  ondoCampaignLeaderboard: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -239,7 +239,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
   campaignParticipantStatus: {},
-  ondoCampaignLeaderboards: {},
+  ondoCampaignLeaderboard: {},
   ondoCampaignLeaderboardPositions: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
@@ -2666,6 +2666,17 @@ export class RewardsController extends BaseController<
           delete state.accounts[state.activeAccount.account];
           state.activeAccount = null;
         }
+        // Clear all cached data keyed by this subscription ID
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
       });
 
       Logger.log('RewardsController: Logout completed successfully');
@@ -3479,9 +3490,10 @@ export class RewardsController extends BaseController<
         campaignId,
       )) as CampaignParticipantStatusDto;
     }, subscriptionId);
-    // Invalidate the participant status cache so the next fetch gets fresh data
+    // Invalidate the participant status cache and leaderboard position cache
     this.update((state) => {
       delete state.campaignParticipantStatus[key];
+      delete state.ondoCampaignLeaderboardPositions[key];
     });
     // Only emit if the user wasn't already opted in, to avoid redundant refetches
     if (!wasAlreadyOptedIn) {
@@ -3489,6 +3501,13 @@ export class RewardsController extends BaseController<
         campaignId,
         subscriptionId,
       });
+      this.messenger.publish(
+        'RewardsController:leaderboardPositionInvalidated',
+        {
+          campaignId,
+          subscriptionId,
+        },
+      );
     }
     return result;
   }
@@ -3563,7 +3582,7 @@ export class RewardsController extends BaseController<
       key: campaignId,
       ttl: ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS,
       readCache: (k) => {
-        const cached = this.state.ondoCampaignLeaderboards[k];
+        const cached = this.state.ondoCampaignLeaderboard[k];
         if (!cached) return undefined;
         return {
           payload: {
@@ -3585,7 +3604,7 @@ export class RewardsController extends BaseController<
       },
       writeCache: (k, payload) => {
         this.update((state) => {
-          state.ondoCampaignLeaderboards[k] = {
+          state.ondoCampaignLeaderboard[k] = {
             campaign_id: payload.campaign_id,
             computed_at: payload.computed_at,
             tiers: payload.tiers,

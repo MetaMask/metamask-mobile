@@ -1410,7 +1410,7 @@ export type RewardsControllerState = {
     [compositeId: string]: CampaignParticipantStatusState;
   };
   /** Ondo campaign leaderboard data keyed by campaignId */
-  ondoCampaignLeaderboards: { [campaignId: string]: CampaignLeaderboardState };
+  ondoCampaignLeaderboard: { [campaignId: string]: CampaignLeaderboardState };
   /** Ondo campaign leaderboard position keyed by compositeId (campaignId:subscriptionId) */
   ondoCampaignLeaderboardPositions: {
     [compositeId: string]: CampaignLeaderboardPositionState;
@@ -1493,6 +1493,20 @@ export interface RewardsControllerCampaignOptedInEvent {
 }
 
 /**
+ * Event emitted when a user opts into a campaign, invalidating the cached
+ * leaderboard position so hooks can refetch fresh data.
+ */
+export interface RewardsControllerLeaderboardPositionInvalidatedEvent {
+  type: 'RewardsController:leaderboardPositionInvalidated';
+  payload: [
+    {
+      campaignId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1501,7 +1515,8 @@ export type RewardsControllerEvents =
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
   | RewardsControllerPointsEventsUpdatedEvent
-  | RewardsControllerCampaignOptedInEvent;
+  | RewardsControllerCampaignOptedInEvent
+  | RewardsControllerLeaderboardPositionInvalidatedEvent;
 
 /**
  * Patch type for state changes

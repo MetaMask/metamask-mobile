@@ -68,8 +68,6 @@ import {
   selectOndoCampaignLeaderboardTotalParticipantsByTier,
   selectOndoCampaignLeaderboardPositions,
   selectOndoCampaignLeaderboardPositionById,
-  selectOndoCampaignLeaderboardPositionLoading,
-  selectOndoCampaignLeaderboardPositionError,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -3615,7 +3613,7 @@ describe('Rewards selectors', () => {
     });
 
     it('returns positions when set', () => {
-      const positions = { 'campaign-1': mockPosition };
+      const positions = { 'sub-1:campaign-1': mockPosition };
       const state = createMockRootState({
         ondoCampaignLeaderboardPositions: positions,
       });
@@ -3624,12 +3622,24 @@ describe('Rewards selectors', () => {
   });
 
   describe('selectOndoCampaignLeaderboardPositionById', () => {
-    it('returns null when campaignId is undefined', () => {
+    it('returns null when subscriptionId is undefined', () => {
       const state = createMockRootState({
-        ondoCampaignLeaderboardPositions: { 'campaign-1': mockPosition },
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
       });
       expect(
-        selectOndoCampaignLeaderboardPositionById(undefined)(state),
+        selectOndoCampaignLeaderboardPositionById(
+          undefined,
+          'campaign-1',
+        )(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById('sub-1', undefined)(state),
       ).toBeNull();
     });
 
@@ -3638,49 +3648,17 @@ describe('Rewards selectors', () => {
         ondoCampaignLeaderboardPositions: {},
       });
       expect(
-        selectOndoCampaignLeaderboardPositionById('campaign-1')(state),
+        selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
       ).toBeNull();
     });
 
-    it('returns position for specified campaign', () => {
+    it('returns position for specified subscription and campaign', () => {
       const state = createMockRootState({
-        ondoCampaignLeaderboardPositions: { 'campaign-1': mockPosition },
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
       });
       expect(
-        selectOndoCampaignLeaderboardPositionById('campaign-1')(state),
+        selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
       ).toEqual(mockPosition);
-    });
-  });
-
-  describe('selectOndoCampaignLeaderboardPositionLoading', () => {
-    it('returns false when not loading', () => {
-      const state = createMockRootState({
-        ondoCampaignLeaderboardPositionLoading: false,
-      });
-      expect(selectOndoCampaignLeaderboardPositionLoading(state)).toBe(false);
-    });
-
-    it('returns true when loading', () => {
-      const state = createMockRootState({
-        ondoCampaignLeaderboardPositionLoading: true,
-      });
-      expect(selectOndoCampaignLeaderboardPositionLoading(state)).toBe(true);
-    });
-  });
-
-  describe('selectOndoCampaignLeaderboardPositionError', () => {
-    it('returns false when no error', () => {
-      const state = createMockRootState({
-        ondoCampaignLeaderboardPositionError: false,
-      });
-      expect(selectOndoCampaignLeaderboardPositionError(state)).toBe(false);
-    });
-
-    it('returns true when has error', () => {
-      const state = createMockRootState({
-        ondoCampaignLeaderboardPositionError: true,
-      });
-      expect(selectOndoCampaignLeaderboardPositionError(state)).toBe(true);
     });
   });
 });

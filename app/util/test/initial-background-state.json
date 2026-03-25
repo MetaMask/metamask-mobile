@@ -709,7 +709,7 @@
     "pointsEvents": {},
     "campaigns": {},
     "ondoCampaignLeaderboardPositions": {},
-    "ondoCampaignLeaderboards": {},
+    "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},

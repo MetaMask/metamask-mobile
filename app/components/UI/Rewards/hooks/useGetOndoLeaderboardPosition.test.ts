@@ -4,11 +4,8 @@ import { useGetOndoLeaderboardPosition } from './useGetOndoLeaderboardPosition';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
-import {
-  setOndoCampaignLeaderboardPosition,
-  setOndoCampaignLeaderboardPositionLoading,
-  setOndoCampaignLeaderboardPositionError,
-} from '../../../../reducers/rewards';
+import { setOndoCampaignLeaderboardPosition } from '../../../../reducers/rewards';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('react-redux', () => ({
@@ -18,6 +15,10 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
+}));
+
+jest.mock('./useInvalidateByRewardEvents', () => ({
+  useInvalidateByRewardEvents: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
@@ -33,19 +34,15 @@ jest.mock('../../../../reducers/rewards', () => ({
     type: 'rewards/setOndoCampaignLeaderboardPosition',
     payload,
   })),
-  setOndoCampaignLeaderboardPositionLoading: jest.fn((payload) => ({
-    type: 'rewards/setOndoCampaignLeaderboardPositionLoading',
-    payload,
-  })),
-  setOndoCampaignLeaderboardPositionError: jest.fn((payload) => ({
-    type: 'rewards/setOndoCampaignLeaderboardPositionError',
-    payload,
-  })),
 }));
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
 >;
+const mockUseInvalidateByRewardEvents =
+  useInvalidateByRewardEvents as jest.MockedFunction<
+    typeof useInvalidateByRewardEvents
+  >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSelectCampaignLeaderboardPositionById =
@@ -103,15 +100,23 @@ describe('useGetOndoLeaderboardPosition', () => {
       position: null,
     });
 
-    renderHook(() => useGetOndoLeaderboardPosition(CAMPAIGN_ID));
+    const { result } = renderHook(() =>
+      useGetOndoLeaderboardPosition(CAMPAIGN_ID),
+    );
 
     expect(mockCall).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasError).toBe(false);
   });
 
   it('does not fetch when campaignId is undefined', async () => {
-    renderHook(() => useGetOndoLeaderboardPosition(undefined));
+    const { result } = renderHook(() =>
+      useGetOndoLeaderboardPosition(undefined),
+    );
 
     expect(mockCall).not.toHaveBeenCalled();
+    expect(result.current.isLoading).toBe(false);
+    expect(result.current.hasError).toBe(false);
   });
 
   it('fetches position and dispatches actions on success', async () => {
@@ -123,12 +128,6 @@ describe('useGetOndoLeaderboardPosition', () => {
       await Promise.resolve();
     });
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardPositionLoading(true),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardPositionError(false),
-    );
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:getOndoCampaignLeaderboardPosition',
       CAMPAIGN_ID,
@@ -136,12 +135,10 @@ describe('useGetOndoLeaderboardPosition', () => {
     );
     expect(mockDispatch).toHaveBeenCalledWith(
       setOndoCampaignLeaderboardPosition({
+        subscriptionId: SUBSCRIPTION_ID,
         campaignId: CAMPAIGN_ID,
         position: MOCK_POSITION,
       }),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardPositionLoading(false),
     );
   });
 
@@ -156,12 +153,6 @@ describe('useGetOndoLeaderboardPosition', () => {
       await Promise.resolve();
     });
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardPositionError(true),
-    );
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardPositionLoading(false),
-    );
     expect(result.current.hasError).toBe(true);
   });
 
@@ -226,9 +217,6 @@ describe('useGetOndoLeaderboardPosition', () => {
     });
 
     expect(mockCall).toHaveBeenCalledTimes(2);
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardPositionLoading(true),
-    );
   });
 
   it('returns null position when not loaded', () => {
@@ -244,11 +232,23 @@ describe('useGetOndoLeaderboardPosition', () => {
     expect(result.current.position).toBeNull();
   });
 
-  it('calls selectOndoCampaignLeaderboardPositionById with campaignId', () => {
+  it('calls selectOndoCampaignLeaderboardPositionById with subscriptionId and campaignId', () => {
     renderHook(() => useGetOndoLeaderboardPosition(CAMPAIGN_ID));
 
     expect(mockSelectCampaignLeaderboardPositionById).toHaveBeenCalledWith(
+      SUBSCRIPTION_ID,
       CAMPAIGN_ID,
+    );
+  });
+
+  it('subscribes to RewardsController:leaderboardPositionInvalidated to auto-refetch', () => {
+    renderHook(() => useGetOndoLeaderboardPosition(CAMPAIGN_ID));
+
+    expect(mockUseInvalidateByRewardEvents).toHaveBeenCalledWith(
+      expect.arrayContaining([
+        'RewardsController:leaderboardPositionInvalidated',
+      ]),
+      expect.any(Function),
     );
   });
 });

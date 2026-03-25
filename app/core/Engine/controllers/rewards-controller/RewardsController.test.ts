@@ -15828,11 +15828,11 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignLeaderboards": {},
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
+          "ondoCampaignLeaderboard": {},
+          "ondoCampaignLeaderboardPositions": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "seasonStatuses": {},
@@ -15852,11 +15852,11 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignLeaderboards": {},
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
+          "ondoCampaignLeaderboard": {},
+          "ondoCampaignLeaderboardPositions": {},
           "pointsEstimateHistory": [],
           "pointsEvents": {},
           "rewardsEnvUrl": null,
@@ -15881,11 +15881,11 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
-          "ondoCampaignLeaderboardPositions": {},
-          "ondoCampaignLeaderboards": {},
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
+          "ondoCampaignLeaderboard": {},
+          "ondoCampaignLeaderboardPositions": {},
           "pointsEvents": {},
           "rewardsEnvUrl": null,
           "seasonStatuses": {},
@@ -19079,7 +19079,7 @@ describe('RewardsController', () => {
         mockCampaignId,
       );
       expect(result).toEqual(mockLeaderboard);
-      expect(ctrl.state.ondoCampaignLeaderboards[mockCampaignId]).toBeDefined();
+      expect(ctrl.state.ondoCampaignLeaderboard[mockCampaignId]).toBeDefined();
     });
 
     it('returns cached leaderboard when cache is fresh', async () => {
@@ -19088,7 +19088,7 @@ describe('RewardsController', () => {
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
-          ondoCampaignLeaderboards: {
+          ondoCampaignLeaderboard: {
             [mockCampaignId]: {
               ...mockLeaderboard,
               lastFetched: recentTime,

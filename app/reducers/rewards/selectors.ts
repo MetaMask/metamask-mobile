@@ -243,14 +243,10 @@ export const selectOndoCampaignLeaderboardPositions = (state: RootState) =>
   state.rewards.ondoCampaignLeaderboardPositions;
 
 export const selectOndoCampaignLeaderboardPositionById =
-  (campaignId: string | undefined) => (state: RootState) =>
-    campaignId
-      ? (state.rewards.ondoCampaignLeaderboardPositions[campaignId] ?? null)
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId
+      ? (state.rewards.ondoCampaignLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
       : null;
-
-export const selectOndoCampaignLeaderboardPositionLoading = (
-  state: RootState,
-) => state.rewards.ondoCampaignLeaderboardPositionLoading;
-
-export const selectOndoCampaignLeaderboardPositionError = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboardPositionError;

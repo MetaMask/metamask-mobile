@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
 import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
-import {
-  setOndoCampaignLeaderboardPosition,
-  setOndoCampaignLeaderboardPositionLoading,
-  setOndoCampaignLeaderboardPositionError,
-} from '../../../../reducers/rewards';
+import { setOndoCampaignLeaderboardPosition } from '../../../../reducers/rewards';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
+import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 export interface UseGetOndoLeaderboardPositionResult {
   /** User's leaderboard position, or null when not found/not yet loaded */
@@ -32,41 +29,53 @@ export const useGetOndoLeaderboardPosition = (
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const position = useSelector(
-    selectOndoCampaignLeaderboardPositionById(campaignId),
+    selectOndoCampaignLeaderboardPositionById(
+      subscriptionId ?? undefined,
+      campaignId,
+    ),
   );
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
 
   const fetchPosition = useCallback(async (): Promise<void> => {
     if (!subscriptionId || !campaignId) {
+      setIsLoading(false);
+      setHasError(false);
       return;
     }
 
     try {
       setIsLoading(true);
       setHasError(false);
-      dispatch(setOndoCampaignLeaderboardPositionLoading(true));
-      dispatch(setOndoCampaignLeaderboardPositionError(false));
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignLeaderboardPosition',
         campaignId,
         subscriptionId,
       );
       dispatch(
-        setOndoCampaignLeaderboardPosition({ campaignId, position: result }),
+        setOndoCampaignLeaderboardPosition({
+          subscriptionId,
+          campaignId,
+          position: result,
+        }),
       );
     } catch {
       setHasError(true);
-      dispatch(setOndoCampaignLeaderboardPositionError(true));
     } finally {
       setIsLoading(false);
-      dispatch(setOndoCampaignLeaderboardPositionLoading(false));
     }
   }, [dispatch, subscriptionId, campaignId]);
 
   useEffect(() => {
     fetchPosition();
   }, [fetchPosition]);
+
+  // Refetch whenever opting into a campaign invalidates the cached position
+  const invalidationEvents = useMemo(
+    () => ['RewardsController:leaderboardPositionInvalidated'] as const,
+    [],
+  );
+  useInvalidateByRewardEvents(invalidationEvents, fetchPosition);
 
   return { position, isLoading, hasError, refetch: fetchPosition };
 };

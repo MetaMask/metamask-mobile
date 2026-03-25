@@ -33,8 +33,6 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardError,
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
-  setOndoCampaignLeaderboardPositionLoading,
-  setOndoCampaignLeaderboardPositionError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -2153,8 +2151,6 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardError: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
-        ondoCampaignLeaderboardPositionLoading: false,
-        ondoCampaignLeaderboardPositionError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2268,8 +2264,6 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardError: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
-        ondoCampaignLeaderboardPositionLoading: false,
-        ondoCampaignLeaderboardPositionError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -5019,24 +5013,25 @@ describe('setOndoCampaignLeaderboardSelectedTier', () => {
 describe('setOndoCampaignLeaderboardPosition', () => {
   it('should set position for a campaign', () => {
     const action = setOndoCampaignLeaderboardPosition({
+      subscriptionId: 'sub-1',
       campaignId: 'campaign-1',
       position: mockPosition,
     });
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.ondoCampaignLeaderboardPositions['campaign-1']).toEqual(
+    expect(state.ondoCampaignLeaderboardPositions['sub-1:campaign-1']).toEqual(
       mockPosition,
     );
-    expect(state.ondoCampaignLeaderboardPositionError).toBe(false);
   });
 
   it('should remove position when null is provided', () => {
     const stateWithPosition: RewardsState = {
       ...initialState,
-      ondoCampaignLeaderboardPositions: { 'campaign-1': mockPosition },
+      ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
     };
     const action = setOndoCampaignLeaderboardPosition({
+      subscriptionId: 'sub-1',
       campaignId: 'campaign-1',
       position: null,
     });
@@ -5044,7 +5039,7 @@ describe('setOndoCampaignLeaderboardPosition', () => {
     const state = rewardsReducer(stateWithPosition, action);
 
     expect(
-      state.ondoCampaignLeaderboardPositions['campaign-1'],
+      state.ondoCampaignLeaderboardPositions['sub-1:campaign-1'],
     ).toBeUndefined();
   });
 
@@ -5054,6 +5049,7 @@ describe('setOndoCampaignLeaderboardPosition', () => {
     currentState = rewardsReducer(
       currentState,
       setOndoCampaignLeaderboardPosition({
+        subscriptionId: 'sub-1',
         campaignId: 'campaign-1',
         position: mockPosition,
       }),
@@ -5063,75 +5059,17 @@ describe('setOndoCampaignLeaderboardPosition', () => {
     currentState = rewardsReducer(
       currentState,
       setOndoCampaignLeaderboardPosition({
+        subscriptionId: 'sub-1',
         campaignId: 'campaign-2',
         position: position2,
       }),
     );
 
-    expect(currentState.ondoCampaignLeaderboardPositions['campaign-1']).toEqual(
-      mockPosition,
-    );
-    expect(currentState.ondoCampaignLeaderboardPositions['campaign-2']).toEqual(
-      position2,
-    );
-  });
-
-  it('should reset error when setting position', () => {
-    const stateWithError: RewardsState = {
-      ...initialState,
-      ondoCampaignLeaderboardPositionError: true,
-    };
-    const action = setOndoCampaignLeaderboardPosition({
-      campaignId: 'campaign-1',
-      position: mockPosition,
-    });
-
-    const state = rewardsReducer(stateWithError, action);
-
-    expect(state.ondoCampaignLeaderboardPositionError).toBe(false);
-  });
-});
-
-describe('setOndoCampaignLeaderboardPositionLoading', () => {
-  it('should set loading to true', () => {
-    const action = setOndoCampaignLeaderboardPositionLoading(true);
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.ondoCampaignLeaderboardPositionLoading).toBe(true);
-  });
-
-  it('should set loading to false', () => {
-    const stateWithLoading: RewardsState = {
-      ...initialState,
-      ondoCampaignLeaderboardPositionLoading: true,
-    };
-    const action = setOndoCampaignLeaderboardPositionLoading(false);
-
-    const state = rewardsReducer(stateWithLoading, action);
-
-    expect(state.ondoCampaignLeaderboardPositionLoading).toBe(false);
-  });
-});
-
-describe('setOndoCampaignLeaderboardPositionError', () => {
-  it('should set error to true', () => {
-    const action = setOndoCampaignLeaderboardPositionError(true);
-
-    const state = rewardsReducer(initialState, action);
-
-    expect(state.ondoCampaignLeaderboardPositionError).toBe(true);
-  });
-
-  it('should set error to false', () => {
-    const stateWithError: RewardsState = {
-      ...initialState,
-      ondoCampaignLeaderboardPositionError: true,
-    };
-    const action = setOndoCampaignLeaderboardPositionError(false);
-
-    const state = rewardsReducer(stateWithError, action);
-
-    expect(state.ondoCampaignLeaderboardPositionError).toBe(false);
+    expect(
+      currentState.ondoCampaignLeaderboardPositions['sub-1:campaign-1'],
+    ).toEqual(mockPosition);
+    expect(
+      currentState.ondoCampaignLeaderboardPositions['sub-1:campaign-2'],
+    ).toEqual(position2);
   });
 });
