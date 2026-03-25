@@ -1661,18 +1661,15 @@ export class PerpsController extends BaseController<
    * @param error - The caught error from the dynamic import or constructor.
    */
   protected handleMYXImportError(error: unknown): void {
-    const errorMessage =
-      error instanceof Error
-        ? error.message
-        : String((error as Record<string, unknown>)?.message ?? error);
-    const isModuleError = /cannot find|not found|module/iu.test(errorMessage);
+    const isModuleError =
+      (error as Record<string, unknown>)?.code === 'MODULE_NOT_FOUND';
     if (isModuleError) {
       this.#debugLog(
         'PerpsController: MYX provider module not available, skipping registration',
       );
     } else {
       this.#logError(
-        error instanceof Error ? error : new Error(errorMessage),
+        error instanceof Error ? error : new Error(String(error)),
         this.#getErrorContext('createProviders.myx'),
       );
     }
@@ -1796,7 +1793,7 @@ export class PerpsController extends BaseController<
       },
       stateManager: {
         update: (updater: (state: PerpsControllerState) => void) =>
-          // @ts-expect-error TS2589 - excessively deep instantiation when inferring stateManager from BaseController
+          // @ts-expect-error TS2589 - excessively deep instantiation from BaseController generic
           this.update(updater),
         getState: (): PerpsControllerState => this.#getControllerState(),
       },

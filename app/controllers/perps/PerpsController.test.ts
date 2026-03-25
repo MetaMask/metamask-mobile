@@ -4745,11 +4745,15 @@ describe('PerpsController', () => {
       );
     });
 
-    it('handleMYXImportError logs debug for module-not-found errors', () => {
-      // Act
-      controller.testHandleMYXImportError(
+    it('handleMYXImportError logs debug for MODULE_NOT_FOUND errors', () => {
+      // Arrange — Node require() sets code: 'MODULE_NOT_FOUND' on missing modules
+      const moduleError = Object.assign(
         new Error('Cannot find module ./providers/MYXProvider'),
+        { code: 'MODULE_NOT_FOUND' },
       );
+
+      // Act
+      controller.testHandleMYXImportError(moduleError);
 
       // Assert
       expect(mockInfrastructure.debugLogger.log).toHaveBeenCalledWith(
@@ -4758,30 +4762,10 @@ describe('PerpsController', () => {
     });
 
     it('handleMYXImportError routes runtime errors to logError', () => {
-      // Act
+      // Act — error without MODULE_NOT_FOUND code goes to Sentry
       controller.testHandleMYXImportError(new Error('Invalid auth config'));
 
       // Assert
-      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
-        expect.objectContaining({ message: 'Invalid auth config' }),
-        expect.objectContaining({
-          context: expect.objectContaining({
-            data: expect.objectContaining({
-              method: 'createProviders.myx',
-            }),
-          }),
-        }),
-      );
-    });
-
-    it('handleMYXImportError handles cross-realm errors without instanceof Error', () => {
-      // Arrange — simulate cross-realm error (has .message but fails instanceof)
-      const crossRealmError = { message: 'Invalid auth config' };
-
-      // Act
-      controller.testHandleMYXImportError(crossRealmError);
-
-      // Assert — non-module message routes to logError
       expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
         expect.objectContaining({ message: 'Invalid auth config' }),
         expect.objectContaining({
