@@ -37,7 +37,7 @@ func main() {
 	forwarder := NewForwarder(portMap)
 
 	proxy := &ProxyServer{rules: rules, tracker: tracker, forwarder: forwarder}
-	control := &ControlServer{rules: rules, tracker: tracker}
+	control := &ControlServer{rules: rules, tracker: tracker, proxy: proxy}
 
 	proxyMux := http.NewServeMux()
 	proxyMux.Handle("/proxy", proxy)

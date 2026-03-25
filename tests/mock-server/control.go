@@ -8,6 +8,7 @@ import (
 type ControlServer struct {
 	rules   *RuleStore
 	tracker *Tracker
+	proxy   *ProxyServer
 }
 
 func (s *ControlServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
@@ -40,6 +41,19 @@ func (s *ControlServer) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			http.Error(w, err.Error(), http.StatusConflict)
 			return
 		}
+		w.WriteHeader(http.StatusOK)
+
+	// Registers the JavaScript callback bridge URL.
+	// The proxy forwards unmatched requests to this bridge for dynamic JS handling.
+	case r.Method == http.MethodPost && r.URL.Path == "/mocks/callback-bridge":
+		var payload struct {
+			URL string `json:"url"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, `{"error":"invalid payload"}`, http.StatusBadRequest)
+			return
+		}
+		s.proxy.SetCallbackBridgeURL(payload.URL)
 		w.WriteHeader(http.StatusOK)
 
 	default:

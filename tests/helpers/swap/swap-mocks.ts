@@ -76,14 +76,13 @@ export const testSpecificMock: TestSpecificMock = async (
   await setupSpotPricesMock(mockServer);
 
   // Catch-all for getQuoteStream with no slippage param (initial render before
-  // useInitialSlippage fires). Registered first so specific mocks below at
-  // priority 999 take precedence. Prevents real network calls that cause
-  // Error: Aborted when the bridge controller aborts the in-flight request.
+  // useInitialSlippage fires). Registered at priority 1 so specific mocks below
+  // at priority 999 always take precedence.
   await setupSSEMockRequest(
     mockServer,
     /getQuoteStream/i,
     toSSEResponse(GET_QUOTE_ETH_USDC_RESPONSE),
-    1, // lower priority than the specific mocks below (999)
+    1,
   );
 
   // Mock ETH->USDC with default 2% slippage (SSE)

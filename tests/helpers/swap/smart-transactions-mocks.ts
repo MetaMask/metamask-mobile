@@ -3,7 +3,13 @@ import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
 import PortManager, { ResourceType } from '../../framework/PortManager';
 
-const STX_UUID = '0d506aaa-5e38-4cab-ad09-2039cb7a0f33';
+const STX_UUID_BASE = '0d506aaa-5e38-4cab-ad09-2039cb7a0f';
+let stxSubmitCount = 0;
+
+function nextStxUuid(): string {
+  stxSubmitCount += 1;
+  return `${STX_UUID_BASE}${stxSubmitCount.toString().padStart(2, '0')}`;
+}
 
 /**
  * /getFees response body.
@@ -125,36 +131,46 @@ export async function setupSmartTransactionsMocks(
 
       return {
         statusCode: 200,
-        json: { uuid: STX_UUID },
+        json: { uuid: nextStxUuid() },
       };
     });
 
   // Mock GET /batchStatus – the STX controller polls this in the background
   // after submitTransactions. Mobile uses mobileReturnTxHashAsap: true so the
   // hook does not wait for this, but polling still runs in the background.
-  // We always return SUCCESS so the background polling stops cleanly.
-  const GET_BATCH_STATUS_SUCCESS = {
-    [STX_UUID]: {
-      cancellationFeeWei: 0,
-      cancellationReason: 'not_cancelled',
-      deadlineRatio: 0,
-      isSettled: true,
-      minedTx: 'success',
-      wouldRevertMessage: null,
-      minedHash:
-        '0xec9d6214684d6dc191133ae4a7ec97db3e521fff9cfe5c4f48a84cb6c93a5fa5',
-      timedOut: true,
-      proxied: false,
-      type: 'sentinel',
-    },
-  };
-
-  await setupMockRequest(mockServer, {
-    url: /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/batchStatus/,
-    response: GET_BATCH_STATUS_SUCCESS,
-    requestMethod: 'GET',
-    responseCode: 200,
-  });
+  // We dynamically respond with SUCCESS for every UUID in the ?uuids= param
+  // so each unique UUID issued by submitTransactions resolves cleanly.
+  await mockServer
+    .forGet('/proxy')
+    .matching((request) => {
+      const url = getDecodedProxiedURL(request.url);
+      return /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/batchStatus/.test(
+        url,
+      );
+    })
+    .asPriority(999)
+    .thenCallback((request) => {
+      const decodedUrl = getDecodedProxiedURL(request.url);
+      const uuidsParam = new URL(decodedUrl).searchParams.get('uuids') ?? '';
+      const uuids = uuidsParam.split(',').filter(Boolean);
+      const response: Record<string, unknown> = {};
+      for (const uuid of uuids) {
+        response[uuid] = {
+          cancellationFeeWei: 0,
+          cancellationReason: 'not_cancelled',
+          deadlineRatio: 0,
+          isSettled: true,
+          minedTx: 'success',
+          wouldRevertMessage: null,
+          minedHash:
+            '0xec9d6214684d6dc191133ae4a7ec97db3e521fff9cfe5c4f48a84cb6c93a5fa5',
+          timedOut: true,
+          proxied: false,
+          type: 'sentinel',
+        };
+      }
+      return { statusCode: 200, json: response };
+    });
 
   // Mock GET /getTxStatus – fallback for same-chain swap tests.
   // Registered at priority 1 so bridge-mocks.ts (priority 999) always wins
