@@ -1,5 +1,6 @@
 import { Mockttp } from 'mockttp';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import { safeGetBodyText } from '../../api-mocking/MockServerE2E';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
 import PortManager, { ResourceType } from '../../framework/PortManager';
 
@@ -81,22 +82,21 @@ export async function setupSmartTransactionsMocks(
   // eth_getTransactionReceipt resolves once the block is mined.
   await mockServer
     .forPost('/proxy')
-    .matching((request) => {
+    .matching(async (request) => {
       const url = getDecodedProxiedURL(request.url);
-      return /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/submitTransactions/.test(
-        url,
-      );
-    })
-    .asPriority(999)
-    .thenCallback(async (request) => {
-      let rawTxs: string[] = [];
+      const isSubmitTx =
+        /transaction\.api\.cx\.metamask\.io\/networks\/\d+\/submitTransactions/.test(
+          url,
+        );
+      if (!isSubmitTx) return false;
 
+      const bodyText = await safeGetBodyText(request);
+      let rawTxs: string[] = [];
       try {
-        const bodyText = await request.body.getText();
         const body = JSON.parse(bodyText ?? '{}');
         rawTxs = body?.rawTxs ?? [];
       } catch {
-        // Ignore JSON-parse errors – we still return a valid UUID below.
+        // Ignore JSON-parse errors.
       }
 
       // Submit all signed transactions to Anvil so the locally-computed txHashes
@@ -123,11 +123,10 @@ export async function setupSmartTransactionsMocks(
         }
       }
 
-      return {
-        statusCode: 200,
-        json: { uuid: STX_UUID },
-      };
-    });
+      return true;
+    })
+    .asPriority(999)
+    .thenJson(200, { uuid: STX_UUID });
 
   // Mock GET /batchStatus – the STX controller polls this in the background
   // after submitTransactions. Mobile uses mobileReturnTxHashAsap: true so the
