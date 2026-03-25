@@ -1000,7 +1000,7 @@ describe('ChoosePassword', () => {
     expect(confirmPasswordInput.props.value).toBe('');
   });
 
-  it('should track failure when password requirements are not met', async () => {
+  it('tracks WALLET_SETUP_FAILURE when password requirements are not met', async () => {
     mockTrackOnboarding.mockClear();
 
     const component = renderWithProviders(<ChoosePassword />);
@@ -1049,7 +1049,7 @@ describe('ChoosePassword', () => {
     });
   });
 
-  it('should track failure and return when passwords do not match on submit', async () => {
+  it('tracks WALLET_SETUP_FAILURE and returns when passwords do not match on submit', async () => {
     mockTrackOnboarding.mockClear();
 
     const component = renderWithProviders(<ChoosePassword />);
