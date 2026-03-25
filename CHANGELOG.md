@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.70.1]
+
+### Fixed
+
+- Fixed stale perpetuals data and missing 24h price change after returning from background (#27530)
+- Fixed a bug where closing positions on HIP-3 markets (e.g., xyz:BRENTOIL) failed with "Asset ID not found" when navigating via the Perps tab (#27854)
+
 ## [7.69.1]
 
 ### Fixed
@@ -10931,7 +10938,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...HEAD
+[7.70.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...v7.70.1
 [7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
 [7.69.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.3...v7.69.0
 [7.68.3]: https://github.com/MetaMask/metamask-mobile/compare/v7.68.2...v7.68.3
