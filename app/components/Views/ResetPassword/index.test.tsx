@@ -29,10 +29,6 @@ import { ReduxStore } from '../../../core/redux/types';
 import { recreateVaultsWithNewPassword } from '../../../core/Vault';
 import { SeedlessOnboardingControllerErrorMessage } from '@metamask/seedless-onboarding-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 
 jest.mock('../../../util/metrics/TrackOnboarding/trackOnboarding');
 
@@ -443,6 +439,13 @@ describe('ResetPassword', () => {
       fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
     });
 
+    const checkbox = component.getByTestId(
+      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+    );
+    await act(async () => {
+      fireEvent.press(checkbox);
+    });
+
     const submitButton = component.getByTestId(
       ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
     );
@@ -456,18 +459,6 @@ describe('ResetPassword', () => {
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
           params: expect.objectContaining({
             title: strings('reset_password.warning_password_change_title'),
-            description: (
-              <Text color={TextColor.Default} variant={TextVariant.BodyMD}>
-                {strings('reset_password.warning_password_change_description')}{' '}
-                <Text
-                  color={TextColor.Primary}
-                  onPress={expect.any(Function)}
-                  variant={TextVariant.BodyMD}
-                >
-                  {`${strings('reset_password.learn_more')}`}
-                </Text>
-              </Text>
-            ),
             type: 'error',
             icon: 'Danger',
             secondaryButtonLabel: strings(
@@ -815,43 +806,50 @@ describe('ResetPassword', () => {
   it('on updating new password, confirm password is not cleared', async () => {
     const component = await renderConfirmPasswordView();
 
-    const newPasswordInput = component.getByTestId(
+    const newPasswordField = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
 
     await act(async () => {
-      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+      fireEvent.changeText(newPasswordField, 'NewPassword123');
     });
 
-    const confirmPasswordInput = component.getByTestId(
+    const confirmPasswordField = component.getByTestId(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
 
     await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      fireEvent.changeText(confirmPasswordField, 'NewPassword123');
     });
 
     await act(async () => {
-      fireEvent.changeText(newPasswordInput, 'NewPassword');
+      fireEvent.changeText(newPasswordField, 'NewPassword');
     });
 
-    expect(newPasswordInput.props.value).toBe('NewPassword');
+    const newPasswordTextInput =
+      within(newPasswordField).getByDisplayValue('NewPassword');
+    expect(newPasswordTextInput).toBeTruthy();
 
-    expect(confirmPasswordInput.props.value).toBe('NewPassword123');
+    const confirmPasswordTextInput =
+      within(confirmPasswordField).getByDisplayValue('NewPassword123');
+    expect(confirmPasswordTextInput).toBeTruthy();
   });
 
   it('on clicking show password icon, the password is shown', async () => {
     const component = await renderConfirmPasswordView();
 
-    const newPasswordInput = component.getByTestId(
+    const newPasswordField = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
     );
 
     await act(async () => {
-      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+      fireEvent.changeText(newPasswordField, 'NewPassword123');
     });
 
-    expect(newPasswordInput.props.secureTextEntry).toBe(true);
+    const getNewPasswordTextInput = () =>
+      within(newPasswordField).getByDisplayValue('NewPassword123');
+
+    expect(getNewPasswordTextInput().props.secureTextEntry).toBe(true);
 
     const newPasswordShowIcon = component.getByTestId(
       ChoosePasswordSelectorsIDs.NEW_PASSWORD_SHOW_ICON_ID,
@@ -860,18 +858,21 @@ describe('ResetPassword', () => {
     fireEvent.press(newPasswordShowIcon);
 
     await waitFor(() => {
-      expect(newPasswordInput.props.secureTextEntry).toBe(false);
+      expect(getNewPasswordTextInput().props.secureTextEntry).toBe(false);
     });
 
-    const confirmPasswordInput = component.getByTestId(
+    const confirmPasswordField = component.getByTestId(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
     );
 
     await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      fireEvent.changeText(confirmPasswordField, 'NewPassword123');
     });
 
-    expect(confirmPasswordInput.props.secureTextEntry).toBe(true);
+    const getConfirmPasswordTextInput = () =>
+      within(confirmPasswordField).getByDisplayValue('NewPassword123');
+
+    expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(true);
 
     const confirmPasswordShowIcon = component.getByTestId(
       ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_SHOW_ICON_ID,
@@ -880,7 +881,7 @@ describe('ResetPassword', () => {
     fireEvent.press(confirmPasswordShowIcon);
 
     await waitFor(() => {
-      expect(confirmPasswordInput.props.secureTextEntry).toBe(false);
+      expect(getConfirmPasswordTextInput().props.secureTextEntry).toBe(false);
     });
   });
 
@@ -919,6 +920,13 @@ describe('ResetPassword', () => {
         fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
       });
 
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      await act(async () => {
+        fireEvent.press(checkbox);
+      });
+
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
@@ -927,13 +935,21 @@ describe('ResetPassword', () => {
         fireEvent.press(submitButton);
       });
 
-      const confirmButton =
-        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
-      await confirmButton();
+      const confirmButton = (NavigationService.navigation.navigate as jest.Mock)
+        .mock.calls[0][1].params.onPrimaryButtonPress;
+      await act(async () => {
+        await confirmButton();
+      });
 
       expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
-      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
-        strings('login.seedless_password_outdated_modal_title'),
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('login.seedless_password_outdated_modal_title'),
+          }),
+        }),
       );
     });
 
@@ -969,6 +985,13 @@ describe('ResetPassword', () => {
         fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
       });
 
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      await act(async () => {
+        fireEvent.press(checkbox);
+      });
+
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
@@ -977,14 +1000,24 @@ describe('ResetPassword', () => {
         fireEvent.press(submitButton);
       });
 
-      const confirmButton =
-        mockNavigation.navigate.mock.calls[0][1].params.onPrimaryButtonPress;
-      await confirmButton();
+      const confirmButton = (NavigationService.navigation.navigate as jest.Mock)
+        .mock.calls[0][1].params.onPrimaryButtonPress;
+      await act(async () => {
+        await confirmButton();
+      });
 
       expect(mockRecreateVaultsWithNewPassword).toHaveBeenCalled();
 
-      expect(mockNavigation.navigate.mock.calls[1][1].params.title).toBe(
-        strings('reset_password.seedless_change_password_error_modal_title'),
+      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings(
+              'reset_password.seedless_change_password_error_modal_title',
+            ),
+          }),
+        }),
       );
     });
   });
@@ -992,7 +1025,6 @@ describe('ResetPassword', () => {
   // Handle Error for SeedlessOnboarding Controller
   describe('handle error for SeedlessOnboarding Controller Error', () => {
     it('handle error for SeedlessOnboarding Controller Outdated Password', async () => {
-      // Mock recreateVaultsWithNewPassword to throw an outdated password error
       const mockRecreateVaultsWithNewPassword = jest.mocked(
         recreateVaultsWithNewPassword,
       );
@@ -1028,6 +1060,13 @@ describe('ResetPassword', () => {
         fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
       });
 
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      await act(async () => {
+        fireEvent.press(checkbox);
+      });
+
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
@@ -1036,8 +1075,10 @@ describe('ResetPassword', () => {
         fireEvent.press(submitButton);
       });
 
+      const navMock = NavigationService.navigation.navigate as jest.Mock;
+
       // First expect the warning modal to be shown
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      expect(navMock).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -1049,7 +1090,7 @@ describe('ResetPassword', () => {
       );
 
       // Get the onPrimaryButtonPress function from the warning modal and call it
-      const warningCall = mockNavigation.navigate.mock.calls[0];
+      const warningCall = navMock.mock.calls[0];
       const onPrimaryButtonPress = warningCall[1].params.onPrimaryButtonPress;
 
       await act(async () => {
@@ -1080,7 +1121,6 @@ describe('ResetPassword', () => {
     });
 
     it('handle error for SeedlessOnboarding Controller Invalid Token', async () => {
-      // Mock recreateVaultsWithNewPassword to throw an invalid token error
       const mockRecreateVaultsWithNewPassword = jest.mocked(
         recreateVaultsWithNewPassword,
       );
@@ -1113,17 +1153,25 @@ describe('ResetPassword', () => {
         fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
       });
 
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      await act(async () => {
+        fireEvent.press(checkbox);
+      });
+
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
 
-      // Simulate pressing the submit button to trigger the invalid token error
       await act(async () => {
         fireEvent.press(submitButton);
       });
 
+      const navMock = NavigationService.navigation.navigate as jest.Mock;
+
       // First expect the warning modal to be shown
-      expect(mockNavigation.navigate).toHaveBeenCalledWith(
+      expect(navMock).toHaveBeenCalledWith(
         Routes.MODAL.ROOT_MODAL_FLOW,
         expect.objectContaining({
           screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
@@ -1135,7 +1183,7 @@ describe('ResetPassword', () => {
       );
 
       // Get the onPrimaryButtonPress function from the warning modal and call it
-      const warningCall = mockNavigation.navigate.mock.calls[0];
+      const warningCall = navMock.mock.calls[0];
       const onPrimaryButtonPress = warningCall[1].params.onPrimaryButtonPress;
 
       await act(async () => {
@@ -1190,6 +1238,13 @@ describe('ResetPassword', () => {
         fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
       });
 
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      await act(async () => {
+        fireEvent.press(checkbox);
+      });
+
       const submitButton = component.getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
@@ -1241,6 +1296,13 @@ describe('ResetPassword', () => {
 
       await act(async () => {
         fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+      });
+
+      const checkbox = component.getByTestId(
+        ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
+      );
+      await act(async () => {
+        fireEvent.press(checkbox);
       });
 
       const submitButton = component.getByTestId(
