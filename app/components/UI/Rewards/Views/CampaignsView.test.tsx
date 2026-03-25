@@ -145,6 +145,7 @@ const createTestCampaign = (
   excludedRegions: [],
   statusLabel: 'Active',
   details: null,
+  featured: true,
   ...overrides,
 });
 
@@ -156,6 +157,7 @@ const hookDefaults = {
   categorizedCampaigns: emptyCategorized,
   isLoading: false,
   hasError: false,
+  hasLoaded: false,
   fetchCampaigns: mockFetchCampaigns,
 };
 

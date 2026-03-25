@@ -35,6 +35,7 @@ import {
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
   BASE32_REGEX,
+  CampaignType,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -315,7 +316,6 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   /**
@@ -468,14 +468,12 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isCampaignsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -490,7 +488,6 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -3438,7 +3435,7 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+    if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
     }
     const key = `${subscriptionId}:${campaignId}`;
@@ -3476,7 +3473,7 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+    if (!this.isRewardsFeatureEnabled()) {
       return { optedIn: false, participantCount: 0 };
     }
     const key = `${subscriptionId}:${campaignId}`;

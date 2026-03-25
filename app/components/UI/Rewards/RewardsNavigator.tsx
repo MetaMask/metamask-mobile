@@ -6,10 +6,10 @@ import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import CampaignsView from './Views/CampaignsView';
-import CampaignDetailsView from './Views/CampaignDetailsView';
+import OndoCampaignDetailsView from './Views/OndoCampaignDetailsView';
+import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
 import MusdCalculatorView from './Views/MusdCalculatorView';
-import PreviousSeasonView from './Views/PreviousSeasonView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -88,27 +88,27 @@ const RewardsNavigator: React.FC = () => {
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGNS_VIEW}
+            name={Routes.REWARDS_CAMPAIGNS_VIEW}
             component={CampaignsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.PREVIOUS_SEASON_VIEW}
-            component={PreviousSeasonView}
+            name={Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW}
+            component={OndoCampaignDetailsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGN_DETAILS}
-            component={CampaignDetailsView}
+            name={Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW}
+            component={SeasonOneCampaignDetailsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.CAMPAIGN_MECHANICS}
+            name={Routes.REWARDS_CAMPAIGN_MECHANICS}
             component={CampaignMechanicsView}
             options={{ headerShown: false }}
           />
           <Stack.Screen
-            name={Routes.MUSD_CALCULATOR_VIEW}
+            name={Routes.REWARDS_MUSD_CALCULATOR_VIEW}
             component={MusdCalculatorView}
             options={{ headerShown: false }}
           />
