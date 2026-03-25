@@ -1,12 +1,13 @@
 import { useSelector } from 'react-redux';
-import { useCallback, useMemo } from 'react';
-import Engine from '../../core/Engine';
+import { useCallback, useEffect, useMemo } from 'react';
+import Engine from '../../../../core/Engine';
 import {
   selectIsWalletBlocked,
   selectAreAnyWalletsBlocked,
-} from '../../selectors/complianceController';
-import { selectComplianceEnabled } from '../../selectors/featureFlagController/compliance';
-import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../selectors/multichainAccounts/accountTreeController';
+} from '../../../../selectors/complianceController';
+import { selectComplianceEnabled } from '../../../../selectors/featureFlagController/compliance';
+import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../../../selectors/multichainAccounts/accountTreeController';
+import { useAccessRestrictedModal } from '../contexts/AccessRestrictedContext';
 
 type AddressInput = string | string[];
 
@@ -123,7 +124,24 @@ export function useAccountGroupCompliance() {
     () => addresses.filter((addr): addr is string => addr != null),
     [addresses],
   );
-  return useComplianceGate(
+  const complianceGate = useComplianceGate(
     filteredAddresses.length > 0 ? filteredAddresses : [],
   );
+
+  const { showAccessRestrictedModal, hideAccessRestrictedModal } =
+    useAccessRestrictedModal();
+
+  useEffect(() => {
+    if (complianceGate.isBlocked) {
+      showAccessRestrictedModal();
+    } else {
+      hideAccessRestrictedModal();
+    }
+  }, [
+    complianceGate.isBlocked,
+    showAccessRestrictedModal,
+    hideAccessRestrictedModal,
+  ]);
+
+  return complianceGate;
 }
