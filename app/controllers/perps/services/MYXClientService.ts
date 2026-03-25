@@ -16,7 +16,7 @@ import type {
   PositionTpSlOrderParams,
   SignerLike,
 } from '@myx-trade/sdk';
-import { ChainId , MyxClient } from '@myx-trade/sdk';
+import { ChainId, MyxClient } from '@myx-trade/sdk';
 
 import {
   MYX_PRICE_POLLING_INTERVAL_MS,

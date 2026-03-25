@@ -215,6 +215,9 @@ export class MYXProvider implements PerpsProvider {
     }
   > = new Map();
 
+  // Pools currently being fetched by #refreshMarketDetails (prevents duplicate requests)
+  readonly #marketDetailInflight: Set<string> = new Set();
+
   // Auth dedup promise
   #authPromise: Promise<void> | null = null;
 
@@ -767,6 +770,12 @@ export class MYXProvider implements PerpsProvider {
         continue;
       }
 
+      // Skip if a request is already in flight for this pool
+      if (this.#marketDetailInflight.has(poolId)) {
+        continue;
+      }
+      this.#marketDetailInflight.add(poolId);
+
       Promise.all([
         this.#clientService.getBaseDetail(poolId),
         this.#clientService.getOraclePrice(poolId).catch(() => null),
@@ -785,6 +794,9 @@ export class MYXProvider implements PerpsProvider {
         })
         .catch(() => {
           // Non-fatal: market detail refresh failed, keep stale cache
+        })
+        .finally(() => {
+          this.#marketDetailInflight.delete(poolId);
         });
     }
   }

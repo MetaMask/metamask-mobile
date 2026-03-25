@@ -22,7 +22,6 @@ import type {
 import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
-
 import {
   getMYXChainId,
   MYX_TESTNET_CHAIN_ID,
