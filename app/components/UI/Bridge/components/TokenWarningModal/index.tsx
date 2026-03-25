@@ -86,13 +86,21 @@ export const TokenWarningModal = () => {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
         token: sourceToken,
+        location,
       });
       return;
     }
 
     setLoading(true);
     await confirmBridge();
-  }, [activeQuote, bridgeFeatureFlags, confirmBridge, navigation, sourceToken]);
+  }, [
+    activeQuote,
+    bridgeFeatureFlags,
+    confirmBridge,
+    navigation,
+    sourceToken,
+    location,
+  ]);
 
   const isMalicious = warningType === TokenFeatureType.MALICIOUS;
   const iconName = isMalicious ? IconName.Danger : IconName.Warning;

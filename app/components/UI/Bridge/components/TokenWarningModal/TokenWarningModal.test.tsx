@@ -342,6 +342,7 @@ describe('TokenWarningModal', () => {
           {
             type: PriceImpactModalType.Execution,
             token: mockSourceToken,
+            location: MetaMetricsSwapsEventSource.MainView,
           },
         );
       });
