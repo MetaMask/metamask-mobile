@@ -16,6 +16,7 @@ import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsB
 import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
 
 const ListSeparator = () => <Box twClassName="border-b border-border-muted" />;
 
@@ -42,32 +43,6 @@ interface CampaignLeaderboardProps {
   onRetry?: () => void;
   currentUserReferralCode?: string | null;
 }
-
-/**
- * Formats the rate of return as a percentage string
- */
-const formatRateOfReturn = (rate: number): string => {
-  const percentage = rate * 100;
-  const sign = percentage >= 0 ? '+' : '';
-  return `${sign}${percentage.toFixed(2)}%`;
-};
-
-/**
- * Formats the computed at timestamp to a human-readable string
- */
-const formatComputedAt = (isoString: string | null): string => {
-  if (!isoString) return '';
-  try {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'shortOffset',
-    });
-  } catch {
-    return '';
-  }
-};
 
 /**
  * LeaderboardEntryRow displays a single leaderboard entry

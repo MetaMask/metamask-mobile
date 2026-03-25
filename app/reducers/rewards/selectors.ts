@@ -1,3 +1,4 @@
+import { createSelector } from 'reselect';
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
 import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
@@ -221,10 +222,10 @@ export const selectOndoCampaignLeaderboardTiers = (state: RootState) =>
 export const selectOndoCampaignLeaderboardComputedAt = (state: RootState) =>
   state.rewards.ondoCampaignLeaderboard?.computed_at ?? null;
 
-export const selectOndoCampaignLeaderboardTierNames = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard
-    ? Object.keys(state.rewards.ondoCampaignLeaderboard.tiers)
-    : [];
+export const selectOndoCampaignLeaderboardTierNames = createSelector(
+  selectOndoCampaignLeaderboardTiers,
+  (tiers) => Object.keys(tiers),
+);
 
 export const selectOndoCampaignLeaderboardEntriesByTier =
   (tierName: string | null) => (state: RootState) =>

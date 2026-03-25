@@ -12,6 +12,7 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
 
 export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
   CONTAINER: 'ondo-leaderboard-position-container',
@@ -30,12 +31,6 @@ interface OndoLeaderboardPositionProps {
   campaignId: string | undefined;
 }
 
-const formatRateOfReturn = (rate: number): string => {
-  const percentage = rate * 100;
-  const sign = percentage >= 0 ? '+' : '';
-  return `${sign}${percentage.toFixed(2)}%`;
-};
-
 const formatUsd = (value: number): string =>
   value.toLocaleString(undefined, {
     style: 'currency',
@@ -43,19 +38,6 @@ const formatUsd = (value: number): string =>
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-
-const formatComputedAt = (isoString: string): string => {
-  try {
-    const date = new Date(isoString);
-    return date.toLocaleTimeString(undefined, {
-      hour: '2-digit',
-      minute: '2-digit',
-      timeZoneName: 'shortOffset',
-    });
-  } catch {
-    return '';
-  }
-};
 
 const PositionSkeleton: React.FC = () => {
   const tw = useTailwind();
