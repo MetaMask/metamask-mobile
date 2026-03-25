@@ -95,6 +95,7 @@ export interface LongPressOptions extends GestureOptions {
 
 export interface MatcherOptions {
   exact?: boolean;
+  lastElement?: boolean;
 }
 
 /**

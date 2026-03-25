@@ -16,6 +16,32 @@ import { boxedStep, getDriver } from './PlaywrightUtilities';
  */
 export default class PlaywrightGestures {
   /**
+   * Tap an element
+   * This is a wrapper around the click method that waits for the element to be
+   * displayed and enabled before tapping.
+   * @param elem - The element to tap
+   * @returns A promise that resolves when the tap is complete
+   */
+  @boxedStep
+  static async tap(elem: PlaywrightElement): Promise<void> {
+    await elem.unwrap().click();
+  }
+
+  /**
+   * Wait and tap an element
+   * This is a wrapper around the click method that waits for the element to be
+   * displayed and enabled before tapping.
+   * @param elem - The element to tap
+   * @returns A promise that resolves when the tap is complete
+   */
+  @boxedStep
+  static async waitAndTap(elem: PlaywrightElement): Promise<void> {
+    await elem.unwrap().waitForDisplayed({ timeout: 10000 });
+    await elem.unwrap().waitForEnabled({ timeout: 5000 });
+    await elem.unwrap().click();
+  }
+
+  /**
    * Swipe element in a direction
    */
   @boxedStep

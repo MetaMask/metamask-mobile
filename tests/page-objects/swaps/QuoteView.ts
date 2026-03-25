@@ -360,9 +360,7 @@ class QuoteView {
         await this.enterAmount(amount);
       },
       appium: async () => {
-        await UnifiedGestures.waitAndTap(this.amountInput, {
-          description: 'Tap source amount input',
-        });
+        await this.tapSourceAmountInput();
         for (const digit of amount) {
           const digitEl = await PlaywrightMatchers.getElementByText(digit);
           await PlaywrightAssertions.expectElementToBeVisible(digitEl, {

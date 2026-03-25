@@ -321,7 +321,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async tap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await el.click();
+    await PlaywrightGestures.waitAndTap(el);
   }
 
   /**
@@ -331,7 +331,7 @@ export class AppiumGestureStrategy implements GestureStrategy {
    */
   async waitAndTap(elem: EncapsulatedElementType): Promise<void> {
     const el = await asPlaywrightElement(elem);
-    await el.click();
+    await PlaywrightGestures.waitAndTap(el);
   }
 
   /**
