@@ -29,18 +29,8 @@ export default class PlaywrightAssertions {
 
   static async expectTextDisplayed(
     text: string,
-    options: AssertionOptions & { allowDuplicates?: boolean } = {},
+    options: AssertionOptions = {},
   ): Promise<void> {
-    const { allowDuplicates = false } = options;
-    if (allowDuplicates) {
-      const elements = await PlaywrightMatchers.getAllElementsByText(text);
-      if (elements.length === 0) {
-        throw new Error(`No elements found with text "${text}"`);
-      }
-      await elements[0].waitForDisplayed({ timeout: this.getTimeout(options) });
-      return;
-    }
-
     const el = await PlaywrightMatchers.getElementByText(text);
     await el.waitForDisplayed({ timeout: this.getTimeout(options) });
   }
