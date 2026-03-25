@@ -518,6 +518,36 @@ describe('Metamask Pay Metrics', () => {
       );
     });
 
+    it('adds mm_pay_time_to_complete_s for finalized parent MM Pay transaction using latest child submittedTime via batchId', () => {
+      jest.spyOn(Date, 'now').mockReturnValue(1060500);
+
+      request.transactionMeta.type = TransactionType.perpsDeposit;
+      request.transactionMeta.batchId = BATCH_ID_MOCK;
+
+      request.allTransactions = [
+        {
+          id: 'batch-child-a',
+          batchId: BATCH_ID_MOCK,
+          submittedTime: 900000,
+          txParams: { nonce: '0x0' },
+        } as TransactionMeta,
+        {
+          id: 'batch-child-b',
+          batchId: BATCH_ID_MOCK,
+          submittedTime: 1000000,
+          txParams: { nonce: '0x1' },
+        } as TransactionMeta,
+      ];
+
+      const result = getMetaMaskPayProperties(request) as TransactionMetrics;
+
+      expect(result.properties).toStrictEqual(
+        expect.objectContaining({
+          mm_pay_time_to_complete_s: 60.5,
+        }),
+      );
+    });
+
     it('does not add mm_pay_time_to_complete_s for finalized child transaction with parent', () => {
       jest.spyOn(Date, 'now').mockReturnValue(2045123);
 
