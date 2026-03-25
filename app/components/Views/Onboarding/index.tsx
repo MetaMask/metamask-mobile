@@ -733,6 +733,18 @@ const Onboarding = () => {
       discardBufferedTraces();
       await setupSentry();
 
+      const accountType = getSocialAccountType(provider, !createWallet);
+      metrics.trackEvent(
+        metrics
+          .createEventBuilder(MetaMetricsEvents.METRICS_OPT_IN)
+          .addProperties({
+            updated_after_onboarding: false,
+            location: 'onboarding_social_login',
+            account_type: accountType,
+          })
+          .build(),
+      );
+
       // use new trace instead of buffered trace for social login
       onboardingTraceCtx.current = trace({
         name: TraceName.OnboardingJourneyOverall,
@@ -740,7 +752,6 @@ const Onboarding = () => {
         tags: getTraceTags(store.getState()),
       });
 
-      const accountType = getSocialAccountType(provider, !createWallet);
       if (createWallet) {
         track(MetaMetricsEvents.WALLET_SETUP_STARTED, {
           account_type: accountType,
