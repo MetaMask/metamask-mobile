@@ -264,7 +264,7 @@ const mockTrackEvent = jest.fn();
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
-    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+    trackEvent: mockTrackEvent,
   },
 }));
 
