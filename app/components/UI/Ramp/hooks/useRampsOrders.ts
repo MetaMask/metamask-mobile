@@ -3,7 +3,7 @@ import { useSelector } from 'react-redux';
 import type { RampsOrder } from '@metamask/ramps-controller';
 import { extractOrderCode } from '../utils/extractOrderCode';
 import Engine from '../../../../core/Engine';
-import { selectRampsOrders } from '../../../../selectors/rampsController';
+import { selectRampsOrdersForSelectedAccountGroup } from '../../../../selectors/rampsController';
 
 export interface AddPrecreatedOrderParams {
   orderId: string;
@@ -31,7 +31,7 @@ export interface UseRampsOrdersResult {
 }
 
 export function useRampsOrders(): UseRampsOrdersResult {
-  const orders = useSelector(selectRampsOrders);
+  const orders = useSelector(selectRampsOrdersForSelectedAccountGroup);
 
   const getOrderById = useCallback(
     (providerOrderId: string) => {
