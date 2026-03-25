@@ -27,7 +27,8 @@ import { loadingSet, loadingUnset } from '../../../actions/user';
 import {
   saveOnboardingEvent as saveEvent,
   setAccountType,
- clearSeedlessOnboarding } from '../../../actions/onboarding';
+  clearSeedlessOnboarding,
+} from '../../../actions/onboarding';
 import {
   AccountType,
   getSocialAccountType,

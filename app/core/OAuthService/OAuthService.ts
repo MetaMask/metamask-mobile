@@ -21,6 +21,7 @@ import {
   web3AuthNetwork as currentWeb3AuthNetwork,
   SupportedPlatforms,
   AUTH_SERVER_MARKETING_OPT_IN_PATH,
+  GoogleWebGID,
 } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
 import { BaseLoginHandler } from './OAuthLoginHandlers/baseHandler';
@@ -35,6 +36,16 @@ import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilde
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
+import Device from '../../util/device';
+
+const getPlatformFromClientId = (): SupportedPlatforms => {
+  const clientId =
+    ReduxService.store.getState().onboarding.seedlessOnboarding?.clientId;
+  if (Device.isAndroid() || clientId === GoogleWebGID) {
+    return SupportedPlatforms.Android;
+  }
+  return SupportedPlatforms.IOS;
+};
 
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
@@ -121,10 +132,10 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
+      const platform = getPlatformFromClientId();
+
       const authConnectionConfig =
-        this.config.authConnectionConfig[Platform.OS as SupportedPlatforms]?.[
-          authConnection
-        ];
+        this.config.authConnectionConfig[platform]?.[authConnection];
 
       const refreshToken = data.refresh_token;
       const revokeToken = data.revoke_token;
