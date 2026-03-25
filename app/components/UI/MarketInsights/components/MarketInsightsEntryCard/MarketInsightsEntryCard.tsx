@@ -53,7 +53,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
     )
       .addProperties({
         caip19: caip19Id,
-        asset_symbol: report.asset,
+        ...(report.asset ? { asset_symbol: report.asset } : {}),
       })
       .build();
     trackEvent(event);

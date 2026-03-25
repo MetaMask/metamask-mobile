@@ -106,6 +106,37 @@ describe('MarketInsightsEntryCard', () => {
     });
   });
 
+  it('omits asset_symbol when report.asset is missing', () => {
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={
+          {
+            headline: 'ETH rallies',
+            summary: 'Summary text',
+            trends: [],
+            sources: [],
+          } as never
+        }
+        timeAgo="1m ago"
+        onPress={jest.fn()}
+        caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    expect(capturedOnVisible).toBeDefined();
+    capturedOnVisible?.();
+
+    expect(mockTrackEvent).toHaveBeenCalledWith({
+      category: expect.objectContaining({
+        category: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+      }),
+      properties: {
+        caip19: 'eip155:1/erc20:0xtest',
+      },
+    });
+  });
+
   it('does not track visibility event when caip19Id is missing', () => {
     renderWithProvider(
       <MarketInsightsEntryCard
