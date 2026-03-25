@@ -182,13 +182,12 @@ export class ConnectionRegistry {
 
     let conn: Connection | undefined;
     let connInfo: ConnectionInfo | undefined;
-
-    let baseProps: WalletEventProperties | undefined;
+    let connReq: ConnectionRequest | undefined;
 
     try {
-      const connReq = this.parseConnectionRequest(url);
+      connReq = this.parseConnectionRequest(url);
 
-      baseProps = {
+      const baseProps: WalletEventProperties = {
         anon_id: connReq.sessionRequest.id,
         platform: 'mobile',
         sdk_version: connReq.metadata.sdk.version,
@@ -232,11 +231,16 @@ export class ConnectionRegistry {
       this.hostapp.showConnectionError();
       if (conn) await this.disconnect(conn.id);
 
-      const failProps: WalletEventProperties = baseProps ?? {
-        anon_id: 'unknown',
+      // This catch only handles connection-setup failures (parse, network,
+      // protocol). User rejections of wallet_createSession are asynchronous
+      // and tracked separately as wallet_connection_user_rejected in
+      // Connection's response handler — no double-fire occurs.
+      trackWalletEvent('wallet_connection_request_failed', {
+        anon_id: connReq?.sessionRequest?.id ?? 'unknown',
         platform: 'mobile',
-      };
-      trackWalletEvent('wallet_connection_request_failed', failProps);
+        sdk_version: connReq?.metadata?.sdk?.version,
+        sdk_platform: connReq?.metadata?.sdk?.platform,
+      });
     } finally {
       if (connInfo) this.hostapp.hideConnectionLoading(connInfo);
     }

@@ -45,7 +45,7 @@ function trackMwpDeepLinkUsed(url: string): void {
         MetaMetricsEvents.DEEP_LINK_USED,
       )
         .addProperties({
-          route: DeepLinkRoute.SDK_MWP,
+          route: DeepLinkRoute.MMC_MWP,
           was_app_installed: wasAppInstalled,
         })
         .build();
