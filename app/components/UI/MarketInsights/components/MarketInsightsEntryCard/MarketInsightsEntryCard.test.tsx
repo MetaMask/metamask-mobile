@@ -1,5 +1,5 @@
 import React from 'react';
-import { fireEvent } from '@testing-library/react-native';
+import { fireEvent, act } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { endTrace, TraceName } from '../../../../../util/trace';
@@ -97,8 +97,8 @@ describe('MarketInsightsEntryCard', () => {
     expect(getByText(/5h ago/)).toBeOnTheScreen();
   });
 
-  it('updates card dimensions on layout and skips redundant updates', () => {
-    const { getByTestId } = renderWithProvider(
+  it('updates card dimensions on layout and skips redundant updates', async () => {
+    const { getByTestId, UNSAFE_getAllByType } = renderWithProvider(
       <MarketInsightsEntryCard
         report={mockReport as never}
         timeAgo="3m ago"
@@ -107,14 +107,28 @@ describe('MarketInsightsEntryCard', () => {
       />,
     );
 
-    const card = getByTestId('market-insights-entry-card');
+    // The outer Pressable has testID; the inner Box with onLayout is a child
+    const pressable = getByTestId('market-insights-entry-card');
+    // Find all Views to locate the inner Box with onLayout
+    const innerViews = pressable.children;
+    const innerBox = innerViews[0] as unknown as {
+      props: { onLayout?: (e: unknown) => void };
+    };
 
-    fireEvent(card, 'layout', {
+    const layoutEvent = {
       nativeEvent: { layout: { width: 350, height: 200 } },
+    };
+
+    await act(() => {
+      innerBox.props.onLayout?.(layoutEvent);
     });
-
-    fireEvent(card, 'layout', {
-      nativeEvent: { layout: { width: 350, height: 200 } },
+    await act(() => {
+      innerBox.props.onLayout?.(layoutEvent);
+    });
+    await act(() => {
+      innerBox.props.onLayout?.({
+        nativeEvent: { layout: { width: 400, height: 250 } },
+      });
     });
   });
 });
