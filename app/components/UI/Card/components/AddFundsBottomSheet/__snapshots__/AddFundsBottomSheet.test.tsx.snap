@@ -469,13 +469,17 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Select method
@@ -665,13 +669,17 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Low-cost card or bank transfer
@@ -781,13 +789,17 @@ exports[`AddFundsBottomSheet renders with both options enabled and matches snaps
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Swap tokens into USDC on Linea
@@ -1283,13 +1295,17 @@ exports[`AddFundsBottomSheet renders with no options when both are disabled and 
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Select method
@@ -1875,13 +1891,17 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Select method
@@ -2071,13 +2091,17 @@ exports[`AddFundsBottomSheet renders with only deposit option when swaps are not
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Low-cost card or bank transfer
@@ -2578,13 +2602,17 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                               <Text
                                 accessibilityRole="text"
                                 style={
-                                  {
-                                    "color": "#131416",
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#131416",
+                                      "fontFamily": "Geist-Bold",
+                                      "fontSize": 16,
+                                      "fontWeight": 700,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Select method
@@ -2779,13 +2807,17 @@ exports[`AddFundsBottomSheet renders with only swap option when deposit is disab
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Regular",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Regular",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Swap tokens into USDC on Linea

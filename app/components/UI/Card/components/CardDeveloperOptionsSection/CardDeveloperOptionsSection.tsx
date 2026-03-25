@@ -1,12 +1,13 @@
 import React, { useCallback } from 'react';
 import { useDispatch } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
-import { resetOnboardingState } from '../../../../../core/redux/slices/card';
-import Text, {
+import {
+  Box,
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
+import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -25,15 +26,15 @@ const CardDeveloperOptionsSection = () => {
   return (
     <Box twClassName="mt-2 gap-2">
       <Text
-        color={TextColor.Default}
-        variant={TextVariant.HeadingLG}
+        color={TextColor.TextDefault}
+        variant={TextVariant.HeadingLg}
         style={tw.style('mt-4')}
       >
         {strings('app_settings.developer_options.card.title')}
       </Text>
       <Text
-        color={TextColor.Alternative}
-        variant={TextVariant.BodyMD}
+        color={TextColor.TextAlternative}
+        variant={TextVariant.BodyMd}
         style={tw.style('mt-2')}
       >
         {strings(

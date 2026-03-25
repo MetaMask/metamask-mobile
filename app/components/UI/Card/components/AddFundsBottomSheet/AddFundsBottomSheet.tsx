@@ -4,9 +4,6 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import { FlatList } from 'react-native-gesture-handler';
 import ListItemColumn from '../../../../../component-library/components/List/ListItemColumn';
@@ -16,6 +13,9 @@ import {
   IconSize,
   IconColor,
   Label,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import { createStyles } from './AddFundsBottomSheet.styles';
 import { useTheme } from '../../../../../util/theme';
@@ -159,7 +159,7 @@ const AddFundsBottomSheet: React.FC = () => {
       keyboardAvoidingViewEnabled={false}
     >
       <BottomSheetHeader onClose={() => sheetRef.current?.onCloseBottomSheet()}>
-        <Text variant={TextVariant.HeadingSM}>
+        <Text variant={TextVariant.HeadingSm}>
           {strings('card.add_funds_bottomsheet.select_method')}
         </Text>
       </BottomSheetHeader>
@@ -186,8 +186,8 @@ const AddFundsBottomSheet: React.FC = () => {
               <ListItemColumn>
                 <Label>{item.label}</Label>
                 <Text
-                  variant={TextVariant.BodySM}
-                  color={theme.colors.text.alternative}
+                  variant={TextVariant.BodySm}
+                  color={TextColor.TextAlternative}
                 >
                   {item.description}
                 </Text>
