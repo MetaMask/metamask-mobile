@@ -14,12 +14,12 @@ jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaFrame: jest.fn(() => ({ x: 0, y: 0, width: 375, height: 812 })),
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: jest.fn(() => ({
-    colors: { background: { default: '#FFF' } },
-    typography: {},
-  })),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
