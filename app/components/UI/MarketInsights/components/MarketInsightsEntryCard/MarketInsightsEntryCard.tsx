@@ -1,54 +1,37 @@
 import React, { useCallback, useEffect, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import LinearGradient from 'react-native-linear-gradient';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
   TextColor,
-  Icon,
-  IconName,
-  IconSize,
   IconColor,
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import AiSVG from '../../../../../component-library/components/Icons/Icon/assets/ai.svg';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import { endTrace, TraceName } from '../../../../../util/trace';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
-import {
-  BORDER_GRADIENT_COLORS,
-  VISIBILITY_THRESHOLD,
-} from './AnimatedGradientBorder.constants';
+import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
 import { useViewportTracking } from '../../hooks/useViewportTracking';
 
-const sparkleStyles = StyleSheet.create({
-  container: { width: 16, height: 16 },
-  gradient: { flex: 1 },
-});
+const SPARKLE_SIZE = 20;
 
-const SparkleIcon: React.FC = () => (
-  <MaskedView
-    style={sparkleStyles.container}
-    maskElement={
-      <Icon
-        name={IconName.Ai}
-        size={IconSize.Sm}
-        color={IconColor.IconDefault}
-      />
-    }
-  >
-    <LinearGradient
-      colors={[...BORDER_GRADIENT_COLORS]}
-      start={{ x: 0, y: 0 }}
-      end={{ x: 1, y: 1 }}
-      style={sparkleStyles.gradient}
+const SparkleIcon: React.FC = () => {
+  const tw = useTailwind();
+  const { color } = tw.style(IconColor.IconAlternative);
+  return (
+    <AiSVG
+      name="ai"
+      width={SPARKLE_SIZE}
+      height={SPARKLE_SIZE}
+      fill={color as string}
     />
-  </MaskedView>
-);
+  );
+};
 
 /**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
@@ -133,14 +116,10 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           <Text
             variant={TextVariant.BodySm}
             color={TextColor.TextAlternative}
-            twClassName="flex-1"
+            twClassName="flex-shrink"
           >
             {strings('market_insights.footer_disclaimer')}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {'•'}
-          </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            {' • '}
             {timeAgo}
           </Text>
         </Box>
