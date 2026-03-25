@@ -704,6 +704,166 @@ describe('MYXProvider', () => {
   });
 
   // ==========================================================================
+  // validateClosePosition
+  // ==========================================================================
+
+  /* eslint-disable @typescript-eslint/no-explicit-any */
+  describe('validateClosePosition', () => {
+    it('returns invalid when symbol is missing', async () => {
+      const result = await provider.validateClosePosition({} as any);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('ORDER_COIN_REQUIRED');
+    });
+
+    it('returns invalid when limit order has no price', async () => {
+      const result = await provider.validateClosePosition({
+        symbol: 'RHEA',
+        orderType: 'limit',
+      } as any);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('ORDER_LIMIT_PRICE_REQUIRED');
+    });
+
+    it('returns invalid when close size is NaN', async () => {
+      const result = await provider.validateClosePosition({
+        symbol: 'RHEA',
+        size: 'abc',
+      } as any);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('ORDER_SIZE_MIN');
+    });
+
+    it('returns invalid when close size is zero', async () => {
+      const result = await provider.validateClosePosition({
+        symbol: 'RHEA',
+        size: '0',
+      } as any);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('ORDER_SIZE_MIN');
+    });
+
+    it('returns invalid when partial close value is below minimum', async () => {
+      const result = await provider.validateClosePosition({
+        symbol: 'RHEA',
+        size: '0.001',
+        currentPrice: 100,
+      } as any);
+      expect(result.isValid).toBe(false);
+      expect(result.error).toBe('ORDER_SIZE_MIN');
+    });
+
+    it('returns valid for full close without size', async () => {
+      const result = await provider.validateClosePosition({
+        symbol: 'RHEA',
+      } as any);
+      expect(result.isValid).toBe(true);
+    });
+
+    it('returns valid when partial close value exceeds minimum', async () => {
+      const result = await provider.validateClosePosition({
+        symbol: 'RHEA',
+        size: '2',
+        currentPrice: 1000,
+      } as any);
+      expect(result.isValid).toBe(true);
+    });
+  });
+
+  // ==========================================================================
+  // calculateLiquidationPrice (valid params)
+  // ==========================================================================
+
+  describe('calculateLiquidationPrice', () => {
+    it('calculates liq price for a long position', async () => {
+      // MYX_MAX_LEVERAGE=100, maintenance=1/(2*100)=0.005
+      // initialMargin=1/10=0.1, marginAvailable=0.095
+      // denom=1-0.005=0.995, liq=1000-(0.095*1000)/0.995≈904.5
+      const result = await provider.calculateLiquidationPrice({
+        entryPrice: 1000,
+        leverage: 10,
+        direction: 'long',
+        asset: 'RHEA',
+      } as any);
+      const price = parseFloat(result);
+      expect(price).toBeGreaterThan(0);
+      expect(price).toBeLessThan(1000);
+    });
+
+    it('calculates liq price for a short position', async () => {
+      const result = await provider.calculateLiquidationPrice({
+        entryPrice: 1000,
+        leverage: 10,
+        direction: 'short',
+        asset: 'RHEA',
+      } as any);
+      const price = parseFloat(result);
+      expect(price).toBeGreaterThan(1000);
+    });
+
+    it('returns fallback for zero entry price', async () => {
+      const result = await provider.calculateLiquidationPrice({
+        entryPrice: 0,
+        leverage: 10,
+        direction: 'long',
+      } as any);
+      expect(result).toBe('0.00');
+    });
+
+    it('returns fallback for zero leverage', async () => {
+      const result = await provider.calculateLiquidationPrice({
+        entryPrice: 1000,
+        leverage: 0,
+        direction: 'long',
+      } as any);
+      expect(result).toBe('0.00');
+    });
+
+    it('returns fallback when initialMargin < maintenanceMargin', async () => {
+      // Without asset, DefaultMaxLeverage is used (likely 3)
+      // maintenanceLeverage=6, maintenanceMargin=1/6≈0.167
+      // leverage=5 → initialMargin=0.2 > 0.167 — still passes
+      // leverage=2 → initialMargin=0.5 > 0.167 — still passes
+      // Need leverage high enough that initialMargin < maintenanceMargin
+      // With DefaultMaxLeverage=3, maintenanceMargin=1/6=0.167
+      // leverage=10 → initialMargin=0.1 < 0.167 → fallback
+      const result = await provider.calculateLiquidationPrice({
+        entryPrice: 1000,
+        leverage: 10,
+        direction: 'long',
+      } as any);
+      expect(result).toBe('0.00');
+    });
+
+    it('calculates with asset-specific max leverage', async () => {
+      const result = await provider.calculateLiquidationPrice({
+        entryPrice: 50000,
+        leverage: 20,
+        direction: 'long',
+        asset: 'RHEA',
+      } as any);
+      const price = parseFloat(result);
+      expect(price).toBeGreaterThan(0);
+      expect(price).toBeLessThan(50000);
+    });
+  });
+
+  // ==========================================================================
+  // calculateFees with amount
+  // ==========================================================================
+
+  describe('calculateFees with amount', () => {
+    it('calculates fee amounts when amount is provided', async () => {
+      const result = await provider.calculateFees({
+        amount: '1000',
+      } as any);
+      expect(result.feeAmount).toBeCloseTo(0.55, 2);
+      expect(result.protocolFeeAmount).toBeCloseTo(0.55, 2);
+      expect(result.metamaskFeeAmount).toBe(0);
+    });
+  });
+  /* eslint-enable @typescript-eslint/no-explicit-any */
+
+  // ==========================================================================
   // Subscriptions (Stage 1 - No-op)
   // ==========================================================================
 
