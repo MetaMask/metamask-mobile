@@ -40,6 +40,9 @@ interface IConnectQRHardwareProps {
   // TODO: Replace "any" with type
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   navigation: any;
+  // TODO: Replace "any" with type
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  route?: any;
 }
 
 const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
@@ -84,11 +87,15 @@ const createStyles = (colors: ThemeColors, insets: EdgeInsets) =>
     },
   });
 
-const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
+const ConnectQRHardware = ({
+  navigation,
+  route,
+}: IConnectQRHardwareProps) => {
   const { colors } = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
   const insets = useSafeAreaInsets();
   const styles = createStyles(colors, insets);
+  const hideMarketingContent = route?.params?.hideMarketingContent ?? false;
 
   const [isScanning, setIsScanning] = useState(false);
 
@@ -308,6 +315,7 @@ const ConnectQRHardware = ({ navigation }: IConnectQRHardwareProps) => {
             onConnect={onConnectHardware}
             renderAlert={renderAlert}
             navigation={navigation}
+            hideMarketingContent={hideMarketingContent}
           />
         ) : (
           <AccountSelector
