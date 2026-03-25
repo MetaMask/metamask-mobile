@@ -50,14 +50,10 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
-import {
-  LedgerCommunicationErrors,
-  isEthAppNotOpenErrorMessage,
-} from '../../../core/Ledger/ledgerErrors';
+import { isEthAppNotOpenErrorMessage } from '../../../core/Ledger/ledgerErrors';
 
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
@@ -69,22 +65,6 @@ const getDisplayErrorMessage = (errorMessage: string): string => {
     return strings('ledger.eth_app_not_open_message');
   }
   return errorMessage;
-};
-
-const getLedgerErrorDisplayMessage = (
-  error: LedgerCommunicationErrors,
-): string => {
-  switch (error) {
-    case LedgerCommunicationErrors.EthAppNotOpen:
-    case LedgerCommunicationErrors.FailedToOpenApp:
-      return strings('ledger.eth_app_not_open_message');
-    case LedgerCommunicationErrors.LedgerDisconnected:
-      return strings('ledger.ledger_disconnected_error');
-    case LedgerCommunicationErrors.LedgerIsLocked:
-      return strings('ledger.ledger_is_locked');
-    default:
-      return strings('ledger.unspecified_error_during_connect');
-  }
 };
 
 interface OptionType {
@@ -104,8 +84,16 @@ const LedgerSelectAccount = () => {
     ledgerDeviceDarkImage,
   );
 
-  const { deviceId, deviceSelection, ensureDeviceReady, setTargetWalletType } =
-    useHardwareWallet();
+  const {
+    deviceId,
+    deviceSelection,
+    connectionState,
+    ensureDeviceReady,
+    setTargetWalletType,
+  } = useHardwareWallet();
+
+  const isAppLaunchConfirmationNeeded =
+    connectionState.status === ConnectionStatus.AwaitingApp;
 
   const ledgerModelName = useMemo(() => {
     if (deviceSelection?.selectedDevice) {
@@ -134,12 +122,6 @@ const LedgerSelectAccount = () => {
     ],
     [],
   );
-
-  const {
-    isAppLaunchConfirmationNeeded,
-    error: ledgerError,
-    clearError: clearLedgerError,
-  } = useLedgerBluetooth(deviceId ?? '');
 
   const keyringController = useMemo(() => {
     const { KeyringController: controller } = Engine.context as {
@@ -174,16 +156,6 @@ const LedgerSelectAccount = () => {
       setExistingAccounts(value.map(toFormattedAddress));
     });
   }, [keyringController]);
-
-  useEffect(() => {
-    if (ledgerError) {
-      setBlockingModalVisible(false);
-      if (accounts.length > 0) {
-        setErrorMsg(getLedgerErrorDisplayMessage(ledgerError));
-        clearLedgerError();
-      }
-    }
-  }, [ledgerError, accounts.length, clearLedgerError]);
 
   const showLoadingModal = () => {
     setErrorMsg(null);

@@ -29,9 +29,6 @@ import {
 import { SELECT_DROP_DOWN } from '../../UI/SelectOptionSheet/constants';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
-import { BluetoothInterface } from '../../hooks/Ledger/useBluetoothDevices';
-import useLedgerBluetooth from '../../hooks/Ledger/useLedgerBluetooth';
-import { LedgerCommunicationErrors } from '../../../core/Ledger/ledgerErrors';
 
 const mockedGoBack = jest.fn();
 const mockedNavDispatch = jest.fn();
@@ -46,20 +43,6 @@ const mockCreateEventBuilder = jest.fn(() => ({
 const mockEnsureDeviceReady = jest.fn().mockResolvedValue(true);
 const mockSetTargetWalletType = jest.fn();
 const mockShowHardwareWalletError = jest.fn();
-
-jest.mock('../../hooks/Ledger/useLedgerBluetooth', () => ({
-  __esModule: true,
-  default: jest.fn((_deviceId?: string) => ({
-    isSendingLedgerCommands: false,
-    isAppLaunchConfirmationNeeded: false,
-    ledgerLogicToRun: jest.fn(
-      async (fn: (transport: BluetoothInterface) => Promise<void>) =>
-        fn(undefined as unknown as BluetoothInterface),
-    ),
-    error: undefined,
-    clearError: jest.fn(),
-  })),
-}));
 
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
@@ -307,17 +290,6 @@ describe('LedgerSelectAccount', () => {
     mockUnlockLedgerWalletAccount.mockResolvedValue(undefined);
     mockForgetLedger.mockResolvedValue(undefined);
 
-    jest.mocked(useLedgerBluetooth).mockImplementation(() => ({
-      isSendingLedgerCommands: false,
-      isAppLaunchConfirmationNeeded: false,
-      ledgerLogicToRun: jest.fn(
-        async (fn: (transport: BluetoothInterface) => Promise<void>) =>
-          fn(undefined as unknown as BluetoothInterface),
-      ),
-      error: undefined,
-      clearError: jest.fn(),
-      cleanupBluetoothConnection: jest.fn(),
-    }));
     mockEnsureDeviceReady.mockResolvedValue(true);
 
     mockUseHardwareWallet.mockReturnValue({ ...defaultHardwareWalletValues });
@@ -398,26 +370,6 @@ describe('LedgerSelectAccount', () => {
       });
     });
 
-    it('renders LedgerConnect when ledger error exists', () => {
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.LedgerDisconnected,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      const { getByTestId } = renderWithProvider(<LedgerSelectAccount />);
-
-      expect(getByTestId('ledger-connect-mock')).toBeTruthy();
-      expect(getByTestId('ledger-error')).toBeTruthy();
-    });
-
     it('navigates back when ensureDeviceReady throws on mount', async () => {
       mockEnsureDeviceReady.mockRejectedValue(
         new Error('Bluetooth adapter failed'),
@@ -475,91 +427,11 @@ describe('LedgerSelectAccount', () => {
   });
 
   describe('Error Handling', () => {
-    it('hides blocking modal when ledger error occurs', async () => {
-      const { rerender, queryByText } = renderWithProvider(
-        <LedgerSelectAccount />,
-      );
-
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.LedgerDisconnected,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      rerender(<LedgerSelectAccount />);
-
-      expect(queryByText('Please wait')).toBeFalsy();
-    });
-
     it('renders account selector after accounts are loaded', async () => {
       const { queryByText } = await renderAndWaitForAccounts();
 
       expect(queryByText('Select an account')).toBeOnTheScreen();
       expect(queryByText('Select HD Path')).toBeOnTheScreen();
-    });
-
-    it('shows inline error when ledger error occurs with accounts loaded', async () => {
-      const mockClearError = jest.fn();
-      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
-      const { getByTestId, queryByText, rerender } = renderWithProvider(
-        <LedgerSelectAccount />,
-      );
-
-      await act(async () => {
-        const connectButton = getByTestId('connect-ledger-button');
-        fireEvent.press(connectButton);
-      });
-
-      await waitFor(() => {
-        expect(queryByText('Select an account')).toBeTruthy();
-      });
-
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.EthAppNotOpen,
-        clearError: mockClearError,
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      rerender(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockClearError).toHaveBeenCalled();
-      });
-    });
-
-    it('shows LedgerConnect when ledger error occurs without accounts', async () => {
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.LedgerDisconnected,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      const { getByTestId } = renderWithProvider(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(getByTestId('ledger-connect-mock')).toBeTruthy();
-      });
     });
 
     it('shows inline error when account fetching fails', async () => {
@@ -1062,131 +934,6 @@ describe('LedgerSelectAccount', () => {
     });
   });
 
-  describe('useLedgerBluetooth hook states', () => {
-    it('passes selectedDevice id to useLedgerBluetooth', async () => {
-      await renderAndConnect();
-
-      // After connecting, useLedgerBluetooth should be called with device id
-      expect(useLedgerBluetooth).toHaveBeenCalledWith('test-device-id');
-    });
-
-    it('handles isSendingLedgerCommands true state', () => {
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: true,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: undefined,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      const { getByTestId } = renderWithProvider(<LedgerSelectAccount />);
-      expect(getByTestId('ledger-connect-mock')).toBeTruthy();
-    });
-
-    it('handles isAppLaunchConfirmationNeeded true state', () => {
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: true,
-        ledgerLogicToRun: jest.fn(),
-        error: undefined,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      const { getByTestId } = renderWithProvider(<LedgerSelectAccount />);
-      expect(getByTestId('ledger-connect-mock')).toBeTruthy();
-    });
-  });
-
-  describe('LedgerCommunicationErrors', () => {
-    it('renders LedgerConnect when LedgerDisconnected error occurs without accounts', () => {
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.LedgerDisconnected,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      const { getByTestId } = renderWithProvider(<LedgerSelectAccount />);
-      expect(getByTestId('ledger-connect-mock')).toBeTruthy();
-      expect(getByTestId('ledger-error')).toBeTruthy();
-    });
-
-    it('renders LedgerConnect when EthAppNotOpen error occurs without accounts', () => {
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.EthAppNotOpen,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      const { getByTestId } = renderWithProvider(<LedgerSelectAccount />);
-      expect(getByTestId('ledger-connect-mock')).toBeTruthy();
-    });
-
-    it('renders LedgerConnect when UnknownError occurs without accounts', () => {
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.UnknownError,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      const { getByTestId } = renderWithProvider(<LedgerSelectAccount />);
-      expect(getByTestId('ledger-connect-mock')).toBeTruthy();
-    });
-
-    it('hides blocking modal when error occurs', async () => {
-      const { rerender, queryByText } = renderWithProvider(
-        <LedgerSelectAccount />,
-      );
-
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.LedgerDisconnected,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      rerender(<LedgerSelectAccount />);
-
-      expect(queryByText('Please wait')).toBeFalsy();
-    });
-  });
-
   describe('showLoadingModal', () => {
     it('shows loading modal during pagination', async () => {
       const { getByTestId, queryByText } = await renderAndConnect();
@@ -1367,116 +1114,6 @@ describe('LedgerSelectAccount', () => {
           MetaMetricsEvents.HARDWARE_WALLET_FORGOTTEN,
         );
         expect(mockedNavDispatch).toHaveBeenCalled();
-      });
-    });
-  });
-
-  describe('getLedgerErrorDisplayMessage branches', () => {
-    it('shows disconnected message when LedgerDisconnected error occurs with accounts', async () => {
-      const mockClearError = jest.fn();
-      const { queryByText, rerender } = await renderAndConnect();
-
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.LedgerDisconnected,
-        clearError: mockClearError,
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      rerender(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockClearError).toHaveBeenCalled();
-        expect(
-          queryByText(
-            'The connection to your device has been lost. Please try again.',
-          ),
-        ).toBeTruthy();
-      });
-    });
-
-    it('shows locked message when LedgerIsLocked error occurs with accounts', async () => {
-      const mockClearError = jest.fn();
-      const { queryByText, rerender } = await renderAndConnect();
-
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.LedgerIsLocked,
-        clearError: mockClearError,
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      rerender(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockClearError).toHaveBeenCalled();
-        expect(queryByText('Ledger is locked')).toBeTruthy();
-      });
-    });
-
-    it('shows ETH app message when FailedToOpenApp error occurs with accounts', async () => {
-      const mockClearError = jest.fn();
-      const { queryByText, rerender } = await renderAndConnect();
-
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.FailedToOpenApp,
-        clearError: mockClearError,
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      rerender(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockClearError).toHaveBeenCalled();
-        expect(
-          queryByText('Please open the Ethereum app on your Ledger device.'),
-        ).toBeTruthy();
-      });
-    });
-
-    it('shows unspecified error message for UnknownError with accounts', async () => {
-      const mockClearError = jest.fn();
-      const { queryByText, rerender } = await renderAndConnect();
-
-      (
-        useLedgerBluetooth as unknown as jest.MockedFunction<
-          typeof useLedgerBluetooth
-        >
-      ).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: false,
-        ledgerLogicToRun: jest.fn(),
-        error: LedgerCommunicationErrors.UnknownError,
-        clearError: mockClearError,
-        cleanupBluetoothConnection: jest.fn(),
-      }));
-
-      rerender(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockClearError).toHaveBeenCalled();
-        expect(
-          queryByText('Unspecified error when connect Ledger Hardware,'),
-        ).toBeTruthy();
       });
     });
   });
@@ -1689,27 +1326,20 @@ describe('LedgerSelectAccount', () => {
   });
 
   describe('isAppLaunchConfirmationNeeded modal text', () => {
-    it('shows open ETH app text when confirmation is needed', async () => {
-      jest.mocked(useLedgerBluetooth).mockImplementation(() => ({
-        isSendingLedgerCommands: false,
-        isAppLaunchConfirmationNeeded: true,
-        ledgerLogicToRun: jest.fn(
-          async (fn: (transport: BluetoothInterface) => Promise<void>) =>
-            fn(undefined as unknown as BluetoothInterface),
-        ),
-        error: undefined,
-        clearError: jest.fn(),
-        cleanupBluetoothConnection: jest.fn(),
-      }));
+    it('shows open ETH app text when connectionState is AwaitingApp', async () => {
+      mockUseHardwareWallet.mockReturnValue({
+        ...defaultHardwareWalletValues,
+        connectionState: {
+          status: ConnectionStatus.AwaitingApp,
+          deviceId: 'test-device-id',
+          appName: 'Ethereum',
+        },
+      });
 
       mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
       const { getByTestId, queryByText } = renderWithProvider(
         <LedgerSelectAccount />,
       );
-
-      await act(async () => {
-        fireEvent.press(getByTestId('connect-ledger-button'));
-      });
 
       await waitFor(() => {
         expect(queryByText('Select an account')).toBeTruthy();
@@ -1724,7 +1354,7 @@ describe('LedgerSelectAccount', () => {
       });
     });
 
-    it('shows please wait text when confirmation is not needed', async () => {
+    it('shows please wait text when connectionState is not AwaitingApp', async () => {
       const { getByTestId, queryByText } = await renderAndConnect();
 
       await act(async () => {
