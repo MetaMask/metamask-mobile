@@ -74,8 +74,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
 
   const backgroundImageUrl =
     colorScheme === 'dark'
-      ? campaign.details?.image?.darkModeUrl
-      : campaign.details?.image?.lightModeUrl;
+      ? campaign.image?.darkModeUrl
+      : campaign.image?.lightModeUrl;
 
   const handlePress = () => {
     if (!isInteractive) return;

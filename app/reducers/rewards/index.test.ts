@@ -4488,7 +4488,6 @@ const mockCampaign: CampaignDto = {
   endDate: '2027-01-01T00:00:00.000Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
   featured: false,
 };
