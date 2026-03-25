@@ -153,6 +153,47 @@ describe('useViewportTracking', () => {
     expect(onVisible).toHaveBeenCalledTimes(1);
   });
 
+  it('does not fire callback when measured height is zero', () => {
+    const onVisible = jest.fn();
+    const { result } = renderHook(() => useViewportTracking(onVisible));
+
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, 100, 300, 0);
+      },
+    );
+    (result.current.ref as { current: unknown }).current = {
+      measureInWindow: mockMeasureInWindow,
+    };
+
+    act(() => {
+      result.current.onLayout();
+    });
+
+    expect(onVisible).not.toHaveBeenCalled();
+  });
+
+  it('uses custom areaThreshold when provided', () => {
+    const onVisible = jest.fn();
+    const { result } = renderHook(() => useViewportTracking(onVisible, 0.9));
+
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, SCREEN_HEIGHT - 60, 300, 100);
+      },
+    );
+    (result.current.ref as { current: unknown }).current = {
+      measureInWindow: mockMeasureInWindow,
+    };
+
+    act(() => {
+      result.current.onLayout();
+    });
+
+    // 60% visible but threshold is 90%, should not fire
+    expect(onVisible).not.toHaveBeenCalled();
+  });
+
   it('cleans up interval on unmount', () => {
     const onVisible = jest.fn();
     const { result, unmount } = renderHook(() =>
