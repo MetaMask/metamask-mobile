@@ -183,7 +183,10 @@ const ImportNewSecretRecoveryPhrase = () => {
     try {
       // check if seedless pwd is outdated skip cache before importing SRP
       const isSeedlessPwdOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated(true, true);
+        await Authentication.checkIsSeedlessPasswordOutdated({
+          skipCache: true,
+          captureSentryError: true,
+        });
       if (isSeedlessPwdOutdated) {
         // no need to handle error here, password outdated state will trigger modal that force user to log out
         setLoading(false);

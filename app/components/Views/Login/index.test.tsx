@@ -1036,10 +1036,10 @@ describe('Login', () => {
         }
       });
 
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-        false,
-        true,
-      );
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
       expect(mockUnlockWallet).toHaveBeenCalledWith({
         password: 'valid-password123',
       });
@@ -1087,10 +1087,10 @@ describe('Login', () => {
         expect(mockUnlockWallet).toHaveBeenCalled();
       });
       await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-          false,
-          true,
-        );
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+          skipCache: false,
+          captureSentryError: true,
+        });
       });
     });
 
@@ -1112,10 +1112,10 @@ describe('Login', () => {
         expect(mockUnlockWallet).toHaveBeenCalled();
       });
       await waitFor(() => {
-        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-          false,
-          true,
-        );
+        expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+          skipCache: false,
+          captureSentryError: true,
+        });
       });
     });
   });

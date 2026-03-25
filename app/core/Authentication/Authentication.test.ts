@@ -2631,10 +2631,10 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockState),
       } as unknown as ReduxStore);
 
-      const result = await Authentication.checkIsSeedlessPasswordOutdated(
-        true,
-        false,
-      );
+      const result = await Authentication.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      });
 
       expect(result).toBe(mockIsOutdated);
       expect(
@@ -2707,10 +2707,10 @@ describe('Authentication', () => {
 
       jest.clearAllMocks();
 
-      const result = await Authentication.checkIsSeedlessPasswordOutdated(
-        true,
-        true,
-      );
+      const result = await Authentication.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: true,
+      });
 
       expect(result).toBe(false);
       expect(Logger.error).toHaveBeenCalledWith(
@@ -3016,10 +3016,10 @@ describe('Authentication', () => {
         await Authentication.importAccountFromPrivateKey(mockPrivateKey);
 
       // Assert
-      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(
-        true,
-        true,
-      );
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith({
+        skipCache: true,
+        captureSentryError: true,
+      });
       expect(result).toBe(false);
       expect(
         Engine.context.KeyringController.importAccountWithStrategy,
@@ -4422,10 +4422,10 @@ describe('Authentication', () => {
       await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
 
       // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-        false,
-        true,
-      );
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
       expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
@@ -4453,10 +4453,10 @@ describe('Authentication', () => {
       await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
 
       // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(
-        false,
-        true,
-      );
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
       expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
       expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({

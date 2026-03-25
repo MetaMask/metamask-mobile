@@ -99,6 +99,13 @@ export interface AuthData {
   oauth2Login?: boolean;
 }
 
+export interface CheckIsSeedlessPasswordOutdatedOptions {
+  /** When true, bypasses SeedlessOnboardingController password-outdated cache. Default: true */
+  skipCache?: boolean;
+  /** When true, failed controller checks are reported to Sentry via {@link Logger.error}. Default: false */
+  captureSentryError?: boolean;
+}
+
 class AuthenticationService {
   private authData: AuthData = { currentAuthType: AUTHENTICATION_TYPE.UNKNOWN };
 
@@ -749,7 +756,12 @@ class AuthenticationService {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
             fallbackToPassword = true;
-          } else if (await this.checkIsSeedlessPasswordOutdated(false, true)) {
+          } else if (
+            await this.checkIsSeedlessPasswordOutdated({
+              skipCache: false,
+              captureSentryError: true,
+            })
+          ) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
             // try to enable biometric/passcode as default
@@ -875,7 +887,10 @@ class AuthenticationService {
 
     // async check seedless password outdated skip cache when app lock
     // the function swallowed the error
-    this.checkIsSeedlessPasswordOutdated(true, false);
+    this.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: false,
+    });
 
     // Reset authentication preference.
     // NOTE: This does not seem necessary as it's just setting the state rather than updating the keychain.
@@ -1114,10 +1129,10 @@ class AuthenticationService {
       shouldSelectAccount: true,
     },
   ): Promise<boolean> => {
-    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(
-      true,
-      true,
-    );
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: true,
+    });
     if (isPasswordOutdated) {
       return false;
     }
@@ -1368,14 +1383,15 @@ class AuthenticationService {
   /**
    * Checks if the seedless password is outdated.
    *
-   * @param skipCache - whether to skip the cache
-   * @param captureSentryError - when true, failed checks are reported to Sentry via {@link Logger.error}
+   * @param options.skipCache - whether to skip the cache (default: true)
+   * @param options.captureSentryError - when true, failed checks are reported to Sentry via {@link Logger.error} (default: false)
    * @returns true if the password is outdated, false otherwise (or when not in seedless flow)
    */
   checkIsSeedlessPasswordOutdated = async (
-    skipCache: boolean = true,
-    captureSentryError: boolean = false,
+    options: CheckIsSeedlessPasswordOutdatedOptions = {},
   ): Promise<boolean> => {
+    const skipCache = options.skipCache ?? true;
+    const captureSentryError = options.captureSentryError ?? false;
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
       return false;
@@ -1415,7 +1431,10 @@ class AuthenticationService {
 
     // Check for latest seedless password outdated state
     // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-    const isOutdated = await this.checkIsSeedlessPasswordOutdated(false, true);
+    const isOutdated = await this.checkIsSeedlessPasswordOutdated({
+      skipCache: false,
+      captureSentryError: true,
+    });
     if (!isOutdated) {
       return;
     }
