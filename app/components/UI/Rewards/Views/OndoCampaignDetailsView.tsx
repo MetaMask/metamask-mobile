@@ -1,17 +1,30 @@
 import React, { useEffect, useMemo } from 'react';
-import { ScrollView } from 'react-native';
+import { Pressable, ScrollView } from 'react-native';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
-import { Box, IconName, Skeleton } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Icon,
+  IconName,
+  IconSize,
+  Skeleton,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
+import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
+import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -48,6 +61,29 @@ const OndoCampaignDetailsView: React.FC = () => {
       navigation.navigate(Routes.REWARDS_CAMPAIGNS_VIEW as never);
     }
   }, [campaign, navigation]);
+
+  const isOptedIn = participantStatus?.status?.optedIn === true;
+
+  // Only fetch leaderboard data when we'll actually render the OndoLeaderboard
+  // (non-opted-in view of a completed campaign)
+  const leaderboardCampaignId = useMemo(
+    () =>
+      campaign && !isOptedIn && getCampaignStatus(campaign) === 'complete'
+        ? campaignId
+        : undefined,
+    [campaign, isOptedIn, campaignId],
+  );
+
+  const {
+    tierNames,
+    selectedTier,
+    selectedTierData,
+    computedAt,
+    setSelectedTier,
+    isLoading: isLeaderboardLoading,
+    hasError: hasLeaderboardError,
+    refetch: refetchLeaderboard,
+  } = useGetOndoLeaderboard(leaderboardCampaignId);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -105,14 +141,64 @@ const OndoCampaignDetailsView: React.FC = () => {
 
           {campaign && (
             <>
-              <CampaignStatus campaign={campaign} />
-              {campaign.details?.howItWorks && (
+              <CampaignStatus campaign={campaign} optedIn={isOptedIn} />
+
+              {campaign.details?.howItWorks &&
+                !isOptedIn &&
+                getCampaignStatus(campaign) !== 'complete' && (
+                  <>
+                    <Box twClassName="border-b border-border-muted" />
+                    <Box twClassName="px-4 py-4">
+                      <CampaignHowItWorks
+                        howItWorks={campaign.details.howItWorks}
+                      />
+                    </Box>
+                  </>
+                )}
+
+              {/* Leaderboard section - shown when opted in, or when campaign is complete */}
+              {(isOptedIn || Boolean(leaderboardCampaignId)) && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="px-4 py-4">
-                    <CampaignHowItWorks
-                      howItWorks={campaign.details.howItWorks}
-                    />
+                  <Box twClassName="px-4 pt-4">
+                    {isOptedIn && (
+                      <Pressable
+                        onPress={() =>
+                          navigation.navigate(
+                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
+                            { campaignId },
+                          )
+                        }
+                      >
+                        <Box
+                          flexDirection={BoxFlexDirection.Row}
+                          alignItems={BoxAlignItems.Center}
+                          twClassName="gap-2 mb-4"
+                        >
+                          <Text variant={TextVariant.HeadingMd}>
+                            {strings('rewards.ondo_campaign_leaderboard.title')}
+                          </Text>
+                          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                        </Box>
+                      </Pressable>
+                    )}
+                    {isOptedIn ? (
+                      <OndoLeaderboardPosition campaignId={campaignId} />
+                    ) : (
+                      <OndoLeaderboard
+                        tierNames={tierNames}
+                        selectedTier={selectedTier}
+                        onTierChange={setSelectedTier}
+                        entries={selectedTierData?.entries ?? []}
+                        totalParticipants={
+                          selectedTierData?.total_participants ?? 0
+                        }
+                        computedAt={computedAt}
+                        isLoading={isLeaderboardLoading}
+                        hasError={hasLeaderboardError}
+                        onRetry={refetchLeaderboard}
+                      />
+                    )}
                   </Box>
                 </>
               )}
