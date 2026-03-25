@@ -108,6 +108,7 @@ import type {
   PerpsTransactionParams,
   PerpsAddTransactionOptions,
   MYXCredentials,
+  PerpsInternalAccount,
 } from './types';
 import type {
   PerpsControllerAllowedActions,
@@ -122,6 +123,9 @@ import { getSelectedEvmAccount } from './utils/accountUtils';
 import { ensureError } from './utils/errorUtils';
 import type { SortDirection } from './utils/sortMarkets';
 import { wait } from './utils/wait';
+
+/** Type alias for account array from AccountTreeController */
+type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 
 /** Derived type for logger options from PerpsLogger interface */
 type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
