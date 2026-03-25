@@ -9,7 +9,6 @@ import cardReducer, {
   setHasViewedCardButton,
   selectHasViewedCardButton,
   selectCardIsLoaded,
-  selectDisplayCardButton,
   selectIsAuthenticatedCard,
   selectUserCardLocation,
   setIsAuthenticatedCard,
@@ -23,7 +22,6 @@ import cardReducer, {
   selectContactVerificationId,
   selectConsentSetId,
   resetAuthenticatedData,
-  selectIsUserInSupportedCardCountry,
 } from '.';
 
 // Mock the multichain selectors
@@ -36,19 +34,6 @@ jest.mock('../../../Multichain/utils', () => ({
   isEthAccount: jest.fn(),
 }));
 
-// Mock feature flag selectors
-jest.mock('../../../../selectors/featureFlagController/card', () => ({
-  selectCardSupportedCountries: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/geolocationController', () => ({
-  selectGeolocationLocation: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/geolocationController', () => ({
-  selectGeolocationLocation: jest.fn(),
-}));
-
 // Mock handleLocalAuthentication
 jest.mock(
   '../../../../components/UI/Card/util/handleLocalAuthentication',
@@ -59,14 +44,6 @@ jest.mock(
 
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
-import { selectCardSupportedCountries } from '../../../../selectors/featureFlagController/card';
-import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
-
-const mockSelectGeolocationLocation =
-  selectGeolocationLocation as jest.MockedFunction<
-    typeof selectGeolocationLocation
-  >;
-
 const mockSelectSelectedInternalAccountByScope =
   selectSelectedInternalAccountByScope as jest.MockedFunction<
     typeof selectSelectedInternalAccountByScope
@@ -75,11 +52,6 @@ const mockSelectSelectedInternalAccountByScope =
 const mockIsEthAccount = isEthAccount as jest.MockedFunction<
   typeof isEthAccount
 >;
-
-const mockSelectCardSupportedCountries =
-  selectCardSupportedCountries as jest.MockedFunction<
-    typeof selectCardSupportedCountries
-  >;
 
 const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
   '0x1234567890123456789012345678901234567890',
@@ -660,153 +632,6 @@ describe('Card Reducer', () => {
         expect(state.userCardLocation).toBe('international');
         expect(state.isAuthenticated).toBe(false);
       });
-    });
-  });
-});
-
-describe('Card Button Display Selectors', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-    mockSelectGeolocationLocation.mockReturnValue('US');
-  });
-
-  describe('selectIsUserInSupportedCardCountry', () => {
-    it('returns true when GeolocationController location is in supported countries', () => {
-      mockSelectGeolocationLocation.mockReturnValue('US');
-      mockSelectCardSupportedCountries.mockReturnValue({
-        US: true,
-        GB: true,
-      });
-
-      const mockRootState = {
-        card: initialState,
-      } as unknown as RootState;
-
-      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(true);
-    });
-
-    it('returns false when geoLocation is not in supported countries', () => {
-      mockSelectGeolocationLocation.mockReturnValue('CN');
-      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
-
-      const mockRootState = {
-        card: initialState,
-      } as unknown as RootState;
-
-      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
-    });
-
-    it('returns false when geoLocation is UNKNOWN', () => {
-      mockSelectGeolocationLocation.mockReturnValue('UNKNOWN');
-      mockSelectCardSupportedCountries.mockReturnValue({ US: true });
-
-      const mockRootState = {
-        card: initialState,
-      } as unknown as RootState;
-
-      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
-    });
-
-    it('returns false when country is explicitly false in supported countries', () => {
-      mockSelectGeolocationLocation.mockReturnValue('DE');
-      mockSelectCardSupportedCountries.mockReturnValue({
-        US: true,
-        DE: false,
-      });
-
-      const mockRootState = {
-        card: initialState,
-      } as unknown as RootState;
-
-      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
-    });
-
-    it('returns false when cardSupportedCountries is empty or missing', () => {
-      mockSelectGeolocationLocation.mockReturnValue('US');
-      mockSelectCardSupportedCountries.mockReturnValue({});
-
-      const mockRootState = {
-        card: initialState,
-      } as unknown as RootState;
-
-      expect(selectIsUserInSupportedCardCountry(mockRootState)).toBe(false);
-    });
-  });
-
-  describe('selectDisplayCardButton', () => {
-    const mockAccountAddress = '0x1234567890123456789012345678901234567890';
-    const mockAccount = {
-      address: mockAccountAddress.toLowerCase(),
-      id: 'mock-id',
-      metadata: {
-        name: 'Mock Account',
-        importTime: Date.now(),
-        keyring: { type: 'HD Key Tree' },
-      },
-      options: {},
-      methods: [],
-      type: 'eip155:eoa' as const,
-      scopes: ['eip155:59144' as const],
-    };
-
-    beforeEach(() => {
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
-      mockIsEthAccount.mockReturnValue(false);
-      mockSelectGeolocationLocation.mockReturnValue('US');
-    });
-
-    it('should return true when user is a cardholder', () => {
-      const stateWithCardholder: CardSliceState = {
-        ...initialState,
-        cardholderAccounts: [mockAccountAddress.toLowerCase()],
-      };
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        () => mockAccount,
-      );
-      mockIsEthAccount.mockReturnValue(true);
-
-      const mockRootState = {
-        card: stateWithCardholder,
-      } as unknown as RootState;
-
-      expect(selectDisplayCardButton(mockRootState)).toBe(true);
-    });
-
-    it('should return true when user is authenticated', () => {
-      const stateWithAuth: CardSliceState = {
-        ...initialState,
-        isAuthenticated: true,
-        cardholderAccounts: [],
-      };
-
-      const mockRootState = { card: stateWithAuth } as unknown as RootState;
-
-      expect(selectDisplayCardButton(mockRootState)).toBe(true);
-    });
-
-    it('should return false when not cardholder and not authenticated', () => {
-      const mockRootState = {
-        card: initialState,
-      } as unknown as RootState;
-
-      expect(selectDisplayCardButton(mockRootState)).toBe(false);
-    });
-
-    it('should return true when both cardholder and authenticated', () => {
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        () => mockAccount,
-      );
-      mockIsEthAccount.mockReturnValue(true);
-
-      const state: CardSliceState = {
-        ...initialState,
-        isAuthenticated: true,
-        cardholderAccounts: [mockAccountAddress.toLowerCase()],
-      };
-
-      expect(
-        selectDisplayCardButton({ card: state } as unknown as RootState),
-      ).toBe(true);
     });
   });
 });

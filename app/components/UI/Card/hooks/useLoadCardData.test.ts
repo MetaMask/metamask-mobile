@@ -345,7 +345,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.isAuthenticated).toBe(false);
-      expect(result.current.isBaanxLoginEnabled).toBe(true);
     });
 
     it('refetches only on-chain priority token in unauthenticated mode', async () => {
@@ -472,7 +471,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.isAuthenticated).toBe(true);
-      expect(result.current.isBaanxLoginEnabled).toBe(true);
     });
   });
 
@@ -594,12 +592,6 @@ describe('useLoadCardData', () => {
       const { result } = renderHook(() => useLoadCardData());
 
       expect(result.current.warning).toBe(CardStateWarning.NeedDelegation);
-    });
-
-    it('always returns isBaanxLoginEnabled as true', () => {
-      const { result } = renderHook(() => useLoadCardData());
-
-      expect(result.current.isBaanxLoginEnabled).toBe(true);
     });
   });
 

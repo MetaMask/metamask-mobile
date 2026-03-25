@@ -14,7 +14,6 @@ import { cardQueries } from '../queries';
 
 const useLoadCardData = () => {
   const isAuthenticated = useSelector(selectIsAuthenticatedCard);
-  const isBaanxLoginEnabled = true;
   const queryClient = useQueryClient();
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:0',
@@ -188,7 +187,6 @@ const useLoadCardData = () => {
     error,
     warning,
     isAuthenticated,
-    isBaanxLoginEnabled,
     fetchAllData,
     fetchCardDetails,
   };

@@ -30,7 +30,6 @@ import {
   selectCardIsLoaded,
   selectIsCardholder,
   selectIsAuthenticatedCard,
-  selectIsUserInSupportedCardCountry,
 } from '../../../../../core/redux/slices/card';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
@@ -96,7 +95,7 @@ const EarnCard: React.FC<EarnCardProps> = ({
  * - mUSD calculator card: shown when geoLocation has settled AND is not UK.
  * 'UNKNOWN' is treated as non-UK so mUSD is shown. Hidden only when undefined (loading)
  * or 'GB' to prevent flash for UK users.
- * - MetaMask Card card: shown when card geo is loaded and country is in the supported list.
+ * - MetaMask Card card: shown when card geo is loaded (no country restriction).
  * - While geo is loading (status 'idle' or 'loading'): skeletons shown; title always visible
  */
 const EarnRewardsPreview: React.FC = () => {
@@ -111,15 +110,12 @@ const EarnRewardsPreview: React.FC = () => {
   const showMusdCard =
     geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
 
-  // Card geo check — isCardGeoLoaded flips true when loadCardholderAccounts settles
+  // Card check — isCardGeoLoaded flips true when loadCardholderAccounts settles
   const isCardGeoLoaded = useSelector(selectCardIsLoaded);
-  const isUserInSupportedCardCountry = useSelector(
-    selectIsUserInSupportedCardCountry,
-  );
   const isCardholder = useSelector(selectIsCardholder);
   const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
   const isCardGeoLoading = !isCardGeoLoaded;
-  const showCardCard = isCardGeoLoaded && isUserInSupportedCardCountry;
+  const showCardCard = isCardGeoLoaded;
   const cardSubtitle =
     isCardholder || isAuthenticatedCard
       ? strings('rewards.earn_rewards.card_subtitle_cardholder')

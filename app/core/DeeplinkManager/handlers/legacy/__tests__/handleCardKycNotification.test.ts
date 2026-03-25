@@ -4,7 +4,6 @@ import NavigationService from '../../../../NavigationService';
 import Routes from '../../../../../constants/navigation/Routes';
 import Logger from '../../../../../util/Logger';
 import {
-  selectDisplayCardButton,
   selectIsAuthenticatedCard,
   selectOnboardingId,
   selectUserCardLocation,
@@ -61,13 +60,11 @@ describe('handleCardKycNotification', () => {
       navigate: mockNavigate,
     } as unknown as typeof NavigationService.navigation;
 
-    // Default mocks - feature disabled
     (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
     (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(false);
     (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
       'international',
     );
-    (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(false);
     (selectCardFeatureFlag as unknown as jest.Mock).mockReturnValue(
       mockCardFeatureFlag,
     );
@@ -84,29 +81,8 @@ describe('handleCardKycNotification', () => {
     jest.clearAllMocks();
   });
 
-  describe('feature flag checks', () => {
-    it('does not navigate when selectDisplayCardButton is false', async () => {
-      await handleCardKycNotification();
-
-      expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockLoggerLog).toHaveBeenCalledWith(
-        '[handleCardKycNotification] Card feature is not enabled, skipping',
-      );
-    });
-
-    it('enables navigation when selectDisplayCardButton is true', async () => {
-      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
-
-      await handleCardKycNotification();
-
-      // Should navigate to fallback (Welcome) since no onboardingId or auth
-      expect(mockNavigate).toHaveBeenCalled();
-    });
-  });
-
   describe('onboarding flow', () => {
     beforeEach(() => {
-      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(
         'test-onboarding-id',
       );
@@ -277,7 +253,6 @@ describe('handleCardKycNotification', () => {
 
   describe('authenticated flow', () => {
     beforeEach(() => {
-      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
       (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(true);
     });
@@ -427,7 +402,6 @@ describe('handleCardKycNotification', () => {
 
   describe('fallback behavior', () => {
     beforeEach(() => {
-      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
       (selectOnboardingId as unknown as jest.Mock).mockReturnValue(null);
       (selectIsAuthenticatedCard as unknown as jest.Mock).mockReturnValue(
         false,
@@ -455,10 +429,6 @@ describe('handleCardKycNotification', () => {
   });
 
   describe('error handling', () => {
-    beforeEach(() => {
-      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
-    });
-
     describe('when getState throws an error', () => {
       const mockError = new Error('Redux state error');
 
@@ -577,10 +547,6 @@ describe('handleCardKycNotification', () => {
   });
 
   describe('logging', () => {
-    beforeEach(() => {
-      (selectDisplayCardButton as unknown as jest.Mock).mockReturnValue(true);
-    });
-
     it('logs starting message', async () => {
       await handleCardKycNotification();
 

@@ -6,9 +6,7 @@ import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { isEthAccount } from '../../../Multichain/utils';
 import { CardLocation } from '../../../../components/UI/Card/types';
-import { selectCardSupportedCountries } from '../../../../selectors/featureFlagController/card';
 import { handleLocalAuthentication } from '../../../../components/UI/Card/util/handleLocalAuthentication';
-import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 
 export interface OnboardingState {
   onboardingId: string | null;
@@ -181,19 +179,6 @@ export const selectUserCardLocation = createSelector(
 export const selectIsDaimoDemo = createSelector(
   selectCardState,
   (card) => card.isDaimoDemo,
-);
-
-export const selectIsUserInSupportedCardCountry = createSelector(
-  selectGeolocationLocation,
-  selectCardSupportedCountries,
-  (geoLocation, cardSupportedCountries) =>
-    (cardSupportedCountries as Record<string, boolean>)?.[geoLocation] === true,
-);
-
-export const selectDisplayCardButton = createSelector(
-  selectIsCardholder,
-  selectIsAuthenticatedCard,
-  (isCardholder, isAuthenticated) => isCardholder || isAuthenticated,
 );
 
 export const selectOnboardingId = createSelector(

@@ -3,7 +3,6 @@ import ReduxService from '../../../redux';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import {
-  selectDisplayCardButton,
   selectIsAuthenticatedCard,
   selectOnboardingId,
   selectUserCardLocation,
@@ -46,16 +45,6 @@ export const handleCardKycNotification = async () => {
 
   try {
     const state = ReduxService.store.getState();
-
-    // Check feature flags
-    const shouldHandleKycNotification = selectDisplayCardButton(state);
-
-    if (!shouldHandleKycNotification) {
-      Logger.log(
-        '[handleCardKycNotification] Card feature is not enabled, skipping',
-      );
-      return;
-    }
 
     // Get user state
     const onboardingId = selectOnboardingId(state);

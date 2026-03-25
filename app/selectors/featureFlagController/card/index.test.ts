@@ -1,10 +1,8 @@
 import {
   CardFeatureFlag,
-  CardSupportedCountries,
   SupportedChain,
   SupportedToken,
   selectCardFeatureFlag,
-  selectCardSupportedCountries,
   selectMetalCardCheckoutFeatureFlag,
   selectGalileoAppleWalletProvisioningEnabled,
   selectGalileoGoogleWalletProvisioningEnabled,
@@ -317,80 +315,6 @@ describe('selectCardFeatureFlag', () => {
 
     expect(result.chains?.['1']?.enabled).toBe(false);
     expect(result.chains?.['1']?.tokens).toBeNull();
-  });
-});
-
-describe('selectCardSupportedCountries', () => {
-  it('returns default supported countries when feature flag state is empty', () => {
-    const result = selectCardSupportedCountries(
-      mockedEmptyFlagsState,
-    ) as CardSupportedCountries;
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-    expect(result.GB).toBe(true);
-    expect(result.US).toBeUndefined();
-  });
-
-  it('returns default supported countries when RemoteFeatureFlagController state is undefined', () => {
-    const result = selectCardSupportedCountries(
-      mockedUndefinedFlagsState,
-    ) as CardSupportedCountries;
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
-  });
-
-  it('returns custom supported countries when defined in remote flags', () => {
-    const customCountries: CardSupportedCountries = {
-      US: true,
-      CA: true,
-      GB: false,
-    };
-
-    const stateWithCustomCountries = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardSupportedCountries: customCountries,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardSupportedCountries(
-      stateWithCustomCountries,
-    ) as CardSupportedCountries;
-
-    expect(result).toEqual(customCountries);
-    expect(result.US).toBe(true);
-    expect(result.CA).toBe(true);
-    expect(result.GB).toBe(false);
-  });
-
-  it('handles null cardSupportedCountries by returning default', () => {
-    const stateWithNullCountries = {
-      engine: {
-        backgroundState: {
-          RemoteFeatureFlagController: {
-            remoteFeatureFlags: {
-              cardSupportedCountries: null,
-            },
-            cacheTimestamp: 0,
-          },
-        },
-      },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    } as any;
-
-    const result = selectCardSupportedCountries(stateWithNullCountries);
-
-    expect(result).toBeDefined();
-    expect(typeof result).toBe('object');
   });
 });
 

@@ -68,14 +68,12 @@ import {
   selectCardIsLoaded,
   selectIsCardholder,
   selectIsAuthenticatedCard,
-  selectIsUserInSupportedCardCountry,
 } from '../../../../../core/redux/slices/card';
 
 interface SetupOptions {
   geoLocation?: string;
   geoStatus?: 'idle' | 'loading' | 'complete';
   isCardGeoLoaded?: boolean;
-  isUserInSupportedCardCountry?: boolean;
   isCardholder?: boolean;
   isAuthenticatedCard?: boolean;
 }
@@ -84,7 +82,6 @@ const setupSelectors = ({
   geoLocation,
   geoStatus = 'complete',
   isCardGeoLoaded = true,
-  isUserInSupportedCardCountry = true,
   isCardholder = false,
   isAuthenticatedCard = false,
 }: SetupOptions = {}) => {
@@ -93,8 +90,6 @@ const setupSelectors = ({
       return geoLocation === undefined ? undefined : geoLocation;
     if (selector === selectGeolocationStatus) return geoStatus;
     if (selector === selectCardIsLoaded) return isCardGeoLoaded;
-    if (selector === selectIsUserInSupportedCardCountry)
-      return isUserInSupportedCardCountry;
     if (selector === selectIsCardholder) return isCardholder;
     if (selector === selectIsAuthenticatedCard) return isAuthenticatedCard;
     return undefined;
@@ -275,61 +270,6 @@ describe('EarnRewardsPreview', () => {
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
       ).toBeOnTheScreen();
-    });
-  });
-
-  describe('after geo loaded — card blocked (unsupported country)', () => {
-    it('shows mUSD card but hides card card when country is not in supported list', () => {
-      setupSelectors({
-        geoLocation: 'US',
-        isUserInSupportedCardCountry: false,
-      });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
-    });
-
-    it('hides card card when user is not in a supported card country', () => {
-      setupSelectors({
-        geoLocation: 'US',
-        isUserInSupportedCardCountry: false,
-      });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
-    });
-
-    it('hides both cards when user is in UK and card country is not supported', () => {
-      setupSelectors({
-        geoLocation: 'GB',
-        isUserInSupportedCardCountry: false,
-      });
-      const { queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeNull();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
-    });
-
-    it('hides card card when geoLocation is UNKNOWN (not a supported card country)', () => {
-      setupSelectors({
-        geoLocation: 'UNKNOWN',
-        isUserInSupportedCardCountry: false,
-      });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeOnTheScreen();
-      expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
     });
   });
 
