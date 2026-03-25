@@ -7,7 +7,7 @@ const styleSheet = (params: { theme: Theme }) => {
     wrapper: {
       width: '100%',
       paddingHorizontal: 16,
-      paddingVertical: 4,
+      paddingVertical: 12,
       gap: 4,
       flexDirection: 'column',
       alignItems: 'flex-start',

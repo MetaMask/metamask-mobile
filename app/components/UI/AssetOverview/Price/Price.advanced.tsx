@@ -230,7 +230,7 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName={showEmptyState ? 'mt-8 mb-6' : 'mt-8'}>
+      <Box twClassName={showEmptyState ? 'mt-5 mb-6' : 'mt-5'}>
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}

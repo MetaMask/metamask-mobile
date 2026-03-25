@@ -109,9 +109,6 @@ const styleSheet = (params: { theme: Theme }) => {
   const { theme } = params;
   const { colors } = theme;
   return StyleSheet.create({
-    wrapper: {
-      paddingTop: 20,
-    } as ViewStyle,
     warningWrapper: {
       paddingHorizontal: 16,
       marginBottom: 20,
@@ -630,7 +627,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   };
 
   return (
-    <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
+    <Box twClassName="pt-[2px]" testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
         renderWarning()
       ) : (
@@ -639,7 +636,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <Box
             flexDirection={BoxFlexDirection.Row}
             alignItems={BoxAlignItems.Center}
-            twClassName="pt-2 pb-1 pl-4 pr-4 self-stretch gap-3"
+            twClassName="gap-4 py-2 pr-[8px] pl-4"
           >
             <BadgeWrapper
               badgePosition={BadgePosition.BottomRight}
@@ -970,7 +967,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
         </View>
       )}
-    </View>
+    </Box>
   );
 };
 

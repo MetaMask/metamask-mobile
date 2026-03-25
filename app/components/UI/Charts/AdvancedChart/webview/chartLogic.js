@@ -1784,7 +1784,7 @@ function initChart() {
           'scalesProperties.textColor': theme.textColor,
           'scalesProperties.lineColor': theme.backgroundColor || '#131416', // done to hide the axis line
           'timeScale.borderColor': theme.backgroundColor || '#131416', // done to hide the axis line
-          'scalesProperties.fontSize': 11,
+          'scalesProperties.fontSize': 12,
           'scalesProperties.showStudyLastValue': false,
           'scalesProperties.showSeriesLastValue': false,
           'scalesProperties.showSymbolLabels': false,

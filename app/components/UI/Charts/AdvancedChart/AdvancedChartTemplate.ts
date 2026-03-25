@@ -71,7 +71,7 @@ window.CONFIG = {
   theme: {
     backgroundColor: '${theme.colors.background.default}',
     borderColor: '${stripHexAlpha(theme.colors.border.muted)}',
-    textColor: '${theme.colors.text.alternative}',
+    textColor: '${stripHexAlpha(theme.colors.text.muted)}',
     successColor: '${theme.colors.success.default}',
     errorColor: '${theme.colors.error.default}',
     primaryColor: '${theme.colors.primary.default}'
