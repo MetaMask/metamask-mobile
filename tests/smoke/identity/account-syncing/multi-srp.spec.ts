@@ -22,7 +22,7 @@ import AccountDetails from '../../../page-objects/MultichainAccounts/AccountDeta
 import EditAccountName from '../../../page-objects/MultichainAccounts/EditAccountName';
 
 // Quarantining, See thread: https://consensys.slack.com/archives/C02U025CVU4/p1771574948295649
-describe.skip(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
+describe(SmokeIdentity('Account syncing - Mutiple SRPs'), () => {
   let sharedUserStorageController: UserStorageMockttpController;
 
   beforeAll(async () => {
