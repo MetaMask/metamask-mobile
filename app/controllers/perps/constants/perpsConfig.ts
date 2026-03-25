@@ -351,3 +351,18 @@ export const PROVIDER_CONFIG = {
 export const PERPS_DISK_CACHE_MARKETS = 'PERPS_DISK_CACHE_MARKETS';
 export const PERPS_DISK_CACHE_USER_DATA = 'PERPS_DISK_CACHE_USER_DATA';
 export const PERPS_DISK_CACHE_THROTTLE_MS = 30_000;
+
+/**
+ * Build the standard provider:network cache key from controller state.
+ *
+ * @param state - Controller state containing provider and network info.
+ * @param state.activeProvider - Active perps provider name.
+ * @param state.isTestnet - Whether testnet mode is active.
+ * @returns Cache key in the format "provider:mainnet" or "provider:testnet".
+ */
+export function getProviderNetworkKey(state: {
+  activeProvider?: string;
+  isTestnet?: boolean;
+}): string {
+  return `${state.activeProvider ?? PROVIDER_CONFIG.DefaultProvider}:${state.isTestnet ? 'testnet' : 'mainnet'}`;
+}

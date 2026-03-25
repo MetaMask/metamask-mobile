@@ -30,6 +30,7 @@ import {
   PERPS_DISK_CACHE_USER_DATA,
   PERPS_DISK_CACHE_THROTTLE_MS,
 } from '../constants/perpsConfig';
+import { getProviderNetworkKey } from '@metamask/perps-controller/constants/perpsConfig';
 import StorageWrapper from '../../../../store/storage-wrapper';
 import { getE2EMockStreamManager } from '../utils/e2eBridgePerps';
 import { CandleStreamChannel } from './channels/CandleStreamChannel';
@@ -47,13 +48,6 @@ function getEvmAccountFromSelectedAccountGroup() {
   return findEvmAccount(accounts as InternalAccount[]);
 }
 
-// Lazy accessor for disk persistence — avoids no-use-before-define since
-// the singleton is defined after channel classes.
-let _streamManagerRef: PerpsStreamManager | null = null;
-function getDiskPersistRef(): PerpsStreamManager | null {
-  return _streamManagerRef;
-}
-
 // Generic subscription parameters
 interface StreamSubscription<T> {
   id: string;
@@ -69,6 +63,7 @@ abstract class StreamChannel<T> {
   protected cache = new Map<string, T>();
   protected subscribers = new Map<string, StreamSubscription<T>>();
   protected wsSubscription: (() => void) | null = null;
+  public onDataPersist?: () => void;
   // Track account context to prevent stale data across account switches
   protected accountAddress: string | null = null;
   // Track WebSocket connection timing for first data measurement
@@ -671,7 +666,7 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
         this.cache.set('orders', orders);
         this.notifySubscribers(orders);
-        getDiskPersistRef()?.persistUserDataToDisk();
+        this.onDataPersist?.();
       },
     });
   }
@@ -808,7 +803,7 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
         this.cache.set('positions', positions);
         this.notifySubscribers(positions);
-        getDiskPersistRef()?.persistUserDataToDisk();
+        this.onDataPersist?.();
       },
     });
   }
@@ -1081,7 +1076,7 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
         // Use base cache Map with consistent key
         this.cache.set('account', account);
         this.notifySubscribers(account as AccountState | null);
-        getDiskPersistRef()?.persistUserDataToDisk();
+        this.onDataPersist?.();
       },
     });
   }
@@ -1412,7 +1407,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         // One-time read of controller-level preloaded cache (REST snapshot).
         // This avoids an HTTP round-trip when the controller already has fresh data.
-        const controllerNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+        const controllerNetworkKey = getProviderNetworkKey(controller.state);
         const cachedForProvider =
           controller.getCachedMarketDataForActiveProvider?.();
         if (
@@ -1441,13 +1436,13 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
         // Snapshot provider + network BEFORE the async call to avoid race conditions.
         // If the user switches providers or toggles testnet while getMarketDataWithPrices()
         // is in-flight, we must not tag the returned data with the new network key.
-        const preFetchNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+        const preFetchNetworkKey = getProviderNetworkKey(controller.state);
 
         const data = await controller.getMarketDataWithPrices();
         const fetchTime = Date.now() - fetchStartTime;
 
         // If provider or network changed during fetch, discard stale data
-        const postFetchNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+        const postFetchNetworkKey = getProviderNetworkKey(controller.state);
         if (preFetchNetworkKey !== postFetchNetworkKey) {
           DevLogger.log(
             'PerpsStreamManager: Provider/network changed during fetch, discarding data',
@@ -1466,7 +1461,7 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
 
         // Notify all subscribers
         this.notifySubscribers(data);
-        getDiskPersistRef()?.persistMarketDataToDisk();
+        this.onDataPersist?.();
 
         DevLogger.log('PerpsStreamManager: Market data fetched and cached', {
           marketCount: data.length,
@@ -1602,6 +1597,14 @@ export class PerpsStreamManager {
     () => PerpsConnectionManager.getConnectionState().isInitialized,
   );
 
+  constructor() {
+    // Wire disk-persist callbacks into channels that trigger writes
+    this.marketData.onDataPersist = () => this.persistMarketDataToDisk();
+    this.orders.onDataPersist = () => this.persistUserDataToDisk();
+    this.positions.onDataPersist = () => this.persistUserDataToDisk();
+    this.account.onDataPersist = () => this.persistUserDataToDisk();
+  }
+
   // Disk cache throttle timestamps
   private marketDiskWriteTime = 0;
   private userDiskWriteTime = 0;
@@ -1619,7 +1622,7 @@ export class PerpsStreamManager {
     if (!snapshot || snapshot.length === 0) return;
 
     const controller = Engine.context.PerpsController;
-    const providerNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+    const providerNetworkKey = getProviderNetworkKey(controller.state);
 
     StorageWrapper.setItem(
       PERPS_DISK_CACHE_MARKETS,
@@ -1653,7 +1656,7 @@ export class PerpsStreamManager {
     if (!positions && !orders && !account) return;
 
     const controller = Engine.context.PerpsController;
-    const providerNetworkKey = `${controller.state?.activeProvider || PROVIDER_CONFIG.DefaultProvider}:${controller.state?.isTestnet ? 'testnet' : 'mainnet'}`;
+    const providerNetworkKey = getProviderNetworkKey(controller.state);
 
     StorageWrapper.setItem(
       PERPS_DISK_CACHE_USER_DATA,
@@ -1691,7 +1694,6 @@ export class PerpsStreamManager {
 
 // Singleton instance
 const streamManager = new PerpsStreamManager();
-_streamManagerRef = streamManager;
 
 // Export singleton for pre-warming in PerpsConnectionManager
 export const getStreamManagerInstance = () => streamManager;

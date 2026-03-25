@@ -177,12 +177,18 @@ class PerpsConnectionManagerClass {
         streamManager.topOfBook.clearCache();
         streamManager.candles.clearCache();
 
-        // Invalidate disk-persisted cold-start cache
+        // Invalidate disk-persisted cold-start cache (fire-and-forget)
         if (accountOnly) {
-          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA);
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
         } else {
-          StorageWrapper.removeItem(PERPS_DISK_CACHE_MARKETS);
-          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA);
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_MARKETS).catch(
+            () => undefined,
+          );
+          StorageWrapper.removeItem(PERPS_DISK_CACHE_USER_DATA).catch(
+            () => undefined,
+          );
         }
 
         // Store flag so performReconnection can thread it into the second clearCache call.
