@@ -485,6 +485,8 @@ export class MYXProvider implements PerpsProvider {
       this.#poolSymbolMap.clear();
       this.#tickersCache.clear();
       this.#poolConfigCache.clear();
+      this.#marketDetailCache.clear();
+      this.#marketDetailInflight.clear();
 
       return { success: true };
     } catch (caughtError) {
