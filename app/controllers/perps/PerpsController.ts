@@ -2652,7 +2652,6 @@ export class PerpsController extends BaseController<
    * can render last-known data instantly on cold start.
    */
   async #hydrateCacheFromDisk(): Promise<void> {
-    this.#debugLog('[PERPS_BENCH] hydrate_start');
     const hydrateT0 = Date.now();
     const { diskCache } = this.#options.infrastructure;
     try {
@@ -2692,12 +2691,12 @@ export class PerpsController extends BaseController<
                 'PerpsController: Hydrated market data from disk',
                 { key: parsed.providerNetworkKey, count: parsed.data.length },
               );
-              this.#debugLog('[PERPS_BENCH] hydrate_market_hit', {
+              this.#debugLog('PerpsController: hydrate_market_hit', {
                 count: parsed.data.length,
                 age_ms: Date.now() - parsed.timestamp,
               });
             } else {
-              this.#debugLog('[PERPS_BENCH] hydrate_market_miss', {
+              this.#debugLog('PerpsController: hydrate_market_miss', {
                 reason: 'existing_fresher',
               });
             }
@@ -2706,7 +2705,7 @@ export class PerpsController extends BaseController<
           // Corrupt JSON — silently ignore
         }
       } else {
-        this.#debugLog('[PERPS_BENCH] hydrate_market_miss', {
+        this.#debugLog('PerpsController: hydrate_market_miss', {
           reason: 'no_disk_data',
         });
       }
@@ -2752,13 +2751,13 @@ export class PerpsController extends BaseController<
                     orders: parsed.orders.length,
                   },
                 );
-                this.#debugLog('[PERPS_BENCH] hydrate_user_hit', {
+                this.#debugLog('PerpsController: hydrate_user_hit', {
                   positions: parsed.positions.length,
                   orders: parsed.orders.length,
                   age_ms: Date.now() - parsed.timestamp,
                 });
               } else {
-                this.#debugLog('[PERPS_BENCH] hydrate_user_miss', {
+                this.#debugLog('PerpsController: hydrate_user_miss', {
                   reason: 'existing_fresher',
                 });
               }
@@ -2768,89 +2767,16 @@ export class PerpsController extends BaseController<
           // Corrupt JSON — silently ignore
         }
       } else {
-        this.#debugLog('[PERPS_BENCH] hydrate_user_miss', {
+        this.#debugLog('PerpsController: hydrate_user_miss', {
           reason: 'no_disk_data',
         });
       }
     } catch {
       // Disk read failure — non-critical
     }
-    this.#debugLog('[PERPS_BENCH] hydrate_end', {
+    this.#debugLog('PerpsController: hydrate_end', {
       duration_ms: Date.now() - hydrateT0,
     });
-  }
-
-  // [PERPS_BENCH] Temporary — remove after benchmarking
-  async clearDiskCache(): Promise<void> {
-    await Promise.all([
-      this.#options.infrastructure.diskCache.removeItem(
-        PERPS_DISK_CACHE_MARKETS,
-      ),
-      this.#options.infrastructure.diskCache.removeItem(
-        PERPS_DISK_CACHE_USER_DATA,
-      ),
-    ]);
-  }
-
-  // [PERPS_BENCH] Temporary — remove after benchmarking
-  clearInMemoryCaches(): void {
-    this.update((state) => {
-      state.cachedMarketDataByProvider = {};
-      state.cachedUserDataByProvider = {};
-    });
-  }
-
-  // [PERPS_BENCH] Temporary — hydrate from disk WITHOUT starting REST preload.
-  // Used by benchmark to verify placeholder prices before REST overwrites them.
-  async hydrateCacheFromDiskOnly(): Promise<void> {
-    await this.#hydrateCacheFromDisk();
-  }
-
-  // [PERPS_BENCH] Temporary — write current controller cache to disk immediately
-  async seedDiskCache(): Promise<void> {
-    const { diskCache } = this.#options.infrastructure;
-    const { activeProvider } = this.state;
-    const { isTestnet } = this.state;
-    const providerNetworkKey = `${activeProvider}:${isTestnet ? 'testnet' : 'mainnet'}`;
-    const now = Date.now();
-
-    const marketEntry =
-      this.state.cachedMarketDataByProvider[
-        this.#marketCacheKey(
-          this.activeProviderInstance ? activeProvider : 'hyperliquid',
-          isTestnet,
-        )
-      ];
-    if (marketEntry?.data?.length) {
-      await diskCache.setItem(
-        PERPS_DISK_CACHE_MARKETS,
-        JSON.stringify({
-          providerNetworkKey,
-          data: marketEntry.data,
-          timestamp: now,
-        }),
-      );
-    }
-
-    const evmAccount = getSelectedEvmAccount(
-      this.messenger.call(
-        'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ),
-    );
-    const userEntry = this.state.cachedUserDataByProvider[providerNetworkKey];
-    if (evmAccount?.address && userEntry) {
-      await diskCache.setItem(
-        PERPS_DISK_CACHE_USER_DATA,
-        JSON.stringify({
-          providerNetworkKey,
-          address: evmAccount.address,
-          positions: userEntry.positions ?? [],
-          orders: userEntry.orders ?? [],
-          accountState: userEntry.accountState ?? null,
-          timestamp: now,
-        }),
-      );
-    }
   }
 
   /**
@@ -3066,9 +2992,9 @@ export class PerpsController extends BaseController<
       });
 
       this.#debugLog('PerpsController: Fetching market data in background');
-      this.#debugLog('[PERPS_BENCH] rest_preload_start');
+      this.#debugLog('PerpsController: rest_preload_start');
       const data = await this.getMarketDataWithPrices({ standalone: true });
-      this.#debugLog('[PERPS_BENCH] rest_preload_end', {
+      this.#debugLog('PerpsController: rest_preload_end', {
         duration_ms: Math.round(performance.now() - preloadStart),
         markets: data.length,
       });

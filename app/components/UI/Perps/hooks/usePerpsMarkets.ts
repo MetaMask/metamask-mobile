@@ -85,7 +85,6 @@ export const usePerpsMarkets = (
   );
   const [isLoading, setIsLoading] = useState(() => {
     const hit = hasPreloadedData('cachedMarketData');
-    DevLogger.log('[PERPS_BENCH] hook_market_init', { cacheHit: hit });
     if (skipInitialFetch) return false;
     return !hit;
   });
@@ -145,11 +144,6 @@ export const usePerpsMarkets = (
               timeToDataMs: timeToData,
               source: timeToData < 100 ? 'cache' : 'fresh_fetch',
               cacheHit: timeToData < 100,
-            });
-            DevLogger.log('[PERPS_BENCH] hook_market_first_data', {
-              timeToDataMs: timeToData,
-              cacheHit: timeToData < 100,
-              marketCount: marketData.length,
             });
             isFirstUpdate = false;
           } else {
