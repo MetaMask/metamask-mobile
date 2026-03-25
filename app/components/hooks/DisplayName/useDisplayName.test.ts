@@ -163,7 +163,12 @@ describe('useDisplayName', () => {
 
     it('returns ERC20 token name', () => {
       mockUseERC20Tokens.mockReturnValue([
-        { name: KNOWN_TOKEN_LIST_NAME, image: '' },
+        {
+          name: KNOWN_TOKEN_LIST_NAME,
+          image: '',
+          symbol: '',
+          decimals: undefined,
+        },
       ]);
 
       const displayName = useDisplayName({
