@@ -13,6 +13,7 @@ import { Core } from '@walletconnect/core';
 import Routes from '../../constants/navigation/Routes';
 import { store } from '../../store';
 import { ActionType } from '../../actions/sdk';
+// eslint-disable-next-line import-x/no-namespace
 import * as waitUtil from '../SDKConnect/utils/wait.util';
 
 jest.mock('../AppConstants', () => ({
