@@ -3639,6 +3639,9 @@ export class RewardsController extends BaseController<
       readCache: (k) => {
         const cached = this.state.ondoCampaignLeaderboardPositions[k];
         if (!cached) return undefined;
+        if ('notFound' in cached) {
+          return { payload: null, lastFetched: cached.lastFetched };
+        }
         return {
           payload: {
             projected_tier: cached.projected_tier,
@@ -3667,7 +3670,10 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         if (payload === null) {
           this.update((state) => {
-            delete state.ondoCampaignLeaderboardPositions[k];
+            state.ondoCampaignLeaderboardPositions[k] = {
+              notFound: true,
+              lastFetched: Date.now(),
+            };
           });
         } else {
           this.update((state) => {

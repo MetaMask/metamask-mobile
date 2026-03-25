@@ -19378,7 +19378,7 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('returns null and removes cache entry when API returns null (user not found)', async () => {
+    it('returns null and caches a not-found sentinel when API returns null (user not on leaderboard)', async () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
@@ -19392,6 +19392,37 @@ describe('RewardsController', () => {
       );
 
       expect(result).toBeNull();
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const cached = ctrl.state.ondoCampaignLeaderboardPositions[cacheKey];
+      expect(cached).toBeDefined();
+      expect(cached).toMatchObject({ notFound: true });
+      expect((cached as { lastFetched: number }).lastFetched).toBeGreaterThan(
+        0,
+      );
+    });
+
+    it('does not re-fetch when a fresh not-found sentinel is cached (TTL respected)', async () => {
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          ondoCampaignLeaderboardPositions: {
+            [cacheKey]: {
+              notFound: true as const,
+              lastFetched: Date.now() - 60000,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('logs when fetching fresh position', async () => {

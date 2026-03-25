@@ -389,7 +389,7 @@ export type CampaignLeaderboardState = {
  * State for cached leaderboard position in the controller
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type CampaignLeaderboardPositionState = {
+export type CampaignLeaderboardPositionFoundState = {
   projected_tier: string;
   rank: number;
   total_in_tier: number;
@@ -400,6 +400,17 @@ export type CampaignLeaderboardPositionState = {
   computed_at: string;
   lastFetched: number;
 };
+
+/** Sentinel stored when the API returns null (user not on leaderboard), so the TTL is respected. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignLeaderboardPositionNotFoundState = {
+  notFound: true;
+  lastFetched: number;
+};
+
+export type CampaignLeaderboardPositionState =
+  | CampaignLeaderboardPositionFoundState
+  | CampaignLeaderboardPositionNotFoundState;
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignParticipantStatusState = {
