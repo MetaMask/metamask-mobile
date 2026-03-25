@@ -65,6 +65,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "quotesLastFetched": null,
         "quotesLoadingStatus": null,
         "quotesRefreshCount": 0,
+        "tokenWarnings": [],
       },
       "BridgeStatusController": {
         "txHistory": {},
@@ -881,6 +882,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "quotesLastFetched": null,
         "quotesLoadingStatus": null,
         "quotesRefreshCount": 0,
+        "tokenWarnings": [],
       },
       "BridgeStatusController": {
         "txHistory": {},
