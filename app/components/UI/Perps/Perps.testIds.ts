@@ -542,6 +542,10 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsLimitPriceBottomSheetSelectorsIDs = {
   PRICE_DISPLAY: 'perps-limit-price-display',
   CONFIRM_BUTTON: 'perps-limit-price-confirm-button',
+  PRESET_MID: 'perps-limit-price-preset-mid',
+  PRESET_BID: 'perps-limit-price-preset-bid',
+  PRESET_ASK: 'perps-limit-price-preset-ask',
+  PRESET_PERCENT: 'perps-limit-price-preset-',
 };
 
 // ========================================
