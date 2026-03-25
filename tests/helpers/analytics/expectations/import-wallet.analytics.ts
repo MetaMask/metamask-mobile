@@ -23,7 +23,7 @@ export const importWalletWithMetricsOptInExpectations: AnalyticsExpectations = {
         is_metrics_opted_in: true,
         location: 'onboarding_metametrics',
         updated_after_onboarding: false,
-        account_type: 'imported',
+        account_type: 'srp_import',
       },
     },
     {

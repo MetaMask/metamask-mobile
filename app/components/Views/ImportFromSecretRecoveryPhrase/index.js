@@ -497,7 +497,9 @@ const ImportFromSecretRecoveryPhrase = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
-            accountType: AccountType.Imported,
+            accountType: oauthLoginSuccess
+              ? AccountType.SocialImport
+              : AccountType.SrpImport,
           });
         }
       } catch (error) {
