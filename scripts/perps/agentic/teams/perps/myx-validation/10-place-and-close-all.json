@@ -1,5 +1,5 @@
 {
-  "title": "MYX: Place Order + Close All Positions",
+  "title": "MYX: Place Order + Close All via UI",
   "pr": "myx-write-integration",
   "initial_conditions": { "testnet": true },
   "validate": {
@@ -26,28 +26,59 @@
         },
         {
           "id": "wait-position",
-          "description": "Poll until position appears (MYX chain ~10-15s)",
+          "description": "Poll until position appears",
           "action": "wait_for",
           "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
-          "timeout_ms": 60000,
+          "timeout_ms": 30000,
           "poll_ms": 2000,
           "assert": { "operator": "gt", "field": "count", "value": 0 }
         },
         {
-          "id": "close-all",
-          "description": "Batch close all MYX positions",
-          "action": "eval_ref",
-          "ref": "myx/close-all-positions",
-          "assert": { "operator": "eq", "field": "success", "value": true }
+          "id": "nav-home",
+          "description": "Navigate to Perps home to see positions section",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-positions-section",
+          "description": "Wait for positions section action button (Close All)",
+          "action": "wait_for",
+          "test_id": "section-header-action-button",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "press-close-all",
+          "description": "Press Close All action button on positions section",
+          "action": "press",
+          "test_id": "section-header-action-button"
+        },
+        {
+          "id": "wait-close-all-sheet",
+          "description": "Wait for Close All bottom sheet confirm button",
+          "action": "wait_for",
+          "test_id": "bottomsheetfooter-button-subsequent",
+          "timeout_ms": 10000
+        },
+        {
+          "id": "press-confirm-close-all",
+          "description": "Press Close All confirm button in bottom sheet",
+          "action": "press",
+          "test_id": "bottomsheetfooter-button-subsequent"
         },
         {
           "id": "wait-closed",
           "description": "Poll until all positions gone",
           "action": "wait_for",
           "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
-          "timeout_ms": 60000,
-          "poll_ms": 2000,
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
           "assert": { "operator": "eq", "field": "count", "value": 0 }
+        },
+        {
+          "id": "screenshot-after",
+          "description": "Capture Perps home with no positions",
+          "action": "screenshot",
+          "filename": "10-close-all-after"
         }
       ]
     }

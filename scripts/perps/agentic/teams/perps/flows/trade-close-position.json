@@ -71,6 +71,8 @@
           "id": "wait-position-closed",
           "action": "wait_for",
           "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({found:!!p})})",
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
           "assert": {
             "operator": "eq",
             "field": "found",
