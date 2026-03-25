@@ -34,7 +34,6 @@ import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
