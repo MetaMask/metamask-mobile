@@ -23,11 +23,14 @@ interface V2AdditionalVerificationParams {
   quote: TransakBuyQuote;
   kycUrl: string;
   workFlowRunId: string;
+  /** From BuildQuote route; keeps stack amount in sync when opening KYC webview. */
+  amount?: number;
 }
 
 const V2AdditionalVerification = () => {
   const navigation = useNavigation();
-  const { kycUrl } = useParams<V2AdditionalVerificationParams>();
+  const { kycUrl, amount: userEnteredAmount } =
+    useParams<V2AdditionalVerificationParams>();
 
   const { styles, theme } = useStyles(styleSheet, {});
 
@@ -46,8 +49,8 @@ const V2AdditionalVerification = () => {
   }, [navigation, theme]);
 
   const handleContinuePress = useCallback(() => {
-    navigateToKycWebview({ kycUrl });
-  }, [navigateToKycWebview, kycUrl]);
+    navigateToKycWebview({ kycUrl, amount: userEnteredAmount });
+  }, [navigateToKycWebview, kycUrl, userEnteredAmount]);
 
   return (
     <ScreenLayout>

@@ -181,12 +181,67 @@ module.exports = {
     },
     {
       files: [
+        // @MetaMask/card
         'app/components/UI/Card/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/core-platform
         'app/components/Snaps/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/predict
         'app/components/UI/Predict/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/ramp
         'app/components/UI/Ramp/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/rewards
         'app/components/UI/Rewards/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/perps
         'app/components/UI/Perps/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/metamask-earn
+        'app/components/UI/Earn/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Stake/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/metamask-assets
+        'app/components/UI/Assets/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Tokens/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/AssetOverview/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Collectibles/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleContractElement/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleContractInformation/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleContractOverview/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleContracts/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleDetectionModal/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleMedia/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleModal/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/CollectibleOverview/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/ConfirmAddAsset/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/DeFiPositions/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/TokenDetails/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/AddAsset/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/Asset/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/AssetDetails/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/AssetHideConfirmation/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/AssetOptions/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/Collectible/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/CollectibleView/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/DetectedTokens/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/NFTAutoDetectionModal/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/NftDetails/**/*.{js,jsx,ts,tsx}',
+        // @MetaMask/mobile-core-ux
+        'app/components/Views/AccountActions/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/AccountSelector/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/AccountsMenu/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/AddressQRCode/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/EditAccountName/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/LockScreen/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/Login/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/MultichainTransactionsView/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/NetworkConnect/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/NetworkSelector/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/QRAccountDisplay/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/QRScanner/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/Settings/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/TermsAndConditions/**/*.{js,jsx,ts,tsx}',
+        'app/components/Views/UnifiedTransactionsView/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/MultichainTransactionListItem/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/TransactionActionModal/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/TransactionElement/**/*.{js,jsx,ts,tsx}',
+        'app/components/UI/Transactions/**/*.{js,jsx,ts,tsx}',
       ],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',

@@ -18,21 +18,37 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatusInfo } from './CampaignTile.utils';
+import {
+  CampaignType,
+  type CampaignDto,
+} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import {
+  getCampaignStatusInfo,
+  isCampaignTypeSupported,
+} from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import { strings } from '../../../../../../locales/i18n';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 
 interface CampaignTileProps {
   campaign: CampaignDto;
+  /**
+   * Custom press handler. If provided, this is called instead of the default
+   * type-based navigation. Unsupported campaign types are only interactive
+   * when an onPress handler is provided.
+   */
+  onPress?: () => void;
 }
 
 /**
  * CampaignTile displays campaign information with status.
- * Tapping navigates to the campaign details screen.
+ * Tapping behavior is determined by campaign type:
+ * - ONDO_HOLDING: navigates to Ondo campaign details
+ * - SEASON_1: navigates to season one campaign details
+ * - Unsupported types: non-interactive unless onPress is provided
+ * - With onPress: executes custom handler regardless of type
  */
-const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
+const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
@@ -52,22 +68,39 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign }) => {
     dateLabelIcon,
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
+  const isInteractive =
+    campaignStatus !== 'upcoming' &&
+    (onPress != null || isCampaignTypeSupported(campaign.type));
+
   const backgroundImageUrl =
     colorScheme === 'dark'
       ? campaign.details?.image?.darkModeUrl
       : campaign.details?.image?.lightModeUrl;
 
   const handlePress = () => {
-    navigation.navigate(Routes.CAMPAIGN_DETAILS, { campaignId: campaign.id });
+    if (!isInteractive) return;
+
+    if (onPress) {
+      onPress();
+    } else if (campaign.type === CampaignType.ONDO_HOLDING) {
+      navigation.navigate(Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
+    } else if (campaign.type === CampaignType.SEASON_1) {
+      navigation.navigate(Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW, {
+        campaignId: campaign.id,
+      });
+    }
   };
 
   return (
     <Pressable
       onPress={handlePress}
+      disabled={!isInteractive}
       style={({ pressed }) =>
         tw.style(
           'rounded-xl overflow-hidden h-50 bg-muted',
-          pressed && 'opacity-70',
+          pressed && isInteractive && 'opacity-70',
         )
       }
       testID={`campaign-tile-${campaign.id}`}

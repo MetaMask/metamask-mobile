@@ -15,6 +15,7 @@ export interface TabItem {
   label: string;
   content: React.ReactNode;
   isDisabled?: boolean;
+  testID?: string;
 }
 
 /**

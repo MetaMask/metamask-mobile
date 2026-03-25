@@ -50,6 +50,7 @@ import {
   CampaignType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
+import { brandColor } from '@metamask/design-tokens';
 
 const initialState: RewardsState = rewardsReducer(undefined, {
   type: 'unknown',
@@ -2136,6 +2137,7 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
@@ -2243,6 +2245,7 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
@@ -2645,7 +2648,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'old.png', darkModeUrl: 'old.png' },
         boostBips: 100,
         seasonLong: true,
-        backgroundColor: '#000000',
+        backgroundColor: brandColor.black,
       },
     ];
     const stateWithBoosts = {
@@ -2659,7 +2662,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'new.png', darkModeUrl: 'new.png' },
         boostBips: 2000,
         seasonLong: false,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: brandColor.white,
       },
     ];
     const action = setActiveBoosts(newBoosts);
@@ -4470,6 +4473,7 @@ const mockCampaign: CampaignDto = {
   excludedRegions: [],
   statusLabel: 'Active',
   details: null,
+  featured: false,
 };
 
 describe('setCampaigns', () => {
@@ -4576,40 +4580,60 @@ describe('setCampaignsLoading', () => {
 });
 
 describe('setCampaignsError', () => {
-  it('should set campaignsError to true', () => {
+  it('should set campaignsError to true and mark hasLoaded as true', () => {
     const action = setCampaignsError(true);
 
     const state = rewardsReducer(initialState, action);
 
     expect(state.campaignsError).toBe(true);
+    expect(state.campaignsHasLoaded).toBe(true);
   });
 
-  it('should set campaignsError to false', () => {
+  it('should set campaignsError to false without changing hasLoaded', () => {
     const stateWithError: RewardsState = {
       ...initialState,
       campaignsError: true,
+      campaignsHasLoaded: true,
     };
     const action = setCampaignsError(false);
 
     const state = rewardsReducer(stateWithError, action);
 
     expect(state.campaignsError).toBe(false);
+    expect(state.campaignsHasLoaded).toBe(true);
   });
 
-  it('should toggle error state correctly', () => {
+  it('should not change hasLoaded when clearing error and hasLoaded was false', () => {
+    const stateWithErrorNoLoad: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+      campaignsHasLoaded: false,
+    };
+    const action = setCampaignsError(false);
+
+    const state = rewardsReducer(stateWithErrorNoLoad, action);
+
+    expect(state.campaignsError).toBe(false);
+    expect(state.campaignsHasLoaded).toBe(false);
+  });
+
+  it('should toggle error state correctly while maintaining hasLoaded', () => {
     let currentState = initialState;
 
     let action = setCampaignsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(true);
+    expect(currentState.campaignsHasLoaded).toBe(true);
 
     action = setCampaignsError(false);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(false);
+    expect(currentState.campaignsHasLoaded).toBe(true);
 
     action = setCampaignsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(true);
+    expect(currentState.campaignsHasLoaded).toBe(true);
   });
 });
 

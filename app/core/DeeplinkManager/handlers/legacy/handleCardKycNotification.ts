@@ -6,7 +6,6 @@ import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
   selectUserCardLocation,
-  selectCardGeoLocation,
   selectAlwaysShowCardButton,
 } from '../../../redux/slices/card';
 import {
@@ -15,6 +14,7 @@ import {
   selectCardFeatureFlag,
   CardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { isBaanxLoginEnabled } from '../../../../components/UI/Card/hooks/isBaanxLoginEnabled';
 import { CardSDK } from '../../../../components/UI/Card/sdk/CardSDK';
 import { CardVerificationState } from '../../../../components/UI/Card/types';
@@ -54,7 +54,7 @@ export const handleCardKycNotification = async () => {
     // Check feature flags
     const shouldHandleKycNotification = isBaanxLoginEnabled({
       alwaysShowCardButton: selectAlwaysShowCardButton(state),
-      cardGeoLocation: selectCardGeoLocation(state) as string,
+      geolocationLocation: selectGeolocationLocation(state),
       cardSupportedCountries: selectCardSupportedCountries(state) as Record<
         string,
         boolean

@@ -6,7 +6,10 @@ import {
   type CampaignDto,
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
-import { getCampaignStatusInfo } from './CampaignTile.utils';
+import {
+  getCampaignStatusInfo,
+  isCampaignTypeSupported,
+} from './CampaignTile.utils';
 import { selectCampaignParticipantCount } from '../../../../../reducers/rewards/selectors';
 import useGetCampaignParticipantStatus from '../../hooks/useGetCampaignParticipantStatus';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -53,6 +56,7 @@ jest.mock('./CampaignTile.utils', () => ({
     dateLabel: 'Ends Mar 15, 2:30 PM',
     dateLabelIcon: 'Clock',
   }),
+  isCampaignTypeSupported: jest.fn().mockReturnValue(true),
 }));
 
 jest.mock('../../../../../reducers/rewards/selectors', () => ({
@@ -86,6 +90,7 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   excludedRegions: [],
   statusLabel: 'Active',
   details: null,
+  featured: true,
   ...overrides,
 });
 
@@ -116,6 +121,7 @@ describe('CampaignTile', () => {
       dateLabel: 'Ends Mar 15, 2:30 PM',
       dateLabelIcon: 'Clock',
     });
+    (isCampaignTypeSupported as jest.Mock).mockReturnValue(true);
     setupParticipantCount(null);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
@@ -325,15 +331,136 @@ describe('CampaignTile', () => {
   });
 
   describe('navigation', () => {
-    it('navigates to campaign details when the tile is pressed', () => {
-      const campaign = createTestCampaign({ id: 'camp-42' });
+    it('navigates to Ondo campaign details for ONDO_HOLDING type', () => {
+      const campaign = createTestCampaign({
+        id: 'camp-ondo',
+        type: CampaignType.ONDO_HOLDING,
+      });
 
       const { getByTestId } = render(<CampaignTile campaign={campaign} />);
-      fireEvent.press(getByTestId('campaign-tile-camp-42'));
+      fireEvent.press(getByTestId('campaign-tile-camp-ondo'));
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGN_DETAILS, {
-        campaignId: 'camp-42',
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+        {
+          campaignId: 'camp-ondo',
+        },
+      );
+    });
+
+    it('navigates to season one campaign details for SEASON_1 type', () => {
+      const campaign = createTestCampaign({
+        id: 'camp-season',
+        type: CampaignType.SEASON_1,
       });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-season'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW,
+        {
+          campaignId: 'camp-season',
+        },
+      );
+    });
+
+    it('calls custom onPress handler instead of navigating when provided', () => {
+      const campaign = createTestCampaign({ id: 'camp-custom' });
+      const mockOnPress = jest.fn();
+
+      const { getByTestId } = render(
+        <CampaignTile campaign={campaign} onPress={mockOnPress} />,
+      );
+      fireEvent.press(getByTestId('campaign-tile-camp-custom'));
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate for unsupported campaign type without onPress', () => {
+      (isCampaignTypeSupported as jest.Mock).mockReturnValue(false);
+      const campaign = createTestCampaign({
+        id: 'camp-unsupported',
+        type: 'UNKNOWN_TYPE' as CampaignType,
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-unsupported'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('calls onPress for unsupported campaign type when onPress is provided', () => {
+      (isCampaignTypeSupported as jest.Mock).mockReturnValue(false);
+      const campaign = createTestCampaign({
+        id: 'camp-unsupported-press',
+        type: 'UNKNOWN_TYPE' as CampaignType,
+      });
+      const mockOnPress = jest.fn();
+
+      const { getByTestId } = render(
+        <CampaignTile campaign={campaign} onPress={mockOnPress} />,
+      );
+      fireEvent.press(getByTestId('campaign-tile-camp-unsupported-press'));
+
+      expect(mockOnPress).toHaveBeenCalledTimes(1);
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not navigate for any campaign type when status is upcoming', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Up next',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'camp-ondo-upcoming',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-ondo-upcoming'));
+
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('does not call onPress for any campaign type when status is upcoming', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Up next',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'camp-season-upcoming',
+        type: CampaignType.SEASON_1,
+      });
+      const mockOnPress = jest.fn();
+
+      const { getByTestId } = render(
+        <CampaignTile campaign={campaign} onPress={mockOnPress} />,
+      );
+      fireEvent.press(getByTestId('campaign-tile-camp-season-upcoming'));
+
+      expect(mockOnPress).not.toHaveBeenCalled();
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
+    it('navigates for ONDO_HOLDING campaign when status is active', () => {
+      const campaign = createTestCampaign({
+        id: 'camp-ondo-active',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      const { getByTestId } = render(<CampaignTile campaign={campaign} />);
+      fireEvent.press(getByTestId('campaign-tile-camp-ondo-active'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW,
+        { campaignId: 'camp-ondo-active' },
+      );
     });
   });
 });
