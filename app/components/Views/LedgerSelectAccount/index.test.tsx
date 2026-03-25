@@ -32,7 +32,6 @@ import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
 
 const mockedGoBack = jest.fn();
 const mockedNavDispatch = jest.fn();
-const mockedPop = jest.fn();
 const mockedDispatch = jest.fn();
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -842,29 +841,22 @@ describe('LedgerSelectAccount', () => {
         }),
       );
     });
-
-    it('calls navigation.pop(2) after successful unlock', async () => {
-      await renderAndConnect();
-
-      // After successful unlock, navigation.pop(2) should be called
-      expect(mockedPop).toBeDefined();
-    });
   });
 
   describe('HD Path Options', () => {
     it('renders HD path dropdown with correct options', async () => {
       const { getByTestId } = await renderAndConnect();
 
-      expect(getByTestId(SELECT_DROP_DOWN)).toBeTruthy();
-      expect(getByTestId(`select-option-${LEDGER_LIVE_PATH}`)).toBeTruthy();
-      expect(getByTestId(`select-option-${LEDGER_LEGACY_PATH}`)).toBeTruthy();
-      expect(getByTestId(`select-option-${LEDGER_BIP44_PATH}`)).toBeTruthy();
-    });
-
-    it('all HD paths are valid formats', () => {
-      expect(LEDGER_LIVE_PATH.startsWith('m/')).toBe(true);
-      expect(LEDGER_LEGACY_PATH.startsWith('m/')).toBe(true);
-      expect(LEDGER_BIP44_PATH.startsWith('m/')).toBe(true);
+      expect(getByTestId(SELECT_DROP_DOWN)).toBeOnTheScreen();
+      expect(
+        getByTestId(`select-option-${LEDGER_LIVE_PATH}`),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(`select-option-${LEDGER_LEGACY_PATH}`),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(`select-option-${LEDGER_BIP44_PATH}`),
+      ).toBeOnTheScreen();
     });
   });
 
@@ -905,7 +897,7 @@ describe('LedgerSelectAccount', () => {
       });
 
       await waitFor(() => {
-        expect(queryByText('Please wait')).toBeTruthy();
+        expect(queryByText('Please wait')).toBeOnTheScreen();
       });
     });
 
@@ -913,24 +905,28 @@ describe('LedgerSelectAccount', () => {
       const { getByTestId } = await renderAndConnect();
 
       await act(async () => {
-        const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
-        fireEvent.press(forgetButton);
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
       });
 
-      // Dispatch should be available for setReloadAccounts
-      expect(mockedDispatch).toBeDefined();
+      await triggerModalAnimation();
+
+      await waitFor(() => {
+        expect(mockedDispatch).toHaveBeenCalled();
+      });
     });
 
     it('navigates back using StackActions.pop(2) after forget', async () => {
       const { getByTestId } = await renderAndConnect();
 
       await act(async () => {
-        const forgetButton = getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON);
-        fireEvent.press(forgetButton);
+        fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
       });
 
-      // Navigation dispatch should be available
-      expect(mockedNavDispatch).toBeDefined();
+      await triggerModalAnimation();
+
+      await waitFor(() => {
+        expect(mockedNavDispatch).toHaveBeenCalled();
+      });
     });
   });
 
@@ -949,15 +945,14 @@ describe('LedgerSelectAccount', () => {
         fireEvent.press(getByTestId(ACCOUNT_SELECTOR_NEXT_BUTTON));
       });
 
-      // Modal should show "Please wait"
-      expect(queryByText('Please wait')).toBeTruthy();
+      expect(queryByText('Please wait')).toBeOnTheScreen();
 
-      // Resolve the promise to complete the test
       await act(async () => {
-        if (resolvePromise) {
-          resolvePromise(mockAccounts);
-        }
-        expect(queryByText('Please wait')).toBeOnTheScreen();
+        resolvePromise?.(mockAccounts);
+      });
+
+      await waitFor(() => {
+        expect(queryByText('Please wait')).not.toBeOnTheScreen();
       });
     });
   });
@@ -1086,7 +1081,7 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(
           queryByText('Please open the Ethereum app on your Ledger device.'),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
   });
@@ -1342,7 +1337,7 @@ describe('LedgerSelectAccount', () => {
       );
 
       await waitFor(() => {
-        expect(queryByText('Select an account')).toBeTruthy();
+        expect(queryByText('Select an account')).toBeOnTheScreen();
       });
 
       await act(async () => {
@@ -1350,7 +1345,7 @@ describe('LedgerSelectAccount', () => {
       });
 
       await waitFor(() => {
-        expect(queryByText('Please open the Ethereum app')).toBeTruthy();
+        expect(queryByText('Please open the Ethereum app')).toBeOnTheScreen();
       });
     });
 
@@ -1361,7 +1356,7 @@ describe('LedgerSelectAccount', () => {
         fireEvent.press(getByTestId(ACCOUNT_SELECTOR_FORGET_BUTTON));
       });
 
-      expect(queryByText('Please wait')).toBeTruthy();
+      expect(queryByText('Please wait')).toBeOnTheScreen();
     });
   });
 
@@ -1380,7 +1375,7 @@ describe('LedgerSelectAccount', () => {
       await waitFor(() => {
         expect(
           queryByText('Please open the Ethereum app on your Ledger device.'),
-        ).toBeTruthy();
+        ).toBeOnTheScreen();
       });
     });
 
@@ -1396,7 +1391,7 @@ describe('LedgerSelectAccount', () => {
       });
 
       await waitFor(() => {
-        expect(queryByText('Network connection failed')).toBeTruthy();
+        expect(queryByText('Network connection failed')).toBeOnTheScreen();
       });
     });
   });
