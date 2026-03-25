@@ -976,6 +976,57 @@ describe('usePerpsHomeData', () => {
       });
     });
 
+    it('preserves detailedOrderType from REST fill when WS fill lacks it', async () => {
+      // Arrange — REST fill has enriched detailedOrderType
+      const restFill = createMockOrderFill({
+        orderId: 'fill-tp-1',
+        symbol: 'BTC',
+        timestamp: 1234567800,
+        detailedOrderType: 'Take Profit Limit',
+      });
+      const mockGetOrderFills = jest.fn().mockResolvedValue([restFill]);
+      (
+        Engine.context.PerpsController.getActiveProviderOrNull as jest.Mock
+      ).mockReturnValue({
+        getOrderFills: mockGetOrderFills,
+      });
+
+      // WS fill with same key but no detailedOrderType
+      const wsFill = createMockOrderFill({
+        orderId: 'fill-tp-1',
+        symbol: 'BTC',
+        timestamp: 1234567800,
+      });
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [wsFill],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+
+      // Act
+      const { result } = renderHook(() => usePerpsHomeData());
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert — recentActivity contains the merged fill with preserved detailedOrderType
+      // The detailedOrderType from REST is preserved during merge, then
+      // transformFillsToTransactions converts it to FillType.TakeProfit
+      expect(result.current.recentActivity).toHaveLength(1);
+      expect(result.current.recentActivity[0].fill?.fillType).toBe(
+        FillType.TakeProfit,
+      );
+    });
+
     it('handles special characters in search query', () => {
       const { result } = renderHook(() =>
         usePerpsHomeData({ searchQuery: '$BTC*' }),

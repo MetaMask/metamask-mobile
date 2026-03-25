@@ -159,6 +159,7 @@ import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
+import { AccessRestrictedProvider } from '../../UI/Compliance';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -1182,16 +1183,18 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <WebSocketHealthToastProvider>
-      {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
-      <RampsBootstrap />
-      <AppFlow />
-      <Toast ref={toastRef} />
-      <PerpsWebSocketHealthToast />
-      {__DEV__ && <AgentStepHud />}
-      <ControllerEventToastBridge registrations={predictRegistrations} />
-      <ProfilerManager />
-    </WebSocketHealthToastProvider>
+    <AccessRestrictedProvider>
+      <WebSocketHealthToastProvider>
+        {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
+        <RampsBootstrap />
+        <AppFlow />
+        <Toast ref={toastRef} />
+        <PerpsWebSocketHealthToast />
+        {__DEV__ && <AgentStepHud />}
+        <ControllerEventToastBridge registrations={predictRegistrations} />
+        <ProfilerManager />
+      </WebSocketHealthToastProvider>
+    </AccessRestrictedProvider>
   );
 };
 
