@@ -635,6 +635,8 @@ const QRScanner = ({
           
           // Show user feedback for unrecognized QR codes instead of silent failure
           showAlertForInvalidAddress();
+          end();
+          return;
         }
         onScanSuccess(data, content);
       }
