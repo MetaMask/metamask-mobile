@@ -8,7 +8,6 @@ import Routes from '../../../../../constants/navigation/Routes';
 import {
   setDestToken,
   setSourceToken,
-  selectNoFeeAssets,
 } from '../../../../../core/redux/slices/bridge';
 import { Hex } from '@metamask/utils';
 import BridgeView from '.';
@@ -25,7 +24,6 @@ import { mockUseBridgeQuoteData } from '../../_mocks_/useBridgeQuoteData.mock';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import { useRWAToken } from '../../hooks/useRWAToken';
 import { strings } from '../../../../../../locales/i18n';
-import { isHardwareAccount } from '../../../../../util/address';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
 import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/test/keyringControllerTestUtils';
 import { RootState } from '../../../../../reducers';
@@ -100,11 +98,6 @@ jest.mock('../../../../../core/Engine', () => {
       unsubscribe: jest.fn(),
     },
     context: {
-      SwapsController: {
-        fetchAggregatorMetadataWithCache: jest.fn(),
-        fetchTopAssetsWithCache: jest.fn(),
-        fetchTokenWithCache: jest.fn(),
-      },
       KeyringController: {
         state: {
           keyrings: [
@@ -160,6 +153,7 @@ jest.mock('../../../../../core/Engine', () => {
         resetState: jest.fn(),
         setBridgeFeatureFlags: jest.fn().mockResolvedValue(undefined),
         updateBridgeQuoteRequestParams: jest.fn(),
+        trackUnifiedSwapBridgeEvent: jest.fn(),
       },
     },
     getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -208,7 +202,6 @@ jest.mock('../../../../../core/redux/slices/bridge', () => {
     default: actualBridgeSlice.default,
     setSourceToken: jest.fn(actualBridgeSlice.setSourceToken),
     setDestToken: jest.fn(actualBridgeSlice.setDestToken),
-    selectNoFeeAssets: jest.fn(actualBridgeSlice.selectNoFeeAssets),
   };
 });
 
@@ -260,11 +253,6 @@ jest.mock('../../hooks/useLatestBalance', () => ({
       atomicBalance: actualEthers.BigNumber.from('2000000000000000000'), // 2 ETH
     };
   }),
-}));
-
-// Mock Skeleton component to prevent animation
-jest.mock('../../../../../component-library/components/Skeleton', () => ({
-  Skeleton: () => null,
 }));
 
 jest.mock('../../hooks/useBridgeQuoteData', () => ({
@@ -497,6 +485,43 @@ describe('BridgeView', () => {
 
     // Verify fiat value is displayed (9.5 ETH * $2000 = $19000)
     expect(getByText('$19,000.00')).toBeTruthy();
+  });
+
+  it('should update source token amount when selecting a quick-pick preset', async () => {
+    jest
+      .mocked(useBridgeQuoteData as unknown as jest.Mock)
+      .mockImplementation(() => ({
+        ...mockUseBridgeQuoteData,
+        activeQuote: null,
+        bestQuote: null,
+        sourceAmount: undefined,
+        isLoading: false,
+        destTokenAmount: undefined,
+        formattedQuoteData: undefined,
+      }));
+
+    const { getByTestId, getByText } = renderScreen(
+      BridgeView,
+      {
+        name: Routes.BRIDGE.ROOT,
+      },
+      { state: mockState },
+    );
+
+    const sourceInput = getByTestId('source-token-area-input');
+    await act(async () => {
+      sourceInput.props.onPressIn();
+    });
+
+    await waitFor(() => {
+      expect(getByText('25%')).toBeTruthy();
+    });
+
+    fireEvent.press(getByText('25%'));
+
+    await waitFor(() => {
+      expect(getByTestId('source-token-area-input').props.value).toBe('0.5');
+    });
   });
 
   it('should display source token symbol and balance', async () => {
@@ -1038,14 +1063,17 @@ describe('BridgeView', () => {
       expect(queryByTestId('edit-slippage-button')).toBeNull();
     });
 
-    it('navigates to QuoteExpiredModal when quote expires without refresh', async () => {
+    it('does not navigate to QuoteExpiredModal when quote expires without refresh', async () => {
+      // useRenderQuoteExpireModal was removed; the expired-quote modal no longer
+      // exists. Instead, the cached quote stays visible and "Get new quote"
+      // appears in the footer.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
           ...mockUseBridgeQuoteData,
           isExpired: true,
           willRefresh: false,
-          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
+          needsNewQuote: true,
         }));
 
       renderScreen(
@@ -1057,9 +1085,12 @@ describe('BridgeView', () => {
       );
 
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-        });
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
+          },
+        );
       });
     });
 
@@ -1084,7 +1115,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
@@ -1111,7 +1142,7 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
@@ -1147,13 +1178,15 @@ describe('BridgeView', () => {
         expect(mockNavigate).not.toHaveBeenCalledWith(
           Routes.BRIDGE.MODALS.ROOT,
           {
-            screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
         );
       });
     });
 
-    it('navigates to QuoteExpiredModal when quote expires and leaves quote content hidden', async () => {
+    it('shows cached quote content when quote expires', async () => {
+      // When quotes expire the cached quote (still in Redux) is shown in the
+      // QuoteDetailsCard. The slippage button must remain visible.
       jest
         .mocked(useBridgeQuoteData as unknown as jest.Mock)
         .mockImplementation(() => ({
@@ -1161,168 +1194,33 @@ describe('BridgeView', () => {
           isExpired: true,
           willRefresh: false,
           isLoading: false,
-          activeQuote: undefined, // activeQuote is undefined when quote expires without refresh
+          needsNewQuote: true,
+          // activeQuote remains the cached quote — not cleared on expiry
         }));
+
+      // createBridgeTestState provides source/dest tokens so QuoteDetailsCard
+      // passes its early-return guard and renders the slippage button.
+      const testState = createBridgeTestState({
+        bridgeReducerOverrides: { sourceAmount: '1.0' },
+      });
 
       const { queryByTestId } = renderScreen(
         BridgeView,
         {
           name: Routes.BRIDGE.ROOT,
         },
-        { state: mockState },
-      );
-
-      await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith(Routes.BRIDGE.MODALS.ROOT, {
-          screen: Routes.BRIDGE.MODALS.QUOTE_EXPIRED_MODAL,
-        });
-      });
-      expect(queryByTestId('edit-slippage-button')).toBeNull();
-    });
-
-    it('displays hardware wallet not supported banner when using hardware wallet with Solana source', async () => {
-      // Mock isHardwareAccount to return true for this test only
-      const mockIsHardwareAccount = jest.fn().mockReturnValue(true);
-      jest.mocked(isHardwareAccount).mockImplementation(mockIsHardwareAccount);
-
-      const mockQuote = mockQuoteWithMetadata;
-      const testState = createBridgeTestState(
-        {
-          bridgeControllerOverrides: {
-            quoteRequest: {
-              insufficientBal: false,
-            },
-            quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuote as unknown as QuoteResponse],
-            quotesLastFetched: Date.now(),
-          },
-          bridgeReducerOverrides: {
-            sourceAmount: '1.0',
-            sourceToken: {
-              address: 'So11111111111111111111111111111111111111112',
-              chainId: SolScope.Mainnet,
-              decimals: 9,
-              image: '',
-              name: 'Solana',
-              symbol: 'SOL',
-            },
-          },
-        },
-        mockState,
-      );
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
         { state: testState },
       );
 
-      // Wait for the banner text to appear
       await waitFor(() => {
-        expect(
-          getByText(strings('bridge.hardware_wallet_not_supported_solana')),
-        ).toBeTruthy();
-      });
-    });
-
-    it('shows no MM fee disclaimer when dest token is mUSD and fee is 0', async () => {
-      const musdAddress = '0xaca92e438df0b2401ff60da7e4337b687a2435da' as Hex;
-
-      // Locally force selector to return mUSD as no-fee for this test only
-      // This avoids suite-order/caching issues without affecting other tests
-      const noFeeSpy = jest
-        .spyOn({ selectNoFeeAssets }, 'selectNoFeeAssets')
-        .mockReturnValue([musdAddress]);
-
-      // Ensure quote exists and has 0 fee so hasFee === false
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          isLoading: false,
-          activeQuote: {
-            ...(mockQuoteWithMetadata as unknown as QuoteResponse),
-            // Minimal shape to provide 0 bps fee
-            quote: { feeData: { metabridge: { quoteBpsFee: 0 } } },
-          } as unknown as QuoteResponse,
-        }));
-
-      // Build test state: provide amount, ETH source, mUSD destination
-      const testState = createBridgeTestState(
-        {
-          bridgeControllerOverrides: {
-            quotesLoadingStatus: RequestStatus.FETCHED,
-            quotes: [mockQuoteWithMetadata as unknown as QuoteResponse],
-            quotesLastFetched: 12,
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          Routes.BRIDGE.MODALS.ROOT,
+          {
+            screen: Routes.BRIDGE.BRIDGE_VIEW,
           },
-          bridgeReducerOverrides: {
-            sourceAmount: '1.0',
-            sourceToken: {
-              address: '0x0000000000000000000000000000000000000000',
-              chainId: '0x1' as Hex,
-              decimals: 18,
-              image: '',
-              name: 'Ether',
-              symbol: 'ETH',
-            },
-            destToken: {
-              address: musdAddress,
-              chainId: '0x1' as Hex,
-              decimals: 6,
-              image: '',
-              name: 'MetaMask USD',
-              symbol: 'mUSD',
-            },
-          },
-        },
-        mockState as DeepPartial<RootState>,
-      );
-
-      // Mark mUSD as a no-fee asset in feature flags without using any
-      interface BridgeFeatureFlagsChainConfig {
-        noFeeAssets?: string[];
-        isActiveSrc?: boolean;
-        isActiveDest?: boolean;
-      }
-      type StateWithBridgeFlags = DeepPartial<RootState> & {
-        engine: {
-          backgroundState: {
-            RemoteFeatureFlagController: {
-              remoteFeatureFlags: {
-                bridgeConfigV2: {
-                  chains: Record<string, BridgeFeatureFlagsChainConfig>;
-                };
-              };
-            };
-          };
-        };
-      };
-      const typedState = testState as unknown as StateWithBridgeFlags;
-      typedState.engine.backgroundState.RemoteFeatureFlagController.remoteFeatureFlags.bridgeConfigV2.chains[
-        'eip155:1'
-      ].noFeeAssets = [musdAddress];
-
-      // Keep test isolated from module cache side-effects: skip selector sanity check
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      // Expect translated disclaimer text
-      const expected = strings('bridge.no_mm_fee_disclaimer', {
-        destTokenSymbol: 'mUSD',
+        );
       });
-      await waitFor(() => {
-        expect(getByText(expected)).toBeTruthy();
-      });
-
-      noFeeSpy.mockRestore();
+      expect(queryByTestId('edit-slippage-button')).not.toBeNull();
     });
   });
 
@@ -1694,138 +1592,6 @@ describe('BridgeView', () => {
         '0x1',
       );
       expect(mockUseIsGasIncluded7702Supported).toHaveBeenCalledWith('0x1');
-    });
-  });
-
-  describe('Blockaid Security Alert', () => {
-    it('displays blockaid error banner when blockaid error exists', async () => {
-      const mockQuote = mockQuoteWithMetadata;
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: Date.now(),
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          blockaidError: 'This transaction may be a security risk',
-          activeQuote: mockQuote,
-        }));
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      await waitFor(() => {
-        expect(getByText(strings('bridge.blockaid_error_title'))).toBeTruthy();
-        expect(
-          getByText('This transaction may be a security risk'),
-        ).toBeTruthy();
-      });
-    });
-  });
-
-  describe('Approval Disclaimer', () => {
-    it('displays approval needed text when quote requires approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: {
-          chainId: '0x1',
-          to: '0xToken',
-          data: '0xApprovalData',
-        },
-      };
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: Date.now(),
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.5',
-          sourceToken: {
-            address: '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48',
-            chainId: '0x1' as Hex,
-            decimals: 6,
-            image: '',
-            name: 'USD Coin',
-            symbol: 'USDC',
-          },
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const { getByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      await waitFor(() => {
-        const approvalText = strings('bridge.approval_needed', {
-          amount: '1.5',
-          symbol: 'USDC',
-        });
-        expect(getByText(approvalText, { exact: false })).toBeTruthy();
-      });
-    });
-
-    it('does not display approval text when quote does not require approval', async () => {
-      const mockQuote = {
-        ...mockQuoteWithMetadata,
-        approval: null,
-      };
-
-      const testState = createBridgeTestState({
-        bridgeControllerOverrides: {
-          quotesLoadingStatus: RequestStatus.FETCHED,
-          quotes: [mockQuote as unknown as QuoteResponse],
-          quotesLastFetched: Date.now(),
-        },
-        bridgeReducerOverrides: {
-          sourceAmount: '1.0',
-        },
-      });
-
-      jest
-        .mocked(useBridgeQuoteData as unknown as jest.Mock)
-        .mockImplementation(() => ({
-          ...mockUseBridgeQuoteData,
-          activeQuote: mockQuote,
-        }));
-
-      const { queryByText } = renderScreen(
-        BridgeView,
-        {
-          name: Routes.BRIDGE.ROOT,
-        },
-        { state: testState },
-      );
-
-      await waitFor(() => {
-        // Should not find approval text in the document
-        expect(queryByText(/approval needed/i, { exact: false })).toBeNull();
-      });
     });
   });
 

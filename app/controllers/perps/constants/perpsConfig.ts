@@ -8,6 +8,9 @@
  * UI-only constants (layout, display, navigation) live in:
  * app/components/UI/Perps/constants/perpsConfig.ts
  */
+export const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+export const ZERO_BALANCE = '0x0';
+
 export const PERPS_CONSTANTS = {
   FeatureFlagKey: 'perpsEnabled',
   FeatureName: 'perps', // Constant for Sentry error filtering - enables "feature:perps" dashboard queries
@@ -101,6 +104,14 @@ export const ORDER_SLIPPAGE_CONFIG = {
   // Kept conservative as limit orders rest on book (not IOC/immediate execution)
   DefaultLimitSlippageBps: 100,
 } as const;
+
+/**
+ * Max order amount buffer to reduce "Insufficient margin" rejections from the exchange.
+ * When the user selects 100% (slider or Max), we cap the order at (1 - this) of the
+ * theoretical max so that fees, rounding, and exchange-side margin checks are covered.
+ * Value as decimal (e.g. 0.005 = 0.5%).
+ */
+export const MAX_ORDER_MARGIN_BUFFER = 0.005; // 0.5%
 
 /**
  * Performance optimization constants

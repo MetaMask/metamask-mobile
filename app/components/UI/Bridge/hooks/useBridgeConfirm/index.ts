@@ -3,7 +3,6 @@ import { useBridgeQuoteData } from '../useBridgeQuoteData';
 import { useNavigation } from '@react-navigation/native';
 import { setIsSubmittingTx } from '../../../../../core/redux/slices/bridge';
 import Routes from '../../../../../constants/navigation/Routes';
-import { BridgeQuoteResponse } from '../../types';
 import useSubmitBridgeTx from '../../../../../util/bridge/hooks/useSubmitBridgeTx';
 import { selectSourceWalletAddress } from '../../../../../selectors/bridge';
 import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
@@ -28,14 +27,8 @@ export const useBridgeConfirm = ({ latestSourceBalance, location }: Params) => {
       if (activeQuote && walletAddress) {
         dispatch(setIsSubmittingTx(true));
 
-        const quoteResponse: BridgeQuoteResponse = {
-          ...activeQuote,
-          aggregator: activeQuote.quote.bridgeId,
-          walletAddress,
-        };
-
         await submitBridgeTx({
-          quoteResponse,
+          quoteResponse: activeQuote,
           location,
         });
       }

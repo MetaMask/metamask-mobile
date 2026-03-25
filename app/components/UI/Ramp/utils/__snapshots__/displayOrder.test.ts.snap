@@ -4,7 +4,7 @@ exports[`displayOrder fiatOrderToDisplayOrder converts a legacy FiatOrder to a D
 {
   "account": "0xabc",
   "createdAt": 1000,
-  "cryptoAmount": 0,
+  "cryptoAmount": "...",
   "cryptoCurrencySymbol": "ETH",
   "fiatAmount": "100",
   "fiatCurrencyCode": "USD",

@@ -14,12 +14,12 @@ import Button, {
 } from '../../../component-library/components/Buttons/Button';
 import { CONNECTING_TO_DEPRECATED_NETWORK } from '../../../constants/urls';
 import BottomSheet from '../../../component-library/components/BottomSheets/BottomSheet';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 
 const DeprecatedNetworkModal = () => {
   const { styles } = useStyles(styleSheet, {});
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const navigation = useNavigation();
 
   const dismissModal = (): void => {

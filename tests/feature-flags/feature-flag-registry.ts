@@ -93,6 +93,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  aiSocialMarketInsightsPerpsEnabled: {
+    name: 'aiSocialMarketInsightsPerpsEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '7.70.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   aiSocialWhatsHappeningEnabled: {
     name: 'aiSocialWhatsHappeningEnabled',
     type: FeatureFlagType.Remote,
@@ -720,6 +731,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
+  complianceEnabled: {
+    name: 'complianceEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
@@ -2810,6 +2829,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  legacyIosGoogleConfigEnabled: {
+    name: 'legacyIosGoogleConfigEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
   metalCardCheckoutEnabled: {
     name: 'metalCardCheckoutEnabled',
     type: FeatureFlagType.Remote,
@@ -2862,6 +2889,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     name: 'mobileUxNetworkManagement',
     type: FeatureFlagType.Remote,
     inProd: true,
+    productionDefault: {
+      enabled: false,
+      minimumVersion: '0.0.0',
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
+  moneyHomeScreenEnabled: {
+    name: 'moneyHomeScreenEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: false,
     productionDefault: {
       enabled: false,
       minimumVersion: '0.0.0',
@@ -3186,6 +3224,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  predictWithAnyToken: {
+    name: 'predictWithAnyToken',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: {
+      minimumVersion: '0.0.0',
+      enabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   productSafetyDappScanning: {
     name: 'productSafetyDappScanning',
     type: FeatureFlagType.Remote,
@@ -3210,7 +3259,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      active: false,
+      enabled: false,
       minimumVersion: '7.61.0',
     },
     status: FeatureFlagStatus.Active,
@@ -3500,17 +3549,6 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: false,
-    status: FeatureFlagStatus.Active,
-  },
-
-  tokenListItemV2AbtestVersioned: {
-    name: 'tokenListItemV2AbtestVersioned',
-    type: FeatureFlagType.Remote,
-    inProd: true,
-    productionDefault: {
-      minimumVersion: '7.67.0',
-      enabled: false,
-    },
     status: FeatureFlagStatus.Active,
   },
 

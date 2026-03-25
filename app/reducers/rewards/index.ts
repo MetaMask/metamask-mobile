@@ -7,9 +7,9 @@ import {
   RewardDto,
   PointsEventDto,
   SeasonActivityTypeDto,
-  SnapshotDto,
   SeasonWayToEarnDto,
   CampaignDto,
+  CampaignParticipantStatusDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { OnboardingStep } from './types';
 import { AccountGroupId } from '@metamask/account-api';
@@ -52,7 +52,7 @@ export interface BulkLinkState {
 }
 
 export interface RewardsState {
-  activeTab: 'overview' | 'snapshots' | 'activity';
+  activeTab: 'overview' | 'campaigns' | 'activity';
   seasonStatusLoading: boolean;
   seasonStatusError: string | null;
 
@@ -116,15 +116,19 @@ export interface RewardsState {
   // Bulk link state (for linking all account groups across all wallets)
   bulkLink: BulkLinkState;
 
-  // Snapshots state
-  snapshots: SnapshotDto[] | null;
-  snapshotsLoading: boolean;
-  snapshotsError: boolean;
-
   // Campaigns state
   campaigns: CampaignDto[];
   campaignsLoading: boolean;
   campaignsError: boolean;
+  campaignsHasLoaded: boolean;
+
+  // Campaign participant status (keyed by campaignId)
+  campaignParticipantStatuses: Record<string, CampaignParticipantStatusDto>;
+
+  // Version guard state
+  versionGuardMinimumMobileVersion: string | null;
+  versionGuardLoading: boolean;
+  versionGuardError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -187,15 +191,19 @@ export const initialState: RewardsState = {
     initialSubscriptionId: null,
   },
 
-  // Snapshots initial state
-  snapshots: null,
-  snapshotsLoading: false,
-  snapshotsError: false,
-
   // Campaigns initial state
   campaigns: [],
   campaignsLoading: false,
   campaignsError: false,
+  campaignsHasLoaded: false,
+
+  // Campaign participant statuses initial state
+  campaignParticipantStatuses: {},
+
+  // Version guard initial state
+  versionGuardMinimumMobileVersion: null,
+  versionGuardLoading: false,
+  versionGuardError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -210,7 +218,7 @@ const rewardsSlice = createSlice({
   reducers: {
     setActiveTab: (
       state,
-      action: PayloadAction<'overview' | 'snapshots' | 'activity'>,
+      action: PayloadAction<'overview' | 'campaigns' | 'activity'>,
     ) => {
       state.activeTab = action.payload;
     },
@@ -338,28 +346,24 @@ const rewardsSlice = createSlice({
         hasValidPreviousId && previousCandidateId !== newCandidateId;
 
       if (candidateIdChanged) {
-        // Reset UI state to initial values
-        state.seasonId = initialState.seasonId;
-        state.seasonName = initialState.seasonName;
-        state.seasonStartDate = initialState.seasonStartDate;
-        state.seasonEndDate = initialState.seasonEndDate;
-        state.seasonTiers = initialState.seasonTiers;
-        state.seasonActivityTypes = initialState.seasonActivityTypes;
-        state.seasonWaysToEarn = initialState.seasonWaysToEarn;
-        state.referralCode = initialState.referralCode;
-        state.refereeCount = initialState.refereeCount;
-        state.currentTier = initialState.currentTier;
-        state.nextTier = initialState.nextTier;
-        state.nextTierPointsNeeded = initialState.nextTierPointsNeeded;
-        state.balanceTotal = initialState.balanceTotal;
-        state.balanceRefereePortion = initialState.balanceRefereePortion;
-        state.balanceUpdatedAt = initialState.balanceUpdatedAt;
-        state.seasonShouldInstallNewVersion =
-          initialState.seasonShouldInstallNewVersion;
-        state.activeBoosts = initialState.activeBoosts;
-        state.pointsEvents = initialState.pointsEvents;
-        state.unlockedRewards = initialState.unlockedRewards;
-        state.snapshots = initialState.snapshots;
+        // Reset all state to initial, preserving only non-subscription-scoped fields
+        Object.assign(state, initialState, {
+          activeTab: state.activeTab,
+          onboardingActiveStep: state.onboardingActiveStep,
+          onboardingReferralCode: state.onboardingReferralCode,
+          geoLocation: state.geoLocation,
+          optinAllowedForGeo: state.optinAllowedForGeo,
+          optinAllowedForGeoLoading: state.optinAllowedForGeoLoading,
+          optinAllowedForGeoError: state.optinAllowedForGeoError,
+          hideCurrentAccountNotOptedInBanner:
+            state.hideCurrentAccountNotOptedInBanner,
+          hideUnlinkedAccountsBanner: state.hideUnlinkedAccountsBanner,
+          bulkLink: state.bulkLink,
+          versionGuardMinimumMobileVersion:
+            state.versionGuardMinimumMobileVersion,
+          versionGuardLoading: state.versionGuardLoading,
+          versionGuardError: state.versionGuardError,
+        });
       }
 
       state.candidateSubscriptionId = action.payload;
@@ -449,25 +453,11 @@ const rewardsSlice = createSlice({
       state.pointsEvents = action.payload;
     },
 
-    // Snapshots reducers
-    setSnapshots: (state, action: PayloadAction<SnapshotDto[] | null>) => {
-      state.snapshots = action.payload;
-      state.snapshotsError = false;
-    },
-    setSnapshotsLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.snapshots?.length) {
-        return;
-      }
-      state.snapshotsLoading = action.payload;
-    },
-    setSnapshotsError: (state, action: PayloadAction<boolean>) => {
-      state.snapshotsError = action.payload;
-    },
-
     // Campaigns reducers
     setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
       state.campaigns = action.payload;
       state.campaignsError = false;
+      state.campaignsHasLoaded = true;
     },
     setCampaignsLoading: (state, action: PayloadAction<boolean>) => {
       if (action.payload && state.campaigns.length) {
@@ -477,6 +467,34 @@ const rewardsSlice = createSlice({
     },
     setCampaignsError: (state, action: PayloadAction<boolean>) => {
       state.campaignsError = action.payload;
+      if (action.payload) {
+        state.campaignsHasLoaded = true;
+      }
+    },
+
+    setCampaignParticipantStatus: (
+      state,
+      action: PayloadAction<{
+        campaignId: string;
+        status: CampaignParticipantStatusDto;
+      }>,
+    ) => {
+      state.campaignParticipantStatuses[action.payload.campaignId] =
+        action.payload.status;
+    },
+
+    // Version guard reducers
+    setVersionGuardMinimumMobileVersion: (
+      state,
+      action: PayloadAction<string | null>,
+    ) => {
+      state.versionGuardMinimumMobileVersion = action.payload;
+    },
+    setVersionGuardLoading: (state, action: PayloadAction<boolean>) => {
+      state.versionGuardLoading = action.payload;
+    },
+    setVersionGuardError: (state, action: PayloadAction<boolean>) => {
+      state.versionGuardError = action.payload;
     },
 
     // Bulk link reducers
@@ -578,7 +596,9 @@ const rewardsSlice = createSlice({
             activeBoosts: action.payload.rewards.activeBoosts,
             pointsEvents: action.payload.rewards.pointsEvents,
             unlockedRewards: action.payload.rewards.unlockedRewards,
-            snapshots: action.payload.rewards.snapshots,
+            campaigns: action.payload.rewards.campaigns,
+            campaignParticipantStatuses:
+              action.payload.rewards.campaignParticipantStatuses,
             hideUnlinkedAccountsBanner:
               action.payload.rewards.hideUnlinkedAccountsBanner,
             hideCurrentAccountNotOptedInBanner:
@@ -632,14 +652,15 @@ export const {
   setUnlockedRewardLoading,
   setUnlockedRewardError,
   setPointsEvents,
-  // Snapshots actions
-  setSnapshots,
-  setSnapshotsLoading,
-  setSnapshotsError,
   // Campaigns actions
   setCampaigns,
   setCampaignsLoading,
   setCampaignsError,
+  setCampaignParticipantStatus,
+  // Version guard actions
+  setVersionGuardMinimumMobileVersion,
+  setVersionGuardLoading,
+  setVersionGuardError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

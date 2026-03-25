@@ -34,7 +34,6 @@ import {
 } from '../../../component-library/components/Texts/Text';
 import { CommonSelectorsIDs } from '../../../util/Common.testIds';
 import { NetworksViewSelectorsIDs } from '../../Views/Settings/NetworksSettings/NetworksView.testIds';
-import { SendLinkViewSelectorsIDs } from '../ReceiveRequest/SendLinkView.testIds';
 import Icon, {
   IconName,
   IconSize,
@@ -47,7 +46,6 @@ import HeaderBase, {
 } from '../../../component-library/components/HeaderBase';
 import getHeaderCompactStandardNavbarOptions from '../../../component-library/components-temp/HeaderCompactStandard/getHeaderCompactStandardNavbarOptions';
 import BottomSheetHeader from '../../../component-library/components/BottomSheets/BottomSheetHeader';
-import { RequestPaymentViewSelectors } from '../ReceiveRequest/RequestPaymentView.testIds';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 import {
@@ -326,120 +324,6 @@ export function getEditableOptions(title, navigation, route, themeColors) {
         <View />
       ),
     headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
-  };
-}
-
-/**
- * Function that returns the navigation options
- * This is used by payment request view showing close and back buttons
- *
- * @param {string} title - Title in string format
- * @param {Object} navigation - Navigation object required to push new views
- * @returns {Object} - Corresponding navbar options containing title, headerLeft and headerRight
- */
-export function getPaymentRequestOptionsTitle(
-  title,
-  navigation,
-  route,
-  themeColors,
-) {
-  const goBack = route.params?.dispatch;
-  const innerStyles = StyleSheet.create({
-    headerTitleStyle: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerCloseButton: {
-      marginRight: 16,
-    },
-  });
-
-  return {
-    headerTitleAlign: 'center',
-    headerTitle: () => (
-      <View>
-        <MorphText variant={TextVariant.BodyMDBold}>{title}</MorphText>
-      </View>
-    ),
-    headerLeft: () =>
-      goBack ? (
-        // eslint-disable-next-line react/jsx-no-bind
-        <TouchableOpacity
-          onPress={goBack}
-          style={styles.backButton}
-          testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
-        >
-          <IonicIcon
-            name={'arrow-back'}
-            size={Device.isAndroid() ? 24 : 28}
-            style={innerStyles.headerIcon}
-          />
-        </TouchableOpacity>
-      ) : (
-        <View />
-      ),
-    headerRight: () => (
-      <ButtonIcon
-        iconName={IconName.Close}
-        size={ButtonIconSize.Md}
-        onPress={() => navigation.pop()}
-        style={innerStyles.headerCloseButton}
-        testID={RequestPaymentViewSelectors.BACK_BUTTON_ID}
-      />
-    ),
-    headerStyle: innerStyles.headerStyle,
-    headerTintColor: themeColors.primary.default,
-  };
-}
-
-/**
- * Function that returns the navigation options
- * This is used by payment request view showing close button
- *
- * @returns {Object} - Corresponding navbar options containing title, and headerRight
- */
-export function getPaymentRequestSuccessOptionsTitle(navigation, themeColors) {
-  const innerStyles = StyleSheet.create({
-    headerStyle: {
-      backgroundColor: themeColors.background.default,
-      shadowColor: importedColors.transparent,
-      elevation: 0,
-    },
-    headerIcon: {
-      color: themeColors.primary.default,
-    },
-  });
-
-  return {
-    headerStyle: innerStyles.headerStyle,
-    title: null,
-    headerLeft: () => <View />,
-    headerRight: () => (
-      <TouchableOpacity
-        // eslint-disable-next-line react/jsx-no-bind
-        onPress={() => navigation.pop()}
-        style={styles.closeButton}
-        {...generateTestId(
-          Platform,
-          SendLinkViewSelectorsIDs.CLOSE_SEND_LINK_VIEW_BUTTON,
-        )}
-      >
-        <IonicIcon
-          name="close"
-          size={38}
-          style={[innerStyles.headerIcon, styles.backIconIOS]}
-        />
-      </TouchableOpacity>
-    ),
     headerTintColor: themeColors.primary.default,
   };
 }
@@ -1352,38 +1236,6 @@ export function getPerpsTransactionsDetailsNavbar(navigation, title) {
       />
     ),
     headerRight: () => <View style={innerStyles.rightSpacer} />,
-  };
-}
-
-export function getPerpsMarketDetailsNavbar(navigation, title) {
-  const innerStyles = StyleSheet.create({
-    perpsMarketDetailsTitle: {
-      fontWeight: '700',
-      textAlign: 'center',
-      flex: 1,
-    },
-  });
-  // Always navigate back to markets page for consistent navigation
-  const leftAction = () => navigation.navigate(Routes.PERPS.PERPS_HOME);
-
-  return {
-    headerTitle: () => (
-      <NavbarTitle
-        style={innerStyles.perpsMarketDetailsTitle}
-        variant={TextVariant.HeadingMD}
-        title={title}
-        disableNetwork
-        showSelectedNetwork={false}
-        translate={false}
-      />
-    ),
-    headerLeft: () => (
-      <ButtonIcon
-        iconName={IconName.Arrow2Left}
-        onPress={leftAction}
-        size={ButtonIconSize.Md}
-      />
-    ),
   };
 }
 

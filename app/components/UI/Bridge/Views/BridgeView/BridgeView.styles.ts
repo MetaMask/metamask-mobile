@@ -12,7 +12,7 @@ export const createStyles = (params: { theme: Theme }) => {
     },
     inputsContainer: {
       paddingVertical: 12,
-      paddingHorizontal: 24,
+      paddingHorizontal: 16,
     },
     buttonContainer: {
       width: '100%',

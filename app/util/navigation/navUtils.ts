@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/ban-types */
 import { useMemo } from 'react';
 import { RouteProp, useRoute } from '@react-navigation/native';
 
