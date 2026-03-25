@@ -244,7 +244,9 @@ const MarketInsightsFeedbackBottomSheet: React.FC<
             variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
             isFullWidth
-            isDisabled={!selectedReason}
+            isDisabled={
+              !selectedReason || (isSomethingElse && !additionalFeedback.trim())
+            }
             onPress={handleSubmit}
             testID={MarketInsightsSelectorsIDs.FEEDBACK_SUBMIT_BUTTON}
           >
