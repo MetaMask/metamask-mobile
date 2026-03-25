@@ -2,7 +2,6 @@ import { CaipAccountId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
-import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
 import type { CandlePeriod } from '../constants/chartConfig';
 import {
   BASIS_POINTS_DIVISOR,
@@ -6410,17 +6409,6 @@ export class HyperLiquidProvider implements PerpsProvider {
       },
       this.#deps.marketDataFormatters,
       HIP3_ASSET_MARKET_TYPES,
-    );
-
-    // [PR-27910] BUG_MARKER: log URNM and USAR market types to confirm miscategorisation
-    const urnmMarket = transformedMarketData.find((market) => market.symbol === 'xyz:URNM');
-    const usarMarket = transformedMarketData.find((market) => market.symbol === 'xyz:USAR');
-    DevLogger.log(
-      `[PR-27910] BUG_MARKER: URNM marketType=${ 
-        urnmMarket && urnmMarket.marketType 
-        } (expected commodity), USAR marketType=${ 
-        usarMarket && usarMarket.marketType 
-        } (expected equity)`,
     );
 
     return this.#cacheFreshMarketDataSnapshot(
