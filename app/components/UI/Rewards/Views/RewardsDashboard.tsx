@@ -370,8 +370,8 @@ const RewardsDashboard: React.FC = () => {
               <TabsList {...tabsListProps}>{tabComponents}</TabsList>
             </>
           )}
+          <BenefitsSummary/>
         </Box>
-        <BenefitsSummary/>
       </SafeAreaView>
       <Toast ref={toastRef} />
     </ErrorBoundary>
