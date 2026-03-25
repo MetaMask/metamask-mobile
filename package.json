@@ -266,7 +266,7 @@
     "@metamask/mobile-wallet-protocol-wallet-client": "^0.3.0",
     "@metamask/multichain-account-service": "^7.0.0",
     "@metamask/multichain-api-client": "^0.10.1",
-    "@metamask/multichain-api-middleware": "1.2.5",
+    "@metamask/multichain-api-middleware": "^2.0.0",
     "@metamask/multichain-network-controller": "^3.0.5",
     "@metamask/multichain-transactions-controller": "^7.0.2",
     "@metamask/native-utils": "^0.8.0",

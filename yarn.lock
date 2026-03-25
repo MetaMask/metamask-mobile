@@ -8019,6 +8019,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/chain-agnostic-permission@npm:^1.5.0":
+  version: 1.5.0
+  resolution: "@metamask/chain-agnostic-permission@npm:1.5.0"
+  dependencies:
+    "@metamask/api-specs": "npm:^0.14.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/permission-controller": "npm:^12.2.1"
+    "@metamask/rpc-errors": "npm:^7.0.2"
+    "@metamask/utils": "npm:^11.9.0"
+    lodash: "npm:^4.17.21"
+  checksum: 10/d9d7f912d911623bbbec7952ef8f5d882d7d79bca75915dfa7366a6abc22a2b7bd22c267f84a6c5c628a6fd484d69aecfa1a95d6840ca2ccfd5ff5f247f0bb8b
+  languageName: node
+  linkType: hard
+
 "@metamask/client-controller@npm:^1.0.0":
   version: 1.0.0
   resolution: "@metamask/client-controller@npm:1.0.0"
@@ -8964,22 +8978,22 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/multichain-api-middleware@npm:1.2.5":
-  version: 1.2.5
-  resolution: "@metamask/multichain-api-middleware@npm:1.2.5"
+"@metamask/multichain-api-middleware@npm:^2.0.0":
+  version: 2.0.0
+  resolution: "@metamask/multichain-api-middleware@npm:2.0.0"
   dependencies:
     "@metamask/api-specs": "npm:^0.14.0"
-    "@metamask/chain-agnostic-permission": "npm:^1.3.0"
-    "@metamask/controller-utils": "npm:^11.16.0"
-    "@metamask/json-rpc-engine": "npm:^10.2.0"
-    "@metamask/network-controller": "npm:^27.0.0"
-    "@metamask/permission-controller": "npm:^12.1.1"
+    "@metamask/chain-agnostic-permission": "npm:^1.5.0"
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/json-rpc-engine": "npm:^10.2.3"
+    "@metamask/network-controller": "npm:^30.0.0"
+    "@metamask/permission-controller": "npm:^12.2.1"
     "@metamask/rpc-errors": "npm:^7.0.2"
-    "@metamask/utils": "npm:^11.8.1"
+    "@metamask/utils": "npm:^11.9.0"
     "@open-rpc/meta-schema": "npm:^1.14.6"
     "@open-rpc/schema-utils-js": "npm:^2.0.5"
     jsonschema: "npm:^1.4.1"
-  checksum: 10/57c90313fbb04c0d8ff2a79ab863930dc4fb0f678c219d3beb3aed55782cf419f9b4042479e0c9a2eb54ab0d0d11a4ec5ae1cd5d00e2882527c820a8b0f83104
+  checksum: 10/c887073833ece8daee46727a5991ff15e329557e7453b34e62f7d65add09edeaa64a14cdd4f44bb343cd2c637c1c431e7f544ee7f1db441eb4b2a9959d40a4cb
   languageName: node
   linkType: hard
 
@@ -35580,7 +35594,7 @@ __metadata:
     "@metamask/mobile-wallet-protocol-wallet-client": "npm:^0.3.0"
     "@metamask/multichain-account-service": "npm:^7.0.0"
     "@metamask/multichain-api-client": "npm:^0.10.1"
-    "@metamask/multichain-api-middleware": "npm:1.2.5"
+    "@metamask/multichain-api-middleware": "npm:^2.0.0"
     "@metamask/multichain-network-controller": "npm:^3.0.5"
     "@metamask/multichain-transactions-controller": "npm:^7.0.2"
     "@metamask/native-utils": "npm:^0.8.0"
