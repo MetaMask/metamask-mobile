@@ -28,13 +28,13 @@ import rewardsReducer, {
   setCampaignsLoading,
   setCampaignsError,
   setCampaignParticipantStatus,
-  setCampaignLeaderboard,
-  setCampaignLeaderboardLoading,
-  setCampaignLeaderboardError,
-  setCampaignLeaderboardSelectedTier,
-  setCampaignLeaderboardPosition,
-  setCampaignLeaderboardPositionLoading,
-  setCampaignLeaderboardPositionError,
+  setOndoCampaignLeaderboard,
+  setOndoCampaignLeaderboardLoading,
+  setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardSelectedTier,
+  setOndoCampaignLeaderboardPosition,
+  setOndoCampaignLeaderboardPositionLoading,
+  setOndoCampaignLeaderboardPositionError,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -2148,13 +2148,13 @@ describe('rewardsReducer', () => {
         campaignsError: false,
         campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
-        campaignLeaderboard: null,
-        campaignLeaderboardLoading: false,
-        campaignLeaderboardError: false,
-        campaignLeaderboardSelectedTier: null,
-        campaignLeaderboardPositions: {},
-        campaignLeaderboardPositionLoading: false,
-        campaignLeaderboardPositionError: false,
+        ondoCampaignLeaderboard: null,
+        ondoCampaignLeaderboardLoading: false,
+        ondoCampaignLeaderboardError: false,
+        ondoCampaignLeaderboardSelectedTier: null,
+        ondoCampaignLeaderboardPositions: {},
+        ondoCampaignLeaderboardPositionLoading: false,
+        ondoCampaignLeaderboardPositionError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2263,13 +2263,13 @@ describe('rewardsReducer', () => {
         campaignsError: false,
         campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
-        campaignLeaderboard: null,
-        campaignLeaderboardLoading: false,
-        campaignLeaderboardError: false,
-        campaignLeaderboardSelectedTier: null,
-        campaignLeaderboardPositions: {},
-        campaignLeaderboardPositionLoading: false,
-        campaignLeaderboardPositionError: false,
+        ondoCampaignLeaderboard: null,
+        ondoCampaignLeaderboardLoading: false,
+        ondoCampaignLeaderboardError: false,
+        ondoCampaignLeaderboardSelectedTier: null,
+        ondoCampaignLeaderboardPositions: {},
+        ondoCampaignLeaderboardPositionLoading: false,
+        ondoCampaignLeaderboardPositionError: false,
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -4882,168 +4882,170 @@ const mockPosition: CampaignLeaderboardPositionDto = {
   referral_code: 'XYZ789',
 };
 
-describe('setCampaignLeaderboard', () => {
+describe('setOndoCampaignLeaderboard', () => {
   it('should set leaderboard data', () => {
-    const action = setCampaignLeaderboard(mockLeaderboard);
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboard).toEqual(mockLeaderboard);
-    expect(state.campaignLeaderboardError).toBe(false);
+    expect(state.ondoCampaignLeaderboard).toEqual(mockLeaderboard);
+    expect(state.ondoCampaignLeaderboardError).toBe(false);
   });
 
   it('should set first tier as selected when not already set', () => {
-    const action = setCampaignLeaderboard(mockLeaderboard);
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboardSelectedTier).toBe('STARTER');
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('STARTER');
   });
 
   it('should not override existing selected tier', () => {
     const stateWithSelectedTier: RewardsState = {
       ...initialState,
-      campaignLeaderboardSelectedTier: 'MID',
+      ondoCampaignLeaderboardSelectedTier: 'MID',
     };
-    const action = setCampaignLeaderboard(mockLeaderboard);
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(stateWithSelectedTier, action);
 
-    expect(state.campaignLeaderboardSelectedTier).toBe('MID');
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('MID');
   });
 
   it('should set leaderboard to null', () => {
     const stateWithLeaderboard: RewardsState = {
       ...initialState,
-      campaignLeaderboard: mockLeaderboard,
+      ondoCampaignLeaderboard: mockLeaderboard,
     };
-    const action = setCampaignLeaderboard(null);
+    const action = setOndoCampaignLeaderboard(null);
 
     const state = rewardsReducer(stateWithLeaderboard, action);
 
-    expect(state.campaignLeaderboard).toBeNull();
+    expect(state.ondoCampaignLeaderboard).toBeNull();
   });
 
   it('should reset error when setting leaderboard', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      campaignLeaderboardError: true,
+      ondoCampaignLeaderboardError: true,
     };
-    const action = setCampaignLeaderboard(mockLeaderboard);
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
 
     const state = rewardsReducer(stateWithError, action);
 
-    expect(state.campaignLeaderboardError).toBe(false);
+    expect(state.ondoCampaignLeaderboardError).toBe(false);
   });
 });
 
-describe('setCampaignLeaderboardLoading', () => {
+describe('setOndoCampaignLeaderboardLoading', () => {
   it('should set loading to true when no leaderboard exists', () => {
-    const action = setCampaignLeaderboardLoading(true);
+    const action = setOndoCampaignLeaderboardLoading(true);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboardLoading).toBe(true);
+    expect(state.ondoCampaignLeaderboardLoading).toBe(true);
   });
 
   it('should not set loading to true when leaderboard already exists', () => {
     const stateWithLeaderboard: RewardsState = {
       ...initialState,
-      campaignLeaderboard: mockLeaderboard,
-      campaignLeaderboardLoading: false,
+      ondoCampaignLeaderboard: mockLeaderboard,
+      ondoCampaignLeaderboardLoading: false,
     };
-    const action = setCampaignLeaderboardLoading(true);
+    const action = setOndoCampaignLeaderboardLoading(true);
 
     const state = rewardsReducer(stateWithLeaderboard, action);
 
-    expect(state.campaignLeaderboardLoading).toBe(false);
+    expect(state.ondoCampaignLeaderboardLoading).toBe(false);
   });
 
   it('should set loading to false', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
-      campaignLeaderboardLoading: true,
+      ondoCampaignLeaderboardLoading: true,
     };
-    const action = setCampaignLeaderboardLoading(false);
+    const action = setOndoCampaignLeaderboardLoading(false);
 
     const state = rewardsReducer(stateWithLoading, action);
 
-    expect(state.campaignLeaderboardLoading).toBe(false);
+    expect(state.ondoCampaignLeaderboardLoading).toBe(false);
   });
 });
 
-describe('setCampaignLeaderboardError', () => {
+describe('setOndoCampaignLeaderboardError', () => {
   it('should set error to true', () => {
-    const action = setCampaignLeaderboardError(true);
+    const action = setOndoCampaignLeaderboardError(true);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboardError).toBe(true);
+    expect(state.ondoCampaignLeaderboardError).toBe(true);
   });
 
   it('should set error to false', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      campaignLeaderboardError: true,
+      ondoCampaignLeaderboardError: true,
     };
-    const action = setCampaignLeaderboardError(false);
+    const action = setOndoCampaignLeaderboardError(false);
 
     const state = rewardsReducer(stateWithError, action);
 
-    expect(state.campaignLeaderboardError).toBe(false);
+    expect(state.ondoCampaignLeaderboardError).toBe(false);
   });
 });
 
-describe('setCampaignLeaderboardSelectedTier', () => {
+describe('setOndoCampaignLeaderboardSelectedTier', () => {
   it('should set selected tier', () => {
-    const action = setCampaignLeaderboardSelectedTier('MID');
+    const action = setOndoCampaignLeaderboardSelectedTier('MID');
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboardSelectedTier).toBe('MID');
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('MID');
   });
 
   it('should update selected tier', () => {
     const stateWithSelectedTier: RewardsState = {
       ...initialState,
-      campaignLeaderboardSelectedTier: 'STARTER',
+      ondoCampaignLeaderboardSelectedTier: 'STARTER',
     };
-    const action = setCampaignLeaderboardSelectedTier('UPPER');
+    const action = setOndoCampaignLeaderboardSelectedTier('UPPER');
 
     const state = rewardsReducer(stateWithSelectedTier, action);
 
-    expect(state.campaignLeaderboardSelectedTier).toBe('UPPER');
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('UPPER');
   });
 });
 
-describe('setCampaignLeaderboardPosition', () => {
+describe('setOndoCampaignLeaderboardPosition', () => {
   it('should set position for a campaign', () => {
-    const action = setCampaignLeaderboardPosition({
+    const action = setOndoCampaignLeaderboardPosition({
       campaignId: 'campaign-1',
       position: mockPosition,
     });
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboardPositions['campaign-1']).toEqual(
+    expect(state.ondoCampaignLeaderboardPositions['campaign-1']).toEqual(
       mockPosition,
     );
-    expect(state.campaignLeaderboardPositionError).toBe(false);
+    expect(state.ondoCampaignLeaderboardPositionError).toBe(false);
   });
 
   it('should remove position when null is provided', () => {
     const stateWithPosition: RewardsState = {
       ...initialState,
-      campaignLeaderboardPositions: { 'campaign-1': mockPosition },
+      ondoCampaignLeaderboardPositions: { 'campaign-1': mockPosition },
     };
-    const action = setCampaignLeaderboardPosition({
+    const action = setOndoCampaignLeaderboardPosition({
       campaignId: 'campaign-1',
       position: null,
     });
 
     const state = rewardsReducer(stateWithPosition, action);
 
-    expect(state.campaignLeaderboardPositions['campaign-1']).toBeUndefined();
+    expect(
+      state.ondoCampaignLeaderboardPositions['campaign-1'],
+    ).toBeUndefined();
   });
 
   it('should store positions for multiple campaigns', () => {
@@ -5051,7 +5053,7 @@ describe('setCampaignLeaderboardPosition', () => {
 
     currentState = rewardsReducer(
       currentState,
-      setCampaignLeaderboardPosition({
+      setOndoCampaignLeaderboardPosition({
         campaignId: 'campaign-1',
         position: mockPosition,
       }),
@@ -5060,16 +5062,16 @@ describe('setCampaignLeaderboardPosition', () => {
     const position2 = { ...mockPosition, rank: 10, projected_tier: 'MID' };
     currentState = rewardsReducer(
       currentState,
-      setCampaignLeaderboardPosition({
+      setOndoCampaignLeaderboardPosition({
         campaignId: 'campaign-2',
         position: position2,
       }),
     );
 
-    expect(currentState.campaignLeaderboardPositions['campaign-1']).toEqual(
+    expect(currentState.ondoCampaignLeaderboardPositions['campaign-1']).toEqual(
       mockPosition,
     );
-    expect(currentState.campaignLeaderboardPositions['campaign-2']).toEqual(
+    expect(currentState.ondoCampaignLeaderboardPositions['campaign-2']).toEqual(
       position2,
     );
   });
@@ -5077,59 +5079,59 @@ describe('setCampaignLeaderboardPosition', () => {
   it('should reset error when setting position', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      campaignLeaderboardPositionError: true,
+      ondoCampaignLeaderboardPositionError: true,
     };
-    const action = setCampaignLeaderboardPosition({
+    const action = setOndoCampaignLeaderboardPosition({
       campaignId: 'campaign-1',
       position: mockPosition,
     });
 
     const state = rewardsReducer(stateWithError, action);
 
-    expect(state.campaignLeaderboardPositionError).toBe(false);
+    expect(state.ondoCampaignLeaderboardPositionError).toBe(false);
   });
 });
 
-describe('setCampaignLeaderboardPositionLoading', () => {
+describe('setOndoCampaignLeaderboardPositionLoading', () => {
   it('should set loading to true', () => {
-    const action = setCampaignLeaderboardPositionLoading(true);
+    const action = setOndoCampaignLeaderboardPositionLoading(true);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboardPositionLoading).toBe(true);
+    expect(state.ondoCampaignLeaderboardPositionLoading).toBe(true);
   });
 
   it('should set loading to false', () => {
     const stateWithLoading: RewardsState = {
       ...initialState,
-      campaignLeaderboardPositionLoading: true,
+      ondoCampaignLeaderboardPositionLoading: true,
     };
-    const action = setCampaignLeaderboardPositionLoading(false);
+    const action = setOndoCampaignLeaderboardPositionLoading(false);
 
     const state = rewardsReducer(stateWithLoading, action);
 
-    expect(state.campaignLeaderboardPositionLoading).toBe(false);
+    expect(state.ondoCampaignLeaderboardPositionLoading).toBe(false);
   });
 });
 
-describe('setCampaignLeaderboardPositionError', () => {
+describe('setOndoCampaignLeaderboardPositionError', () => {
   it('should set error to true', () => {
-    const action = setCampaignLeaderboardPositionError(true);
+    const action = setOndoCampaignLeaderboardPositionError(true);
 
     const state = rewardsReducer(initialState, action);
 
-    expect(state.campaignLeaderboardPositionError).toBe(true);
+    expect(state.ondoCampaignLeaderboardPositionError).toBe(true);
   });
 
   it('should set error to false', () => {
     const stateWithError: RewardsState = {
       ...initialState,
-      campaignLeaderboardPositionError: true,
+      ondoCampaignLeaderboardPositionError: true,
     };
-    const action = setCampaignLeaderboardPositionError(false);
+    const action = setOndoCampaignLeaderboardPositionError(false);
 
     const state = rewardsReducer(stateWithError, action);
 
-    expect(state.campaignLeaderboardPositionError).toBe(false);
+    expect(state.ondoCampaignLeaderboardPositionError).toBe(false);
   });
 });

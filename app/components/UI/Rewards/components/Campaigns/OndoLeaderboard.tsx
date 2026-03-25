@@ -177,11 +177,11 @@ const LeaderboardSkeleton: React.FC = () => {
 };
 
 /**
- * CampaignLeaderboard displays the leaderboard tiers and entries for a campaign.
+ * OndoLeaderboard displays the leaderboard tiers and entries for a campaign.
  * Position-specific data (user rank, tier, deposited value) is handled separately
  * by the OndoLeaderboardPosition component.
  */
-const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
+const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   tierNames,
   selectedTier,
   onTierChange,
@@ -193,8 +193,6 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   onRetry,
   currentUserReferralCode,
 }) => {
-  const tw = useTailwind();
-
   const tabs = useMemo(
     () =>
       tierNames.map((name) => ({
@@ -360,4 +358,4 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   );
 };
 
-export default CampaignLeaderboard;
+export default OndoLeaderboard;

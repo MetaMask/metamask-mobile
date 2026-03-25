@@ -203,53 +203,54 @@ export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
 };
 
 // Campaign leaderboard selectors
-export const selectCampaignLeaderboard = (state: RootState) =>
-  state.rewards.campaignLeaderboard;
+export const selectOndoCampaignLeaderboard = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboard;
 
-export const selectCampaignLeaderboardLoading = (state: RootState) =>
-  state.rewards.campaignLeaderboardLoading;
+export const selectOndoCampaignLeaderboardLoading = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardLoading;
 
-export const selectCampaignLeaderboardError = (state: RootState) =>
-  state.rewards.campaignLeaderboardError;
+export const selectOndoCampaignLeaderboardError = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardError;
 
-export const selectCampaignLeaderboardSelectedTier = (state: RootState) =>
-  state.rewards.campaignLeaderboardSelectedTier;
+export const selectOndoCampaignLeaderboardSelectedTier = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardSelectedTier;
 
-export const selectCampaignLeaderboardTiers = (state: RootState) =>
-  state.rewards.campaignLeaderboard?.tiers ?? {};
+export const selectOndoCampaignLeaderboardTiers = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboard?.tiers ?? {};
 
-export const selectCampaignLeaderboardComputedAt = (state: RootState) =>
-  state.rewards.campaignLeaderboard?.computed_at ?? null;
+export const selectOndoCampaignLeaderboardComputedAt = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboard?.computed_at ?? null;
 
-export const selectCampaignLeaderboardTierNames = (state: RootState) =>
-  state.rewards.campaignLeaderboard
-    ? Object.keys(state.rewards.campaignLeaderboard.tiers)
+export const selectOndoCampaignLeaderboardTierNames = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboard
+    ? Object.keys(state.rewards.ondoCampaignLeaderboard.tiers)
     : [];
 
-export const selectCampaignLeaderboardEntriesByTier =
+export const selectOndoCampaignLeaderboardEntriesByTier =
   (tierName: string | null) => (state: RootState) =>
-    tierName && state.rewards.campaignLeaderboard?.tiers[tierName]
-      ? state.rewards.campaignLeaderboard.tiers[tierName].entries
+    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
+      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].entries
       : [];
 
-export const selectCampaignLeaderboardTotalParticipantsByTier =
+export const selectOndoCampaignLeaderboardTotalParticipantsByTier =
   (tierName: string | null) => (state: RootState) =>
-    tierName && state.rewards.campaignLeaderboard?.tiers[tierName]
-      ? state.rewards.campaignLeaderboard.tiers[tierName].total_participants
+    tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
+      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].total_participants
       : 0;
 
 // Campaign leaderboard position selectors
-export const selectCampaignLeaderboardPositions = (state: RootState) =>
-  state.rewards.campaignLeaderboardPositions;
+export const selectOndoCampaignLeaderboardPositions = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardPositions;
 
-export const selectCampaignLeaderboardPositionById =
+export const selectOndoCampaignLeaderboardPositionById =
   (campaignId: string | undefined) => (state: RootState) =>
     campaignId
-      ? (state.rewards.campaignLeaderboardPositions[campaignId] ?? null)
+      ? (state.rewards.ondoCampaignLeaderboardPositions[campaignId] ?? null)
       : null;
 
-export const selectCampaignLeaderboardPositionLoading = (state: RootState) =>
-  state.rewards.campaignLeaderboardPositionLoading;
+export const selectOndoCampaignLeaderboardPositionLoading = (
+  state: RootState,
+) => state.rewards.ondoCampaignLeaderboardPositionLoading;
 
-export const selectCampaignLeaderboardPositionError = (state: RootState) =>
-  state.rewards.campaignLeaderboardPositionError;
+export const selectOndoCampaignLeaderboardPositionError = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardPositionError;

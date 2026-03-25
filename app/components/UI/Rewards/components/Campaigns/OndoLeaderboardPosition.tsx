@@ -10,7 +10,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
-import { useOndoLeaderboardPosition } from '../../hooks/useOndoLeaderboardPosition';
+import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 
 export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
@@ -119,18 +119,20 @@ const StatCell: React.FC<StatCellProps> = ({
 const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
   campaignId,
 }) => {
-  const { positionData, isLoading, hasError, refetch } =
-    useOndoLeaderboardPosition(campaignId);
+  const { position, isLoading, hasError, refetch } =
+    useGetOndoLeaderboardPosition(campaignId);
 
-  if (isLoading && !positionData) {
+  if (isLoading && !position) {
     return <PositionSkeleton />;
   }
 
-  if (hasError && !positionData) {
+  if (hasError && !position) {
     return (
       <RewardsErrorBanner
         title={strings('rewards.leaderboard_position.error_loading')}
-        description={strings('rewards.leaderboard_position.error_loading')}
+        description={strings(
+          'rewards.leaderboard_position.error_loading_description',
+        )}
         onConfirm={refetch}
         confirmButtonLabel={strings('rewards.leaderboard_position.retry')}
         testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.ERROR}
@@ -138,7 +140,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
     );
   }
 
-  if (!positionData) {
+  if (!position) {
     return (
       <Box
         twClassName="bg-muted rounded-xl p-4 items-center"
@@ -152,7 +154,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
   }
 
   const rorColor =
-    positionData.rate_of_return >= 0
+    position.rate_of_return >= 0
       ? TextColor.SuccessDefault
       : TextColor.ErrorDefault;
 
@@ -169,17 +171,17 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
         <StatCell
           label={strings('rewards.leaderboard_position.rank')}
-          value={`#${positionData.rank}`}
+          value={`#${position.rank}`}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.RANK}
         />
         <StatCell
           label={strings('rewards.leaderboard_position.tier')}
-          value={positionData.projected_tier}
+          value={position.projected_tier}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.TIER}
         />
         <StatCell
           label={strings('rewards.leaderboard_position.rate_of_return')}
-          value={formatRateOfReturn(positionData.rate_of_return)}
+          value={formatRateOfReturn(position.rate_of_return)}
           valueColor={rorColor}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.RATE_OF_RETURN}
         />
@@ -189,12 +191,12 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
         <StatCell
           label={strings('rewards.leaderboard_position.total_deposited')}
-          value={formatUsd(positionData.total_usd_deposited)}
+          value={formatUsd(position.total_usd_deposited)}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.TOTAL_DEPOSITED}
         />
         <StatCell
           label={strings('rewards.leaderboard_position.current_value')}
-          value={formatUsd(positionData.current_usd_value)}
+          value={formatUsd(position.current_usd_value)}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.CURRENT_VALUE}
         />
       </Box>
@@ -206,7 +208,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
         testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.COMPUTED_AT}
       >
         {strings('rewards.leaderboard_position.updated_at', {
-          time: formatComputedAt(positionData.computed_at),
+          time: formatComputedAt(position.computed_at),
         })}
       </Text>
     </Box>

@@ -2,15 +2,15 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
+import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
 import {
-  setCampaignLeaderboardPosition,
-  setCampaignLeaderboardPositionLoading,
-  setCampaignLeaderboardPositionError,
+  setOndoCampaignLeaderboardPosition,
+  setOndoCampaignLeaderboardPositionLoading,
+  setOndoCampaignLeaderboardPositionError,
 } from '../../../../reducers/rewards';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
-export interface UseGetCampaignLeaderboardPositionResult {
+export interface UseGetOndoLeaderboardPositionResult {
   /** User's leaderboard position, or null when not found/not yet loaded */
   position: CampaignLeaderboardPositionDto | null;
   /** Whether the position is being fetched */
@@ -22,17 +22,17 @@ export interface UseGetCampaignLeaderboardPositionResult {
 }
 
 /**
- * Hook to fetch the current user's position on the campaign leaderboard.
+ * Hook to fetch the current user's position on the Ondo campaign leaderboard.
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes by the RewardsController.
  */
-export const useGetCampaignLeaderboardPosition = (
+export const useGetOndoLeaderboardPosition = (
   campaignId: string | undefined,
-): UseGetCampaignLeaderboardPositionResult => {
+): UseGetOndoLeaderboardPositionResult => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const position = useSelector(
-    selectCampaignLeaderboardPositionById(campaignId),
+    selectOndoCampaignLeaderboardPositionById(campaignId),
   );
   const [isLoading, setIsLoading] = useState(false);
   const [hasError, setHasError] = useState(false);
@@ -45,22 +45,22 @@ export const useGetCampaignLeaderboardPosition = (
     try {
       setIsLoading(true);
       setHasError(false);
-      dispatch(setCampaignLeaderboardPositionLoading(true));
-      dispatch(setCampaignLeaderboardPositionError(false));
+      dispatch(setOndoCampaignLeaderboardPositionLoading(true));
+      dispatch(setOndoCampaignLeaderboardPositionError(false));
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignLeaderboardPosition',
         campaignId,
         subscriptionId,
       );
       dispatch(
-        setCampaignLeaderboardPosition({ campaignId, position: result }),
+        setOndoCampaignLeaderboardPosition({ campaignId, position: result }),
       );
     } catch {
       setHasError(true);
-      dispatch(setCampaignLeaderboardPositionError(true));
+      dispatch(setOndoCampaignLeaderboardPositionError(true));
     } finally {
       setIsLoading(false);
-      dispatch(setCampaignLeaderboardPositionLoading(false));
+      dispatch(setOndoCampaignLeaderboardPositionLoading(false));
     }
   }, [dispatch, subscriptionId, campaignId]);
 
@@ -71,4 +71,4 @@ export const useGetCampaignLeaderboardPosition = (
   return { position, isLoading, hasError, refetch: fetchPosition };
 };
 
-export default useGetCampaignLeaderboardPosition;
+export default useGetOndoLeaderboardPosition;

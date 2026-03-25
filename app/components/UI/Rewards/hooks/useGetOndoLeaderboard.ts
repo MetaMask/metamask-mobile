@@ -1,30 +1,30 @@
-import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
+import { useMemo, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import {
-  selectCampaignLeaderboard,
-  selectCampaignLeaderboardLoading,
-  selectCampaignLeaderboardError,
-  selectCampaignLeaderboardTierNames,
-  selectCampaignLeaderboardSelectedTier,
+  selectOndoCampaignLeaderboard,
+  selectOndoCampaignLeaderboardLoading,
+  selectOndoCampaignLeaderboardError,
+  selectOndoCampaignLeaderboardTierNames,
+  selectOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards/selectors';
 import {
-  setCampaignLeaderboard,
-  setCampaignLeaderboardLoading,
-  setCampaignLeaderboardError,
-  setCampaignLeaderboardSelectedTier,
+  setOndoCampaignLeaderboard,
+  setOndoCampaignLeaderboardLoading,
+  setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards';
 import type {
   CampaignLeaderboardDto,
   CampaignLeaderboardTier,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 
-export interface UseGetCampaignLeaderboardOptions {
+export interface UseGetOndoLeaderboardOptions {
   /** The tier to initially select (e.g., from user's position). Falls back to first tier if not found. */
   defaultTier?: string | null;
 }
 
-export interface UseGetCampaignLeaderboardResult {
+export interface UseGetOndoLeaderboardResult {
   /** Full leaderboard data, or null when not yet loaded */
   leaderboard: CampaignLeaderboardDto | null;
   /** Whether the leaderboard is being fetched */
@@ -53,18 +53,18 @@ export interface UseGetCampaignLeaderboardResult {
  * @param campaignId - The campaign ID to fetch leaderboard for
  * @param options - Optional configuration including defaultTier for initial selection
  */
-export const useGetCampaignLeaderboard = (
+export const useGetOndoLeaderboard = (
   campaignId: string | undefined,
-  options?: UseGetCampaignLeaderboardOptions,
-): UseGetCampaignLeaderboardResult => {
+  options?: UseGetOndoLeaderboardOptions,
+): UseGetOndoLeaderboardResult => {
   const { defaultTier } = options ?? {};
   const dispatch = useDispatch();
 
-  const leaderboard = useSelector(selectCampaignLeaderboard);
-  const isLoading = useSelector(selectCampaignLeaderboardLoading);
-  const hasError = useSelector(selectCampaignLeaderboardError);
-  const tierNames = useSelector(selectCampaignLeaderboardTierNames);
-  const selectedTier = useSelector(selectCampaignLeaderboardSelectedTier);
+  const leaderboard = useSelector(selectOndoCampaignLeaderboard);
+  const isLoading = useSelector(selectOndoCampaignLeaderboardLoading);
+  const hasError = useSelector(selectOndoCampaignLeaderboardError);
+  const tierNames = useSelector(selectOndoCampaignLeaderboardTierNames);
+  const selectedTier = useSelector(selectOndoCampaignLeaderboardSelectedTier);
 
   // Track if we've already applied the defaultTier to avoid overriding user selection
   const hasAppliedDefaultTier = useRef(false);
@@ -75,17 +75,17 @@ export const useGetCampaignLeaderboard = (
     }
 
     try {
-      dispatch(setCampaignLeaderboardLoading(true));
-      dispatch(setCampaignLeaderboardError(false));
+      dispatch(setOndoCampaignLeaderboardLoading(true));
+      dispatch(setOndoCampaignLeaderboardError(false));
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignLeaderboard',
         campaignId,
       );
-      dispatch(setCampaignLeaderboard(result));
+      dispatch(setOndoCampaignLeaderboard(result));
     } catch {
-      dispatch(setCampaignLeaderboardError(true));
+      dispatch(setOndoCampaignLeaderboardError(true));
     } finally {
-      dispatch(setCampaignLeaderboardLoading(false));
+      dispatch(setOndoCampaignLeaderboardLoading(false));
     }
   }, [dispatch, campaignId]);
 
@@ -102,14 +102,14 @@ export const useGetCampaignLeaderboard = (
       tierNames.includes(defaultTier)
     ) {
       hasAppliedDefaultTier.current = true;
-      dispatch(setCampaignLeaderboardSelectedTier(defaultTier));
+      dispatch(setOndoCampaignLeaderboardSelectedTier(defaultTier));
     }
   }, [defaultTier, tierNames, dispatch]);
 
   const setSelectedTier = useCallback(
     (tier: string) => {
       if (tierNames.includes(tier)) {
-        dispatch(setCampaignLeaderboardSelectedTier(tier));
+        dispatch(setOndoCampaignLeaderboardSelectedTier(tier));
       }
     },
     [tierNames, dispatch],
@@ -133,4 +133,4 @@ export const useGetCampaignLeaderboard = (
   };
 };
 
-export default useGetCampaignLeaderboard;
+export default useGetOndoLeaderboard;

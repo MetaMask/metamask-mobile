@@ -107,10 +107,10 @@ const CAMPAIGNS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign leaderboard cache threshold (hourly job updates, but we cache for 5 min)
-const CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign leaderboard position cache threshold
-const CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -197,13 +197,13 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  campaignLeaderboards: {
+  ondoCampaignLeaderboards: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  campaignLeaderboardPositions: {
+  ondoCampaignLeaderboardPositions: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -239,8 +239,8 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
   campaignParticipantStatus: {},
-  campaignLeaderboards: {},
-  campaignLeaderboardPositions: {},
+  ondoCampaignLeaderboards: {},
+  ondoCampaignLeaderboardPositions: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -3561,9 +3561,9 @@ export class RewardsController extends BaseController<
 
     const result = await wrapWithCache<CampaignLeaderboardDto>({
       key: campaignId,
-      ttl: CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS,
+      ttl: ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS,
       readCache: (k) => {
-        const cached = this.state.campaignLeaderboards[k];
+        const cached = this.state.ondoCampaignLeaderboards[k];
         if (!cached) return undefined;
         return {
           payload: {
@@ -3585,7 +3585,7 @@ export class RewardsController extends BaseController<
       },
       writeCache: (k, payload) => {
         this.update((state) => {
-          state.campaignLeaderboards[k] = {
+          state.ondoCampaignLeaderboards[k] = {
             campaign_id: payload.campaign_id,
             computed_at: payload.computed_at,
             tiers: payload.tiers,
@@ -3616,9 +3616,9 @@ export class RewardsController extends BaseController<
     const key = `${campaignId}:${subscriptionId}`;
     const result = await wrapWithCache<CampaignLeaderboardPositionDto | null>({
       key,
-      ttl: CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
+      ttl: ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
       readCache: (k) => {
-        const cached = this.state.campaignLeaderboardPositions[k];
+        const cached = this.state.ondoCampaignLeaderboardPositions[k];
         if (!cached) return undefined;
         return {
           payload: {
@@ -3648,11 +3648,11 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         if (payload === null) {
           this.update((state) => {
-            delete state.campaignLeaderboardPositions[k];
+            delete state.ondoCampaignLeaderboardPositions[k];
           });
         } else {
           this.update((state) => {
-            state.campaignLeaderboardPositions[k] = {
+            state.ondoCampaignLeaderboardPositions[k] = {
               projected_tier: payload.projected_tier,
               rank: payload.rank,
               total_in_tier: payload.total_in_tier,

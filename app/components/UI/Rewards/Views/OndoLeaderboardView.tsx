@@ -7,8 +7,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
-import CampaignLeaderboard from '../components/Campaigns/CampaignLeaderboard';
-import { useGetCampaignLeaderboard } from '../hooks/useGetCampaignLeaderboard';
+import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
+import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { strings } from '../../../../../locales/i18n';
 
 // ParamListBase requires an index signature, which interfaces don't support
@@ -37,7 +37,7 @@ const OndoLeaderboardView: React.FC = () => {
     isLoading: isLeaderboardLoading,
     hasError: hasLeaderboardError,
     refetch: refetchLeaderboard,
-  } = useGetCampaignLeaderboard(campaignId);
+  } = useGetOndoLeaderboard(campaignId);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoLeaderboardView">
@@ -65,7 +65,7 @@ const OndoLeaderboardView: React.FC = () => {
           {/* Full leaderboard */}
           <Box twClassName="border-b border-border-muted mt-4" />
           <Box twClassName="px-4 py-4">
-            <CampaignLeaderboard
+            <OndoLeaderboard
               tierNames={tierNames}
               selectedTier={selectedTier}
               onTierChange={setSelectedTier}

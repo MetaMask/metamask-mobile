@@ -1,19 +1,19 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector, useDispatch } from 'react-redux';
-import { useGetCampaignLeaderboard } from './useGetCampaignLeaderboard';
+import { useGetOndoLeaderboard } from './useGetOndoLeaderboard';
 import Engine from '../../../../core/Engine';
 import {
-  selectCampaignLeaderboard,
-  selectCampaignLeaderboardLoading,
-  selectCampaignLeaderboardError,
-  selectCampaignLeaderboardTierNames,
-  selectCampaignLeaderboardSelectedTier,
+  selectOndoCampaignLeaderboard,
+  selectOndoCampaignLeaderboardLoading,
+  selectOndoCampaignLeaderboardError,
+  selectOndoCampaignLeaderboardTierNames,
+  selectOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards/selectors';
 import {
-  setCampaignLeaderboard,
-  setCampaignLeaderboardLoading,
-  setCampaignLeaderboardError,
-  setCampaignLeaderboardSelectedTier,
+  setOndoCampaignLeaderboard,
+  setOndoCampaignLeaderboardLoading,
+  setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards';
 import type { CampaignLeaderboardDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -27,28 +27,28 @@ jest.mock('../../../../core/Engine', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaignLeaderboard: jest.fn(),
-  selectCampaignLeaderboardLoading: jest.fn(),
-  selectCampaignLeaderboardError: jest.fn(),
-  selectCampaignLeaderboardTierNames: jest.fn(),
-  selectCampaignLeaderboardSelectedTier: jest.fn(),
+  selectOndoCampaignLeaderboard: jest.fn(),
+  selectOndoCampaignLeaderboardLoading: jest.fn(),
+  selectOndoCampaignLeaderboardError: jest.fn(),
+  selectOndoCampaignLeaderboardTierNames: jest.fn(),
+  selectOndoCampaignLeaderboardSelectedTier: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
-  setCampaignLeaderboard: jest.fn((payload) => ({
-    type: 'rewards/setCampaignLeaderboard',
+  setOndoCampaignLeaderboard: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboard',
     payload,
   })),
-  setCampaignLeaderboardLoading: jest.fn((payload) => ({
-    type: 'rewards/setCampaignLeaderboardLoading',
+  setOndoCampaignLeaderboardLoading: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboardLoading',
     payload,
   })),
-  setCampaignLeaderboardError: jest.fn((payload) => ({
-    type: 'rewards/setCampaignLeaderboardError',
+  setOndoCampaignLeaderboardError: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboardError',
     payload,
   })),
-  setCampaignLeaderboardSelectedTier: jest.fn((payload) => ({
-    type: 'rewards/setCampaignLeaderboardSelectedTier',
+  setOndoCampaignLeaderboardSelectedTier: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboardSelectedTier',
     payload,
   })),
 }));
@@ -88,17 +88,19 @@ interface SelectorState {
 
 function setupSelectors(state: SelectorState) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectCampaignLeaderboard) return state.leaderboard;
-    if (selector === selectCampaignLeaderboardLoading) return state.isLoading;
-    if (selector === selectCampaignLeaderboardError) return state.hasError;
-    if (selector === selectCampaignLeaderboardTierNames) return state.tierNames;
-    if (selector === selectCampaignLeaderboardSelectedTier)
+    if (selector === selectOndoCampaignLeaderboard) return state.leaderboard;
+    if (selector === selectOndoCampaignLeaderboardLoading)
+      return state.isLoading;
+    if (selector === selectOndoCampaignLeaderboardError) return state.hasError;
+    if (selector === selectOndoCampaignLeaderboardTierNames)
+      return state.tierNames;
+    if (selector === selectOndoCampaignLeaderboardSelectedTier)
       return state.selectedTier;
     return undefined;
   });
 }
 
-describe('useGetCampaignLeaderboard', () => {
+describe('useGetOndoLeaderboard', () => {
   const mockDispatch = jest.fn();
 
   beforeEach(() => {
@@ -114,7 +116,7 @@ describe('useGetCampaignLeaderboard', () => {
   });
 
   it('does not fetch when campaignId is undefined', async () => {
-    renderHook(() => useGetCampaignLeaderboard(undefined));
+    renderHook(() => useGetOndoLeaderboard(undefined));
 
     expect(mockCall).not.toHaveBeenCalled();
     expect(mockDispatch).not.toHaveBeenCalled();
@@ -123,7 +125,7 @@ describe('useGetCampaignLeaderboard', () => {
   it('fetches leaderboard and dispatches actions on success', async () => {
     mockCall.mockResolvedValueOnce(MOCK_LEADERBOARD as never);
 
-    renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     // Wait for async operations
     await act(async () => {
@@ -131,37 +133,37 @@ describe('useGetCampaignLeaderboard', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardLoading(true),
+      setOndoCampaignLeaderboardLoading(true),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardError(false),
+      setOndoCampaignLeaderboardError(false),
     );
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:getOndoCampaignLeaderboard',
       CAMPAIGN_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboard(MOCK_LEADERBOARD),
+      setOndoCampaignLeaderboard(MOCK_LEADERBOARD),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardLoading(false),
+      setOndoCampaignLeaderboardLoading(false),
     );
   });
 
   it('dispatches error action on fetch failure', async () => {
     mockCall.mockRejectedValueOnce(new Error('Network error') as never);
 
-    renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     await act(async () => {
       await Promise.resolve();
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardError(true),
+      setOndoCampaignLeaderboardError(true),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardLoading(false),
+      setOndoCampaignLeaderboardLoading(false),
     );
   });
 
@@ -174,7 +176,7 @@ describe('useGetCampaignLeaderboard', () => {
       selectedTier: 'STARTER',
     });
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.leaderboard).toEqual(MOCK_LEADERBOARD);
     expect(result.current.tierNames).toEqual(['STARTER', 'MID']);
@@ -191,7 +193,7 @@ describe('useGetCampaignLeaderboard', () => {
       selectedTier: 'MID',
     });
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.selectedTierData).toEqual(MOCK_LEADERBOARD.tiers.MID);
   });
@@ -205,7 +207,7 @@ describe('useGetCampaignLeaderboard', () => {
       selectedTier: null,
     });
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.selectedTierData).toBeNull();
   });
@@ -219,14 +221,14 @@ describe('useGetCampaignLeaderboard', () => {
       selectedTier: 'STARTER',
     });
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     act(() => {
       result.current.setSelectedTier('MID');
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardSelectedTier('MID'),
+      setOndoCampaignLeaderboardSelectedTier('MID'),
     );
   });
 
@@ -239,7 +241,7 @@ describe('useGetCampaignLeaderboard', () => {
       selectedTier: 'STARTER',
     });
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
     mockDispatch.mockClear();
 
     act(() => {
@@ -247,7 +249,7 @@ describe('useGetCampaignLeaderboard', () => {
     });
 
     expect(mockDispatch).not.toHaveBeenCalledWith(
-      setCampaignLeaderboardSelectedTier('INVALID'),
+      setOndoCampaignLeaderboardSelectedTier('INVALID'),
     );
   });
 
@@ -261,7 +263,7 @@ describe('useGetCampaignLeaderboard', () => {
     });
 
     renderHook(() =>
-      useGetCampaignLeaderboard(CAMPAIGN_ID, { defaultTier: 'MID' }),
+      useGetOndoLeaderboard(CAMPAIGN_ID, { defaultTier: 'MID' }),
     );
 
     await act(async () => {
@@ -269,7 +271,7 @@ describe('useGetCampaignLeaderboard', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardSelectedTier('MID'),
+      setOndoCampaignLeaderboardSelectedTier('MID'),
     );
   });
 
@@ -284,7 +286,7 @@ describe('useGetCampaignLeaderboard', () => {
     mockDispatch.mockClear();
 
     renderHook(() =>
-      useGetCampaignLeaderboard(CAMPAIGN_ID, { defaultTier: 'UPPER' }),
+      useGetOndoLeaderboard(CAMPAIGN_ID, { defaultTier: 'UPPER' }),
     );
 
     await act(async () => {
@@ -292,14 +294,14 @@ describe('useGetCampaignLeaderboard', () => {
     });
 
     expect(mockDispatch).not.toHaveBeenCalledWith(
-      setCampaignLeaderboardSelectedTier('UPPER'),
+      setOndoCampaignLeaderboardSelectedTier('UPPER'),
     );
   });
 
   it('refetch function re-fetches the leaderboard', async () => {
     mockCall.mockResolvedValue(MOCK_LEADERBOARD as never);
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     await act(async () => {
       await Promise.resolve();
@@ -313,7 +315,7 @@ describe('useGetCampaignLeaderboard', () => {
 
     expect(mockCall).toHaveBeenCalledTimes(2);
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardLoading(true),
+      setOndoCampaignLeaderboardLoading(true),
     );
   });
 
@@ -326,7 +328,7 @@ describe('useGetCampaignLeaderboard', () => {
       selectedTier: null,
     });
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.isLoading).toBe(true);
   });
@@ -340,7 +342,7 @@ describe('useGetCampaignLeaderboard', () => {
       selectedTier: null,
     });
 
-    const { result } = renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     expect(result.current.hasError).toBe(true);
   });

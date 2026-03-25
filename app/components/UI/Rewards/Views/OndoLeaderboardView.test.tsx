@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OndoLeaderboardView, {
   ONDO_LEADERBOARD_VIEW_TEST_IDS,
 } from './OndoLeaderboardView';
-import { useGetCampaignLeaderboard } from '../hooks/useGetCampaignLeaderboard';
+import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 
 const mockGoBack = jest.fn();
 
@@ -95,7 +95,7 @@ jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
   };
 });
 
-jest.mock('../components/Campaigns/CampaignLeaderboard', () => {
+jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
@@ -105,12 +105,11 @@ jest.mock('../components/Campaigns/CampaignLeaderboard', () => {
   };
 });
 
-jest.mock('../hooks/useGetCampaignLeaderboard');
+jest.mock('../hooks/useGetOndoLeaderboard');
 
-const mockUseGetCampaignLeaderboard =
-  useGetCampaignLeaderboard as jest.MockedFunction<
-    typeof useGetCampaignLeaderboard
-  >;
+const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
+  typeof useGetOndoLeaderboard
+>;
 
 const hookDefaults = {
   leaderboard: null,
@@ -131,7 +130,7 @@ jest.mock('../../../../../locales/i18n', () => ({
 describe('OndoLeaderboardView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockUseGetCampaignLeaderboard.mockReturnValue(hookDefaults);
+    mockUseGetOndoLeaderboard.mockReturnValue(hookDefaults);
   });
 
   it('renders with the correct container testID', () => {
@@ -139,7 +138,7 @@ describe('OndoLeaderboardView', () => {
     expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
   });
 
-  it('renders the CampaignLeaderboard component', () => {
+  it('renders the OndoLeaderboard component', () => {
     const { getByTestId } = render(<OndoLeaderboardView />);
     expect(getByTestId('campaign-leaderboard')).toBeDefined();
   });
@@ -151,11 +150,9 @@ describe('OndoLeaderboardView', () => {
     ).toBeDefined();
   });
 
-  it('calls useGetCampaignLeaderboard with the campaign ID from route params', () => {
+  it('calls useGetOndoLeaderboard with the campaign ID from route params', () => {
     render(<OndoLeaderboardView />);
-    expect(mockUseGetCampaignLeaderboard).toHaveBeenCalledWith(
-      'campaign-ondo-123',
-    );
+    expect(mockUseGetOndoLeaderboard).toHaveBeenCalledWith('campaign-ondo-123');
   });
 
   it('navigates back when the back button is pressed', () => {
@@ -165,7 +162,7 @@ describe('OndoLeaderboardView', () => {
   });
 
   it('renders while leaderboard is loading', () => {
-    mockUseGetCampaignLeaderboard.mockReturnValue({
+    mockUseGetOndoLeaderboard.mockReturnValue({
       ...hookDefaults,
       isLoading: true,
     });
@@ -174,7 +171,7 @@ describe('OndoLeaderboardView', () => {
   });
 
   it('renders while leaderboard has an error', () => {
-    mockUseGetCampaignLeaderboard.mockReturnValue({
+    mockUseGetOndoLeaderboard.mockReturnValue({
       ...hookDefaults,
       hasError: true,
     });

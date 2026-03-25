@@ -1409,10 +1409,10 @@ export type RewardsControllerState = {
   campaignParticipantStatus: {
     [compositeId: string]: CampaignParticipantStatusState;
   };
-  /** Campaign leaderboard data keyed by campaignId */
-  campaignLeaderboards: { [campaignId: string]: CampaignLeaderboardState };
-  /** Campaign leaderboard position keyed by compositeId (campaignId:subscriptionId) */
-  campaignLeaderboardPositions: {
+  /** Ondo campaign leaderboard data keyed by campaignId */
+  ondoCampaignLeaderboards: { [campaignId: string]: CampaignLeaderboardState };
+  /** Ondo campaign leaderboard position keyed by compositeId (campaignId:subscriptionId) */
+  ondoCampaignLeaderboardPositions: {
     [compositeId: string]: CampaignLeaderboardPositionState;
   };
   /**

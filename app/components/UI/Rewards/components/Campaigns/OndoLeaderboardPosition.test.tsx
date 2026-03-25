@@ -3,16 +3,14 @@ import { render } from '@testing-library/react-native';
 import OndoLeaderboardPosition, {
   ONDO_LEADERBOARD_POSITION_TEST_IDS,
 } from './OndoLeaderboardPosition';
-import {
-  useOndoLeaderboardPosition,
-  type OndoLeaderboardPositionData,
-} from '../../hooks/useOndoLeaderboardPosition';
+import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
+import type { CampaignLeaderboardPositionDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
 
-jest.mock('../../hooks/useOndoLeaderboardPosition');
+jest.mock('../../hooks/useGetOndoLeaderboardPosition');
 
-const mockUseOndoLeaderboardPosition =
-  useOndoLeaderboardPosition as jest.MockedFunction<
-    typeof useOndoLeaderboardPosition
+const mockUseGetOndoLeaderboardPosition =
+  useGetOndoLeaderboardPosition as jest.MockedFunction<
+    typeof useGetOndoLeaderboardPosition
   >;
 
 jest.mock('@metamask/design-system-react-native', () => {
@@ -77,13 +75,16 @@ jest.mock('../../../../../../locales/i18n', () => ({
 const CAMPAIGN_ID = 'campaign-123';
 const mockRefetch = jest.fn();
 
-const MOCK_POSITION_DATA: OndoLeaderboardPositionData = {
+const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   rank: 5,
   projected_tier: 'MID',
   rate_of_return: 0.15,
   total_usd_deposited: 10000.0,
   current_usd_value: 12500.5,
   computed_at: '2024-03-20T12:00:00.000Z',
+  total_in_tier: 150,
+  net_deposit: 8500.0,
+  referral_code: 'ABC123',
 };
 
 describe('OndoLeaderboardPosition', () => {
@@ -93,8 +94,8 @@ describe('OndoLeaderboardPosition', () => {
 
   describe('loading state', () => {
     it('renders skeleton when loading with no data', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: null,
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
         isLoading: true,
         hasError: false,
         refetch: mockRefetch,
@@ -110,8 +111,8 @@ describe('OndoLeaderboardPosition', () => {
     });
 
     it('does not render skeleton when loading but has data', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: MOCK_POSITION_DATA,
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: MOCK_POSITION,
         isLoading: true,
         hasError: false,
         refetch: mockRefetch,
@@ -132,8 +133,8 @@ describe('OndoLeaderboardPosition', () => {
 
   describe('error state', () => {
     it('renders error banner when has error and no data', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: null,
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
         isLoading: false,
         hasError: true,
         refetch: mockRefetch,
@@ -148,9 +149,9 @@ describe('OndoLeaderboardPosition', () => {
       ).toBeDefined();
     });
 
-    it('shows data when has error but positionData is present', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: MOCK_POSITION_DATA,
+    it('shows data when has error but position is present', () => {
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: MOCK_POSITION,
         isLoading: false,
         hasError: true,
         refetch: mockRefetch,
@@ -168,8 +169,8 @@ describe('OndoLeaderboardPosition', () => {
 
   describe('not found state', () => {
     it('renders not found message when no data and not loading', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: null,
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
         isLoading: false,
         hasError: false,
         refetch: mockRefetch,
@@ -187,8 +188,8 @@ describe('OndoLeaderboardPosition', () => {
 
   describe('position data display', () => {
     beforeEach(() => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: MOCK_POSITION_DATA,
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: MOCK_POSITION,
         isLoading: false,
         hasError: false,
         refetch: mockRefetch,
@@ -257,8 +258,8 @@ describe('OndoLeaderboardPosition', () => {
     });
 
     it('renders negative rate of return without plus sign', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: { ...MOCK_POSITION_DATA, rate_of_return: -0.05 },
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: { ...MOCK_POSITION, rate_of_return: -0.05 },
         isLoading: false,
         hasError: false,
         refetch: mockRefetch,
@@ -297,8 +298,8 @@ describe('OndoLeaderboardPosition', () => {
 
   describe('hook integration', () => {
     it('passes campaignId to hook', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: null,
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
         isLoading: false,
         hasError: false,
         refetch: mockRefetch,
@@ -306,12 +307,14 @@ describe('OndoLeaderboardPosition', () => {
 
       render(<OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />);
 
-      expect(mockUseOndoLeaderboardPosition).toHaveBeenCalledWith(CAMPAIGN_ID);
+      expect(mockUseGetOndoLeaderboardPosition).toHaveBeenCalledWith(
+        CAMPAIGN_ID,
+      );
     });
 
     it('passes undefined campaignId when not provided', () => {
-      mockUseOndoLeaderboardPosition.mockReturnValue({
-        positionData: null,
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
         isLoading: false,
         hasError: false,
         refetch: mockRefetch,
@@ -319,7 +322,7 @@ describe('OndoLeaderboardPosition', () => {
 
       render(<OndoLeaderboardPosition campaignId={undefined} />);
 
-      expect(mockUseOndoLeaderboardPosition).toHaveBeenCalledWith(undefined);
+      expect(mockUseGetOndoLeaderboardPosition).toHaveBeenCalledWith(undefined);
     });
   });
 });

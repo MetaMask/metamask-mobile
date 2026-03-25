@@ -15828,8 +15828,8 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
-          "campaignLeaderboardPositions": {},
-          "campaignLeaderboards": {},
+          "ondoCampaignLeaderboardPositions": {},
+          "ondoCampaignLeaderboards": {},
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
@@ -15852,8 +15852,8 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
-          "campaignLeaderboardPositions": {},
-          "campaignLeaderboards": {},
+          "ondoCampaignLeaderboardPositions": {},
+          "ondoCampaignLeaderboards": {},
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
@@ -15881,8 +15881,8 @@ describe('RewardsController', () => {
           "accounts": {},
           "activeAccount": null,
           "activeBoosts": {},
-          "campaignLeaderboardPositions": {},
-          "campaignLeaderboards": {},
+          "ondoCampaignLeaderboardPositions": {},
+          "ondoCampaignLeaderboards": {},
           "campaignParticipantStatus": {},
           "campaigns": {},
           "offDeviceSubscriptionAccounts": {},
@@ -19079,7 +19079,7 @@ describe('RewardsController', () => {
         mockCampaignId,
       );
       expect(result).toEqual(mockLeaderboard);
-      expect(ctrl.state.campaignLeaderboards[mockCampaignId]).toBeDefined();
+      expect(ctrl.state.ondoCampaignLeaderboards[mockCampaignId]).toBeDefined();
     });
 
     it('returns cached leaderboard when cache is fresh', async () => {
@@ -19088,7 +19088,7 @@ describe('RewardsController', () => {
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
-          campaignLeaderboards: {
+          ondoCampaignLeaderboards: {
             [mockCampaignId]: {
               ...mockLeaderboard,
               lastFetched: recentTime,
@@ -19185,7 +19185,9 @@ describe('RewardsController', () => {
       );
       expect(result).toEqual(mockPosition);
       const cacheKey = `${mockCampaignId}:${mockSubscriptionId}`;
-      expect(ctrl.state.campaignLeaderboardPositions[cacheKey]).toBeDefined();
+      expect(
+        ctrl.state.ondoCampaignLeaderboardPositions[cacheKey],
+      ).toBeDefined();
     });
 
     it('returns cached position when cache is fresh', async () => {
@@ -19195,7 +19197,7 @@ describe('RewardsController', () => {
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
-          campaignLeaderboardPositions: {
+          ondoCampaignLeaderboardPositions: {
             [cacheKey]: {
               ...mockPosition,
               lastFetched: recentTime,

@@ -133,16 +133,19 @@ export interface RewardsState {
   versionGuardError: boolean;
 
   // Campaign leaderboard (keyed by campaignId)
-  campaignLeaderboard: CampaignLeaderboardDto | null;
-  campaignLeaderboardLoading: boolean;
-  campaignLeaderboardError: boolean;
+  ondoCampaignLeaderboard: CampaignLeaderboardDto | null;
+  ondoCampaignLeaderboardLoading: boolean;
+  ondoCampaignLeaderboardError: boolean;
   // Currently selected tier for leaderboard display
-  campaignLeaderboardSelectedTier: string | null;
+  ondoCampaignLeaderboardSelectedTier: string | null;
 
   // Campaign leaderboard position (user's position, keyed by campaignId)
-  campaignLeaderboardPositions: Record<string, CampaignLeaderboardPositionDto>;
-  campaignLeaderboardPositionLoading: boolean;
-  campaignLeaderboardPositionError: boolean;
+  ondoCampaignLeaderboardPositions: Record<
+    string,
+    CampaignLeaderboardPositionDto
+  >;
+  ondoCampaignLeaderboardPositionLoading: boolean;
+  ondoCampaignLeaderboardPositionError: boolean;
 }
 
 export const initialState: RewardsState = {
@@ -220,15 +223,15 @@ export const initialState: RewardsState = {
   versionGuardError: false,
 
   // Campaign leaderboard initial state
-  campaignLeaderboard: null,
-  campaignLeaderboardLoading: false,
-  campaignLeaderboardError: false,
-  campaignLeaderboardSelectedTier: null,
+  ondoCampaignLeaderboard: null,
+  ondoCampaignLeaderboardLoading: false,
+  ondoCampaignLeaderboardError: false,
+  ondoCampaignLeaderboardSelectedTier: null,
 
   // Campaign leaderboard position initial state
-  campaignLeaderboardPositions: {},
-  campaignLeaderboardPositionLoading: false,
-  campaignLeaderboardPositionError: false,
+  ondoCampaignLeaderboardPositions: {},
+  ondoCampaignLeaderboardPositionLoading: false,
+  ondoCampaignLeaderboardPositionError: false,
 };
 
 interface RehydrateAction extends Action<'persist/REHYDRATE'> {
@@ -523,38 +526,44 @@ const rewardsSlice = createSlice({
     },
 
     // Campaign leaderboard reducers
-    setCampaignLeaderboard: (
+    setOndoCampaignLeaderboard: (
       state,
       action: PayloadAction<CampaignLeaderboardDto | null>,
     ) => {
-      state.campaignLeaderboard = action.payload;
-      state.campaignLeaderboardError = false;
+      state.ondoCampaignLeaderboard = action.payload;
+      state.ondoCampaignLeaderboardError = false;
       // Set the first tier as selected if not already set
-      if (action.payload && !state.campaignLeaderboardSelectedTier) {
+      if (action.payload && !state.ondoCampaignLeaderboardSelectedTier) {
         const tierNames = Object.keys(action.payload.tiers);
         if (tierNames.length > 0) {
-          state.campaignLeaderboardSelectedTier = tierNames[0];
+          state.ondoCampaignLeaderboardSelectedTier = tierNames[0];
         }
       }
     },
-    setCampaignLeaderboardLoading: (state, action: PayloadAction<boolean>) => {
-      if (action.payload && state.campaignLeaderboard) {
+    setOndoCampaignLeaderboardLoading: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      if (action.payload && state.ondoCampaignLeaderboard) {
         return;
       }
-      state.campaignLeaderboardLoading = action.payload;
+      state.ondoCampaignLeaderboardLoading = action.payload;
     },
-    setCampaignLeaderboardError: (state, action: PayloadAction<boolean>) => {
-      state.campaignLeaderboardError = action.payload;
+    setOndoCampaignLeaderboardError: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.ondoCampaignLeaderboardError = action.payload;
     },
-    setCampaignLeaderboardSelectedTier: (
+    setOndoCampaignLeaderboardSelectedTier: (
       state,
       action: PayloadAction<string>,
     ) => {
-      state.campaignLeaderboardSelectedTier = action.payload;
+      state.ondoCampaignLeaderboardSelectedTier = action.payload;
     },
 
     // Campaign leaderboard position reducers
-    setCampaignLeaderboardPosition: (
+    setOndoCampaignLeaderboardPosition: (
       state,
       action: PayloadAction<{
         campaignId: string;
@@ -562,24 +571,26 @@ const rewardsSlice = createSlice({
       }>,
     ) => {
       if (action.payload.position) {
-        state.campaignLeaderboardPositions[action.payload.campaignId] =
+        state.ondoCampaignLeaderboardPositions[action.payload.campaignId] =
           action.payload.position;
       } else {
-        delete state.campaignLeaderboardPositions[action.payload.campaignId];
+        delete state.ondoCampaignLeaderboardPositions[
+          action.payload.campaignId
+        ];
       }
-      state.campaignLeaderboardPositionError = false;
+      state.ondoCampaignLeaderboardPositionError = false;
     },
-    setCampaignLeaderboardPositionLoading: (
+    setOndoCampaignLeaderboardPositionLoading: (
       state,
       action: PayloadAction<boolean>,
     ) => {
-      state.campaignLeaderboardPositionLoading = action.payload;
+      state.ondoCampaignLeaderboardPositionLoading = action.payload;
     },
-    setCampaignLeaderboardPositionError: (
+    setOndoCampaignLeaderboardPositionError: (
       state,
       action: PayloadAction<boolean>,
     ) => {
-      state.campaignLeaderboardPositionError = action.payload;
+      state.ondoCampaignLeaderboardPositionError = action.payload;
     },
 
     // Bulk link reducers
@@ -747,13 +758,13 @@ export const {
   setVersionGuardLoading,
   setVersionGuardError,
   // Campaign leaderboard actions
-  setCampaignLeaderboard,
-  setCampaignLeaderboardLoading,
-  setCampaignLeaderboardError,
-  setCampaignLeaderboardSelectedTier,
-  setCampaignLeaderboardPosition,
-  setCampaignLeaderboardPositionLoading,
-  setCampaignLeaderboardPositionError,
+  setOndoCampaignLeaderboard,
+  setOndoCampaignLeaderboardLoading,
+  setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardSelectedTier,
+  setOndoCampaignLeaderboardPosition,
+  setOndoCampaignLeaderboardPositionLoading,
+  setOndoCampaignLeaderboardPositionError,
   // Bulk link actions
   bulkLinkStarted,
   bulkLinkAccountResult,

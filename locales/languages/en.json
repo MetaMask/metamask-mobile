@@ -7952,6 +7952,7 @@
       "updated_at": "Updated {{time}}",
       "not_found": "Not on the leaderboard yet",
       "error_loading": "Failed to load your position",
+      "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
       "retry": "Retry"
     },
     "leaderboard": {

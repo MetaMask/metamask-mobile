@@ -1,13 +1,13 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector, useDispatch } from 'react-redux';
-import { useGetCampaignLeaderboardPosition } from './useGetCampaignLeaderboardPosition';
+import { useGetOndoLeaderboardPosition } from './useGetOndoLeaderboardPosition';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
+import { selectOndoCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
 import {
-  setCampaignLeaderboardPosition,
-  setCampaignLeaderboardPositionLoading,
-  setCampaignLeaderboardPositionError,
+  setOndoCampaignLeaderboardPosition,
+  setOndoCampaignLeaderboardPositionLoading,
+  setOndoCampaignLeaderboardPositionError,
 } from '../../../../reducers/rewards';
 import type { CampaignLeaderboardPositionDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -25,20 +25,20 @@ jest.mock('../../../../selectors/rewards', () => ({
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
-  selectCampaignLeaderboardPositionById: jest.fn(),
+  selectOndoCampaignLeaderboardPositionById: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards', () => ({
-  setCampaignLeaderboardPosition: jest.fn((payload) => ({
-    type: 'rewards/setCampaignLeaderboardPosition',
+  setOndoCampaignLeaderboardPosition: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboardPosition',
     payload,
   })),
-  setCampaignLeaderboardPositionLoading: jest.fn((payload) => ({
-    type: 'rewards/setCampaignLeaderboardPositionLoading',
+  setOndoCampaignLeaderboardPositionLoading: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboardPositionLoading',
     payload,
   })),
-  setCampaignLeaderboardPositionError: jest.fn((payload) => ({
-    type: 'rewards/setCampaignLeaderboardPositionError',
+  setOndoCampaignLeaderboardPositionError: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboardPositionError',
     payload,
   })),
 }));
@@ -49,8 +49,8 @@ const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 const mockSelectCampaignLeaderboardPositionById =
-  selectCampaignLeaderboardPositionById as jest.MockedFunction<
-    typeof selectCampaignLeaderboardPositionById
+  selectOndoCampaignLeaderboardPositionById as jest.MockedFunction<
+    typeof selectOndoCampaignLeaderboardPositionById
   >;
 
 const CAMPAIGN_ID = 'campaign-123';
@@ -85,7 +85,7 @@ function setupSelectors(state: SelectorState) {
   });
 }
 
-describe('useGetCampaignLeaderboardPosition', () => {
+describe('useGetOndoLeaderboardPosition', () => {
   const mockDispatch = jest.fn();
 
   beforeEach(() => {
@@ -103,13 +103,13 @@ describe('useGetCampaignLeaderboardPosition', () => {
       position: null,
     });
 
-    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
+    renderHook(() => useGetOndoLeaderboardPosition(CAMPAIGN_ID));
 
     expect(mockCall).not.toHaveBeenCalled();
   });
 
   it('does not fetch when campaignId is undefined', async () => {
-    renderHook(() => useGetCampaignLeaderboardPosition(undefined));
+    renderHook(() => useGetOndoLeaderboardPosition(undefined));
 
     expect(mockCall).not.toHaveBeenCalled();
   });
@@ -117,17 +117,17 @@ describe('useGetCampaignLeaderboardPosition', () => {
   it('fetches position and dispatches actions on success', async () => {
     mockCall.mockResolvedValueOnce(MOCK_POSITION as never);
 
-    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
+    renderHook(() => useGetOndoLeaderboardPosition(CAMPAIGN_ID));
 
     await act(async () => {
       await Promise.resolve();
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardPositionLoading(true),
+      setOndoCampaignLeaderboardPositionLoading(true),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardPositionError(false),
+      setOndoCampaignLeaderboardPositionError(false),
     );
     expect(mockCall).toHaveBeenCalledWith(
       'RewardsController:getOndoCampaignLeaderboardPosition',
@@ -135,13 +135,13 @@ describe('useGetCampaignLeaderboardPosition', () => {
       SUBSCRIPTION_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardPosition({
+      setOndoCampaignLeaderboardPosition({
         campaignId: CAMPAIGN_ID,
         position: MOCK_POSITION,
       }),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardPositionLoading(false),
+      setOndoCampaignLeaderboardPositionLoading(false),
     );
   });
 
@@ -149,7 +149,7 @@ describe('useGetCampaignLeaderboardPosition', () => {
     mockCall.mockRejectedValueOnce(new Error('Network error') as never);
 
     const { result } = renderHook(() =>
-      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+      useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     await act(async () => {
@@ -157,10 +157,10 @@ describe('useGetCampaignLeaderboardPosition', () => {
     });
 
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardPositionError(true),
+      setOndoCampaignLeaderboardPositionError(true),
     );
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardPositionLoading(false),
+      setOndoCampaignLeaderboardPositionLoading(false),
     );
     expect(result.current.hasError).toBe(true);
   });
@@ -172,7 +172,7 @@ describe('useGetCampaignLeaderboardPosition', () => {
     });
 
     const { result } = renderHook(() =>
-      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+      useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     expect(result.current.position).toEqual(MOCK_POSITION);
@@ -182,7 +182,7 @@ describe('useGetCampaignLeaderboardPosition', () => {
     mockCall.mockResolvedValue(MOCK_POSITION as never);
 
     const { result, waitForNextUpdate } = renderHook(() =>
-      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+      useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     // Wait for the fetch to complete
@@ -198,7 +198,7 @@ describe('useGetCampaignLeaderboardPosition', () => {
     mockCall.mockRejectedValueOnce(new Error('Network error') as never);
 
     const { result } = renderHook(() =>
-      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+      useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     await act(async () => {
@@ -212,7 +212,7 @@ describe('useGetCampaignLeaderboardPosition', () => {
     mockCall.mockResolvedValue(MOCK_POSITION as never);
 
     const { result } = renderHook(() =>
-      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+      useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     await act(async () => {
@@ -227,7 +227,7 @@ describe('useGetCampaignLeaderboardPosition', () => {
 
     expect(mockCall).toHaveBeenCalledTimes(2);
     expect(mockDispatch).toHaveBeenCalledWith(
-      setCampaignLeaderboardPositionLoading(true),
+      setOndoCampaignLeaderboardPositionLoading(true),
     );
   });
 
@@ -238,14 +238,14 @@ describe('useGetCampaignLeaderboardPosition', () => {
     });
 
     const { result } = renderHook(() =>
-      useGetCampaignLeaderboardPosition(CAMPAIGN_ID),
+      useGetOndoLeaderboardPosition(CAMPAIGN_ID),
     );
 
     expect(result.current.position).toBeNull();
   });
 
-  it('calls selectCampaignLeaderboardPositionById with campaignId', () => {
-    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
+  it('calls selectOndoCampaignLeaderboardPositionById with campaignId', () => {
+    renderHook(() => useGetOndoLeaderboardPosition(CAMPAIGN_ID));
 
     expect(mockSelectCampaignLeaderboardPositionById).toHaveBeenCalledWith(
       CAMPAIGN_ID,

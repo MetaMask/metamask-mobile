@@ -57,19 +57,19 @@ import {
   selectVersionGuardMinimumMobileVersion,
   selectVersionGuardLoading,
   selectVersionGuardError,
-  selectCampaignLeaderboard,
-  selectCampaignLeaderboardLoading,
-  selectCampaignLeaderboardError,
-  selectCampaignLeaderboardSelectedTier,
-  selectCampaignLeaderboardTiers,
-  selectCampaignLeaderboardComputedAt,
-  selectCampaignLeaderboardTierNames,
-  selectCampaignLeaderboardEntriesByTier,
-  selectCampaignLeaderboardTotalParticipantsByTier,
-  selectCampaignLeaderboardPositions,
-  selectCampaignLeaderboardPositionById,
-  selectCampaignLeaderboardPositionLoading,
-  selectCampaignLeaderboardPositionError,
+  selectOndoCampaignLeaderboard,
+  selectOndoCampaignLeaderboardLoading,
+  selectOndoCampaignLeaderboardError,
+  selectOndoCampaignLeaderboardSelectedTier,
+  selectOndoCampaignLeaderboardTiers,
+  selectOndoCampaignLeaderboardComputedAt,
+  selectOndoCampaignLeaderboardTierNames,
+  selectOndoCampaignLeaderboardEntriesByTier,
+  selectOndoCampaignLeaderboardTotalParticipantsByTier,
+  selectOndoCampaignLeaderboardPositions,
+  selectOndoCampaignLeaderboardPositionById,
+  selectOndoCampaignLeaderboardPositionLoading,
+  selectOndoCampaignLeaderboardPositionError,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -3429,256 +3429,258 @@ describe('Rewards selectors', () => {
     referral_code: 'XYZ789',
   };
 
-  describe('selectCampaignLeaderboard', () => {
+  describe('selectOndoCampaignLeaderboard', () => {
     it('returns null when leaderboard is not set', () => {
       const state = createMockRootState({
-        campaignLeaderboard: null,
+        ondoCampaignLeaderboard: null,
       });
-      expect(selectCampaignLeaderboard(state)).toBeNull();
+      expect(selectOndoCampaignLeaderboard(state)).toBeNull();
     });
 
     it('returns leaderboard when set', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
-      expect(selectCampaignLeaderboard(state)).toEqual(mockLeaderboard);
+      expect(selectOndoCampaignLeaderboard(state)).toEqual(mockLeaderboard);
     });
   });
 
-  describe('selectCampaignLeaderboardLoading', () => {
+  describe('selectOndoCampaignLeaderboardLoading', () => {
     it('returns false when not loading', () => {
       const state = createMockRootState({
-        campaignLeaderboardLoading: false,
+        ondoCampaignLeaderboardLoading: false,
       });
-      expect(selectCampaignLeaderboardLoading(state)).toBe(false);
+      expect(selectOndoCampaignLeaderboardLoading(state)).toBe(false);
     });
 
     it('returns true when loading', () => {
       const state = createMockRootState({
-        campaignLeaderboardLoading: true,
+        ondoCampaignLeaderboardLoading: true,
       });
-      expect(selectCampaignLeaderboardLoading(state)).toBe(true);
+      expect(selectOndoCampaignLeaderboardLoading(state)).toBe(true);
     });
   });
 
-  describe('selectCampaignLeaderboardError', () => {
+  describe('selectOndoCampaignLeaderboardError', () => {
     it('returns false when no error', () => {
       const state = createMockRootState({
-        campaignLeaderboardError: false,
+        ondoCampaignLeaderboardError: false,
       });
-      expect(selectCampaignLeaderboardError(state)).toBe(false);
+      expect(selectOndoCampaignLeaderboardError(state)).toBe(false);
     });
 
     it('returns true when has error', () => {
       const state = createMockRootState({
-        campaignLeaderboardError: true,
+        ondoCampaignLeaderboardError: true,
       });
-      expect(selectCampaignLeaderboardError(state)).toBe(true);
+      expect(selectOndoCampaignLeaderboardError(state)).toBe(true);
     });
   });
 
-  describe('selectCampaignLeaderboardSelectedTier', () => {
+  describe('selectOndoCampaignLeaderboardSelectedTier', () => {
     it('returns null when no tier selected', () => {
       const state = createMockRootState({
-        campaignLeaderboardSelectedTier: null,
+        ondoCampaignLeaderboardSelectedTier: null,
       });
-      expect(selectCampaignLeaderboardSelectedTier(state)).toBeNull();
+      expect(selectOndoCampaignLeaderboardSelectedTier(state)).toBeNull();
     });
 
     it('returns selected tier', () => {
       const state = createMockRootState({
-        campaignLeaderboardSelectedTier: 'STARTER',
+        ondoCampaignLeaderboardSelectedTier: 'STARTER',
       });
-      expect(selectCampaignLeaderboardSelectedTier(state)).toBe('STARTER');
+      expect(selectOndoCampaignLeaderboardSelectedTier(state)).toBe('STARTER');
     });
   });
 
-  describe('selectCampaignLeaderboardTiers', () => {
+  describe('selectOndoCampaignLeaderboardTiers', () => {
     it('returns empty object when no leaderboard', () => {
       const state = createMockRootState({
-        campaignLeaderboard: null,
+        ondoCampaignLeaderboard: null,
       });
-      expect(selectCampaignLeaderboardTiers(state)).toEqual({});
+      expect(selectOndoCampaignLeaderboardTiers(state)).toEqual({});
     });
 
     it('returns tiers from leaderboard', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
-      expect(selectCampaignLeaderboardTiers(state)).toEqual(
+      expect(selectOndoCampaignLeaderboardTiers(state)).toEqual(
         mockLeaderboard.tiers,
       );
     });
   });
 
-  describe('selectCampaignLeaderboardComputedAt', () => {
+  describe('selectOndoCampaignLeaderboardComputedAt', () => {
     it('returns null when no leaderboard', () => {
       const state = createMockRootState({
-        campaignLeaderboard: null,
+        ondoCampaignLeaderboard: null,
       });
-      expect(selectCampaignLeaderboardComputedAt(state)).toBeNull();
+      expect(selectOndoCampaignLeaderboardComputedAt(state)).toBeNull();
     });
 
     it('returns computed_at from leaderboard', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
-      expect(selectCampaignLeaderboardComputedAt(state)).toBe(
+      expect(selectOndoCampaignLeaderboardComputedAt(state)).toBe(
         '2024-03-20T12:00:00.000Z',
       );
     });
   });
 
-  describe('selectCampaignLeaderboardTierNames', () => {
+  describe('selectOndoCampaignLeaderboardTierNames', () => {
     it('returns empty array when no leaderboard', () => {
       const state = createMockRootState({
-        campaignLeaderboard: null,
+        ondoCampaignLeaderboard: null,
       });
-      expect(selectCampaignLeaderboardTierNames(state)).toEqual([]);
+      expect(selectOndoCampaignLeaderboardTierNames(state)).toEqual([]);
     });
 
     it('returns tier names from leaderboard', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
-      expect(selectCampaignLeaderboardTierNames(state)).toEqual([
+      expect(selectOndoCampaignLeaderboardTierNames(state)).toEqual([
         'STARTER',
         'MID',
       ]);
     });
   });
 
-  describe('selectCampaignLeaderboardEntriesByTier', () => {
+  describe('selectOndoCampaignLeaderboardEntriesByTier', () => {
     it('returns empty array when tier name is null', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
-      expect(selectCampaignLeaderboardEntriesByTier(null)(state)).toEqual([]);
-    });
-
-    it('returns empty array when tier does not exist', () => {
-      const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
-      });
-      expect(selectCampaignLeaderboardEntriesByTier('UPPER')(state)).toEqual(
+      expect(selectOndoCampaignLeaderboardEntriesByTier(null)(state)).toEqual(
         [],
       );
     });
 
+    it('returns empty array when tier does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectOndoCampaignLeaderboardEntriesByTier('UPPER')(state),
+      ).toEqual([]);
+    });
+
     it('returns entries for specified tier', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
-      expect(selectCampaignLeaderboardEntriesByTier('STARTER')(state)).toEqual(
-        mockLeaderboard.tiers.STARTER.entries,
-      );
+      expect(
+        selectOndoCampaignLeaderboardEntriesByTier('STARTER')(state),
+      ).toEqual(mockLeaderboard.tiers.STARTER.entries);
     });
   });
 
-  describe('selectCampaignLeaderboardTotalParticipantsByTier', () => {
+  describe('selectOndoCampaignLeaderboardTotalParticipantsByTier', () => {
     it('returns 0 when tier name is null', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
       expect(
-        selectCampaignLeaderboardTotalParticipantsByTier(null)(state),
+        selectOndoCampaignLeaderboardTotalParticipantsByTier(null)(state),
       ).toBe(0);
     });
 
     it('returns 0 when tier does not exist', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
       expect(
-        selectCampaignLeaderboardTotalParticipantsByTier('UPPER')(state),
+        selectOndoCampaignLeaderboardTotalParticipantsByTier('UPPER')(state),
       ).toBe(0);
     });
 
     it('returns total participants for specified tier', () => {
       const state = createMockRootState({
-        campaignLeaderboard: mockLeaderboard,
+        ondoCampaignLeaderboard: mockLeaderboard,
       });
       expect(
-        selectCampaignLeaderboardTotalParticipantsByTier('STARTER')(state),
+        selectOndoCampaignLeaderboardTotalParticipantsByTier('STARTER')(state),
       ).toBe(50);
     });
   });
 
-  describe('selectCampaignLeaderboardPositions', () => {
+  describe('selectOndoCampaignLeaderboardPositions', () => {
     it('returns empty object when no positions', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositions: {},
+        ondoCampaignLeaderboardPositions: {},
       });
-      expect(selectCampaignLeaderboardPositions(state)).toEqual({});
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual({});
     });
 
     it('returns positions when set', () => {
       const positions = { 'campaign-1': mockPosition };
       const state = createMockRootState({
-        campaignLeaderboardPositions: positions,
+        ondoCampaignLeaderboardPositions: positions,
       });
-      expect(selectCampaignLeaderboardPositions(state)).toEqual(positions);
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual(positions);
     });
   });
 
-  describe('selectCampaignLeaderboardPositionById', () => {
+  describe('selectOndoCampaignLeaderboardPositionById', () => {
     it('returns null when campaignId is undefined', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositions: { 'campaign-1': mockPosition },
+        ondoCampaignLeaderboardPositions: { 'campaign-1': mockPosition },
       });
       expect(
-        selectCampaignLeaderboardPositionById(undefined)(state),
+        selectOndoCampaignLeaderboardPositionById(undefined)(state),
       ).toBeNull();
     });
 
     it('returns null when position does not exist', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositions: {},
+        ondoCampaignLeaderboardPositions: {},
       });
       expect(
-        selectCampaignLeaderboardPositionById('campaign-1')(state),
+        selectOndoCampaignLeaderboardPositionById('campaign-1')(state),
       ).toBeNull();
     });
 
     it('returns position for specified campaign', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositions: { 'campaign-1': mockPosition },
+        ondoCampaignLeaderboardPositions: { 'campaign-1': mockPosition },
       });
       expect(
-        selectCampaignLeaderboardPositionById('campaign-1')(state),
+        selectOndoCampaignLeaderboardPositionById('campaign-1')(state),
       ).toEqual(mockPosition);
     });
   });
 
-  describe('selectCampaignLeaderboardPositionLoading', () => {
+  describe('selectOndoCampaignLeaderboardPositionLoading', () => {
     it('returns false when not loading', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositionLoading: false,
+        ondoCampaignLeaderboardPositionLoading: false,
       });
-      expect(selectCampaignLeaderboardPositionLoading(state)).toBe(false);
+      expect(selectOndoCampaignLeaderboardPositionLoading(state)).toBe(false);
     });
 
     it('returns true when loading', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositionLoading: true,
+        ondoCampaignLeaderboardPositionLoading: true,
       });
-      expect(selectCampaignLeaderboardPositionLoading(state)).toBe(true);
+      expect(selectOndoCampaignLeaderboardPositionLoading(state)).toBe(true);
     });
   });
 
-  describe('selectCampaignLeaderboardPositionError', () => {
+  describe('selectOndoCampaignLeaderboardPositionError', () => {
     it('returns false when no error', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositionError: false,
+        ondoCampaignLeaderboardPositionError: false,
       });
-      expect(selectCampaignLeaderboardPositionError(state)).toBe(false);
+      expect(selectOndoCampaignLeaderboardPositionError(state)).toBe(false);
     });
 
     it('returns true when has error', () => {
       const state = createMockRootState({
-        campaignLeaderboardPositionError: true,
+        ondoCampaignLeaderboardPositionError: true,
       });
-      expect(selectCampaignLeaderboardPositionError(state)).toBe(true);
+      expect(selectOndoCampaignLeaderboardPositionError(state)).toBe(true);
     });
   });
 });
