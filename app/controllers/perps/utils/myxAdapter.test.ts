@@ -10,6 +10,8 @@ import type {
   MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
+  MYXPoolOpenOrder,
+  MYXOrderItem,
   MYXTradeFlowItem,
   MYXKlineData,
   MYXKlineWsData,
@@ -26,6 +28,8 @@ import {
   extractSymbolFromPoolId,
   adaptPositionFromMYX,
   adaptOrderFromMYX,
+  adaptPoolOpenOrderFromMYX,
+  adaptOrderItemFromMYX,
   adaptAccountStateFromMYX,
   adaptOrderFillFromMYX,
   adaptFundingFromMYX,
@@ -95,11 +99,11 @@ describe('myxAdapter', () => {
       const market = adaptMarketFromMYX(pool);
 
       expect(market.name).toBe('PARTI');
-      expect(market.szDecimals).toBe(18);
+      expect(market.szDecimals).toBe(6);
       expect(market.maxLeverage).toBe(100);
       expect(market.providerId).toBe('myx');
       expect(market.marginTableId).toBe(0);
-      expect(market.minimumOrderSize).toBe(10);
+      expect(market.minimumOrderSize).toBe(110);
     });
 
     it('falls back to poolId when baseSymbol is missing', () => {
@@ -287,7 +291,7 @@ describe('myxAdapter', () => {
       expect(Number(result.size)).toBeGreaterThan(0); // Long = positive
       expect(Number(result.entryPrice)).toBe(50000);
       expect(result.leverage.type).toBe('isolated');
-      expect(result.leverage.value).toBe(10); // 50000 * 1 / 5000 = 10x
+      expect(result.leverage.value).toBe(1); // userLeverage from SDK
       expect(result.providerId).toBe('myx');
     });
 
@@ -384,6 +388,7 @@ describe('myxAdapter', () => {
           direction: MYXDirectionEnum.Short,
           orderType: MYXOrderTypeEnum.Limit,
           orderStatus: MYXOrderStatusEnum.Cancelled,
+          filledSize: '0',
         }),
         poolSymbolMap,
       );
@@ -395,7 +400,10 @@ describe('myxAdapter', () => {
 
     it('maps expired status to canceled', () => {
       const result = adaptOrderFromMYX(
-        makeHistoryOrder({ orderStatus: MYXOrderStatusEnum.Expired }),
+        makeHistoryOrder({
+          orderStatus: MYXOrderStatusEnum.Expired,
+          filledSize: '0',
+        }),
         poolSymbolMap,
       );
 
@@ -404,7 +412,10 @@ describe('myxAdapter', () => {
 
     it('maps unknown status to open', () => {
       const result = adaptOrderFromMYX(
-        makeHistoryOrder({ orderStatus: 99 as MYXOrderStatusEnum }),
+        makeHistoryOrder({
+          orderStatus: 99 as MYXOrderStatusEnum,
+          filledSize: '0',
+        }),
         poolSymbolMap,
       );
 
@@ -459,6 +470,266 @@ describe('myxAdapter', () => {
       const emptyMap = new Map<string, string>();
       const result2 = adaptOrderFromMYX(
         makeHistoryOrder({ baseSymbol: undefined as unknown as string }),
+        emptyMap,
+      );
+      expect(result2.symbol).toBe('0xpool1');
+    });
+  });
+
+  // ============================================================================
+  // Pool Open Order Adapter
+  // ============================================================================
+
+  describe('adaptPoolOpenOrderFromMYX', () => {
+    function makePoolOpenOrder(
+      overrides: Partial<MYXPoolOpenOrder> = {},
+    ): MYXPoolOpenOrder {
+      return {
+        chainId: 56,
+        poolId: '0xpool1',
+        orderId: 7,
+        txTime: 1700000001,
+        txHash: '0xopenorder',
+        triggerPrice: '65000',
+        triggerType: 1, // TP
+        amount: '1',
+        collateralAmount: '0',
+        executionFeeToken: null as MYXPoolOpenOrder['executionFeeToken'],
+        executionFeeAmount: '0',
+        ...overrides,
+      };
+    }
+
+    const poolSymbolMap = new Map([['0xpool1', 'BTC']]);
+
+    it('adapts a TP open order with correct fields', () => {
+      const result = adaptPoolOpenOrderFromMYX(
+        makePoolOpenOrder(),
+        poolSymbolMap,
+      );
+
+      expect(result.orderId).toBe('7');
+      expect(result.symbol).toBe('BTC');
+      expect(result.side).toBe('sell');
+      expect(result.orderType).toBe('limit');
+      expect(result.status).toBe('open');
+      expect(result.isTrigger).toBe(true);
+      expect(result.detailedOrderType).toBe('Take Profit');
+      expect(result.reduceOnly).toBe(true);
+      expect(result.providerId).toBe('myx');
+    });
+
+    it('adapts a SL open order (triggerType=2)', () => {
+      const result = adaptPoolOpenOrderFromMYX(
+        makePoolOpenOrder({ triggerType: 2 }),
+        poolSymbolMap,
+      );
+
+      expect(result.detailedOrderType).toBe('Stop Loss');
+      expect(result.isTrigger).toBe(true);
+    });
+
+    it('size and remainingSize are equal (open order is unfilled)', () => {
+      const result = adaptPoolOpenOrderFromMYX(
+        makePoolOpenOrder({ amount: '3' }),
+        poolSymbolMap,
+      );
+
+      expect(result.filledSize).toBe('0');
+      expect(result.size).toBe(result.remainingSize);
+    });
+
+    it('falls back to poolId when symbol not in map', () => {
+      const emptyMap = new Map<string, string>();
+      const result = adaptPoolOpenOrderFromMYX(makePoolOpenOrder(), emptyMap);
+
+      expect(result.symbol).toBe('0xpool1');
+    });
+  });
+
+  // ============================================================================
+  // OrderItem Adapter (active/pending orders from order.getOrders)
+  // ============================================================================
+
+  describe('adaptOrderItemFromMYX', () => {
+    function makeOrderItem(
+      overrides: Partial<MYXOrderItem> = {},
+    ): MYXOrderItem {
+      return {
+        chainId: 56,
+        poolId: '0xpool1',
+        orderId: 55,
+        txTime: 1700000002,
+        txHash: '0xorderitem',
+        baseSymbol: 'BTC',
+        quoteSymbol: 'USDT',
+        direction: 0, // LONG
+        orderType: 1, // LIMIT
+        operation: 0, // INCREASE
+        triggerType: 0,
+        price: '60000',
+        size: '2',
+        filledSize: '0',
+        filledAmount: '0',
+        collateralAmount: '1000',
+        executionFeeToken: null,
+        executionFeeAmount: '0',
+        positionId: 'pos-55',
+        postOnly: 0,
+        slippagePct: 0,
+        tif: 0,
+        tpPrice: null,
+        tpSize: null,
+        slPrice: null,
+        slSize: null,
+        user: '0xuser',
+        useLeverage: 10,
+        ...overrides,
+      };
+    }
+
+    const poolSymbolMap = new Map([['0xpool1', 'BTC']]);
+
+    it('adapts a pending long limit order with correct fields', () => {
+      const result = adaptOrderItemFromMYX(makeOrderItem(), poolSymbolMap);
+
+      expect(result.orderId).toBe('55');
+      expect(result.symbol).toBe('BTC');
+      expect(result.side).toBe('buy');
+      expect(result.orderType).toBe('limit');
+      expect(result.status).toBe('open');
+      expect(result.isTrigger).toBe(false);
+      expect(result.isPositionTpsl).toBe(false);
+      expect(result.reduceOnly).toBeUndefined();
+      expect(result.providerId).toBe('myx');
+    });
+
+    it('maps direction=1 (SHORT) to sell side', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ direction: 1 }),
+        poolSymbolMap,
+      );
+
+      expect(result.side).toBe('sell');
+    });
+
+    it('maps orderType=0 (MARKET) to market order type', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 0 }),
+        poolSymbolMap,
+      );
+
+      expect(result.orderType).toBe('market');
+      expect(result.isTrigger).toBe(false);
+    });
+
+    it('maps orderType=2 (Stop/trigger) correctly', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 2 }),
+        poolSymbolMap,
+      );
+
+      expect(result.isTrigger).toBe(true);
+      expect(result.orderType).toBe('market'); // trigger orders are not 'limit'
+    });
+
+    it('maps orderType=3 (Conditional/trigger) correctly', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 3 }),
+        poolSymbolMap,
+      );
+
+      expect(result.isTrigger).toBe(true);
+    });
+
+    it('sets reduceOnly when operation=1 (DECREASE)', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ operation: 1 }),
+        poolSymbolMap,
+      );
+
+      expect(result.reduceOnly).toBe(true);
+    });
+
+    it('sets isPositionTpsl when trigger and operation=DECREASE', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 2, operation: 1 }),
+        poolSymbolMap,
+      );
+
+      expect(result.isTrigger).toBe(true);
+      expect(result.isPositionTpsl).toBe(true);
+    });
+
+    it('detects Take Profit for LONG position with GTE trigger (triggerType=1)', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 2, direction: 0, triggerType: 1 }),
+        poolSymbolMap,
+      );
+
+      expect(result.detailedOrderType).toBe('Take Profit');
+    });
+
+    it('detects Stop Loss for LONG position with LTE trigger (triggerType=2)', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 2, direction: 0, triggerType: 2 }),
+        poolSymbolMap,
+      );
+
+      expect(result.detailedOrderType).toBe('Stop Loss');
+    });
+
+    it('detects Take Profit for SHORT position with LTE trigger (triggerType=2)', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 2, direction: 1, triggerType: 2 }),
+        poolSymbolMap,
+      );
+
+      expect(result.detailedOrderType).toBe('Take Profit');
+    });
+
+    it('detects Stop Loss for SHORT position with GTE trigger (triggerType=1)', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 2, direction: 1, triggerType: 1 }),
+        poolSymbolMap,
+      );
+
+      expect(result.detailedOrderType).toBe('Stop Loss');
+    });
+
+    it('triggerPrice is set on trigger orders and undefined on non-trigger', () => {
+      const triggerResult = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 2, price: '62000' }),
+        poolSymbolMap,
+      );
+      const nonTriggerResult = adaptOrderItemFromMYX(
+        makeOrderItem({ orderType: 1 }),
+        poolSymbolMap,
+      );
+
+      expect(triggerResult.triggerPrice).toBe(triggerResult.price);
+      expect(nonTriggerResult.triggerPrice).toBeUndefined();
+    });
+
+    it('remainingSize is clamped to 0 when filledSize equals size', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ size: '2', filledSize: '2' }),
+        poolSymbolMap,
+      );
+
+      expect(result.remainingSize).toBe('0');
+    });
+
+    it('falls back to poolSymbolMap then poolId for symbol when baseSymbol absent', () => {
+      const result = adaptOrderItemFromMYX(
+        makeOrderItem({ baseSymbol: undefined as unknown as string }),
+        poolSymbolMap,
+      );
+      expect(result.symbol).toBe('BTC');
+
+      const emptyMap = new Map<string, string>();
+      const result2 = adaptOrderItemFromMYX(
+        makeOrderItem({ baseSymbol: undefined as unknown as string }),
         emptyMap,
       );
       expect(result2.symbol).toBe('0xpool1');
@@ -680,6 +951,64 @@ describe('myxAdapter', () => {
       );
 
       expect(result.success).toBe(false);
+    });
+
+    it('direction label is "Open Long" for increase + long', () => {
+      const result = adaptOrderFillFromMYX(
+        makeHistoryOrder({
+          operation: MYXOperationEnum.Increase,
+          direction: MYXDirectionEnum.Long,
+        }),
+        poolSymbolMap,
+      );
+
+      expect(result.direction).toBe('Open Long');
+    });
+
+    it('direction label is "Close Long" for decrease + long', () => {
+      const result = adaptOrderFillFromMYX(
+        makeHistoryOrder({
+          operation: MYXOperationEnum.Decrease,
+          direction: MYXDirectionEnum.Long,
+        }),
+        poolSymbolMap,
+      );
+
+      expect(result.direction).toBe('Close Long');
+    });
+
+    it('direction label is "Open Short" for increase + short', () => {
+      const result = adaptOrderFillFromMYX(
+        makeHistoryOrder({
+          operation: MYXOperationEnum.Increase,
+          direction: MYXDirectionEnum.Short,
+        }),
+        poolSymbolMap,
+      );
+
+      expect(result.direction).toBe('Open Short');
+    });
+
+    it('direction label is "Close Short" for decrease + short', () => {
+      const result = adaptOrderFillFromMYX(
+        makeHistoryOrder({
+          operation: MYXOperationEnum.Decrease,
+          direction: MYXDirectionEnum.Short,
+        }),
+        poolSymbolMap,
+      );
+
+      expect(result.direction).toBe('Close Short');
+    });
+
+    it('falls back to poolId when baseSymbol absent and poolId not in map', () => {
+      const emptyMap = new Map<string, string>();
+      const result = adaptOrderFillFromMYX(
+        makeHistoryOrder({ baseSymbol: undefined as unknown as string }),
+        emptyMap,
+      );
+
+      expect(result.symbol).toBe('0xpool1');
     });
   });
 

@@ -34,9 +34,27 @@ const mockGetWalletQuoteTokenBalance = jest.fn();
 const mockGetTradeFlow = jest.fn();
 const mockGetKlineList = jest.fn();
 const mockGetMarketDetail = jest.fn();
+const mockGetBaseDetail = jest.fn();
 const mockSubscribeKline = jest.fn();
 const mockUnsubscribeKline = jest.fn();
+const mockSubscribePosition = jest.fn();
+const mockUnsubscribePosition = jest.fn();
+const mockSubscribeOrder = jest.fn();
+const mockUnsubscribeOrder = jest.fn();
 const mockAuth = jest.fn();
+const mockWsAuth = jest.fn();
+const mockCreateIncreaseOrder = jest.fn();
+const mockCreateDecreaseOrder = jest.fn();
+const mockCancelOrder = jest.fn();
+const mockCancelOrders = jest.fn();
+const mockCreatePositionTpSlOrder = jest.fn();
+const mockUpdateOrderTpSl = jest.fn();
+const mockAdjustCollateral = jest.fn();
+const mockGetPoolOpenOrders = jest.fn();
+const mockGetOraclePrice = jest.fn();
+const mockGetNetworkFee = jest.fn();
+const mockGetPoolLevelConfig = jest.fn();
+const mockGetUserTradingFeeRate = jest.fn();
 
 jest.mock('@myx-trade/sdk', () => ({
   MyxClient: jest.fn(() => ({
@@ -45,20 +63,34 @@ jest.mock('@myx-trade/sdk', () => ({
       getTickerList: mockGetTickerList,
       getKlineList: mockGetKlineList,
       getMarketDetail: mockGetMarketDetail,
+      getBaseDetail: mockGetBaseDetail,
+      getPoolLevelConfig: mockGetPoolLevelConfig,
     },
     subscription: {
       connect: mockWsConnect,
       disconnect: mockWsDisconnect,
       subscribeKline: mockSubscribeKline,
       unsubscribeKline: mockUnsubscribeKline,
+      subscribePosition: mockSubscribePosition,
+      unsubscribePosition: mockUnsubscribePosition,
+      subscribeOrder: mockSubscribeOrder,
+      unsubscribeOrder: mockUnsubscribeOrder,
+      auth: mockWsAuth,
     },
     position: {
       listPositions: mockListPositions,
       getPositionHistory: mockGetPositionHistory,
+      adjustCollateral: mockAdjustCollateral,
     },
     order: {
       getOrders: mockGetOrders,
       getOrderHistory: mockGetOrderHistory,
+      createIncreaseOrder: mockCreateIncreaseOrder,
+      createDecreaseOrder: mockCreateDecreaseOrder,
+      cancelOrder: mockCancelOrder,
+      cancelOrders: mockCancelOrders,
+      createPositionTpSlOrder: mockCreatePositionTpSlOrder,
+      updateOrderTpSl: mockUpdateOrderTpSl,
     },
     account: {
       getAccountInfo: mockGetAccountInfo,
@@ -66,6 +98,12 @@ jest.mock('@myx-trade/sdk', () => ({
     },
     api: {
       getTradeFlow: mockGetTradeFlow,
+      getPoolOpenOrders: mockGetPoolOpenOrders,
+    },
+    utils: {
+      getOraclePrice: mockGetOraclePrice,
+      getNetworkFee: mockGetNetworkFee,
+      getUserTradingFeeRate: mockGetUserTradingFeeRate,
     },
     auth: mockAuth,
     getAccessToken: jest.fn().mockResolvedValue('mock-token'),
@@ -744,10 +782,11 @@ describe('MYXClientService', () => {
       const result = await service.getWalletQuoteTokenBalance(59141, '0xuser');
 
       expect(result).toEqual(mockResult);
-      expect(mockGetWalletQuoteTokenBalance).toHaveBeenCalledWith(
-        59141,
-        '0xuser',
-      );
+      expect(mockGetWalletQuoteTokenBalance).toHaveBeenCalledWith({
+        address: '0xuser',
+        chainId: 59141,
+        tokenAddress: '0xD984fd34f91F92DA0586e1bE82E262fF27DC431b',
+      });
     });
 
     it('wraps and rethrows errors', async () => {
@@ -1060,6 +1099,677 @@ describe('MYXClientService', () => {
       await expect(
         service.authenticate(mockSignerLike, {}, '0xuser'),
       ).rejects.toThrow('Auth failed');
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+
+    it('logs WebSocket auth success', async () => {
+      mockWsAuth.mockResolvedValueOnce(undefined);
+
+      await service.authenticate(mockSignerLike, {}, '0xuser');
+
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        '[MYXClientService] WebSocket auth successful',
+      );
+    });
+
+    it('logs WebSocket auth failure without throwing', async () => {
+      mockWsAuth.mockRejectedValueOnce(new Error('WS auth error'));
+
+      await expect(
+        service.authenticate(mockSignerLike, {}, '0xuser'),
+      ).resolves.toBeUndefined();
+
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        '[MYXClientService] WebSocket auth failed (REST auth OK, WS subscriptions will use polling fallback)',
+        expect.objectContaining({ error: expect.any(String) }),
+      );
+    });
+  });
+
+  // ==========================================================================
+  // getAuthenticatedAddress
+  // ==========================================================================
+
+  describe('getAuthenticatedAddress', () => {
+    it('returns null before authentication', () => {
+      expect(service.getAuthenticatedAddress()).toBeNull();
+    });
+
+    it('returns the lowercased authenticated address', async () => {
+      await service.authenticate(mockSignerLike, {}, '0xUser');
+
+      expect(service.getAuthenticatedAddress()).toBe('0xuser');
+    });
+
+    it('returns null after disconnect', async () => {
+      await service.authenticate(mockSignerLike, {}, '0xuser');
+      service.disconnect();
+
+      expect(service.getAuthenticatedAddress()).toBeNull();
+    });
+  });
+
+  // ==========================================================================
+  // getPoolOpenOrders
+  // ==========================================================================
+
+  describe('getPoolOpenOrders', () => {
+    it('delegates to SDK api.getPoolOpenOrders and returns data array', async () => {
+      const mockOrders = [{ orderId: 'ord-1', poolId: '0xpool1' }];
+      mockGetPoolOpenOrders.mockResolvedValueOnce({ data: mockOrders });
+
+      const result = await service.getPoolOpenOrders('0xuser');
+
+      expect(result).toEqual(mockOrders);
+      expect(mockGetPoolOpenOrders).toHaveBeenCalledWith(
+        'mock-token',
+        '0xuser',
+        59141,
+      );
+    });
+
+    it('returns empty array when SDK response has no data', async () => {
+      mockGetPoolOpenOrders.mockResolvedValueOnce({ data: null });
+
+      const result = await service.getPoolOpenOrders('0xuser');
+
+      expect(result).toEqual([]);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetPoolOpenOrders.mockRejectedValueOnce(
+        new Error('Open orders error'),
+      );
+
+      await expect(service.getPoolOpenOrders('0xuser')).rejects.toThrow(
+        'Open orders error',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // getBaseDetail
+  // ==========================================================================
+
+  describe('getBaseDetail', () => {
+    it('delegates to SDK and returns normalized result', async () => {
+      mockGetBaseDetail.mockResolvedValueOnce({
+        fundingRate: '0.0001',
+        longPosition: 5000,
+        shortPosition: 3000,
+        volume: '1000000',
+      });
+
+      const result = await service.getBaseDetail('0xpool1');
+
+      expect(result).toEqual({
+        fundingRate: '0.0001',
+        longPosition: 5000,
+        shortPosition: 3000,
+        volume: '1000000',
+      });
+      expect(mockGetBaseDetail).toHaveBeenCalledWith({
+        chainId: 59141,
+        poolId: '0xpool1',
+      });
+    });
+
+    it('returns zero defaults when SDK fields are missing', async () => {
+      mockGetBaseDetail.mockResolvedValueOnce({});
+
+      const result = await service.getBaseDetail('0xpool1');
+
+      expect(result).toEqual({
+        fundingRate: '0',
+        longPosition: 0,
+        shortPosition: 0,
+        volume: '0',
+      });
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetBaseDetail.mockRejectedValueOnce(new Error('Base detail error'));
+
+      await expect(service.getBaseDetail('0xpool1')).rejects.toThrow(
+        'Base detail error',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // getWalletQuoteTokenBalance — mainnet token address
+  // ==========================================================================
+
+  describe('getWalletQuoteTokenBalance (mainnet)', () => {
+    it('uses the mainnet collateral token address', async () => {
+      const mainnetService = new MYXClientService(mockDeps, {
+        isTestnet: false,
+      });
+      mockGetWalletQuoteTokenBalance.mockResolvedValueOnce({
+        code: 9200,
+        data: '250000000',
+      });
+
+      await mainnetService.getWalletQuoteTokenBalance(56, '0xuser');
+
+      expect(mockGetWalletQuoteTokenBalance).toHaveBeenCalledWith(
+        expect.objectContaining({
+          chainId: 56,
+          address: '0xuser',
+        }),
+      );
+      // Confirm it's NOT the testnet token address
+      const call = mockGetWalletQuoteTokenBalance.mock.calls[0][0];
+      expect(call.tokenAddress).not.toBe(
+        '0xD984fd34f91F92DA0586e1bE82E262fF27DC431b',
+      );
+      mainnetService.disconnect();
+    });
+  });
+
+  // ==========================================================================
+  // WebSocket subscriptions — positions
+  // ==========================================================================
+
+  describe('subscribeToPositions', () => {
+    it('delegates to SDK subscription.subscribePosition', async () => {
+      const callback = jest.fn();
+      mockSubscribePosition.mockResolvedValueOnce(undefined);
+
+      await service.subscribeToPositions(callback);
+
+      expect(mockSubscribePosition).toHaveBeenCalledWith(callback);
+    });
+  });
+
+  describe('unsubscribeFromPositions', () => {
+    it('delegates to SDK subscription.unsubscribePosition', () => {
+      const callback = jest.fn();
+
+      service.unsubscribeFromPositions(callback);
+
+      expect(mockUnsubscribePosition).toHaveBeenCalledWith(callback);
+    });
+
+    it('swallows errors (expected during disconnect)', () => {
+      mockUnsubscribePosition.mockImplementationOnce(() => {
+        throw new Error('SOCKET_NOT_CONNECTED');
+      });
+      const callback = jest.fn();
+
+      expect(() => service.unsubscribeFromPositions(callback)).not.toThrow();
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        '[MYXClientService] Position unsubscribe failed (expected during disconnect)',
+        expect.objectContaining({ error: expect.any(String) }),
+      );
+    });
+  });
+
+  // ==========================================================================
+  // WebSocket subscriptions — orders
+  // ==========================================================================
+
+  describe('subscribeToOrders', () => {
+    it('delegates to SDK subscription.subscribeOrder', async () => {
+      const callback = jest.fn();
+      mockSubscribeOrder.mockResolvedValueOnce(undefined);
+
+      await service.subscribeToOrders(callback);
+
+      expect(mockSubscribeOrder).toHaveBeenCalledWith(callback);
+    });
+  });
+
+  describe('unsubscribeFromOrders', () => {
+    it('delegates to SDK subscription.unsubscribeOrder', () => {
+      const callback = jest.fn();
+
+      service.unsubscribeFromOrders(callback);
+
+      expect(mockUnsubscribeOrder).toHaveBeenCalledWith(callback);
+    });
+
+    it('swallows errors (expected during disconnect)', () => {
+      mockUnsubscribeOrder.mockImplementationOnce(() => {
+        throw new Error('SOCKET_NOT_CONNECTED');
+      });
+      const callback = jest.fn();
+
+      expect(() => service.unsubscribeFromOrders(callback)).not.toThrow();
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        '[MYXClientService] Order unsubscribe failed (expected during disconnect)',
+        expect.objectContaining({ error: expect.any(String) }),
+      );
+    });
+  });
+
+  // ==========================================================================
+  // unsubscribeFromKline — error path
+  // ==========================================================================
+
+  describe('unsubscribeFromKline (error path)', () => {
+    it('swallows errors (expected during disconnect)', () => {
+      mockUnsubscribeKline.mockImplementationOnce(() => {
+        throw new Error('SOCKET_NOT_CONNECTED');
+      });
+      const callback = jest.fn();
+
+      expect(() =>
+        service.unsubscribeFromKline(
+          42,
+          '1h' as Parameters<typeof service.unsubscribeFromKline>[1],
+          callback,
+        ),
+      ).not.toThrow();
+      expect(mockDeps.debugLogger.log).toHaveBeenCalledWith(
+        '[MYXClientService] Kline unsubscribe failed (expected during disconnect)',
+        expect.objectContaining({ error: expect.any(String) }),
+      );
+    });
+  });
+
+  // ==========================================================================
+  // Order write operations
+  // ==========================================================================
+
+  describe('createIncreaseOrder', () => {
+    it('delegates to SDK and returns result', async () => {
+      const mockResult = { code: 9200, message: 'ok' };
+      mockCreateIncreaseOrder.mockResolvedValueOnce(mockResult);
+      const params = {
+        poolId: '0xpool1',
+        address: '0xuser',
+      } as Parameters<typeof service.createIncreaseOrder>[0];
+
+      const result = await service.createIncreaseOrder(
+        params,
+        '100',
+        'market-1',
+      );
+
+      expect(result).toEqual(mockResult);
+      expect(mockCreateIncreaseOrder).toHaveBeenCalledWith(
+        params,
+        '100',
+        'market-1',
+      );
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockCreateIncreaseOrder.mockRejectedValueOnce(
+        new Error('Increase order failed'),
+      );
+      const params = {
+        poolId: '0xpool1',
+        address: '0xuser',
+      } as Parameters<typeof service.createIncreaseOrder>[0];
+
+      await expect(
+        service.createIncreaseOrder(params, '100', 'market-1'),
+      ).rejects.toThrow('Increase order failed');
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('createDecreaseOrder', () => {
+    it('delegates to SDK and returns result', async () => {
+      const mockResult = { code: 9200, message: 'ok' };
+      mockCreateDecreaseOrder.mockResolvedValueOnce(mockResult);
+      const params = {
+        poolId: '0xpool1',
+        address: '0xuser',
+      } as Parameters<typeof service.createDecreaseOrder>[0];
+
+      const result = await service.createDecreaseOrder(params);
+
+      expect(result).toEqual(mockResult);
+      expect(mockCreateDecreaseOrder).toHaveBeenCalledWith(params);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockCreateDecreaseOrder.mockRejectedValueOnce(
+        new Error('Decrease order failed'),
+      );
+      const params = {
+        poolId: '0xpool1',
+        address: '0xuser',
+      } as Parameters<typeof service.createDecreaseOrder>[0];
+
+      await expect(service.createDecreaseOrder(params)).rejects.toThrow(
+        'Decrease order failed',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('cancelOrder', () => {
+    it('delegates to SDK and returns result', async () => {
+      const mockResult = { code: 9200, message: 'cancelled' };
+      mockCancelOrder.mockResolvedValueOnce(mockResult);
+
+      const result = await service.cancelOrder('ord-1', 59141);
+
+      expect(result).toEqual(mockResult);
+      expect(mockCancelOrder).toHaveBeenCalledWith('ord-1', 59141);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockCancelOrder.mockRejectedValueOnce(new Error('Cancel failed'));
+
+      await expect(service.cancelOrder('ord-1', 59141)).rejects.toThrow(
+        'Cancel failed',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('cancelOrders', () => {
+    it('delegates to SDK with array of IDs and returns result', async () => {
+      const mockResult = { code: 9200, message: 'cancelled' };
+      mockCancelOrders.mockResolvedValueOnce(mockResult);
+
+      const result = await service.cancelOrders(['ord-1', 'ord-2'], 59141);
+
+      expect(result).toEqual(mockResult);
+      expect(mockCancelOrders).toHaveBeenCalledWith(['ord-1', 'ord-2'], 59141);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockCancelOrders.mockRejectedValueOnce(new Error('Cancel orders failed'));
+
+      await expect(service.cancelOrders(['ord-1'], 59141)).rejects.toThrow(
+        'Cancel orders failed',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('createPositionTpSlOrder', () => {
+    it('delegates to SDK and returns result', async () => {
+      const mockResult = { code: 9200, message: 'ok' };
+      mockCreatePositionTpSlOrder.mockResolvedValueOnce(mockResult);
+      const params = {
+        poolId: '0xpool1',
+        positionId: 'pos-1',
+      } as Parameters<typeof service.createPositionTpSlOrder>[0];
+
+      const result = await service.createPositionTpSlOrder(params);
+
+      expect(result).toEqual(mockResult);
+      expect(mockCreatePositionTpSlOrder).toHaveBeenCalledWith(params);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockCreatePositionTpSlOrder.mockRejectedValueOnce(
+        new Error('TP/SL order failed'),
+      );
+      const params = {
+        poolId: '0xpool1',
+        positionId: 'pos-1',
+      } as Parameters<typeof service.createPositionTpSlOrder>[0];
+
+      await expect(service.createPositionTpSlOrder(params)).rejects.toThrow(
+        'TP/SL order failed',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('updateOrderTpSl', () => {
+    it('delegates to SDK with all parameters and returns result', async () => {
+      const mockResult = { code: 9200, message: 'updated' };
+      mockUpdateOrderTpSl.mockResolvedValueOnce(mockResult);
+      const params = {
+        orderId: 'ord-1',
+      } as Parameters<typeof service.updateOrderTpSl>[0];
+
+      const result = await service.updateOrderTpSl(
+        params,
+        '0xquote',
+        59141,
+        '0xuser',
+        'market-1',
+        true,
+      );
+
+      expect(result).toEqual(mockResult);
+      expect(mockUpdateOrderTpSl).toHaveBeenCalledWith(
+        params,
+        '0xquote',
+        59141,
+        '0xuser',
+        'market-1',
+        true,
+      );
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockUpdateOrderTpSl.mockRejectedValueOnce(
+        new Error('Update order failed'),
+      );
+      const params = {
+        orderId: 'ord-1',
+      } as Parameters<typeof service.updateOrderTpSl>[0];
+
+      await expect(
+        service.updateOrderTpSl(params, '0xquote', 59141, '0xuser', 'market-1'),
+      ).rejects.toThrow('Update order failed');
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  describe('adjustCollateral', () => {
+    it('delegates to SDK and returns result', async () => {
+      const mockResult = { code: 9200, message: 'adjusted' };
+      mockAdjustCollateral.mockResolvedValueOnce(mockResult);
+      const params = {
+        poolId: '0xpool1',
+        positionId: 'pos-1',
+        adjustAmount: '50000000',
+        quoteToken: '0xquote',
+        chainId: 59141,
+        address: '0xuser',
+      };
+
+      const result = await service.adjustCollateral(params);
+
+      expect(result).toEqual(mockResult);
+      expect(mockAdjustCollateral).toHaveBeenCalledWith(params);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockAdjustCollateral.mockRejectedValueOnce(
+        new Error('Adjust collateral failed'),
+      );
+
+      await expect(
+        service.adjustCollateral({
+          poolId: '0xpool1',
+          positionId: 'pos-1',
+          adjustAmount: '50000000',
+          quoteToken: '0xquote',
+          chainId: 59141,
+          address: '0xuser',
+        }),
+      ).rejects.toThrow('Adjust collateral failed');
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // getMarketDetail
+  // ==========================================================================
+
+  describe('getMarketDetail', () => {
+    it('fetches and returns marketId, baseSymbol, quoteSymbol', async () => {
+      mockGetMarketDetail.mockResolvedValueOnce({
+        globalId: 42,
+        marketId: 'market-1',
+        baseSymbol: 'BTC',
+        quoteSymbol: 'USDT',
+      });
+
+      const result = await service.getMarketDetail('0xpool1');
+
+      expect(result).toEqual({
+        marketId: 'market-1',
+        baseSymbol: 'BTC',
+        quoteSymbol: 'USDT',
+      });
+      expect(mockGetMarketDetail).toHaveBeenCalledWith({
+        chainId: 59141,
+        poolId: '0xpool1',
+      });
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetMarketDetail.mockRejectedValueOnce(
+        new Error('Market detail error'),
+      );
+
+      await expect(service.getMarketDetail('0xpool1')).rejects.toThrow(
+        'Market detail error',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // getOraclePrice
+  // ==========================================================================
+
+  describe('getOraclePrice', () => {
+    it('delegates to SDK utils.getOraclePrice and returns normalized result', async () => {
+      mockGetOraclePrice.mockResolvedValueOnce({
+        poolId: '0xpool1',
+        price: '50000.00',
+        publishTime: 1700000000,
+        oracleType: 'chainlink',
+      });
+
+      const result = await service.getOraclePrice('0xpool1');
+
+      expect(result).toEqual({
+        poolId: '0xpool1',
+        price: '50000.00',
+        publishTime: 1700000000,
+      });
+      expect(mockGetOraclePrice).toHaveBeenCalledWith('0xpool1', 59141);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetOraclePrice.mockRejectedValueOnce(new Error('Oracle price error'));
+
+      await expect(service.getOraclePrice('0xpool1')).rejects.toThrow(
+        'Oracle price error',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // getNetworkFee
+  // ==========================================================================
+
+  describe('getNetworkFee', () => {
+    it('delegates to SDK utils.getNetworkFee and returns fee as string', async () => {
+      mockGetNetworkFee.mockResolvedValueOnce(1000000);
+
+      const result = await service.getNetworkFee('market-1');
+
+      expect(result).toBe('1000000');
+      expect(mockGetNetworkFee).toHaveBeenCalledWith('market-1', 59141);
+    });
+
+    it('wraps and rethrows errors', async () => {
+      mockGetNetworkFee.mockRejectedValueOnce(new Error('Network fee error'));
+
+      await expect(service.getNetworkFee('market-1')).rejects.toThrow(
+        'Network fee error',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+  });
+
+  // ==========================================================================
+  // getPoolLevelConfig
+  // ==========================================================================
+
+  describe('getPoolLevelConfig', () => {
+    it('returns minOrderSizeInUsd from SDK response', async () => {
+      mockGetPoolLevelConfig.mockResolvedValueOnce({
+        levelConfig: { minOrderSizeInUsd: 10 },
+      });
+
+      const result = await service.getPoolLevelConfig('0xpool1');
+
+      expect(result).toEqual({ minOrderSizeInUsd: 10 });
+      expect(mockGetPoolLevelConfig).toHaveBeenCalledWith('0xpool1', 59141);
+    });
+
+    it('returns 0 when levelConfig is missing', async () => {
+      mockGetPoolLevelConfig.mockResolvedValueOnce(null);
+
+      const result = await service.getPoolLevelConfig('0xpool1');
+
+      expect(result).toEqual({ minOrderSizeInUsd: 0 });
+    });
+  });
+
+  // ==========================================================================
+  // getUserTradingFeeRate
+  // ==========================================================================
+
+  describe('getUserTradingFeeRate', () => {
+    it('returns takerFeeRate and makerFeeRate on success', async () => {
+      mockGetUserTradingFeeRate.mockResolvedValueOnce({
+        code: 0,
+        data: { takerFeeRate: '0.001', makerFeeRate: '0.0005' },
+      });
+
+      const result = await service.getUserTradingFeeRate();
+
+      expect(result).toEqual({
+        takerFeeRate: '0.001',
+        makerFeeRate: '0.0005',
+      });
+      expect(mockGetUserTradingFeeRate).toHaveBeenCalledWith(0, 0, 59141);
+    });
+
+    it('passes custom assetClass, riskTier, and chainId', async () => {
+      mockGetUserTradingFeeRate.mockResolvedValueOnce({
+        code: 0,
+        data: { takerFeeRate: '0.002', makerFeeRate: '0.001' },
+      });
+
+      await service.getUserTradingFeeRate(1, 2, 42);
+
+      expect(mockGetUserTradingFeeRate).toHaveBeenCalledWith(1, 2, 42);
+    });
+
+    it('throws when SDK returns non-zero code', async () => {
+      mockGetUserTradingFeeRate.mockResolvedValueOnce({
+        code: 5000,
+        message: 'bad request',
+        data: null,
+      });
+
+      await expect(service.getUserTradingFeeRate()).rejects.toThrow(
+        'Fee rate API error',
+      );
+      expect(mockDeps.logger.error).toHaveBeenCalled();
+    });
+
+    it('wraps and rethrows SDK errors', async () => {
+      mockGetUserTradingFeeRate.mockRejectedValueOnce(
+        new Error('Fee rate network error'),
+      );
+
+      await expect(service.getUserTradingFeeRate()).rejects.toThrow(
+        'Fee rate network error',
+      );
       expect(mockDeps.logger.error).toHaveBeenCalled();
     });
   });

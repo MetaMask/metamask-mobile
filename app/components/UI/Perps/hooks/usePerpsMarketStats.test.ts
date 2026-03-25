@@ -138,8 +138,8 @@ describe('usePerpsMarketStats', () => {
     // PRICE_RANGES_UNIVERSAL: trailing zeros removed, so $0.00 → $0
     expect(result.current.high24h).toBe('$0');
     expect(result.current.low24h).toBe('$0');
-    expect(result.current.volume24h).toBe('$0.00'); // formatVolume keeps .00 for zero
-    expect(result.current.openInterest).toBe('$0.00'); // formatLargeNumber keeps .00 for zero
+    expect(result.current.volume24h).toBe('--'); // FallbackDataDisplay when no data
+    expect(result.current.openInterest).toBe('--'); // FallbackDataDisplay when no data
     expect(result.current.fundingRate).toBe('0.0000%');
   });
 
