@@ -2,10 +2,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import {
   Box,
-  Icon,
-  IconName,
-  IconSize,
   Text,
+  TextColor,
   TextVariant,
   Button,
   ButtonVariant,
@@ -162,14 +160,6 @@ const MusdCalculatorTab: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Disclaimer */}
-      <Box twClassName="flex-row gap-2 items-center">
-        <Icon name={IconName.Info} size={IconSize.Sm} />
-        <Text variant={TextVariant.BodySm} twClassName="flex-1">
-          {strings('rewards.musd.disclaimer')}
-        </Text>
-      </Box>
-
       {/* Action Buttons */}
       <Box twClassName="gap-3">
         <Button
@@ -189,6 +179,15 @@ const MusdCalculatorTab: React.FC = () => {
           {strings('rewards.musd.swap_button')}
         </Button>
       </Box>
+
+      {/* Disclaimer */}
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {strings('rewards.musd.disclaimer')}
+      </Text>
     </ScrollView>
   );
 };
