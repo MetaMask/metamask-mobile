@@ -1,5 +1,7 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
-import { Pressable, useWindowDimensions, type View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Pressable, StyleSheet } from 'react-native';
+import MaskedView from '@react-native-masked-view/masked-view';
+import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -18,49 +20,35 @@ import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.typ
 import { endTrace, TraceName } from '../../../../../util/trace';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import {
-  VISIBILITY_CHECK_INTERVAL_MS,
+  BORDER_GRADIENT_COLORS,
   VISIBILITY_THRESHOLD,
 } from './AnimatedGradientBorder.constants';
+import { useViewportTracking } from '../../hooks/useViewportTracking';
+
+const sparkleStyles = StyleSheet.create({
+  container: { width: 24, height: 24 },
+  gradient: { flex: 1 },
+});
 
 const SparkleIcon: React.FC = () => (
-  <Icon name={IconName.Ai} size={IconSize.Lg} color={IconColor.IconDefault} />
+  <MaskedView
+    style={sparkleStyles.container}
+    maskElement={
+      <Icon
+        name={IconName.Ai}
+        size={IconSize.Lg}
+        color={IconColor.IconDefault}
+      />
+    }
+  >
+    <LinearGradient
+      colors={[...BORDER_GRADIENT_COLORS]}
+      start={{ x: 0, y: 0 }}
+      end={{ x: 1, y: 1 }}
+      style={sparkleStyles.gradient}
+    />
+  </MaskedView>
 );
-
-/**
- * Polls `measureInWindow` on the given ref until the element is at least
- * `threshold` visible on screen. Returns true once, then stops polling.
- */
-function useVisibilityOnce(
-  ref: React.RefObject<View | null>,
-  threshold: number,
-): boolean {
-  const [triggered, setTriggered] = useState(false);
-  const { height: screenHeight } = useWindowDimensions();
-
-  useEffect(() => {
-    if (triggered || !ref.current) return;
-
-    const check = () => {
-      ref.current?.measureInWindow?.(
-        (_x: number, y: number, _w: number, h: number) => {
-          if (h === 0) return;
-          const visibleTop = Math.max(y, 0);
-          const visibleBottom = Math.min(y + h, screenHeight);
-          const visibleHeight = Math.max(visibleBottom - visibleTop, 0);
-          if (visibleHeight / h >= threshold) {
-            setTriggered(true);
-          }
-        },
-      );
-    };
-
-    check();
-    const id = setInterval(check, VISIBILITY_CHECK_INTERVAL_MS);
-    return () => clearInterval(id);
-  }, [triggered, ref, screenHeight, threshold]);
-
-  return triggered;
-}
 
 /**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
@@ -74,13 +62,16 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
-  const cardRef = useRef<View>(null);
   const [cardDimensions, setCardDimensions] = useState<{
     width: number;
     height: number;
   } | null>(null);
 
-  const shouldAnimate = useVisibilityOnce(cardRef, VISIBILITY_THRESHOLD);
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const { ref: cardRef, onLayout: onVisibilityLayout } = useViewportTracking(
+    () => setShouldAnimate(true),
+    VISIBILITY_THRESHOLD,
+  );
 
   useEffect(() => {
     if (caip19Id) {
@@ -103,6 +94,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
     <Pressable
       ref={cardRef}
       onPress={onPress}
+      onLayout={onVisibilityLayout}
       style={({ pressed }) =>
         tw.style('px-4 mt-2 mb-4', pressed && 'opacity-80')
       }

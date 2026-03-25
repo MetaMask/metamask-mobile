@@ -14,8 +14,6 @@ import Animated, {
 import {
   BORDER_FADE_IN_FRACTION,
   BORDER_FADE_OUT_FRACTION,
-  BORDER_GLOW_OPACITY,
-  BORDER_GLOW_STROKE_WIDTH,
   BORDER_GRADIENT_COLORS,
   BORDER_RADIUS,
   BORDER_STROKE_WIDTH,
@@ -36,31 +34,43 @@ const styles = StyleSheet.create({
 });
 
 /**
- * Rounded rectangle path starting at the bottom-left corner,
+ * Rounded rectangle path inset by half the stroke width so the stroke's
+ * outer edge aligns with the card border. Starts at the bottom-left corner,
  * tracing clockwise: left↑ → top→ → right↓ → bottom← → back to start.
- * Intentionally NOT closed with Z so the dash pattern begins exactly
- * at the bottom-left starting point.
+ * Not closed with Z so the dash pattern begins exactly at the start point.
  */
 function buildRoundedRectPath(
   width: number,
   height: number,
   r: number,
+  strokeWidth: number,
 ): string {
+  const hw = strokeWidth / 2;
+  const er = r - hw;
   return [
-    `M 0 ${height - r}`,
-    `V ${r}`,
-    `A ${r} ${r} 0 0 1 ${r} 0`,
-    `H ${width - r}`,
-    `A ${r} ${r} 0 0 1 ${width} ${r}`,
-    `V ${height - r}`,
-    `A ${r} ${r} 0 0 1 ${width - r} ${height}`,
-    `H ${r}`,
-    `A ${r} ${r} 0 0 1 0 ${height - r}`,
+    `M ${hw} ${height - hw - er}`,
+    `V ${hw + er}`,
+    `A ${er} ${er} 0 0 1 ${hw + er} ${hw}`,
+    `H ${width - hw - er}`,
+    `A ${er} ${er} 0 0 1 ${width - hw} ${hw + er}`,
+    `V ${height - hw - er}`,
+    `A ${er} ${er} 0 0 1 ${width - hw - er} ${height - hw}`,
+    `H ${hw + er}`,
+    `A ${er} ${er} 0 0 1 ${hw} ${height - hw - er}`,
   ].join(' ');
 }
 
-function calcPerimeter(width: number, height: number, r: number): number {
-  return 2 * (width - 2 * r) + 2 * (height - 2 * r) + 2 * Math.PI * r;
+function calcPerimeter(
+  width: number,
+  height: number,
+  r: number,
+  strokeWidth: number,
+): number {
+  const hw = strokeWidth / 2;
+  const er = r - hw;
+  const insetW = width - 2 * hw;
+  const insetH = height - 2 * hw;
+  return 2 * (insetW - 2 * er) + 2 * (insetH - 2 * er) + 2 * Math.PI * er;
 }
 
 interface SweepPathProps {
@@ -85,8 +95,6 @@ const SweepPath: React.FC<SweepPathProps> = ({
   const animatedProps = useAnimatedProps(() => {
     'worklet';
     const p = progress.value;
-    // Shift the dash backward so the visible segment is at the
-    // bottom-left when the fade-in reaches the midpoint.
     const startShift = perimeter * BORDER_FADE_IN_FRACTION * 0.5;
     const dashOffset = perimeter * (1 - p) + startShift;
 
@@ -160,29 +168,28 @@ const AnimatedGradientBorder: React.FC<AnimatedGradientBorderProps> = ({
   }
 
   const { width, height } = dimensions;
-  const perimeter = calcPerimeter(width, height, BORDER_RADIUS);
-  const pathData = buildRoundedRectPath(width, height, BORDER_RADIUS);
+  const perimeter = calcPerimeter(
+    width,
+    height,
+    BORDER_RADIUS,
+    BORDER_STROKE_WIDTH,
+  );
+  const pathData = buildRoundedRectPath(
+    width,
+    height,
+    BORDER_RADIUS,
+    BORDER_STROKE_WIDTH,
+  );
 
   return (
     <Svg width={width} height={height} style={styles.svg} pointerEvents="none">
       <Defs>
         <LinearGradient id={GRADIENT_ID} x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0" stopColor={BORDER_GRADIENT_COLORS[0]} />
-          <Stop offset="0.5" stopColor={BORDER_GRADIENT_COLORS[1]} />
-          <Stop offset="1" stopColor={BORDER_GRADIENT_COLORS[2]} />
+          <Stop offset="1" stopColor={BORDER_GRADIENT_COLORS[1]} />
         </LinearGradient>
       </Defs>
 
-      {/* Soft glow layer (simulates 10px layer blur) */}
-      <SweepPath
-        pathData={pathData}
-        perimeter={perimeter}
-        progress={progress}
-        strokeWidth={BORDER_GLOW_STROKE_WIDTH}
-        opacityScale={BORDER_GLOW_OPACITY}
-      />
-
-      {/* Sharp main stroke */}
       <SweepPath
         pathData={pathData}
         perimeter={perimeter}
