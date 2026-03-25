@@ -1,8 +1,6 @@
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
+import { Hex } from '@metamask/utils';
 import { useMemo } from 'react';
-import { MINIMUM_BET } from '../../../constants/transactions';
-import { ActiveOrderState, OrderPreview } from '../../../types';
-import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
@@ -10,8 +8,12 @@ import {
   useTransactionPayRequiredTokens,
   useTransactionPayTotals,
 } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictDeposit } from '../../../hooks/usePredictDeposit';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { OrderPreview } from '../../../types';
+import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
+import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
@@ -23,6 +25,21 @@ interface UsePredictBuyConditionsParams {
   isConfirming: boolean;
 }
 
+const normalizeQuoteComparableAddress = (
+  address?: string,
+  chainId?: string,
+) => {
+  if (!address || !chainId) {
+    return address?.toLowerCase();
+  }
+
+  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
+
+  return address.toLowerCase() === nativeTokenAddress.toLowerCase()
+    ? EMPTY_ADDRESS
+    : address.toLowerCase();
+};
+
 export const usePredictBuyConditions = ({
   preview,
   currentValue,
@@ -33,7 +50,6 @@ export const usePredictBuyConditions = ({
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
-  const { activeOrder } = usePredictActiveOrder();
   const payTotals = useTransactionPayTotals();
   const isPayTotalsLoading = useIsTransactionPayLoading();
   const isPayQuoteLoading = useIsTransactionPayQuoteLoading();
@@ -44,8 +60,6 @@ export const usePredictBuyConditions = ({
   const { isDepositPending } = usePredictDeposit();
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
-
-  const currentState = useMemo(() => activeOrder?.state, [activeOrder]);
 
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
@@ -89,8 +103,11 @@ export const usePredictBuyConditions = ({
     if (!quotes?.length) {
       const isPaymentTokenRequired = requiredTokens?.some(
         (token) =>
-          token.address.toLowerCase() ===
-            selectedPaymentToken.address?.toLowerCase() &&
+          normalizeQuoteComparableAddress(token.address, token.chainId) ===
+            normalizeQuoteComparableAddress(
+              selectedPaymentToken.address,
+              selectedPaymentToken.chainId,
+            ) &&
           token.chainId.toLowerCase() ===
             selectedPaymentToken.chainId?.toLowerCase(),
       );
@@ -101,8 +118,14 @@ export const usePredictBuyConditions = ({
       return false;
     }
     return (
-      request.sourceTokenAddress?.toLowerCase() !==
-        selectedPaymentToken.address?.toLowerCase() ||
+      normalizeQuoteComparableAddress(
+        request.sourceTokenAddress,
+        request.sourceChainId,
+      ) !==
+        normalizeQuoteComparableAddress(
+          selectedPaymentToken.address,
+          selectedPaymentToken.chainId,
+        ) ||
       request.sourceChainId?.toLowerCase() !==
         selectedPaymentToken.chainId?.toLowerCase()
     );

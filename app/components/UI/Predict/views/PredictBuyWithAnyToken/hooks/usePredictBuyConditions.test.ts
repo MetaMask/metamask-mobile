@@ -467,6 +467,29 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPayFeesLoading).toBe(true);
     });
 
+    it('returns false when Polygon native token quote uses zero address', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = {
+        address: '0x0000000000000000000000000000000000001010',
+        chainId: '0x89',
+      };
+      mockQuotes = [
+        {
+          request: {
+            sourceTokenAddress: '0x0000000000000000000000000000000000000000',
+            sourceChainId: '0x89',
+          },
+        },
+      ];
+      mockPayTotals = { total: '100' };
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isPayFeesLoading).toBe(false);
+    });
+
     it('returns false when requiredTokens include selected token', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
