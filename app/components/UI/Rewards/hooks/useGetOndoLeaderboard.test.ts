@@ -115,11 +115,16 @@ describe('useGetOndoLeaderboard', () => {
     });
   });
 
-  it('does not fetch when campaignId is undefined', async () => {
+  it('does not fetch when campaignId is undefined but resets loading and error', async () => {
     renderHook(() => useGetOndoLeaderboard(undefined));
 
     expect(mockCall).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignLeaderboardLoading(false),
+    );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      setOndoCampaignLeaderboardError(false),
+    );
   });
 
   it('fetches leaderboard and dispatches actions on success', async () => {

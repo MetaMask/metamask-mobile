@@ -71,6 +71,8 @@ export const useGetOndoLeaderboard = (
 
   const fetchLeaderboard = useCallback(async (): Promise<void> => {
     if (!campaignId) {
+      dispatch(setOndoCampaignLeaderboardLoading(false));
+      dispatch(setOndoCampaignLeaderboardError(false));
       return;
     }
 
