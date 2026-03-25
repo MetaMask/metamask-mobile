@@ -76,7 +76,4 @@ export async function checkSwapActivity(
       ActivitiesViewSelectorsText.CONFIRM_TEXT,
     );
   }
-
-  // Wait for tx toast to clear
-  await TestHelpers.delay(5000);
 }
