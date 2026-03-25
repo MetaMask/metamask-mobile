@@ -1627,10 +1627,20 @@ export class PerpsController extends BaseController<
           });
           return undefined;
         })
-        .catch(() => {
-          this.#debugLog(
-            'PerpsController: MYX provider module not available, skipping registration',
-          );
+        .catch((error: unknown) => {
+          const isModuleError =
+            error instanceof Error &&
+            /cannot find|not found|module/iu.test(error.message);
+          if (isModuleError) {
+            this.#debugLog(
+              'PerpsController: MYX provider module not available, skipping registration',
+            );
+          } else {
+            this.#logError(
+              error instanceof Error ? error : new Error(String(error)),
+              this.#getErrorContext('createProviders.myx'),
+            );
+          }
         });
     }
   }
