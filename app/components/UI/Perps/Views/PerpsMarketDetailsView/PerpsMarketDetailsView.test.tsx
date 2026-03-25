@@ -3295,6 +3295,7 @@ describe('PerpsMarketDetailsView', () => {
       summary: 'BTC momentum is building with increased buying pressure.',
       sentiment: 'bullish',
       generatedAt: new Date().toISOString(),
+      digestId: 'b9265d68-d776-55ad-9cc6-gdbbbf07fg033',
     };
 
     // Stable track mock reference set up in beforeEach via mockImplementation
@@ -3335,7 +3336,7 @@ describe('PerpsMarketDetailsView', () => {
       mockTrack.mockClear();
     });
 
-    it('fires MARKET_INSIGHTS_OPENED with perps_market when entry card is pressed', () => {
+    it('fires MARKET_INSIGHTS_OPENED with perps_market and digest_id when entry card is pressed', () => {
       const { getByTestId } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
@@ -3350,6 +3351,7 @@ describe('PerpsMarketDetailsView', () => {
         expect.objectContaining({
           perps_market: 'BTC',
           asset_symbol: 'BTC',
+          digest_id: 'b9265d68-d776-55ad-9cc6-gdbbbf07fg033',
         }),
       );
     });

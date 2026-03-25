@@ -264,10 +264,15 @@ const MarketInsightsView: React.FC = () => {
   // Sends the identifier under the right analytics property name.
   // Token flow uses caip19 (a real CAIP-19 ID); perps flow uses perps_market
   // (a plain market symbol like "ETH") to keep the two dimensions clean.
+  // digest_id is the UUID from the API envelope, available once the report loads.
   const assetIdProperty = useMemo(
-    () =>
-      isPerps ? { perps_market: assetIdentifier } : { caip19: assetIdentifier },
-    [isPerps, assetIdentifier],
+    () => ({
+      ...(isPerps
+        ? { perps_market: assetIdentifier }
+        : { caip19: assetIdentifier }),
+      ...(report ? { digest_id: report.digestId } : {}),
+    }),
+    [isPerps, assetIdentifier, report],
   );
   const assetSymbolProperty = useMemo(
     () => (report?.asset ? { asset_symbol: report.asset } : {}),

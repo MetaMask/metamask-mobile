@@ -1032,9 +1032,10 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
     if (!market?.symbol) return;
     track(MetaMetricsEvents.MARKET_INSIGHTS_OPENED, {
       perps_market: market.symbol,
-      ...(perpsInsightsReport?.asset
-        ? { asset_symbol: perpsInsightsReport.asset }
-        : {}),
+      ...(perpsInsightsReport && {
+        asset_symbol: perpsInsightsReport.asset,
+        digest_id: perpsInsightsReport.digestId,
+      }),
     });
     trace({
       name: TraceName.MarketInsightsViewLoad,
@@ -1045,7 +1046,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       assetIdentifier: market.symbol,
       isPerps: true,
     });
-  }, [market?.symbol, navigation, track, perpsInsightsReport?.asset]);
+  }, [market?.symbol, navigation, track, perpsInsightsReport]);
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
