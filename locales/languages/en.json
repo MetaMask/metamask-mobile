@@ -7967,6 +7967,12 @@
       "no_data": "No leaderboard data available",
       "no_entries_in_tier": "No participants in this tier yet"
     },
+    "campaign_portfolio": {
+      "error_title": "Unable to load campaign positions",
+      "error_description": "We couldn't load your campaign positions. Please try again.",
+      "retry": "Retry",
+      "empty_state": "No positions yet."
+    },
     "campaigns_preview": {
       "title": "Campaigns",
       "coming_soon": "Coming soon",

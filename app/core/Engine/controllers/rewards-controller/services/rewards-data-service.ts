@@ -27,6 +27,7 @@ import type {
   ApplyBonusCodeDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  CampaignPortfolioDto,
   ClientVersionRequirementDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
@@ -217,6 +218,11 @@ export interface RewardsDataServiceGetCampaignParticipantStatusAction {
   handler: RewardsDataService['getCampaignParticipantStatus'];
 }
 
+export interface RewardsDataServiceGetOndoCampaignPortfolioAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignPortfolio`;
+  handler: RewardsDataService['getOndoCampaignPortfolio'];
+}
+
 export interface RewardsDataServiceGetClientVersionRequirementsAction {
   type: `${typeof SERVICE_NAME}:getClientVersionRequirements`;
   handler: RewardsDataService['getClientVersionRequirements'];
@@ -284,6 +290,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetOndoCampaignPortfolioAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction;
@@ -440,6 +447,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getOndoCampaignLeaderboardPosition`,
       this.getOndoCampaignLeaderboardPosition.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignPortfolio`,
+      this.getOndoCampaignPortfolio.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1354,6 +1365,11 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
       throw new Error(`Get campaigns failed: ${response.status}`);
     }
 
@@ -1405,6 +1421,11 @@ export class RewardsDataService {
     );
 
     if (!response.ok) {
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
       throw new Error(
         `Get campaign participant status failed: ${response.status}`,
       );
@@ -1462,5 +1483,34 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as CampaignLeaderboardPositionDto;
+  }
+
+  /**
+   * Get the campaign portfolio for the current user.
+   * Returns real-time per-position P&L data with live prices.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param campaignId - The campaign ID to get portfolio for.
+   * @returns The campaign portfolio with positions and summary (tokenAddresses in CAIP-19 format).
+   */
+  async getOndoCampaignPortfolio(
+    subscriptionId: string,
+    campaignId: string,
+  ): Promise<CampaignPortfolioDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/portfolio/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      if (response.status === 401) {
+        throw new AuthorizationFailedError(
+          'Rewards authorization failed. Please login and try again.',
+        );
+      }
+      throw new Error(`Get campaign portfolio failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignPortfolioDto;
   }
 }

@@ -11,7 +11,9 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
+import RewardsCampaignPortfolio from '../components/Campaigns/RewardsCampaignPortfolio';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
+import { CampaignType } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
@@ -130,6 +132,11 @@ const OndoCampaignDetailsView: React.FC = () => {
                   </Box>
                 </>
               )}
+
+              {isOptedIn &&
+                campaign.type === CampaignType.ONDO_HOLDING && (
+                  <RewardsCampaignPortfolio campaignId={campaignId} />
+                )}
             </>
           )}
         </ScrollView>

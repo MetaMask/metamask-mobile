@@ -25,6 +25,7 @@ import {
   type CampaignParticipantStatusDto,
   type CampaignLeaderboardDto,
   type CampaignLeaderboardPositionDto,
+  type CampaignPortfolioDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -111,6 +112,9 @@ const CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign leaderboard position cache threshold
 const CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign portfolio cache threshold
+const CAMPAIGN_PORTFOLIO_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -209,6 +213,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  campaignPortfolio: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -241,6 +251,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   campaignParticipantStatus: {},
   campaignLeaderboards: {},
   campaignLeaderboardPositions: {},
+  campaignPortfolio: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -626,6 +637,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getOndoCampaignLeaderboardPosition',
       this.getOndoCampaignLeaderboardPosition.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignPortfolio',
+      this.getOndoCampaignPortfolio.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -3665,6 +3680,59 @@ export class RewardsController extends BaseController<
             };
           });
         }
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the campaign portfolio for the current user, cached for 5 minutes.
+   * Returns real-time per-position P&L data with live prices.
+   * @param campaignId - The campaign ID to get portfolio for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The campaign portfolio with positions and summary.
+   */
+  async getOndoCampaignPortfolio(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignPortfolioDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return {
+        positions: [],
+        summary: null,
+        computedAt: new Date().toISOString(),
+      };
+    }
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<CampaignPortfolioDto>({
+      key,
+      ttl: CAMPAIGN_PORTFOLIO_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.campaignPortfolio[k];
+        if (!cached) return undefined;
+        return {
+          payload: cached.portfolio,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign portfolio via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getOndoCampaignPortfolio',
+            subscriptionId,
+            campaignId,
+          )) as CampaignPortfolioDto;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.campaignPortfolio[k] = {
+            portfolio: payload,
+            lastFetched: Date.now(),
+          };
+        });
       },
     });
     return result;

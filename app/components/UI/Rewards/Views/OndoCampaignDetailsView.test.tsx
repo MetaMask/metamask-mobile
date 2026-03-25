@@ -148,6 +148,18 @@ jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   };
 });
 
+jest.mock('../components/Campaigns/RewardsCampaignPortfolio', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({ campaignId: _campaignId }: { campaignId: string }) =>
+      ReactActual.createElement(View, {
+        testID: 'rewards-campaign-portfolio',
+      }),
+  };
+});
+
 jest.mock('../components/RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -543,6 +555,53 @@ describe('OndoCampaignDetailsView', () => {
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+    });
+  });
+
+  describe('campaign portfolio', () => {
+    it('renders campaign portfolio when opted in and campaign type is ONDO_HOLDING', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign({ type: CampaignType.ONDO_HOLDING })],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<CampaignDetailsView />);
+      expect(getByTestId('rewards-campaign-portfolio')).toBeDefined();
+    });
+
+    it('does not render campaign portfolio when not opted in', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign({ type: CampaignType.ONDO_HOLDING })],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: false, participantCount: 0 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<CampaignDetailsView />);
+      expect(queryByTestId('rewards-campaign-portfolio')).toBeNull();
+    });
+
+    it('does not render campaign portfolio when campaign type is not ONDO_HOLDING', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign({ type: 'OTHER_TYPE' as CampaignType })],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<CampaignDetailsView />);
+      expect(queryByTestId('rewards-campaign-portfolio')).toBeNull();
     });
   });
 

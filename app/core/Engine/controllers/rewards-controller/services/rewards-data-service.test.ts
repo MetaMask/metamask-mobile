@@ -4374,12 +4374,24 @@ describe('RewardsDataService', () => {
     it('throws when response is not ok', async () => {
       const mockResponse = {
         ok: false,
+        status: 500,
+      } as Response;
+      mockFetch.mockResolvedValue(mockResponse);
+
+      await expect(service.getCampaigns(mockSubscriptionId)).rejects.toThrow(
+        'Get campaigns failed: 500',
+      );
+    });
+
+    it('throws AuthorizationFailedError when response is 401', async () => {
+      const mockResponse = {
+        ok: false,
         status: 401,
       } as Response;
       mockFetch.mockResolvedValue(mockResponse);
 
       await expect(service.getCampaigns(mockSubscriptionId)).rejects.toThrow(
-        'Get campaigns failed: 401',
+        'Rewards authorization failed. Please login and try again.',
       );
     });
   });
@@ -4489,6 +4501,97 @@ describe('RewardsDataService', () => {
           mockCampaignId,
         ),
       ).rejects.toThrow('Get campaign participant status failed: 404');
+    });
+
+    it('throws AuthorizationFailedError when response is 401', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 401 } as Response);
+
+      await expect(
+        service.getCampaignParticipantStatus(
+          mockSubscriptionId,
+          mockCampaignId,
+        ),
+      ).rejects.toThrow(
+        'Rewards authorization failed. Please login and try again.',
+      );
+    });
+  });
+
+  describe('getOndoCampaignPortfolio', () => {
+    const mockSubscriptionId = 'sub-456';
+    const mockCampaignId = 'campaign-789';
+    const mockToken = 'test-bearer-token';
+    const mockPortfolioResponse = {
+      positions: [
+        {
+          tokenSymbol: 'AAPLon',
+          tokenName: 'Apple Inc.',
+          tokenAddresses: ['eip155:1/erc20:0x123', 'eip155:137/erc20:0x456'],
+          units: '45.2',
+          costBasis: '9040.00',
+          avgCostPerUnit: '200.00',
+          currentPrice: '215.50',
+          currentValue: '9740.60',
+          unrealizedPnl: '700.60',
+          unrealizedPnlPercent: '0.0775',
+        },
+      ],
+      summary: {
+        totalCurrentValue: '9740.60',
+        totalCostBasis: '9040.00',
+        totalUsdDeposited: '10000.00',
+        netDeposit: '9040.00',
+        portfolioPnl: '-259.40',
+        portfolioPnlPercent: '-0.0259',
+      },
+      computedAt: '2026-01-15T10:30:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPortfolioResponse),
+      } as unknown as Response);
+    });
+
+    it('calls correct endpoint with GET and returns portfolio with CAIP-19 tokenAddresses', async () => {
+      const result = await service.getOndoCampaignPortfolio(
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/campaigns/${mockCampaignId}/portfolio/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockPortfolioResponse);
+    });
+
+    it('throws when response is not ok', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      await expect(
+        service.getOndoCampaignPortfolio(mockSubscriptionId, mockCampaignId),
+      ).rejects.toThrow('Get campaign portfolio failed: 404');
+    });
+
+    it('throws AuthorizationFailedError when response is 401', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 401 } as Response);
+
+      await expect(
+        service.getOndoCampaignPortfolio(mockSubscriptionId, mockCampaignId),
+      ).rejects.toThrow(
+        'Rewards authorization failed. Please login and try again.',
+      );
     });
   });
 

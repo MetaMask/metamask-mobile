@@ -181,6 +181,14 @@ export const selectCampaignParticipantCount =
           ?.participantCount ?? null)
       : null;
 
+// Campaign portfolio selectors
+export const selectCampaignPortfolios = (state: RootState) =>
+  state.rewards.campaignPortfolios;
+
+export const selectCampaignPortfolioById =
+  (campaignId: string | undefined) => (state: RootState) =>
+    campaignId ? (state.rewards.campaignPortfolios[campaignId] ?? null) : null;
+
 // Version guard selectors
 export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
   state.rewards.versionGuardMinimumMobileVersion;

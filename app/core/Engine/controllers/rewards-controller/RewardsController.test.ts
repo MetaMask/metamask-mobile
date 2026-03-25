@@ -18,6 +18,7 @@ import {
   type SeasonStateDto,
   SeasonRewardType,
   type LineaTokenRewardDto,
+  type CampaignPortfolioDto,
 } from './types';
 import type { CaipAccountId, Json } from '@metamask/utils';
 import { base58 } from 'ethers/lib/utils';
@@ -173,6 +174,7 @@ class TestableRewardsController extends RewardsController {
   }
 
   public testUpdate(callback: (state: RewardsControllerState) => void) {
+    // @ts-expect-error - Type instantiation too deep when accessing protected update method from BaseController
     this.update(callback);
   }
 }
@@ -19022,6 +19024,7 @@ describe('RewardsController', () => {
     });
   });
 
+
   describe('getOndoCampaignLeaderboard', () => {
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-123';
@@ -19191,6 +19194,7 @@ describe('RewardsController', () => {
     it('returns cached position when cache is fresh', async () => {
       const recentTime = Date.now() - 60000;
       const cacheKey = `${mockCampaignId}:${mockSubscriptionId}`;
+
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: {
@@ -19248,6 +19252,175 @@ describe('RewardsController', () => {
       );
     });
   });
+
+  describe('getOndoCampaignPortfolio', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockSubscriptionId = 'sub123';
+    const mockCampaignId = 'campaign-456';
+    const mockPortfolio: CampaignPortfolioDto = {
+      positions: [
+        {
+          tokenSymbol: 'AAPLon',
+          tokenName: 'Apple Inc.',
+          tokenAddresses: ['eip155:1/erc20:0x123' as const],
+          units: '45.2',
+          costBasis: '9040.00',
+          avgCostPerUnit: '200.00',
+          currentPrice: '215.50',
+          currentValue: '9740.60',
+          unrealizedPnl: '700.60',
+          unrealizedPnlPercent: '0.0775',
+        },
+      ],
+      summary: {
+        totalCurrentValue: '9740.60',
+        totalCostBasis: '9040.00',
+        totalUsdDeposited: '10000.00',
+        netDeposit: '9040.00',
+        portfolioPnl: '-259.40',
+        portfolioPnlPercent: '-0.0259',
+      },
+      computedAt: '2026-01-15T10:30:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns empty portfolio when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result = await disabledController.getOndoCampaignPortfolio(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result.positions).toEqual([]);
+      expect(result.summary).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches portfolio from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPortfolio);
+
+      const result = await ctrl.getOndoCampaignPortfolio(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignPortfolio',
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+      expect(result).toEqual(mockPortfolio);
+
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const cached = ctrl.state.campaignPortfolio[cacheKey];
+      expect(cached).toBeDefined();
+      expect(cached.portfolio).toEqual(mockPortfolio);
+      expect(cached.lastFetched).toBeGreaterThan(Date.now() - 1000);
+    });
+
+    it('returns cached portfolio when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignPortfolio: {
+            [cacheKey]: {
+              portfolio: mockPortfolio,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignPortfolio(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockPortfolio);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches fresh portfolio when cache is stale', async () => {
+      const staleTime = Date.now() - 1000 * 60 * 10;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
+      const stalePortfolio: CampaignPortfolioDto = {
+        ...mockPortfolio,
+        summary: mockPortfolio.summary
+          ? { ...mockPortfolio.summary, totalCurrentValue: '8000.00' }
+          : null,
+      };
+
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignPortfolio: {
+            [cacheKey]: {
+              portfolio: stalePortfolio,
+              lastFetched: staleTime,
+            },
+          },
+        },
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPortfolio);
+
+      const result = await ctrl.getOndoCampaignPortfolio(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockPortfolio);
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignPortfolio',
+        mockSubscriptionId,
+        mockCampaignId,
+      );
+    });
+
+    it('logs when fetching fresh portfolio', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPortfolio);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignPortfolio(mockCampaignId, mockSubscriptionId);
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaign portfolio via API call',
+      );
+    });
+  });
+
 
   describe('getClientVersionRequirements', () => {
     it('fetches version requirements from the data service', async () => {

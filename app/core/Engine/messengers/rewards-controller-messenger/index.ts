@@ -56,6 +56,7 @@ import {
   RewardsDataServiceGetCampaignsAction,
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
+  RewardsDataServiceGetOndoCampaignPortfolioAction,
   RewardsDataServiceGetClientVersionRequirementsAction,
   RewardsDataServiceGetOndoCampaignLeaderboardAction,
   RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
@@ -104,7 +105,8 @@ type AllowedActions =
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
-  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction;
+  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetOndoCampaignPortfolioAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -165,6 +167,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getCampaigns',
       'RewardsDataService:optInToCampaign',
       'RewardsDataService:getCampaignParticipantStatus',
+      'RewardsDataService:getOndoCampaignPortfolio',
       'RewardsDataService:getRewardsEnvUrl',
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
