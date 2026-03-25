@@ -192,7 +192,7 @@
     "@metamask/messenger@^0.3.0": "^1.0.0"
   },
   "dependencies": {
-    "@braze/react-native-sdk": "^19.1.0",
+    "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch",
     "@config-plugins/detox": "^9.0.0",
     "@consensys/native-ramps-sdk": "^2.1.7",
     "@consensys/on-ramp-sdk": "2.1.12",

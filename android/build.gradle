@@ -39,3 +39,21 @@ buildscript {
     }
 	}
 }
+
+// Braze Android SDK 41.x pulls Kotlin 2.1-era artifacts while the project compiles with Kotlin 1.9.x.
+// Pin stdlib and kotlinx-serialization to versions whose metadata Kotlin 1.9 can read (see BrazeReactBridge compile).
+def kotlinStdlibVersion = "1.9.25"
+def kotlinxSerializationVersion = "1.6.3"
+subprojects { subproject ->
+	subproject.configurations.all { configuration ->
+		configuration.resolutionStrategy {
+			force "org.jetbrains.kotlin:kotlin-stdlib:${kotlinStdlibVersion}"
+			force "org.jetbrains.kotlin:kotlin-stdlib-jdk7:${kotlinStdlibVersion}"
+			force "org.jetbrains.kotlin:kotlin-stdlib-jdk8:${kotlinStdlibVersion}"
+			force "org.jetbrains.kotlinx:kotlinx-serialization-core:${kotlinxSerializationVersion}"
+			force "org.jetbrains.kotlinx:kotlinx-serialization-core-jvm:${kotlinxSerializationVersion}"
+			force "org.jetbrains.kotlinx:kotlinx-serialization-json:${kotlinxSerializationVersion}"
+			force "org.jetbrains.kotlinx:kotlinx-serialization-json-jvm:${kotlinxSerializationVersion}"
+		}
+	}
+}
