@@ -12,6 +12,8 @@ import {
   asPlaywrightElement,
   type EncapsulatedElementType,
   PlaywrightGestures,
+  PlatformDetector,
+  PlaywrightElement,
 } from '../../framework';
 import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
@@ -173,7 +175,18 @@ class QuoteView {
         });
       },
       appium: async () => {
-        const tokenElement = await PlaywrightMatchers.getElementById(
+        let tokenElement: PlaywrightElement;
+        if (await PlatformDetector.isAndroid()) {
+          tokenElement = await PlaywrightMatchers.getElementById(
+            this.getTokenElementId(chainId, symbol),
+            { exact: false },
+          );
+        } else {
+          tokenElement = await PlaywrightMatchers.getElementByNameiOS(
+            this.getTokenElementId(chainId, symbol),
+          );
+        }
+        tokenElement = await PlaywrightMatchers.getElementById(
           this.getTokenElementId(chainId, symbol),
           { exact: false },
         );
@@ -268,7 +281,11 @@ class QuoteView {
           timeout: TIMEOUT.NETWORK_SELECT,
           description: `Network ${network} should be visible`,
         });
-        await networkElement.click();
+        await PlaywrightGestures.waitAndTap(networkElement, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          delay: 1000,
+        });
       },
     });
   }
@@ -376,13 +393,24 @@ class QuoteView {
       },
       appium: async () => {
         await this.tapSourceAmountInput();
+        let digitEl: PlaywrightElement;
         for (const digit of amount) {
-          const digitEl = await PlaywrightMatchers.getElementByText(digit);
+          if (await PlatformDetector.isAndroid()) {
+            digitEl = await PlaywrightMatchers.getElementByText(digit);
+          } else {
+            digitEl = await PlaywrightMatchers.getElementByXPath(
+              `//*[contains(@name,'keypad-key-${digit}')]`,
+            );
+          }
           await PlaywrightAssertions.expectElementToBeVisible(digitEl, {
             timeout: TIMEOUT.KEYPAD_DIGIT,
             description: `Keypad digit ${digit} should be visible`,
           });
-          await digitEl.click();
+          await PlaywrightGestures.waitAndTap(digitEl, {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1000,
+          });
         }
       },
     });
