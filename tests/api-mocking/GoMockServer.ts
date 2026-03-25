@@ -156,9 +156,9 @@ class CallbackBridge {
       getJson<T = unknown>(): Promise<T>;
     };
   }[] {
-    return this._seenRequests.map(({ url, bodyText }) => ({
+    return this._seenRequests.map(({ url, bodyText, method }) => ({
       url,
-      method: 'POST',
+      method,
       body: {
         getText: async () => bodyText || undefined,
         getJson: async <T = unknown>(): Promise<T> => {

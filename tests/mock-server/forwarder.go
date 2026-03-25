@@ -69,6 +69,11 @@ func (f *Forwarder) Forward(w http.ResponseWriter, method, targetURL string, bod
 		return
 	}
 
+	for key, vals := range resp.Header {
+		for _, v := range vals {
+			w.Header().Add(key, v)
+		}
+	}
 	w.WriteHeader(resp.StatusCode)
 	w.Write(respBody)
 }
