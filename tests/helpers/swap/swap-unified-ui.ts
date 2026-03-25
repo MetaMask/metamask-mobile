@@ -58,6 +58,7 @@ export async function checkSwapActivity(
 
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.title);
+  await TestHelpers.delay(1000);
   await Assertions.expectElementToBeVisible(
     ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
   );
