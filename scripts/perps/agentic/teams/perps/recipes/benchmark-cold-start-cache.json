@@ -1,0 +1,158 @@
+{
+  "title": "Benchmark cold-start disk cache — baseline vs MMKV hydration",
+  "description": "Measures time-to-data with and without the MMKV disk cache. Seeds disk cache from live WS data, then runs two scenarios: (1) baseline with empty disk cache, (2) disk-cache with MMKV hydration. Logs [PERPS_BENCH] markers for extraction.",
+  "validate": {
+    "runtime": {
+      "steps": [
+        {
+          "id": "nav-perps-prime",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        },
+        {
+          "id": "wait-market-data",
+          "action": "wait_for",
+          "expression": "JSON.stringify({count: (Engine.context.PerpsController.getCachedMarketDataForActiveProvider() || []).length})",
+          "assert": {
+            "operator": "gt",
+            "field": "count",
+            "value": 0
+          },
+          "timeout_ms": 30000
+        },
+        {
+          "id": "seed-disk-cache",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.seedDiskCache().then(function(){return JSON.stringify({seeded: true})})",
+          "assert": {
+            "operator": "eq",
+            "field": "seeded",
+            "value": true
+          }
+        },
+        {
+          "id": "baseline-marker",
+          "action": "eval_sync",
+          "expression": "(console.log('[PERPS_BENCH] === BASELINE ==='), JSON.stringify({phase: 'baseline'}))"
+        },
+        {
+          "id": "clear-disk-cache",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.clearDiskCache().then(function(){return JSON.stringify({cleared: true})})",
+          "assert": {
+            "operator": "eq",
+            "field": "cleared",
+            "value": true
+          }
+        },
+        {
+          "id": "baseline-stop-preload",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.stopMarketDataPreload(), JSON.stringify({stopped: true}))"
+        },
+        {
+          "id": "baseline-clear-memory",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.clearInMemoryCaches(), JSON.stringify({cleared: true}))"
+        },
+        {
+          "id": "baseline-nav-away",
+          "action": "navigate",
+          "target": "WalletView"
+        },
+        {
+          "id": "baseline-wait-nav",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "baseline-restart-preload",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.startMarketDataPreload(), JSON.stringify({restarted: true}))"
+        },
+        {
+          "id": "baseline-nav-perps",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        },
+        {
+          "id": "baseline-wait-data",
+          "action": "wait_for",
+          "expression": "JSON.stringify({count: (Engine.context.PerpsController.getCachedMarketDataForActiveProvider() || []).length})",
+          "assert": {
+            "operator": "gt",
+            "field": "count",
+            "value": 0
+          },
+          "timeout_ms": 30000
+        },
+        {
+          "id": "baseline-settle",
+          "action": "wait",
+          "ms": 2000
+        },
+        {
+          "id": "disk-cache-marker",
+          "action": "eval_sync",
+          "expression": "(console.log('[PERPS_BENCH] === DISK CACHE ==='), JSON.stringify({phase: 'disk_cache'}))"
+        },
+        {
+          "id": "disk-reseed",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.seedDiskCache().then(function(){return JSON.stringify({seeded: true})})",
+          "assert": {
+            "operator": "eq",
+            "field": "seeded",
+            "value": true
+          }
+        },
+        {
+          "id": "disk-stop-preload",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.stopMarketDataPreload(), JSON.stringify({stopped: true}))"
+        },
+        {
+          "id": "disk-clear-memory-only",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.clearInMemoryCaches(), JSON.stringify({cleared: true}))"
+        },
+        {
+          "id": "disk-nav-away",
+          "action": "navigate",
+          "target": "WalletView"
+        },
+        {
+          "id": "disk-wait-nav",
+          "action": "wait",
+          "ms": 1500
+        },
+        {
+          "id": "disk-restart-preload",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.startMarketDataPreload(), JSON.stringify({restarted: true}))"
+        },
+        {
+          "id": "disk-nav-perps",
+          "action": "navigate",
+          "target": "PerpsHomeView"
+        },
+        {
+          "id": "disk-wait-data",
+          "action": "wait_for",
+          "expression": "JSON.stringify({count: (Engine.context.PerpsController.getCachedMarketDataForActiveProvider() || []).length})",
+          "assert": {
+            "operator": "gt",
+            "field": "count",
+            "value": 0
+          },
+          "timeout_ms": 30000
+        },
+        {
+          "id": "done-marker",
+          "action": "eval_sync",
+          "expression": "(console.log('[PERPS_BENCH] === DONE ==='), JSON.stringify({done: true}))"
+        }
+      ]
+    }
+  }
+}
