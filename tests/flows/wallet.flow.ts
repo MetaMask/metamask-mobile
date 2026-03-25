@@ -2,6 +2,7 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
+  PlatformDetector,
   PortManager,
   ResourceType,
   sleep,
@@ -31,6 +32,8 @@ import { CustomNetworks } from '../resources/networks.e2e';
 import ToastModal from '../page-objects/wallet/ToastModal';
 import { waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
+import { getPasswordForScenario } from '../framework/utils/TestConstants';
+import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -422,4 +425,23 @@ export const loginToApp = async (password?: string): Promise<void> => {
       description: 'login to app after rehydration',
     },
   );
+};
+
+/**
+ * Logs into the application using the provided password or a default password.
+ *
+ * @async
+ * @function loginToAppPlaywright
+ */
+export const loginToAppPlaywright = async (
+  options: { scenarioType?: string; dismissModals?: boolean } = {},
+): Promise<void> => {
+  const { scenarioType = 'login' } = options;
+
+  const password = getPasswordForScenario(scenarioType);
+  // Type password and unlock
+  await LoginView.enterPassword(password ?? '');
+  await LoginView.tapLoginButton();
+
+  await PlaywrightUtilities.wait(5000);
 };

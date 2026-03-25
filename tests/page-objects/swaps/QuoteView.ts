@@ -11,6 +11,7 @@ import {
   asDetoxElement,
   asPlaywrightElement,
   type EncapsulatedElementType,
+  PlaywrightGestures,
 } from '../../framework';
 import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import {
@@ -209,8 +210,22 @@ class QuoteView {
    * Use before enterAmount() when the keypad may be closed (e.g. after returning from token/network selection).
    */
   async tapSourceAmountInput(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.amountInput, {
-      description: 'Tap source amount input to open keypad',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.amountInput, {
+          elemDescription: 'Tap source amount input to open keypad',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.amountInput),
+          {
+            checkForDisplayed: true,
+            checkForEnabled: true,
+            delay: 1500,
+          },
+        );
+      },
     });
   }
 
@@ -360,9 +375,7 @@ class QuoteView {
         await this.enterAmount(amount);
       },
       appium: async () => {
-        await UnifiedGestures.waitAndTap(this.amountInput, {
-          description: 'Tap source amount input',
-        });
+        await this.tapSourceAmountInput();
         for (const digit of amount) {
           const digitEl = await PlaywrightMatchers.getElementByText(digit);
           await PlaywrightAssertions.expectElementToBeVisible(digitEl, {

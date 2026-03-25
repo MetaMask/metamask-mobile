@@ -71,18 +71,22 @@ export const test = base.extend<TestLevelFixtures>({
 
   driver: async ({ deviceProvider }, use, testInfo) => {
     let driver: WebdriverIO.Browser | undefined;
+    const project = testInfo.project as FullProject<WebDriverConfig>;
 
     try {
       // Create driver and set up test context
       driver = await deviceProvider.getDriver();
 
+      // Set the implicit timeout for the driver
+      await driver.setTimeout({
+        implicit: project.use.expectTimeout ?? 30_000,
+      });
+
       // Make driver globally accessible for utilities
       globalThis.driver = driver;
 
       // Add test metadata as annotations
-      const deviceProviderName = (
-        testInfo.project as FullProject<WebDriverConfig>
-      ).use.device?.provider;
+      const deviceProviderName = project.use.device?.provider;
 
       testInfo.annotations.push(
         {

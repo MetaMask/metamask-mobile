@@ -93,6 +93,17 @@ class PlaywrightUtilities {
     const screenSize = await getDriver().getWindowSize();
     return { width: screenSize.width, height: screenSize.height };
   }
+
+  /**
+   * Temporary wait method for the Playwright framework migration to keep the
+   * 1:1 to the old Appwright implementation.
+   * See: https://github.com/MetaMask/metamask-mobile/blob/main/tests/framework/utils/Flows.js#L228
+   * @param ms - The time to wait in milliseconds
+   * @returns A promise that resolves when the wait is complete
+   */
+  static async wait(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
 }
 
 // Change this once we use functions for the PlaywrightAdapter Utils
