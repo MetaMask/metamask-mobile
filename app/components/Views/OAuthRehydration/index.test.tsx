@@ -881,6 +881,12 @@ describe('OAuthRehydration', () => {
           }),
         );
       });
+      expect(mockUnlockWallet.mock.invocationCallOrder[0]).toBeLessThan(
+        mockRequestBiometricsAccessControlForIOS.mock.invocationCallOrder[0],
+      );
+      expect(mockRequestBiometricsAccessControlForIOS).toHaveBeenCalledWith(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
     });
 
     it('does not prompt biometrics before unlock when password is wrong (outdated password flow)', async () => {

@@ -594,6 +594,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         },
       );
 
+      await upgradeKeychainAuthAfterSuccessfulUnlock();
+
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
       try {
@@ -615,6 +617,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     promptBiometricFailedAlert,
     unlockWallet,
+    upgradeKeychainAuthAfterSuccessfulUnlock,
   ]);
 
   // Cleanup for isMountedRef tracking
