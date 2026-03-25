@@ -1,4 +1,4 @@
-import React, { memo, useCallback, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -9,6 +9,7 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { strings } from '../../../../../../locales/i18n';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -74,6 +75,7 @@ const PerpsTPSLView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
+
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Keypad state management
@@ -107,6 +109,17 @@ const PerpsTPSLView: React.FC = () => {
   const hasValidLimitPrice =
     orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
   const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
+
+  useEffect(() => {
+    DevLogger.log(
+      '[PR-27901] BUG_MARKER: keypadDecimals=' +
+        TP_SL_VIEW_CONFIG.KeypadDecimals +
+        ' currentPrice=' +
+        currentPrice +
+        ' asset=' +
+        asset,
+    );
+  }, [currentPrice, asset]);
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
