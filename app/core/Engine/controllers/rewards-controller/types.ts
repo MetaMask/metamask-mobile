@@ -141,14 +141,13 @@ export interface CampaignDto {
   excludedRegions: string[];
 
   /**
-   * Status label for the campaign
-   * @example 'Active'
+   * Theme-aware background image for the campaign tile
    */
-  statusLabel: string;
+  image?: ThemeImage;
 
   /**
    * The details of the campaign
-   * @example { image: { lightModeUrl: 'https://example.com/image.png', darkModeUrl: 'https://example.com/image-dark.png' }, howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
+   * @example { howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
    */
   details: CampaignDetails | null;
 
@@ -169,12 +168,11 @@ export type CampaignsState = {
     endDate: string;
     termsAndConditions: Json | null;
     excludedRegions: string[];
-    statusLabel: string;
+    image?: {
+      lightModeUrl: string;
+      darkModeUrl: string;
+    };
     details: {
-      image: {
-        lightModeUrl: string;
-        darkModeUrl: string;
-      };
       howItWorks: {
         title: string;
         description: string;
@@ -243,7 +241,6 @@ export interface OndoCampaignHowItWorks {
 }
 
 export interface OndoHoldingDetails {
-  image: ThemeImage;
   howItWorks: OndoCampaignHowItWorks;
 }
 
