@@ -1350,42 +1350,90 @@ exports[`OrderDetails renders a cancelled order 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
+                                <View
+                                  accessibilityLabel="Start a new order"
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    ellipsizeMode="clip"
+                                    numberOfLines={1}
                                     style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#ffffff",
+                                          "flexGrow": 0,
+                                          "flexShrink": 1,
+                                          "flexWrap": "wrap",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Start a new order
                                   </Text>
-                                </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -2786,42 +2834,90 @@ exports[`OrderDetails renders a completed order 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
+                                <View
+                                  accessibilityLabel="Start a new order"
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    ellipsizeMode="clip"
+                                    numberOfLines={1}
                                     style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#ffffff",
+                                          "flexGrow": 0,
+                                          "flexShrink": 1,
+                                          "flexWrap": "wrap",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Start a new order
                                   </Text>
-                                </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -5618,42 +5714,90 @@ exports[`OrderDetails renders a failed order 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
+                                <View
+                                  accessibilityLabel="Start a new order"
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    ellipsizeMode="clip"
+                                    numberOfLines={1}
                                     style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#ffffff",
+                                          "flexGrow": 0,
+                                          "flexShrink": 1,
+                                          "flexWrap": "wrap",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Start a new order
                                   </Text>
-                                </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -8018,42 +8162,90 @@ exports[`OrderDetails renders an error screen if a CREATED order cannot be polle
                                   }
                                 }
                               >
-                                <TouchableOpacity
+                                <View
+                                  accessibilityLabel="Try again"
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    ellipsizeMode="clip"
+                                    numberOfLines={1}
                                     style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#ffffff",
+                                          "flexGrow": 0,
+                                          "flexShrink": 1,
+                                          "flexWrap": "wrap",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Try again
                                   </Text>
-                                </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>
@@ -9496,42 +9688,90 @@ exports[`OrderDetails renders non-transacted orders 1`] = `
                                     ]
                                   }
                                 >
-                                  <TouchableOpacity
+                                  <View
+                                    accessibilityLabel="Continue this order"
                                     accessibilityRole="button"
-                                    accessible={true}
-                                    activeOpacity={1}
-                                    onPress={[Function]}
-                                    onPressIn={[Function]}
-                                    onPressOut={[Function]}
-                                    style={
+                                    accessibilityState={
                                       {
-                                        "alignItems": "center",
-                                        "alignSelf": "stretch",
-                                        "backgroundColor": "#131416",
-                                        "borderRadius": 12,
-                                        "flexDirection": "row",
-                                        "height": 48,
-                                        "justifyContent": "center",
-                                        "overflow": "hidden",
-                                        "paddingHorizontal": 16,
+                                        "busy": undefined,
+                                        "checked": undefined,
+                                        "disabled": false,
+                                        "expanded": undefined,
+                                        "selected": undefined,
                                       }
+                                    }
+                                    accessibilityValue={
+                                      {
+                                        "max": undefined,
+                                        "min": undefined,
+                                        "now": undefined,
+                                        "text": undefined,
+                                      }
+                                    }
+                                    accessible={true}
+                                    collapsable={false}
+                                    focusable={true}
+                                    onBlur={[Function]}
+                                    onClick={[Function]}
+                                    onFocus={[Function]}
+                                    onResponderGrant={[Function]}
+                                    onResponderMove={[Function]}
+                                    onResponderRelease={[Function]}
+                                    onResponderTerminate={[Function]}
+                                    onResponderTerminationRequest={[Function]}
+                                    onStartShouldSetResponder={[Function]}
+                                    style={
+                                      [
+                                        {
+                                          "alignItems": "center",
+                                          "backgroundColor": "#131416",
+                                          "borderRadius": 12,
+                                          "columnGap": 8,
+                                          "flexDirection": "row",
+                                          "height": 48,
+                                          "justifyContent": "center",
+                                          "minWidth": 80,
+                                          "opacity": 1,
+                                          "overflow": "hidden",
+                                          "paddingLeft": 16,
+                                          "paddingRight": 16,
+                                          "width": "100%",
+                                        },
+                                        {
+                                          "transform": [
+                                            {
+                                              "scale": 1,
+                                            },
+                                          ],
+                                        },
+                                      ]
                                     }
                                   >
                                     <Text
                                       accessibilityRole="text"
+                                      ellipsizeMode="clip"
+                                      numberOfLines={1}
                                       style={
-                                        {
-                                          "color": "#ffffff",
-                                          "fontFamily": "Geist-Medium",
-                                          "fontSize": 16,
-                                          "letterSpacing": 0,
-                                          "lineHeight": 24,
-                                        }
+                                        [
+                                          {
+                                            "color": "#ffffff",
+                                            "flexGrow": 0,
+                                            "flexShrink": 1,
+                                            "flexWrap": "wrap",
+                                            "fontFamily": "Geist-Medium",
+                                            "fontSize": 16,
+                                            "fontWeight": 400,
+                                            "letterSpacing": 0,
+                                            "lineHeight": 24,
+                                            "textAlign": "center",
+                                          },
+                                          undefined,
+                                        ]
                                       }
                                     >
                                       Continue this order
                                     </Text>
-                                  </TouchableOpacity>
+                                  </View>
                                 </View>
                               </View>
                             </View>
@@ -10979,42 +11219,90 @@ exports[`OrderDetails renders the support links if the provider has them 1`] = `
                                   ]
                                 }
                               >
-                                <TouchableOpacity
+                                <View
+                                  accessibilityLabel="Start a new order"
                                   accessibilityRole="button"
-                                  accessible={true}
-                                  activeOpacity={1}
-                                  onPress={[Function]}
-                                  onPressIn={[Function]}
-                                  onPressOut={[Function]}
-                                  style={
+                                  accessibilityState={
                                     {
-                                      "alignItems": "center",
-                                      "alignSelf": "stretch",
-                                      "backgroundColor": "#131416",
-                                      "borderRadius": 12,
-                                      "flexDirection": "row",
-                                      "height": 48,
-                                      "justifyContent": "center",
-                                      "overflow": "hidden",
-                                      "paddingHorizontal": 16,
+                                      "busy": undefined,
+                                      "checked": undefined,
+                                      "disabled": false,
+                                      "expanded": undefined,
+                                      "selected": undefined,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "backgroundColor": "#131416",
+                                        "borderRadius": 12,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                        "width": "100%",
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <Text
                                     accessibilityRole="text"
+                                    ellipsizeMode="clip"
+                                    numberOfLines={1}
                                     style={
-                                      {
-                                        "color": "#ffffff",
-                                        "fontFamily": "Geist-Medium",
-                                        "fontSize": 16,
-                                        "letterSpacing": 0,
-                                        "lineHeight": 24,
-                                      }
+                                      [
+                                        {
+                                          "color": "#ffffff",
+                                          "flexGrow": 0,
+                                          "flexShrink": 1,
+                                          "flexWrap": "wrap",
+                                          "fontFamily": "Geist-Medium",
+                                          "fontSize": 16,
+                                          "fontWeight": 400,
+                                          "letterSpacing": 0,
+                                          "lineHeight": 24,
+                                          "textAlign": "center",
+                                        },
+                                        undefined,
+                                      ]
                                     }
                                   >
                                     Start a new order
                                   </Text>
-                                </TouchableOpacity>
+                                </View>
                               </View>
                             </View>
                           </View>

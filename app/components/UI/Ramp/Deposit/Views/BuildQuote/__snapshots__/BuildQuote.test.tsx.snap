@@ -617,6 +617,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 >
                                   $0
                                 </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  0
+                                   
+                                  USDC
+                                </Text>
                               </View>
                               <TouchableOpacity
                                 disabled={false}
@@ -785,84 +802,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   />
                                 </View>
                               </TouchableOpacity>
-                              <View
-                                style={
-                                  {
-                                    "alignSelf": "stretch",
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "marginBottom": 8,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "backgroundColor": "#ca35421a",
-                                        "borderColor": "#ca3542",
-                                        "borderLeftWidth": 4,
-                                        "borderRadius": 4,
-                                        "flexDirection": "row",
-                                        "padding": 12,
-                                        "paddingLeft": 8,
-                                      }
-                                    }
-                                    testID="banneralert"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "marginRight": 8,
-                                        }
-                                      }
-                                    >
-                                      <SvgMock
-                                        color="#ca3542"
-                                        fill="currentColor"
-                                        height={24}
-                                        name="Danger"
-                                        style={
-                                          {
-                                            "height": 24,
-                                            "width": 24,
-                                          }
-                                        }
-                                        width={24}
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        ellipsizeMode="tail"
-                                        numberOfLines={2}
-                                        onTextLayout={[Function]}
-                                        style={
-                                          {
-                                            "color": "#131416",
-                                            "fontFamily": "Geist-Regular",
-                                            "fontSize": 14,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
-                                          }
-                                        }
-                                      >
-                                        Failed to fetch quote
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </View>
-                              </View>
                             </View>
                             <TouchableOpacity
                               disabled={false}
@@ -1740,45 +1679,90 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -2412,6 +2396,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 >
                                   $0
                                 </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  0
+                                   
+                                  USDC
+                                </Text>
                               </View>
                               <TouchableOpacity
                                 disabled={false}
@@ -2580,84 +2581,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   />
                                 </View>
                               </TouchableOpacity>
-                              <View
-                                style={
-                                  {
-                                    "alignSelf": "stretch",
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "marginBottom": 8,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "backgroundColor": "#ca35421a",
-                                        "borderColor": "#ca3542",
-                                        "borderLeftWidth": 4,
-                                        "borderRadius": 4,
-                                        "flexDirection": "row",
-                                        "padding": 12,
-                                        "paddingLeft": 8,
-                                      }
-                                    }
-                                    testID="banneralert"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "marginRight": 8,
-                                        }
-                                      }
-                                    >
-                                      <SvgMock
-                                        color="#ca3542"
-                                        fill="currentColor"
-                                        height={24}
-                                        name="Danger"
-                                        style={
-                                          {
-                                            "height": 24,
-                                            "width": 24,
-                                          }
-                                        }
-                                        width={24}
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        ellipsizeMode="tail"
-                                        numberOfLines={2}
-                                        onTextLayout={[Function]}
-                                        style={
-                                          {
-                                            "color": "#131416",
-                                            "fontFamily": "Geist-Regular",
-                                            "fontSize": 14,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
-                                          }
-                                        }
-                                      >
-                                        Failed to fetch quote.
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </View>
-                              </View>
                             </View>
                             <TouchableOpacity
                               disabled={false}
@@ -3535,45 +3458,90 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -4207,6 +4175,23 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                 >
                                   $0
                                 </Text>
+                                <Text
+                                  accessibilityRole="text"
+                                  style={
+                                    {
+                                      "color": "#66676a",
+                                      "fontFamily": "Geist-Regular",
+                                      "fontSize": 16,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    }
+                                  }
+                                >
+                                  0
+                                   
+                                  USDC
+                                </Text>
                               </View>
                               <TouchableOpacity
                                 disabled={false}
@@ -4375,84 +4360,6 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                                   />
                                 </View>
                               </TouchableOpacity>
-                              <View
-                                style={
-                                  {
-                                    "alignSelf": "stretch",
-                                    "width": "100%",
-                                  }
-                                }
-                              >
-                                <View
-                                  style={
-                                    {
-                                      "marginBottom": 8,
-                                    }
-                                  }
-                                >
-                                  <View
-                                    style={
-                                      {
-                                        "backgroundColor": "#ca35421a",
-                                        "borderColor": "#ca3542",
-                                        "borderLeftWidth": 4,
-                                        "borderRadius": 4,
-                                        "flexDirection": "row",
-                                        "padding": 12,
-                                        "paddingLeft": 8,
-                                      }
-                                    }
-                                    testID="banneralert"
-                                  >
-                                    <View
-                                      style={
-                                        {
-                                          "marginRight": 8,
-                                        }
-                                      }
-                                    >
-                                      <SvgMock
-                                        color="#ca3542"
-                                        fill="currentColor"
-                                        height={24}
-                                        name="Danger"
-                                        style={
-                                          {
-                                            "height": 24,
-                                            "width": 24,
-                                          }
-                                        }
-                                        width={24}
-                                      />
-                                    </View>
-                                    <View
-                                      style={
-                                        {
-                                          "flex": 1,
-                                        }
-                                      }
-                                    >
-                                      <Text
-                                        accessibilityRole="text"
-                                        ellipsizeMode="tail"
-                                        numberOfLines={2}
-                                        onTextLayout={[Function]}
-                                        style={
-                                          {
-                                            "color": "#131416",
-                                            "fontFamily": "Geist-Regular",
-                                            "fontSize": 14,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 22,
-                                          }
-                                        }
-                                      >
-                                        Routing failed
-                                      </Text>
-                                    </View>
-                                  </View>
-                                </View>
-                              </View>
                             </View>
                             <TouchableOpacity
                               disabled={false}
@@ -5330,45 +5237,90 @@ exports[`BuildQuote Component Continue button functionality displays error when 
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -7064,45 +7016,90 @@ exports[`BuildQuote Component Keypad Functionality displays converted token amou
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -8798,44 +8795,90 @@ exports[`BuildQuote Component Keypad Functionality updates amount when keypad is
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={false}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": false,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -10531,45 +10574,90 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -12358,45 +12446,90 @@ exports[`BuildQuote Component Payment Method Selection does not open payment met
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -14047,45 +14180,90 @@ exports[`BuildQuote Component Payment Method Selection does not show the duratio
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -15781,45 +15959,90 @@ exports[`BuildQuote Component Payment Method Selection shows the right duration 
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -17515,45 +17738,90 @@ exports[`BuildQuote Component Region Selection displays EUR currency when select
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -19249,45 +19517,90 @@ exports[`BuildQuote Component Region Selection displays default US region on ini
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -20983,45 +21296,90 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -22810,45 +23168,90 @@ exports[`BuildQuote Component Region Selection does not open region modal when r
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -24542,45 +24945,90 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -26367,45 +26815,90 @@ exports[`BuildQuote Component Token Selection does not open token modal when cry
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -28194,45 +28687,90 @@ exports[`BuildQuote Component User Details Error displays user details error ale
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
@@ -29928,45 +30466,90 @@ exports[`BuildQuote Component render matches snapshot 1`] = `
                               ]
                             }
                           >
-                            <TouchableOpacity
+                            <View
+                              accessibilityLabel="Continue"
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              disabled={true}
-                              loading={false}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
-                                  "alignItems": "center",
-                                  "alignSelf": "stretch",
-                                  "backgroundColor": "#131416",
-                                  "borderRadius": 12,
-                                  "flexDirection": "row",
-                                  "height": 48,
-                                  "justifyContent": "center",
-                                  "opacity": 0.5,
-                                  "overflow": "hidden",
-                                  "paddingHorizontal": 16,
+                                  "busy": undefined,
+                                  "checked": undefined,
+                                  "disabled": true,
+                                  "expanded": undefined,
+                                  "selected": undefined,
                                 }
+                              }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 0.5,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
                               }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
-                                  {
-                                    "color": "#ffffff",
-                                    "fontFamily": "Geist-Medium",
-                                    "fontSize": 16,
-                                    "letterSpacing": 0,
-                                    "lineHeight": 24,
-                                  }
+                                  [
+                                    {
+                                      "color": "#ffffff",
+                                      "flexGrow": 0,
+                                      "flexShrink": 1,
+                                      "flexWrap": "wrap",
+                                      "fontFamily": "Geist-Medium",
+                                      "fontSize": 16,
+                                      "fontWeight": 400,
+                                      "letterSpacing": 0,
+                                      "lineHeight": 24,
+                                      "textAlign": "center",
+                                    },
+                                    undefined,
+                                  ]
                                 }
                               >
                                 Continue
                               </Text>
-                            </TouchableOpacity>
+                            </View>
                           </View>
                         </View>
                       </View>
