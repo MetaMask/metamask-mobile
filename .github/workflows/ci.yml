@@ -797,7 +797,7 @@ jobs:
         run: |
           cd tests/mock-server
           make build-all
-          git diff --exit-code tests/bin/ || (echo "Go mock server binaries are stale. Run 'make build-all' in tests/mock-server/ on macOS and commit the results." && exit 1)
+          git diff --exit-code -- ../bin/ || (echo "Go mock server binaries are stale. Run 'make build-all' in tests/mock-server/ on macOS and commit the results." && exit 1)
 
   check-all-jobs-pass:
     name: Check all jobs pass

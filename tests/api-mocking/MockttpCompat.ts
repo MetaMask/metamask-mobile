@@ -65,7 +65,10 @@ export interface MockttpCompatRule {
     headers?: Record<string, string>,
   ): Promise<void>;
   thenJson(statusCode: number, body: object): Promise<void>;
+  thenCallback(handler: MockttpCallback): Promise<void>;
   matching(predicate: MockttpPredicate): MockttpCompatMatchChain;
+  /** Higher value = higher priority; higher-priority handlers are tried first. */
+  asPriority(priority: number): MockttpCompatTerminalChain;
 }
 
 export interface MockttpCompat {

@@ -599,42 +599,57 @@ export default class GoMockServer implements Resource {
       },
     });
 
-    const makeRule = (method: string, url: string | RegExp) => ({
-      thenReply: async (
-        statusCode: number,
-        body: unknown,
-        headers?: Record<string, string>,
-      ) => {
-        await axios.post(`${controlUrl}/mocks`, {
-          method,
-          urlEndpoint: url instanceof RegExp ? url.source : url,
-          isRegex: url instanceof RegExp,
-          responseCode: statusCode,
-          response: body,
-        });
-        void headers; // static-rule thenReply doesn't forward headers to Go yet
-      },
-      thenJson: async (statusCode: number, body: object) => {
-        await axios.post(`${controlUrl}/mocks`, {
-          method,
-          urlEndpoint: url instanceof RegExp ? url.source : url,
-          isRegex: url instanceof RegExp,
-          responseCode: statusCode,
-          response: body,
-        });
-      },
-      matching: (predicate: MockttpPredicate) => {
-        const terminal = makeTerminal(method, predicate, null);
-        return {
-          ...terminal,
-          always: () => makeTerminal(method, predicate, null),
-          withJsonBodyIncluding: (bodyMatcher: Record<string, unknown>) =>
-            makeTerminal(method, predicate, bodyMatcher),
-          asPriority: (priority: number) =>
-            makeTerminal(method, predicate, null, priority),
-        };
-      },
-    });
+    const makeRule = (method: string, url: string | RegExp) => {
+      // URL predicate used by bridge-registered handlers (thenCallback, asPriority).
+      const urlPredicate: MockttpPredicate = (request) => {
+        const reqUrl = decodeProxiedUrl(request.url);
+        if (url instanceof RegExp) return url.test(reqUrl);
+        const urlStr = String(url);
+        return reqUrl === urlStr || reqUrl.startsWith(urlStr);
+      };
+
+      return {
+        thenReply: async (
+          statusCode: number,
+          body: unknown,
+          headers?: Record<string, string>,
+        ) => {
+          await axios.post(`${controlUrl}/mocks`, {
+            method,
+            urlEndpoint: url instanceof RegExp ? url.source : url,
+            isRegex: url instanceof RegExp,
+            responseCode: statusCode,
+            response: body,
+          });
+          void headers; // static-rule thenReply doesn't forward headers to Go yet
+        },
+        thenJson: async (statusCode: number, body: object) => {
+          await axios.post(`${controlUrl}/mocks`, {
+            method,
+            urlEndpoint: url instanceof RegExp ? url.source : url,
+            isRegex: url instanceof RegExp,
+            responseCode: statusCode,
+            response: body,
+          });
+        },
+        thenCallback: async (handler: MockttpCallback) => {
+          await makeTerminal(method, urlPredicate, null).thenCallback(handler);
+        },
+        matching: (predicate: MockttpPredicate) => {
+          const terminal = makeTerminal(method, predicate, null);
+          return {
+            ...terminal,
+            always: () => makeTerminal(method, predicate, null),
+            withJsonBodyIncluding: (bodyMatcher: Record<string, unknown>) =>
+              makeTerminal(method, predicate, bodyMatcher),
+            asPriority: (priority: number) =>
+              makeTerminal(method, predicate, null, priority),
+          };
+        },
+        asPriority: (priority: number) =>
+          makeTerminal(method, urlPredicate, null, priority),
+      };
+    };
 
     return {
       forGet: (url) => makeRule('GET', url),
