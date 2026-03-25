@@ -312,15 +312,12 @@ export default class GoMockServer implements Resource {
     this._controlPort = controlAllocation.port;
 
     const portMaps = this._buildPortMaps();
-    const defaultMocksJson = this._serializeEvents(this._events);
 
     this._process = spawn(BINARY_PATH, [
       '--proxy-port',
       String(this._proxyPort),
       '--control-port',
       String(this._controlPort),
-      '--defaults',
-      defaultMocksJson,
       ...portMaps,
     ]);
 
@@ -342,6 +339,11 @@ export default class GoMockServer implements Resource {
     });
 
     await this._waitForHealthy();
+
+    // POST static (non-function) default mocks to the control API.
+    // These were previously passed as --defaults <json> on the CLI, but that
+    // argument can exceed the kernel ARG_MAX limit on Linux CI runners.
+    await this._postStaticDefaultMocks(this._events);
 
     // Start the callback bridge and register its URL with the Go proxy.
     // The proxy forwards unmatched requests to the bridge so JS thenCallback handlers work.
@@ -498,28 +500,30 @@ export default class GoMockServer implements Resource {
     }
   }
 
-  private _serializeEvents(events: MockEventsObject): string {
-    const serialized: Record<string, unknown[]> = {};
+  /**
+   * POST each static (non-function) mock rule from `events` to the Go control
+   * API. This replaces the old --defaults CLI argument which could exceed the
+   * kernel ARG_MAX limit on Linux CI runners (POSIX E2BIG).
+   */
+  private async _postStaticDefaultMocks(
+    events: MockEventsObject,
+  ): Promise<void> {
+    const controlUrl = this._controlUrl;
     for (const [method, rules] of Object.entries(events)) {
-      serialized[method] = (rules as MockApiEndpoint[])
-        // Function responses can't be JSON-serialized (JSON.stringify silently drops them).
-        // Skip these rules so they don't become broken static rules in Go (returning null body).
-        // They must be handled dynamically via the callback bridge (e.g. testSpecificMock).
-        .filter((rule) => typeof rule.response !== 'function')
-        .map((rule) => {
-          const isRegexEndpoint = rule.urlEndpoint instanceof RegExp;
-          return {
-            ...rule,
-            urlEndpoint: isRegexEndpoint
-              ? (rule.urlEndpoint as RegExp).source
-              : rule.urlEndpoint,
-            isRegex:
-              isRegexEndpoint ||
-              (rule as { isRegex?: boolean }).isRegex === true,
-          };
+      for (const rule of rules as MockApiEndpoint[]) {
+        if (typeof rule.response === 'function') continue;
+        const isRegex = rule.urlEndpoint instanceof RegExp;
+        await axios.post(`${controlUrl}/mocks`, {
+          method,
+          urlEndpoint: isRegex
+            ? (rule.urlEndpoint as RegExp).source
+            : rule.urlEndpoint,
+          isRegex: isRegex || (rule as { isRegex?: boolean }).isRegex === true,
+          responseCode: rule.responseCode,
+          response: rule.response,
         });
+      }
     }
-    return JSON.stringify(serialized);
   }
 
   private _buildPortMaps(): string[] {
