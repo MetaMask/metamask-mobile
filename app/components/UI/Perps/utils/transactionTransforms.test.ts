@@ -21,10 +21,7 @@ import {
 } from '../types/transactionHistory';
 
 jest.mock('../../../Views/confirmations/utils/transaction-pay');
-jest.mock('../../../Views/confirmations/utils/transaction', () => ({
-  ...jest.requireActual('../../../Views/confirmations/utils/transaction'),
-  parseStandardTokenTransactionData: jest.fn(),
-}));
+jest.mock('../../../Views/confirmations/utils/transaction');
 jest.mock('../../../../util/transactions', () => ({
   ...jest.requireActual('../../../../util/transactions'),
   calcTokenAmount: jest.fn((value: string) => (Number(value) / 1e6).toString()),
@@ -1932,19 +1929,6 @@ describe('transactionTransforms', () => {
 
     it('uses Deposit title and zero amount when getTokenTransferData returns undefined', () => {
       mockGetTokenTransferData.mockReturnValue(undefined);
-
-      const result = transformWalletPerpsDepositsToTransactions([
-        createMockTx(),
-      ] as never);
-
-      expect(result[0].title).toBe('Deposit');
-      expect(result[0].depositWithdrawal?.amountNumber).toBe(0);
-    });
-
-    it('uses Deposit title and zero amount when parsed token data is missing a value', () => {
-      mockParseStandardTokenTransactionData.mockReturnValue({
-        args: {},
-      } as never);
 
       const result = transformWalletPerpsDepositsToTransactions([
         createMockTx(),

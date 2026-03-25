@@ -46,7 +46,6 @@ import {
   walletPerpsWithdrawalsToRequests,
   mergeOrderFills,
 } from '../utils/transactionTransforms';
-import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 
 function deduplicateById(transactions: PerpsTransaction[]): PerpsTransaction[] {
   const seen = new Set<string>();

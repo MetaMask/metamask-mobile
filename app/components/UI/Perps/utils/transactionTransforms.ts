@@ -22,7 +22,6 @@ import { getTokenTransferData } from '../../../Views/confirmations/utils/transac
 import { parseStandardTokenTransactionData } from '../../../Views/confirmations/utils/transaction';
 import { calcTokenAmount } from '../../../../util/transactions';
 import { ARBITRUM_USDC } from '../../../Views/confirmations/constants/perps';
-import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 
 /**
  * Determines the close direction category for aggregation purposes.
@@ -669,7 +668,11 @@ export function transformWalletPerpsDepositsToTransactions(
   transactions: TransactionMeta[],
 ): PerpsTransaction[] {
   return transactions
-    .filter((tx) => hasPerpsDepositTransactionType(tx))
+    .filter(
+      (tx) =>
+        tx.type === TransactionType.perpsDeposit ||
+        tx.type === TransactionType.perpsDepositAndOrder,
+    )
     .map((tx) => {
       const tokenData = getTokenTransferData(tx);
       const decoded = tokenData?.data

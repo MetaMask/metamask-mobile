@@ -1,11 +1,11 @@
 import {
   TransactionMeta,
   TransactionStatus,
+  TransactionType,
 } from '@metamask/transaction-controller';
 import { useEffect, useRef, useState } from 'react';
 import Engine from '../../../../core/Engine';
 import { usePerpsLiveAccount } from './stream/usePerpsLiveAccount';
-import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 
 /**
  * Hook to track deposit progress state for UI components
@@ -36,7 +36,10 @@ export const usePerpsDepositProgress = () => {
     }: {
       transactionMeta: TransactionMeta;
     }) => {
-      if (!hasPerpsDepositTransactionType(transactionMeta)) {
+      if (
+        transactionMeta.type !== TransactionType.perpsDepositAndOrder &&
+        transactionMeta.type !== TransactionType.perpsDeposit
+      ) {
         return;
       }
 
