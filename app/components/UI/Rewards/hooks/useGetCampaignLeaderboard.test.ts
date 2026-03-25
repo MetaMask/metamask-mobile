@@ -162,7 +162,7 @@ describe('useGetCampaignLeaderboard', () => {
       setCampaignLeaderboardError(false),
     );
     expect(mockCall).toHaveBeenCalledWith(
-      'RewardsController:getCampaignLeaderboard',
+      'RewardsController:getOndoCampaignLeaderboard',
       CAMPAIGN_ID,
     );
     expect(mockDispatch).toHaveBeenCalledWith(

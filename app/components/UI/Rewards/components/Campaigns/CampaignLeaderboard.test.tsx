@@ -3,10 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import CampaignLeaderboard, {
   CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './CampaignLeaderboard';
-import type {
-  CampaignLeaderboardEntry,
-  CampaignLeaderboardPositionDto,
-} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -99,10 +96,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.leaderboard.no_entries_in_tier': 'No entries in this tier',
       'rewards.leaderboard.error_loading': 'Failed to load leaderboard',
       'rewards.leaderboard.error_loading_description': 'Please try again',
-      'rewards.leaderboard.error_loading_position':
-        'Failed to load your position',
       'rewards.leaderboard.retry': 'Retry',
-      'rewards.leaderboard.your_position': 'Your position',
     };
     return translations[key] || key;
   },
@@ -114,21 +108,6 @@ const createMockEntry = (
   rank: 1,
   referral_code: 'ABC123',
   rate_of_return: 0.15,
-  ...overrides,
-});
-
-const createMockPosition = (
-  overrides: Partial<CampaignLeaderboardPositionDto> = {},
-): CampaignLeaderboardPositionDto => ({
-  projected_tier: 'STARTER',
-  rank: 25,
-  total_in_tier: 100,
-  rate_of_return: 0.1,
-  current_usd_value: 5000,
-  total_usd_deposited: 4500,
-  net_deposit: 4000,
-  computed_at: '2024-03-20T12:00:00.000Z',
-  referral_code: 'XYZ789',
   ...overrides,
 });
 
@@ -146,14 +125,10 @@ const defaultProps = {
     }),
   ],
   totalParticipants: 150,
-  myPosition: null,
   computedAt: '2024-03-20T12:00:00.000Z',
   isLoading: false,
   hasError: false,
-  isPositionLoading: false,
-  hasPositionError: false,
   onRetry: jest.fn(),
-  onRetryPosition: jest.fn(),
 };
 
 describe('CampaignLeaderboard', () => {
@@ -164,12 +139,7 @@ describe('CampaignLeaderboard', () => {
   describe('loading state', () => {
     it('renders skeleton when loading with no data', () => {
       const { getByTestId } = render(
-        <CampaignLeaderboard
-          {...defaultProps}
-          isLoading
-          entries={[]}
-          myPosition={null}
-        />,
+        <CampaignLeaderboard {...defaultProps} isLoading entries={[]} />,
       );
 
       expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.LOADING)).toBeDefined();
@@ -190,12 +160,7 @@ describe('CampaignLeaderboard', () => {
   describe('error state', () => {
     it('renders error banner when has error and no data', () => {
       const { getByTestId } = render(
-        <CampaignLeaderboard
-          {...defaultProps}
-          hasError
-          entries={[]}
-          myPosition={null}
-        />,
+        <CampaignLeaderboard {...defaultProps} hasError entries={[]} />,
       );
 
       expect(getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR)).toBeDefined();
@@ -214,28 +179,13 @@ describe('CampaignLeaderboard', () => {
 
     it('calls onRetry when error retry is pressed', () => {
       const { getByTestId } = render(
-        <CampaignLeaderboard
-          {...defaultProps}
-          hasError
-          entries={[]}
-          myPosition={null}
-        />,
+        <CampaignLeaderboard {...defaultProps} hasError entries={[]} />,
       );
 
       fireEvent.press(
         getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}-retry`),
       );
       expect(defaultProps.onRetry).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders position error banner when position has error', () => {
-      const { getByTestId } = render(
-        <CampaignLeaderboard {...defaultProps} hasPositionError />,
-      );
-
-      expect(
-        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.POSITION_ERROR),
-      ).toBeDefined();
     });
   });
 
@@ -356,78 +306,34 @@ describe('CampaignLeaderboard', () => {
     });
   });
 
-  describe('my position', () => {
-    it('renders my position card when user not in top 20', () => {
-      const position = createMockPosition({
-        rank: 25,
-        projected_tier: 'STARTER',
-      });
+  describe('currentUserReferralCode highlighting', () => {
+    it('renders all entry rows regardless of currentUserReferralCode', () => {
       const { getByTestId } = render(
-        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
-      );
-
-      expect(
-        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
-      ).toBeDefined();
-    });
-
-    it('does not render my position card when user in top 20', () => {
-      const position = createMockPosition({
-        rank: 5,
-        projected_tier: 'STARTER',
-      });
-      const { queryByTestId } = render(
-        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
-      );
-
-      expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
-      ).toBeNull();
-    });
-
-    it('does not render my position card when user in different tier', () => {
-      const position = createMockPosition({ rank: 25, projected_tier: 'MID' });
-      const { queryByTestId } = render(
-        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
-      );
-
-      expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
-      ).toBeNull();
-    });
-
-    it('does not render my position card while loading', () => {
-      const position = createMockPosition({
-        rank: 25,
-        projected_tier: 'STARTER',
-      });
-      const { queryByTestId } = render(
         <CampaignLeaderboard
           {...defaultProps}
-          myPosition={position}
-          isPositionLoading
+          currentUserReferralCode="BBB222"
         />,
       );
 
       expect(
-        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD),
-      ).toBeNull();
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-1`),
+      ).toBeDefined();
+      expect(
+        getByTestId(`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-2`),
+      ).toBeDefined();
     });
 
-    it('highlights current user in leaderboard when in top 20', () => {
-      const position = createMockPosition({
-        rank: 2,
-        projected_tier: 'STARTER',
-        referral_code: 'BBB222',
-      });
+    it('renders without currentUserReferralCode', () => {
       const { getByTestId } = render(
-        <CampaignLeaderboard {...defaultProps} myPosition={position} />,
+        <CampaignLeaderboard
+          {...defaultProps}
+          currentUserReferralCode={null}
+        />,
       );
 
-      const userRow = getByTestId(
-        `${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-2`,
-      );
-      expect(userRow).toBeDefined();
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER),
+      ).toBeDefined();
     });
   });
 

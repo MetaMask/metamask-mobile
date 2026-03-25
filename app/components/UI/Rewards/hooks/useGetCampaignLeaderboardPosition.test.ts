@@ -152,7 +152,7 @@ describe('useGetCampaignLeaderboardPosition', () => {
       setCampaignLeaderboardPositionError(false),
     );
     expect(mockCall).toHaveBeenCalledWith(
-      'RewardsController:getCampaignLeaderboardPosition',
+      'RewardsController:getOndoCampaignLeaderboardPosition',
       CAMPAIGN_ID,
       SUBSCRIPTION_ID,
     );

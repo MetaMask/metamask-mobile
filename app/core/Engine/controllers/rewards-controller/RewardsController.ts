@@ -338,6 +338,7 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
+  #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   /**
@@ -490,12 +491,14 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
+    isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
+    isCampaignsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -510,6 +513,7 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
+    this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => true);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -620,12 +624,12 @@ export class RewardsController extends BaseController<
       this.getCampaignParticipantStatus.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getCampaignLeaderboard',
-      this.getCampaignLeaderboard.bind(this),
+      'RewardsController:getOndoCampaignLeaderboard',
+      this.getOndoCampaignLeaderboard.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getCampaignLeaderboardPosition',
-      this.getCampaignLeaderboardPosition.bind(this),
+      'RewardsController:getOndoCampaignLeaderboardPosition',
+      this.getOndoCampaignLeaderboardPosition.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -3552,7 +3556,7 @@ export class RewardsController extends BaseController<
    * @param campaignId - The campaign ID to get leaderboard for.
    * @returns The leaderboard data grouped by tier.
    */
-  async getCampaignLeaderboard(
+  async getOndoCampaignLeaderboard(
     campaignId: string,
   ): Promise<CampaignLeaderboardDto> {
     if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
@@ -3579,7 +3583,7 @@ export class RewardsController extends BaseController<
           'RewardsController: Fetching fresh campaign leaderboard via API call',
         );
         return (await this.messenger.call(
-          'RewardsDataService:getCampaignLeaderboard',
+          'RewardsDataService:getOndoCampaignLeaderboard',
           campaignId,
         )) as CampaignLeaderboardDto;
       },
@@ -3605,7 +3609,7 @@ export class RewardsController extends BaseController<
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The user's leaderboard position, or null if not found.
    */
-  async getCampaignLeaderboardPosition(
+  async getOndoCampaignLeaderboardPosition(
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignLeaderboardPositionDto | null> {
@@ -3640,7 +3644,7 @@ export class RewardsController extends BaseController<
             'RewardsController: Fetching fresh campaign leaderboard position via API call',
           );
           return (await this.messenger.call(
-            'RewardsDataService:getCampaignLeaderboardPosition',
+            'RewardsDataService:getOndoCampaignLeaderboardPosition',
             campaignId,
             subscriptionId,
           )) as CampaignLeaderboardPositionDto | null;

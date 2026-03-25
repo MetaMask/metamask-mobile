@@ -222,14 +222,14 @@ export interface RewardsDataServiceGetClientVersionRequirementsAction {
   handler: RewardsDataService['getClientVersionRequirements'];
 }
 
-export interface RewardsDataServiceGetCampaignLeaderboardAction {
-  type: `${typeof SERVICE_NAME}:getCampaignLeaderboard`;
-  handler: RewardsDataService['getCampaignLeaderboard'];
+export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboard`;
+  handler: RewardsDataService['getOndoCampaignLeaderboard'];
 }
 
-export interface RewardsDataServiceGetCampaignLeaderboardPositionAction {
-  type: `${typeof SERVICE_NAME}:getCampaignLeaderboardPosition`;
-  handler: RewardsDataService['getCampaignLeaderboardPosition'];
+export interface RewardsDataServiceGetOndoCampaignLeaderboardPositionAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboardPosition`;
+  handler: RewardsDataService['getOndoCampaignLeaderboardPosition'];
 }
 
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
@@ -285,8 +285,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
-  | RewardsDataServiceGetCampaignLeaderboardAction
-  | RewardsDataServiceGetCampaignLeaderboardPositionAction;
+  | RewardsDataServiceGetOndoCampaignLeaderboardAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -434,12 +434,12 @@ export class RewardsDataService {
       this.getCampaignParticipantStatus.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getCampaignLeaderboard`,
-      this.getCampaignLeaderboard.bind(this),
+      `${SERVICE_NAME}:getOndoCampaignLeaderboard`,
+      this.getOndoCampaignLeaderboard.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getCampaignLeaderboardPosition`,
-      this.getCampaignLeaderboardPosition.bind(this),
+      `${SERVICE_NAME}:getOndoCampaignLeaderboardPosition`,
+      this.getOndoCampaignLeaderboardPosition.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
@@ -1419,11 +1419,11 @@ export class RewardsDataService {
    * @param campaignId - The campaign ID to get leaderboard for.
    * @returns The leaderboard data grouped by tier.
    */
-  async getCampaignLeaderboard(
+  async getOndoCampaignLeaderboard(
     campaignId: string,
   ): Promise<CampaignLeaderboardDto> {
     const response = await this.makeRequest(
-      `/campaigns/${campaignId}/leaderboard`,
+      `/ondo-gm/${campaignId}/leaderboard`,
       { method: 'GET' },
     );
 
@@ -1441,12 +1441,12 @@ export class RewardsDataService {
    * @param subscriptionId - The subscription ID for authentication.
    * @returns The user's leaderboard position, or null if not found (404).
    */
-  async getCampaignLeaderboardPosition(
+  async getOndoCampaignLeaderboardPosition(
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignLeaderboardPositionDto | null> {
     const response = await this.makeRequest(
-      `/campaigns/${campaignId}/leaderboard/me`,
+      `/ondo-gm/${campaignId}/leaderboard/me`,
       { method: 'GET' },
       subscriptionId,
     );

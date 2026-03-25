@@ -8,13 +8,11 @@ import HeaderCompactStandard from '../../../../component-library/components-temp
 import ErrorBoundary from '../../../Views/ErrorBoundary';
 import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
-import CampaignLeaderboard from '../components/Campaigns/CampaignLeaderboard';
+import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
-import { useGetCampaignLeaderboard } from '../hooks/useGetCampaignLeaderboard';
-import { useGetCampaignLeaderboardPosition } from '../hooks/useGetCampaignLeaderboardPosition';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -52,29 +50,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     }
   }, [campaign, navigation]);
 
-  // Leaderboard hooks - only fetch when user is opted in
   const isOptedIn = participantStatus?.status?.optedIn === true;
-
-  // Position hook first - we need the user's tier for default tab selection
-  const {
-    position: myPosition,
-    isLoading: isPositionLoading,
-    hasError: hasPositionError,
-    refetch: refetchPosition,
-  } = useGetCampaignLeaderboardPosition(isOptedIn ? campaignId : undefined);
-
-  const {
-    tierNames,
-    selectedTier,
-    selectedTierData,
-    computedAt,
-    setSelectedTier,
-    isLoading: isLeaderboardLoading,
-    hasError: hasLeaderboardError,
-    refetch: refetchLeaderboard,
-  } = useGetCampaignLeaderboard(isOptedIn ? campaignId : undefined, {
-    defaultTier: myPosition?.projected_tier,
-  });
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -145,28 +121,12 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
-              {/* Leaderboard section - only shown when opted in */}
-              {isOptedIn && (
+              {/* Position summary - shown when opted in, or when campaign is complete regardless of opt-in */}
+              {(isOptedIn || getCampaignStatus(campaign) === 'complete') && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="px-4 py-4">
-                    <CampaignLeaderboard
-                      tierNames={tierNames}
-                      selectedTier={selectedTier}
-                      onTierChange={setSelectedTier}
-                      entries={selectedTierData?.entries ?? []}
-                      totalParticipants={
-                        selectedTierData?.total_participants ?? 0
-                      }
-                      myPosition={myPosition}
-                      computedAt={computedAt}
-                      isLoading={isLeaderboardLoading}
-                      hasError={hasLeaderboardError}
-                      isPositionLoading={isPositionLoading}
-                      hasPositionError={hasPositionError}
-                      onRetry={refetchLeaderboard}
-                      onRetryPosition={refetchPosition}
-                    />
+                    <OndoLeaderboardPosition campaignId={campaignId} />
                   </Box>
                 </>
               )}

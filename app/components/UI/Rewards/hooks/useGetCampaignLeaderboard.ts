@@ -80,7 +80,7 @@ export const useGetCampaignLeaderboard = (
       dispatch(setCampaignLeaderboardLoading(true));
       dispatch(setCampaignLeaderboardError(false));
       const result = await Engine.controllerMessenger.call(
-        'RewardsController:getCampaignLeaderboard',
+        'RewardsController:getOndoCampaignLeaderboard',
         campaignId,
       );
       dispatch(setCampaignLeaderboard(result));

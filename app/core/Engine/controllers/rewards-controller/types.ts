@@ -251,7 +251,7 @@ export interface CampaignLeaderboardTier {
 }
 
 /**
- * Response DTO for GET /campaigns/:campaignId/leaderboard
+ * Response DTO for GET /ondo-gm/:campaignId/leaderboard
  * Public endpoint returning top 20 per tier
  */
 export interface CampaignLeaderboardDto {
@@ -275,7 +275,7 @@ export interface CampaignLeaderboardDto {
 }
 
 /**
- * Response DTO for GET /campaigns/:campaignId/leaderboard/me
+ * Response DTO for GET /ondo-gm/:campaignId/leaderboard/me
  * Authenticated endpoint returning the current user's position
  */
 export interface CampaignLeaderboardPositionDto {
@@ -1794,16 +1794,16 @@ export interface RewardsControllerGetCampaignParticipantStatusAction {
 /**
  * Action for getting the campaign leaderboard (public, top 20 per tier)
  */
-export interface RewardsControllerGetCampaignLeaderboardAction {
-  type: 'RewardsController:getCampaignLeaderboard';
+export interface RewardsControllerGetOndoCampaignLeaderboardAction {
+  type: 'RewardsController:getOndoCampaignLeaderboard';
   handler: (campaignId: string) => Promise<CampaignLeaderboardDto>;
 }
 
 /**
  * Action for getting the current user's leaderboard position (authenticated)
  */
-export interface RewardsControllerGetCampaignLeaderboardPositionAction {
-  type: 'RewardsController:getCampaignLeaderboardPosition';
+export interface RewardsControllerGetOndoCampaignLeaderboardPositionAction {
+  type: 'RewardsController:getOndoCampaignLeaderboardPosition';
   handler: (
     campaignId: string,
     subscriptionId: string,
@@ -1930,8 +1930,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetCampaignsAction
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
-  | RewardsControllerGetCampaignLeaderboardAction
-  | RewardsControllerGetCampaignLeaderboardPositionAction
+  | RewardsControllerGetOndoCampaignLeaderboardAction
+  | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction

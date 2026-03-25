@@ -50,7 +50,7 @@ export const useGetCampaignLeaderboardPosition = (
       dispatch(setCampaignLeaderboardPositionLoading(true));
       dispatch(setCampaignLeaderboardPositionError(false));
       const result = await Engine.controllerMessenger.call(
-        'RewardsController:getCampaignLeaderboardPosition',
+        'RewardsController:getOndoCampaignLeaderboardPosition',
         campaignId,
         subscriptionId,
       );

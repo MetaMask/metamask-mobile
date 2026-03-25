@@ -13,26 +13,20 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsBar';
-import type {
-  CampaignLeaderboardEntry,
-  CampaignLeaderboardPositionDto,
-} from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 
-const TOP_N_ENTRIES = 20;
+const ListSeparator = () => <Box twClassName="border-b border-border-muted" />;
 
 export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
   CONTAINER: 'campaign-leaderboard-container',
   TIER_TOGGLE: 'campaign-leaderboard-tier-toggle',
   LIST: 'campaign-leaderboard-list',
   ENTRY_ROW: 'campaign-leaderboard-entry-row',
-  MY_POSITION: 'campaign-leaderboard-my-position',
-  MY_POSITION_CARD: 'campaign-leaderboard-my-position-card',
   COMPUTED_AT: 'campaign-leaderboard-computed-at',
   LOADING: 'campaign-leaderboard-loading',
   ERROR: 'campaign-leaderboard-error',
-  POSITION_ERROR: 'campaign-leaderboard-position-error',
   EMPTY: 'campaign-leaderboard-empty',
 } as const;
 
@@ -42,14 +36,11 @@ interface CampaignLeaderboardProps {
   onTierChange: (tier: string) => void;
   entries: CampaignLeaderboardEntry[];
   totalParticipants: number;
-  myPosition: CampaignLeaderboardPositionDto | null;
   computedAt: string | null;
   isLoading: boolean;
   hasError: boolean;
-  isPositionLoading: boolean;
-  hasPositionError: boolean;
   onRetry?: () => void;
-  onRetryPosition?: () => void;
+  currentUserReferralCode?: string | null;
 }
 
 /**
@@ -79,13 +70,7 @@ const formatComputedAt = (isoString: string | null): string => {
 };
 
 /**
- * Formats the referral code for display (no masking)
- */
-const formatReferralCode = (code: string): string => code;
-
-/**
  * LeaderboardEntryRow displays a single leaderboard entry
- * When isCurrentUser is true, highlights with success green text and muted background
  */
 const LeaderboardEntryRow: React.FC<{
   entry: CampaignLeaderboardEntry;
@@ -95,7 +80,7 @@ const LeaderboardEntryRow: React.FC<{
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     justifyContent={BoxJustifyContent.Between}
-    twClassName={`py-3 px-4 ${isCurrentUser ? 'bg-success-muted' : ''}`}
+    twClassName="py-3 px-4"
     testID={`${CAMPAIGN_LEADERBOARD_TEST_IDS.ENTRY_ROW}-${entry.rank}`}
   >
     <Box
@@ -105,17 +90,18 @@ const LeaderboardEntryRow: React.FC<{
     >
       <Text
         variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
+        fontWeight={isCurrentUser ? FontWeight.Bold : FontWeight.Medium}
+        color={isCurrentUser ? TextColor.SuccessDefault : undefined}
         twClassName="w-8"
-        color={isCurrentUser ? TextColor.SuccessDefault : TextColor.TextDefault}
       >
         #{entry.rank}
       </Text>
       <Text
         variant={TextVariant.BodyMd}
-        color={isCurrentUser ? TextColor.SuccessDefault : TextColor.TextDefault}
+        fontWeight={isCurrentUser ? FontWeight.Bold : undefined}
+        color={isCurrentUser ? TextColor.SuccessDefault : undefined}
       >
-        {formatReferralCode(entry.referral_code)}
+        {entry.referral_code}
       </Text>
     </Box>
     <Text
@@ -129,57 +115,6 @@ const LeaderboardEntryRow: React.FC<{
     >
       {formatRateOfReturn(entry.rate_of_return)}
     </Text>
-  </Box>
-);
-
-/**
- * MyPositionRow displays the user's position using the same row style as leaderboard entries
- * Used above the leaderboard when user is not in top 20
- */
-const MyPositionRow: React.FC<{
-  position: CampaignLeaderboardPositionDto;
-}> = ({ position }) => (
-  <Box
-    twClassName="bg-muted rounded-xl overflow-hidden mb-4"
-    testID={CAMPAIGN_LEADERBOARD_TEST_IDS.MY_POSITION_CARD}
-  >
-    <Box
-      flexDirection={BoxFlexDirection.Row}
-      alignItems={BoxAlignItems.Center}
-      justifyContent={BoxJustifyContent.Between}
-      twClassName="py-3 px-4 bg-success-muted"
-    >
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        twClassName="gap-3"
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="w-8"
-          color={TextColor.SuccessDefault}
-        >
-          #{position.rank}
-        </Text>
-        <Text variant={TextVariant.BodyMd} color={TextColor.SuccessDefault}>
-          {position.referral_code
-            ? formatReferralCode(position.referral_code)
-            : strings('rewards.leaderboard.your_position')}
-        </Text>
-      </Box>
-      <Text
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-        color={
-          position.rate_of_return >= 0
-            ? TextColor.SuccessDefault
-            : TextColor.ErrorDefault
-        }
-      >
-        {formatRateOfReturn(position.rate_of_return)}
-      </Text>
-    </Box>
   </Box>
 );
 
@@ -242,43 +177,9 @@ const LeaderboardSkeleton: React.FC = () => {
 };
 
 /**
- * ErrorBanner displays an error message with optional retry action
- */
-const ErrorBanner: React.FC<{
-  message: string;
-  onRetry?: () => void;
-  testID: string;
-}> = ({ message, onRetry, testID }) => (
-  <Box
-    twClassName="bg-error-muted rounded-lg p-3 mb-4"
-    flexDirection={BoxFlexDirection.Row}
-    alignItems={BoxAlignItems.Center}
-    justifyContent={BoxJustifyContent.Between}
-    testID={testID}
-  >
-    <Text
-      variant={TextVariant.BodySm}
-      color={TextColor.ErrorDefault}
-      twClassName="flex-1"
-    >
-      {message}
-    </Text>
-    {onRetry && (
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.ErrorDefault}
-        fontWeight={FontWeight.Medium}
-        onPress={onRetry}
-        twClassName="ml-2"
-      >
-        {strings('rewards.leaderboard.retry')}
-      </Text>
-    )}
-  </Box>
-);
-
-/**
- * CampaignLeaderboard displays the leaderboard for a campaign with tier selection
+ * CampaignLeaderboard displays the leaderboard tiers and entries for a campaign.
+ * Position-specific data (user rank, tier, deposited value) is handled separately
+ * by the OndoLeaderboardPosition component.
  */
 const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   tierNames,
@@ -286,14 +187,11 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   onTierChange,
   entries,
   totalParticipants,
-  myPosition,
   computedAt,
   isLoading,
   hasError,
-  isPositionLoading,
-  hasPositionError,
   onRetry,
-  onRetryPosition,
+  currentUserReferralCode,
 }) => {
   const tw = useTailwind();
 
@@ -309,39 +207,26 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   const selectedIndex = selectedTier ? tierNames.indexOf(selectedTier) : 0;
 
-  const isUserInSelectedTier =
-    myPosition && myPosition.projected_tier === selectedTier;
-
-  const isUserInTopN = isUserInSelectedTier && myPosition.rank <= TOP_N_ENTRIES;
-
-  const isUserCurrentEntry = (entry: CampaignLeaderboardEntry): boolean => {
-    if (!myPosition || !isUserInSelectedTier) return false;
-    if (myPosition.referral_code) {
-      return entry.referral_code === myPosition.referral_code;
-    }
-    return entry.rank === myPosition.rank;
-  };
-
   const renderEntry = ({
     item,
   }: ListRenderItemInfo<CampaignLeaderboardEntry>) => (
     <LeaderboardEntryRow
       entry={item}
-      isCurrentUser={isUserCurrentEntry(item)}
+      isCurrentUser={
+        !!currentUserReferralCode &&
+        item.referral_code === currentUserReferralCode
+      }
     />
   );
 
   const keyExtractor = (item: CampaignLeaderboardEntry) =>
     `${item.rank}-${item.referral_code}`;
 
-  const anyLoading = isLoading || isPositionLoading;
-  const hasAnyData = entries.length > 0 || myPosition !== null;
-
-  if (anyLoading && !hasAnyData) {
+  if (isLoading && entries.length === 0) {
     return <LeaderboardSkeleton />;
   }
 
-  if (hasError && !hasAnyData) {
+  if (hasError && entries.length === 0) {
     return (
       <RewardsErrorBanner
         title={strings('rewards.leaderboard.error_loading')}
@@ -372,7 +257,7 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
 
   return (
     <Box testID={CAMPAIGN_LEADERBOARD_TEST_IDS.CONTAINER}>
-      {/* Header with tier toggle and computed at */}
+      {/* Header with title and computed at */}
       <Box
         flexDirection={BoxFlexDirection.Row}
         justifyContent={BoxJustifyContent.Between}
@@ -407,27 +292,35 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         </Box>
       )}
 
-      {/* Error banners */}
+      {/* Error banner when has error but also has data */}
       {hasError && !isLoading && (
-        <ErrorBanner
-          message={strings('rewards.leaderboard.error_loading')}
-          onRetry={onRetry}
+        <Box
+          twClassName="bg-error-muted rounded-lg p-3 mb-4"
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
           testID={CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}
-        />
+        >
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.ErrorDefault}
+            twClassName="flex-1"
+          >
+            {strings('rewards.leaderboard.error_loading')}
+          </Text>
+          {onRetry && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.ErrorDefault}
+              fontWeight={FontWeight.Medium}
+              onPress={onRetry}
+              twClassName="ml-2"
+            >
+              {strings('rewards.leaderboard.retry')}
+            </Text>
+          )}
+        </Box>
       )}
-      {hasPositionError && !isPositionLoading && (
-        <ErrorBanner
-          message={strings('rewards.leaderboard.error_loading_position')}
-          onRetry={onRetryPosition}
-          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.POSITION_ERROR}
-        />
-      )}
-
-      {/* My position card - only shown when user is NOT in top N and is in selected tier */}
-      {myPosition &&
-        isUserInSelectedTier &&
-        !isUserInTopN &&
-        !isPositionLoading && <MyPositionRow position={myPosition} />}
 
       {/* Total participants */}
       <Box twClassName="mb-2">
@@ -449,9 +342,7 @@ const CampaignLeaderboard: React.FC<CampaignLeaderboardProps> = ({
             renderItem={renderEntry}
             keyExtractor={keyExtractor}
             scrollEnabled={false}
-            ItemSeparatorComponent={() => (
-              <Box twClassName="border-b border-border-muted" />
-            )}
+            ItemSeparatorComponent={ListSeparator}
           />
         </Box>
       ) : (
