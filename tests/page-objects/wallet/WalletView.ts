@@ -35,11 +35,6 @@ class WalletView {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
   }
 
-  /** Root SafeAreaView on the wallet screen; present while the wallet loader shows (before `wallet-screen`). */
-  get safeArea(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SAFE_AREA);
-  }
-
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
   get walletScrollViewIdentifier(): Promise<Detox.NativeMatcher> {
     return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
