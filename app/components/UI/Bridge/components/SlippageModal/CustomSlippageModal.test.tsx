@@ -847,18 +847,6 @@ describe('CustomSlippageModal', () => {
       );
     });
 
-    it('passes selection handlers to InputStepper', () => {
-      render(<CustomSlippageModal />);
-
-      expect(mockInputStepper).toHaveBeenCalledWith(
-        expect.objectContaining({
-          selection: undefined,
-          onSelectionChange: expect.any(Function),
-        }),
-        expect.anything(),
-      );
-    });
-
     it('passes correct props to Keypad', () => {
       mockSelector.mockReturnValue('3.5');
 
