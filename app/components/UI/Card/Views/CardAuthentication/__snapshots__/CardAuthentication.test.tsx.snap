@@ -923,110 +923,100 @@ exports[`CardAuthentication Component Login Step - Component Rendering matches l
                                   }
                                 >
                                   <View
-                                    accessibilityLabel="Log in"
-                                    accessibilityRole="button"
-                                    accessibilityState={
-                                      {
-                                        "busy": undefined,
-                                        "checked": undefined,
-                                        "disabled": true,
-                                        "expanded": undefined,
-                                        "selected": undefined,
-                                      }
-                                    }
-                                    accessibilityValue={
-                                      {
-                                        "max": undefined,
-                                        "min": undefined,
-                                        "now": undefined,
-                                        "text": undefined,
-                                      }
-                                    }
-                                    accessible={true}
-                                    collapsable={false}
-                                    focusable={true}
-                                    onBlur={[Function]}
-                                    onClick={[Function]}
-                                    onFocus={[Function]}
-                                    onResponderGrant={[Function]}
-                                    onResponderMove={[Function]}
-                                    onResponderRelease={[Function]}
-                                    onResponderTerminate={[Function]}
-                                    onResponderTerminationRequest={[Function]}
-                                    onStartShouldSetResponder={[Function]}
                                     style={
                                       [
                                         {
-                                          "alignItems": "center",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "columnGap": 8,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "minWidth": 80,
-                                          "opacity": 0.5,
-                                          "overflow": "hidden",
-                                          "paddingLeft": 16,
-                                          "paddingRight": 16,
-                                          "width": "100%",
+                                          "display": "flex",
                                         },
-                                        {
-                                          "transform": [
-                                            {
-                                              "scale": 1,
-                                            },
-                                          ],
-                                        },
+                                        undefined,
                                       ]
                                     }
-                                    testID="verify-account-button"
                                   >
-                                    <Text
-                                      accessibilityRole="text"
-                                      ellipsizeMode="clip"
-                                      numberOfLines={1}
+                                    <View
+                                      accessibilityLabel="Log in"
+                                      accessibilityRole="button"
+                                      accessibilityState={
+                                        {
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": true,
+                                          "expanded": undefined,
+                                          "selected": undefined,
+                                        }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
                                       style={
                                         [
                                           {
-                                            "color": "#ffffff",
-                                            "flexGrow": 0,
-                                            "flexShrink": 1,
-                                            "flexWrap": "wrap",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "fontWeight": 400,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                            "textAlign": "center",
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 0.5,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
                                           },
-                                          undefined,
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
                                         ]
                                       }
                                       testID="verify-account-button"
                                     >
-                                      Log in
-                                    </Text>
-                                  </View>
-                                  <TouchableOpacity
-                                    onPress={[Function]}
-                                  >
-                                    <Text
-                                      accessibilityRole="text"
-                                      style={
-                                        [
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                      <Text
+                                        accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
+                                        style={
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Log in
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                     <TouchableOpacity
                                       onPress={[Function]}
                                     >
