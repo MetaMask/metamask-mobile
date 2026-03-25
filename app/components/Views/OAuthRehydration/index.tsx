@@ -464,21 +464,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
-      if (isWrongPasswordError && isComingFromOauthOnboarding) {
-        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-          account_type: accountType,
-          failed_attempts: rehydrationFailedAttempts,
-          error_type: 'incorrect_password',
-          error_origin: ErrorOrigin.VaultDecrypt,
-        });
-      }
-
       if (isWrongPasswordError) {
         if (isComingFromOauthOnboarding) {
           track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
             account_type: accountType,
             failed_attempts: rehydrationFailedAttempts,
             error_type: 'incorrect_password',
+            error_origin: ErrorOrigin.VaultDecrypt,
           });
         }
         handlePasswordError(loginErrorMessage);
