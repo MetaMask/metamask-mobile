@@ -206,7 +206,6 @@ const createTestCampaign = (
     endDate: nextMonth.toISOString(),
     termsAndConditions: null,
     excludedRegions: [],
-    statusLabel: 'Active',
     details: null,
     featured: true,
     ...overrides,
@@ -317,10 +316,6 @@ describe('OndoCampaignDetailsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Description',
