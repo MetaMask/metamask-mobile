@@ -182,11 +182,11 @@ const MusdCalculatorTab: React.FC = () => {
 
       {/* Disclaimer */}
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
         twClassName="text-center"
       >
-        {strings('rewards.musd.disclaimer')}
+        {strings('rewards.musd.disclaimer_brief')}
       </Text>
     </ScrollView>
   );
