@@ -2,6 +2,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
+import { InteractionManager } from 'react-native';
 import ProtectWalletMandatoryModal from './ProtectWalletMandatoryModal';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -230,6 +231,34 @@ describe('ProtectWalletMandatoryModal', () => {
     });
 
     expect(mockNavigate).toHaveBeenCalledWith('SetPasswordFlow', undefined);
+  });
+
+  it('tracks WALLET_SECURITY_PROTECT_ENGAGED after interactions when Secure Wallet is pressed', async () => {
+    const runAfterSpy = jest
+      .spyOn(InteractionManager, 'runAfterInteractions')
+      .mockImplementation((callback) => {
+        callback();
+        return { cancel: jest.fn() };
+      });
+    const store = createMockStore(false, false);
+
+    const { getByText } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      fireEvent.press(getByText('Protect wallet'));
+    });
+
+    await waitFor(() => {
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        'WALLET_SECURITY_PROTECT_ENGAGED',
+      );
+      expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    runAfterSpy.mockRestore();
   });
 
   it('navigates to AccountBackupStep1 when password is already set', async () => {

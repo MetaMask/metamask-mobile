@@ -74,6 +74,30 @@ describe('useWhatsHappening', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('uses asset name for relatedAssets when symbol is missing', async () => {
+    mockFetchMarketOverview.mockResolvedValue({
+      ...mockOverview,
+      trends: [
+        {
+          ...mockTrend,
+          relatedAssets: [
+            {
+              name: 'Ether',
+              symbol: '',
+              caip19: [],
+              sourceAssetId: 'eth',
+            },
+          ],
+        },
+      ],
+    });
+    const { result } = renderHook(() => useWhatsHappening());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.items[0].relatedAssets).toEqual(['Ether']);
+  });
+
   it('uses article date as item date when articles are present', async () => {
     const { result } = renderHook(() => useWhatsHappening());
 

@@ -7,6 +7,7 @@ import {
   registerCheckoutCallback,
   removeCheckoutCallback,
 } from '../../utils/checkoutCallbackRegistry';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -160,6 +161,18 @@ jest.mock('@metamask/react-native-webview', () => {
                 nativeEvent: {
                   url: 'https://provider.example.com/checkout',
                   statusCode: 502,
+                },
+              })
+            }
+          />
+          <Button
+            testID="trigger-http-error-auxiliary"
+            title="TriggerHttpErrorAux"
+            onPress={() =>
+              onHttpError?.({
+                nativeEvent: {
+                  url: 'https://cdn.example.com/asset.woff2',
+                  statusCode: 404,
                 },
               })
             }
@@ -437,6 +450,43 @@ describe('Checkout', () => {
       const { getByText } = renderWithProvider(<Checkout />, {}, true, false);
 
       expect(getByText('No URL was provided to continue')).toBeOnTheScreen();
+    });
+  });
+
+  describe('screen view analytics', () => {
+    it('tracks RAMPS_SCREEN_VIEWED when checkout WebView mounts', () => {
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      renderWithProvider(<Checkout />, {}, true, false);
+
+      expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+        MetaMetricsEvents.RAMPS_SCREEN_VIEWED,
+      );
+    });
+  });
+
+  describe('auxiliary WebView HTTP errors', () => {
+    it('logs non-fatal HTTP errors for auxiliary resource URLs', async () => {
+      const Logger = jest.requireMock('../../../../../util/Logger') as {
+        log: jest.Mock;
+      };
+      mockUseParams.mockReturnValue({
+        url: 'https://provider.example.com/checkout',
+        providerName: 'Test',
+      });
+
+      const { getByTestId } = renderWithProvider(<Checkout />, {}, true, false);
+
+      await act(async () => {
+        fireEvent.press(getByTestId('trigger-http-error-auxiliary'));
+      });
+
+      expect(Logger.log).toHaveBeenCalledWith(
+        expect.stringContaining('Checkout: HTTP error 404'),
+      );
     });
   });
 });

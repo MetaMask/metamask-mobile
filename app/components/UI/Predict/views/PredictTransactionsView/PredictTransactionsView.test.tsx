@@ -29,9 +29,12 @@ jest.mock('../../hooks/usePredictMeasurement', () => ({
 
 // Mock Engine for analytics tracking
 jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackActivityViewed: jest.fn(),
+  __esModule: true,
+  default: {
+    context: {
+      PredictController: {
+        trackActivityViewed: jest.fn(),
+      },
     },
   },
 }));
@@ -79,6 +82,11 @@ jest.mock('../../hooks/usePredictActivity', () => ({
 const { usePredictActivity } = jest.requireMock(
   '../../hooks/usePredictActivity',
 );
+
+const getEngineMock = () =>
+  jest.requireMock('../../../../../core/Engine').default as {
+    context: { PredictController: { trackActivityViewed: jest.Mock } };
+  };
 
 describe('PredictTransactionsView', () => {
   beforeEach(() => {
@@ -342,6 +350,79 @@ describe('PredictTransactionsView', () => {
     expect(
       screen.getByTestId('predict-activity-refreshing-item'),
     ).toBeOnTheScreen();
+  });
+
+  it('calls refetch when isVisible is true', () => {
+    const mockRefetch = jest.fn().mockResolvedValue(undefined);
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        refetch: mockRefetch,
+        data: [
+          {
+            id: 'vis1',
+            title: 'Market',
+            outcome: 'Yes',
+            entry: {
+              type: 'buy',
+              amount: 1,
+              price: 0.5,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(<PredictTransactionsView isVisible />);
+
+    expect(mockRefetch).toHaveBeenCalledTimes(1);
+  });
+
+  it('does not refetch when isVisible is false', () => {
+    const mockRefetch = jest.fn().mockResolvedValue(undefined);
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        refetch: mockRefetch,
+        data: [],
+      }),
+    );
+
+    render(<PredictTransactionsView isVisible={false} />);
+
+    expect(mockRefetch).not.toHaveBeenCalled();
+  });
+
+  it('tracks activity list viewed when tab is visible and loading finished', () => {
+    const mockTimestamp = Math.floor(Date.now() / 1000);
+    const trackActivityViewed =
+      getEngineMock().context.PredictController.trackActivityViewed;
+    (usePredictActivity as jest.Mock).mockReturnValueOnce(
+      createUsePredictActivityValue({
+        isLoading: false,
+        data: [
+          {
+            id: 't1',
+            title: 'Market',
+            outcome: 'Yes',
+            entry: {
+              type: 'buy',
+              amount: 1,
+              price: 0.5,
+              timestamp: mockTimestamp,
+            },
+          },
+        ],
+      }),
+    );
+
+    render(<PredictTransactionsView isVisible />);
+
+    expect(trackActivityViewed).toHaveBeenCalledWith({
+      activityType: 'activity_list',
+    });
   });
 
   it('passes refreshing state and triggers refresh handler on pull to refresh', async () => {
