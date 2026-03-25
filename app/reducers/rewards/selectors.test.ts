@@ -3397,33 +3397,32 @@ describe('Rewards selectors', () => {
   });
 
   const mockLeaderboard = {
-    campaign_id: 'campaign-1',
-    computed_at: '2024-03-20T12:00:00.000Z',
+    campaignId: 'campaign-1',
+    computedAt: '2024-03-20T12:00:00.000Z',
     tiers: {
       STARTER: {
         entries: [
-          { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
-          { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+          { rank: 1, referralCode: 'ABC123', rateOfReturn: 0.15 },
+          { rank: 2, referralCode: 'DEF456', rateOfReturn: 0.1 },
         ],
-        total_participants: 50,
+        totalParticipants: 50,
       },
       MID: {
-        entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
-        total_participants: 30,
+        entries: [{ rank: 1, referralCode: 'GHI789', rateOfReturn: 0.2 }],
+        totalParticipants: 30,
       },
     },
   };
 
   const mockPosition = {
-    projected_tier: 'STARTER',
+    projectedTier: 'STARTER',
     rank: 5,
-    total_in_tier: 50,
-    rate_of_return: 0.12,
-    current_usd_value: 1000,
-    total_usd_deposited: 900,
-    net_deposit: 800,
-    computed_at: '2024-03-20T12:00:00.000Z',
-    referral_code: 'XYZ789',
+    totalInTier: 50,
+    rateOfReturn: 0.12,
+    currentUsdValue: 1000,
+    totalUsdDeposited: 900,
+    netDeposit: 800,
+    computedAt: '2024-03-20T12:00:00.000Z',
   };
 
   describe('selectOndoCampaignLeaderboard', () => {
@@ -3516,7 +3515,7 @@ describe('Rewards selectors', () => {
       expect(selectOndoCampaignLeaderboardComputedAt(state)).toBeNull();
     });
 
-    it('returns computed_at from leaderboard', () => {
+    it('returns computedAt from leaderboard', () => {
       const state = createMockRootState({
         ondoCampaignLeaderboard: mockLeaderboard,
       });

@@ -121,13 +121,13 @@ const mockRefetch = jest.fn();
 
 const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   rank: 5,
-  projected_tier: 'MID',
-  rate_of_return: 0.15,
-  total_usd_deposited: 10000.0,
-  current_usd_value: 12500.5,
-  computed_at: '2024-03-20T12:00:00.000Z',
-  total_in_tier: 150,
-  net_deposit: 8500.0,
+  projectedTier: 'MID',
+  rateOfReturn: 0.15,
+  totalUsdDeposited: 10000.0,
+  currentUsdValue: 12500.5,
+  computedAt: '2024-03-20T12:00:00.000Z',
+  totalInTier: 150,
+  netDeposit: 8500.0,
 };
 
 describe('OndoLeaderboardPosition', () => {
@@ -390,7 +390,7 @@ describe('OndoLeaderboardPosition', () => {
 
     it('renders negative rate of return without plus sign', () => {
       mockUseGetOndoLeaderboardPosition.mockReturnValue({
-        position: { ...MOCK_POSITION, rate_of_return: -0.05 },
+        position: { ...MOCK_POSITION, rateOfReturn: -0.05 },
         isLoading: false,
         hasError: false,
         hasFetched: true,
@@ -404,7 +404,7 @@ describe('OndoLeaderboardPosition', () => {
       expect(getByText('-5.00%')).toBeDefined();
     });
 
-    it('renders computed_at timestamp', () => {
+    it('renders computedAt timestamp', () => {
       const { getByTestId } = render(
         <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
       );

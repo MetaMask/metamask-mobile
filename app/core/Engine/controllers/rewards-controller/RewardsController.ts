@@ -3575,7 +3575,7 @@ export class RewardsController extends BaseController<
     campaignId: string,
   ): Promise<CampaignLeaderboardDto> {
     if (!this.isRewardsFeatureEnabled()) {
-      return { campaign_id: campaignId, computed_at: '', tiers: {} };
+      return { campaignId, computedAt: '', tiers: {} };
     }
 
     const result = await wrapWithCache<CampaignLeaderboardDto>({
@@ -3586,8 +3586,8 @@ export class RewardsController extends BaseController<
         if (!cached) return undefined;
         return {
           payload: {
-            campaign_id: cached.campaign_id,
-            computed_at: cached.computed_at,
+            campaignId: cached.campaignId,
+            computedAt: cached.computedAt,
             tiers: cached.tiers,
           },
           lastFetched: cached.lastFetched,
@@ -3605,8 +3605,8 @@ export class RewardsController extends BaseController<
       writeCache: (k, payload) => {
         this.update((state) => {
           state.ondoCampaignLeaderboard[k] = {
-            campaign_id: payload.campaign_id,
-            computed_at: payload.computed_at,
+            campaignId: payload.campaignId,
+            computedAt: payload.computedAt,
             tiers: payload.tiers,
             lastFetched: Date.now(),
           };
@@ -3644,14 +3644,14 @@ export class RewardsController extends BaseController<
         }
         return {
           payload: {
-            projected_tier: cached.projected_tier,
+            projectedTier: cached.projectedTier,
             rank: cached.rank,
-            total_in_tier: cached.total_in_tier,
-            rate_of_return: cached.rate_of_return,
-            current_usd_value: cached.current_usd_value,
-            total_usd_deposited: cached.total_usd_deposited,
-            net_deposit: cached.net_deposit,
-            computed_at: cached.computed_at,
+            totalInTier: cached.totalInTier,
+            rateOfReturn: cached.rateOfReturn,
+            currentUsdValue: cached.currentUsdValue,
+            totalUsdDeposited: cached.totalUsdDeposited,
+            netDeposit: cached.netDeposit,
+            computedAt: cached.computedAt,
           },
           lastFetched: cached.lastFetched,
         };
@@ -3678,14 +3678,14 @@ export class RewardsController extends BaseController<
         } else {
           this.update((state) => {
             state.ondoCampaignLeaderboardPositions[k] = {
-              projected_tier: payload.projected_tier,
+              projectedTier: payload.projectedTier,
               rank: payload.rank,
-              total_in_tier: payload.total_in_tier,
-              rate_of_return: payload.rate_of_return,
-              current_usd_value: payload.current_usd_value,
-              total_usd_deposited: payload.total_usd_deposited,
-              net_deposit: payload.net_deposit,
-              computed_at: payload.computed_at,
+              totalInTier: payload.totalInTier,
+              rateOfReturn: payload.rateOfReturn,
+              currentUsdValue: payload.currentUsdValue,
+              totalUsdDeposited: payload.totalUsdDeposited,
+              netDeposit: payload.netDeposit,
+              computedAt: payload.computedAt,
               lastFetched: Date.now(),
             };
           });

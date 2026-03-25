@@ -164,7 +164,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
   }
 
   const rorColor =
-    position.rate_of_return >= 0
+    position.rateOfReturn >= 0
       ? TextColor.SuccessDefault
       : TextColor.ErrorDefault;
 
@@ -187,7 +187,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.COMPUTED_AT}
         >
           {strings('rewards.ondo_campaign_leaderboard_position.updated_at', {
-            time: formatComputedAt(position.computed_at),
+            time: formatComputedAt(position.computedAt),
           })}
         </Text>
       </Box>
@@ -205,7 +205,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
         />
         <StatCell
           label={strings('rewards.ondo_campaign_leaderboard_position.tier')}
-          value={position.projected_tier}
+          value={position.projectedTier}
           style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.TIER}
         />
@@ -218,7 +218,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
           label={strings(
             'rewards.ondo_campaign_leaderboard_position.total_deposited',
           )}
-          value={formatUsd(position.total_usd_deposited)}
+          value={formatUsd(position.totalUsdDeposited)}
           style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.TOTAL_DEPOSITED}
         />
@@ -226,7 +226,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
           label={strings(
             'rewards.ondo_campaign_leaderboard_position.current_value',
           )}
-          value={formatUsd(position.current_usd_value)}
+          value={formatUsd(position.currentUsdValue)}
           style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.CURRENT_VALUE}
         />
@@ -234,7 +234,7 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
           label={strings(
             'rewards.ondo_campaign_leaderboard_position.rate_of_return',
           )}
-          value={formatRateOfReturn(position.rate_of_return)}
+          value={formatRateOfReturn(position.rateOfReturn)}
           valueColor={rorColor}
           style={CELL_STYLE}
           testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.RATE_OF_RETURN}

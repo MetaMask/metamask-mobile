@@ -76,19 +76,19 @@ const LeaderboardEntryRow: React.FC<{
         fontWeight={isCurrentUser ? FontWeight.Bold : undefined}
         color={isCurrentUser ? TextColor.SuccessDefault : undefined}
       >
-        {entry.referral_code}
+        {entry.referralCode}
       </Text>
     </Box>
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       color={
-        entry.rate_of_return >= 0
+        entry.rateOfReturn >= 0
           ? TextColor.SuccessDefault
           : TextColor.ErrorDefault
       }
     >
-      {formatRateOfReturn(entry.rate_of_return)}
+      {formatRateOfReturn(entry.rateOfReturn)}
     </Text>
   </Box>
 );
@@ -187,13 +187,13 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       entry={item}
       isCurrentUser={
         !!currentUserReferralCode &&
-        item.referral_code === currentUserReferralCode
+        item.referralCode === currentUserReferralCode
       }
     />
   );
 
   const keyExtractor = (item: CampaignLeaderboardEntry) =>
-    `${item.rank}-${item.referral_code}`;
+    `${item.rank}-${item.referralCode}`;
 
   if (isLoading && entries.length === 0) {
     return <LeaderboardSkeleton />;

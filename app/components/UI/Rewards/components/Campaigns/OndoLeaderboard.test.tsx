@@ -110,8 +110,8 @@ const createMockEntry = (
   overrides: Partial<CampaignLeaderboardEntry> = {},
 ): CampaignLeaderboardEntry => ({
   rank: 1,
-  referral_code: 'ABC123',
-  rate_of_return: 0.15,
+  referralCode: 'ABC123',
+  rateOfReturn: 0.15,
   ...overrides,
 });
 
@@ -120,12 +120,12 @@ const defaultProps = {
   selectedTier: 'STARTER',
   onTierChange: jest.fn(),
   entries: [
-    createMockEntry({ rank: 1, referral_code: 'AAA111', rate_of_return: 0.2 }),
-    createMockEntry({ rank: 2, referral_code: 'BBB222', rate_of_return: 0.15 }),
+    createMockEntry({ rank: 1, referralCode: 'AAA111', rateOfReturn: 0.2 }),
+    createMockEntry({ rank: 2, referralCode: 'BBB222', rateOfReturn: 0.15 }),
     createMockEntry({
       rank: 3,
-      referral_code: 'CCC333',
-      rate_of_return: -0.05,
+      referralCode: 'CCC333',
+      rateOfReturn: -0.05,
     }),
   ],
   totalParticipants: 150,
@@ -337,7 +337,7 @@ describe('OndoLeaderboard', () => {
 
   describe('rate of return formatting', () => {
     it('formats positive rate of return with plus sign', () => {
-      const entries = [createMockEntry({ rank: 1, rate_of_return: 0.1523 })];
+      const entries = [createMockEntry({ rank: 1, rateOfReturn: 0.1523 })];
       const { getByText } = render(
         <OndoLeaderboard {...defaultProps} entries={entries} />,
       );
@@ -346,7 +346,7 @@ describe('OndoLeaderboard', () => {
     });
 
     it('formats negative rate of return without plus sign', () => {
-      const entries = [createMockEntry({ rank: 1, rate_of_return: -0.0832 })];
+      const entries = [createMockEntry({ rank: 1, rateOfReturn: -0.0832 })];
       const { getByText } = render(
         <OndoLeaderboard {...defaultProps} entries={entries} />,
       );
@@ -355,7 +355,7 @@ describe('OndoLeaderboard', () => {
     });
 
     it('formats zero rate of return with plus sign', () => {
-      const entries = [createMockEntry({ rank: 1, rate_of_return: 0 })];
+      const entries = [createMockEntry({ rank: 1, rateOfReturn: 0 })];
       const { getByText } = render(
         <OndoLeaderboard {...defaultProps} entries={entries} />,
       );

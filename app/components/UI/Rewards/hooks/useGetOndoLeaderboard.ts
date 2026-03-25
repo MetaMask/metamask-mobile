@@ -129,7 +129,7 @@ export const useGetOndoLeaderboard = (
     tierNames,
     selectedTier,
     selectedTierData,
-    computedAt: leaderboard?.computed_at ?? null,
+    computedAt: leaderboard?.computedAt ?? null,
     setSelectedTier,
     refetch: fetchLeaderboard,
   };

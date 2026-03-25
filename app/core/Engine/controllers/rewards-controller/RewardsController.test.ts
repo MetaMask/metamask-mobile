@@ -16896,9 +16896,14 @@ describe('RewardsController', () => {
         lastFetched: Date.now(),
       } as CampaignParticipantStatusState;
       initialState.ondoCampaignLeaderboardPositions[campaignCompositeKey] = {
-        projected_tier: 'MID',
+        projectedTier: 'MID',
         rank: 5,
-        total_in_tier: 100,
+        totalInTier: 100,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
 
@@ -16983,15 +16988,25 @@ describe('RewardsController', () => {
         lastFetched: Date.now(),
       } as CampaignParticipantStatusState;
       initialState.ondoCampaignLeaderboardPositions[campaignKey1] = {
-        projected_tier: 'STARTER',
+        projectedTier: 'STARTER',
         rank: 10,
-        total_in_tier: 200,
+        totalInTier: 200,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
       initialState.ondoCampaignLeaderboardPositions[otherCampaignKey] = {
-        projected_tier: 'UPPER',
+        projectedTier: 'UPPER',
         rank: 1,
-        total_in_tier: 50,
+        totalInTier: 50,
+        rateOfReturn: 0,
+        currentUsdValue: 0,
+        totalUsdDeposited: 0,
+        netDeposit: 0,
+        computedAt: '',
         lastFetched: Date.now(),
       } as CampaignLeaderboardPositionState;
 
@@ -19189,10 +19204,10 @@ describe('RewardsController', () => {
     let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
     const mockCampaignId = 'campaign-ondo-123';
     const mockLeaderboard = {
-      campaign_id: mockCampaignId,
-      computed_at: '2024-03-20T12:00:00.000Z',
+      campaignId: mockCampaignId,
+      computedAt: '2024-03-20T12:00:00.000Z',
       tiers: {
-        STARTER: { entries: [], total_participants: 100 },
+        STARTER: { entries: [], totalParticipants: 100 },
       },
     };
 
@@ -19220,8 +19235,8 @@ describe('RewardsController', () => {
         await disabledController.getOndoCampaignLeaderboard(mockCampaignId);
 
       expect(result).toEqual({
-        campaign_id: mockCampaignId,
-        computed_at: '',
+        campaignId: mockCampaignId,
+        computedAt: '',
         tiers: {},
       });
       expect(mockMessenger.call).not.toHaveBeenCalled();
@@ -19288,14 +19303,14 @@ describe('RewardsController', () => {
     const mockCampaignId = 'campaign-ondo-456';
     const mockSubscriptionId = 'sub-789';
     const mockPosition = {
-      projected_tier: 'MID',
+      projectedTier: 'MID',
       rank: 5,
-      total_in_tier: 150,
-      rate_of_return: 0.15,
-      current_usd_value: 12500.5,
-      total_usd_deposited: 10000.0,
-      net_deposit: 8500.0,
-      computed_at: '2024-03-20T12:00:00.000Z',
+      totalInTier: 150,
+      rateOfReturn: 0.15,
+      currentUsdValue: 12500.5,
+      totalUsdDeposited: 10000.0,
+      netDeposit: 8500.0,
+      computedAt: '2024-03-20T12:00:00.000Z',
     };
 
     beforeEach(() => {

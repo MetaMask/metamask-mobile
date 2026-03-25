@@ -70,7 +70,7 @@ const OndoLeaderboardView: React.FC = () => {
               selectedTier={selectedTier}
               onTierChange={setSelectedTier}
               entries={selectedTierData?.entries ?? []}
-              totalParticipants={selectedTierData?.total_participants ?? 0}
+              totalParticipants={selectedTierData?.totalParticipants ?? 0}
               computedAt={computedAt}
               isLoading={isLeaderboardLoading}
               hasError={hasLeaderboardError}

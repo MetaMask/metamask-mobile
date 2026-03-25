@@ -117,7 +117,7 @@ const hookDefaults = {
   hasError: false,
   tierNames: ['STARTER', 'MID'],
   selectedTier: 'STARTER',
-  selectedTierData: { entries: [], total_participants: 10 },
+  selectedTierData: { entries: [], totalParticipants: 10 },
   computedAt: '2024-03-20T12:00:00.000Z',
   setSelectedTier: jest.fn(),
   refetch: jest.fn(),

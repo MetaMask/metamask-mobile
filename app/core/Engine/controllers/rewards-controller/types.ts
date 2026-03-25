@@ -249,13 +249,13 @@ export interface CampaignLeaderboardEntry {
    * The participant's referral code (used as identifier)
    * @example 'ABC123'
    */
-  referral_code: string;
+  referralCode: string;
 
   /**
    * The rate of return as a decimal ratio (0.15 = 15%, -0.05 = -5%)
    * @example 0.15
    */
-  rate_of_return: number;
+  rateOfReturn: number;
 }
 
 /**
@@ -271,7 +271,7 @@ export interface CampaignLeaderboardTier {
    * Total number of participants in this tier
    * @example 150
    */
-  total_participants: number;
+  totalParticipants: number;
 }
 
 /**
@@ -283,13 +283,13 @@ export interface CampaignLeaderboardDto {
    * The campaign ID
    * @example '123e4567-e89b-12d3-a456-426614174000'
    */
-  campaign_id: string;
+  campaignId: string;
 
   /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
-  computed_at: string;
+  computedAt: string;
 
   /**
    * Leaderboard data by tier name (e.g. STARTER, MID, UPPER)
@@ -307,7 +307,7 @@ export interface CampaignLeaderboardPositionDto {
    * The user's projected tier based on net deposit
    * @example 'MID'
    */
-  projected_tier: string;
+  projectedTier: string;
 
   /**
    * The user's rank within their tier
@@ -319,37 +319,37 @@ export interface CampaignLeaderboardPositionDto {
    * Total number of participants in the user's tier
    * @example 150
    */
-  total_in_tier: number;
+  totalInTier: number;
 
   /**
    * The user's rate of return as a decimal ratio
    * @example 0.15
    */
-  rate_of_return: number;
+  rateOfReturn: number;
 
   /**
    * Current USD value of the user's positions
    * @example 12500.50
    */
-  current_usd_value: number;
+  currentUsdValue: number;
 
   /**
    * Total USD deposited by the user
    * @example 10000.00
    */
-  total_usd_deposited: number;
+  totalUsdDeposited: number;
 
   /**
    * Net deposit amount (deposits - withdrawals at cost basis)
    * @example 8500.00
    */
-  net_deposit: number;
+  netDeposit: number;
 
   /**
    * When the leaderboard was last computed (ISO timestamp)
    * @example '2024-03-20T12:00:00.000Z'
    */
-  computed_at: string;
+  computedAt: string;
 }
 
 /**
@@ -357,19 +357,18 @@ export interface CampaignLeaderboardPositionDto {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignLeaderboardState = {
-  campaign_id: string;
-  computed_at: string;
-  tiers: Record<
-    string,
-    {
+  campaignId: string;
+  computedAt: string;
+  tiers: {
+    [tierName: string]: {
       entries: {
         rank: number;
-        referral_code: string;
-        rate_of_return: number;
+        referralCode: string;
+        rateOfReturn: number;
       }[];
-      total_participants: number;
-    }
-  >;
+      totalParticipants: number;
+    };
+  };
   lastFetched: number;
 };
 
@@ -378,14 +377,14 @@ export type CampaignLeaderboardState = {
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignLeaderboardPositionFoundState = {
-  projected_tier: string;
+  projectedTier: string;
   rank: number;
-  total_in_tier: number;
-  rate_of_return: number;
-  current_usd_value: number;
-  total_usd_deposited: number;
-  net_deposit: number;
-  computed_at: string;
+  totalInTier: number;
+  rateOfReturn: number;
+  currentUsdValue: number;
+  totalUsdDeposited: number;
+  netDeposit: number;
+  computedAt: string;
   lastFetched: number;
 };
 

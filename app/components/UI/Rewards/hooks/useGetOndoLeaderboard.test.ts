@@ -61,19 +61,19 @@ const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
 
 const CAMPAIGN_ID = 'campaign-123';
 const MOCK_LEADERBOARD: CampaignLeaderboardDto = {
-  campaign_id: CAMPAIGN_ID,
-  computed_at: '2024-03-20T12:00:00.000Z',
+  campaignId: CAMPAIGN_ID,
+  computedAt: '2024-03-20T12:00:00.000Z',
   tiers: {
     STARTER: {
       entries: [
-        { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
-        { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+        { rank: 1, referralCode: 'ABC123', rateOfReturn: 0.15 },
+        { rank: 2, referralCode: 'DEF456', rateOfReturn: 0.1 },
       ],
-      total_participants: 50,
+      totalParticipants: 50,
     },
     MID: {
-      entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
-      total_participants: 30,
+      entries: [{ rank: 1, referralCode: 'GHI789', rateOfReturn: 0.2 }],
+      totalParticipants: 30,
     },
   },
 };

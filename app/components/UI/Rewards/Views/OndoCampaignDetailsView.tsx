@@ -191,7 +191,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                         onTierChange={setSelectedTier}
                         entries={selectedTierData?.entries ?? []}
                         totalParticipants={
-                          selectedTierData?.total_participants ?? 0
+                          selectedTierData?.totalParticipants ?? 0
                         }
                         computedAt={computedAt}
                         isLoading={isLeaderboardLoading}
