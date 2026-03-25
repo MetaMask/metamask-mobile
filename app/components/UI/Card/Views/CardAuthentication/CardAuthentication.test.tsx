@@ -406,7 +406,8 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
-        expect(loginButton).toHaveProp('loading', true);
+        expect(loginButton).toBeDisabled();
+        expect(loginButton.props.accessibilityState.busy).toBe(true);
       });
 
       if (resolveLogin) {
@@ -414,7 +415,7 @@ describe('CardAuthentication Component', () => {
       }
 
       await waitFor(() => {
-        expect(loginButton).toHaveProp('loading', false);
+        expect(loginButton.props.accessibilityState.busy).toBeFalsy();
       });
     });
   });
