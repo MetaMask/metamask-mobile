@@ -37,6 +37,39 @@ export type MYXKlineWsData = {
 };
 export type { KlineDataResponse as MYXKlineDataResponse } from '@myx-trade/sdk';
 
+// OrderItem is declared in @myx-trade/sdk but not exported — define locally.
+// Returned by order.getOrders() for active/pending limit and trigger orders.
+export type MYXOrderItem = {
+  baseSymbol: string;
+  chainId: number;
+  collateralAmount: string;
+  direction: number; // 0=LONG, 1=SHORT
+  executionFeeAmount: string;
+  executionFeeToken: string | null;
+  filledAmount: string;
+  filledSize: string;
+  operation: number; // 0=INCREASE, 1=DECREASE
+  orderId: number;
+  orderType: number; // 0=MARKET, 1=LIMIT
+  poolId: string;
+  positionId: string;
+  postOnly: 0 | 1;
+  price: string;
+  quoteSymbol: string;
+  size: string;
+  slPrice: string | null;
+  slSize: string | null;
+  slippagePct: number;
+  tif: number;
+  tpPrice: string | null;
+  tpSize: string | null;
+  triggerType: number;
+  txHash: string;
+  txTime: number;
+  user: string;
+  useLeverage: number;
+};
+
 // SDK enums (re-exported as types since they're const objects in the SDK)
 export {
   Direction as MYXDirection,

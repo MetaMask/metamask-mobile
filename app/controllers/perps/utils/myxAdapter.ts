@@ -50,6 +50,7 @@ import type {
   MYXNetwork,
   MYXPoolSymbol,
   MYXPoolOpenOrder,
+  MYXOrderItem,
   MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
@@ -517,6 +518,52 @@ export function adaptPoolOpenOrderFromMYX(
     isTrigger,
     detailedOrderType,
     reduceOnly: true,
+    providerId: 'myx',
+  };
+}
+
+/**
+ * Adapt MYX OrderItem (from order.getOrders) to MetaMask Order.
+ *
+ * order.getOrders() returns active/pending orders (limit, trigger).
+ * Unlike getPoolOpenOrders (which requires an access token that may be null),
+ * this endpoint works reliably with just the user address.
+ *
+ * @param order - MYX OrderItem from order.getOrders
+ * @param poolSymbolMap - Map of poolId to symbol
+ * @returns MetaMask Order object
+ */
+export function adaptOrderItemFromMYX(
+  order: MYXOrderItem,
+  poolSymbolMap: Map<string, string>,
+): Order {
+  const symbol =
+    order.baseSymbol ?? poolSymbolMap.get(order.poolId) ?? order.poolId;
+
+  const priceNum = fromMYXPrice(order.price);
+  const sizeNum = fromMYXApiSize(order.size);
+  const filledSizeNum = fromMYXApiSize(order.filledSize);
+  const remainingSize = Math.max(0, sizeNum - filledSizeNum);
+
+  const side: 'buy' | 'sell' = order.direction === 0 ? 'buy' : 'sell';
+  const orderType: 'market' | 'limit' =
+    order.orderType === 1 ? 'limit' : 'market';
+  const reduceOnly = order.operation === 1 ? true : undefined;
+
+  return {
+    orderId: String(order.orderId),
+    symbol,
+    side,
+    orderType,
+    size: sizeNum.toString(),
+    originalSize: sizeNum.toString(),
+    price: priceNum.toString(),
+    filledSize: filledSizeNum.toString(),
+    remainingSize: remainingSize.toString(),
+    status: 'open',
+    timestamp: order.txTime,
+    isTrigger: false,
+    reduceOnly,
     providerId: 'myx',
   };
 }

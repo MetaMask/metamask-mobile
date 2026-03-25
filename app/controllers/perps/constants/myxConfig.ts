@@ -124,6 +124,14 @@ export const MYX_COLLATERAL_TOKEN_MAINNET =
 // ============================================================================
 
 /**
+ * Block explorer URLs per network for transaction links.
+ */
+export const MYX_BLOCK_EXPLORER_URL: Record<MYXNetwork, string> = {
+  mainnet: 'https://bscscan.com',
+  testnet: 'https://sepolia.lineascan.build',
+};
+
+/**
  * MYX Account contract addresses — receives collateral deposits (global "Free Margin").
  * Source: docs/perps/myx/myx-contract-addresses-v2.txt
  */
@@ -416,6 +424,41 @@ export const MYX_EXECUTION_FEE_TOKEN: Record<MYXNetwork, string> = {
  * contract-layer prices (not human-readable REST API prices).
  */
 export const MYX_CONTRACT_PRICE_DECIMALS = 30;
+
+/**
+ * Market detail cache TTL in milliseconds (1 minute).
+ * Used for getMarketDetail() results (marketId, globalId).
+ */
+export const MYX_MARKET_DETAIL_CACHE_TTL_MS = 60_000;
+
+/**
+ * Slippage buffer multipliers for market orders.
+ * LONG orders use the high multiplier (accept higher price),
+ * SHORT orders use the low multiplier (accept lower price).
+ */
+export const MYX_SLIPPAGE_BUFFER_HIGH = 1.05;
+export const MYX_SLIPPAGE_BUFFER_LOW = 0.95;
+
+/**
+ * Default limit for history queries (orders, positions, fills).
+ */
+export const MYX_HISTORY_QUERY_LIMIT = 50;
+
+/**
+ * Fallback string returned when a calculation cannot produce a valid price.
+ */
+export const MYX_ZERO_PRICE_FALLBACK = '0.00';
+
+/**
+ * Near-zero threshold for denominator checks in liquidation price calculation.
+ */
+export const MYX_NEAR_ZERO_THRESHOLD = 0.0001;
+
+/**
+ * Maintenance margin multiplier: maintenance leverage = 2 * maxLeverage.
+ * Used in liquidation price calculation per MYX contract logic.
+ */
+export const MYX_MAINTENANCE_MARGIN_MULTIPLIER = 2;
 
 /**
  * Convert a human-readable price to MYX 30-decimal contract format.

@@ -34,6 +34,7 @@ import type {
   MYXTicker,
   MYXPositionType,
   MYXHistoryOrderItem,
+  MYXOrderItem,
   MYXPoolOpenOrder,
   MYXPositionHistoryItem,
   MYXTradeFlowItem,
@@ -199,10 +200,17 @@ export class MYXClientService {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Fetching markets via SDK');
 
-      const pools = await this.#myxClient.markets.getPoolSymbolAll();
+      const allPools = await this.#myxClient.markets.getPoolSymbolAll();
+
+      // SDK returns pools across all chains (testnet spans 59141 + 421614).
+      // Only pools on our configured chain are tradeable — the broker contract
+      // and getMarketDetail both require a matching chainId.
+      const pools = (allPools || []).filter(
+        (pool: MYXPoolSymbol) => pool.chainId === this.#chainId,
+      );
 
       // Update cache
-      this.#marketsCache = pools || [];
+      this.#marketsCache = pools;
       this.#marketsCacheTimestamp = Date.now();
 
       this.#deps.debugLogger.log('[MYXClientService] Markets fetched', {
@@ -656,11 +664,11 @@ export class MYXClientService {
    */
   async getOrders(
     address: string,
-  ): Promise<{ code: number; data?: MYXPositionType[] }> {
+  ): Promise<{ code: number; data?: MYXOrderItem[] }> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Getting orders');
       const result = await this.#myxClient.order.getOrders(address);
-      return result as { code: number; data?: MYXPositionType[] };
+      return result as { code: number; data?: MYXOrderItem[] };
     } catch (caughtError) {
       const wrappedError = ensureError(
         caughtError,
@@ -1427,6 +1435,39 @@ export class MYXClientService {
       this.#deps.logger.error(
         wrappedError,
         this.#getErrorContext('getMarketDetail', { poolId }),
+      );
+      throw wrappedError;
+    }
+  }
+
+  /**
+   * Get the network (execution) fee for orders on a market.
+   * Keepers require this fee to execute limit/trigger orders.
+   * The SDK's createIncreaseOrder calls this internally, but it's
+   * exposed here for fee estimation and display.
+   *
+   * @param marketId - Market ID from getMarketDetail.
+   * @returns Execution fee amount as a string (in collateral token decimals).
+   */
+  async getNetworkFee(marketId: string): Promise<string> {
+    try {
+      this.#deps.debugLogger.log('[MYXClientService] Getting network fee', {
+        marketId,
+      });
+
+      const fee = await this.#myxClient.utils.getNetworkFee(
+        marketId,
+        this.#chainId,
+      );
+      return String(fee);
+    } catch (caughtError) {
+      const wrappedError = ensureError(
+        caughtError,
+        'MYXClientService.getNetworkFee',
+      );
+      this.#deps.logger.error(
+        wrappedError,
+        this.#getErrorContext('getNetworkFee', { marketId }),
       );
       throw wrappedError;
     }
