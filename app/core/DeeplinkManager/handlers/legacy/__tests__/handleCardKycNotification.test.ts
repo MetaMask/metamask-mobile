@@ -23,6 +23,7 @@ jest.mock('../../../../redux', () => ({
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/featureFlagController/card');
+jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../components/UI/Card/sdk/CardSDK');
 jest.mock('../../../../../components/UI/Card/util/mapCountryToLocation');

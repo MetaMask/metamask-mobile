@@ -45,6 +45,10 @@ jest.mock('../../../../selectors/geolocationController', () => ({
   selectGeolocationLocation: jest.fn(),
 }));
 
+jest.mock('../../../../selectors/geolocationController', () => ({
+  selectGeolocationLocation: jest.fn(),
+}));
+
 // Mock handleLocalAuthentication
 jest.mock(
   '../../../../components/UI/Card/util/handleLocalAuthentication',
@@ -87,7 +91,6 @@ const CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
   isLoaded: true,
   hasViewedCardButton: true,
-
   isAuthenticated: false,
   userCardLocation: 'international',
   onboarding: {
@@ -102,7 +105,6 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   isDaimoDemo: false,
   isLoaded: false,
   hasViewedCardButton: false,
-
   isAuthenticated: false,
   userCardLocation: 'international',
   onboarding: {
@@ -750,6 +752,7 @@ describe('Card Button Display Selectors', () => {
     beforeEach(() => {
       mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
       mockIsEthAccount.mockReturnValue(false);
+      mockSelectGeolocationLocation.mockReturnValue('US');
     });
 
     it('should return true when user is a cardholder', () => {

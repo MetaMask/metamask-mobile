@@ -61,9 +61,9 @@ jest.mock(
 );
 
 import {
-  selectOptinAllowedForGeo,
-  selectOptinAllowedForGeoLoading,
-} from '../../../../../reducers/rewards/selectors';
+  selectGeolocationLocation,
+  selectGeolocationStatus,
+} from '../../../../../selectors/geolocationController';
 import {
   selectCardIsLoaded,
   selectIsCardholder,
@@ -72,8 +72,8 @@ import {
 } from '../../../../../core/redux/slices/card';
 
 interface SetupOptions {
-  optinAllowedForGeo?: boolean | null;
-  isGeoLoading?: boolean;
+  geoLocation?: string;
+  geoStatus?: 'idle' | 'loading' | 'complete';
   isCardGeoLoaded?: boolean;
   isUserInSupportedCardCountry?: boolean;
   isCardholder?: boolean;
@@ -81,16 +81,17 @@ interface SetupOptions {
 }
 
 const setupSelectors = ({
-  optinAllowedForGeo = null,
-  isGeoLoading = false,
+  geoLocation,
+  geoStatus = 'complete',
   isCardGeoLoaded = true,
   isUserInSupportedCardCountry = true,
   isCardholder = false,
   isAuthenticatedCard = false,
 }: SetupOptions = {}) => {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectOptinAllowedForGeo) return optinAllowedForGeo;
-    if (selector === selectOptinAllowedForGeoLoading) return isGeoLoading;
+    if (selector === selectGeolocationLocation)
+      return geoLocation === undefined ? undefined : geoLocation;
+    if (selector === selectGeolocationStatus) return geoStatus;
     if (selector === selectCardIsLoaded) return isCardGeoLoaded;
     if (selector === selectIsUserInSupportedCardCountry)
       return isUserInSupportedCardCountry;
@@ -113,7 +114,7 @@ describe('EarnRewardsPreview', () => {
     });
 
     it('renders the title even while rewards geo is loading', () => {
-      setupSelectors({ isGeoLoading: true });
+      setupSelectors({ geoStatus: 'loading' });
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Earn rewards')).toBeOnTheScreen();
     });
@@ -126,8 +127,9 @@ describe('EarnRewardsPreview', () => {
   });
 
   describe('geo loading state', () => {
-    it('shows skeletons while rewards geo is loading', () => {
-      setupSelectors({ isGeoLoading: true });
+    it('shows mUSD skeleton and renders card card while mUSD geo is loading', () => {
+      // card geo is complete and country is supported by default
+      setupSelectors({ geoStatus: 'loading' });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
@@ -136,12 +138,12 @@ describe('EarnRewardsPreview', () => {
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
       expect(
-        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeOnTheScreen();
     });
 
-    it('shows skeletons while card geo is loading', () => {
-      setupSelectors({ isCardGeoLoaded: false });
+    it('shows mUSD skeleton and renders card card while mUSD geo is idle (not yet started)', () => {
+      setupSelectors({ geoStatus: 'idle' });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
@@ -150,12 +152,30 @@ describe('EarnRewardsPreview', () => {
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
       expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows card skeleton and renders mUSD card while card geo is loading', () => {
+      setupSelectors({
+        geoLocation: 'US',
+        geoStatus: 'complete',
+        isCardGeoLoaded: false,
+      });
+      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
+      ).toBeOnTheScreen();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeOnTheScreen();
+      expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
       ).toBeNull();
     });
 
-    it('shows skeletons when both geos are still loading', () => {
-      setupSelectors({ isGeoLoading: true, isCardGeoLoaded: false });
+    it('shows both skeletons when both geos are still loading', () => {
+      setupSelectors({ geoStatus: 'loading', isCardGeoLoaded: false });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
@@ -168,7 +188,7 @@ describe('EarnRewardsPreview', () => {
 
   describe('after geo loaded — both allowed', () => {
     it('shows both mUSD and card cards when both geos allow', () => {
-      setupSelectors({ optinAllowedForGeo: true });
+      setupSelectors({ geoLocation: 'US' });
       const { getByTestId } = render(<EarnRewardsPreview />);
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
@@ -178,26 +198,34 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('shows both cards when optinAllowedForGeo is null (undetermined, not blocked)', () => {
-      setupSelectors({ optinAllowedForGeo: null });
+    it('hides mUSD card when geoLocation is undefined even if geo status is complete', () => {
+      setupSelectors({ geoLocation: undefined });
+      const { queryByTestId, getByTestId } = render(<EarnRewardsPreview />);
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeNull();
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeOnTheScreen();
+    });
+
+    it('shows mUSD card when geoLocation is UNKNOWN (treated as non-UK)', () => {
+      setupSelectors({ geoLocation: 'UNKNOWN' });
       const { getByTestId } = render(<EarnRewardsPreview />);
       expect(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
-      ).toBeOnTheScreen();
-      expect(
-        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
       ).toBeOnTheScreen();
     });
 
     it('renders correct text for mUSD card', () => {
-      setupSelectors({ optinAllowedForGeo: true });
+      setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Up to 3% bonus on stables')).toBeOnTheScreen();
       expect(getByText('Calculate your mUSD bonus')).toBeOnTheScreen();
     });
 
     it('renders correct text for MetaMask card', () => {
-      setupSelectors({ optinAllowedForGeo: true });
+      setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Up to 3% cash back')).toBeOnTheScreen();
       expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
@@ -206,14 +234,14 @@ describe('EarnRewardsPreview', () => {
 
   describe('card subtitle — cardholder state', () => {
     it('shows cardholder subtitle when isCardholder is true', () => {
-      setupSelectors({ optinAllowedForGeo: true, isCardholder: true });
+      setupSelectors({ geoLocation: 'US', isCardholder: true });
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Access your MetaMask Card benefits')).toBeOnTheScreen();
     });
 
     it('shows cardholder subtitle when isAuthenticatedCard is true', () => {
       setupSelectors({
-        optinAllowedForGeo: true,
+        geoLocation: 'US',
         isAuthenticatedCard: true,
       });
       const { getByText } = render(<EarnRewardsPreview />);
@@ -222,7 +250,7 @@ describe('EarnRewardsPreview', () => {
 
     it('shows cardholder subtitle when both isCardholder and isAuthenticatedCard are true', () => {
       setupSelectors({
-        optinAllowedForGeo: true,
+        geoLocation: 'US',
         isCardholder: true,
         isAuthenticatedCard: true,
       });
@@ -231,16 +259,16 @@ describe('EarnRewardsPreview', () => {
     });
 
     it('shows default subtitle when neither isCardholder nor isAuthenticatedCard', () => {
-      setupSelectors({ optinAllowedForGeo: true });
+      setupSelectors({ geoLocation: 'US' });
       const { getByText } = render(<EarnRewardsPreview />);
       expect(getByText('Get your MetaMask Card now')).toBeOnTheScreen();
     });
   });
 
-  describe('after geo loaded — mUSD blocked (UK)', () => {
-    it('hides mUSD card and shows card card when rewards geo is false but card geo is allowed', () => {
-      setupSelectors({ optinAllowedForGeo: false });
-      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+  describe('after geo loaded — UK user', () => {
+    it('hides mUSD card for UK users but shows card card when card geo is allowed', () => {
+      setupSelectors({ geoLocation: 'GB' });
+      const { queryByTestId, getByTestId } = render(<EarnRewardsPreview />);
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
@@ -253,7 +281,7 @@ describe('EarnRewardsPreview', () => {
   describe('after geo loaded — card blocked (unsupported country)', () => {
     it('shows mUSD card but hides card card when country is not in supported list', () => {
       setupSelectors({
-        optinAllowedForGeo: true,
+        geoLocation: 'US',
         isUserInSupportedCardCountry: false,
       });
       const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
@@ -267,7 +295,7 @@ describe('EarnRewardsPreview', () => {
 
     it('hides card card when user is not in a supported card country', () => {
       setupSelectors({
-        optinAllowedForGeo: true,
+        geoLocation: 'US',
         isUserInSupportedCardCountry: false,
       });
       const { queryByTestId } = render(<EarnRewardsPreview />);
@@ -276,9 +304,9 @@ describe('EarnRewardsPreview', () => {
       ).toBeNull();
     });
 
-    it('hides both cards when both geos are restricted', () => {
+    it('hides both cards when user is in UK and card country is not supported', () => {
       setupSelectors({
-        optinAllowedForGeo: false,
+        geoLocation: 'GB',
         isUserInSupportedCardCountry: false,
       });
       const { queryByTestId } = render(<EarnRewardsPreview />);
@@ -289,20 +317,36 @@ describe('EarnRewardsPreview', () => {
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
       ).toBeNull();
     });
+
+    it('hides card card when geoLocation is UNKNOWN (not a supported card country)', () => {
+      setupSelectors({
+        geoLocation: 'UNKNOWN',
+        isUserInSupportedCardCountry: false,
+      });
+      const { getByTestId, queryByTestId } = render(<EarnRewardsPreview />);
+      expect(
+        getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
+      ).toBeOnTheScreen();
+      expect(
+        queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
+      ).toBeNull();
+    });
   });
 
   describe('navigation', () => {
     it('navigates to mUSD calculator view when mUSD card is pressed', () => {
-      setupSelectors({ optinAllowedForGeo: true });
+      setupSelectors({ geoLocation: 'US' });
       const { getByTestId } = render(<EarnRewardsPreview />);
       fireEvent.press(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       );
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MUSD_CALCULATOR_VIEW);
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_MUSD_CALCULATOR_VIEW,
+      );
     });
 
     it('triggers card-onboarding deeplink when card card is pressed', () => {
-      setupSelectors({ optinAllowedForGeo: true });
+      setupSelectors({ geoLocation: 'US' });
       const { getByTestId } = render(<EarnRewardsPreview />);
       fireEvent.press(
         getByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),

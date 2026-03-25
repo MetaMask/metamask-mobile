@@ -1,9 +1,29 @@
 import { IconName } from '@metamask/design-system-react-native';
-import type {
-  CampaignDto,
-  CampaignStatus,
+import {
+  CampaignType,
+  type CampaignDto,
+  type CampaignStatus,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
+
+/**
+ * Set of campaign types that have full UI support (details view, opt-in, etc.)
+ */
+const SUPPORTED_CAMPAIGN_TYPES = new Set<CampaignType>([
+  CampaignType.ONDO_HOLDING,
+  CampaignType.SEASON_1,
+]);
+
+/**
+ * Checks if a campaign type has full UI support.
+ * Campaigns without support will display as non-interactive tiles.
+ *
+ * @param campaignType - The type of campaign
+ * @returns Whether the campaign type is fully supported
+ */
+export function isCampaignTypeSupported(campaignType: CampaignType): boolean {
+  return SUPPORTED_CAMPAIGN_TYPES.has(campaignType);
+}
 
 /**
  * Derives the status of a campaign based on its date fields.
@@ -86,7 +106,9 @@ export function formatCampaignStatusLabel(
     }
     case 'complete': {
       const endDate = new Date(campaign.endDate);
-      return formatCampaignDate(endDate);
+      return strings('rewards.campaign.ended_date', {
+        date: formatCampaignDate(endDate),
+      });
     }
     default:
       return '';

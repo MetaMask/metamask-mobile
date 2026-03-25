@@ -26,6 +26,7 @@ jest.mock('../../../../Engine', () => ({
 }));
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/accountsController');
+jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../SDKConnect/utils/DevLogger');
 jest.mock('../../../../../util/Logger');
 

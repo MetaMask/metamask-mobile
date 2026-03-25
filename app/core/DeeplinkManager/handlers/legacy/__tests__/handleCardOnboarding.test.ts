@@ -10,6 +10,7 @@ import {
   selectIsAuthenticatedCard,
 } from '../../../../redux/slices/card';
 
+jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../redux', () => ({
   __esModule: true,
   default: {
