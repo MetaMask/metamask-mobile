@@ -35,9 +35,32 @@ export default class PlaywrightGestures {
    * @returns A promise that resolves when the tap is complete
    */
   @boxedStep
-  static async waitAndTap(elem: PlaywrightElement): Promise<void> {
-    await elem.unwrap().waitForDisplayed({ timeout: 10000 });
-    await elem.unwrap().waitForEnabled({ timeout: 5000 });
+  static async waitAndTap(
+    elem: PlaywrightElement,
+    options?: {
+      delay?: number;
+      checkForDisplayed?: boolean;
+      checkForEnabled?: boolean;
+    },
+  ): Promise<void> {
+    const {
+      delay = 500,
+      checkForDisplayed = true,
+      checkForEnabled = true,
+    } = options || {};
+
+    if (checkForDisplayed) {
+      await elem.unwrap().waitForDisplayed({ timeout: 10000 });
+    }
+
+    if (checkForEnabled) {
+      await elem.unwrap().waitForEnabled({ timeout: 5000 });
+    }
+
+    if (delay) {
+      await new Promise((resolve) => setTimeout(resolve, delay));
+    }
+
     await elem.unwrap().click();
   }
 

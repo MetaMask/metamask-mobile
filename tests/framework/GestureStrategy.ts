@@ -26,6 +26,12 @@ export interface UnifiedGestureOptions {
   direction?: 'up' | 'down' | 'left' | 'right';
   /** Scroll amount in px — Detox only; used by scrollToElement */
   scrollAmount?: number;
+  /** Delay before tapping (ms) */
+  delay?: number;
+  /** Check if the element is displayed — Appium only; Detox ignores this */
+  checkForDisplayed?: boolean;
+  /** Check if the element is enabled — Appium only; Detox ignores this */
+  checkForEnabled?: boolean;
 }
 
 /**
