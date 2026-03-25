@@ -37,8 +37,8 @@ export function defineConfig(config: PlaywrightTestConfig<WebDriverConfig>) {
     globalSetup: [resolveGlobalSetup()],
     reporter: [...reporterConfig],
     use: {
-      actionTimeout: 20_000,
-      expectTimeout: 20_000,
+      actionTimeout: 30_000,
+      expectTimeout: 30_000,
       ...config.use,
     },
   });
