@@ -1,4 +1,4 @@
-import Utilities, { BASE_DEFAULTS } from './Utilities.ts';
+import { BASE_DEFAULTS } from './Utilities.ts';
 import { AssertionOptions } from './types.ts';
 import type { PlaywrightElement } from './PlaywrightAdapter.ts';
 import PlaywrightMatchers from './PlaywrightMatchers.ts';
