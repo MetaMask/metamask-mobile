@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Aktif yükseltmeler",
     "season_1": "Sezon 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD bonus hesaplayıcı",
       "description": "Stabil kripto paralarınızı mUSD'ye dönüştürerek ne kadar kazanabileceğinize bakın.",
       "amount_label": "Dönüştürülen miktar",

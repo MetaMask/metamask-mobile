@@ -222,6 +222,7 @@ describe('WalletConnect2Session', () => {
   let mockClient: IWalletKit;
   let mockSession: SessionTypes.Struct;
   let mockNavigation: NavigationContainerRef<ParamListBase>;
+  let mockStoreUnsubscribe: jest.Mock;
 
   const testChainId = '0x89';
   const testNetworkClientId = `test-network-${parseInt(testChainId, 16)}`;
@@ -298,6 +299,9 @@ describe('WalletConnect2Session', () => {
         rpcEndpoints: [{ networkClientId: testNetworkClientId }],
       },
     });
+
+    mockStoreUnsubscribe = jest.fn();
+    (store.subscribe as jest.Mock).mockReturnValue(mockStoreUnsubscribe);
 
     session = new WalletConnect2Session({
       web3Wallet: mockClient,
@@ -441,6 +445,7 @@ describe('WalletConnect2Session', () => {
 
     await session.removeListeners();
 
+    expect(mockStoreUnsubscribe).toHaveBeenCalled();
     expect(mockOnDisconnect).toHaveBeenCalled();
   });
 
