@@ -66,6 +66,8 @@ export async function setupSmartTransactionsMocks(
   mockServer: MockttpCompat,
   anvilPort: number,
 ): Promise<void> {
+  stxSubmitCount = 0;
+
   // anvilPort is the fallback (DEFAULT_ANVIL_PORT = 8545).
   // On local dev the port manager allocates a random port, so we resolve
   // the actual port at request time to avoid ECONNREFUSED errors.

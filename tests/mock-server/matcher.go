@@ -8,7 +8,7 @@ import (
 )
 
 func matchRule(rule *MockRule, method, url string, body []byte) bool {
-	if rule.Method != method {
+	if rule.Method != "*" && rule.Method != method {
 		return false
 	}
 	if !matchURL(rule, url) {
