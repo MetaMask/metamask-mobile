@@ -37,8 +37,8 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({ campaign }) => {
 
   const backgroundImageUrl =
     colorScheme === 'dark'
-      ? campaign.details?.image?.darkModeUrl
-      : campaign.details?.image?.lightModeUrl;
+      ? campaign.image?.darkModeUrl
+      : campaign.image?.lightModeUrl;
 
   const howItWorksTitle = campaign.details?.howItWorks?.title;
   const howItWorksDescription = campaign.details?.howItWorks?.description;
