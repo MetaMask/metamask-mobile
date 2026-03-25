@@ -1135,6 +1135,7 @@ const App: React.FC = () => {
       if (isSeedlessOnboardingLoginFlow) {
         await Authentication.checkIsSeedlessPasswordOutdated(
           firstLoad.current,
+          false,
         ).catch((error) => {
           Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
         });

@@ -65,6 +65,8 @@ import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitSer
 import { revokePendingSeedlessRefreshTokens } from '../OAuthService/SeedlessControllerHelper';
 import { EntropySourceId } from '@metamask/keyring-api';
 import { analytics } from '../../util/analytics/analytics';
+import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
 import { createDataDeletionTask as createDataDeletionTaskUtil } from '../../util/analytics/analyticsDataDeletion';
 import { resetProviderToken as depositResetProviderToken } from '../../components/UI/Ramp/Deposit/utils/ProviderTokenVault';
 import {
@@ -747,7 +749,7 @@ class AuthenticationService {
             // if seedless flow - rehydrate
             await this.rehydrateSeedPhrase(passwordToUse);
             fallbackToPassword = true;
-          } else if (await this.checkIsSeedlessPasswordOutdated(false)) {
+          } else if (await this.checkIsSeedlessPasswordOutdated(false, true)) {
             // If seedless flow completed && seedless password is outdated, sync the password and unlock the wallet
             await this.syncPasswordAndUnlockWallet(passwordToUse);
             // try to enable biometric/passcode as default
@@ -873,7 +875,7 @@ class AuthenticationService {
 
     // async check seedless password outdated skip cache when app lock
     // the function swallowed the error
-    this.checkIsSeedlessPasswordOutdated(true);
+    this.checkIsSeedlessPasswordOutdated(true, false);
 
     // Reset authentication preference.
     // NOTE: This does not seem necessary as it's just setting the state rather than updating the keychain.
@@ -1112,7 +1114,10 @@ class AuthenticationService {
       shouldSelectAccount: true,
     },
   ): Promise<boolean> => {
-    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(true);
+    const isPasswordOutdated = await this.checkIsSeedlessPasswordOutdated(
+      true,
+      true,
+    );
     if (isPasswordOutdated) {
       return false;
     }
@@ -1363,11 +1368,13 @@ class AuthenticationService {
   /**
    * Checks if the seedless password is outdated.
    *
-   * @param {boolean} skipCache - whether to skip the cache
-   * @returns {Promise<boolean>} true if the password is outdated, false otherwise, undefined if the flow is not seedless
+   * @param skipCache - whether to skip the cache
+   * @param captureSentryError - when true, failed checks are reported to Sentry via {@link Logger.error}
+   * @returns true if the password is outdated, false otherwise (or when not in seedless flow)
    */
   checkIsSeedlessPasswordOutdated = async (
     skipCache: boolean = true,
+    captureSentryError: boolean = false,
   ): Promise<boolean> => {
     const { SeedlessOnboardingController } = Engine.context;
     if (!selectSeedlessOnboardingLoginFlow(ReduxService.store.getState())) {
@@ -1380,7 +1387,14 @@ class AuthenticationService {
         });
       return isSeedlessPasswordOutdated;
     } catch (error) {
-      Logger.error(error as Error, 'Error in checkIsSeedlessPasswordOutdated');
+      if (captureSentryError) {
+        Logger.error(
+          error as Error,
+          'Error in checkIsSeedlessPasswordOutdated',
+        );
+      } else {
+        Logger.log('checkIsSeedlessPasswordOutdated', error);
+      }
       return false;
     }
   };
@@ -1401,10 +1415,18 @@ class AuthenticationService {
 
     // Check for latest seedless password outdated state
     // isSeedlessPasswordOutdated is true when navigate to wallet main screen after login with password sync
-    const isOutdated = await this.checkIsSeedlessPasswordOutdated(false);
+    const isOutdated = await this.checkIsSeedlessPasswordOutdated(false, true);
     if (!isOutdated) {
       return;
     }
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.PASSWORD_OUTDATED_MODAL_VIEWED,
+      )
+        .addProperties({ category: 'App' })
+        .build(),
+    );
 
     // show seedless password outdated modal and force user to lock app
     NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
