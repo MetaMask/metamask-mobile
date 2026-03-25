@@ -106,6 +106,7 @@ import type {
   PerpsRemoteFeatureFlagState,
   PerpsTransactionParams,
   PerpsAddTransactionOptions,
+  MYXCredentials,
 } from './types';
 import type {
   PerpsControllerAllowedActions,
@@ -123,6 +124,45 @@ import { wait } from './utils/wait';
 
 /** Derived type for logger options from PerpsLogger interface */
 type PerpsLoggerOptions = Parameters<PerpsLogger['error']>[1];
+
+/**
+ * Returns the first non-empty string from the given values.
+ * Env vars default to '' (not null/undefined), so ?? wouldn't fall through.
+ *
+ * @param vals - String values to check in order.
+ * @returns The first non-empty string, or '' if all are empty/undefined.
+ */
+export function firstNonEmpty(...vals: (string | undefined)[]): string {
+  return (
+    vals.find((val) => val !== null && val !== undefined && val !== '') ?? ''
+  );
+}
+
+/**
+ * Resolves MYX auth config from provider credentials, handling
+ * testnet/mainnet fallback logic.
+ *
+ * @param myx - MYX provider credentials.
+ * @param isTestnet - Whether the controller is in testnet mode.
+ * @returns Resolved appId, apiSecret, and brokerAddress.
+ */
+export function resolveMyxAuthConfig(
+  myx: MYXCredentials,
+  isTestnet: boolean,
+): { appId: string; apiSecret: string; brokerAddress: string } {
+  return {
+    appId: isTestnet
+      ? (myx.appIdTestnet ?? '')
+      : firstNonEmpty(myx.appIdMainnet, myx.appIdTestnet),
+    apiSecret: isTestnet
+      ? (myx.apiSecretTestnet ?? '')
+      : firstNonEmpty(myx.apiSecretMainnet, myx.apiSecretTestnet),
+    brokerAddress: isTestnet
+      ? (myx.brokerAddressTestnet ?? '')
+      : firstNonEmpty(myx.brokerAddressMainnet, myx.brokerAddressTestnet),
+  };
+}
+
 // PaymentToken: minimal interface for deposit flow (replaces mobile-only AssetType)
 
 /**
@@ -661,6 +701,9 @@ export class PerpsController extends BaseController<
   #initializationPromise: Promise<void> | null = null;
 
   #isReinitializing = false;
+
+  /** Tracks the async MYX dynamic import so performInitialization can await it. */
+  #myxRegistrationPromise: Promise<void> | null = null;
 
   protected blockedRegionList: BlockedRegionList = {
     list: [],
@@ -1450,8 +1493,16 @@ export class PerpsController extends BaseController<
 
         this.#createProviders();
 
-        // Wait for WebSocket transport to be ready before marking as initialized
-        await wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs);
+        // Await MYX dynamic import (if started) so MYX is in the providers
+        // map before we assign the active provider. Runs concurrently with
+        // the WebSocket readiness delay for zero additional latency.
+        await Promise.all([
+          wait(PERPS_CONSTANTS.ReconnectionCleanupDelayMs),
+          this.#myxRegistrationPromise,
+        ]);
+        this.#myxRegistrationPromise = null;
+
+        this.#assignActiveProvider();
 
         this.isInitialized = true;
         this.update((state) => {
@@ -1557,37 +1608,18 @@ export class PerpsController extends BaseController<
     // explicitly enabled and selected.
     const isMYXEnabled = this.#isMYXProviderEnabled();
     if (isMYXEnabled) {
-      import('./providers/MYXProvider')
+      this.#myxRegistrationPromise = import('./providers/MYXProvider')
         .then(({ MYXProvider }) => {
           const myxIsTestnet =
             PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
           const myx =
             this.#options.clientConfig?.providerCredentials?.myx ?? {};
-          // When on mainnet, fall back to testnet credentials if mainnet ones are empty.
-          // Uses firstNonEmpty because env vars default to '' (not null/undefined),
-          // so ?? would not fall through on empty strings.
-          const firstNonEmpty = (...vals: (string | undefined)[]): string =>
-            vals.find(
-              (val) => val !== null && val !== undefined && val !== '',
-            ) ?? '';
-          const myxAppId = myxIsTestnet
-            ? (myx.appIdTestnet ?? '')
-            : firstNonEmpty(myx.appIdMainnet, myx.appIdTestnet);
-          const myxApiSecret = myxIsTestnet
-            ? (myx.apiSecretTestnet ?? '')
-            : firstNonEmpty(myx.apiSecretMainnet, myx.apiSecretTestnet);
-          const myxBrokerAddress = myxIsTestnet
-            ? (myx.brokerAddressTestnet ?? '')
-            : firstNonEmpty(myx.brokerAddressMainnet, myx.brokerAddressTestnet);
+          const myxAuthConfig = resolveMyxAuthConfig(myx, myxIsTestnet);
           const myxProvider = new MYXProvider({
             isTestnet: myxIsTestnet,
             platformDependencies: this.#options.infrastructure,
             messenger: this.messenger,
-            myxAuthConfig: {
-              appId: myxAppId,
-              apiSecret: myxApiSecret,
-              brokerAddress: myxBrokerAddress,
-            },
+            myxAuthConfig,
           });
           this.providers.set('myx', myxProvider);
           this.#debugLog('PerpsController: MYX provider registered', {
@@ -1601,11 +1633,23 @@ export class PerpsController extends BaseController<
           );
         });
     }
+  }
 
-    // Set up active provider based on activeProvider value in state
-    // 'aggregated' is treated as just another provider that wraps others
+  /**
+   * Assigns the active provider instance based on the current activeProvider state.
+   * Separated from #createProviders so it runs after async MYX registration settles.
+   */
+  #assignActiveProvider(): void {
+    const { activeProvider } = this.state;
+    const hyperLiquidProvider = this.providers.get('hyperliquid');
+
+    if (!hyperLiquidProvider) {
+      throw new Error(
+        'HyperLiquid provider not registered — cannot assign active provider',
+      );
+    }
+
     if (activeProvider === 'aggregated') {
-      // Aggregated mode: wrap in AggregatedPerpsProvider for multi-provider support
       this.activeProviderInstance = new AggregatedPerpsProvider({
         providers: this.providers,
         defaultProvider: 'hyperliquid',
@@ -1616,20 +1660,17 @@ export class PerpsController extends BaseController<
         { registeredProviders: Array.from(this.providers.keys()) },
       );
     } else if (activeProvider === 'hyperliquid') {
-      // Direct provider mode: use HyperLiquid provider directly
       this.activeProviderInstance = hyperLiquidProvider;
       this.#debugLog(
         `PerpsController: Using direct provider (${activeProvider})`,
       );
     } else if (activeProvider === 'myx') {
-      // MYX provider mode
       const myxProvider = this.providers.get('myx');
       if (myxProvider) {
         this.activeProviderInstance = myxProvider;
       } else {
-        // MYX feature flag is disabled — fall back to HyperLiquid
         this.#debugLog(
-          'PerpsController: MYX provider not available (feature flag disabled), falling back to hyperliquid',
+          'PerpsController: MYX provider not available, falling back to hyperliquid',
         );
         this.activeProviderInstance = hyperLiquidProvider;
         this.update((state) => {
@@ -1640,7 +1681,6 @@ export class PerpsController extends BaseController<
         `PerpsController: Using direct provider (${this.activeProviderInstance === hyperLiquidProvider ? 'hyperliquid' : activeProvider})`,
       );
     } else {
-      // Unsupported provider - throw error to prevent silent misconfiguration
       throw new Error(
         `Unsupported provider: ${String(activeProvider)}. Currently only 'hyperliquid', 'myx', and 'aggregated' are supported.`,
       );

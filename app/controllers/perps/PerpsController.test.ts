@@ -24,6 +24,8 @@ import {
   PerpsController,
   getDefaultPerpsControllerState,
   InitializationState,
+  firstNonEmpty,
+  resolveMyxAuthConfig,
 } from './PerpsController';
 import type { PerpsControllerState } from './PerpsController';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
@@ -4551,6 +4553,17 @@ describe('PerpsController', () => {
       providers.set('myx', mockMYXProvider as any);
       myxController.testSetProviders(providers);
 
+      // Mock init on the reinit call inside switchProvider.
+      // Dynamic import() rejects in Jest (no --experimental-vm-modules),
+      // so MYX can't register via #createProviders. Mock init to
+      // simulate successful reinitialization while preserving our
+      // manually-injected MYX provider in the map.
+      jest.spyOn(myxController, 'init').mockImplementationOnce(async () => {
+        myxController.testUpdate((state) => {
+          state.initializationState = InitializationState.Initialized;
+        });
+      });
+
       const result = await myxController.switchProvider('myx');
 
       expect(result.success).toBe(true);
@@ -5673,5 +5686,95 @@ describe('PerpsController', () => {
       expect(hlEntry?.data).toHaveLength(1);
       expect(hlEntry?.data[0].symbol).toBe('BTC');
     });
+  });
+});
+
+describe('firstNonEmpty', () => {
+  it('returns the first non-empty string', () => {
+    expect(firstNonEmpty('', undefined, 'hello', 'world')).toBe('hello');
+  });
+
+  it('returns empty string when all values are empty or undefined', () => {
+    expect(firstNonEmpty('', undefined, '')).toBe('');
+  });
+
+  it('returns the first value if it is non-empty', () => {
+    expect(firstNonEmpty('first', 'second')).toBe('first');
+  });
+
+  it('skips empty strings and returns the fallback', () => {
+    expect(firstNonEmpty('', 'fallback')).toBe('fallback');
+  });
+});
+
+describe('resolveMyxAuthConfig', () => {
+  it('uses testnet credentials on testnet', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: 'main-app',
+      apiSecretMainnet: 'main-secret',
+      brokerAddressMainnet: '0xMainBroker',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, true);
+
+    // Assert
+    expect(result.appId).toBe('test-app');
+    expect(result.apiSecret).toBe('test-secret');
+    expect(result.brokerAddress).toBe('0xTestBroker');
+  });
+
+  it('uses mainnet credentials on mainnet', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: 'main-app',
+      apiSecretMainnet: 'main-secret',
+      brokerAddressMainnet: '0xMainBroker',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, false);
+
+    // Assert
+    expect(result.appId).toBe('main-app');
+    expect(result.apiSecret).toBe('main-secret');
+    expect(result.brokerAddress).toBe('0xMainBroker');
+  });
+
+  it('falls back to testnet credentials when mainnet are empty', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: '',
+      apiSecretMainnet: '',
+      brokerAddressMainnet: '',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, false);
+
+    // Assert
+    expect(result.appId).toBe('test-app');
+    expect(result.apiSecret).toBe('test-secret');
+    expect(result.brokerAddress).toBe('0xTestBroker');
+  });
+
+  it('returns empty strings when no credentials are set', () => {
+    // Act
+    const result = resolveMyxAuthConfig({}, true);
+
+    // Assert
+    expect(result.appId).toBe('');
+    expect(result.apiSecret).toBe('');
+    expect(result.brokerAddress).toBe('');
   });
 });
