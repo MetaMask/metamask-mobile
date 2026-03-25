@@ -1134,16 +1134,17 @@ const App: React.FC = () => {
   useInterval(
     async () => {
       if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated(
-          firstLoad.current,
-        ).catch((error) => {
+        await Authentication.checkIsSeedlessPasswordOutdated({
+          skipCache: firstLoad.current,
+          captureSentryError: false,
+        }).catch((error) => {
           Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
         });
         firstLoad.current = false;
       }
     },
     {
-      delay: Duration.Minute * 5,
+      delay: Duration.Minute * 10,
       immediate: true,
     },
   );
