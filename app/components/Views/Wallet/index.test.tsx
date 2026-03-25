@@ -613,7 +613,7 @@ describe('Wallet', () => {
             },
             AccountTreeController: {
               accountTree: { wallets: {} },
-              selectedAccountGroup: 'group-id-123',
+              selectedAccountGroup: 'keyring:wallet-1/ethereum',
             },
             NetworkController: {
               ...mockInitialState.engine.backgroundState.NetworkController,
@@ -656,7 +656,7 @@ describe('Wallet', () => {
             ...mockInitialState.engine.backgroundState,
             AccountTreeController: {
               accountTree: { wallets: {} },
-              selectedAccountGroup: 'group-id-123',
+              selectedAccountGroup: 'keyring:wallet-1/ethereum',
             },
           },
         },
@@ -665,7 +665,7 @@ describe('Wallet', () => {
       jest.mocked(useSelector).mockImplementation((callback) => {
         const selectorString = callback.toString();
         if (selectorString.includes('selectSelectedAccountGroupId')) {
-          return 'group-id-123'; // Ensure this returns the group ID
+          return 'keyring:wallet-1/ethereum';
         }
         return callback(mockStateWithMultichainAccounts);
       });
