@@ -74,6 +74,7 @@ describe('MarketInsightsEntryCard', () => {
         report={
           {
             asset: 'eth',
+            digestId: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
             headline: 'ETH rallies',
             summary: 'Summary text',
             trends: [],
@@ -102,37 +103,7 @@ describe('MarketInsightsEntryCard', () => {
       properties: {
         caip19: 'eip155:1/erc20:0xtest',
         asset_symbol: 'eth',
-      },
-    });
-  });
-
-  it('omits asset_symbol when report.asset is missing', () => {
-    renderWithProvider(
-      <MarketInsightsEntryCard
-        report={
-          {
-            headline: 'ETH rallies',
-            summary: 'Summary text',
-            trends: [],
-            sources: [],
-          } as never
-        }
-        timeAgo="1m ago"
-        onPress={jest.fn()}
-        caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
-        testID="market-insights-entry-card"
-      />,
-    );
-
-    expect(capturedOnVisible).toBeDefined();
-    capturedOnVisible?.();
-
-    expect(mockTrackEvent).toHaveBeenCalledWith({
-      category: expect.objectContaining({
-        category: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
-      }),
-      properties: {
-        caip19: 'eip155:1/erc20:0xtest',
+        digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
       },
     });
   });

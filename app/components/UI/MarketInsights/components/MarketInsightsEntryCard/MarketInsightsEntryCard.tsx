@@ -53,11 +53,12 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
     )
       .addProperties({
         caip19: caip19Id,
-        ...(report.asset ? { asset_symbol: report.asset } : {}),
+        asset_symbol: report.asset,
+        digest_id: report.digestId,
       })
       .build();
     trackEvent(event);
-  }, [trackEvent, createEventBuilder, caip19Id, report.asset]);
+  }, [trackEvent, createEventBuilder, caip19Id, report]);
 
   const { ref: viewportRef, onLayout } = useViewportTracking(handleVisible);
 
