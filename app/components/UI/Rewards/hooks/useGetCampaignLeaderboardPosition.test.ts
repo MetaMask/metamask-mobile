@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from 'react-redux';
 import { useGetCampaignLeaderboardPosition } from './useGetCampaignLeaderboardPosition';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { selectCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
 import {
   setCampaignLeaderboardPosition,
@@ -23,10 +22,6 @@ jest.mock('../../../../core/Engine', () => ({
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectCampaignsRewardsEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
@@ -73,7 +68,6 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
 };
 
 interface SelectorState {
-  isCampaignsEnabled: boolean;
   subscriptionId: string | null;
   position: CampaignLeaderboardPositionDto | null;
 }
@@ -85,8 +79,6 @@ function setupSelectors(state: SelectorState) {
   );
 
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectCampaignsRewardsEnabledFlag)
-      return state.isCampaignsEnabled;
     if (selector === selectRewardsSubscriptionId) return state.subscriptionId;
     if (selector === mockPositionSelector) return state.position;
     return undefined;
@@ -100,27 +92,13 @@ describe('useGetCampaignLeaderboardPosition', () => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
     setupSelectors({
-      isCampaignsEnabled: true,
       subscriptionId: SUBSCRIPTION_ID,
       position: null,
     });
-  });
-
-  it('does not fetch when campaigns feature flag is disabled', async () => {
-    setupSelectors({
-      isCampaignsEnabled: false,
-      subscriptionId: SUBSCRIPTION_ID,
-      position: null,
-    });
-
-    renderHook(() => useGetCampaignLeaderboardPosition(CAMPAIGN_ID));
-
-    expect(mockCall).not.toHaveBeenCalled();
   });
 
   it('does not fetch when subscriptionId is missing', async () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       subscriptionId: null,
       position: null,
     });
@@ -189,7 +167,6 @@ describe('useGetCampaignLeaderboardPosition', () => {
 
   it('returns position data from selector', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       subscriptionId: SUBSCRIPTION_ID,
       position: MOCK_POSITION,
     });
@@ -256,7 +233,6 @@ describe('useGetCampaignLeaderboardPosition', () => {
 
   it('returns null position when not loaded', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       subscriptionId: SUBSCRIPTION_ID,
       position: null,
     });

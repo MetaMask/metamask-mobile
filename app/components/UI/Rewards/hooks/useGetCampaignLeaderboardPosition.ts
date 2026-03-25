@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { selectCampaignLeaderboardPositionById } from '../../../../reducers/rewards/selectors';
 import {
   setCampaignLeaderboardPosition,
@@ -32,7 +31,6 @@ export const useGetCampaignLeaderboardPosition = (
 ): UseGetCampaignLeaderboardPositionResult => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
   const position = useSelector(
     selectCampaignLeaderboardPositionById(campaignId),
   );
@@ -40,7 +38,7 @@ export const useGetCampaignLeaderboardPosition = (
   const [hasError, setHasError] = useState(false);
 
   const fetchPosition = useCallback(async (): Promise<void> => {
-    if (!isCampaignsEnabled || !subscriptionId || !campaignId) {
+    if (!subscriptionId || !campaignId) {
       return;
     }
 
@@ -64,7 +62,7 @@ export const useGetCampaignLeaderboardPosition = (
       setIsLoading(false);
       dispatch(setCampaignLeaderboardPositionLoading(false));
     }
-  }, [dispatch, subscriptionId, isCampaignsEnabled, campaignId]);
+  }, [dispatch, subscriptionId, campaignId]);
 
   useEffect(() => {
     fetchPosition();

@@ -2,7 +2,6 @@ import { renderHook, act } from '@testing-library/react-hooks';
 import { useSelector, useDispatch } from 'react-redux';
 import { useGetCampaignLeaderboard } from './useGetCampaignLeaderboard';
 import Engine from '../../../../core/Engine';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import {
   selectCampaignLeaderboard,
   selectCampaignLeaderboardLoading,
@@ -25,10 +24,6 @@ jest.mock('react-redux', () => ({
 
 jest.mock('../../../../core/Engine', () => ({
   controllerMessenger: { call: jest.fn() },
-}));
-
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectCampaignsRewardsEnabledFlag: jest.fn(),
 }));
 
 jest.mock('../../../../reducers/rewards/selectors', () => ({
@@ -84,7 +79,6 @@ const MOCK_LEADERBOARD: CampaignLeaderboardDto = {
 };
 
 interface SelectorState {
-  isCampaignsEnabled: boolean;
   leaderboard: CampaignLeaderboardDto | null;
   isLoading: boolean;
   hasError: boolean;
@@ -94,8 +88,6 @@ interface SelectorState {
 
 function setupSelectors(state: SelectorState) {
   mockUseSelector.mockImplementation((selector) => {
-    if (selector === selectCampaignsRewardsEnabledFlag)
-      return state.isCampaignsEnabled;
     if (selector === selectCampaignLeaderboard) return state.leaderboard;
     if (selector === selectCampaignLeaderboardLoading) return state.isLoading;
     if (selector === selectCampaignLeaderboardError) return state.hasError;
@@ -113,29 +105,12 @@ describe('useGetCampaignLeaderboard', () => {
     jest.clearAllMocks();
     mockUseDispatch.mockReturnValue(mockDispatch);
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: null,
       isLoading: false,
       hasError: false,
       tierNames: [],
       selectedTier: null,
     });
-  });
-
-  it('does not fetch when campaigns feature flag is disabled', async () => {
-    setupSelectors({
-      isCampaignsEnabled: false,
-      leaderboard: null,
-      isLoading: false,
-      hasError: false,
-      tierNames: [],
-      selectedTier: null,
-    });
-
-    renderHook(() => useGetCampaignLeaderboard(CAMPAIGN_ID));
-
-    expect(mockCall).not.toHaveBeenCalled();
-    expect(mockDispatch).not.toHaveBeenCalled();
   });
 
   it('does not fetch when campaignId is undefined', async () => {
@@ -192,7 +167,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('returns leaderboard data from selector', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
       hasError: false,
@@ -210,7 +184,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('returns selectedTierData for the currently selected tier', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
       hasError: false,
@@ -225,7 +198,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('returns null for selectedTierData when no tier is selected', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
       hasError: false,
@@ -240,7 +212,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('setSelectedTier dispatches action when tier is valid', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
       hasError: false,
@@ -261,7 +232,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('setSelectedTier does not dispatch action when tier is invalid', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
       hasError: false,
@@ -283,7 +253,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('applies defaultTier when it becomes available', async () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
       hasError: false,
@@ -306,7 +275,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('does not apply defaultTier when it is not in tierNames', async () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: MOCK_LEADERBOARD,
       isLoading: false,
       hasError: false,
@@ -351,7 +319,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('returns loading state from selector', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: null,
       isLoading: true,
       hasError: false,
@@ -366,7 +333,6 @@ describe('useGetCampaignLeaderboard', () => {
 
   it('returns error state from selector', () => {
     setupSelectors({
-      isCampaignsEnabled: true,
       leaderboard: null,
       isLoading: false,
       hasError: true,

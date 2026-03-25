@@ -1,7 +1,6 @@
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import {
   selectCampaignLeaderboard,
   selectCampaignLeaderboardLoading,
@@ -61,7 +60,6 @@ export const useGetCampaignLeaderboard = (
   const { defaultTier } = options ?? {};
   const dispatch = useDispatch();
 
-  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
   const leaderboard = useSelector(selectCampaignLeaderboard);
   const isLoading = useSelector(selectCampaignLeaderboardLoading);
   const hasError = useSelector(selectCampaignLeaderboardError);
@@ -72,7 +70,7 @@ export const useGetCampaignLeaderboard = (
   const hasAppliedDefaultTier = useRef(false);
 
   const fetchLeaderboard = useCallback(async (): Promise<void> => {
-    if (!isCampaignsEnabled || !campaignId) {
+    if (!campaignId) {
       return;
     }
 
@@ -89,7 +87,7 @@ export const useGetCampaignLeaderboard = (
     } finally {
       dispatch(setCampaignLeaderboardLoading(false));
     }
-  }, [dispatch, isCampaignsEnabled, campaignId]);
+  }, [dispatch, campaignId]);
 
   useEffect(() => {
     fetchLeaderboard();

@@ -338,7 +338,6 @@ export class RewardsController extends BaseController<
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   /**
@@ -491,14 +490,12 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isCampaignsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -513,7 +510,6 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => true);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -3559,7 +3555,7 @@ export class RewardsController extends BaseController<
   async getOndoCampaignLeaderboard(
     campaignId: string,
   ): Promise<CampaignLeaderboardDto> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+    if (!this.isRewardsFeatureEnabled()) {
       return { campaign_id: campaignId, computed_at: '', tiers: {} };
     }
 
@@ -3613,7 +3609,7 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignLeaderboardPositionDto | null> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
+    if (!this.isRewardsFeatureEnabled()) {
       return null;
     }
 
