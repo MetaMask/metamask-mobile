@@ -4873,7 +4873,6 @@ const mockPosition: CampaignLeaderboardPositionDto = {
   total_usd_deposited: 900,
   net_deposit: 800,
   computed_at: '2024-03-20T12:00:00.000Z',
-  referral_code: 'XYZ789',
 };
 
 describe('setOndoCampaignLeaderboard', () => {

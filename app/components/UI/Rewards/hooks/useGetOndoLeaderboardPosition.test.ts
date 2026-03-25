@@ -61,7 +61,6 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   total_usd_deposited: 10000.0,
   net_deposit: 8500.0,
   computed_at: '2024-03-20T12:00:00.000Z',
-  referral_code: 'ABC123',
 };
 
 interface SelectorState {

@@ -87,7 +87,6 @@ const MOCK_POSITION: CampaignLeaderboardPositionDto = {
   computed_at: '2024-03-20T12:00:00.000Z',
   total_in_tier: 150,
   net_deposit: 8500.0,
-  referral_code: 'ABC123',
 };
 
 describe('OndoLeaderboardPosition', () => {

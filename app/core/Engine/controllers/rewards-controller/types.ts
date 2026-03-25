@@ -326,12 +326,6 @@ export interface CampaignLeaderboardPositionDto {
    * @example '2024-03-20T12:00:00.000Z'
    */
   computed_at: string;
-
-  /**
-   * The user's referral code (used for display in position card)
-   * @example 'ABC123'
-   */
-  referral_code?: string;
 }
 
 /**
@@ -368,7 +362,6 @@ export type CampaignLeaderboardPositionState = {
   total_usd_deposited: number;
   net_deposit: number;
   computed_at: string;
-  referral_code?: string;
   lastFetched: number;
 };
 
