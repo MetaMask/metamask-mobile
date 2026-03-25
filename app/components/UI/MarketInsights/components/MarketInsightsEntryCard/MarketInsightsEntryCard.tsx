@@ -26,7 +26,7 @@ import {
 import { useViewportTracking } from '../../hooks/useViewportTracking';
 
 const sparkleStyles = StyleSheet.create({
-  container: { width: 24, height: 24 },
+  container: { width: 16, height: 16 },
   gradient: { flex: 1 },
 });
 
@@ -36,7 +36,7 @@ const SparkleIcon: React.FC = () => (
     maskElement={
       <Icon
         name={IconName.Ai}
-        size={IconSize.Lg}
+        size={IconSize.Sm}
         color={IconColor.IconDefault}
       />
     }
@@ -85,7 +85,12 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   const handleLayout = useCallback(
     (event: { nativeEvent: { layout: { width: number; height: number } } }) => {
       const { width, height } = event.nativeEvent.layout;
-      setCardDimensions({ width, height });
+      setCardDimensions((prev) => {
+        if (prev && prev.width === width && prev.height === height) {
+          return prev;
+        }
+        return { width, height };
+      });
     },
     [],
   );
@@ -125,7 +130,11 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           gap={1}
         >
           <SparkleIcon />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="flex-1"
+          >
             {strings('market_insights.footer_disclaimer')}
           </Text>
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
