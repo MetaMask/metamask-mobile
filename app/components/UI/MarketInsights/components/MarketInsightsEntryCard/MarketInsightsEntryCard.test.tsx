@@ -1,26 +1,15 @@
 import React from 'react';
 import { fireEvent } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn(
-  (eventName: string) =>
-    ({
-      addProperties: (properties: Record<string, unknown>) => ({
-        build: () => ({ category: eventName, properties }),
-      }),
-    }) as const,
-);
-
-jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
 
 let capturedOnVisible: (() => void) | null = null;
 jest.mock('../../hooks/useViewportTracking', () => ({
@@ -37,6 +26,12 @@ describe('MarketInsightsEntryCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     capturedOnVisible = null;
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('renders summary text and handles press', () => {
@@ -90,20 +85,15 @@ describe('MarketInsightsEntryCard', () => {
     expect(capturedOnVisible).toBeDefined();
     capturedOnVisible?.();
 
-    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+    expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        category: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+        name: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+        properties: {
+          caip19: 'eip155:1/erc20:0xtest',
+          asset_symbol: 'eth',
+        },
       }),
     );
-    expect(mockTrackEvent).toHaveBeenCalledWith({
-      category: expect.objectContaining({
-        category: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
-      }),
-      properties: {
-        caip19: 'eip155:1/erc20:0xtest',
-        asset_symbol: 'eth',
-      },
-    });
   });
 
   it('omits asset_symbol when report.asset is missing', () => {
@@ -127,14 +117,14 @@ describe('MarketInsightsEntryCard', () => {
     expect(capturedOnVisible).toBeDefined();
     capturedOnVisible?.();
 
-    expect(mockTrackEvent).toHaveBeenCalledWith({
-      category: expect.objectContaining({
-        category: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+        properties: {
+          caip19: 'eip155:1/erc20:0xtest',
+        },
       }),
-      properties: {
-        caip19: 'eip155:1/erc20:0xtest',
-      },
-    });
+    );
   });
 
   it('does not track visibility event when caip19Id is missing', () => {
@@ -158,7 +148,6 @@ describe('MarketInsightsEntryCard', () => {
     expect(capturedOnVisible).toBeDefined();
     capturedOnVisible?.();
 
-    expect(mockCreateEventBuilder).not.toHaveBeenCalled();
     expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 });
