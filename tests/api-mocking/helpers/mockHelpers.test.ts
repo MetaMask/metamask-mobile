@@ -1,6 +1,9 @@
 import {
+  filterProxiedRequests,
+  formatProxiedRequestMatcher,
   processPostRequestBody,
   PostRequestMatchingOptions,
+  type SeenProxiedRequest,
 } from './mockHelpers.ts';
 
 describe('processPostRequestBody', () => {
@@ -428,5 +431,58 @@ describe('processPostRequestBody', () => {
       expect(result.matches).toBe(false);
       expect(result.error).toBe('Request body validation failed');
     });
+  });
+});
+
+describe('formatProxiedRequestMatcher', () => {
+  it('includes regex source and flags instead of empty object', () => {
+    const urlRegex = /profile\/accounts$/i;
+    const formatted = formatProxiedRequestMatcher({
+      method: 'GET',
+      urlRegex,
+    });
+    expect(formatted).toBe(
+      JSON.stringify({ method: 'GET', urlRegex: String(urlRegex) }),
+    );
+    expect(formatted).not.toContain('"urlRegex":{}');
+  });
+
+  it('omits undefined matcher fields', () => {
+    expect(formatProxiedRequestMatcher({ urlSubstring: 'x' })).toBe(
+      '{"urlSubstring":"x"}',
+    );
+  });
+});
+
+describe('filterProxiedRequests', () => {
+  const sample: SeenProxiedRequest[] = [
+    {
+      method: 'GET',
+      proxiedUrl:
+        'https://accounts.api.cx.metamask.io/v2/supportedNetworks?foo=1',
+    },
+    {
+      method: 'PUT',
+      proxiedUrl:
+        'https://authentication.api.cx.metamask.io/api/v2/profile/accounts',
+    },
+    { method: 'POST', proxiedUrl: 'https://example.com/other' },
+  ];
+
+  it('filters by method and url substring', () => {
+    const matches = filterProxiedRequests(sample, {
+      method: 'GET',
+      urlSubstring: 'accounts.api.cx.metamask.io/v2/supportedNetworks',
+    });
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.method).toBe('GET');
+  });
+
+  it('filters by url regex', () => {
+    const matches = filterProxiedRequests(sample, {
+      urlRegex: /profile\/accounts$/,
+    });
+    expect(matches).toHaveLength(1);
+    expect(matches[0]?.method).toBe('PUT');
   });
 });
