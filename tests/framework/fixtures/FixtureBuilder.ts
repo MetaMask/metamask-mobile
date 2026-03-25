@@ -517,7 +517,7 @@ class FixtureBuilder {
             minimumVersion: '0.0.0',
           },
           rampsUnifiedBuyV2: {
-            active: rampsUnifiedBuyV2,
+            enabled: rampsUnifiedBuyV2,
             minimumVersion: '0.0.0',
           },
         },
