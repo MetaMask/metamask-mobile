@@ -16,6 +16,8 @@ import { PredictTradeStatus } from '../../../constants/eventNames';
 import { useQueryClient } from '@tanstack/react-query';
 import { predictQueries } from '../../../queries';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
+import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
+import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
@@ -77,16 +79,23 @@ export const usePredictBuyActions = ({
     };
   }, [navigation, PredictController, payWithAnyTokenEnabled]);
 
-  const handlePlaceOrder = useCallback(async () => {
-    if (!preview) {
-      return;
-    }
-
-    placeOrder({
-      analyticsProperties,
-      preview,
-    });
-  }, [preview, placeOrder, analyticsProperties]);
+  const handlePlaceOrder = useCallback(
+    async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
+      try {
+        const result = await placeOrder(orderParams);
+        return { status: 'success', result };
+      } catch (error) {
+        return {
+          status: 'error',
+          error:
+            error instanceof Error
+              ? error.message
+              : PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+        };
+      }
+    },
+    [placeOrder],
+  );
 
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
@@ -97,8 +106,22 @@ export const usePredictBuyActions = ({
         handleErrors: false,
       });
     }
-    handlePlaceOrder();
-  }, [setIsConfirming, currentState, handlePlaceOrder, onApprovalConfirm]);
+    if (!preview) {
+      return {
+        status: 'error',
+        error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
+      };
+    }
+
+    return handlePlaceOrder({ analyticsProperties, preview });
+  }, [
+    setIsConfirming,
+    currentState,
+    handlePlaceOrder,
+    analyticsProperties,
+    preview,
+    onApprovalConfirm,
+  ]);
 
   useEffect(() => {
     if (
@@ -148,5 +171,6 @@ export const usePredictBuyActions = ({
 
   return {
     handleConfirm,
+    placeOrder: handlePlaceOrder,
   };
 };

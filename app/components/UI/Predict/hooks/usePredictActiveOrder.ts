@@ -1,9 +1,9 @@
-import { useCallback } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectPredictActiveOrder } from '../selectors/predictController';
 import { parseAnalyticsProperties } from '../utils/analytics';
-import { PredictMarket, PredictOutcomeToken } from '../types';
+import { ActiveOrderState, PredictMarket, PredictOutcomeToken } from '../types';
 import { PredictEntryPoint } from '../types/navigation';
 
 export interface InitializeActiveOrderParams {
@@ -21,8 +21,22 @@ export const usePredictActiveOrder = () => {
     PredictController.clearOrderError();
   }, [PredictController]);
 
+  const currentState = useMemo(() => activeOrder?.state, [activeOrder]);
+
+  const isDepositing = useMemo(
+    () => currentState === ActiveOrderState.DEPOSITING,
+    [currentState],
+  );
+
+  const isPlacingOrder = useMemo(
+    () => currentState === ActiveOrderState.PLACING_ORDER || isDepositing,
+    [currentState, isDepositing],
+  );
+
   return {
     activeOrder,
+    isDepositing,
+    isPlacingOrder,
     clearOrderError,
   };
 };

@@ -1,35 +1,30 @@
 import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo, useState } from 'react';
+import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { OrderPreview } from '../../../types';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
-import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
-import { strings } from '../../../../../../../locales/i18n';
+import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import { OrderPreview } from '../../../types';
 import { formatPrice } from '../../../utils/format';
-import { MINIMUM_BET } from '../../../constants/transactions';
-import { parseErrorMessage } from '../../../utils/predictErrorHandler';
-import { PREDICT_ERROR_CODES } from '../../../constants/errors';
+import { checkPlaceOrderError } from '../../../utils/predictErrorHandler';
+import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
   preview?: OrderPreview | null;
   previewError: string | null;
-  placeOrderError?: string | null;
-  isOrderNotFilled: boolean;
-  isPlaceOrderLoading: boolean;
   isConfirming: boolean;
+  isPlacingOrder: boolean;
 }
 
 export const usePredictBuyInfo = ({
   preview,
   previewError,
   currentValue,
-  placeOrderError,
-  isOrderNotFilled,
-  isPlaceOrderLoading,
   isConfirming,
+  isPlacingOrder,
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
@@ -66,9 +61,7 @@ export const usePredictBuyInfo = ({
     computedDepositFee > 0 ? computedDepositFee : fallbackDepositFee;
 
   const rewardsFeeAmount =
-    isPlaceOrderLoading || previewError
-      ? undefined
-      : (preview?.fees?.totalFee ?? 0);
+    isPlacingOrder || previewError ? undefined : (preview?.fees?.totalFee ?? 0);
 
   const { toWin, metamaskFee, providerFee, total } = useMemo(
     () => ({
@@ -110,57 +103,6 @@ export const usePredictBuyInfo = ({
     [isConfirming, currentValue, maxBetAmount],
   );
 
-  const errorMessage = useMemo(() => {
-    if (isBalanceLoading || isOrderNotFilled || isConfirming) {
-      return undefined;
-    }
-
-    if (activeOrder?.error) {
-      const parsedErrorMessage = parseErrorMessage({
-        error: activeOrder.error,
-        defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
-      });
-      return parsedErrorMessage;
-    }
-
-    if (previewError ?? placeOrderError) {
-      return previewError ?? placeOrderError ?? undefined;
-    }
-
-    if (isBelowMinimum) {
-      return strings('predict.order.prediction_minimum_bet', {
-        amount: formatPrice(MINIMUM_BET, {
-          minimumDecimals: 2,
-          maximumDecimals: 2,
-        }),
-      });
-    }
-
-    if (isInsufficientBalance) {
-      const formattedMax = formatPrice(maxBetAmount, {
-        minimumDecimals: 2,
-        maximumDecimals: 2,
-      });
-      return maxBetAmount >= MINIMUM_BET
-        ? strings('predict.order.prediction_insufficient_funds', {
-            amount: formattedMax,
-          })
-        : strings('predict.order.no_funds_enough');
-    }
-
-    return undefined;
-  }, [
-    isBalanceLoading,
-    isOrderNotFilled,
-    isConfirming,
-    activeOrder?.error,
-    previewError,
-    placeOrderError,
-    isBelowMinimum,
-    isInsufficientBalance,
-    maxBetAmount,
-  ]);
-
   const depositAmount = useMemo(() => {
     const previewTotal =
       (preview?.maxAmountSpent ?? 0) + (preview?.fees?.totalFee ?? 0);
@@ -182,6 +124,5 @@ export const usePredictBuyInfo = ({
     depositAmount,
     total,
     rewardsFeeAmount,
-    errorMessage,
   };
 };

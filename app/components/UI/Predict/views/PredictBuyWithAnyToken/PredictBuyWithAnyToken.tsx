@@ -49,6 +49,8 @@ import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
 import { formatPrice } from '../../utils/format';
+import { usePredictBuyError } from './hooks/usePredictBuyError';
+import { usePredictActiveOrder } from '../../hooks/usePredictActiveOrder';
 
 const PredictBuyWithAnyToken = () => {
   const tw = useTailwind();
@@ -59,11 +61,16 @@ const PredictBuyWithAnyToken = () => {
 
   const { market, outcome, outcomeToken, entryPoint } = route.params;
 
+  const { isPlacingOrder } = usePredictActiveOrder();
+
+  const { showOrderPlacedToast } = usePredictPlaceOrder();
+
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
   const payWithAnyTokenEnabled = useSelector(
     selectPredictWithAnyTokenEnabledFlag,
   );
+  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
 
   const analyticsProperties = useMemo(
     () => parseAnalyticsProperties(market, outcomeToken, entryPoint),
@@ -95,15 +102,6 @@ const PredictBuyWithAnyToken = () => {
     setIsConfirming,
   } = usePredictBuyInputState();
 
-  const {
-    placeOrder,
-    isLoading: isPlaceOrderLoading,
-    error: placeOrderError,
-    isOrderNotFilled,
-    resetOrderNotFilled,
-    showOrderPlacedToast,
-  } = usePredictPlaceOrder();
-
   const handleFeesInfoPress = useCallback(() => {
     setIsFeeBreakdownVisible(true);
   }, []);
@@ -112,7 +110,6 @@ const PredictBuyWithAnyToken = () => {
     setIsFeeBreakdownVisible(false);
   }, []);
 
-  const fakOrdersEnabled = useSelector(selectPredictFakOrdersEnabledFlag);
   const {
     preview,
     error: previewError,
@@ -134,35 +131,44 @@ const PredictBuyWithAnyToken = () => {
     depositFee,
     depositAmount,
     rewardsFeeAmount,
-    errorMessage,
   } = usePredictBuyInfo({
     currentValue,
     preview,
     previewError,
-    isPlaceOrderLoading,
-    placeOrderError,
-    isOrderNotFilled,
     isConfirming,
+    isPlacingOrder,
   });
 
   const {
-    isPlacingOrder,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
+    isBelowMinimum,
+    isInsufficientBalance,
+    maxBetAmount,
   } = usePredictBuyConditions({
     currentValue,
     total,
     depositFee,
     preview,
     isPreviewCalculating,
-    isPlaceOrderLoading,
     isUserInputChange,
     isConfirming,
   });
 
-  const { handleConfirm } = usePredictBuyActions({
+  const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
+    usePredictBuyError({
+      preview,
+      previewError,
+      isPlacingOrder,
+      isBelowMinimum,
+      isInsufficientBalance,
+      maxBetAmount,
+      isConfirming,
+    });
+
+  const { handleConfirm, placeOrder } = usePredictBuyActions({
     analyticsProperties,
     preview,
     setIsConfirming,

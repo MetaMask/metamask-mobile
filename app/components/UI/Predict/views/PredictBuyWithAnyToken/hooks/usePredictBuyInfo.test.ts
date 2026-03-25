@@ -101,10 +101,8 @@ const defaultParams = {
   currentValue: 100,
   preview: createMockPreview(),
   previewError: null as string | null,
-  placeOrderError: null as string | null,
-  isOrderNotFilled: false,
-  isPlaceOrderLoading: false,
   isConfirming: false,
+  isPlacingOrder: false,
 };
 
 describe('usePredictBuyInfo', () => {
@@ -284,7 +282,7 @@ describe('usePredictBuyInfo', () => {
     it('returns totalFee from preview fees', () => {
       const params = {
         ...defaultParams,
-        isPlaceOrderLoading: false,
+        isPlacingOrder: false,
         previewError: null,
         preview: createMockPreview({
           fees: {
@@ -302,10 +300,10 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.rewardsFeeAmount).toBe(7);
     });
 
-    it('returns undefined when isPlaceOrderLoading is true', () => {
+    it('returns undefined when isPlacingOrder is true', () => {
       const params = {
         ...defaultParams,
-        isPlaceOrderLoading: true,
+        isPlacingOrder: true,
         previewError: null,
       };
 
@@ -317,152 +315,13 @@ describe('usePredictBuyInfo', () => {
     it('returns undefined when previewError exists', () => {
       const params = {
         ...defaultParams,
-        isPlaceOrderLoading: false,
+        isPlacingOrder: false,
         previewError: 'Preview failed',
       };
 
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
       expect(result.current.rewardsFeeAmount).toBeUndefined();
-    });
-  });
-
-  describe('errorMessage', () => {
-    it('returns undefined when isBalanceLoading is true', () => {
-      mockIsBalanceLoading = true;
-      const params = {
-        ...defaultParams,
-        previewError: 'Some error',
-        placeOrderError: 'Place error',
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBeUndefined();
-    });
-
-    it('returns undefined when isOrderNotFilled is true', () => {
-      const params = {
-        ...defaultParams,
-        isOrderNotFilled: true,
-        previewError: 'Some error',
-        placeOrderError: 'Place error',
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBeUndefined();
-    });
-
-    it('returns undefined when isConfirming is true', () => {
-      const params = {
-        ...defaultParams,
-        isConfirming: true,
-        previewError: 'Some error',
-        placeOrderError: 'Place error',
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBeUndefined();
-    });
-
-    it('returns activeOrder.error with highest priority', () => {
-      mockActiveOrder = { error: 'Active order error' };
-      const params = {
-        ...defaultParams,
-        previewError: 'Preview error',
-        placeOrderError: 'Place order error',
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBe('Active order error');
-    });
-
-    it('returns previewError when activeOrder.error is not set', () => {
-      mockActiveOrder = null;
-      const params = {
-        ...defaultParams,
-        previewError: 'Preview error',
-        placeOrderError: 'Place order error',
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBe('Preview error');
-    });
-
-    it('returns placeOrderError when no previewError', () => {
-      mockActiveOrder = null;
-      const params = {
-        ...defaultParams,
-        previewError: null,
-        placeOrderError: 'Place order error',
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBe('Place order error');
-    });
-
-    it('returns minimum bet message when currentValue is below minimum', () => {
-      mockActiveOrder = null;
-      const params = {
-        ...defaultParams,
-        currentValue: 0.5,
-        previewError: null,
-        placeOrderError: null,
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBe('Minimum bet: $1.00');
-    });
-
-    it('returns insufficient funds message with max amount when maxBetAmount >= MINIMUM_BET', () => {
-      mockAvailableBalance = 5;
-      mockActiveOrder = null;
-      const params = {
-        ...defaultParams,
-        currentValue: 100,
-        previewError: null,
-        placeOrderError: null,
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toContain(
-        'Not enough funds. You can use up to',
-      );
-    });
-
-    it('returns generic no funds message when maxBetAmount < MINIMUM_BET', () => {
-      mockAvailableBalance = 0.5;
-      mockActiveOrder = null;
-      const params = {
-        ...defaultParams,
-        currentValue: 100,
-        previewError: null,
-        placeOrderError: null,
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBe('Not enough funds.');
-    });
-
-    it('returns undefined when no errors exist', () => {
-      mockActiveOrder = null;
-      const params = {
-        ...defaultParams,
-        previewError: null,
-        placeOrderError: null,
-      };
-
-      const { result } = renderHook(() => usePredictBuyInfo(params));
-
-      expect(result.current.errorMessage).toBeUndefined();
     });
   });
 });

@@ -1507,9 +1507,6 @@ export class PredictController extends BaseController<
 
       const signer = this.getSigner();
 
-      /* await new Promise((resolve) => setTimeout(resolve, 1000));
-      throw new Error('Test error'); */
-
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,

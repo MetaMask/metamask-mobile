@@ -69,7 +69,6 @@ const defaultParams = {
     fees: { totalFee: 0.5 },
   } as OrderPreview | null,
   isPreviewCalculating: false,
-  isPlaceOrderLoading: false,
   isUserInputChange: false,
   isConfirming: false,
 };
@@ -293,47 +292,6 @@ describe('usePredictBuyConditions', () => {
     });
   });
 
-  describe('isPlacingOrder', () => {
-    it('returns true when activeOrder state is PLACING_ORDER', () => {
-      mockActiveOrder = { state: ActiveOrderState.PLACING_ORDER };
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions(defaultParams),
-      );
-
-      expect(result.current.isPlacingOrder).toBe(true);
-    });
-
-    it('returns true when isPlaceOrderLoading is true', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          isPlaceOrderLoading: true,
-        }),
-      );
-
-      expect(result.current.isPlacingOrder).toBe(true);
-    });
-
-    it('returns true when activeOrder state is DEPOSITING', () => {
-      mockActiveOrder = { state: ActiveOrderState.DEPOSITING };
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions(defaultParams),
-      );
-
-      expect(result.current.isPlacingOrder).toBe(true);
-    });
-
-    it('returns false when none of the placing conditions are met', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyConditions(defaultParams),
-      );
-
-      expect(result.current.isPlacingOrder).toBe(false);
-    });
-  });
-
   describe('canPlaceBet', () => {
     it('returns true when all conditions are favorable', () => {
       const { result } = renderHook(() =>
@@ -354,17 +312,6 @@ describe('usePredictBuyConditions', () => {
     it('returns false when preview is null', () => {
       const { result } = renderHook(() =>
         usePredictBuyConditions({ ...defaultParams, preview: null }),
-      );
-
-      expect(result.current.canPlaceBet).toBe(false);
-    });
-
-    it('returns false when isPlaceOrderLoading is true', () => {
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          isPlaceOrderLoading: true,
-        }),
       );
 
       expect(result.current.canPlaceBet).toBe(false);

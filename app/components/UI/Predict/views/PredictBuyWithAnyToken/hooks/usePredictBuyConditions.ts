@@ -19,7 +19,6 @@ interface UsePredictBuyConditionsParams {
   depositFee: number;
   preview?: OrderPreview | null;
   isPreviewCalculating: boolean;
-  isPlaceOrderLoading: boolean;
   isUserInputChange: boolean;
   isConfirming: boolean;
 }
@@ -29,7 +28,6 @@ export const usePredictBuyConditions = ({
   currentValue,
   depositFee,
   isPreviewCalculating,
-  isPlaceOrderLoading,
   isUserInputChange,
   isConfirming,
 }: UsePredictBuyConditionsParams) => {
@@ -73,19 +71,6 @@ export const usePredictBuyConditions = ({
   );
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
-
-  const isDepositing = useMemo(
-    () => currentState === ActiveOrderState.DEPOSITING,
-    [currentState],
-  );
-
-  const isPlacingOrder = useMemo(
-    () =>
-      currentState === ActiveOrderState.PLACING_ORDER ||
-      isPlaceOrderLoading ||
-      isDepositing,
-    [currentState, isPlaceOrderLoading, isDepositing],
-  );
 
   // Workaround: TransactionPayController sets paymentToken and isLoading in
   // separate state updates, causing a render with stale totals + loading=false.
@@ -148,7 +133,6 @@ export const usePredictBuyConditions = ({
       !isBelowMinimum &&
       !isInsufficientBalance &&
       !!preview &&
-      !isPlaceOrderLoading &&
       !isRateLimited &&
       !isBalanceLoading &&
       !isPayFeesLoading,
@@ -157,7 +141,6 @@ export const usePredictBuyConditions = ({
       isBelowMinimum,
       isInsufficientBalance,
       preview,
-      isPlaceOrderLoading,
       isRateLimited,
       isBalanceLoading,
       isPayFeesLoading,
@@ -174,7 +157,6 @@ export const usePredictBuyConditions = ({
     isInsufficientBalance,
     maxBetAmount,
     isRateLimited,
-    isPlacingOrder,
     canPlaceBet,
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
