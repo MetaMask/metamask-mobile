@@ -33,6 +33,8 @@ import {
 import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../Analytics/MetaMetrics.events';
+import ReduxService from '../redux';
+import { setSeedlessOnboarding } from '../../actions/onboarding';
 
 export interface MarketingOptInRequest {
   opt_in_status: boolean;
@@ -288,7 +290,9 @@ export class OAuthService {
       const authConnection = loginHandler.authConnection;
 
       Logger.log('handleOAuthLogin: before getAuthToken');
-      if (result) {
+
+      const ouathResult = result;
+      if (ouathResult) {
         let getAuthTokensSuccess = false;
         try {
           trace({
@@ -380,6 +384,14 @@ export class OAuthService {
         }
 
         this.#dispatchPostLogin(handleCodeFlowResult);
+
+        // store client id and auth connection in redux
+        ReduxService.store.dispatch(
+          setSeedlessOnboarding({
+            clientId: ouathResult.clientId,
+            authConnection: loginHandler.authConnection,
+          }),
+        );
         return handleCodeFlowResult;
       }
       throw new OAuthError('No result', OAuthErrorType.LoginError);

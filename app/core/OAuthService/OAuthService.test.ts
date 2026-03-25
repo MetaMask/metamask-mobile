@@ -6,6 +6,7 @@ import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
 import { TraceName, TraceOperation } from '../../util/trace';
 import { signOut as acmSignOut } from '@metamask/react-native-acm';
+import { SET_SEEDLESS_ONBOARDING } from '../../actions/onboarding';
 
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
@@ -143,11 +144,14 @@ const expectOAuthError = async (
 };
 
 describe('OAuth login service', () => {
+  let mockDispatch: jest.Mock;
+
   beforeEach(() => {
     jest.clearAllMocks();
+    mockDispatch = jest.fn();
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({ security: { allowLoginWithRememberMe: true } }),
-      dispatch: jest.fn(),
+      dispatch: mockDispatch,
     } as unknown as ReduxStore);
   });
 
@@ -167,6 +171,11 @@ describe('OAuth login service', () => {
     expect(mockLoginHandlerResponse).toHaveBeenCalledTimes(1);
     expect(mockGetAuthTokens).toHaveBeenCalledTimes(1);
     expect(mockAuthenticate).toHaveBeenCalledTimes(1);
+    expect(mockDispatch).toHaveBeenCalledWith({
+      type: SET_SEEDLESS_ONBOARDING,
+      clientId: 'clientId',
+      authConnection: AuthConnection.Google,
+    });
   });
 
   it('return a type success, existing user', async () => {
@@ -455,6 +464,21 @@ describe('OAuth login service', () => {
       expect(result.type).toBe('success');
       expect(acmSignOut).toHaveBeenCalledTimes(1);
     });
+  });
+
+  it('resets local OAuth state when OAuth state is reset', () => {
+    OAuthLoginService.localState = {
+      ...OAuthLoginService.localState,
+      loginInProgress: true,
+      oauthLoginSuccess: true,
+      oauthLoginError: 'previous error',
+    };
+
+    OAuthLoginService.resetOauthState();
+
+    expect(OAuthLoginService.localState.loginInProgress).toBe(false);
+    expect(OAuthLoginService.localState.oauthLoginSuccess).toBe(false);
+    expect(OAuthLoginService.localState.oauthLoginError).toBeNull();
   });
 });
 
