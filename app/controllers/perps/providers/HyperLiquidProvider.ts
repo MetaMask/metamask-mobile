@@ -5086,6 +5086,20 @@ export class HyperLiquidProvider implements PerpsProvider {
         count: rawFills?.length ?? 0,
       });
 
+      // Start fetching historical orders in parallel with fill transformation.
+      // The fills API does not return order type, so we cross-reference
+      // with historical orders to enable TP/SL pill rendering in activity.
+      const historicalOrdersPromise = (
+        infoClient.historicalOrders?.({ user: userAddress }) ??
+        Promise.resolve(null)
+      ).catch((enrichError: unknown) => {
+        this.#deps.debugLogger.log(
+          'Warning: failed to enrich fills with order types:',
+          enrichError,
+        );
+        return null;
+      });
+
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
         // Perps only, no Spots
@@ -5115,6 +5129,32 @@ export class HyperLiquidProvider implements PerpsProvider {
 
         return acc;
       }, []);
+
+      // Enrich fills with detailedOrderType from historical orders
+      // Wrapped in its own try/catch so a malformed order never discards fetched fills
+      try {
+        const rawOrders = await historicalOrdersPromise;
+        if (rawOrders) {
+          const orderTypeByOid = new Map<string, string>();
+          for (const rawOrder of rawOrders) {
+            const oid = rawOrder.order?.oid?.toString();
+            if (oid && rawOrder.order?.orderType && !orderTypeByOid.has(oid)) {
+              orderTypeByOid.set(oid, rawOrder.order.orderType);
+            }
+          }
+          for (const fill of fills) {
+            const orderType = orderTypeByOid.get(fill.orderId);
+            if (orderType) {
+              fill.detailedOrderType = orderType;
+            }
+          }
+        }
+      } catch (enrichError) {
+        this.#deps.debugLogger.log(
+          'Error enriching fills with order types:',
+          enrichError,
+        );
+      }
 
       return fills;
     } catch (error) {
