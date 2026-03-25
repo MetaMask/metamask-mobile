@@ -334,6 +334,7 @@ jest.mock('../../../core/Multichain/utils', () => ({
 
 jest.mock('../../../core/Ledger/Ledger', () => ({
   forgetLedger: jest.fn().mockResolvedValue(undefined),
+  getDeviceId: jest.fn().mockResolvedValue('mock-device-id'),
 }));
 
 jest.mock('../../../core/QrKeyring/QrKeyring', () => ({

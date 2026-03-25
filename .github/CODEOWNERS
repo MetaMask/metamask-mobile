@@ -154,6 +154,8 @@ app/core/Engine/messengers/earn-controller-messenger @MetaMask/metamask-earn
 app/selectors/earnController         @MetaMask/metamask-earn
 **/Earn/**                           @MetaMask/metamask-earn
 **/earn/**                           @MetaMask/metamask-earn
+**/Money/**                          @MetaMask/metamask-earn
+**/money/**                          @MetaMask/metamask-earn
 
 # Rewards Team
 app/core/Engine/controllers/rewards-controller @MetaMask/rewards
