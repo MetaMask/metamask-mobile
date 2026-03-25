@@ -59,7 +59,7 @@ describe(SmokeConfirmations('Send native asset'), () => {
         mockServer,
       }: {
         localNodes?: LocalNode[];
-        mockServer?: Mockttp;
+        mockServer?: MockttpCompat;
       }) => {
         await loginToApp();
         await device.disableSynchronization();

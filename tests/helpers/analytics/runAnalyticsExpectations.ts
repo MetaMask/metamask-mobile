@@ -1,4 +1,5 @@
 import { Mockttp, MockttpServer } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import Assertions from '../../framework/Assertions';
 import SoftAssert from '../../framework/SoftAssert';
 import type { AnalyticsExpectations } from '../../framework/types';
@@ -46,7 +47,7 @@ export function deriveEventNamesForFetch(
 export async function assertCapturedMetaMetricsEvents(
   events: EventPayload[],
   expectations: AnalyticsExpectations,
-  mockServer: Mockttp | MockttpServer,
+  mockServer: MockttpCompat | Mockttp | MockttpServer,
 ): Promise<void> {
   const softAssert = new SoftAssert();
 
@@ -138,7 +139,12 @@ export async function assertCapturedMetaMetricsEvents(
   const customValidate = expectations.validate;
   if (customValidate) {
     await softAssert.checkAndCollect(
-      async () => customValidate({ events, mockServer }),
+      async () =>
+        customValidate({
+          events,
+          mockServer:
+            mockServer as import('../../api-mocking/MockttpCompat').MockttpCompat,
+        }),
       'analyticsExpectations.validate',
     );
   }
@@ -150,7 +156,7 @@ export async function assertCapturedMetaMetricsEvents(
  * Fetches MetaMetrics payloads from the mock server and runs `assertCapturedMetaMetricsEvents`.
  */
 export async function runAnalyticsExpectations(
-  mockServer: Mockttp | MockttpServer,
+  mockServer: MockttpCompat | Mockttp | MockttpServer,
   expectations: AnalyticsExpectations,
 ): Promise<void> {
   const names = deriveEventNamesForFetch(expectations);

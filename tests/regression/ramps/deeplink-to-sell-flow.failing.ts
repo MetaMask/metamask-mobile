@@ -12,7 +12,7 @@ import NetworkEducationModal from '../../page-objects/Network/NetworkEducationMo
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
@@ -40,7 +40,7 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
             .withRampsSelectedRegion(franceRegion)
             .withRampsSelectedPaymentMethod()
             .build(),
-          testSpecificMock: async (mockServer: Mockttp) => {
+          testSpecificMock: async (mockServer: MockttpCompat) => {
             await setupRemoteFeatureFlagsMock(
               mockServer,
               remoteFeatureFlagRampsUnifiedEnabled(true),
@@ -82,7 +82,7 @@ describe(RegressionTrade('Sell Crypto Deeplinks'), () => {
             .withRampsSelectedRegion()
             .withRampsSelectedPaymentMethod()
             .build(),
-          testSpecificMock: async (mockServer: Mockttp) => {
+          testSpecificMock: async (mockServer: MockttpCompat) => {
             await setupRemoteFeatureFlagsMock(
               mockServer,
               remoteFeatureFlagRampsUnifiedEnabled(true),

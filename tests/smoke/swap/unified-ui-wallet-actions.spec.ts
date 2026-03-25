@@ -18,7 +18,7 @@ describe(SmokeTrade('Trade: Unified UI Wallet Actions'), () => {
   });
 
   afterAll(async () => {
-    if (mockServer) {
+    if (mockServer?.stop) {
       await mockServer.stop();
     }
   });

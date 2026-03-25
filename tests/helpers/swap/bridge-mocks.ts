@@ -1,4 +1,4 @@
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { TestSpecificMock } from '../../framework';
 import {
   setupMockRequest,
@@ -33,7 +33,7 @@ const BRIDGE_TX_STATUS_COMPLETE = {
 };
 
 export const testSpecificMock: TestSpecificMock = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await setupSpotPricesMock(mockServer);
 

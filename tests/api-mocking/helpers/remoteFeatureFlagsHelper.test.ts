@@ -258,7 +258,8 @@ describe('Remote Feature Flags Helper', () => {
   });
 
   describe('setupRemoteFeatureFlagsMock', () => {
-    let mockServer: jest.Mocked<Mockttp>;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let mockServer: any;
 
     beforeEach(() => {
       mockServer = {} as jest.Mocked<Mockttp>;

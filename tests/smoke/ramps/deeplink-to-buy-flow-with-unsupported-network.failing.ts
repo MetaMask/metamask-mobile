@@ -11,7 +11,7 @@ import NetworkEducationModal from '../../page-objects/Network/NetworkEducationMo
 import NetworkListModal from '../../page-objects/Network/NetworkListModal';
 import { PopularNetworksList } from '../../resources/networks.e2e';
 import { setupRegionAwareOnRampMocks } from '../../api-mocking/mock-responses/ramps/ramps-mocks';
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { remoteFeatureFlagRampsUnifiedEnabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
@@ -38,7 +38,7 @@ describe(SmokeRamps('Buy Crypto Deeplinks - Unsupported Network'), () => {
           .withRampsSelectedRegion(selectedRegion)
           .withRampsSelectedPaymentMethod()
           .build(),
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             remoteFeatureFlagRampsUnifiedEnabled(true),

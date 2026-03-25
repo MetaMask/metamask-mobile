@@ -1,4 +1,5 @@
 import { CompletedRequest, Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   getMockOnChainNotificationsConfig,
   getMockUpdateOnChainNotifications,
@@ -23,7 +24,7 @@ export class MockttpNotificationTriggerServer {
   private notificationConfigs: Map<string, boolean> = new Map();
 
   readonly getConfig = async (
-    request: Pick<CompletedRequest, 'body'>,
+    request: { body: { getJson<T = unknown>(): Promise<T> } },
     statusCode: number = 200,
   ) => {
     const requestBody = (await request.body.getJson()) as { address: string }[];
@@ -46,7 +47,7 @@ export class MockttpNotificationTriggerServer {
   };
 
   readonly updateConfig = async (
-    request: Pick<CompletedRequest, 'body'>,
+    request: { body: { getJson<T = unknown>(): Promise<T> } },
     statusCode: number = 200,
   ) => {
     const requestBody = (await request.body.getJson()) as NotificationConfig[];
@@ -62,9 +63,10 @@ export class MockttpNotificationTriggerServer {
     };
   };
 
-  setupServer = async (server: Mockttp) => {
+  setupServer = async (server: MockttpCompat | Mockttp) => {
+    const compat = server as MockttpCompat;
     // Mobile uses a API url proxy, where all subsequent calls need to pulled out from this proxy API
-    await server
+    await compat
       .forPost('/proxy')
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(GET_CONFIG_URL),
@@ -79,7 +81,7 @@ export class MockttpNotificationTriggerServer {
         return this.getConfig(request);
       });
 
-    await server
+    await compat
       .forPost('/proxy')
       .matching((request) =>
         getDecodedProxiedURL(request.url).includes(UPDATE_CONFIG_URL),

@@ -1,4 +1,5 @@
 import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   getMockFeatureAnnouncementResponse,
   getMockListNotificationsResponse,
@@ -83,29 +84,32 @@ export function getMockFeatureAnnouncementItemId() {
  *
  * @param {import('mockttp').Mockttp} server - obj used to mock our endpoints
  */
-export async function mockNotificationServices(server: Mockttp) {
-  await mockAuthServices(server);
+export async function mockNotificationServices(
+  server: MockttpCompat | Mockttp,
+) {
+  await mockAuthServices(server as MockttpCompat);
   // Trigger Config
   await new MockttpNotificationTriggerServer().setupServer(server);
 
   const contentfulUrlRegex =
     /^https:\/\/cdn\.contentful\.com:443\/spaces\/[a-zA-Z0-9]+\/environments\/[a-zA-Z0-9]+\/entries\?.*$/;
 
+  const compat = server as MockttpCompat;
   // Notifications
-  await mockAPICall(server, mockFeatureAnnouncementResponse);
-  await setupMockRequest(server, {
+  await mockAPICall(compat, mockFeatureAnnouncementResponse);
+  await setupMockRequest(compat, {
     url: contentfulUrlRegex,
     requestMethod: 'GET',
     response: mockFeatureAnnouncementResponse.response,
     responseCode: 200,
   });
-  await mockAPICall(server, mockListNotificationsResponse);
-  await mockAPICall(server, getMockMarkNotificationsAsReadResponse());
+  await mockAPICall(compat, mockListNotificationsResponse);
+  await mockAPICall(compat, getMockMarkNotificationsAsReadResponse());
 
   // Push Notifications
-  await mockAPICall(server, getMockUpdatePushNotificationLinksResponse());
-  await mockAPICall(server, getMockCreateFCMRegistrationTokenResponse());
-  await mockAPICall(server, getMockDeleteFCMRegistrationTokenResponse());
+  await mockAPICall(compat, getMockUpdatePushNotificationLinksResponse());
+  await mockAPICall(compat, getMockCreateFCMRegistrationTokenResponse());
+  await mockAPICall(compat, getMockDeleteFCMRegistrationTokenResponse());
 }
 
 interface ResponseParam {
@@ -114,7 +118,10 @@ interface ResponseParam {
   response: unknown;
 }
 
-export async function mockAPICall(server: Mockttp, response: ResponseParam) {
+export async function mockAPICall(
+  server: MockttpCompat,
+  response: ResponseParam,
+) {
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {

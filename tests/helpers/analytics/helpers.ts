@@ -1,4 +1,5 @@
 import { MockedEndpoint, Mockttp, MockttpServer } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { E2E_METAMETRICS_TRACK_URL } from '../../../app/util/test/utils';
 import { createLogger } from '../../framework/logger';
 import { logCapturedMetaMetricsPayloads } from './analyticsDebug';
@@ -19,7 +20,7 @@ export interface EventPayload {
  * @returns {Promise<Array<EventPayload>>} Filtered request payloads.
  */
 export const getEventsPayloads = async (
-  mockServer: MockttpServer | Mockttp,
+  mockServer: MockttpCompat | MockttpServer | Mockttp,
   events: string[] = [],
   timeout = 10000,
 ): Promise<EventPayload[]> => {
@@ -33,8 +34,13 @@ export const getEventsPayloads = async (
       // Only include endpoints that have received requests (analytics endpoints)
       const endpointChecks = await Promise.all(
         mockedEndpoints.map(async (endpoint) => {
-          const seenRequests = await endpoint.getSeenRequests();
-          return { endpoint, hasRequests: seenRequests.length > 0 };
+          const seenRequests = await (
+            endpoint as MockedEndpoint
+          ).getSeenRequests();
+          return {
+            endpoint: endpoint as MockedEndpoint,
+            hasRequests: seenRequests.length > 0,
+          };
         }),
       );
 
@@ -43,7 +49,11 @@ export const getEventsPayloads = async (
         .map(({ endpoint }) => endpoint);
 
       const pendingEndpoints = await Promise.all(
-        analyticsEndpoints.map((endpoint) => endpoint.isPending()),
+        analyticsEndpoints.map((endpoint) =>
+          typeof endpoint.isPending === 'function'
+            ? endpoint.isPending()
+            : Promise.resolve(false),
+        ),
       );
 
       if (pendingEndpoints.some((isPending) => isPending)) {

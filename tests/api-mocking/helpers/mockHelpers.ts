@@ -1,4 +1,5 @@
 import type { Mockttp, MockttpServer } from 'mockttp';
+import type { MockttpCompat } from '../MockttpCompat';
 import _ from 'lodash';
 import { createLogger, LogLevel } from '../../framework/logger.ts';
 import type {
@@ -159,7 +160,7 @@ export const findMatchingPostEvent = (
 };
 
 export async function setupMockRequest(
-  server: Mockttp,
+  server: MockttpCompat,
   response: ResponseParam,
   priority?: number,
 ) {
@@ -231,7 +232,7 @@ export async function setupMockRequest(
  * @param priority - Rule priority (default 999)
  */
 export async function setupSSEMockRequest(
-  server: Mockttp,
+  server: MockttpCompat,
   url: string | RegExp,
   sseBody: string,
   priority = 999,
@@ -266,7 +267,7 @@ export async function setupSSEMockRequest(
  * @param options.priority - Set the rule priority. Any matching rule with a higher priority will always take precedence over a matching lower-priority rule, unless the higher rule has an explicit completion check (like .once()) that has already been completed. The RulePriority enum defines the standard values useful for most cases, but any positive number may be used for advanced configurations. (default: 999)
  */
 export const setupMockPostRequest = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   url: string | RegExp,
   requestBody: unknown,
   response: unknown,
@@ -339,7 +340,7 @@ export const setupMockPostRequest = async (
  * @param urlTransformer - Function to transform the URL
  */
 export const interceptProxyUrl = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   urlMatcher: (url: string) => boolean,
   urlTransformer: (url: string) => string,
 ) => {
@@ -404,7 +405,7 @@ export const interceptProxyUrl = async (
  * @param mockEvents - Object containing mock definitions grouped by method (GET, POST, etc.)
  */
 export const setupMockEvents = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   mockEvents: MockEventsObject,
 ): Promise<void> => {
   for (const [method, mocks] of Object.entries(mockEvents)) {
@@ -450,7 +451,7 @@ export const setupMockEvents = async (
  * Called globally from MockServerE2E so all E2E tests get this mock without per-test setup.
  */
 export async function setupAccountsV2SupportedNetworksMock(
-  server: Mockttp,
+  server: MockttpCompat,
 ): Promise<void> {
   await setupMockRequest(server, {
     requestMethod: 'GET',
@@ -499,14 +500,18 @@ export function formatProxiedRequestMatcher(
  * Same pattern as `getEventsPayloads` in tests/helpers/analytics/helpers.ts (without MetaMetrics filtering).
  */
 export async function collectSeenProxiedRequests(
-  mockServer: Mockttp | MockttpServer,
+  mockServer: MockttpCompat | Mockttp | MockttpServer,
 ): Promise<SeenProxiedRequest[]> {
   const mockedEndpoints = await mockServer.getMockedEndpoints();
   const requests = (
     await Promise.all(
-      mockedEndpoints.map((endpoint) => endpoint.getSeenRequests()),
+      mockedEndpoints.map((endpoint) =>
+        (
+          endpoint as { getSeenRequests(): Promise<unknown[]> }
+        ).getSeenRequests(),
+      ),
     )
-  ).flat();
+  ).flat() as { url: string; method: string }[];
 
   return requests.map((request) => ({
     method: request.method,
@@ -542,7 +547,7 @@ export function filterProxiedRequests(
  * Count of proxied requests matching `matcher` (for baselines before a flow).
  */
 export async function countProxiedRequestsMatching(
-  mockServer: Mockttp | MockttpServer,
+  mockServer: MockttpCompat | Mockttp | MockttpServer,
   matcher: ProxiedRequestMatcher,
 ): Promise<number> {
   const seen = await collectSeenProxiedRequests(mockServer);
@@ -571,7 +576,7 @@ export interface WaitForAdditionalProxiedRequestsOptions {
  * Use with {@link countProxiedRequestsMatching} before the flow under test.
  */
 export async function waitForAdditionalProxiedRequestsMatching(
-  mockServer: Mockttp | MockttpServer,
+  mockServer: MockttpCompat | Mockttp | MockttpServer,
   matcher: ProxiedRequestMatcher,
   baselineMatchCount: number,
   options: WaitForAdditionalProxiedRequestsOptions,
@@ -602,7 +607,7 @@ export async function waitForAdditionalProxiedRequestsMatching(
  * On timeout only: logs the full proxied request list at DEBUG (see module LogLevel).
  */
 export async function waitForProxiedRequestsMatching(
-  mockServer: Mockttp | MockttpServer,
+  mockServer: MockttpCompat | Mockttp | MockttpServer,
   matcher: ProxiedRequestMatcher,
   options: {
     minCount?: number;

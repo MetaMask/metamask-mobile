@@ -3,6 +3,7 @@ import { UserStorageMockttpController } from './user-storage/userStorageMockttpC
 import { getDecodedProxiedURL } from './helpers';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
 import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
@@ -20,7 +21,7 @@ interface MockResponse {
  * Sets up authentication service mocks (nonce, login, access token)
  * @param server - The Mockttp server instance
  */
-export async function mockAuthServices(server: Mockttp) {
+export async function mockAuthServices(server: MockttpCompat | Mockttp) {
   await mockAPICall(server, AuthMocks.getMockAuthNonceResponse());
   await mockAPICall(server, AuthMocks.getMockAuthLoginResponse());
   await mockAPICall(server, AuthMocks.getMockAuthAccessTokenResponse());
@@ -40,7 +41,7 @@ export function createUserStorageController(): UserStorageMockttpController {
  * @param server - The Mockttp server instance
  * @returns An object containing the user storage controller instance
  */
-export async function mockIdentityServices(server: Mockttp) {
+export async function mockIdentityServices(server: MockttpCompat | Mockttp) {
   // Set up auth services
   await mockAuthServices(server);
 
@@ -92,23 +93,27 @@ const getE2ESrpIdentifierForPublicKey = (publicKey: string) => {
   return nextIdentifier;
 };
 
-async function mockAPICall(server: Mockttp, response: MockResponse) {
+async function mockAPICall(
+  server: MockttpCompat | Mockttp,
+  response: MockResponse,
+) {
+  const compat = server as MockttpCompat;
   let requestRuleBuilder;
 
   if (response.requestMethod === 'GET') {
-    requestRuleBuilder = server.forGet('/proxy');
+    requestRuleBuilder = compat.forGet('/proxy');
   }
 
   if (response.requestMethod === 'POST') {
-    requestRuleBuilder = server.forPost('/proxy');
+    requestRuleBuilder = compat.forPost('/proxy');
   }
 
   if (response.requestMethod === 'PUT') {
-    requestRuleBuilder = server.forPut('/proxy');
+    requestRuleBuilder = compat.forPut('/proxy');
   }
 
   if (response.requestMethod === 'DELETE') {
-    requestRuleBuilder = server.forDelete('/proxy');
+    requestRuleBuilder = compat.forDelete('/proxy');
   }
 
   await requestRuleBuilder
@@ -153,15 +158,16 @@ const INFURA_URL = 'https://mainnet.infura.io/v3/';
  * @param {Array<String>} accounts - List of account addresses to mock balances for
  */
 export const setupAccountMockedBalances = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat | Mockttp,
   accounts: string[],
 ) => {
   if (!accounts.length) {
     return;
   }
 
+  const compat = mockServer as MockttpCompat;
   for (const account of accounts) {
-    await mockServer
+    await compat
       .forPost('/proxy')
       .matching((request) => {
         const url = getDecodedProxiedURL(request.url);

@@ -1,4 +1,4 @@
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import FixtureBuilder, {
   DEFAULT_FIXTURE_ACCOUNT_CHECKSUM,
 } from '../../framework/fixtures/FixtureBuilder';
@@ -68,7 +68,7 @@ export const withMultichainAccountDetailsEnabledFixtures = async (
 export const withMultichainAccountDetailsV2EnabledFixtures = async (
   testFn: () => Promise<void>,
 ) => {
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     await setupRemoteFeatureFlagsMock(
       mockServer,
       remoteFeatureMultichainAccountsAccountDetailsV2(),

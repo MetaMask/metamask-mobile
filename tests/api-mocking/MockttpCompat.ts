@@ -17,16 +17,30 @@
 
 export type MockttpCallback = (request: {
   url: string;
+  path: string;
   method: string;
   headers: Record<string, string>;
   body: {
     getText(): Promise<string | undefined>;
     getJson<T = unknown>(): Promise<T>;
   };
-}) => Promise<{ statusCode: number; body?: string; json?: unknown }>;
+}) =>
+  | Promise<{
+      statusCode: number;
+      body?: string;
+      json?: unknown;
+      headers?: Record<string, string>;
+    }>
+  | {
+      statusCode: number;
+      body?: string;
+      json?: unknown;
+      headers?: Record<string, string>;
+    };
 
 export type MockttpPredicate = (request: {
   url: string;
+  path: string;
   method: string;
   headers: Record<string, string>;
   body: {
@@ -58,6 +72,18 @@ export interface MockttpCompatMatchChain extends MockttpCompatTerminalChain {
   asPriority(priority: number): MockttpCompatTerminalChain;
 }
 
+export interface MockttpCompatEndpoint {
+  getSeenRequests(): Promise<
+    {
+      url: string;
+      method: string;
+      headers: Record<string, string>;
+      body?: { getJson<T = unknown>(): Promise<T> };
+    }[]
+  >;
+  isPending?(): Promise<boolean>;
+}
+
 export interface MockttpCompatRule {
   thenReply(
     statusCode: number,
@@ -77,6 +103,7 @@ export interface MockttpCompat {
   forPut(url: string | RegExp): MockttpCompatRule;
   forDelete(url: string | RegExp): MockttpCompatRule;
   forHead(url: string | RegExp): MockttpCompatRule;
-  forAnyRequest(): { thenCallback: (cb: MockttpCallback) => Promise<void> };
-  getMockedEndpoints(): Promise<unknown[]>;
+  forAnyRequest(): MockttpCompatRule;
+  getMockedEndpoints(): Promise<MockttpCompatEndpoint[]>;
+  stop?(): Promise<void>;
 }

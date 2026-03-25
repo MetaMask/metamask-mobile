@@ -7,6 +7,7 @@
  */
 
 import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../MockttpCompat';
 import {
   createLogger,
   LogLevel,
@@ -69,7 +70,7 @@ const MOCK_COIN_SVG = `<svg width="24" height="24" xmlns="http://www.w3.org/2000
  * Sets up mocks to prevent live network requests to Arbitrum during E2E tests
  */
 export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   const ARBITRUM_RPC_URL = 'https://arb1.arbitrum.io/rpc';
   const USDC_ARBITRUM_E = '0xff970a61a04b1ca14834a43f5de4533ebddb5cc8'; // USDC.e (legacy)
@@ -477,7 +478,7 @@ export const PERPS_ARBITRUM_MOCKS: TestSpecificMock = async (
  * Pass a non-blocked region (e.g. Spain, France) to ensure eligibility.
  */
 export const mockPerpsGeolocation = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   region: RampsRegion,
 ): Promise<void> => {
   const regionCode = region.id.replace('/regions/', '');

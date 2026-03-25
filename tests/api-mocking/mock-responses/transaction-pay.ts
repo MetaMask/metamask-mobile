@@ -1,4 +1,5 @@
 import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../MockttpCompat';
 import { USDC_MAINNET, MUSD_MAINNET } from '../../constants/musd-mainnet';
 import { DEFAULT_FIXTURE_ACCOUNT } from '../../framework/fixtures/FixtureBuilder';
 
@@ -398,7 +399,7 @@ export const RELAY_STATUS_MOCK = {
   ],
 };
 
-export async function mockRelayQuote(mockServer: Mockttp) {
+export async function mockRelayQuote(mockServer: MockttpCompat | Mockttp) {
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
@@ -418,7 +419,9 @@ export async function mockRelayQuote(mockServer: Mockttp) {
  * Mocks Relay quote API for Mainnet mUSD conversion (chainId 1, USDC → mUSD).
  * Use this in mUSD conversion E2E so normalizeQuote uses Mainnet for gas/rates.
  */
-export async function mockRelayQuoteMainnetMusd(mockServer: Mockttp) {
+export async function mockRelayQuoteMainnetMusd(
+  mockServer: MockttpCompat | Mockttp,
+) {
   await mockServer
     .forPost('/proxy')
     .matching((request) => {
@@ -434,7 +437,7 @@ export async function mockRelayQuoteMainnetMusd(mockServer: Mockttp) {
     }));
 }
 
-export async function mockRelayStatus(mockServer: Mockttp) {
+export async function mockRelayStatus(mockServer: MockttpCompat | Mockttp) {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {

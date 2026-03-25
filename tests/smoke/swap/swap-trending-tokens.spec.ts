@@ -1,4 +1,4 @@
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import { LocalNode, LocalNodeType } from '../../framework/types';
 import { loginToApp } from '../../flows/wallet.flow';
@@ -62,7 +62,7 @@ const TRENDING_ALL_NETWORKS_RESPONSE = [
 
 const TRENDING_BASE_ONLY_RESPONSE = [TRENDING_ALL_NETWORKS_RESPONSE[1]];
 
-const setupSwapsTrendingTokensMock = async (mockServer: Mockttp) => {
+const setupSwapsTrendingTokensMock = async (mockServer: MockttpCompat) => {
   const { response } = createRemoteFeatureFlagsMock({
     swapsTrendingTokens: true,
   });
@@ -79,7 +79,7 @@ const setupSwapsTrendingTokensMock = async (mockServer: Mockttp) => {
   );
 };
 
-const setupTrendingTokensMock = async (mockServer: Mockttp) => {
+const setupTrendingTokensMock = async (mockServer: MockttpCompat) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -102,7 +102,7 @@ const setupTrendingTokensMock = async (mockServer: Mockttp) => {
     });
 };
 
-const setupQuoteFallbackMock = async (mockServer: Mockttp) => {
+const setupQuoteFallbackMock = async (mockServer: MockttpCompat) => {
   await setupMockRequest(
     mockServer,
     {
@@ -151,7 +151,7 @@ const withBridgeFixtures = async (run: () => Promise<void>) => {
         },
       ],
       restartDevice: true,
-      testSpecificMock: async (mockServer: Mockttp) => {
+      testSpecificMock: async (mockServer: MockttpCompat) => {
         await testSpecificMock(mockServer);
         await setupSwapsTrendingTokensMock(mockServer);
         await setupTrendingTokensMock(mockServer);

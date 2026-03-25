@@ -1,4 +1,5 @@
-import { Mockttp } from 'mockttp';
+import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../MockttpCompat';
 import contentfulPromotionalBanners from '../mock-responses/contentful-promotional-banners.json';
 import { setupMockRequest } from './mockHelpers.ts';
 
@@ -7,7 +8,7 @@ import { setupMockRequest } from './mockHelpers.ts';
  * @param {Mockttp} mockServer - The mock server instance
  */
 export const setupContentfulPromotionalBannersMock = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ): Promise<void> => {
   // Pattern 1: Standard Contentful URL with content_type=promotionalBanner
   await setupMockRequest(

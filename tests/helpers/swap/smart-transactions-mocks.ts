@@ -1,4 +1,5 @@
-import { Mockttp } from 'mockttp';
+import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers';
 import PortManager, { ResourceType } from '../../framework/PortManager';
@@ -62,7 +63,7 @@ const GET_FEES_RESPONSE = {
  * @param anvilPort  - The port Anvil is listening on (defaults to DEFAULT_ANVIL_PORT).
  */
 export async function setupSmartTransactionsMocks(
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   anvilPort: number,
 ): Promise<void> {
   // anvilPort is the fallback (DEFAULT_ANVIL_PORT = 8545).

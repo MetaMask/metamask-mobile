@@ -32,7 +32,7 @@ import { isHexString } from '@metamask/utils';
 import { DappVariants } from '../../framework/Constants';
 import { LocalNodeType } from '../../framework';
 import { AnvilNodeOptions } from '../../framework/types';
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureEip7702 } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
@@ -46,7 +46,7 @@ const ANVIL_NODE_OPTIONS_WITH_GATOR = [
     },
   },
 ];
-const REMOTE_FEATURE_EIP_7702_MOCK = async (mockServer: Mockttp) => {
+const REMOTE_FEATURE_EIP_7702_MOCK = async (mockServer: MockttpCompat) => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     Object.assign({}, ...remoteFeatureEip7702),

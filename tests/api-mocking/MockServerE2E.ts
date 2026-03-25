@@ -261,10 +261,14 @@ export default class MockServerE2E implements Resource {
 
     if (this._testSpecificMock) {
       logger.info('Applying testSpecificMock function (takes precedence)');
-      await this._testSpecificMock(this._server);
+      await this._testSpecificMock(
+        this._server as unknown as import('./MockttpCompat').MockttpCompat,
+      );
     }
 
-    await setupAccountsV2SupportedNetworksMock(this._server);
+    await setupAccountsV2SupportedNetworksMock(
+      this._server as unknown as import('./MockttpCompat').MockttpCompat,
+    );
 
     await this._server
       .forAnyRequest()

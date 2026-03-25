@@ -18,7 +18,7 @@ import {
   onboardingEvents,
 } from '../../../helpers/analytics/helpers';
 import SoftAssert from '../../../framework/SoftAssert';
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeaturePredictGtmOnboardingModalDisabled } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
@@ -52,7 +52,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             remoteFeaturePredictGtmOnboardingModalDisabled(),
@@ -192,7 +192,7 @@ describe(SmokeWalletPlatform('Analytics during import wallet flow'), () => {
       {
         fixture: new FixtureBuilder().withOnboardingFixture().build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
+        testSpecificMock: async (mockServer: MockttpCompat) => {
           await setupRemoteFeatureFlagsMock(
             mockServer,
             remoteFeaturePredictGtmOnboardingModalDisabled(),

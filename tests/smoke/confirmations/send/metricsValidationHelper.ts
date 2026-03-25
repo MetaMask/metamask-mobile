@@ -1,11 +1,12 @@
 import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { AnvilManager } from '../../../seeder/anvil-manager';
 import { LocalNode } from '../../../framework';
 import { getEventsPayloads } from '../../../helpers/analytics/helpers';
 
 export const validateTransactionHashInTransactionFinalizedEvent = async (
   localNodes?: LocalNode[],
-  mockServer?: Mockttp,
+  mockServer?: MockttpCompat | Mockttp,
 ) => {
   // Validate txHash in Transaction Finalized Event
   const localNode = localNodes?.[0];

@@ -3,6 +3,7 @@
  */
 
 import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../MockttpCompat';
 
 import {
   AuthServer,
@@ -190,7 +191,7 @@ export class OAuthMockttpService {
    * @param options - Configuration options
    */
   async setup(
-    server: Mockttp,
+    server: MockttpCompat | Mockttp,
     options?: OAuthMockttpServiceOptions,
   ): Promise<void> {
     // Update config from options if provided
@@ -233,7 +234,9 @@ export class OAuthMockttpService {
    * Proxy Auth Server token requests to backend QA mock
    *
    */
-  private async setupAuthServerProxy(server: Mockttp): Promise<void> {
+  private async setupAuthServerProxy(
+    server: MockttpCompat | Mockttp,
+  ): Promise<void> {
     // Proxy token requests to backend QA mock
     const tokenEndpoint = `${AUTH_SERVICE_BASE_URL}/api/v1/oauth/token`;
     console.log(`[E2E MockServer] Registering mock for: ${tokenEndpoint}`);
@@ -505,7 +508,9 @@ export class OAuthMockttpService {
   /**
    * Mock marketing opt-in status to avoid real API calls
    */
-  private async setupMarketingOptInMock(server: Mockttp): Promise<void> {
+  private async setupMarketingOptInMock(
+    server: MockttpCompat | Mockttp,
+  ): Promise<void> {
     // GET request
     await server
       .forGet('/proxy')
@@ -530,7 +535,9 @@ export class OAuthMockttpService {
   /**
    * Setup Metadata Service mocks
    */
-  private async setupMetadataServiceMocks(server: Mockttp): Promise<void> {
+  private async setupMetadataServiceMocks(
+    server: MockttpCompat | Mockttp,
+  ): Promise<void> {
     const encryptedSecretData = this.generateMockEncryptedSecretData();
 
     // Set metadata
@@ -600,7 +607,9 @@ export class OAuthMockttpService {
   /**
    * Setup TOPRF SSS Node Mocks
    */
-  private async setupToprfSssNodeMocks(server: Mockttp): Promise<void> {
+  private async setupToprfSssNodeMocks(
+    server: MockttpCompat | Mockttp,
+  ): Promise<void> {
     console.log('[E2E MockServer] Setting up TOPRF SSS node mocks');
 
     // Mock all 5 SSS nodes

@@ -2,7 +2,8 @@
  * File containing mock functionality for all Polymarket API endpoints
  */
 
-import { Mockttp } from 'mockttp';
+import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../MockttpCompat';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
 import { safeGetBodyText } from '../../MockServerE2E.ts';
 import {
@@ -116,7 +117,7 @@ function parseRedeemableParam(requestUrl: string): boolean | undefined {
   return value === 'true';
 }
 
-export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
+export const POLYMARKET_API_DOWN = async (mockServer: MockttpCompat) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: /^https:\/\/gamma-api\.polymarket\.com\/events\/pagination/,
@@ -179,7 +180,9 @@ export const POLYMARKET_API_DOWN = async (mockServer: Mockttp) => {
  * This simulates the user being in a geo-restricted region
  * Uses a country from GEO_BLOCKED_COUNTRIES for consistency with app logic
  */
-export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_GEO_BLOCKED_MOCKS = async (
+  mockServer: MockttpCompat,
+) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: 'https://polymarket.com/api/geoblock',
@@ -192,7 +195,9 @@ export const POLYMARKET_GEO_BLOCKED_MOCKS = async (mockServer: Mockttp) => {
  * Mock for Polymarket geoblock endpoint returning eligible region.
  * Reuses POLYMARKET_GEOBLOCK_ELIGIBLE from defaults so there is a single source of truth.
  */
-export const POLYMARKET_GEO_ELIGIBLE_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_GEO_ELIGIBLE_MOCKS = async (
+  mockServer: MockttpCompat,
+) => {
   await setupMockRequest(mockServer, {
     requestMethod: 'GET',
     url: POLYMARKET_GEOBLOCK_ELIGIBLE.urlEndpoint,
@@ -205,7 +210,9 @@ export const POLYMARKET_GEO_ELIGIBLE_MOCKS = async (mockServer: Mockttp) => {
  * Mock for Polymarket event details API
  * Returns event details based on the requested event ID
  */
-export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_EVENT_DETAILS_MOCKS = async (
+  mockServer: MockttpCompat,
+) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -253,7 +260,7 @@ export const POLYMARKET_EVENT_DETAILS_MOCKS = async (mockServer: Mockttp) => {
  * Returns positions data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
 export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await mockServer
     .forGet('/proxy')
@@ -313,7 +320,7 @@ export const POLYMARKET_CURRENT_POSITIONS_MOCKS = async (
  * Winning positions (redeemable=true) should be in resolved markets, not current positions
  */
 export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   includeWinnings: boolean = false,
   options: { showWinningsAsActive?: boolean } = {},
 ) => {
@@ -447,7 +454,7 @@ export const POLYMARKET_POSITIONS_WITH_WINNINGS_MOCKS = async (
  * by then, so market details triggers a background refetch that hits this mock.
  */
 export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) {
   await mockServer
     .forGet('/proxy')
@@ -495,7 +502,7 @@ export async function POLYMARKET_ENABLE_CLAIMABLE_POSITIONS_MOCK(
  * Returns BUY (best ask) and SELL (best bid) prices for outcome tokens
  * This is used to display current market prices in the UI
  */
-export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_PRICES_MOCKS = async (mockServer: MockttpCompat) => {
   await mockServer
     .forPost('/proxy')
     .matching(async (request) => {
@@ -594,7 +601,7 @@ export const POLYMARKET_PRICES_MOCKS = async (mockServer: Mockttp) => {
     });
 };
 
-export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: MockttpCompat) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -615,7 +622,9 @@ export const POLYMARKET_FEE_RATE_MOCKS = async (mockServer: Mockttp) => {
  * Mock for Polymarket CLOB order book API
  * Returns order book data for specific token IDs with correct market mapping
  */
-export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_ORDER_BOOK_MOCKS = async (
+  mockServer: MockttpCompat,
+) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -700,7 +709,7 @@ export const POLYMARKET_ORDER_BOOK_MOCKS = async (mockServer: Mockttp) => {
  * Returns redeemable positions data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
 export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await mockServer
     .forGet('/proxy')
@@ -747,7 +756,7 @@ export const POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS = async (
  * Mock for Polymarket activity API with test user trading activity
  * Returns trading activity data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
-export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: MockttpCompat) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -780,7 +789,7 @@ export const POLYMARKET_ACTIVITY_MOCKS = async (mockServer: Mockttp) => {
  * Mock for Polymarket UpNL API with test user unrealized P&L data
  * Returns unrealized P&L data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
-export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_UPNL_MOCKS = async (mockServer: MockttpCompat) => {
   await mockServer
     .forGet('/proxy')
     .matching((request) => {
@@ -817,7 +826,7 @@ export const POLYMARKET_UPNL_MOCKS = async (mockServer: Mockttp) => {
  * @param customBalance - Optional custom USDC balance in wei (hex string)
  */
 export const POLYMARKET_USDC_BALANCE_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   customBalance?: string,
 ) => {
   // Update global balance if custom balance provided
@@ -1022,7 +1031,9 @@ export const POLYMARKET_USDC_BALANCE_MOCKS = async (
  * Returns market feed data using the proxy pattern (consistent with other mocks)
  * Intercepts proxy calls to gamma-api.polymarket.com/events/pagination
  */
-export const POLYMARKET_MARKET_FEEDS_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_MARKET_FEEDS_MOCKS = async (
+  mockServer: MockttpCompat,
+) => {
   // Mock proxy calls to gamma-api.polymarket.com (consistent with other mocks)
   await mockServer
     .forGet('/proxy')
@@ -1111,7 +1122,7 @@ const POLYGON_RELAY_TX_E2E_UUID = 'predict-e2e-withdraw-relay-uuid';
  * (see transaction-controller-init.ts), so eth_sendRelayTransaction mocks would never run.
  */
 export const POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   const withPolygonRelay = {
     ...TX_SENTINEL_NETWORKS_MAP,
@@ -1136,7 +1147,7 @@ export const POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS = async (
  * Use only with predict withdraw (together with POLYMARKET_POLYGON_RELAY_NETWORK_FLAGS_MOCKS).
  */
 export const POLYMARKET_POLYGON_RELAY_POLLING_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await mockServer
     .forGet(
@@ -1165,7 +1176,7 @@ export const POLYMARKET_POLYGON_RELAY_POLLING_MOCKS = async (
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await mockServer
     .forPost('https://tx-sentinel-polygon-mainnet.api.cx.metamask.io/') //
@@ -1235,7 +1246,7 @@ export const POLYMARKET_TRANSACTION_SENTINEL_MOCKS = async (
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await mockServer
     .forGet('/proxy')
@@ -1328,7 +1339,7 @@ export const POLYMARKET_ADD_CELTICS_POSITION_MOCKS = async (
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await mockServer
     .forGet('/proxy')
@@ -1386,7 +1397,7 @@ export const POLYMARKET_ADD_CELTICS_ACTIVITY_MOCKS = async (
  * @param positionType - The type of operation: 'claim' (returns 48.16 USDC) or 'cash-out' (returns 58.66 USDC)
  */
 export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   positionType: string,
 ) => {
   // Update global balance based on position type
@@ -1459,7 +1470,9 @@ export const POLYMARKET_UPDATE_USDC_BALANCE_MOCKS = async (
  * - Mocks the CLOB API (polymarket order submission) as fallback
  * - Updates global USDC balance to post-cash-out amount (58.66 USDC)
  */
-export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_POST_CASH_OUT_MOCKS = async (
+  mockServer: MockttpCompat,
+) => {
   // Mock MetaMask relayer endpoint for order submission (cash-out uses SELL orders)
   // In e2e, all requests go through /proxy with the actual URL in the url query parameter
   // Matches request payload structure with PROXY_WALLET_ADDRESS as maker and USER_WALLET_ADDRESS as signer
@@ -1568,7 +1581,7 @@ export const POLYMARKET_POST_CASH_OUT_MOCKS = async (mockServer: Mockttp) => {
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   // Track whether the order has been successfully submitted
   // This ensures the position only appears AFTER the order is placed
@@ -1797,7 +1810,7 @@ export const POLYMARKET_POST_OPEN_POSITION_MOCKS = async (
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   // High-priority mock to catch balance refresh calls for withdraw flow
   await mockServer
@@ -1843,7 +1856,7 @@ export const POLYMARKET_WITHDRAW_BALANCE_LOAD_MOCKS = async (
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   // Override redeemable positions (resolved markets) to remove winning positions after claiming
   // This removes all resolved market positions (including winning positions) so the UI updates correctly
@@ -1911,7 +1924,7 @@ export const POLYMARKET_REMOVE_CLAIMED_POSITIONS_MOCKS = async (
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   // Override the activity mock to include REDEEM transactions for claimed positions
   await mockServer
@@ -1966,7 +1979,7 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
  * @param mockServer - The mockttp server instance
  */
 export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   // Override the positions mock to exclude the Spurs vs. Pelicans position
   await mockServer
@@ -2094,7 +2107,9 @@ export const POLYMARKET_REMOVE_CASHED_OUT_POSITION_MOCKS = async (
  * Mock for both Polymarket positions endpoints (current and resolved positions)
  * Returns both types of positions data for user 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
-export const POLYMARKET_ALL_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_ALL_POSITIONS_MOCKS = async (
+  mockServer: MockttpCompat,
+) => {
   await POLYMARKET_CURRENT_POSITIONS_MOCKS(mockServer);
   await POLYMARKET_RESOLVED_MARKETS_POSITIONS_MOCKS(mockServer);
 };
@@ -2104,7 +2119,7 @@ export const POLYMARKET_ALL_POSITIONS_MOCKS = async (mockServer: Mockttp) => {
  * Mock for all Polymarket endpoints (positions, redeemable positions, activity, UpNL, and value)
  * Returns data for proxy wallet: 0x5f7c8f3c8bedf5e7db63a34ef2f39322ca77fe72
  */
-export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: Mockttp) => {
+export const POLYMARKET_COMPLETE_MOCKS = async (mockServer: MockttpCompat) => {
   resetGlobalMockState();
 
   // Explicit geoblock mock: test-specific rules are registered first and take precedence.

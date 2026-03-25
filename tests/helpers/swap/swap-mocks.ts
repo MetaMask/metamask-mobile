@@ -1,5 +1,5 @@
 import { toChecksumHexAddress } from '@metamask/controller-utils';
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../api-mocking/MockttpCompat';
 import { TestSpecificMock } from '../../framework';
 import {
   interceptProxyUrl,
@@ -32,7 +32,9 @@ const GOOGLON_MAINNET = '0xba47214edd2bb43099611b208f75e4b42fdcfedc';
  * Mock spot prices so balance display (balance * price) does not show NaN.
  * Shared by swap and bridge E2E tests.
  */
-export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
+export async function setupSpotPricesMock(
+  mockServer: MockttpCompat,
+): Promise<void> {
   const spotPricesResponse: Record<string, { price: number; usd: number }> = {
     'eip155:1/slip44:60': { price: 1926.42, usd: 1926.42 },
     [`eip155:1/erc20:${USDC_MAINNET}`]: { price: 0.999806, usd: 0.999806 },
@@ -71,7 +73,7 @@ export async function setupSpotPricesMock(mockServer: Mockttp): Promise<void> {
 }
 
 export const testSpecificMock: TestSpecificMock = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await setupSpotPricesMock(mockServer);
 

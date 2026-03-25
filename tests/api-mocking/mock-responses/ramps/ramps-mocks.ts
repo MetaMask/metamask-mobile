@@ -1,4 +1,5 @@
-import { Mockttp } from 'mockttp';
+import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../MockttpCompat';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
 import { MockApiEndpoint, RampsRegion } from '../../../framework/types.ts';
 import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers.ts';
@@ -37,7 +38,10 @@ import { createBuyOrderResponse } from './responses/ramps-buy-order-status-respo
 import { createDepositOrderResponse } from './responses/ramps-deposit-order-status-response.ts';
 
 /** Registers an array of static GET mocks in parallel. */
-const registerGetMocks = (mockServer: Mockttp, mocks: MockApiEndpoint[]) =>
+const registerGetMocks = (
+  mockServer: MockttpCompat,
+  mocks: MockApiEndpoint[],
+) =>
   Promise.all(
     mocks.map((mock) =>
       setupMockRequest(mockServer, {
@@ -54,7 +58,7 @@ const registerGetMocks = (mockServer: Mockttp, mocks: MockApiEndpoint[]) =>
  * Returns the detected country and confirms buy/sell/deposit eligibility.
  */
 export const RAMPS_REGION_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   selectedRegion: RampsRegion,
 ) => {
   const geolocationResponse = createGeolocationResponse(selectedRegion);
@@ -74,7 +78,7 @@ export const RAMPS_REGION_MOCKS = async (
  * Catalog data mocks — networks, countries, region config, amount conversion,
  * tokens, providers, and payment methods.
  */
-export const RAMPS_CATALOG_MOCKS = async (mockServer: Mockttp) => {
+export const RAMPS_CATALOG_MOCKS = async (mockServer: MockttpCompat) => {
   await registerGetMocks(mockServer, [
     {
       urlEndpoint:
@@ -167,7 +171,7 @@ export const RAMPS_CATALOG_MOCKS = async (mockServer: Mockttp) => {
  * @param providerType - 'native' for the Transak KYC flow, 'aggregator' for the widget/WebView flow.
  */
 export const RAMPS_QUOTE_MOCKS = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   providerType: ProviderType = 'aggregator',
 ) => {
   const quoteResponse = createRampsQuoteResponse(providerType);
@@ -192,7 +196,7 @@ export const RAMPS_QUOTE_MOCKS = async (
  * After a quote is selected, RampsController.syncWidgetUrl() fetches the widget URL,
  * then getOrderFromCallback() extracts the order ID from the provider callback.
  */
-export const RAMPS_CHECKOUT_MOCKS = async (mockServer: Mockttp) => {
+export const RAMPS_CHECKOUT_MOCKS = async (mockServer: MockttpCompat) => {
   await registerGetMocks(mockServer, [
     {
       urlEndpoint:
@@ -212,7 +216,7 @@ export const RAMPS_CHECKOUT_MOCKS = async (mockServer: Mockttp) => {
 /**
  * Token icon mocks (GET + HEAD) for UAT static assets.
  */
-export const RAMPS_TOKEN_ICON_MOCKS = async (mockServer: Mockttp) => {
+export const RAMPS_TOKEN_ICON_MOCKS = async (mockServer: MockttpCompat) => {
   const iconPattern =
     /^https:\/\/uat-static\.cx\.metamask\.io\/api\/v2\/tokenIcons\/assets\/.*\.png$/;
 
@@ -239,7 +243,7 @@ export const RAMPS_TOKEN_ICON_MOCKS = async (mockServer: Mockttp) => {
  * (refreshOrder is called before addOrder there, so the stored order
  * is already completed when OrderDetails mounts).
  */
-export const BUY_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
+export const BUY_ORDER_STATUS_MOCKS = async (mockServer: MockttpCompat) => {
   const orderUrlPattern =
     /^https:\/\/on-ramp\.uat-api\.cx\.metamask\.io\/v2\/providers\/[^/]+\/orders\/[^/]+(\?.*)?$/;
 
@@ -260,7 +264,7 @@ export const BUY_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
  * Stateful deposit order-status mock for the native Transak flow.
  * Returns PENDING on the first call, then COMPLETED on every subsequent call.
  */
-export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
+export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: MockttpCompat) => {
   let depositOrderCallCount = 0;
   await mockServer
     .forGet('/proxy')
@@ -289,7 +293,7 @@ export const DEPOSIT_ORDER_STATUS_MOCKS = async (mockServer: Mockttp) => {
  * Also overrides the payments mock to add isManualBankTransfer: true to debit-credit-card
  * so the flow takes the bank transfer path (avoiding the unmockable WebView).
  */
-export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
+export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: MockttpCompat) => {
   // --- Transak API mocks (api-gateway-stg.transak.com) ---
   // All responses wrapped in { data: ... } because TransakService unwraps .data
 
@@ -449,7 +453,7 @@ export const TRANSAK_NATIVE_FLOW_MOCKS = async (mockServer: Mockttp) => {
  * Use setupDepositOnRampMocks or setupBuyOnRampMocks for full-flow tests.
  */
 export const setupRegionAwareOnRampMocks = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   selectedRegion: RampsRegion,
 ) => {
   await RAMPS_REGION_MOCKS(mockServer, selectedRegion);
@@ -463,7 +467,7 @@ export const setupRegionAwareOnRampMocks = async (
  * Transak-specific API endpoints.
  */
 export const setupDepositOnRampMocks = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   selectedRegion: RampsRegion,
 ) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);
@@ -478,7 +482,7 @@ export const setupDepositOnRampMocks = async (
  * and buy order status polling.
  */
 export const setupBuyOnRampMocks = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   selectedRegion: RampsRegion,
 ) => {
   await setupRegionAwareOnRampMocks(mockServer, selectedRegion);

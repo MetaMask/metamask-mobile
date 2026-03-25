@@ -1,9 +1,9 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { defaultGanacheOptions } from '../framework/Constants.ts';
 import { CustomNetworks } from './networks.e2e';
-import { Mockttp } from 'mockttp';
-import { setupRemoteFeatureFlagsMock } from '../../tests/api-mocking/helpers/remoteFeatureFlagsHelper';
-import { confirmationFeatureFlags } from '../../tests/api-mocking/mock-responses/feature-flags-mocks';
+import type { MockttpCompat } from '../api-mocking/MockttpCompat';
+import { setupRemoteFeatureFlagsMock } from '../api-mocking/helpers/remoteFeatureFlagsHelper';
+import { confirmationFeatureFlags } from '../api-mocking/mock-responses/feature-flags-mocks';
 
 const MONAD_TESTNET = CustomNetworks.MonadTestnet.providerConfig;
 const MEGAETH_TESTNET = CustomNetworks.MegaTestnet.providerConfig;
@@ -38,7 +38,7 @@ export interface TestConfiguration {
   ganacheOptions: GanacheConfig;
   providerConfig: ProviderConfig;
   permissions: string[];
-  testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
+  testSpecificMock?: (mockServer: MockttpCompat) => Promise<void>;
 }
 
 /**
@@ -50,13 +50,15 @@ export interface NetworkTestConfig {
   ganacheOptions: GanacheConfig;
   providerConfig: ProviderConfig;
   permissions: string[];
-  testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
+  testSpecificMock?: (mockServer: MockttpCompat) => Promise<void>;
 }
 
 /**
  * Shared mock configuration for all network tests using redesigned patterns
  */
-export const testSpecificMock = async (mockServer: Mockttp): Promise<void> => {
+export const testSpecificMock = async (
+  mockServer: MockttpCompat,
+): Promise<void> => {
   await setupRemoteFeatureFlagsMock(
     mockServer,
     Object.assign({}, ...confirmationFeatureFlags),

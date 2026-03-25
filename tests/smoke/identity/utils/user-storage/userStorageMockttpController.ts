@@ -7,6 +7,7 @@ import {
 // eslint-disable-next-line import-x/no-nodejs-modules
 import { EventEmitter } from 'events';
 import { CompletedRequest, Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../../api-mocking/MockttpCompat';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
@@ -312,7 +313,7 @@ export class UserStorageMockttpController {
 
   async setupPath(
     path: keyof typeof pathRegexps,
-    server: Mockttp,
+    server: MockttpCompat | Mockttp,
     overrides?: UserStorageMockttpControllerOverrides,
   ) {
     const previouslySetupPath = this.paths.get(path);
@@ -321,7 +322,8 @@ export class UserStorageMockttpController {
       response: overrides?.getResponse || previouslySetupPath?.response || [],
     });
 
-    await server
+    const compat = server as MockttpCompat;
+    await compat
       .forGet('/proxy')
       .matching((request) =>
         pathRegexps[path].test(getDecodedProxiedURL(request.url)),
@@ -330,16 +332,23 @@ export class UserStorageMockttpController {
       .thenCallback((request) =>
         this.onGet(path, request, overrides?.getStatusCode),
       );
-    await server
+    await compat
       .forPut('/proxy')
       .matching((request) =>
         pathRegexps[path].test(getDecodedProxiedURL(request.url)),
       )
       .always()
       .thenCallback((request) =>
-        this.onPut(path, request, overrides?.putStatusCode),
+        this.onPut(
+          path,
+          request as unknown as Pick<
+            CompletedRequest,
+            'url' | 'body' | 'headers'
+          >,
+          overrides?.putStatusCode,
+        ),
       );
-    await server
+    await compat
       .forDelete('/proxy')
       .matching((request) =>
         pathRegexps[path].test(getDecodedProxiedURL(request.url)),

@@ -10,7 +10,7 @@ import { AnvilPort } from '../../../framework/fixtures/FixtureUtils';
 import { loginToApp } from '../../../flows/wallet.flow';
 import { withFixtures } from '../../../framework/fixtures/FixtureHelper';
 import { AnvilManager } from '../../../seeder/anvil-manager';
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import { setupMockRequest } from '../../../api-mocking/helpers/mockHelpers';
 import { getDecodedProxiedURL } from '../../notifications/utils/helpers';
 
@@ -26,7 +26,7 @@ const TEST_ACCOUNT = DEFAULT_FIXTURE_ACCOUNT_CHECKSUM.toLowerCase();
  * causes the app to fetch balances from the Accounts API instead of RPC.
  * Without these mocks, USDC does not appear in the token picker.
  */
-async function setupAccountsApiMocks(mockServer: Mockttp): Promise<void> {
+async function setupAccountsApiMocks(mockServer: MockttpCompat): Promise<void> {
   await setupMockRequest(mockServer, {
     url: /accounts\.api\.cx\.metamask\.io\/v4\/multiaccount\/balances/,
     response: {

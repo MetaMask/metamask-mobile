@@ -4,7 +4,8 @@
  * Merkl rewards, Accounts API balance overrides, and Relay quote/status.
  */
 
-import { Mockttp } from 'mockttp';
+import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../MockttpCompat';
 import { setupRemoteFeatureFlagsMock } from '../../helpers/remoteFeatureFlagsHelper.ts';
 import { setupMockRequest } from '../../helpers/mockHelpers.ts';
 import { getDecodedProxiedURL } from '../../../smoke/notifications/utils/helpers.ts';
@@ -128,7 +129,7 @@ export interface MusdMockOptions {
 }
 
 export async function setupMusdMocks(
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
   options: MusdMockOptions = {},
 ): Promise<void> {
   const { hasMusdBalance = false, musdBalance = 100 } = options;

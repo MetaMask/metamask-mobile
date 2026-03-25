@@ -11,7 +11,7 @@ import {
   UserStorageMockttpController,
   UserStorageMockttpControllerOverrides,
 } from './user-storage/userStorageMockttpController';
-import { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../../../api-mocking/MockttpCompat';
 import {
   USER_STORAGE_GROUPS_FEATURE_KEY,
   USER_STORAGE_WALLETS_FEATURE_KEY,
@@ -26,11 +26,11 @@ export interface IdentityFixtureOptions {
   >;
   sharedUserStorageController?: UserStorageMockttpController;
   mockBalancesAccounts?: string[];
-  testSpecificMock?: (mockServer: Mockttp) => Promise<void>;
+  testSpecificMock?: (mockServer: MockttpCompat) => Promise<void>;
 }
 
 export interface IdentityTestContext {
-  mockServer: Mockttp;
+  mockServer: MockttpCompat;
   userStorageMockttpController: UserStorageMockttpController;
 }
 
@@ -54,7 +54,7 @@ export async function withIdentityFixtures(
 
   let userStorageController: UserStorageMockttpController;
 
-  const testSpecificMock = async (mockServer: Mockttp) => {
+  const testSpecificMock = async (mockServer: MockttpCompat) => {
     if (mockBalancesAccounts.length > 0) {
       await setupAccountMockedBalances(mockServer, mockBalancesAccounts);
     }

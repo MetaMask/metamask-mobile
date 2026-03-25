@@ -3,7 +3,7 @@
  * that are not covered by Infura mocks.
  */
 
-import type { Mockttp } from 'mockttp';
+import type { MockttpCompat } from '../MockttpCompat';
 import type { TestSpecificMock } from '../../framework';
 
 // Ethereum mainnet block-like response
@@ -37,7 +37,7 @@ const LLAMARPC_URL = 'https://eth.llamarpc.com';
  * through the mobile proxy, returning static responses per JSON-RPC method.
  */
 export const CUSTOM_RPC_PROVIDER_MOCKS: TestSpecificMock = async (
-  mockServer: Mockttp,
+  mockServer: MockttpCompat,
 ) => {
   await mockServer
     .forPost('/proxy')

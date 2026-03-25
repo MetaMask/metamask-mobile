@@ -661,36 +661,14 @@ export default class GoMockServer implements Resource {
       forPut: (url) => makeRule('PUT', url),
       forDelete: (url) => makeRule('DELETE', url),
       forHead: (url) => makeRule('HEAD', url),
-      forAnyRequest: () => ({
-        thenCallback: async (handler: MockttpCallback) => {
-          bridge.register({
-            method: '*',
-            predicate: null,
-            jsonBodyMatcher: null,
-            handler,
-            customHeaders: null,
-            priority: 999,
-          });
-        },
-        matching: (predicate: MockttpPredicate) => ({
-          thenCallback: async (handler: MockttpCallback) => {
-            bridge.register({
-              method: '*',
-              predicate,
-              jsonBodyMatcher: null,
-              handler,
-              customHeaders: null,
-              priority: 999,
-            });
+      forAnyRequest: () => makeRule('*', /.+/),
+      getMockedEndpoints: async () =>
+        [
+          {
+            isPending: async () => false,
+            getSeenRequests: async () => bridge.getSeenRequests(),
           },
-        }),
-      }),
-      getMockedEndpoints: async () => [
-        {
-          isPending: async () => false,
-          getSeenRequests: async () => bridge.getSeenRequests(),
-        },
-      ],
+        ] as unknown as import('./MockttpCompat').MockttpCompatEndpoint[],
     };
   }
 }
