@@ -355,7 +355,7 @@ describe('SendTransaction View', () => {
 
     mockUseParamsValues = { orderId: 'test-id-no-crypto' };
     render(SendTransaction, [orderWithoutCrypto]);
-    expect(screen.queryByText('Next')).toBeNull();
+    expect(screen.queryByText('Next')).not.toBeOnTheScreen();
   });
 
   it('calls setOptions when rendering', async () => {
