@@ -56,6 +56,12 @@ jest.mock('./hooks', () => ({
   useOwnedNfts: jest.fn(() => []),
 }));
 
+jest.mock('../../../../UI/NftGrid/NftGridItemBottomSheet', () => {
+  const { View } = jest.requireActual('react-native');
+  return ({ isVisible }: { isVisible: boolean }) =>
+    isVisible ? <View testID="nft-grid-item-bottom-sheet" /> : null;
+});
+
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
   default: jest.fn(() => ({ onLayout: jest.fn() })),
@@ -208,6 +214,23 @@ describe('NFTsSection', () => {
     await act(async () => undefined);
 
     expect(screen.getByText('NFTs')).toBeOnTheScreen();
+  });
+
+  it('opens bottom sheet when an NFT item is long-pressed', () => {
+    jest
+      .requireMock('./hooks')
+      .useOwnedNfts.mockReturnValue([mockNft('0x123', '1')]);
+
+    renderWithProvider(
+      <NFTsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      { state: stateWithNftPreferences },
+    );
+
+    expect(screen.queryByTestId('nft-grid-item-bottom-sheet')).toBeNull();
+
+    fireEvent(screen.getByTestId('collectible-NFT 1-1'), 'longPress');
+
+    expect(screen.getByTestId('nft-grid-item-bottom-sheet')).toBeOnTheScreen();
   });
 
   it('exposes refresh function via ref that calls useNftRefresh.onRefresh', async () => {
