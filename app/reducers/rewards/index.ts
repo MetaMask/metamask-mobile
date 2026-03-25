@@ -532,10 +532,15 @@ const rewardsSlice = createSlice({
     ) => {
       state.ondoCampaignLeaderboard = action.payload;
       state.ondoCampaignLeaderboardError = false;
-      // Set the first tier as selected if not already set
-      if (action.payload && !state.ondoCampaignLeaderboardSelectedTier) {
+      // Set the first tier as selected if not already set, or if the current
+      // selection no longer exists in the incoming data (e.g. different campaign)
+      if (action.payload) {
         const tierNames = Object.keys(action.payload.tiers);
-        if (tierNames.length > 0) {
+        if (
+          tierNames.length > 0 &&
+          (!state.ondoCampaignLeaderboardSelectedTier ||
+            !tierNames.includes(state.ondoCampaignLeaderboardSelectedTier))
+        ) {
           state.ondoCampaignLeaderboardSelectedTier = tierNames[0];
         }
       }

@@ -4904,6 +4904,18 @@ describe('setOndoCampaignLeaderboard', () => {
     expect(state.ondoCampaignLeaderboardSelectedTier).toBe('MID');
   });
 
+  it('should reset selected tier to first when current selection does not exist in new data', () => {
+    const stateWithStaleSelection: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboardSelectedTier: 'UPPER',
+    };
+    const action = setOndoCampaignLeaderboard(mockLeaderboard);
+
+    const state = rewardsReducer(stateWithStaleSelection, action);
+
+    expect(state.ondoCampaignLeaderboardSelectedTier).toBe('STARTER');
+  });
+
   it('should set leaderboard to null', () => {
     const stateWithLeaderboard: RewardsState = {
       ...initialState,
