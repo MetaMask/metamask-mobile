@@ -1,6 +1,6 @@
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../tags';
+import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
@@ -19,11 +19,11 @@ import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFea
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
 
 const logger = createLogger({
-  name: 'PerpsPositionSpec',
+  name: 'PerpsPositionLiquidationSpec',
   level: LogLevel.INFO,
 });
 
-describe(RegressionTrade('Perps Position'), () => {
+describe(SmokePerps('Perps Position Liquidation'), () => {
   it('opens a long position with custom profit and closes it', async () => {
     await withFixtures(
       {

@@ -1,6 +1,6 @@
 import { loginToApp } from '../../flows/wallet.flow';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
-import { RegressionTrade } from '../../tags';
+import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
@@ -20,7 +20,7 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
-describe(RegressionTrade('Perps Position'), () => {
+describe(SmokePerps('Perps Position'), () => {
   it('opens a long position with custom profit and closes it', async () => {
     await withFixtures(
       {
