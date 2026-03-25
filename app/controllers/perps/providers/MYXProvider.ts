@@ -151,6 +151,22 @@ import {
 
 const MYX_NOT_SUPPORTED_ERROR = 'MYX trading not yet supported';
 
+/** Shape of SDK result.data for write operations (order placement, close, TP/SL). */
+type MYXTxResultData = { transactionHash?: string; orderId?: string };
+
+/**
+ * Safely extract transaction result data from SDK response.
+ *
+ * @param data - Raw result.data from the MYX SDK.
+ * @returns Typed result with transactionHash/orderId, or undefined if not an object.
+ */
+function extractTxResult(data: unknown): MYXTxResultData | undefined {
+  if (data && typeof data === 'object') {
+    return data as MYXTxResultData;
+  }
+  return undefined;
+}
+
 // ============================================================================
 // MYXProvider
 // ============================================================================
@@ -991,9 +1007,7 @@ export class MYXProvider implements PerpsProvider {
       }
 
       // Extract transaction hash if available
-      const data = result.data as
-        | { transactionHash?: string; orderId?: string }
-        | undefined;
+      const data = extractTxResult(result.data);
 
       this.#deps.debugLogger.log('[MYXProvider.placeOrder] SUCCESS', {
         orderId: data?.transactionHash ?? data?.orderId,
@@ -1354,9 +1368,7 @@ export class MYXProvider implements PerpsProvider {
         };
       }
 
-      const data = result.data as
-        | { transactionHash?: string; orderId?: string }
-        | undefined;
+      const data = extractTxResult(result.data);
 
       return {
         success: true,
@@ -1543,9 +1555,7 @@ export class MYXProvider implements PerpsProvider {
         };
       }
 
-      const data = result.data as
-        | { transactionHash?: string; orderId?: string }
-        | undefined;
+      const data = extractTxResult(result.data);
 
       return {
         success: true,

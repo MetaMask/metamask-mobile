@@ -9,7 +9,6 @@
  */
 
 import type {
-  ChainId,
   KlineDataItemType,
   KlineResolution,
   KlineDataResponse,
@@ -17,7 +16,7 @@ import type {
   PositionTpSlOrderParams,
   SignerLike,
 } from '@myx-trade/sdk';
-import { MyxClient } from '@myx-trade/sdk';
+import { ChainId , MyxClient } from '@myx-trade/sdk';
 
 import {
   MYX_PRICE_POLLING_INTERVAL_MS,
@@ -495,7 +494,8 @@ export class MYXClientService {
       this.#myxClient.auth({
         signer,
         getAccessToken,
-        walletClient: walletClient as never,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        walletClient: walletClient as any,
       });
 
       this.#authenticatedAddress = address.toLowerCase();
@@ -1034,7 +1034,7 @@ export class MYXClientService {
       });
 
       const result = await this.#myxClient.markets.getBaseDetail({
-        chainId: this.#chainId as never,
+        chainId: this.#chainId as ChainId,
         poolId,
       });
 
@@ -1273,7 +1273,7 @@ export class MYXClientService {
       // SDK expects ChainId enum — numeric values match at runtime
       const result = await this.#myxClient.order.cancelOrder(
         orderId,
-        chainId as never,
+        chainId as ChainId,
       );
       return result as { code: number; message?: string; data?: unknown };
     } catch (caughtError) {
@@ -1469,7 +1469,7 @@ export class MYXClientService {
 
       const result = await this.#myxClient.order.cancelOrders(
         orderIds,
-        chainId as never,
+        chainId as ChainId,
       );
       return result as { code: number; message?: string; data?: unknown };
     } catch (caughtError) {

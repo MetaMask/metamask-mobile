@@ -15,8 +15,13 @@
 
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
 import type { TypedMessageParams } from '@metamask/keyring-controller';
+import type {
+  TransactionParams,
+  AddTransactionOptions,
+} from '@metamask/transaction-controller';
 import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
+
 
 import {
   getMYXChainId,
@@ -259,24 +264,27 @@ export class MYXWalletService {
             }
           }
 
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const txData: TransactionParams = {
+            from: (txParams.from ?? evmAccount.address) as Hex,
+            to: txParams.to as Hex,
+            data: txParams.data as Hex,
+            value: (txParams.value ?? '0x0') as Hex,
+            gas: txParams.gas ?? txParams.gasLimit,
+            ...gasPriceFields,
+          };
+
+          const txOptions: AddTransactionOptions = {
+            networkClientId,
+            origin: 'metamask-perps-myx',
+            // User already confirmed intent via the perps UI (Place Order / Close Position).
+            // Showing a second native tx approval would be confusing UX.
+            requireApproval: false,
+          };
+
           const result = await this.#messenger.call(
             'TransactionController:addTransaction',
-            {
-              from: (txParams.from ?? evmAccount.address) as Hex,
-              to: txParams.to as Hex,
-              data: txParams.data as Hex,
-              value: (txParams.value ?? '0x0') as Hex,
-              gas: txParams.gas ?? txParams.gasLimit,
-              ...gasPriceFields,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any,
-            {
-              networkClientId,
-              origin: 'metamask-perps-myx',
-              requireApproval: false,
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            } as any,
+            txData,
+            txOptions,
           );
           const hash = await result.result;
           return hash;
