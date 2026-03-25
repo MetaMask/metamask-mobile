@@ -16,19 +16,20 @@ const styleSheet = (params: { theme: Theme; vars: { height: number } }) =>
       backgroundColor: params.theme.colors.background.default,
       overflow: 'visible',
     },
-    loadingContainer: {
-      position: 'absolute',
-      top: 0,
-      left: 0,
-      right: 0,
-      bottom: 0,
-      justifyContent: 'center',
-      alignItems: 'center',
-      backgroundColor: params.theme.colors.background.default,
+    /** Wraps WebView + loading skeleton; matches Perps TradingViewChart chart surface. */
+    chartSurface: {
+      flex: 1,
+      width: '100%',
+      overflow: 'hidden',
+      position: 'relative',
     },
-    loadingText: {
-      marginTop: 12,
-      color: params.theme.colors.text.muted,
+    /** Same pattern as Perps `TradingViewChart` skeleton over the WebView until `CHART_READY`. */
+    skeletonOverlay: {
+      position: 'absolute',
+      zIndex: 10,
+      width: '100%',
+      height: params.vars.height,
+      backgroundColor: params.theme.colors.background.default,
     },
     errorContainer: {
       flex: 1,

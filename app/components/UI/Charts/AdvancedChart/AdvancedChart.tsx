@@ -7,9 +7,10 @@ import React, {
   useState,
   forwardRef,
 } from 'react';
-import { View, ActivityIndicator } from 'react-native';
+import { View } from 'react-native';
 import { WebView, WebViewMessageEvent } from '@metamask/react-native-webview';
 import { Text, TextVariant } from '@metamask/design-system-react-native';
+import { Skeleton } from '../../../../component-library/components-temp/Skeleton';
 import { useStyles } from '../../../../component-library/hooks';
 import styleSheet, { DEFAULT_CHART_HEIGHT } from './AdvancedChart.styles';
 import {
@@ -374,37 +375,35 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
     return (
       <View style={styles.container}>
-        <WebView
-          ref={webViewRef}
-          source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
-          style={styles.webview}
-          onMessage={handleMessage}
-          onError={handleWebViewError}
-          onLoadEnd={handleLoadEnd}
-          originWhitelist={['*']}
-          javaScriptEnabled
-          domStorageEnabled
-          webviewDebuggingEnabled={__DEV__}
-          scrollEnabled={false}
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          showsVerticalScrollIndicator={false}
-          allowsInlineMediaPlayback
-          androidLayerType="hardware"
-          mixedContentMode="always"
-        />
-
-        {(isLoading || !isChartReady) && (
-          <View style={styles.loadingContainer}>
-            <ActivityIndicator
-              size="large"
-              color={theme.colors.primary.default}
+        <View style={styles.chartSurface}>
+          <WebView
+            ref={webViewRef}
+            source={{ html: htmlContent, baseUrl: CHARTING_LIBRARY_BASE_URL }}
+            style={styles.webview}
+            onMessage={handleMessage}
+            onError={handleWebViewError}
+            onLoadEnd={handleLoadEnd}
+            originWhitelist={['*']}
+            javaScriptEnabled
+            domStorageEnabled
+            webviewDebuggingEnabled={__DEV__}
+            scrollEnabled={false}
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            showsVerticalScrollIndicator={false}
+            allowsInlineMediaPlayback
+            androidLayerType="hardware"
+            mixedContentMode="always"
+          />
+          {(isLoading || !isChartReady) && (
+            <Skeleton
+              height={height}
+              width="100%"
+              style={styles.skeletonOverlay}
+              testID="advanced-chart-skeleton"
             />
-            <Text variant={TextVariant.BodySm} style={styles.loadingText}>
-              Loading chart...
-            </Text>
-          </View>
-        )}
+          )}
+        </View>
       </View>
     );
   },

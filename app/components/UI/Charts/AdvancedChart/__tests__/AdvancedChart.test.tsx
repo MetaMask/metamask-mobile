@@ -37,15 +37,15 @@ describe('AdvancedChart', () => {
   });
 
   it('renders without crashing', () => {
-    const { getByText } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
-    expect(getByText('Loading chart...')).toBeOnTheScreen();
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
   });
 
   it('shows loading overlay when isLoading is true', () => {
-    const { getByText } = render(
+    const { getByTestId } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} isLoading />,
     );
-    expect(getByText('Loading chart...')).toBeOnTheScreen();
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
   });
 
   it('sends OHLCV data on WebView load end', () => {
@@ -331,7 +331,7 @@ describe('AdvancedChart', () => {
 
   it('resets chart state when htmlContent changes so sync effects re-fire', () => {
     const onChartReady = jest.fn();
-    const { getByTestId, getByText, rerender } = render(
+    const { getByTestId, rerender } = render(
       <AdvancedChart
         ohlcvData={MOCK_BARS}
         onChartReady={onChartReady}
@@ -365,7 +365,7 @@ describe('AdvancedChart', () => {
       />,
     );
 
-    expect(getByText('Loading chart...')).toBeOnTheScreen();
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
 
     act(() => {
       webView.props.onLoadEnd();
@@ -432,6 +432,6 @@ describe('AdvancedChart', () => {
     });
 
     expect(queryByText(/Load failed/)).not.toBeOnTheScreen();
-    expect(getByText('Loading chart...')).toBeOnTheScreen();
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
   });
 });
