@@ -184,6 +184,7 @@ module.exports = {
         'app/components/**/*.{js,jsx,ts,tsx}',
         'app/component-library/**/*.{js,jsx,ts,tsx}',
       ],
+      excludedFiles: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
       },
@@ -228,6 +229,7 @@ module.exports = {
         'app/component-library/**/*.{js,ts,tsx}',
         'app/components/**/*.{js,ts,tsx}',
       ],
+      excludedFiles: ['**/*.test.{js,ts,tsx}', '**/*.stories.{js,ts,tsx}'],
       plugins: ['tailwindcss'],
       rules: {
         '@metamask/design-tokens/color-no-hex': 'error',
