@@ -1,14 +1,16 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import CampaignDetailsView, {
+import OndoCampaignDetailsView, {
   CAMPAIGN_DETAILS_TEST_IDS,
-} from './CampaignDetailsView';
+} from './OndoCampaignDetailsView';
+import { CAMPAIGN_JOIN_CTA_TEST_IDS } from '../components/Campaigns/CampaignJoinCTA';
 import {
   type CampaignDto,
   CampaignType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
+import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -120,6 +122,28 @@ jest.mock('../components/Campaigns/CampaignHowItWorks', () => {
   };
 });
 
+jest.mock('../components/Campaigns/OndoLeaderboard', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, { testID: 'ondo-leaderboard' }),
+  };
+});
+
+jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'ondo-leaderboard-position',
+      }),
+  };
+});
+
 jest.mock('../components/Campaigns/CampaignOptInSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -175,6 +199,11 @@ const mockUseGetCampaignParticipantStatus =
     typeof useGetCampaignParticipantStatus
   >;
 
+jest.mock('../hooks/useGetOndoLeaderboard');
+const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
+  typeof useGetOndoLeaderboard
+>;
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -190,18 +219,26 @@ jest.mock('../../../../../locales/i18n', () => ({
 
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
-): CampaignDto => ({
-  id: 'campaign-1',
-  type: CampaignType.ONDO_HOLDING,
-  name: 'Test Campaign',
-  startDate: '2027-01-01T00:00:00.000Z',
-  endDate: '2027-12-31T23:59:59.999Z',
-  termsAndConditions: null,
-  excludedRegions: [],
-  statusLabel: 'Active',
-  details: null,
-  ...overrides,
-});
+): CampaignDto => {
+  const now = new Date();
+  const yesterday = new Date(now);
+  yesterday.setDate(yesterday.getDate() - 1);
+  const nextMonth = new Date(now);
+  nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+  return {
+    id: 'campaign-1',
+    type: CampaignType.ONDO_HOLDING,
+    name: 'Test Campaign',
+    startDate: yesterday.toISOString(),
+    endDate: nextMonth.toISOString(),
+    termsAndConditions: null,
+    excludedRegions: [],
+    details: null,
+    featured: true,
+    ...overrides,
+  };
+};
 
 const mockFetchCampaigns = jest.fn();
 const emptyCategorized = { active: [], upcoming: [], previous: [] };
@@ -209,11 +246,12 @@ const hookDefaults = {
   campaigns: [],
   categorizedCampaigns: emptyCategorized,
   isLoading: false,
+  hasLoaded: false,
   hasError: false,
   fetchCampaigns: mockFetchCampaigns,
 };
 
-describe('CampaignDetailsView', () => {
+describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
@@ -223,6 +261,17 @@ describe('CampaignDetailsView', () => {
       hasError: false,
       refetch: jest.fn(),
     });
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      leaderboard: null,
+      isLoading: false,
+      hasError: false,
+      tierNames: [],
+      selectedTier: null,
+      selectedTierData: null,
+      computedAt: null,
+      setSelectedTier: jest.fn(),
+      refetch: jest.fn(),
+    });
   });
 
   it('renders the container', () => {
@@ -230,7 +279,7 @@ describe('CampaignDetailsView', () => {
       ...hookDefaults,
       campaigns: [createTestCampaign()],
     });
-    const { getByTestId } = render(<CampaignDetailsView />);
+    const { getByTestId } = render(<OndoCampaignDetailsView />);
     expect(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CONTAINER)).toBeDefined();
   });
 
@@ -239,7 +288,7 @@ describe('CampaignDetailsView', () => {
       ...hookDefaults,
       campaigns: [createTestCampaign({ name: 'My Special Campaign' })],
     });
-    const { getAllByText } = render(<CampaignDetailsView />);
+    const { getAllByText } = render(<OndoCampaignDetailsView />);
     // Name appears in both the header title and the CampaignStatus mock
     expect(getAllByText('My Special Campaign').length).toBeGreaterThan(0);
   });
@@ -251,7 +300,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [],
         isLoading: true,
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('error-banner')).toBeNull();
       expect(queryByTestId('campaign-status')).toBeNull();
     });
@@ -264,7 +313,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [],
         hasError: true,
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('error-banner')).toBeDefined();
     });
 
@@ -274,7 +323,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [],
         hasError: true,
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       fireEvent.press(getByTestId('error-retry-button'));
       expect(mockFetchCampaigns).toHaveBeenCalledTimes(1);
     });
@@ -285,7 +334,7 @@ describe('CampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
         hasError: true,
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('error-banner')).toBeNull();
     });
   });
@@ -296,7 +345,7 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('campaign-status')).toBeDefined();
     });
 
@@ -306,10 +355,6 @@ describe('CampaignDetailsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Description',
@@ -319,7 +364,7 @@ describe('CampaignDetailsView', () => {
           }),
         ],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       expect(getByTestId('campaign-how-it-works')).toBeDefined();
     });
 
@@ -328,8 +373,38 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign({ details: null })],
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('campaign-how-it-works')).toBeNull();
+    });
+
+    it('renders OndoLeaderboardPosition when participant is opted in', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+    });
+
+    it('does not render OndoLeaderboardPosition when participant is not opted in', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: false, participantCount: 0 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
     });
   });
 
@@ -340,8 +415,8 @@ describe('CampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
       });
       // status null → participantStatus?.optedIn !== true
-      const { getByTestId } = render(<CampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
     });
 
     it('renders the join CTA when participant is not opted in', () => {
@@ -355,8 +430,8 @@ describe('CampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
     });
 
     it('does not render the CTA when participant is already opted in', () => {
@@ -370,8 +445,8 @@ describe('CampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { queryByTestId } = render(<CampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeNull();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
     it('renders the CTA as disabled and loading when participant status is loading', () => {
@@ -385,8 +460,8 @@ describe('CampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { getByTestId, getByText } = render(<CampaignDetailsView />);
-      const cta = getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON);
+      const { getByTestId, getByText } = render(<OndoCampaignDetailsView />);
+      const cta = getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON);
       expect(cta).toBeDefined();
       expect(
         cta.props.isDisabled ?? cta.props.accessibilityState?.disabled,
@@ -395,8 +470,8 @@ describe('CampaignDetailsView', () => {
     });
 
     it('does not render CTA when no campaign is loaded', () => {
-      const { queryByTestId } = render(<CampaignDetailsView />);
-      expect(queryByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON)).toBeNull();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
     it('opens the opt-in sheet when CTA is pressed', () => {
@@ -404,9 +479,140 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
-      fireEvent.press(getByTestId(CAMPAIGN_DETAILS_TEST_IDS.CTA_BUTTON));
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      fireEvent.press(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON));
       expect(getByTestId('campaign-opt-in-sheet')).toBeDefined();
+    });
+
+    it('redirects to campaigns view when campaign is upcoming', () => {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const nextMonth = new Date();
+      nextMonth.setMonth(nextMonth.getMonth() + 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: tomorrow.toISOString(),
+            endDate: nextMonth.toISOString(),
+          }),
+        ],
+      });
+      render(<OndoCampaignDetailsView />);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.REWARDS_CAMPAIGNS_VIEW);
+    });
+
+    it('does not render the CTA when campaign is complete', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
+    });
+  });
+
+  describe('leaderboard position', () => {
+    it('shows OndoLeaderboardPosition when participant is opted in', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-leaderboard-position')).toBeDefined();
+    });
+
+    it('does not show OndoLeaderboardPosition when not opted in and campaign is active', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
+    });
+
+    it('shows OndoLeaderboard when not opted in and campaign is complete', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { getByTestId, queryByTestId } = render(
+        <OndoCampaignDetailsView />,
+      );
+      expect(getByTestId('ondo-leaderboard')).toBeDefined();
+      expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
+    });
+
+    it('does not show OndoLeaderboard when not opted in and campaign is active', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-leaderboard')).toBeNull();
+    });
+
+    it('does not show leaderboard section header when campaign is complete and not opted in', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { queryByText } = render(<OndoCampaignDetailsView />);
+      expect(queryByText('rewards.ondo_campaign_leaderboard.title')).toBeNull();
+    });
+
+    it('shows leaderboard section header when opted in', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      const { getByText } = render(<OndoCampaignDetailsView />);
+      expect(
+        getByText('rewards.ondo_campaign_leaderboard.title'),
+      ).toBeDefined();
     });
   });
 
@@ -416,7 +622,7 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       fireEvent.press(getByTestId('header-back-button'));
       expect(mockGoBack).toHaveBeenCalledTimes(1);
     });
@@ -426,11 +632,14 @@ describe('CampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<CampaignDetailsView />);
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
       fireEvent.press(getByTestId('campaign-details-mechanics-button'));
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.CAMPAIGN_MECHANICS, {
-        campaignId: 'campaign-1',
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.REWARDS_CAMPAIGN_MECHANICS,
+        {
+          campaignId: 'campaign-1',
+        },
+      );
     });
   });
 });
