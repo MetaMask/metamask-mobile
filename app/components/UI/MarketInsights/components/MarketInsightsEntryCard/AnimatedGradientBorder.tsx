@@ -138,7 +138,6 @@ const AnimatedGradientBorder: React.FC<AnimatedGradientBorderProps> = ({
     if (!dimensions || !shouldAnimate || hasAnimated.current) return;
     hasAnimated.current = true;
 
-    // TODO: remove withRepeat / withSequence / withDelay once testing is done
     progress.value = withRepeat(
       withSequence(
         withTiming(1, {
@@ -147,7 +146,7 @@ const AnimatedGradientBorder: React.FC<AnimatedGradientBorderProps> = ({
         }),
         withDelay(1500, withTiming(0, { duration: 0 })),
       ),
-      -1,
+      2,
     );
 
     return () => {

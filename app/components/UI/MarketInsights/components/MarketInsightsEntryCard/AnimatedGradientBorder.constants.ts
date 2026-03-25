@@ -32,8 +32,8 @@ export const BORDER_GRADIENT_COLORS = [
   '#1C1D1F',
 ] as const;
 
-/** Fraction of the card that must be visible on-screen to trigger the animation */
-export const VISIBILITY_THRESHOLD = 0.8;
+/** Fraction of the card that must be visible on-screen to trigger the animation (1 = fully visible) */
+export const VISIBILITY_THRESHOLD = 1;
 
 /** How often (ms) to poll visibility via measureInWindow */
 export const VISIBILITY_CHECK_INTERVAL_MS = 150;
