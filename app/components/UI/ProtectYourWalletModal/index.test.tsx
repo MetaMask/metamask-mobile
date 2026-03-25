@@ -7,23 +7,15 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { analytics } from '../../../util/analytics/analytics';
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
 }));
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({
-    name: 'Wallet Security Reminder Engaged',
-    properties: { source: 'Modal', wallet_protection_required: false },
-    saveDataRecording: true,
-    sensitiveProperties: {},
-  }),
-}));
+const mockTrackEvent = jest.mocked(analytics.trackEvent);
 
 const mockStore = configureMockStore();
 
@@ -60,13 +52,6 @@ const renderModal = (storeOverride?: ReturnType<typeof mockStore>) => {
 describe('ProtectYourWalletModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-        isEnabled: jest.fn().mockReturnValue(true),
-      }),
-    );
   });
 
   describe('rendering', () => {
@@ -159,7 +144,7 @@ describe('ProtectYourWalletModal', () => {
           expect.objectContaining({
             name: 'Wallet Security Reminder Engaged',
             properties: { source: 'Modal', wallet_protection_required: false },
-            saveDataRecording: true,
+            saveDataRecording: false,
             sensitiveProperties: {},
           }),
         );
