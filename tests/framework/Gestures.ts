@@ -533,18 +533,16 @@ export default class Gestures {
         const scrollable = await scrollableContainer;
 
         if (device.getPlatform() === 'android') {
-          const scrollableElement = element(scrollable);
           try {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(
-              scrollAmount,
-              direction,
-              startPositionX,
-              startPositionY,
-            );
-            await waitFor(target).toBeVisible().withTimeout(100);
+            // Single element().scroll() on FlatList is unreliable on Android; mirror iOS by
+            // scrolling the scrollable until the target is visible (Detox polls between scrolls).
+            await waitFor(target)
+              .toBeVisible()
+              .whileElement(scrollable)
+              .scroll(scrollAmount, direction, startPositionX, startPositionY);
           }
         } else {
           await waitFor(target)

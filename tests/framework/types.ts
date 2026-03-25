@@ -404,6 +404,11 @@ export interface WithFixturesOptions {
   dapps?: DappOptions[];
   localNodeOptions?: LocalNodeOptionsInput;
   testSpecificMock?: TestSpecificMock;
+  /**
+   * Merged into the final {@link setupRemoteFeatureFlagsMock} call (after
+   * testSpecificMock) so flags are not overwritten by defaults.
+   */
+  remoteFeatureFlagOverrides?: Record<string, unknown>;
   launchArgs?: Partial<LaunchArgs>;
   languageAndLocale?: LanguageAndLocale;
   permissions?: Record<string, unknown>;

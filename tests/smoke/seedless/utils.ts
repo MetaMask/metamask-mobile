@@ -162,7 +162,7 @@ export const lockApp = async (): Promise<void> => {
 export const unlockApp = async (
   password: string = TEST_PASSWORD,
 ): Promise<void> => {
-  await loginToApp(password);
+  await loginToApp(password, { skipWalletAutoUnlock: true });
 };
 
 /**

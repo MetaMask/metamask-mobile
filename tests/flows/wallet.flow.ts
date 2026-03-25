@@ -376,6 +376,15 @@ export const switchToSepoliaNetwork = async (): Promise<void> => {
   }
 };
 
+export interface LoginToAppOptions {
+  /**
+   * Use after an explicit lock: skip the "wallet already visible" probe so we do not
+   * spend ~12s per retry waiting for a screen that cannot appear while on Login.
+   * Also stabilizes on the login screen only during {@link waitForAppReady}.
+   */
+  skipWalletAutoUnlock?: boolean;
+}
+
 /**
  * Wait for app readiness and retry logic to handle rehydration flakiness.
  * Logs into the application using the provided password or a default password.
@@ -383,14 +392,22 @@ export const switchToSepoliaNetwork = async (): Promise<void> => {
  * @async
  * @function loginToApp
  * @param {string} [password] - The password to use for login. If not provided, defaults to '123123123'.
+ * @param {LoginToAppOptions} [options] - Optional behavior (e.g. post-lock unlock).
  * @returns {Promise<void>} A promise that resolves when the login process is complete.
  * @throws {Error} Throws an error if the login view container or password input is not visible after all retries.
  */
-export const loginToApp = async (password?: string): Promise<void> => {
+export const loginToApp = async (
+  password?: string,
+  options: LoginToAppOptions = {},
+): Promise<void> => {
   const PASSWORD = password ?? '123123123';
+  const { skipWalletAutoUnlock = false } = options;
 
   // Wait for app to complete rehydration ONCE before attempting login
-  await waitForAppReady();
+  await waitForAppReady(
+    20000,
+    skipWalletAutoUnlock ? { allowUnlockedWallet: false } : {},
+  );
 
   await PredictGTMModal.dismissIfVisible();
 
@@ -398,24 +415,26 @@ export const loginToApp = async (password?: string): Promise<void> => {
     async () => {
       // Settings lock uses reset: false — keychain unlock may finish during this window,
       // after login looked stable in waitForAppReady. Re-check wallet on every retry.
-      try {
-        await Assertions.expectElementToBeVisible(WalletView.safeArea, {
-          description:
-            'Wallet home mounted (keychain auto-unlock or already signed in)',
-          timeout: 12000,
-        });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description:
-            'Wallet after rehydration (keychain auto-unlock or already signed in)',
-          timeout: 12000,
-        });
-        await Assertions.expectElementToBeVisible(WalletView.container, {
-          description: 'Wallet container should stay visible',
-          timeout: 8000,
-        });
-        return;
-      } catch {
-        // Password login path
+      if (!skipWalletAutoUnlock) {
+        try {
+          await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+            description:
+              'Wallet home mounted (keychain auto-unlock or already signed in)',
+            timeout: 12000,
+          });
+          await Assertions.expectElementToBeVisible(WalletView.container, {
+            description:
+              'Wallet after rehydration (keychain auto-unlock or already signed in)',
+            timeout: 12000,
+          });
+          await Assertions.expectElementToBeVisible(WalletView.container, {
+            description: 'Wallet container should stay visible',
+            timeout: 8000,
+          });
+          return;
+        } catch {
+          // Password login path
+        }
       }
 
       await Assertions.expectElementToBeVisible(LoginView.container, {
@@ -442,14 +461,17 @@ export const loginToApp = async (password?: string): Promise<void> => {
       );
       await LoginView.tapLoginButton();
 
+      // Predict GTM can present immediately after navigation to home and block wallet testIDs.
+      await PredictGTMModal.dismissIfVisible();
+
       // Home mounts before the internal account is selected; wallet-screen only exists then.
       await Assertions.expectElementToBeVisible(WalletView.safeArea, {
         description: 'Wallet safe area visible after unlock (home mounted)',
-        timeout: 25000,
+        timeout: 35000,
       });
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should be visible after login',
-        timeout: 25000,
+        timeout: 35000,
       });
 
       await sleep(1000);
@@ -459,7 +481,7 @@ export const loginToApp = async (password?: string): Promise<void> => {
       });
     },
     {
-      timeout: 60000,
+      timeout: skipWalletAutoUnlock ? 120000 : 60000,
       interval: 2000,
       description: 'login to app after rehydration',
     },

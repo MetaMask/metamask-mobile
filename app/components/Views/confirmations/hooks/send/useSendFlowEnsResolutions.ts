@@ -9,8 +9,47 @@ const CACHE_TTL = 5 * 60 * 1000;
 
 const ensResolutionCache = new Map<string, CacheEntry>();
 
+/**
+ * Normalize EVM chain IDs so lookups match regardless of representation
+ * (e.g. `0x1` vs `0x01`, decimal `"1"`, or CAIP-2 `eip155:1`). Send flow and
+ * transaction metadata can use different string forms for the same chain.
+ */
+function normalizeChainIdForEnsCache(chainId: string): string {
+  const trimmed = chainId.trim();
+  if (trimmed.length === 0) {
+    return trimmed;
+  }
+  const lower = trimmed.toLowerCase();
+  if (lower.startsWith('eip155:')) {
+    const ref = lower.split(':')[1];
+    if (!ref) {
+      return lower;
+    }
+    try {
+      return `0x${BigInt(ref).toString(16)}`;
+    } catch {
+      return lower;
+    }
+  }
+  if (/^0x[0-9a-f]+$/iu.test(trimmed)) {
+    try {
+      return `0x${BigInt(trimmed).toString(16)}`;
+    } catch {
+      return lower;
+    }
+  }
+  if (/^\d+$/u.test(trimmed)) {
+    try {
+      return `0x${BigInt(trimmed).toString(16)}`;
+    } catch {
+      return lower;
+    }
+  }
+  return lower;
+}
+
 const createCacheKey = (chainId: string, address: string) =>
-  `${chainId}:${address}`;
+  `${normalizeChainIdForEnsCache(chainId)}:${address.toLowerCase()}`;
 
 const isCacheEntryValid = (entry: CacheEntry): boolean =>
   Date.now() - entry.timestamp < CACHE_TTL;
@@ -28,17 +67,12 @@ export const useSendFlowEnsResolutions = () => {
         return;
       }
 
-      const lowerCaseChainId = chainId.toLowerCase();
-      const lowerCaseAddress = address.toLowerCase();
       const lowerCaseEnsName = ensName.toLowerCase();
 
-      ensResolutionCache.set(
-        createCacheKey(lowerCaseChainId, lowerCaseAddress),
-        {
-          ensName: lowerCaseEnsName,
-          timestamp: Date.now(),
-        },
-      );
+      ensResolutionCache.set(createCacheKey(chainId, address), {
+        ensName: lowerCaseEnsName,
+        timestamp: Date.now(),
+      });
     },
     [],
   );
@@ -49,20 +83,13 @@ export const useSendFlowEnsResolutions = () => {
         return undefined;
       }
 
-      const lowerCaseChainId = chainId.toLowerCase();
-      const lowerCaseAddress = address.toLowerCase();
-
-      const entry = ensResolutionCache.get(
-        createCacheKey(lowerCaseChainId, lowerCaseAddress),
-      );
+      const entry = ensResolutionCache.get(createCacheKey(chainId, address));
       if (entry && isCacheEntryValid(entry)) {
         return entry.ensName;
       }
 
       if (entry) {
-        ensResolutionCache.delete(
-          createCacheKey(lowerCaseChainId, lowerCaseAddress),
-        );
+        ensResolutionCache.delete(createCacheKey(chainId, address));
       }
       return undefined;
     },

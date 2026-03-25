@@ -1,5 +1,5 @@
-import React from 'react';
-import { View } from 'react-native';
+import React, { useState } from 'react';
+import { Pressable, View } from 'react-native';
 
 import { ConfirmationRowComponentIDs } from '../../../../ConfirmationView.testIds';
 import { useTransactionMetadataRequest } from '../../../../hooks/transactions/useTransactionMetadataRequest';
@@ -21,6 +21,7 @@ import useDisplayName, {
   DisplayNameVariant,
 } from '../../../../../../hooks/DisplayName/useDisplayName';
 import { toFormattedAddress } from '../../../../../../../util/address';
+import { TooltipModal } from '../../../UI/Tooltip';
 import styleSheet from './from-to-row.styles';
 
 interface AddressDisplayProps {
@@ -28,6 +29,8 @@ interface AddressDisplayProps {
   displayText: string;
   image?: string;
   label: React.ReactNode;
+  /** When true, tap opens a modal with the full raw address. */
+  showAddressTooltipOnPress?: boolean;
 }
 
 const AddressDisplay = ({
@@ -35,20 +38,39 @@ const AddressDisplay = ({
   displayText,
   image,
   label,
+  showAddressTooltipOnPress = false,
 }: AddressDisplayProps) => {
   const { styles } = useStyles(styleSheet, {});
+  const [tooltipVisible, setTooltipVisible] = useState(false);
+
+  const displayTextElement = (
+    <Text variant={TextVariant.BodyMD} numberOfLines={1} ellipsizeMode="middle">
+      {displayText}
+    </Text>
+  );
 
   return (
     <View style={styles.addressRow}>
       <View style={styles.addressContent}>
         {label}
-        <Text
-          variant={TextVariant.BodyMD}
-          numberOfLines={1}
-          ellipsizeMode="middle"
-        >
-          {displayText}
-        </Text>
+        {showAddressTooltipOnPress ? (
+          <>
+            <Pressable
+              accessibilityRole="button"
+              onPress={() => setTooltipVisible(true)}
+            >
+              {displayTextElement}
+            </Pressable>
+            <TooltipModal
+              open={tooltipVisible}
+              setOpen={setTooltipVisible}
+              content={address}
+              title={displayText}
+            />
+          </>
+        ) : (
+          displayTextElement
+        )}
       </View>
       <Identicon
         address={address}
@@ -137,6 +159,7 @@ const FromToRow = () => {
             address={toAddress as string}
             displayText={toDisplayText}
             image={toImage}
+            showAddressTooltipOnPress
             label={
               <View style={styles.labelRow}>
                 <AlertRow
