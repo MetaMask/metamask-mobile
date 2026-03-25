@@ -375,6 +375,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   readonly #messenger: PerpsControllerMessengerBase;
 
+  readonly #builderAddressTestnet?: string;
+
+  readonly #builderAddressMainnet?: string;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -384,9 +388,13 @@ export class HyperLiquidProvider implements PerpsProvider {
     platformDependencies: PerpsPlatformDependencies;
     messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
+    builderAddressTestnet?: string;
+    builderAddressMainnet?: string;
   }) {
     this.#deps = options.platformDependencies;
     this.#messenger = options.messenger;
+    this.#builderAddressTestnet = options.builderAddressTestnet;
+    this.#builderAddressMainnet = options.builderAddressMainnet;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -8035,9 +8043,13 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   #getBuilderAddress(isTestnet: boolean): string {
-    return isTestnet
-      ? BUILDER_FEE_CONFIG.TestnetBuilder
-      : BUILDER_FEE_CONFIG.MainnetBuilder;
+    // || intentional: env vars default to '' which must fall through to the hardcoded default
+    if (isTestnet) {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      return this.#builderAddressTestnet || BUILDER_FEE_CONFIG.TestnetBuilder;
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return this.#builderAddressMainnet || BUILDER_FEE_CONFIG.MainnetBuilder;
   }
 
   #getReferralCode(isTestnet: boolean): string {

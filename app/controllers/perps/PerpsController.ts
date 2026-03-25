@@ -691,12 +691,12 @@ export class PerpsController extends BaseController<
    * @returns True if the condition is met.
    */
   #isMYXProviderEnabled(): boolean {
-    const config = this.#options.clientConfig ?? {};
+    const myx = this.#options.clientConfig?.providerCredentials?.myx;
 
     // Local env-var override (MM_PERPS_MYX_PROVIDER_ENABLED) always wins —
     // matches the UI selector (resolvePerpsMyxProviderEnabled) so controller
     // and UI agree on whether MYX is available.
-    if (config.myxProviderEnabled) {
+    if (myx?.enabled) {
       return true;
     }
 
@@ -704,7 +704,7 @@ export class PerpsController extends BaseController<
     // Use || so empty-string env vars (default '') fall through.
     const hasCredentials = Boolean(
       // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-      config.myxAppIdTestnet || config.myxAppIdMainnet,
+      myx?.appIdTestnet || myx?.appIdMainnet,
     );
 
     if (hasCredentials) {
@@ -1107,6 +1107,12 @@ export class PerpsController extends BaseController<
       blocklistMarkets: this.#hip3BlocklistMarkets,
       platformDependencies: this.#options.infrastructure,
       messenger: this.messenger,
+      builderAddressTestnet:
+        this.#options.clientConfig?.providerCredentials?.hyperliquid
+          ?.builderAddressTestnet,
+      builderAddressMainnet:
+        this.#options.clientConfig?.providerCredentials?.hyperliquid
+          ?.builderAddressMainnet,
     });
     this.#standaloneProviderIsTestnet = currentIsTestnet;
     this.#standaloneProviderHip3Version = currentHip3Version;
@@ -1533,6 +1539,12 @@ export class PerpsController extends BaseController<
       blocklistMarkets: this.#hip3BlocklistMarkets,
       platformDependencies: this.#options.infrastructure,
       messenger: this.messenger,
+      builderAddressTestnet:
+        this.#options.clientConfig?.providerCredentials?.hyperliquid
+          ?.builderAddressTestnet,
+      builderAddressMainnet:
+        this.#options.clientConfig?.providerCredentials?.hyperliquid
+          ?.builderAddressMainnet,
     });
     this.providers.set('hyperliquid', hyperLiquidProvider);
 
@@ -1540,55 +1552,54 @@ export class PerpsController extends BaseController<
     // Dynamic import because the MYX package pulls in heavy dependencies we
     // don't want bundled in extension. Until MYX fixes their package, extension
     // doesn't ship it — the catch branch silently skips registration.
+    // Uses .then()/.catch() instead of await because #createProviders is not async;
+    // MYX registration completing asynchronously is fine since it's only used when
+    // explicitly enabled and selected.
     const isMYXEnabled = this.#isMYXProviderEnabled();
     if (isMYXEnabled) {
-      try {
-        // @ts-expect-error — await in non-async #createProviders mirrors core's
-        // implementation; Babel/Metro transpiles this correctly at runtime.
-        const { MYXProvider } = await import('./providers/MYXProvider');
-        const myxIsTestnet =
-          PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
-        const config = this.#options.clientConfig ?? {};
-        // When on mainnet, fall back to testnet credentials if mainnet ones are empty.
-        // Uses firstNonEmpty because env vars default to '' (not null/undefined),
-        // so ?? would not fall through on empty strings.
-        const firstNonEmpty = (...vals: (string | undefined)[]): string =>
-          vals.find((val) => val !== null && val !== undefined && val !== '') ??
-          '';
-        const myxAppId = myxIsTestnet
-          ? (config.myxAppIdTestnet ?? '')
-          : firstNonEmpty(config.myxAppIdMainnet, config.myxAppIdTestnet);
-        const myxApiSecret = myxIsTestnet
-          ? (config.myxApiSecretTestnet ?? '')
-          : firstNonEmpty(
-              config.myxApiSecretMainnet,
-              config.myxApiSecretTestnet,
-            );
-        const myxBrokerAddress = myxIsTestnet
-          ? (config.myxBrokerAddressTestnet ?? '')
-          : firstNonEmpty(
-              config.myxBrokerAddressMainnet,
-              config.myxBrokerAddressTestnet,
-            );
-        const myxProvider = new MYXProvider({
-          isTestnet: myxIsTestnet,
-          platformDependencies: this.#options.infrastructure,
-          messenger: this.messenger,
-          myxAuthConfig: {
-            appId: myxAppId,
-            apiSecret: myxApiSecret,
-            brokerAddress: myxBrokerAddress,
-          },
+      import('./providers/MYXProvider')
+        .then(({ MYXProvider }) => {
+          const myxIsTestnet =
+            PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
+          const myx =
+            this.#options.clientConfig?.providerCredentials?.myx ?? {};
+          // When on mainnet, fall back to testnet credentials if mainnet ones are empty.
+          // Uses firstNonEmpty because env vars default to '' (not null/undefined),
+          // so ?? would not fall through on empty strings.
+          const firstNonEmpty = (...vals: (string | undefined)[]): string =>
+            vals.find(
+              (val) => val !== null && val !== undefined && val !== '',
+            ) ?? '';
+          const myxAppId = myxIsTestnet
+            ? (myx.appIdTestnet ?? '')
+            : firstNonEmpty(myx.appIdMainnet, myx.appIdTestnet);
+          const myxApiSecret = myxIsTestnet
+            ? (myx.apiSecretTestnet ?? '')
+            : firstNonEmpty(myx.apiSecretMainnet, myx.apiSecretTestnet);
+          const myxBrokerAddress = myxIsTestnet
+            ? (myx.brokerAddressTestnet ?? '')
+            : firstNonEmpty(myx.brokerAddressMainnet, myx.brokerAddressTestnet);
+          const myxProvider = new MYXProvider({
+            isTestnet: myxIsTestnet,
+            platformDependencies: this.#options.infrastructure,
+            messenger: this.messenger,
+            myxAuthConfig: {
+              appId: myxAppId,
+              apiSecret: myxApiSecret,
+              brokerAddress: myxBrokerAddress,
+            },
+          });
+          this.providers.set('myx', myxProvider);
+          this.#debugLog('PerpsController: MYX provider registered', {
+            isTestnet: myxIsTestnet,
+          });
+          return undefined;
+        })
+        .catch(() => {
+          this.#debugLog(
+            'PerpsController: MYX provider module not available, skipping registration',
+          );
         });
-        this.providers.set('myx', myxProvider);
-        this.#debugLog('PerpsController: MYX provider registered', {
-          isTestnet: myxIsTestnet,
-        });
-      } catch {
-        this.#debugLog(
-          'PerpsController: MYX provider module not available, skipping registration',
-        );
-      }
     }
 
     // Set up active provider based on activeProvider value in state
