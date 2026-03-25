@@ -1631,7 +1631,7 @@ export class PerpsStreamManager {
         data: snapshot,
         timestamp: now,
       }),
-    ).catch(() => {
+    )?.catch(() => {
       /* fire-and-forget */
     });
   }
@@ -1668,7 +1668,7 @@ export class PerpsStreamManager {
         accountState: account ?? null,
         timestamp: now,
       }),
-    ).catch(() => {
+    )?.catch(() => {
       /* fire-and-forget */
     });
   }
