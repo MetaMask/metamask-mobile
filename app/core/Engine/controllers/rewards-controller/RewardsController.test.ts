@@ -19022,6 +19022,233 @@ describe('RewardsController', () => {
     });
   });
 
+  describe('getOndoCampaignLeaderboard', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-ondo-123';
+    const mockLeaderboard = {
+      campaign_id: mockCampaignId,
+      computed_at: '2024-03-20T12:00:00.000Z',
+      tiers: {
+        STARTER: { entries: [], total_participants: 100 },
+      },
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns empty leaderboard when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(result).toEqual({
+        campaign_id: mockCampaignId,
+        computed_at: '',
+        tiers: {},
+      });
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches leaderboard from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockLeaderboard);
+
+      const result = await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignLeaderboard',
+        mockCampaignId,
+      );
+      expect(result).toEqual(mockLeaderboard);
+      expect(ctrl.state.campaignLeaderboards[mockCampaignId]).toBeDefined();
+    });
+
+    it('returns cached leaderboard when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignLeaderboards: {
+            [mockCampaignId]: {
+              ...mockLeaderboard,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(result).toEqual(mockLeaderboard);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('logs when fetching fresh leaderboard', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockLeaderboard);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignLeaderboard(mockCampaignId);
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaign leaderboard via API call',
+      );
+    });
+  });
+
+  describe('getOndoCampaignLeaderboardPosition', () => {
+    let mockMessenger: jest.Mocked<RewardsControllerMessenger>;
+    const mockCampaignId = 'campaign-ondo-456';
+    const mockSubscriptionId = 'sub-789';
+    const mockPosition = {
+      projected_tier: 'MID',
+      rank: 5,
+      total_in_tier: 150,
+      rate_of_return: 0.15,
+      current_usd_value: 12500.5,
+      total_usd_deposited: 10000.0,
+      net_deposit: 8500.0,
+      computed_at: '2024-03-20T12:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockMessenger = {
+        subscribe: jest.fn(),
+        call: jest.fn(),
+        registerActionHandler: jest.fn(),
+        unregisterActionHandler: jest.fn(),
+        publish: jest.fn(),
+        clearEventSubscriptions: jest.fn(),
+        registerInitialEventPayload: jest.fn(),
+        unsubscribe: jest.fn(),
+      } as unknown as jest.Mocked<RewardsControllerMessenger>;
+    });
+
+    it('returns null when rewards feature flag is disabled', async () => {
+      const disabledController = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+        isDisabled: () => true,
+      });
+
+      const result =
+        await disabledController.getOndoCampaignLeaderboardPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        );
+
+      expect(result).toBeNull();
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('fetches position from API and caches result', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPosition);
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockMessenger.call).toHaveBeenCalledWith(
+        'RewardsDataService:getOndoCampaignLeaderboardPosition',
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+      expect(result).toEqual(mockPosition);
+      const cacheKey = `${mockCampaignId}:${mockSubscriptionId}`;
+      expect(ctrl.state.campaignLeaderboardPositions[cacheKey]).toBeDefined();
+    });
+
+    it('returns cached position when cache is fresh', async () => {
+      const recentTime = Date.now() - 60000;
+      const cacheKey = `${mockCampaignId}:${mockSubscriptionId}`;
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: {
+          ...getRewardsControllerDefaultState(),
+          campaignLeaderboardPositions: {
+            [cacheKey]: {
+              ...mockPosition,
+              lastFetched: recentTime,
+            },
+          },
+        },
+      });
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toEqual(mockPosition);
+      expect(mockMessenger.call).not.toHaveBeenCalled();
+    });
+
+    it('returns null and removes cache entry when API returns null (user not found)', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(null);
+
+      const result = await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('logs when fetching fresh position', async () => {
+      const ctrl = new RewardsController({
+        messenger: mockMessenger,
+        state: getRewardsControllerDefaultState(),
+      });
+
+      mockMessenger.call.mockResolvedValue(mockPosition);
+      mockLogger.log.mockClear();
+
+      await ctrl.getOndoCampaignLeaderboardPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockLogger.log).toHaveBeenCalledWith(
+        'RewardsController: Fetching fresh campaign leaderboard position via API call',
+      );
+    });
+  });
+
   describe('getClientVersionRequirements', () => {
     it('fetches version requirements from the data service', async () => {
       const mockRequirements = {
