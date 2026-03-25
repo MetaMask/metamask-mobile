@@ -49,6 +49,7 @@ const config = {
     '<rootDir>/app/util/testUtils/',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
     '<rootDir>/app/features/SampleFeature/e2e/',
+    '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsEntryCardOriginal.tsx',
   ],
   testPathIgnorePatterns: [
     '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
