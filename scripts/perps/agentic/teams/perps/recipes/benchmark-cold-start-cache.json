@@ -1,6 +1,6 @@
 {
   "title": "Benchmark cold-start disk cache — baseline vs MMKV hydration",
-  "description": "Measures time-to-data with and without the MMKV disk cache. Seeds disk cache from live WS data, then runs two scenarios: (1) baseline with empty disk cache, (2) disk-cache with MMKV hydration. Logs [PERPS_BENCH] markers for extraction.",
+  "description": "Measures time-to-data with and without the MMKV disk cache. Seeds disk cache from live WS data, then runs two scenarios: (1) baseline with empty disk cache, (2) disk-cache with MMKV hydration. Simulates real user flow: navigate away, disconnect WS (long backgrounding), clear caches, then navigate back to Perps.",
   "validate": {
     "runtime": {
       "steps": [
@@ -8,6 +8,12 @@
           "id": "nav-perps-prime",
           "action": "navigate",
           "target": "PerpsHomeView"
+        },
+        {
+          "id": "start-preload",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.stopMarketDataPreload(), Engine.context.PerpsController.startMarketDataPreload(), JSON.stringify({restarted: true}))",
+          "_comment": "Force-restart preload — stop first so start does an immediate fetch (timer persists across recipe runs)"
         },
         {
           "id": "wait-market-data",
@@ -31,6 +37,12 @@
           }
         },
         {
+          "id": "save-user-data",
+          "action": "eval_sync",
+          "expression": "(function(){var c=Engine.context.PerpsController,ud=c.state.cachedUserDataByProvider;globalThis.__BENCH_SAVED_USER_DATA__=JSON.parse(JSON.stringify(ud));return JSON.stringify({saved:true,keys:Object.keys(ud)})})()",
+          "_comment": "Snapshot user data before baseline clears it — baseline destroys controller cache and WS blocks REST re-fetch"
+        },
+        {
           "id": "baseline-marker",
           "action": "eval_sync",
           "expression": "(console.log('[PERPS_BENCH] === BASELINE ==='), JSON.stringify({phase: 'baseline'}))"
@@ -46,19 +58,10 @@
           }
         },
         {
-          "id": "baseline-stop-preload",
-          "action": "eval_sync",
-          "expression": "(Engine.context.PerpsController.stopMarketDataPreload(), JSON.stringify({stopped: true}))"
-        },
-        {
-          "id": "baseline-clear-memory",
-          "action": "eval_sync",
-          "expression": "(Engine.context.PerpsController.clearInMemoryCaches(), JSON.stringify({cleared: true}))"
-        },
-        {
           "id": "baseline-nav-away",
           "action": "navigate",
-          "target": "WalletView"
+          "target": "WalletView",
+          "_comment": "Simulate app on home screen"
         },
         {
           "id": "baseline-wait-nav",
@@ -66,9 +69,16 @@
           "ms": 1500
         },
         {
-          "id": "baseline-restart-preload",
+          "id": "baseline-disconnect-ws",
           "action": "eval_sync",
-          "expression": "(Engine.context.PerpsController.startMarketDataPreload(), JSON.stringify({restarted: true}))"
+          "expression": "(__PERPS_STREAM__.prices.disconnect(), __PERPS_STREAM__.prices.cleanupPrewarm(), __PERPS_STREAM__.marketData.disconnect(), __PERPS_STREAM__.orders.disconnect(), __PERPS_STREAM__.positions.disconnect(), __PERPS_STREAM__.fills.disconnect(), __PERPS_STREAM__.account.disconnect(), __PERPS_STREAM__.oiCaps.disconnect(), __PERPS_STREAM__.topOfBook.disconnect(), JSON.stringify({disconnected: true}))",
+          "_comment": "Simulate WS death from long backgrounding — cleanupPrewarm kills the controller-level price subscription that bypasses disconnect()"
+        },
+        {
+          "id": "baseline-clear-memory",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.clearInMemoryCaches(), __PERPS_STREAM__.purgeAllCaches(), JSON.stringify({cleared: true}))",
+          "_comment": "Clear controller state AND stream channel caches for true cold-start sim"
         },
         {
           "id": "baseline-nav-perps",
@@ -78,13 +88,14 @@
         {
           "id": "baseline-wait-data",
           "action": "wait_for",
-          "expression": "JSON.stringify({count: (Engine.context.PerpsController.getCachedMarketDataForActiveProvider() || []).length})",
+          "expression": "JSON.stringify({count: (__PERPS_STREAM__.marketData.cache.get('markets') || []).length})",
           "assert": {
             "operator": "gt",
             "field": "count",
             "value": 0
           },
-          "timeout_ms": 30000
+          "timeout_ms": 30000,
+          "_comment": "Measure time-to-data from WS/REST — checks stream cache (what user actually sees)"
         },
         {
           "id": "baseline-settle",
@@ -97,6 +108,12 @@
           "expression": "(console.log('[PERPS_BENCH] === DISK CACHE ==='), JSON.stringify({phase: 'disk_cache'}))"
         },
         {
+          "id": "disk-restore-user-data",
+          "action": "eval_sync",
+          "expression": "(function(){var c=Engine.context.PerpsController,ud=globalThis.__BENCH_SAVED_USER_DATA__;if(!ud)return JSON.stringify({restored:false});c.update(function(s){var keys=Object.keys(ud);keys.forEach(function(k){s.cachedUserDataByProvider[k]=ud[k]})});return JSON.stringify({restored:true,keys:Object.keys(ud)})})()",
+          "_comment": "Restore user data snapshot so seedDiskCache writes realistic data (market + user)"
+        },
+        {
           "id": "disk-reseed",
           "action": "eval_async",
           "expression": "Engine.context.PerpsController.seedDiskCache().then(function(){return JSON.stringify({seeded: true})})",
@@ -107,19 +124,10 @@
           }
         },
         {
-          "id": "disk-stop-preload",
-          "action": "eval_sync",
-          "expression": "(Engine.context.PerpsController.stopMarketDataPreload(), JSON.stringify({stopped: true}))"
-        },
-        {
-          "id": "disk-clear-memory-only",
-          "action": "eval_sync",
-          "expression": "(Engine.context.PerpsController.clearInMemoryCaches(), JSON.stringify({cleared: true}))"
-        },
-        {
           "id": "disk-nav-away",
           "action": "navigate",
-          "target": "WalletView"
+          "target": "WalletView",
+          "_comment": "Navigate away first so Perps components unmount before cache clearing"
         },
         {
           "id": "disk-wait-nav",
@@ -127,25 +135,79 @@
           "ms": 1500
         },
         {
-          "id": "disk-restart-preload",
+          "id": "disk-disconnect-ws",
           "action": "eval_sync",
-          "expression": "(Engine.context.PerpsController.startMarketDataPreload(), JSON.stringify({restarted: true}))"
+          "expression": "(__PERPS_STREAM__.prices.disconnect(), __PERPS_STREAM__.prices.cleanupPrewarm(), __PERPS_STREAM__.marketData.disconnect(), __PERPS_STREAM__.orders.disconnect(), __PERPS_STREAM__.positions.disconnect(), __PERPS_STREAM__.fills.disconnect(), __PERPS_STREAM__.account.disconnect(), __PERPS_STREAM__.oiCaps.disconnect(), __PERPS_STREAM__.topOfBook.disconnect(), JSON.stringify({disconnected: true}))",
+          "_comment": "Simulate WS death from long backgrounding — cleanupPrewarm kills the controller-level price subscription that bypasses disconnect()"
         },
         {
-          "id": "disk-nav-perps",
-          "action": "navigate",
-          "target": "PerpsHomeView"
+          "id": "disk-clear-memory-only",
+          "action": "eval_sync",
+          "expression": "(Engine.context.PerpsController.clearInMemoryCaches(), __PERPS_STREAM__.purgeAllCaches(), JSON.stringify({cleared: true}))",
+          "_comment": "Safe to clear now — no Perps components mounted to see null state"
+        },
+        {
+          "id": "disk-hydrate-only",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.hydrateCacheFromDiskOnly().then(function(){return JSON.stringify({hydrated: true})})",
+          "assert": {
+            "operator": "eq",
+            "field": "hydrated",
+            "value": true
+          },
+          "_comment": "Hydrate from MMKV WITHOUT starting REST — isolates disk-hydration timing"
         },
         {
           "id": "disk-wait-data",
           "action": "wait_for",
-          "expression": "JSON.stringify({count: (Engine.context.PerpsController.getCachedMarketDataForActiveProvider() || []).length})",
+          "expression": "JSON.stringify({count: (Engine.context.PerpsController.getCachedMarketDataForActiveProvider({skipTTL: true}) || []).length})",
           "assert": {
             "operator": "gt",
             "field": "count",
             "value": 0
           },
-          "timeout_ms": 30000
+          "timeout_ms": 5000,
+          "_comment": "Confirm disk hydration populated controller state"
+        },
+        {
+          "id": "disk-verify-placeholder-prices",
+          "action": "eval_sync",
+          "expression": "JSON.stringify({price: (Engine.context.PerpsController.getCachedMarketDataForActiveProvider({skipTTL: true}) || [])[0]?.price || 'none'})",
+          "assert": {
+            "operator": "eq",
+            "field": "price",
+            "value": "$---"
+          },
+          "_comment": "Disk-hydrated data should have placeholder prices, not stale real prices"
+        },
+        {
+          "id": "disk-nav-perps",
+          "action": "navigate",
+          "target": "PerpsHomeView",
+          "_comment": "Components mount fresh — useState initializer reads disk-hydrated data with skipTTL. WS reconnects naturally."
+        },
+        {
+          "id": "disk-wait-real-prices",
+          "action": "wait_for",
+          "expression": "JSON.stringify({count: __PERPS_STREAM__.prices.priceCache.size, hasReal: __PERPS_STREAM__.prices.priceCache.size > 0})",
+          "assert": {
+            "operator": "eq",
+            "field": "hasReal",
+            "value": true
+          },
+          "timeout_ms": 15000,
+          "_comment": "Wait for WS to deliver real prices — prices arrive via prices stream priceCache, not marketData cache"
+        },
+        {
+          "id": "disk-log-real-prices",
+          "action": "eval_sync",
+          "expression": "(console.log('[PERPS_BENCH] real_prices_arrived'), JSON.stringify({phase: 'real_prices'}))"
+        },
+        {
+          "id": "done-cleanup",
+          "action": "eval_sync",
+          "expression": "(delete globalThis.__BENCH_SAVED_USER_DATA__, JSON.stringify({cleaned: true}))",
+          "_comment": "Clean up temp global"
         },
         {
           "id": "done-marker",
