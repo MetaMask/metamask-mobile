@@ -110,6 +110,11 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
+import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
+import {
+  IconColor,
+  IconName,
+} from '../../../component-library/components/Icons/Icon';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -770,6 +775,39 @@ const Onboarding = () => {
       });
 
       const action = async () => {
+        // prompt for ios google login not supported below iOS 17.4
+        if (
+          provider === AuthConnection.Google &&
+          Device.isIos() &&
+          Device.comparePlatformVersionTo('17.4') < 0
+        ) {
+          const description = () => (
+            <>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description`)}
+              </Text>
+              <Text style={tw.style('text-pretty')}>
+                {strings(`error_sheet.ios_need_update_description2`)}
+              </Text>
+            </>
+          );
+
+          await navigateToSuccessErrorSheetPromise(navigation, {
+            type: 'error',
+            icon: IconName.Warning,
+            iconColor: IconColor.Warning,
+            title: strings(`error_sheet.ios_need_update_title`),
+            description: description(),
+            primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
+            onPrimaryButtonPress: () => {
+              track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
+                account_type: accountType,
+              });
+            },
+            closeOnPrimaryButtonPress: true,
+            isInteractable: false,
+          });
+        }
         setLoading();
         const loginHandler = createLoginHandler(Platform.OS, provider);
         try {
@@ -799,6 +837,7 @@ const Onboarding = () => {
       handleExistingUser(action);
     },
     [
+      tw,
       navigation,
       metrics,
       track,
