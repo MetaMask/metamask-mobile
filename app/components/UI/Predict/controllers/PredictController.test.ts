@@ -3654,6 +3654,8 @@ describe('PredictController', () => {
         controller.initializeOrder();
 
         expect(controller.state.activeOrder).toEqual({
+          batchId: 'old-batch',
+          error: 'old error',
           state: ActiveOrderState.PREVIEW,
         });
       });
@@ -3972,14 +3974,21 @@ describe('PredictController', () => {
   });
 
   describe('payWithAnyTokenConfirmation', () => {
-    it('throws error when there is no active order', async () => {
+    it('initializes an order when there is no active order', async () => {
       await withController(async ({ controller }) => {
-        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
-          'Active order is required for pay-with-any-token confirmation',
-        );
+        const result = await controller.initiPayWithAnyToken();
 
-        expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
-        expect(addTransactionBatch).not.toHaveBeenCalled();
+        expect(result).toEqual({
+          success: true,
+          response: {
+            batchId: 'default-batch',
+          },
+        });
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(mockPolymarketProvider.prepareDeposit).toHaveBeenCalled();
+        expect(addTransactionBatch).toHaveBeenCalled();
       });
     });
 
@@ -4543,7 +4552,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('preserves preview activeOrder when deposit-and-order transaction is rejected after switching back to balance', () => {
+    it('clears preview activeOrder when deposit-and-order transaction is rejected after switching back to balance', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictDeposit,
@@ -4566,9 +4575,40 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeOrder).toEqual({
+        expect(controller.state.activeOrder).toBeNull();
+      });
+    });
+
+    it('clears activeOrder when deposit-and-order transaction is rejected from preview while an external token is still selected', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        controller.setActiveOrder({
+          batchId: 'batch-1',
           state: ActiveOrderState.PREVIEW,
         });
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder).toBeNull();
+        expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
@@ -7198,6 +7238,50 @@ describe('PredictController', () => {
       });
     });
 
+    it('retries when depositAndOrder transaction fails, even if the error message indicates user rejection', () => {
+      withController(({ controller, messenger }) => {
+        controller.setActiveOrder({
+          state: ActiveOrderState.DEPOSITING,
+        });
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        const retrySpy = jest
+          .spyOn(controller, 'initiPayWithAnyToken')
+          .mockResolvedValue({
+            success: false,
+            error: 'User rejected the request.',
+          } as never);
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'User rejected the request.', code: 4001 },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(retrySpy).toHaveBeenCalledTimes(1);
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeOrder?.error).toBe(
+          'User rejected the request.',
+        );
+      });
+    });
+
     it('uses default error message when depositAndOrder fails without error message', () => {
       withController(({ controller, messenger }) => {
         controller.setActiveOrder({
@@ -7229,7 +7313,7 @@ describe('PredictController', () => {
   });
 
   describe('initiPayWithAnyToken error branches', () => {
-    it('throws error when deposit preparation returns undefined', async () => {
+    it('returns a failed result when deposit preparation returns undefined', async () => {
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
           state: ActiveOrderState.PREVIEW,
@@ -7239,13 +7323,14 @@ describe('PredictController', () => {
           undefined as never,
         );
 
-        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
-          'Deposit preparation returned undefined',
-        );
+        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+          success: false,
+          error: 'Deposit preparation returned undefined',
+        });
       });
     });
 
-    it('throws error when deposit preparation returns empty transactions', async () => {
+    it('returns a failed result when deposit preparation returns empty transactions', async () => {
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
           state: ActiveOrderState.PREVIEW,
@@ -7256,13 +7341,14 @@ describe('PredictController', () => {
           chainId: '0x89',
         });
 
-        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
-          'No transactions returned from deposit preparation',
-        );
+        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+          success: false,
+          error: 'No transactions returned from deposit preparation',
+        });
       });
     });
 
-    it('throws error when deposit preparation returns no chainId', async () => {
+    it('returns a failed result when deposit preparation returns no chainId', async () => {
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
           state: ActiveOrderState.PREVIEW,
@@ -7280,22 +7366,24 @@ describe('PredictController', () => {
           ],
         } as never);
 
-        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
-          'Chain ID not provided by deposit preparation',
-        );
+        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+          success: false,
+          error: 'Chain ID not provided by deposit preparation',
+        });
       });
     });
 
-    it('throws error when network client not found for chain ID', async () => {
+    it('returns a failed result when network client is not found for chain ID', async () => {
       await withController(
         async ({ controller }) => {
           controller.setActiveOrder({
             state: ActiveOrderState.PREVIEW,
           });
 
-          await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
-            'Network client not found for chain ID',
-          );
+          await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+            success: false,
+            error: 'Network client not found for chain ID: 0x89',
+          });
         },
         {
           mocks: {
@@ -7305,7 +7393,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('throws error when transaction batch returns no batchId', async () => {
+    it('returns a failed result when transaction batch returns no batchId', async () => {
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
           state: ActiveOrderState.PREVIEW,
@@ -7313,9 +7401,10 @@ describe('PredictController', () => {
 
         (addTransactionBatch as jest.Mock).mockResolvedValue({});
 
-        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
-          'Failed to get batch ID from transaction submission',
-        );
+        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+          success: false,
+          error: 'Failed to get batch ID from transaction submission',
+        });
       });
     });
   });

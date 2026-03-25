@@ -120,6 +120,7 @@ import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
 import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { AssetType } from '../../../Views/confirmations/types/token';
+import { containsUserRejectedError } from '../../../../util/middlewares';
 
 /**
  * State shape for PredictController
@@ -2221,22 +2222,22 @@ export class PredictController extends BaseController<
   public async initiPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
 
-    this.initializeOrder();
+    if (!this.state.activeOrder) {
+      this.initializeOrder();
+    }
+
+    const activeOrder = this.state.activeOrder;
+    if (!activeOrder) {
+      throw new Error(
+        'Active order is required for pay-with-any-token confirmation',
+      );
+    }
+
+    if (activeOrder.batchId) {
+      throw new Error('Pay-with-any-token confirmation is already in progress');
+    }
 
     try {
-      const activeOrder = this.state.activeOrder;
-      if (!activeOrder) {
-        throw new Error(
-          'Active order is required for pay-with-any-token confirmation',
-        );
-      }
-
-      if (activeOrder.batchId) {
-        throw new Error(
-          'Pay-with-any-token confirmation is already in progress',
-        );
-      }
-
       const signer = this.getSigner();
 
       this.update((state) => {
@@ -2330,17 +2331,17 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
-      const errorMessage = e.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
       Logger.error(
         e,
-        this.getErrorContext('payWithAnyTokenConfirmation', {
+        this.getErrorContext('initiPayWithAnyToken', {
           providerId: POLYMARKET_PROVIDER_ID,
         }),
       );
 
-      this.onDepositOrderFailed(errorMessage);
-
-      throw new Error(errorMessage);
+      return {
+        success: false,
+        error: e.message,
+      };
     }
   }
 
@@ -2469,20 +2470,12 @@ export class PredictController extends BaseController<
     if (type === 'depositAndOrder' && status === 'failed') {
       const errorMessage =
         transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+
       this.onDepositOrderFailed(errorMessage);
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {
-      if (this.state.activeOrder?.state === ActiveOrderState.PREVIEW) {
-        this.update((state) => {
-          if (state.activeOrder) {
-            delete state.activeOrder.batchId;
-            delete state.activeOrder.error;
-          }
-        });
-      } else {
-        this.onOrderCancelled();
-      }
+      this.onOrderCancelled();
     }
 
     if (type === 'claim' && isTerminal) {

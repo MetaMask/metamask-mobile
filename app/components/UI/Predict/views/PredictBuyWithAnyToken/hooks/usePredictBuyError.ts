@@ -1,11 +1,7 @@
-import { BigNumber } from 'bignumber.js';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../../../locales/i18n';
-import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
 import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
-import { usePredictBalance } from '../../../hooks/usePredictBalance';
-import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
 import { formatPrice } from '../../../utils/format';
 import { checkPlaceOrderError } from '../../../utils/predictErrorHandler';
@@ -33,7 +29,6 @@ export const usePredictBuyError = ({
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
   const [isOrderNotFilled, setIsOrderNotFilled] = useState(false);
-  const [error, setError] = useState<string | undefined>(undefined);
 
   const errorResult = useMemo(() => {
     if (isBalanceLoading || isPlacingOrder || isConfirming || !preview) {

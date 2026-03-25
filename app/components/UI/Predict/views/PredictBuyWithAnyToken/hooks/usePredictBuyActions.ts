@@ -47,6 +47,7 @@ export const usePredictBuyActions = ({
 
   const onApprovalRejectRef = useRef(onApprovalReject);
   onApprovalRejectRef.current = onApprovalReject;
+  const hasInitializedPayWithAnyTokenRef = useRef(false);
 
   useEffect(() => {
     const controller = Engine.context.PredictController;
@@ -64,20 +65,26 @@ export const usePredictBuyActions = ({
     if (!payWithAnyTokenEnabled) {
       return;
     }
-    let initialized = false;
+
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
-      if (!e.data.closing && !initialized) {
-        initialized = true;
+      if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
+        hasInitializedPayWithAnyTokenRef.current = true;
         PredictController.initiPayWithAnyToken();
       }
     });
-    return () => {
-      if (payWithAnyTokenEnabled) {
-        unsubscribe();
-        onApprovalRejectRef.current();
-      }
-    };
+
+    return unsubscribe;
   }, [navigation, PredictController, payWithAnyTokenEnabled]);
+
+  useEffect(() => {
+    if (!payWithAnyTokenEnabled) {
+      return;
+    }
+
+    return navigation.addListener('beforeRemove', () => {
+      onApprovalRejectRef.current();
+    });
+  }, [navigation, payWithAnyTokenEnabled]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {

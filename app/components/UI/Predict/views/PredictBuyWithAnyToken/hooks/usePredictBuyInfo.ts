@@ -1,15 +1,9 @@
 import { BigNumber } from 'bignumber.js';
 import { useEffect, useMemo, useState } from 'react';
-import { strings } from '../../../../../../../locales/i18n';
 import { useTransactionPayTotals } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayData';
-import { MINIMUM_BET } from '../../../constants/transactions';
-import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
-import { formatPrice } from '../../../utils/format';
-import { checkPlaceOrderError } from '../../../utils/predictErrorHandler';
-import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
@@ -28,10 +22,7 @@ export const usePredictBuyInfo = ({
 }: UsePredictBuyInfoParams) => {
   const { isPredictBalanceSelected } = usePredictPaymentToken();
   const payTotals = useTransactionPayTotals();
-  const { activeOrder } = usePredictActiveOrder();
   const { data: predictBalance = 0 } = usePredictBalance();
-  const { availableBalance, isBalanceLoading } =
-    usePredictBuyAvailableBalance();
 
   const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
 
@@ -83,24 +74,6 @@ export const usePredictBuyInfo = ({
       preview?.minAmountReceived,
       preview?.rateLimited,
     ],
-  );
-
-  const isBelowMinimum = useMemo(
-    () => currentValue > 0 && currentValue < MINIMUM_BET,
-    [currentValue],
-  );
-
-  const maxBetAmount = useMemo(() => {
-    const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
-    return Math.max(
-      0,
-      Math.floor(((availableBalance - depositFee) / (1 + feeRate)) * 100) / 100,
-    );
-  }, [availableBalance, depositFee, preview?.fees?.totalFeePercentage]);
-
-  const isInsufficientBalance = useMemo(
-    () => !isConfirming && currentValue > 0 && currentValue > maxBetAmount,
-    [isConfirming, currentValue, maxBetAmount],
   );
 
   const depositAmount = useMemo(() => {

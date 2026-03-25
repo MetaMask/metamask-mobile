@@ -19,6 +19,8 @@ const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
 const mockOnPlaceOrderEnd = jest.fn();
 const mockInitiPayWithAnyToken = jest.fn();
 const mockSetIsConfirming = jest.fn();
+const mockTransitionEndUnsubscribe = jest.fn();
+const mockBeforeRemoveUnsubscribe = jest.fn();
 
 let mockActiveOrder: {
   batchId?: string | null;
@@ -26,12 +28,25 @@ let mockActiveOrder: {
 } | null = null;
 let mockPayWithAnyTokenEnabled = true;
 
-const mockAddListener = jest.fn(
-  (_event: string, callback: (e: { data: { closing: boolean } }) => void) => {
-    callback({ data: { closing: false } });
+const createAddListenerMock =
+  () =>
+  (event: string, callback: (e?: { data: { closing: boolean } }) => void) => {
+    if (event === 'transitionEnd') {
+      callback({ data: { closing: false } });
+      return mockTransitionEndUnsubscribe;
+    }
+
+    if (event === 'beforeRemove') {
+      return () => {
+        callback();
+        mockBeforeRemoveUnsubscribe();
+      };
+    }
+
     return mockUnsubscribe;
-  },
-);
+  };
+
+const mockAddListener = jest.fn(createAddListenerMock());
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -122,6 +137,7 @@ describe('usePredictBuyActions', () => {
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
     mockInitiPayWithAnyToken.mockResolvedValue(undefined);
+    mockAddListener.mockImplementation(createAddListenerMock());
   });
 
   describe('mount effect', () => {
@@ -156,8 +172,47 @@ describe('usePredictBuyActions', () => {
 
       unmount();
 
-      expect(mockUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockTransitionEndUnsubscribe).toHaveBeenCalledTimes(1);
+      expect(mockBeforeRemoveUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockOnApprovalReject).toHaveBeenCalledTimes(1);
+    });
+
+    it('only calls initiPayWithAnyToken once even if transitionEnd fires again', () => {
+      const transitionEndCallbacks: ((e: { data: { closing: boolean } }) => void)[] = [];
+
+      mockAddListener.mockImplementation(
+        (
+          event: string,
+          callback:
+            | ((e: { data: { closing: boolean } }) => void)
+            | (() => void),
+        ) => {
+          if (event === 'transitionEnd') {
+            const typedCallback = callback as (e: {
+              data: { closing: boolean };
+            }) => void;
+
+            transitionEndCallbacks.push(typedCallback);
+            typedCallback({ data: { closing: false } });
+
+            return mockTransitionEndUnsubscribe;
+          }
+
+          if (event === 'beforeRemove') {
+            return mockBeforeRemoveUnsubscribe;
+          }
+
+          return mockUnsubscribe;
+        },
+      );
+
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      act(() => {
+        transitionEndCallbacks[0]({ data: { closing: false } });
+      });
+
+      expect(mockInitiPayWithAnyToken).toHaveBeenCalledTimes(1);
     });
   });
 
