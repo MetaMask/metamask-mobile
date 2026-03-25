@@ -893,7 +893,7 @@ const NotificationsModeView = (props) => (
     <Stack.Screen
       name={Routes.NOTIFICATIONS.OPT_IN}
       component={OptIn}
-      options={{ ...OptIn.navigationOptions, presentation: 'modal' }}
+      options={OptIn.navigationOptions}
     />
     <Stack.Screen
       name={Routes.NOTIFICATIONS.DETAILS}
