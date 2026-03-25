@@ -5,6 +5,8 @@ import { PERPS_CONSTANTS, type OrderFill } from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
+// [PR-27906] temporary marker import - will be removed
+// eslint-disable-next-line no-console
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 
 interface UsePerpsMarketFillsParams {
@@ -56,6 +58,8 @@ export const usePerpsMarketFills = ({
   symbol,
   throttleMs = 0,
 }: UsePerpsMarketFillsParams): UsePerpsMarketFillsReturn => {
+  // eslint-disable-next-line no-console
+  console.log('[PR-27906] usePerpsMarketFills called symbol=' + symbol);
   // Get current selected account address for debugging context
   const selectedAddress = useSelector(selectSelectedInternalAccountByScope)(
     'eip155:1',
@@ -154,6 +158,20 @@ export const usePerpsMarketFills = ({
         const key = `${fill.orderId}-${fill.timestamp}`;
         fillsMap.set(key, fill);
       }
+    }
+
+    // [PR-27906] BUG_MARKER: detect multi-fill trades collapsed by dedup key
+    const allSymbolFills = [...restFills, ...liveFills].filter((f) => f.symbol === symbol);
+    if (allSymbolFills.length > fillsMap.size) {
+      // eslint-disable-next-line no-console
+      console.log(
+        '[PR-27906] BUG_MARKER: fills collapsed by dedup - input=' +
+          allSymbolFills.length +
+          ' output=' +
+          fillsMap.size +
+          ' symbol=' +
+          symbol,
+      );
     }
 
     // Convert back to array and sort by timestamp descending (newest first)
