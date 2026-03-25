@@ -229,6 +229,7 @@ const FooterButtonGroup = ({ valueWei, action }: FooterButtonGroupProps) => {
         size={ButtonSize.Lg}
         onPress={handleCancelPress}
         isDisabled={didSubmitTransaction}
+        textClassName={() => 'text-primary-default'}
       >
         {strings('stake.cancel')}
       </Button>
