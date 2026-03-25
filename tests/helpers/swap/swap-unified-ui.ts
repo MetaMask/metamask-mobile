@@ -1,7 +1,6 @@
-import TestHelpers from '../../helpers';
 import QuoteView from '../../page-objects/swaps/QuoteView';
 import SlippageModal from '../../page-objects/swaps/SlippageModal';
-import Assertions from '../../framework/Assertions';
+import { Assertions, sleep } from '../../framework';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
 import { ActivitiesViewSelectorsText } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 
@@ -58,7 +57,8 @@ export async function checkSwapActivity(
 
   // Check the swap activity completed
   await Assertions.expectElementToBeVisible(ActivitiesView.title);
-  await TestHelpers.delay(1000);
+  // Wait for the swap activity row to populate and reduces flakiness
+  await sleep(1000);
   await Assertions.expectElementToBeVisible(
     ActivitiesView.swapActivityTitle(sourceTokenSymbol, destTokenSymbol),
   );
