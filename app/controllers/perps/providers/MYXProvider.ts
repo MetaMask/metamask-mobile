@@ -2121,7 +2121,9 @@ export class MYXProvider implements PerpsProvider {
           const minimumOrderSize = await this.#getMinimumOrderSize(
             params.symbol,
           );
-          if (closeSize * price < minimumOrderSize) {
+          const minimumWithBuffer =
+            minimumOrderSize * MYX_MIN_ORDER_SIZE_BUFFER;
+          if (closeSize * price < minimumWithBuffer) {
             return { isValid: false, error: PERPS_ERROR_CODES.ORDER_SIZE_MIN };
           }
         }
