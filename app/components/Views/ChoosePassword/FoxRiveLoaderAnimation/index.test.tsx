@@ -56,16 +56,6 @@ jest.mock('../../../../util/device', () => ({
   default: mockDevice,
 }));
 
-// Mock styles
-jest.mock('./index.styles', () =>
-  jest.fn(() => ({
-    animationContainer: { testID: 'animation-container' },
-    animationWrapper: { testID: 'animation-wrapper' },
-    textWrapper: { testID: 'text-wrapper' },
-    riveAnimation: { testID: 'rive-animation' },
-  })),
-);
-
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation';
 
 describe('FoxRiveLoaderAnimation', () => {

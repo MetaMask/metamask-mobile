@@ -96,37 +96,35 @@ jest.mock('react-native-safe-area-context', () => ({
   }),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#000000',
-        alternative: '#666666',
-      },
-      background: {
-        default: '#FFFFFF',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('../../../component-library/hooks/useStyles', () => ({
-  useStyles: () => ({
-    styles: {
-      sheet: { backgroundColor: '#FFFFFF' },
-      notch: { backgroundColor: '#CCCCCC' },
-      networkTabsSelectorTitle: { fontSize: 18 },
-      networkTabsSelectorWrapper: { flex: 1 },
-      tabUnderlineStyle: { backgroundColor: '#0066CC' },
-      inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
-      tabStyle: { backgroundColor: '#FFFFFF' },
-      textStyle: { fontSize: 16 },
-      tabBar: { backgroundColor: '#F8F9FA' },
-      editNetworkMenu: { padding: 16 },
-      containerDeleteText: { padding: 16 },
-      textCentred: { textAlign: 'center' },
-    },
-  }),
+  useStyles: () => {
+    const { mockTheme } = jest.requireActual('../../../util/theme');
+    return {
+      styles: {
+        sheet: { backgroundColor: mockTheme.colors.background.default },
+        notch: { backgroundColor: mockTheme.colors.border.muted },
+        networkTabsSelectorTitle: { fontSize: 18 },
+        networkTabsSelectorWrapper: { flex: 1 },
+        tabUnderlineStyle: { backgroundColor: mockTheme.colors.text.default },
+        inactiveUnderlineStyle: {
+          backgroundColor: mockTheme.colors.text.alternative,
+        },
+        tabStyle: {},
+        textStyle: { fontSize: 16 },
+        tabBar: { borderColor: mockTheme.colors.border.muted },
+        editNetworkMenu: { padding: 16 },
+        containerDeleteText: { padding: 16 },
+        textCentred: { textAlign: 'center' },
+      },
+    };
+  },
 }));
 
 jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
@@ -608,20 +606,25 @@ jest.mock('../../../component-library/components/Icons/Icon', () => ({
 
 jest.mock('./index.styles', () => ({
   __esModule: true,
-  default: () => ({
-    sheet: { backgroundColor: '#FFFFFF' },
-    notch: { backgroundColor: '#CCCCCC' },
-    networkTabsSelectorTitle: { fontSize: 18 },
-    networkTabsSelectorWrapper: { flex: 1 },
-    tabUnderlineStyle: { backgroundColor: '#0066CC' },
-    inactiveUnderlineStyle: { backgroundColor: '#CCCCCC' },
-    tabStyle: { backgroundColor: '#FFFFFF' },
-    textStyle: { fontSize: 16 },
-    tabBar: { backgroundColor: '#F8F9FA' },
-    editNetworkMenu: { padding: 16 },
-    containerDeleteText: { padding: 16 },
-    textCentred: { textAlign: 'center' },
-  }),
+  default: () => {
+    const { mockTheme } = jest.requireActual('../../../util/theme');
+    return {
+      sheet: { backgroundColor: mockTheme.colors.background.default },
+      notch: { backgroundColor: mockTheme.colors.border.muted },
+      networkTabsSelectorTitle: { fontSize: 18 },
+      networkTabsSelectorWrapper: { flex: 1 },
+      tabUnderlineStyle: { backgroundColor: mockTheme.colors.text.default },
+      inactiveUnderlineStyle: {
+        backgroundColor: mockTheme.colors.text.alternative,
+      },
+      tabStyle: {},
+      textStyle: { fontSize: 16 },
+      tabBar: { borderColor: mockTheme.colors.border.muted },
+      editNetworkMenu: { padding: 16 },
+      containerDeleteText: { padding: 16 },
+      textCentred: { textAlign: 'center' },
+    };
+  },
 }));
 
 jest.mock('../../../component-library/components/Texts/Text', () => {
@@ -1105,15 +1108,15 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
           '0x89': true,
           '0xa': false,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       // The component internally processes enabledNetworksByNamespace
@@ -1143,15 +1146,15 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
           '0x89': false,
           '0xa': false,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       // The component should handle nested namespace structures
@@ -1171,11 +1174,11 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
-        tryEnableEvmNetwork: jest.fn(),
-        enabledNetworksForAllNamespaces: {},
         popularEvmNetworks: [],
         popularMultichainNetworks: [],
         popularNetworks: [],
+        tryEnableEvmNetwork: jest.fn(),
+        enabledNetworksForAllNamespaces: {},
       });
 
       const { getByTestId } = renderComponent();
@@ -1201,6 +1204,9 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
@@ -1208,9 +1214,6 @@ describe('NetworkManager Component', () => {
           '0xa': false,
           '0xa4b1': true,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       // Component should only include enabled (true) networks
@@ -1235,14 +1238,14 @@ describe('NetworkManager Component', () => {
         isNetworkEnabled: jest.fn(),
         hasOneEnabledNetwork: false,
         enableAllPopularNetworks: jest.fn(),
+        popularEvmNetworks: [],
+        popularMultichainNetworks: [],
+        popularNetworks: [],
         tryEnableEvmNetwork: jest.fn(),
         enabledNetworksForAllNamespaces: {
           '0x1': true,
           '0x89': true,
         },
-        popularEvmNetworks: [],
-        popularMultichainNetworks: [],
-        popularNetworks: [],
       });
 
       const { getByTestId } = renderComponent();
