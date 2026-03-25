@@ -58,11 +58,13 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         testSpecificMock: async (mockServer) => {
           // Use the full swap mock suite (token list, spot prices, catch-alls)
           await swapTestSpecificMock(mockServer);
-          // Override: return the gasless quote for MUSD instead of the default empty response
+          // Override: return the gasless quote for MUSD instead of the default empty response.
+          // Priority 1000 > 999 so this rule beats the empty-string MUSD mock in swapTestSpecificMock.
           await setupSSEMockRequest(
             mockServer,
             /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
             toSSEResponse(GASLESS_SWAP_QUOTES_ETH_MUSD),
+            1000,
           );
           await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
         },
@@ -136,11 +138,13 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         testSpecificMock: async (mockServer) => {
           // Use the full swap mock suite (token list, spot prices, catch-alls)
           await swapTestSpecificMock(mockServer);
-          // Override the empty MUSD mock with the USDC→MUSD gasless quote
+          // Override the empty MUSD mock with the USDC→MUSD gasless quote.
+          // Priority 1000 > 999 so this rule beats the empty-string MUSD mock in swapTestSpecificMock.
           await setupSSEMockRequest(
             mockServer,
             /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
             toSSEResponse(GASLESS_SWAP_QUOTES_USDC_MUSD),
+            1000,
           );
           await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
         },
@@ -212,10 +216,12 @@ describe(SmokeTrade('Gasless Swap - '), (): void => {
         ],
         testSpecificMock: async (mockServer) => {
           await swapTestSpecificMock(mockServer);
+          // Priority 1000 > 999 so this rule beats the empty-string MUSD mock in swapTestSpecificMock.
           await setupSSEMockRequest(
             mockServer,
             /getQuoteStream.*destTokenAddress=0xacA92E438df0B2401fF60dA7E4337B687a2435DA/i,
             toSSEResponse(GASLESS_SWAP_QUOTES_ETH_MUSD_7702),
+            1000,
           );
           await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
         },
