@@ -1130,7 +1130,7 @@ exports[`StakeConfirmationView render matches snapshot 1`] = `
             style={
               [
                 {
-                  "color": "#131416",
+                  "color": "#4459ff",
                   "flexGrow": 0,
                   "flexShrink": 1,
                   "flexWrap": "wrap",
