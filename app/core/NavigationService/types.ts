@@ -192,6 +192,9 @@ import type {
   SnapSettingsParams,
 } from '../../components/Views/Modals/Modals.types';
 
+// Rewards params
+import { BenefitDetailsViewRouteParams } from '../../components/UI/Rewards/Views/BenefitDetailsView.types.ts';
+
 // Webview params
 import type {
   WebviewParams,
@@ -302,6 +305,8 @@ export interface RootStackParamList extends ParamListBase {
   RewardsOnboarding2: undefined;
   RewardsOnboarding3: undefined;
   RewardsOnboarding4: undefined;
+  BenefitDetailsView: BenefitDetailsViewRouteParams
+  BenefitListView: undefined
 
   // Modal routes
   DeleteWalletModal: undefined;

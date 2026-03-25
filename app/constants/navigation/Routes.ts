@@ -109,6 +109,8 @@ const Routes = {
   REWARDS_ONBOARDING_2: 'RewardsOnboarding2',
   REWARDS_ONBOARDING_3: 'RewardsOnboarding3',
   REWARDS_ONBOARDING_4: 'RewardsOnboarding4',
+  BENEFIT_LIST_VIEW: 'BenefitListView',
+  BENEFIT_DETAILS_VIEW: 'BenefitDetailsView',
   MODAL: {
     DELETE_WALLET: 'DeleteWalletModal',
     ROOT_MODAL_FLOW: 'RootModalFlow',
