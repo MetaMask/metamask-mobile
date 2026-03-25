@@ -20,6 +20,12 @@
       "update": "Update"
     }
   },
+  "access_restricted": {
+    "title": "Access restricted",
+    "description_line1": "This wallet address has been flagged during compliance screening. As a result, some MetaMask services are unavailable.",
+    "description_line2": "If you believe this is an error, contact support to request a review.",
+    "contact_support": "Contact support"
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
