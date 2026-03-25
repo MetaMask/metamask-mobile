@@ -73,30 +73,30 @@ const Root = ({ foxCode }: RootProps) => {
     <SafeAreaProvider>
       <Provider store={store}>
         <PersistGate persistor={persistor}>
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
-            <SnapsExecutionWebView />
-            ///: END:ONLY_INCLUDE_IF
-          }
-          <QueryClientProvider client={reactQueryService.queryClient}>
-            <FeatureFlagOverrideProvider>
-              <ThemeProvider>
-                <NavigationProvider>
-                  <ControllersGate>
-                    <ToastContextWrapper>
-                      <HardwareWalletProvider>
-                        <ErrorBoundary view="Root">
+          <ErrorBoundary view="Root">
+            {
+              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+              // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+              <SnapsExecutionWebView />
+              ///: END:ONLY_INCLUDE_IF
+            }
+            <QueryClientProvider client={reactQueryService.queryClient}>
+              <FeatureFlagOverrideProvider>
+                <ThemeProvider>
+                  <NavigationProvider>
+                    <ControllersGate>
+                      <ToastContextWrapper>
+                        <HardwareWalletProvider>
                           <ReducedMotionConfig mode={ReduceMotion.Never} />
                           <App />
-                        </ErrorBoundary>
-                      </HardwareWalletProvider>
-                    </ToastContextWrapper>
-                  </ControllersGate>
-                </NavigationProvider>
-              </ThemeProvider>
-            </FeatureFlagOverrideProvider>
-          </QueryClientProvider>
+                        </HardwareWalletProvider>
+                      </ToastContextWrapper>
+                    </ControllersGate>
+                  </NavigationProvider>
+                </ThemeProvider>
+              </FeatureFlagOverrideProvider>
+            </QueryClientProvider>
+          </ErrorBoundary>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>
