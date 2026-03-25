@@ -1608,11 +1608,11 @@ export class PerpsController extends BaseController<
     // explicitly enabled and selected.
     const isMYXEnabled = this.#isMYXProviderEnabled();
     if (isMYXEnabled) {
-      this.#myxRegistrationPromise = Promise.resolve()
-        .then(() => {
-          // Dynamic require keeps MYX out of the main bundle (tree-shaken in extension).
-          // eslint-disable-next-line @typescript-eslint/no-require-imports
-          const { MYXProvider } = require('./providers/MYXProvider');
+      // IMPORTANT: Must use import() — NOT require() — for core/extension tree-shaking.
+      // require() is synchronous and bundlers include it in the main bundle.
+      // import() enables true code splitting so MYX is excluded when not enabled.
+      this.#myxRegistrationPromise = import('./providers/MYXProvider')
+        .then(({ MYXProvider }) => {
           this.registerMYXProvider(MYXProvider);
           return undefined;
         })
