@@ -98,12 +98,9 @@ const SweepPath: React.FC<SweepPathProps> = ({
     const startShift = perimeter * BORDER_FADE_IN_FRACTION * 0.5;
     const dashOffset = perimeter * (1 - p) + startShift;
 
-    let lifecycle = 1;
-    if (p < BORDER_FADE_IN_FRACTION) {
-      lifecycle = p / BORDER_FADE_IN_FRACTION;
-    } else if (p > 1 - BORDER_FADE_OUT_FRACTION) {
-      lifecycle = (1 - p) / BORDER_FADE_OUT_FRACTION;
-    }
+    const fadeIn = Math.min(p / BORDER_FADE_IN_FRACTION, 1);
+    const fadeOut = Math.min((1 - p) / BORDER_FADE_OUT_FRACTION, 1);
+    const lifecycle = Math.min(fadeIn, fadeOut);
 
     return {
       strokeDashoffset: dashOffset,
