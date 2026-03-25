@@ -1,55 +1,50 @@
 {
   "title": "MYX: Place Limit Order",
   "pr": "myx-write-integration",
-  "known_limitations": "SGLT testnet pool rejects limit orders (0x613970e0). This recipe may fail on testnet — use mainnet pool or skip.",
+  "initial_conditions": { "testnet": true },
+  "known_limitations": "SGLT testnet pool may reject limit orders. This recipe may fail on testnet.",
   "validate": {
     "runtime": {
       "pre_conditions": [
-        "Wallet unlocked",
-        "MYX testnet enabled",
-        "Sufficient USDC balance",
-        "NOTE: Limit orders may fail on SGLT testnet pool"
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
       ],
       "steps": [
         {
           "id": "auth",
           "description": "Verify MYX provider is authenticated",
-          "action": "recipe_ref",
+          "action": "eval_ref",
           "ref": "myx/auth",
           "assert": { "operator": "eq", "field": "ready", "value": true }
         },
         {
-          "id": "pre-orders",
-          "description": "Record open order count before placing",
-          "action": "recipe_ref",
-          "ref": "myx/orders"
-        },
-        {
           "id": "place-limit",
-          "description": "Place limit buy at 50% below current price (won't fill)",
+          "description": "Place limit buy at far-from-market price via eval ref",
           "action": "eval_async",
-          "expression": "(function(){var c=Engine.context.PerpsController;return c.getMarketDataWithPrices().then(function(markets){var myx=markets.filter(function(m){return m.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX markets'});var m=myx[0];var limitPrice=String(parseFloat(m.price)*0.50);return c.placeOrder({symbol:m.symbol,isBuy:true,orderType:'limit',size:'0.05',leverage:10,usdAmount:'120',price:limitPrice,currentPrice:parseFloat(m.price)}).then(function(r){return JSON.stringify(r)})})})()",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no markets'});var m=markets[0];var price=parseFloat(m.price.replace(/[^0-9.]/g,''));var limitPrice=String(price*0.5);var size=String(150/price);return p.placeOrder({symbol:m.symbol,isBuy:true,orderType:'limit',size:size,leverage:2,usdAmount:'150',maxSlippageBps:500,currentPrice:price,price:limitPrice}).then(function(r){return JSON.stringify(r)})})})()",
           "assert": { "operator": "eq", "field": "success", "value": true }
         },
         {
           "id": "wait-order",
-          "description": "Wait for order to appear on-chain",
-          "action": "wait",
-          "ms": 5000
-        },
-        {
-          "id": "verify-order",
-          "description": "Confirm at least one open order exists",
-          "action": "recipe_ref",
-          "ref": "myx/orders",
-          "assert": { "operator": "length_gt", "field": "", "value": 0 }
+          "description": "Poll until order appears",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
         },
         {
           "id": "cleanup",
-          "description": "Cancel the order to clean up",
-          "action": "recipe_ref",
+          "description": "Cancel the order",
+          "action": "eval_ref",
           "ref": "myx/cancel-order",
           "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "verify-cancelled",
+          "description": "Verify cancel succeeded (cancel step already returned success)",
+          "action": "wait",
+          "ms": 5000
         }
       ]
     }

@@ -282,8 +282,9 @@ while IFS= read -r sj; do
       ;;
     eval_ref)
       REF=$(node -p "JSON.parse(process.argv[1]).ref||''" "$sj")
-      # If ref already has team/ prefix (e.g. myx/auth), use as-is; otherwise prepend perps/
-      if [[ "$REF" == */* ]]; then
+      # Resolve eval ref: check if first part is a known team dir, otherwise prepend perps/
+      IFS='/' read -ra REF_PARTS <<< "$REF"
+      if [ ${#REF_PARTS[@]} -ge 2 ] && [ -d "$SD/teams/${REF_PARTS[0]}" ]; then
         FULL_REF="$REF"
       else
         FULL_REF="perps/$REF"

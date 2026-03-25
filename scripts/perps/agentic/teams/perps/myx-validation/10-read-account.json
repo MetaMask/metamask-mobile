@@ -1,0 +1,35 @@
+{
+  "title": "MYX: Read Account State",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "read-account",
+          "description": "Fetch MYX account state (freeMargin, walletBalance, totalBalance)",
+          "action": "eval_ref",
+          "ref": "myx/account",
+          "assert": {
+            "operator": "not_null",
+            "field": "availableBalance"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "title": "MYX: Validate Order (small + valid)",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "validate-small",
+          "description": "Validate a $5 order (expect invalid — below per-pool min ~$11)",
+          "action": "eval_ref",
+          "ref": "myx/validate-order-small",
+          "assert": {
+            "operator": "eq",
+            "field": "isValid",
+            "value": false
+          }
+        },
+        {
+          "id": "validate-valid",
+          "description": "Validate a $150 order (expect valid — above per-pool min)",
+          "action": "eval_ref",
+          "ref": "myx/validate-order-valid",
+          "assert": {
+            "operator": "eq",
+            "field": "isValid",
+            "value": true
+          }
+        }
+      ]
+    }
+  }
+}

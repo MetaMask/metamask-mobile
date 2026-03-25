@@ -1,0 +1,102 @@
+{
+  "auth": {
+    "description": "MYX provider auth + authenticated address",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.isReadyToTrade().then(function(r){return JSON.stringify({provider:'myx',ready:r.ready,authenticatedAddress:r.authenticatedAddress||null})})})()",
+    "async": true
+  },
+  "markets": {
+    "description": "MYX markets with prices",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(r){return JSON.stringify(r.map(function(m){return{symbol:m.symbol,price:m.price,change24h:m.change24hPercent,volume:m.volume}}))})})()",
+    "async": true
+  },
+  "positions": {
+    "description": "Open MYX positions with PnL",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getPositions().then(function(r){return JSON.stringify(r.map(function(pos){return{symbol:pos.symbol,size:pos.size,entryPrice:pos.entryPrice,unrealizedPnl:pos.unrealizedPnl,marginUsed:pos.marginUsed,leverage:pos.leverage}}))})})()",
+    "async": true
+  },
+  "account": {
+    "description": "MYX account state (freeMargin, walletBalance, totalBalance)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getAccountState().then(function(r){return JSON.stringify(r)})})()",
+    "async": true
+  },
+  "oracle-price": {
+    "description": "Oracle price for first MYX pool",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(r){if(!r.length)return JSON.stringify({error:'no markets'});return JSON.stringify({symbol:r[0].symbol,price:r[0].price})})})()",
+    "async": true
+  },
+  "pre-trade": {
+    "description": "Snapshot: position count + account balances (before trade)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return Promise.all([p.getPositions(),p.getAccountState()]).then(function(r){return JSON.stringify({positionCount:r[0].length,positions:r[0].map(function(pos){return{symbol:pos.symbol,size:pos.size,entryPrice:pos.entryPrice,leverage:pos.leverage}}),accountState:r[1]})})})()",
+    "async": true
+  },
+  "post-trade": {
+    "description": "Snapshot: position count + account balances (after trade, same shape as pre-trade)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return Promise.all([p.getPositions(),p.getAccountState()]).then(function(r){return JSON.stringify({positionCount:r[0].length,positions:r[0].map(function(pos){return{symbol:pos.symbol,size:pos.size,entryPrice:pos.entryPrice,leverage:pos.leverage}}),accountState:r[1]})})})()",
+    "async": true
+  },
+  "orders": {
+    "description": "Open MYX limit/stop orders",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getOpenOrders().then(function(r){return JSON.stringify(r)})})()",
+    "async": true
+  },
+  "place-order": {
+    "description": "Place a market buy on first MYX market ($150 notional, 2x leverage)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no MYX markets'});var m=markets[0];var price=parseFloat(m.price.replace(/[^0-9.]/g,''));var size=String(150/price);return p.placeOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:size,leverage:2,usdAmount:'150',maxSlippageBps:500,currentPrice:price}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "close-position": {
+    "description": "Close first open MYX position (full close)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getPositions().then(function(positions){if(!positions.length)return JSON.stringify({error:'no MYX positions'});var pos=positions[0];return p.closePosition({symbol:pos.symbol,size:pos.size}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "close-all-positions": {
+    "description": "Batch close all MYX positions",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.closePositions({closeAll:true}).then(function(r){return JSON.stringify(r)})})()",
+    "async": true
+  },
+  "cancel-order": {
+    "description": "Cancel first open MYX order",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getOpenOrders().then(function(orders){if(!orders.length)return JSON.stringify({error:'no MYX open orders'});var o=orders[0];return p.cancelOrder({orderId:o.orderId,symbol:o.symbol}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "cancel-all-orders": {
+    "description": "Batch cancel all open MYX orders",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getOpenOrders().then(function(orders){if(!orders.length)return JSON.stringify({error:'no MYX open orders'});return p.cancelOrders({orders:orders.map(function(o){return{orderId:o.orderId,symbol:o.symbol}})}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "update-tpsl": {
+    "description": "Set TP/SL on first MYX position (TP=+10%, SL=-5% from entry)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getPositions().then(function(positions){if(!positions.length)return JSON.stringify({error:'no MYX positions'});var pos=positions[0];var entry=parseFloat(pos.entryPrice);var tp=String(entry*1.10);var sl=String(entry*0.95);return p.updatePositionTPSL({symbol:pos.symbol,takeProfitPrice:tp,stopLossPrice:sl}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "add-margin": {
+    "description": "Add $10 margin to first MYX position",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getPositions().then(function(positions){if(!positions.length)return JSON.stringify({error:'no MYX positions'});var pos=positions[0];return p.updateMargin({symbol:pos.symbol,amount:'10'}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "edit-order": {
+    "description": "Edit first open MYX order (update price by +1%)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getOpenOrders().then(function(orders){if(!orders.length)return JSON.stringify({error:'no MYX open orders'});var o=orders[0];var newPrice=String(parseFloat(o.price)*1.01);return p.editOrder({orderId:o.orderId,newOrder:{symbol:o.symbol,isBuy:o.side==='buy',orderType:o.isTrigger?'stop':'limit',size:o.size,price:newPrice}}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "fills": {
+    "description": "MYX filled orders (getOrderFills via provider)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getOrderFills().then(function(r){return JSON.stringify(r)})})()",
+    "async": true
+  },
+  "fees": {
+    "description": "MYX fee calculation (calculateFees with $1000 amount)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no MYX markets'});var m=markets[0];return p.calculateFees({amount:'1000',orderType:'market',symbol:m.symbol}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "validate-order-small": {
+    "description": "MYX validateOrder with $5 order (expect invalid — below per-pool min ~$11)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no MYX markets'});var m=markets[0];return p.validateOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:'0.01',leverage:2,usdAmount:'5',currentPrice:parseFloat(m.price)}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "validate-order-valid": {
+    "description": "MYX validateOrder with valid $150 order (expect valid — above per-pool min)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no MYX markets'});var m=markets[0];return p.validateOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:'0.07',leverage:10,usdAmount:'150',currentPrice:parseFloat(m.price)}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  }
+}

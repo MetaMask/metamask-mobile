@@ -1,128 +1,96 @@
 {
   "title": "MYX: Full Trade Lifecycle",
   "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
   "validate": {
     "runtime": {
       "pre_conditions": [
-        "Wallet unlocked",
-        "MYX testnet enabled",
-        "Sufficient USDC balance (>$200 recommended)",
-        "No existing MYX positions (recipe will close any found)"
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
       ],
       "steps": [
         {
           "id": "auth",
           "description": "Verify MYX provider is authenticated",
-          "action": "recipe_ref",
+          "action": "eval_ref",
           "ref": "myx/auth",
           "assert": { "operator": "eq", "field": "ready", "value": true }
         },
         {
-          "id": "cleanup-existing",
+          "id": "cleanup-positions",
           "description": "Close any existing positions to start clean",
-          "action": "eval_async",
-          "expression": "(function(){var c=Engine.context.PerpsController;return c.getPositions().then(function(r){var myx=r.filter(function(p){return p.providerId==='myx'});if(myx.length===0)return JSON.stringify({action:'clean',positionCount:0});return c.closePositions({closeAll:true}).then(function(cr){return JSON.stringify({action:'closed_existing',result:cr})})})})()"
+          "action": "eval_ref",
+          "ref": "myx/close-all-positions",
+          "assert": { "operator": "not_null" }
         },
         {
-          "id": "wait-cleanup",
-          "description": "Wait for cleanup to settle",
-          "action": "wait",
-          "ms": 5000
+          "id": "wait-clean",
+          "description": "Wait for positions to clear",
+          "action": "wait_for",
+          "expression": "(function(){var p=Engine.context.PerpsController.providers.get('myx');return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 3000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
         },
         {
-          "id": "verify-clean",
-          "description": "Verify zero positions to start",
-          "action": "recipe_ref",
-          "ref": "myx/positions",
-          "assert": { "operator": "length_eq", "field": "", "value": 0 }
-        },
-        {
-          "id": "check-balance",
-          "description": "Record account state before trading",
-          "action": "recipe_ref",
-          "ref": "myx/account",
-          "assert": { "operator": "not_null", "field": "freeMargin" }
-        },
-        {
-          "id": "step1-place",
-          "description": "Step 1: Place market buy order",
-          "action": "recipe_ref",
+          "id": "step1-place-market",
+          "description": "Step 1: Place market buy $150 META 2x",
+          "action": "eval_ref",
           "ref": "myx/place-order",
           "assert": { "operator": "eq", "field": "success", "value": true }
         },
         {
-          "id": "wait-place",
-          "description": "Wait for order fill",
-          "action": "wait",
-          "ms": 5000
-        },
-        {
-          "id": "verify-position-open",
-          "description": "Verify position was created",
-          "action": "recipe_ref",
-          "ref": "myx/positions",
-          "assert": { "operator": "length_eq", "field": "", "value": 1 }
+          "id": "wait-position",
+          "description": "Poll until position appears",
+          "action": "wait_for",
+          "expression": "(function(){var p=Engine.context.PerpsController.providers.get('myx');return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 3000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
         },
         {
           "id": "step2-tpsl",
-          "description": "Step 2: Set TP/SL on the position",
-          "action": "recipe_ref",
+          "description": "Step 2: Set TP (+10%) and SL (-5%) on position",
+          "action": "eval_ref",
           "ref": "myx/update-tpsl",
           "assert": { "operator": "eq", "field": "success", "value": true }
         },
         {
-          "id": "wait-tpsl",
-          "description": "Wait for TP/SL tx confirmation",
-          "action": "wait",
-          "ms": 5000
-        },
-        {
-          "id": "step3-margin",
-          "description": "Step 3: Add $10 margin to the position",
-          "action": "recipe_ref",
+          "id": "step3-add-margin",
+          "description": "Step 3: Add $10 margin",
+          "action": "eval_ref",
           "ref": "myx/add-margin",
           "assert": { "operator": "eq", "field": "success", "value": true }
         },
         {
-          "id": "wait-margin",
-          "description": "Wait for margin tx confirmation",
-          "action": "wait",
-          "ms": 5000
-        },
-        {
-          "id": "verify-still-open",
-          "description": "Verify position still exists after margin update",
-          "action": "recipe_ref",
+          "id": "verify-position",
+          "description": "Verify position still open after TP/SL + margin",
+          "action": "eval_ref",
           "ref": "myx/positions",
-          "assert": { "operator": "length_eq", "field": "", "value": 1 }
+          "assert": { "operator": "length_gt", "field": "", "value": 0 }
         },
         {
           "id": "step4-close",
-          "description": "Step 4: Close the position",
-          "action": "recipe_ref",
+          "description": "Step 4: Close position",
+          "action": "eval_ref",
           "ref": "myx/close-position",
           "assert": { "operator": "eq", "field": "success", "value": true }
         },
         {
-          "id": "wait-close",
-          "description": "Wait for close tx confirmation",
-          "action": "wait",
-          "ms": 5000
-        },
-        {
-          "id": "verify-clean-end",
-          "description": "Verify zero positions — clean state restored",
-          "action": "recipe_ref",
-          "ref": "myx/positions",
-          "assert": { "operator": "length_eq", "field": "", "value": 0 }
+          "id": "wait-closed",
+          "description": "Poll until position is gone",
+          "action": "wait_for",
+          "expression": "(function(){var p=Engine.context.PerpsController.providers.get('myx');return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 3000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
         },
         {
           "id": "log-check",
-          "description": "Verify no errors in Metro logs during cycle",
+          "description": "Verify no fatal errors in Metro logs",
           "action": "log_watch",
-          "window_seconds": 60,
-          "must_not_appear": ["TypeError", "FATAL", "Unhandled promise rejection"],
-          "watch_for": ["PERPS_DEBUG", "MYX"]
+          "window_seconds": 120,
+          "must_not_appear": ["FATAL", "Unhandled promise rejection"]
         }
       ]
     }

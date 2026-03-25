@@ -1,0 +1,34 @@
+{
+  "title": "MYX: Read Order Fills",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "read-fills",
+          "description": "Fetch MYX order fills",
+          "action": "eval_ref",
+          "ref": "myx/fills",
+          "assert": {
+            "operator": "not_null"
+          }
+        }
+      ]
+    }
+  }
+}

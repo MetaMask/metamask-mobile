@@ -78,5 +78,25 @@
     "description": "Edit first open MYX order (update price by +1%)",
     "expression": "(function(){var c=Engine.context.PerpsController;return c.getOpenOrders().then(function(orders){var myx=orders.filter(function(o){return o.providerId==='myx'});if(!myx.length)return JSON.stringify({error:'no MYX open orders'});var o=myx[0];var newPrice=String(parseFloat(o.price)*1.01);return c.editOrder({orderId:o.orderId,newOrder:{symbol:o.symbol,isBuy:o.side==='buy',orderType:o.isTrigger?'stop':'limit',size:o.size,price:newPrice}}).then(function(r){return JSON.stringify(r)})})})()",
     "async": true
+  },
+  "fills": {
+    "description": "MYX filled orders (getOrderFills via PerpsController)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getOrderFills().then(function(r){return JSON.stringify(r)})})()",
+    "async": true
+  },
+  "fees": {
+    "description": "MYX fee calculation (calculateFees with $1000 amount)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){var m=markets.filter(function(x){return x.providerId==='myx'})[0];if(!m)return JSON.stringify({error:'no MYX markets'});return p.calculateFees({amount:'1000',orderType:'market',symbol:m.symbol}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "validate-order-small": {
+    "description": "MYX validateOrder with $1 order (expect invalid)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){var m=markets.filter(function(x){return x.providerId==='myx'})[0];if(!m)return JSON.stringify({error:'no MYX markets'});return p.validateOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:'0.0001',leverage:2,usdAmount:'1',currentPrice:parseFloat(m.price)}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
+  },
+  "validate-order-valid": {
+    "description": "MYX validateOrder with valid $120 order (expect valid)",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){var m=markets.filter(function(x){return x.providerId==='myx'})[0];if(!m)return JSON.stringify({error:'no MYX markets'});return p.validateOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:'0.05',leverage:10,usdAmount:'120',currentPrice:parseFloat(m.price)}).then(function(r){return JSON.stringify(r)})})})()",
+    "async": true
   }
 }

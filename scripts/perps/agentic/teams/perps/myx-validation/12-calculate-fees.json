@@ -1,0 +1,34 @@
+{
+  "title": "MYX: Calculate Fees",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "calculate-fees",
+          "description": "Calculate fees for a $1000 trade",
+          "action": "eval_ref",
+          "ref": "myx/fees",
+          "assert": {
+            "operator": "not_null"
+          }
+        }
+      ]
+    }
+  }
+}

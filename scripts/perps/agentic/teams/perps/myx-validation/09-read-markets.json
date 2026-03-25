@@ -1,0 +1,36 @@
+{
+  "title": "MYX: Read Markets",
+  "pr": "myx-write-integration",
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready"
+      ],
+      "steps": [
+        {
+          "id": "auth",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": {
+            "operator": "eq",
+            "field": "ready",
+            "value": true
+          }
+        },
+        {
+          "id": "read-markets",
+          "description": "Fetch MYX markets with prices",
+          "action": "eval_ref",
+          "ref": "myx/markets",
+          "assert": {
+            "operator": "length_gt",
+            "field": "",
+            "value": 0
+          }
+        }
+      ]
+    }
+  }
+}
