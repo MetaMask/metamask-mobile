@@ -1,8 +1,7 @@
 {
-  "title": "MYX: Place Limit Order + Edit",
+  "title": "MYX: Place Limit Order + Edit Price + Verify on Home",
   "pr": "myx-write-integration",
   "initial_conditions": { "testnet": true },
-  "known_limitations": "SGLT testnet pool may reject limit orders.",
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -25,12 +24,36 @@
         },
         {
           "id": "wait-order",
-          "description": "Poll until order appears",
+          "description": "Poll until order appears in open orders",
           "action": "wait_for",
           "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
-          "timeout_ms": 60000,
+          "timeout_ms": 30000,
           "poll_ms": 2000,
           "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "capture-original-price",
+          "description": "Capture original order price before edit",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no provider'});return p.getOpenOrders().then(function(orders){if(!orders.length)return JSON.stringify({error:'no orders'});return JSON.stringify({price:orders[0].price,orderId:orders[0].orderId})})})()",
+          "assert": { "operator": "not_null", "field": "price" }
+        },
+        {
+          "id": "nav-home-before",
+          "description": "Navigate to Perps home to show order before edit",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-before",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-before-edit",
+          "description": "Capture Perps home showing order before edit",
+          "action": "screenshot",
+          "filename": "13-edit-order-before"
         },
         {
           "id": "edit-order",
@@ -38,6 +61,36 @@
           "action": "eval_ref",
           "ref": "myx/edit-order",
           "assert": { "operator": "eq", "field": "success", "value": true }
+        },
+        {
+          "id": "wait-edit-confirm",
+          "description": "Wait for edit to propagate",
+          "action": "wait",
+          "ms": 5000
+        },
+        {
+          "id": "verify-price-changed",
+          "description": "Verify order still exists (edit replaces order on MYX)",
+          "action": "eval_async",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(orders){return JSON.stringify({count:orders.length})})})()",
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "nav-home-after",
+          "description": "Navigate to Perps home to show order after edit",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-home-after",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "screenshot-after-edit",
+          "description": "Capture Perps home showing edited order",
+          "action": "screenshot",
+          "filename": "13-edit-order-after"
         },
         {
           "id": "cleanup-cancel",
@@ -48,9 +101,12 @@
         },
         {
           "id": "verify-cancelled",
-          "description": "Wait for chain confirmation",
-          "action": "wait",
-          "ms": 5000
+          "description": "Poll until no open orders remain",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
         }
       ]
     }

@@ -1,8 +1,7 @@
 {
-  "title": "MYX: Place Limit Order + Cancel",
+  "title": "MYX: Place Limit Order + Cancel via UI",
   "pr": "myx-write-integration",
   "initial_conditions": { "testnet": true },
-  "known_limitations": "SGLT testnet pool may reject limit orders.",
   "validate": {
     "runtime": {
       "pre_conditions": [
@@ -25,25 +24,65 @@
         },
         {
           "id": "wait-order",
-          "description": "Poll until order appears",
+          "description": "Poll until order appears in open orders",
           "action": "wait_for",
           "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
-          "timeout_ms": 60000,
+          "timeout_ms": 30000,
           "poll_ms": 2000,
           "assert": { "operator": "gt", "field": "count", "value": 0 }
         },
         {
-          "id": "cancel-order",
-          "description": "Cancel the order",
-          "action": "eval_ref",
-          "ref": "myx/cancel-order",
-          "assert": { "operator": "eq", "field": "success", "value": true }
+          "id": "nav-home",
+          "description": "Navigate to Perps home to see order in UI",
+          "action": "navigate",
+          "target": "PerpsMarketListView"
+        },
+        {
+          "id": "wait-orders-section",
+          "description": "Wait for orders section action button (Cancel All)",
+          "action": "wait_for",
+          "test_id": "section-header-action-button",
+          "timeout_ms": 15000
+        },
+        {
+          "id": "screenshot-before",
+          "description": "Capture Perps home showing limit order before cancel",
+          "action": "screenshot",
+          "filename": "12-cancel-order-before"
+        },
+        {
+          "id": "press-cancel-all",
+          "description": "Press Cancel All action button on orders section",
+          "action": "press",
+          "test_id": "section-header-action-button"
+        },
+        {
+          "id": "wait-cancel-sheet",
+          "description": "Wait for Cancel All bottom sheet confirm button",
+          "action": "wait_for",
+          "test_id": "bottomsheetfooter-button-subsequent",
+          "timeout_ms": 10000
+        },
+        {
+          "id": "press-confirm-cancel",
+          "description": "Press confirm cancel in bottom sheet",
+          "action": "press",
+          "test_id": "bottomsheetfooter-button-subsequent"
         },
         {
           "id": "verify-cancelled",
-          "description": "Wait for chain confirmation then verify cancel took effect",
-          "action": "wait",
-          "ms": 5000
+          "description": "Poll until no open orders remain",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getOpenOrders().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 20000,
+          "poll_ms": 1000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        },
+        {
+          "id": "screenshot-after",
+          "description": "Capture Perps home with no orders",
+          "action": "screenshot",
+          "filename": "12-cancel-order-after"
         }
       ]
     }
