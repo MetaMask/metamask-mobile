@@ -1,5 +1,6 @@
 import { RootState } from '..';
 import { RewardsTab, OnboardingStep } from './types';
+import { hasMinimumRequiredVersion } from '../../util/remoteFeatureFlag';
 
 export const selectActiveTab = (state: RootState): RewardsTab =>
   state.rewards.activeTab;
@@ -160,6 +161,9 @@ export const selectCampaignsLoading = (state: RootState) =>
 export const selectCampaignsError = (state: RootState) =>
   state.rewards.campaignsError;
 
+export const selectCampaignsHasLoaded = (state: RootState) =>
+  state.rewards.campaignsHasLoaded;
+
 // Campaign participant status selectors
 export const selectCampaignParticipantStatuses = (state: RootState) =>
   state.rewards.campaignParticipantStatuses;
@@ -176,3 +180,24 @@ export const selectCampaignParticipantCount =
       ? (state.rewards.campaignParticipantStatuses[campaignId]
           ?.participantCount ?? null)
       : null;
+
+// Version guard selectors
+export const selectVersionGuardMinimumMobileVersion = (state: RootState) =>
+  state.rewards.versionGuardMinimumMobileVersion;
+
+export const selectVersionGuardLoading = (state: RootState) =>
+  state.rewards.versionGuardLoading;
+
+export const selectVersionGuardError = (state: RootState) =>
+  state.rewards.versionGuardError;
+
+/**
+ * Returns true when the current app version is below the minimum required
+ * by the rewards backend, meaning the user must update to use Rewards.
+ * Returns false when requirements have not been fetched yet.
+ */
+export const selectIsRewardsVersionBlocked = (state: RootState): boolean => {
+  const minVersion = state.rewards.versionGuardMinimumMobileVersion;
+  if (!minVersion) return false;
+  return !hasMinimumRequiredVersion(minVersion);
+};

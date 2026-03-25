@@ -92,6 +92,7 @@ export interface ApplyBonusCodeDto {
  */
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
+  SEASON_1 = 'SEASON_1',
 }
 
 /**
@@ -140,16 +141,21 @@ export interface CampaignDto {
   excludedRegions: string[];
 
   /**
-   * Status label for the campaign
-   * @example 'Active'
+   * Theme-aware background image for the campaign tile
    */
-  statusLabel: string;
+  image?: ThemeImage;
 
   /**
    * The details of the campaign
-   * @example { image: { lightModeUrl: 'https://example.com/image.png', darkModeUrl: 'https://example.com/image-dark.png' }, howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
+   * @example { howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
    */
   details: CampaignDetails | null;
+
+  /**
+   * Whether this campaign is featured (shown prominently in the UI)
+   * @example true
+   */
+  featured: boolean;
 }
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -162,12 +168,11 @@ export type CampaignsState = {
     endDate: string;
     termsAndConditions: Json | null;
     excludedRegions: string[];
-    statusLabel: string;
+    image?: {
+      lightModeUrl: string;
+      darkModeUrl: string;
+    };
     details: {
-      image: {
-        lightModeUrl: string;
-        darkModeUrl: string;
-      };
       howItWorks: {
         title: string;
         description: string;
@@ -180,10 +185,12 @@ export type CampaignsState = {
             description: string;
             iconName: string;
           }[];
+          days?: number | null;
         }[];
         notes?: Json | null;
       };
     } | null;
+    featured: boolean;
   }[];
   lastFetched: number;
 };
@@ -220,6 +227,10 @@ export interface OndoCampaignPhase {
   daysLabel: string;
   sortOrder: number;
   steps: OndoCampaignStep[];
+  /**
+   * Number of days in the phase, used to calculate phase cut-off dates
+   */
+  days?: number | null;
 }
 
 export interface OndoCampaignHowItWorks {
@@ -230,7 +241,6 @@ export interface OndoCampaignHowItWorks {
 }
 
 export interface OndoHoldingDetails {
-  image: ThemeImage;
   howItWorks: OndoCampaignHowItWorks;
 }
 
@@ -1684,6 +1694,22 @@ export interface RewardsControllerApplyBonusCodeAction {
 }
 
 /**
+ * Response DTO for the client version requirements endpoint.
+ */
+export interface ClientVersionRequirementDto {
+  minimumMobileVersion?: string;
+  minimumExtensionVersion?: string;
+}
+
+/**
+ * Action for fetching client version requirements
+ */
+export interface RewardsControllerGetClientVersionRequirementsAction {
+  type: 'RewardsController:getClientVersionRequirements';
+  handler: () => Promise<ClientVersionRequirementDto>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1724,7 +1750,8 @@ export type RewardsControllerActions =
   | RewardsControllerCanChangeRewardsEnvUrlAction
   | RewardsControllerSetRewardsEnvUrlAction
   | RewardsControllerGetDefaultRewardsEnvUrlAction
-  | RewardsControllerApplyBonusCodeAction;
+  | RewardsControllerApplyBonusCodeAction
+  | RewardsControllerGetClientVersionRequirementsAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

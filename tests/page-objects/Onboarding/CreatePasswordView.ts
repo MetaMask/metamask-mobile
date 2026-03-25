@@ -9,15 +9,23 @@ class CreatePasswordView {
   }
 
   get newPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        )
+      : Matchers.getElementByLabel(
+          ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+        );
   }
 
   get confirmPasswordInput(): DetoxElement {
-    return Matchers.getElementByID(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
+    return device.getPlatform() === 'ios'
+      ? Matchers.getElementByID(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        )
+      : Matchers.getElementByLabel(
+          ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+        );
   }
 
   get iUnderstandCheckbox(): DetoxElement {
@@ -43,9 +51,13 @@ class CreatePasswordView {
   async resetPasswordInputs(): Promise<void> {
     await Gestures.typeText(this.newPasswordInput, '', {
       hideKeyboard: true,
+      clearFirst: true,
+      checkVisibility: false,
     });
     await Gestures.typeText(this.confirmPasswordInput, '', {
       hideKeyboard: true,
+      clearFirst: true,
+      checkVisibility: false,
     });
   }
 
@@ -53,6 +65,8 @@ class CreatePasswordView {
     await Gestures.typeText(this.newPasswordInput, password, {
       elemDescription: 'Create Password New Password Input',
       hideKeyboard: true,
+      checkVisibility: false,
+      checkEnabled: false,
     });
   }
 
@@ -60,18 +74,22 @@ class CreatePasswordView {
     await Gestures.typeText(this.confirmPasswordInput, password, {
       elemDescription: 'Create Password Confirm Password Input',
       hideKeyboard: true,
+      checkVisibility: false,
+      checkEnabled: false,
     });
   }
 
   async tapIUnderstandCheckBox(): Promise<void> {
     await Gestures.tap(this.iUnderstandCheckbox, {
       elemDescription: 'Create Password - I Understand Checkbox',
+      checkVisibility: false,
     });
   }
 
   async tapCreatePasswordButton(): Promise<void> {
     await Gestures.waitAndTap(this.submitButton, {
       elemDescription: 'Create Password Submit Button',
+      checkVisibility: false,
     });
   }
 }

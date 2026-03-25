@@ -36,6 +36,9 @@ import rewardsReducer, {
   bulkLinkReset,
   bulkLinkResumed,
   BULK_LINK_CANCEL,
+  setVersionGuardMinimumMobileVersion,
+  setVersionGuardLoading,
+  setVersionGuardError,
   RewardsState,
 } from '.';
 import { OnboardingStep } from './types';
@@ -47,6 +50,7 @@ import {
   CampaignType,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
+import { brandColor } from '@metamask/design-tokens';
 
 const initialState: RewardsState = rewardsReducer(undefined, {
   type: 'unknown',
@@ -2133,7 +2137,11 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
+        versionGuardMinimumMobileVersion: null,
+        versionGuardLoading: false,
+        versionGuardError: false,
       };
       const action = resetRewardsState();
 
@@ -2237,7 +2245,11 @@ describe('rewardsReducer', () => {
         campaigns: [],
         campaignsLoading: false,
         campaignsError: false,
+        campaignsHasLoaded: false,
         campaignParticipantStatuses: {},
+        versionGuardMinimumMobileVersion: null,
+        versionGuardLoading: false,
+        versionGuardError: false,
       };
       const rehydrateAction = {
         type: 'persist/REHYDRATE',
@@ -2636,7 +2648,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'old.png', darkModeUrl: 'old.png' },
         boostBips: 100,
         seasonLong: true,
-        backgroundColor: '#000000',
+        backgroundColor: brandColor.black,
       },
     ];
     const stateWithBoosts = {
@@ -2650,7 +2662,7 @@ describe('setActiveBoosts', () => {
         icon: { lightModeUrl: 'new.png', darkModeUrl: 'new.png' },
         boostBips: 2000,
         seasonLong: false,
-        backgroundColor: '#FFFFFF',
+        backgroundColor: brandColor.white,
       },
     ];
     const action = setActiveBoosts(newBoosts);
@@ -4459,8 +4471,8 @@ const mockCampaign: CampaignDto = {
   endDate: '2027-01-01T00:00:00.000Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
+  featured: false,
 };
 
 describe('setCampaigns', () => {
@@ -4567,40 +4579,60 @@ describe('setCampaignsLoading', () => {
 });
 
 describe('setCampaignsError', () => {
-  it('should set campaignsError to true', () => {
+  it('should set campaignsError to true and mark hasLoaded as true', () => {
     const action = setCampaignsError(true);
 
     const state = rewardsReducer(initialState, action);
 
     expect(state.campaignsError).toBe(true);
+    expect(state.campaignsHasLoaded).toBe(true);
   });
 
-  it('should set campaignsError to false', () => {
+  it('should set campaignsError to false without changing hasLoaded', () => {
     const stateWithError: RewardsState = {
       ...initialState,
       campaignsError: true,
+      campaignsHasLoaded: true,
     };
     const action = setCampaignsError(false);
 
     const state = rewardsReducer(stateWithError, action);
 
     expect(state.campaignsError).toBe(false);
+    expect(state.campaignsHasLoaded).toBe(true);
   });
 
-  it('should toggle error state correctly', () => {
+  it('should not change hasLoaded when clearing error and hasLoaded was false', () => {
+    const stateWithErrorNoLoad: RewardsState = {
+      ...initialState,
+      campaignsError: true,
+      campaignsHasLoaded: false,
+    };
+    const action = setCampaignsError(false);
+
+    const state = rewardsReducer(stateWithErrorNoLoad, action);
+
+    expect(state.campaignsError).toBe(false);
+    expect(state.campaignsHasLoaded).toBe(false);
+  });
+
+  it('should toggle error state correctly while maintaining hasLoaded', () => {
     let currentState = initialState;
 
     let action = setCampaignsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(true);
+    expect(currentState.campaignsHasLoaded).toBe(true);
 
     action = setCampaignsError(false);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(false);
+    expect(currentState.campaignsHasLoaded).toBe(true);
 
     action = setCampaignsError(true);
     currentState = rewardsReducer(currentState, action);
     expect(currentState.campaignsError).toBe(true);
+    expect(currentState.campaignsHasLoaded).toBe(true);
   });
 });
 
@@ -4667,5 +4699,131 @@ describe('setCampaignParticipantStatus', () => {
       optedIn: false,
       participantCount: 0,
     });
+  });
+});
+
+describe('setVersionGuardMinimumMobileVersion', () => {
+  it('should set minimum mobile version', () => {
+    const action = setVersionGuardMinimumMobileVersion('7.30.0');
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe('7.30.0');
+  });
+
+  it('should update existing minimum mobile version', () => {
+    const stateWithVersion: RewardsState = {
+      ...initialState,
+      versionGuardMinimumMobileVersion: '7.29.0',
+    };
+    const action = setVersionGuardMinimumMobileVersion('7.30.0');
+
+    const state = rewardsReducer(stateWithVersion, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe('7.30.0');
+  });
+
+  it('should set minimum mobile version to null', () => {
+    const stateWithVersion: RewardsState = {
+      ...initialState,
+      versionGuardMinimumMobileVersion: '7.30.0',
+    };
+    const action = setVersionGuardMinimumMobileVersion(null);
+
+    const state = rewardsReducer(stateWithVersion, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBeNull();
+  });
+
+  it('should not affect other state properties', () => {
+    const action = setVersionGuardMinimumMobileVersion('7.30.0');
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
+    expect(state.versionGuardError).toBe(initialState.versionGuardError);
+    expect(state.activeTab).toBe(initialState.activeTab);
+  });
+});
+
+describe('setVersionGuardLoading', () => {
+  it('should set versionGuardLoading to true', () => {
+    const action = setVersionGuardLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardLoading).toBe(true);
+  });
+
+  it('should set versionGuardLoading to false', () => {
+    const stateWithLoading: RewardsState = {
+      ...initialState,
+      versionGuardLoading: true,
+    };
+    const action = setVersionGuardLoading(false);
+
+    const state = rewardsReducer(stateWithLoading, action);
+
+    expect(state.versionGuardLoading).toBe(false);
+  });
+
+  it('should not affect other state properties', () => {
+    const action = setVersionGuardLoading(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe(
+      initialState.versionGuardMinimumMobileVersion,
+    );
+    expect(state.versionGuardError).toBe(initialState.versionGuardError);
+  });
+});
+
+describe('setVersionGuardError', () => {
+  it('should set versionGuardError to true', () => {
+    const action = setVersionGuardError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardError).toBe(true);
+  });
+
+  it('should set versionGuardError to false', () => {
+    const stateWithError: RewardsState = {
+      ...initialState,
+      versionGuardError: true,
+    };
+    const action = setVersionGuardError(false);
+
+    const state = rewardsReducer(stateWithError, action);
+
+    expect(state.versionGuardError).toBe(false);
+  });
+
+  it('should toggle error state correctly', () => {
+    let currentState = initialState;
+
+    let action = setVersionGuardError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.versionGuardError).toBe(true);
+
+    action = setVersionGuardError(false);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.versionGuardError).toBe(false);
+
+    action = setVersionGuardError(true);
+    currentState = rewardsReducer(currentState, action);
+    expect(currentState.versionGuardError).toBe(true);
+  });
+
+  it('should not affect other state properties', () => {
+    const action = setVersionGuardError(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.versionGuardMinimumMobileVersion).toBe(
+      initialState.versionGuardMinimumMobileVersion,
+    );
+    expect(state.versionGuardLoading).toBe(initialState.versionGuardLoading);
   });
 });

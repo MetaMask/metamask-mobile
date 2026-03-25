@@ -342,8 +342,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'swaps.hasOnboarded',
     'navigation.currentRoute',
     'inpageProvider.networkId',
-    'engine.backgroundState.SwapsController.pollingCyclesLeft',
-
     // ── Redux-persist internals ──
     '_persist',
   ];
