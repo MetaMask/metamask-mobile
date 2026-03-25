@@ -252,7 +252,7 @@ async function main() {
   console.log('SUMMARY');
   console.log(DIVIDER);
 
-  printTable(results);
+  printTable(results as unknown as Record<string, string | number>[]);
 
   const passed = results.filter((r) => r.status === 'PASS').length;
   const failed = results.filter((r) => r.status === 'FAIL').length;

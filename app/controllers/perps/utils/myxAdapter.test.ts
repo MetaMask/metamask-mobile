@@ -489,13 +489,12 @@ describe('myxAdapter', () => {
         poolId: '0xpool1',
         orderId: 7,
         txTime: 1700000001,
-        txHash: '0xopenorder',
         triggerPrice: '65000',
         triggerType: 1, // TP
         amount: '1',
-        collateralAmount: '0',
-        executionFeeToken: null as MYXPoolOpenOrder['executionFeeToken'],
-        executionFeeAmount: '0',
+        minQuoteOut: '0',
+        poolType: 0 as MYXPoolOpenOrder['poolType'],
+        user: '0xuser',
         ...overrides,
       };
     }

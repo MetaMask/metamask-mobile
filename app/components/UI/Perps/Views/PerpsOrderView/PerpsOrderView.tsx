@@ -292,13 +292,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
-  DevLogger.log(
-    '[MIN-ORDER-FIX] orderForm.amount=' +
-      orderForm.amount +
-      ' asset=' +
-      orderForm.asset,
-  );
-
   // Save pending trade config when user navigates away
   usePerpsSavePendingConfig(orderForm);
 

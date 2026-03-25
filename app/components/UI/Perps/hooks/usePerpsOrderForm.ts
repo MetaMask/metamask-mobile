@@ -107,15 +107,6 @@ export function usePerpsOrderForm(
     networkDefault,
     marketData?.minimumOrderSize ?? 0,
   );
-  DevLogger.log(
-    '[MIN-ORDER-FIX] defaultAmount=' +
-      defaultAmount +
-      ' networkDefault=' +
-      networkDefault +
-      ' marketMin=' +
-      (marketData?.minimumOrderSize ?? 'N/A'),
-  );
-
   // Priority for leverage: navigation param > existing position leverage > pending config > saved config > default (3x)
   const defaultLeverage =
     initialLeverage ||
