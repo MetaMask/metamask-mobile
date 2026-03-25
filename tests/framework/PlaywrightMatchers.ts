@@ -81,12 +81,12 @@ export default class PlaywrightMatchers {
   static async getElementByText(text: string): Promise<PlaywrightElement> {
     const isAndroid = await PlatformDetector.isAndroid();
 
-    let locator = '';
-    locator = isAndroid ? `.text("${text}")` : `//*[contains(@text,'${text}')]`;
     if (isAndroid) {
-      return await this.getElementByAndroidUIAutomator(locator);
+      return await this.getElementByAndroidUIAutomator(`.text("${text}")`);
     }
-    return await this.getElementByXPath(locator);
+    return await this.getElementByXPath(
+      `//*[contains(@name,'${text}') or contains(@label,'${text}') or contains(@text,'${text}')]`,
+    );
   }
 
   /**
