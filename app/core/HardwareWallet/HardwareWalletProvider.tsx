@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
+import React, { ReactNode, useCallback, useMemo, useRef, useState } from 'react';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
@@ -30,6 +30,8 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
 }) => {
   const { state, refs, setters } = useHardwareWalletStateManager();
   const { connectionState, deviceId, walletType, targetWalletType } = state;
+  const [isConnectionSheetVisible, setConnectionSheetVisibleState] =
+    useState(true);
 
   const effectiveWalletType = targetWalletType ?? walletType;
 
@@ -128,6 +130,10 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     hideAwaitingConfirmation();
   }, [hideAwaitingConfirmation, refs.adapterRef]);
 
+  const setConnectionSheetVisible = useCallback((isVisible: boolean) => {
+    setConnectionSheetVisibleState(isVisible);
+  }, []);
+
   const contextValue = useMemo(
     () => ({
       walletType: effectiveWalletType,
@@ -136,6 +142,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       deviceSelection,
       ensureDeviceReady,
       setTargetWalletType: setters.setTargetWalletType,
+      selectDiscoveredDevice: selectDevice,
+      rescanDevices: rescan,
+      connectToDevice: connect,
+      closeConnectionFlow: closeFlow,
+      acknowledgeConnectionSuccess: handleConnectionSuccess,
+      setConnectionSheetVisible,
       showHardwareWalletError,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
@@ -147,6 +159,12 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
       deviceSelection,
       ensureDeviceReady,
       setters.setTargetWalletType,
+      selectDevice,
+      rescan,
+      connect,
+      closeFlow,
+      handleConnectionSuccess,
+      setConnectionSheetVisible,
       showHardwareWalletError,
       showAwaitingConfirmation,
       hideAwaitingConfirmation,
@@ -167,6 +185,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         onClose={closeFlow}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
+        isConnectionSheetVisible={isConnectionSheetVisible}
       />
     </HardwareWalletContext.Provider>
   );

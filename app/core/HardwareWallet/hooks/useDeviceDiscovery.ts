@@ -31,6 +31,7 @@ interface UseDeviceDiscoveryResult {
   deviceSelection: DeviceSelectionState;
   selectDevice: (device: DiscoveredDevice) => void;
   rescan: () => void;
+  reset: () => void;
 }
 
 /**
@@ -111,7 +112,6 @@ export const useDeviceDiscovery = ({
     }
 
     stopDiscovery();
-    setDeviceSelection(INITIAL_DEVICE_SELECTION);
     return undefined;
   }, [connectionState.status, startDiscovery, stopDiscovery]);
 
@@ -123,12 +123,22 @@ export const useDeviceDiscovery = ({
   }, []);
 
   const rescan = useCallback(() => {
+    if (connectionState.status !== ConnectionStatus.Scanning) {
+      updateConnectionState({ status: ConnectionStatus.Scanning });
+      return;
+    }
     startDiscovery();
-  }, [startDiscovery]);
+  }, [connectionState.status, startDiscovery, updateConnectionState]);
+
+  const reset = useCallback(() => {
+    stopDiscovery();
+    setDeviceSelection(INITIAL_DEVICE_SELECTION);
+  }, [stopDiscovery]);
 
   return {
     deviceSelection,
     selectDevice,
     rescan,
+    reset,
   };
 };

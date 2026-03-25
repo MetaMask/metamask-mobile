@@ -44,6 +44,12 @@ const mockShowHardwareWalletError = jest.fn();
 
 const mockShowAwaitingConfirmation = jest.fn();
 const mockHideAwaitingConfirmation = jest.fn();
+const mockSelectDiscoveredDevice = jest.fn();
+const mockRescanDevices = jest.fn();
+const mockConnectToDevice = jest.fn();
+const mockCloseConnectionFlow = jest.fn();
+const mockAcknowledgeConnectionSuccess = jest.fn();
+const mockSetConnectionSheetVisible = jest.fn();
 
 jest.mock('../../../core/HardwareWallet', () => ({
   useHardwareWallet: jest.fn(),
@@ -163,6 +169,12 @@ const defaultHardwareWalletValues = {
   },
   ensureDeviceReady: mockEnsureDeviceReady,
   setTargetWalletType: mockSetTargetWalletType,
+  selectDiscoveredDevice: mockSelectDiscoveredDevice,
+  rescanDevices: mockRescanDevices,
+  connectToDevice: mockConnectToDevice,
+  closeConnectionFlow: mockCloseConnectionFlow,
+  acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+  setConnectionSheetVisible: mockSetConnectionSheetVisible,
   showHardwareWalletError: mockShowHardwareWalletError,
   showAwaitingConfirmation: mockShowAwaitingConfirmation,
   hideAwaitingConfirmation: mockHideAwaitingConfirmation,
@@ -208,51 +220,25 @@ describe('LedgerSelectAccount', () => {
   };
 
   describe('Initial Rendering', () => {
-    it('shows loading indicator while waiting for device readiness', () => {
-      mockEnsureDeviceReady.mockReturnValue(new Promise(() => undefined));
+    it('shows loading indicator while accounts are loading', () => {
+      mockGetLedgerAccountsByOperation.mockReturnValue(new Promise(() => undefined));
       const { queryByText } = renderWithProvider(<LedgerSelectAccount />);
 
       expect(queryByText('Looking for device')).toBeOnTheScreen();
     });
 
-    it('sets target wallet type to Ledger on mount', async () => {
+    it('fetches accounts on mount without restarting device readiness', async () => {
+      mockGetLedgerAccountsByOperation.mockResolvedValue(mockAccounts);
       renderWithProvider(<LedgerSelectAccount />);
 
       await waitFor(() => {
-        expect(mockSetTargetWalletType).toHaveBeenCalledWith(
-          HardwareWalletType.Ledger,
+        expect(mockGetLedgerAccountsByOperation).toHaveBeenCalledWith(
+          PAGINATION_OPERATIONS.GET_FIRST_PAGE,
         );
       });
-    });
 
-    it('calls ensureDeviceReady on mount', async () => {
-      renderWithProvider(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockEnsureDeviceReady).toHaveBeenCalled();
-      });
-    });
-
-    it('navigates back when user cancels (ensureDeviceReady returns false)', async () => {
-      mockEnsureDeviceReady.mockResolvedValue(false);
-
-      renderWithProvider(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockedGoBack).toHaveBeenCalled();
-      });
-    });
-
-    it('navigates back when ensureDeviceReady throws on mount', async () => {
-      mockEnsureDeviceReady.mockRejectedValue(
-        new Error('Bluetooth adapter failed'),
-      );
-
-      renderWithProvider(<LedgerSelectAccount />);
-
-      await waitFor(() => {
-        expect(mockedGoBack).toHaveBeenCalled();
-      });
+      expect(mockEnsureDeviceReady).not.toHaveBeenCalled();
+      expect(mockSetTargetWalletType).not.toHaveBeenCalled();
     });
   });
 
@@ -461,9 +447,7 @@ describe('LedgerSelectAccount', () => {
     });
 
     it('does nothing when ensureDeviceReady returns false', async () => {
-      mockEnsureDeviceReady
-        .mockResolvedValueOnce(true)
-        .mockResolvedValueOnce(false);
+      mockEnsureDeviceReady.mockResolvedValue(false);
 
       const result = await renderAndWaitForAccounts();
 
@@ -475,9 +459,9 @@ describe('LedgerSelectAccount', () => {
     });
 
     it('shows inline error when ensureDeviceReady throws during unlock', async () => {
-      mockEnsureDeviceReady
-        .mockResolvedValueOnce(true)
-        .mockRejectedValueOnce(new Error('Transport disconnected'));
+      mockEnsureDeviceReady.mockRejectedValue(
+        new Error('Transport disconnected'),
+      );
 
       const result = await renderAndWaitForAccounts();
 
@@ -503,6 +487,7 @@ describe('LedgerSelectAccount', () => {
     });
 
     it('tracks error analytics on unlock failure', async () => {
+      mockEnsureDeviceReady.mockResolvedValue(true);
       const mockBuilder = {
         addProperties: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue({}),
@@ -518,13 +503,16 @@ describe('LedgerSelectAccount', () => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.HARDWARE_WALLET_ERROR,
         );
-        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
-          expect.objectContaining({ error: '0x6d00' }),
-        );
+        expect(
+          mockBuilder.addProperties.mock.calls.some(
+            (call) => (call[0] as { error?: string }).error === '0x6d00',
+          ),
+        ).toBe(true);
       });
     });
 
     it('tracks add-account analytics on success', async () => {
+      mockEnsureDeviceReady.mockResolvedValue(true);
       const mockBuilder = {
         addProperties: jest.fn().mockReturnThis(),
         build: jest.fn().mockReturnValue({}),
@@ -542,13 +530,17 @@ describe('LedgerSelectAccount', () => {
         expect(mockCreateEventBuilder).toHaveBeenCalledWith(
           MetaMetricsEvents.HARDWARE_WALLET_ADD_ACCOUNT,
         );
-        expect(mockBuilder.addProperties).toHaveBeenCalledWith(
-          expect.objectContaining({
-            device_type: HardwareDeviceTypes.LEDGER,
-            hd_path: expect.any(String),
-            connected_device_count: '3',
-          }),
-        );
+        expect(
+          mockBuilder.addProperties.mock.calls.some(
+            (call) =>
+              (call[0] as {
+                connected_device_count?: string;
+                device_type?: string;
+              }).device_type === HardwareDeviceTypes.LEDGER &&
+              (call[0] as { connected_device_count?: string })
+                .connected_device_count === '3',
+          ),
+        ).toBe(true);
       });
     });
   });

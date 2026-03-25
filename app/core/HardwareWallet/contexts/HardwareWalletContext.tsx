@@ -3,7 +3,7 @@ import {
   HardwareWalletType,
   HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
-import { DeviceSelectionState } from '../types';
+import { DeviceSelectionState, DiscoveredDevice } from '../types';
 
 export interface HardwareWalletContextValue {
   /** The type of hardware wallet (Ledger, QR, etc.) */
@@ -23,6 +23,18 @@ export interface HardwareWalletContextValue {
   ensureDeviceReady: (deviceId?: string | null) => Promise<boolean>;
   /** Set the target wallet type for "Add Hardware Wallet" flows (no account yet). */
   setTargetWalletType: (walletType: HardwareWalletType) => void;
+  /** Update the currently selected discovered device. */
+  selectDiscoveredDevice: (device: DiscoveredDevice) => void;
+  /** Restart device discovery for the active wallet flow. */
+  rescanDevices: () => void;
+  /** Connect to a discovered device and run the readiness check. */
+  connectToDevice: (deviceId: string) => Promise<boolean>;
+  /** Close the active connection flow and reset transient state. */
+  closeConnectionFlow: () => void;
+  /** Clear success state after a connection has been acknowledged by the UI. */
+  acknowledgeConnectionSuccess: () => void;
+  /** Hide or show provider-owned connection bottom sheet states. */
+  setConnectionSheetVisible: (isVisible: boolean) => void;
   /** Show a hardware wallet error in the bottom sheet. Use after ensureDeviceReady succeeds. */
   showHardwareWalletError: (error: unknown) => void;
   /** Show "awaiting confirmation" bottom sheet. */

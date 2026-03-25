@@ -51,9 +51,7 @@ import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
-import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils';
-import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 interface OptionType {
   key: string;
@@ -72,8 +70,7 @@ const LedgerSelectAccount = () => {
     ledgerDeviceDarkImage,
   );
 
-  const { deviceId, deviceSelection, ensureDeviceReady, setTargetWalletType } =
-    useHardwareWallet();
+  const { deviceId, deviceSelection, ensureDeviceReady } = useHardwareWallet();
 
   const ledgerModelName = useMemo(() => {
     if (deviceSelection?.selectedDevice) {
@@ -153,37 +150,9 @@ const LedgerSelectAccount = () => {
     }
   }, []);
 
-  useEffect(
-    () => {
-      const init = async () => {
-        try {
-          DevLogger.log('[LedgerSelectAccount] Calling ensureDeviceReady...');
-          setTargetWalletType(HardwareWalletType.Ledger);
-          const isReady = await ensureDeviceReady();
-
-          if (isReady) {
-            DevLogger.log(
-              '[LedgerSelectAccount] Device ready - fetching accounts',
-            );
-            await fetchAccounts();
-          } else {
-            DevLogger.log(
-              '[LedgerSelectAccount] User cancelled - navigating back',
-            );
-            navigation.goBack();
-          }
-        } catch {
-          navigation.goBack();
-        }
-      };
-
-      init();
-    },
-
-    // This is ran once on mount, so we don't need to add any dependencies
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [],
-  );
+  useEffect(() => {
+    fetchAccounts();
+  }, [fetchAccounts]);
 
   const hasTrackedOpenRef = useRef(false);
   useEffect(() => {

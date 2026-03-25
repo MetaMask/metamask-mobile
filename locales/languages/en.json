@@ -8076,6 +8076,13 @@
     "success": {
       "title": "{{device}} connected"
     },
+    "ledger_onboarding": {
+      "looking_title": "Looking for your device",
+      "looking_subtitle": "Hold on while we search for it...",
+      "found_title": "Ledger device found",
+      "not_found_title": "Device not found",
+      "select_device_title": "Select device"
+    },
     "errors": {
       "device_locked": "Unlock it and try again to continue",
       "app_not_open": "Please open the Ethereum app on your device",

@@ -56,6 +56,7 @@ import ImportPrivateKey from '../../Views/ImportPrivateKey';
 import ImportPrivateKeySuccess from '../../Views/ImportPrivateKeySuccess';
 import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
+import HardwareWallet from '../../Views/hardware-wallet';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
 import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
@@ -689,8 +690,12 @@ const LedgerConnectFlow = () => (
     screenOptions={{
       headerShown: false,
     }}
-    initialRouteName={Routes.HW.LEDGER_CONNECT}
+    initialRouteName={Routes.HW.LEDGER_BLUETOOTH}
   >
+    <Stack.Screen
+      name={Routes.HW.LEDGER_BLUETOOTH}
+      component={HardwareWallet}
+    />
     <Stack.Screen
       name={Routes.HW.LEDGER_CONNECT}
       component={LedgerSelectAccount}

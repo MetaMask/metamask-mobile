@@ -38,11 +38,12 @@ export interface HardwareWalletBottomSheetProps {
   connectionState: HardwareWalletConnectionState;
   deviceSelection: DeviceSelectionState;
   walletType: HardwareWalletType | null;
+  isConnectionSheetVisible?: boolean;
 
   retryEnsureDeviceReady: () => Promise<void>;
   selectDevice: (device: DiscoveredDevice) => void;
   rescan: () => void;
-  connect: (deviceId: string) => Promise<void>;
+  connect: (deviceId: string) => Promise<boolean>;
 
   /** Callback when sheet is dismissed (handles all cleanup) */
   onClose: () => void;
@@ -71,6 +72,7 @@ export const HardwareWalletBottomSheet: React.FC<
   connectionState,
   deviceSelection,
   walletType,
+  isConnectionSheetVisible = true,
   retryEnsureDeviceReady,
   selectDevice,
   rescan,
@@ -93,15 +95,16 @@ export const HardwareWalletBottomSheet: React.FC<
       case ConnectionStatus.Scanning:
       case ConnectionStatus.Connecting:
       case ConnectionStatus.Connected:
-      case ConnectionStatus.AwaitingApp:
-      case ConnectionStatus.AwaitingConfirmation:
       case ConnectionStatus.ErrorState:
       case ConnectionStatus.Ready:
+        return isConnectionSheetVisible;
+      case ConnectionStatus.AwaitingApp:
+      case ConnectionStatus.AwaitingConfirmation:
         return true;
       default:
         return false;
     }
-  }, [connectionState.status, walletType]);
+  }, [connectionState.status, isConnectionSheetVisible, walletType]);
 
   useEffect(() => {
     DevLogger.log(

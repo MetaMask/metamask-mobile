@@ -277,6 +277,7 @@ export interface RootStackParamList extends ParamListBase {
   SelectHardwareWallet: undefined;
   ConnectQRHardwareFlow: undefined;
   ConnectLedgerFlow: undefined;
+  LedgerBluetooth: undefined;
   LedgerConnect: undefined;
   LedgerMessageSignModal: LedgerMessageSignModalParams | undefined;
   LedgerTransactionModal: LedgerTransactionModalParams | undefined;
