@@ -308,6 +308,58 @@ export class MYXProvider implements PerpsProvider {
     return MYX_MINIMUM_ORDER_SIZE_USD;
   }
 
+  /**
+   * Common preamble for authenticated write operations.
+   * Ensures auth, returns wallet address, chainId, and network.
+   *
+   * @returns Authenticated context with address, chainId, and network.
+   */
+  async #getAuthContext(): Promise<{
+    address: string;
+    chainId: number;
+    network: MYXNetwork;
+  }> {
+    await this.#ensureAuthenticated();
+    const walletService = this.#getWalletService();
+    return {
+      address: walletService.getUserAddress(),
+      chainId: this.#clientService.getChainId(),
+      network: this.#clientService.getNetwork(),
+    };
+  }
+
+  /**
+   * Resolve symbol to poolId and find the user's open position in that pool.
+   * Returns the raw SDK position data needed for close/TPSL/margin operations.
+   *
+   * @param symbol - The trading pair symbol to look up.
+   * @param address - The user's wallet address for position lookup.
+   * @returns Pool ID and raw position, or an error object.
+   */
+  async #resolvePositionForSymbol(
+    symbol: string,
+    address: string,
+  ): Promise<
+    | { poolId: string; rawPos: import('../types/myx-types').MYXPositionType }
+    | { error: string }
+  > {
+    const poolId = this.#resolvePoolId(symbol);
+    if (!poolId) {
+      return { error: `No MYX pool found for symbol "${symbol}"` };
+    }
+
+    const posResult = await this.#clientService.listPositions(address);
+    const rawPositions = (posResult.data ?? []).filter(
+      (pos) => pos.size && pos.size !== '0' && pos.poolId === poolId,
+    );
+
+    if (rawPositions.length === 0) {
+      return { error: `No open position found for ${symbol}` };
+    }
+
+    return { poolId, rawPos: rawPositions[0] };
+  }
+
   // Fetch the current ticker price for a pool. Returns 0 on failure.
   async #fetchTickerPrice(poolId: string): Promise<number> {
     const tickers = await this.#clientService.getTickers([poolId]);
@@ -866,14 +918,8 @@ export class MYXProvider implements PerpsProvider {
         leverage: params.leverage,
       });
 
-      await this.#ensureAuthenticated();
-      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Auth OK');
-
-      const walletService = this.#getWalletService();
-      const address = walletService.getUserAddress();
-      const chainId = this.#clientService.getChainId();
-      const network = this.#clientService.getNetwork();
-      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Wallet', {
+      const { address, chainId, network } = await this.#getAuthContext();
+      this.#deps.debugLogger.log('[MYXProvider.placeOrder] Auth OK', {
         address,
         chainId,
         network,
@@ -1069,11 +1115,7 @@ export class MYXProvider implements PerpsProvider {
 
   async editOrder(params: EditOrderParams): Promise<OrderResult> {
     try {
-      await this.#ensureAuthenticated();
-      const walletService = this.#getWalletService();
-      const address = walletService.getUserAddress();
-      const chainId = this.#clientService.getChainId();
-      const network = this.#clientService.getNetwork();
+      const { address, chainId, network } = await this.#getAuthContext();
 
       // Resolve symbol → poolId
       const poolId = this.#resolvePoolId(params.newOrder.symbol);
@@ -1271,35 +1313,16 @@ export class MYXProvider implements PerpsProvider {
         orderType: params.orderType,
       });
 
-      await this.#ensureAuthenticated();
-      const walletService = this.#getWalletService();
-      const address = walletService.getUserAddress();
-      const chainId = this.#clientService.getChainId();
-      const network = this.#clientService.getNetwork();
+      const { address, chainId, network } = await this.#getAuthContext();
 
-      // Resolve symbol → poolId
-      const poolId = this.#resolvePoolId(params.symbol);
-      if (!poolId) {
-        return {
-          success: false,
-          error: `No MYX pool found for symbol "${params.symbol}"`,
-        };
-      }
-
-      // Find the position to close — use raw SDK data for positionId + direction
-      const posResult = await this.#clientService.listPositions(address);
-      const rawPositions = (posResult.data ?? []).filter(
-        (pos) => pos.size && pos.size !== '0' && pos.poolId === poolId,
+      const resolved = await this.#resolvePositionForSymbol(
+        params.symbol,
+        address,
       );
-
-      if (rawPositions.length === 0) {
-        return {
-          success: false,
-          error: `No open position found for ${params.symbol}`,
-        };
+      if ('error' in resolved) {
+        return { success: false, error: resolved.error };
       }
-
-      const rawPos = rawPositions[0];
+      const { poolId, rawPos } = resolved;
 
       // Determine close size — keep as string to avoid float precision loss.
       // parseFloat round-trips lose least-significant digits, leaving dust
@@ -1509,35 +1532,16 @@ export class MYXProvider implements PerpsProvider {
         stopLossPrice: params.stopLossPrice,
       });
 
-      await this.#ensureAuthenticated();
-      const walletService = this.#getWalletService();
-      const address = walletService.getUserAddress();
-      const chainId = this.#clientService.getChainId();
-      const network = this.#clientService.getNetwork();
+      const { address, chainId, network } = await this.#getAuthContext();
 
-      // Resolve symbol → poolId
-      const poolId = this.#resolvePoolId(params.symbol);
-      if (!poolId) {
-        return {
-          success: false,
-          error: `No MYX pool found for symbol "${params.symbol}"`,
-        };
-      }
-
-      // Find the position to update TP/SL on
-      const posResult = await this.#clientService.listPositions(address);
-      const rawPositions = (posResult.data ?? []).filter(
-        (pos) => pos.size && pos.size !== '0' && pos.poolId === poolId,
+      const resolved = await this.#resolvePositionForSymbol(
+        params.symbol,
+        address,
       );
-
-      if (rawPositions.length === 0) {
-        return {
-          success: false,
-          error: `No open position found for ${params.symbol}`,
-        };
+      if ('error' in resolved) {
+        return { success: false, error: resolved.error };
       }
-
-      const rawPos = rawPositions[0];
+      const { poolId, rawPos } = resolved;
       const { userLeverage } = rawPos;
 
       // TP/SL size defaults to full position (close entire position on trigger)
@@ -1626,35 +1630,16 @@ export class MYXProvider implements PerpsProvider {
         amount: params.amount,
       });
 
-      await this.#ensureAuthenticated();
-      const walletService = this.#getWalletService();
-      const address = walletService.getUserAddress();
-      const chainId = this.#clientService.getChainId();
-      const network = this.#clientService.getNetwork();
+      const { address, chainId, network } = await this.#getAuthContext();
 
-      // Resolve symbol → poolId
-      const poolId = this.#resolvePoolId(params.symbol);
-      if (!poolId) {
-        return {
-          success: false,
-          error: `No MYX pool found for symbol "${params.symbol}"`,
-        };
-      }
-
-      // Find the position
-      const posResult = await this.#clientService.listPositions(address);
-      const rawPositions = (posResult.data ?? []).filter(
-        (pos) => pos.size && pos.size !== '0' && pos.poolId === poolId,
+      const resolved = await this.#resolvePositionForSymbol(
+        params.symbol,
+        address,
       );
-
-      if (rawPositions.length === 0) {
-        return {
-          success: false,
-          error: `No open position found for ${params.symbol}`,
-        };
+      if ('error' in resolved) {
+        return { success: false, error: resolved.error };
       }
-
-      const rawPos = rawPositions[0];
+      const { poolId, rawPos } = resolved;
       const adjustAmount = toMYXCollateral(
         Number.parseFloat(params.amount),
         network,
