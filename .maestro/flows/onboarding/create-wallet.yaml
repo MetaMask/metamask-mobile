@@ -1,0 +1,131 @@
+# Maestro Flow: Create New Wallet
+# Captures baseline screenshots for the wallet creation flow
+appId: io.metamask.MetaMask
+---
+- launchApp
+
+# Handle developer menu - dismiss by tapping X
+- extendedWaitUntil:
+    visible:
+      text: "metamask"
+    timeout: 60000
+- tapOn:
+    point: "95%,5%"
+    optional: true
+# Or scroll down and tap Continue if X didn't work  
+- swipe:
+    start: "50%,80%"
+    end: "50%,30%"
+- tapOn:
+    text: "Continue"
+    optional: true
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 3000
+
+# Wait for app to fully load
+- extendedWaitUntil:
+    visible:
+      text: "Create a new wallet"
+    timeout: 60000
+
+# Wait additional time for app to finish loading
+- swipe:
+    start: "50%,50%"
+    end: "50%,50%"
+    duration: 2000
+
+# Take welcome screenshot
+- takeScreenshot: .maestro/baselines/ios/onboarding/welcome
+
+# Tap "Create a new wallet" button
+- tapOn:
+    text: "Create a new wallet"
+
+# Wait for password screen
+- extendedWaitUntil:
+    visible:
+      text: "MetaMask password"
+    timeout: 30000
+- takeScreenshot: .maestro/baselines/ios/onboarding/create-password
+
+# Tap on first password input field (below "Create password" label)
+- tapOn:
+    text: "Create password"
+- tapOn:
+    point: "50%,30%"
+- inputText: "Test12345!"
+- takeScreenshot: .maestro/baselines/debug-after-first-password
+
+# Tap on second password input field (below "Confirm password" label)
+- tapOn:
+    text: "Confirm password"
+- tapOn:
+    point: "50%,42%"
+- inputText: "Test12345!"
+- takeScreenshot: .maestro/baselines/debug-after-second-password
+
+- hideKeyboard
+
+# Tap checkbox using testID
+- tapOn:
+    id: "password-understand-box"
+
+# Screenshot of filled form
+- takeScreenshot: .maestro/baselines/ios/onboarding/create-password-filled
+
+# Tap submit button
+- tapOn:
+    text: "Create password"
+    index: 1
+
+# Wait for Secret Recovery Phrase screen
+- extendedWaitUntil:
+    visible:
+      text: "Save your Secret Recovery Phrase"
+    timeout: 30000
+- takeScreenshot: .maestro/baselines/ios/onboarding/save-recovery-phrase
+
+# Skip backup - tap "Remind me later"
+- tapOn:
+    text: "Remind me later"
+
+    # Success Screen
+- extendedWaitUntil:
+    visible:
+      text: "Improve MetaMask"
+    timeout: 30000
+- takeScreenshot: .maestro/baselines/ios/onboarding/improve-metamask
+
+
+# Handle skip confirmation modal
+- tapOn:
+    text: "Continue"
+
+# Success Screen (text has exclamation mark)
+- extendedWaitUntil:
+    visible:
+      text: "Your wallet is ready!"
+    timeout: 30000
+- takeScreenshot: .maestro/baselines/ios/onboarding/success
+
+# Complete
+- tapOn:
+    text: "Done"
+
+# Handle Polymarket promotional modal
+- extendedWaitUntil:
+    visible:
+      text: "Not now"
+    timeout: 30000
+- takeScreenshot: .maestro/baselines/ios/onboarding/polymarket-promo
+- tapOn:
+    text: "Not now"
+
+# Wallet Home (look for Tokens section which appears on home)
+- extendedWaitUntil:
+    visible:
+      text: "Tokens"
+    timeout: 30000
+- takeScreenshot: .maestro/baselines/ios/onboarding/wallet-home

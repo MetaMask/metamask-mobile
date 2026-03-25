@@ -34,6 +34,7 @@ import { AmountKeyboard } from './amount-keyboard';
 import { AnimatedCursor } from './animated-cursor';
 import { styleSheet } from './amount.styles';
 import { InitSendLocation } from '../../../constants/send';
+import { AmountSelectorsIDs } from './amount.testIds';
 
 export const Amount = () => {
   const navigation = useNavigation();
@@ -131,6 +132,7 @@ export const Amount = () => {
     <SafeAreaView
       edges={isIos ? ['left', 'right'] : ['left', 'right', 'bottom']}
       style={styles.container}
+      testID={AmountSelectorsIDs.CONTAINER}
     >
       <View style={styles.topSection}>
         {isNFT && (
@@ -183,7 +185,11 @@ export const Amount = () => {
             </TagBase>
           </TouchableOpacity>
         )}
-        <Text style={styles.balanceText} color={TextColor.Alternative}>
+        <Text
+          style={styles.balanceText}
+          color={TextColor.Alternative}
+          testID={AmountSelectorsIDs.BALANCE_TEXT}
+        >
           {balanceDisplayValue}
         </Text>
       </View>
