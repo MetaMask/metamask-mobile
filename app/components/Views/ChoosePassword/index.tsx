@@ -242,10 +242,13 @@ const ChoosePassword = () => {
   );
 
   const validatePasswordSubmission = useCallback(() => {
+    const isSocialLogin = getOauth2LoginSuccess();
     const passwordsMatch = password !== '' && password === confirmPassword;
-    const canSubmit = getOauth2LoginSuccess()
+    const canSubmit = isSocialLogin
       ? passwordsMatch
       : passwordsMatch && isSelected;
+
+    const walletSetupType = isSocialLogin ? AccountType.Social : 'new';
 
     if (loading) return { valid: false, shouldTrack: false };
 
@@ -257,7 +260,7 @@ const ChoosePassword = () => {
 
       if (shouldTrackMismatch) {
         track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-          wallet_setup_type: 'import',
+          wallet_setup_type: walletSetupType,
           error_type: strings('choose_password.password_dont_match'),
         });
       }
@@ -266,7 +269,7 @@ const ChoosePassword = () => {
 
     if (!passwordRequirementsMet(password)) {
       track(MetaMetricsEvents.WALLET_SETUP_FAILURE, {
-        wallet_setup_type: 'import',
+        wallet_setup_type: walletSetupType,
         error_type: strings('choose_password.password_length_error'),
       });
       return { valid: false, shouldTrack: false };

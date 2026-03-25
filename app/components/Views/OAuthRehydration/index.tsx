@@ -97,6 +97,13 @@ import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import type { AuthData } from '../../../core/Authentication/Authentication';
 import { selectOnboardingAccountType } from '../../../selectors/onboarding';
 import { AccountType } from '../../../constants/onboarding';
+import {
+  getRehydrationErrorTypeForSeedlessControllerCode,
+  getSeedlessOnboardingControllerErrorTypeName,
+  SEEDLESS_RECOVERY_ERROR_TYPE_INCORRECT_PASSWORD,
+  SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS,
+  ErrorOrigin,
+} from '../../../util/analytics/loginFailureAnalytics';
 
 const EmptyRecordConstant = {};
 
@@ -280,6 +287,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               account_type: accountType,
               failed_attempts: rehydrationFailedAttempts,
               error_type: 'incorrect_password',
+              error_origin: ErrorOrigin.SeedlessRecovery,
+              seedless_error_type:
+                SEEDLESS_RECOVERY_ERROR_TYPE_INCORRECT_PASSWORD,
             });
           }
           setError(strings('login.invalid_password'));
@@ -288,7 +298,6 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           seedlessError.message ===
           SeedlessOnboardingControllerErrorMessage.TooManyLoginAttempts
         ) {
-          // Synchronize rehydrationFailedAttempts with numberOfAttempts from the error data
           if (seedlessError.data?.numberOfAttempts !== undefined) {
             setRehydrationFailedAttempts(seedlessError.data.numberOfAttempts);
           }
@@ -298,7 +307,10 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
               failed_attempts:
                 seedlessError.data?.numberOfAttempts ??
                 rehydrationFailedAttempts,
-              error_type: 'incorrect_password',
+              error_type: 'too_many_login_attempts',
+              error_origin: ErrorOrigin.SeedlessRecovery,
+              seedless_error_type:
+                SEEDLESS_RECOVERY_ERROR_TYPE_TOO_MANY_ATTEMPTS,
             });
           }
           if (typeof seedlessError.data?.remainingTime === 'number') {
@@ -309,20 +321,50 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           return;
         }
       } else if (seedlessError instanceof SeedlessOnboardingControllerError) {
+        if (isComingFromOauthOnboarding) {
+          track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+            account_type: accountType,
+            failed_attempts: rehydrationFailedAttempts,
+            error_type: getRehydrationErrorTypeForSeedlessControllerCode(
+              seedlessError.code,
+            ),
+            error_origin: ErrorOrigin.SeedlessController,
+            seedless_error_type: getSeedlessOnboardingControllerErrorTypeName(
+              seedlessError.code,
+            ),
+          });
+        }
+
         if (
           seedlessError.code ===
           SeedlessOnboardingControllerErrorType.PasswordRecentlyUpdated
         ) {
-          if (isComingFromOauthOnboarding) {
-            track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
-              account_type: accountType,
-              failed_attempts: rehydrationFailedAttempts,
-              error_type: 'unknown_error',
-            });
-          }
           setError(strings('login.seedless_password_outdated'));
           return;
         }
+
+        const seedlessErrMessage = seedlessError.message.replace(
+          'SeedlessOnboardingController - ',
+          '',
+        );
+        setError(seedlessErrMessage);
+
+        if (isComingFromOauthOnboarding) {
+          if (isMetricsEnabled()) {
+            captureException(seedlessError, {
+              tags: {
+                view: 'Login',
+                context:
+                  'OAuth rehydration failed - user consented to analytics',
+              },
+            });
+          } else {
+            setErrorToThrow(
+              new Error(`OAuth rehydration failed: ${seedlessError.message}`),
+            );
+          }
+        }
+        return;
       } else if (!isComingFromOauthOnboarding) {
         // new password relogin failed
         // for non oauth login (rehydration) failure, prompt user to reset and rehydrate
@@ -352,6 +394,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           account_type: accountType,
           failed_attempts: rehydrationFailedAttempts,
           error_type: 'unknown_error',
+          error_origin: ErrorOrigin.SeedlessUnclassified,
+          seedless_error_type: 'unclassified',
         });
 
         if (isMetricsEnabled()) {
@@ -420,6 +464,15 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID) ||
         containsErrorMessage(loginError, WRONG_PASSWORD_ERROR_ANDROID_2);
 
+      if (isWrongPasswordError && isComingFromOauthOnboarding) {
+        track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
+          account_type: accountType,
+          failed_attempts: rehydrationFailedAttempts,
+          error_type: 'incorrect_password',
+          error_origin: ErrorOrigin.VaultDecrypt,
+        });
+      }
+
       if (isWrongPasswordError) {
         if (isComingFromOauthOnboarding) {
           track(MetaMetricsEvents.REHYDRATION_PASSWORD_FAILED, {
@@ -461,6 +514,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           account_type: accountType,
           failed_attempts: rehydrationFailedAttempts,
           error_type: isPasscodeNotSet ? 'passcode_not_set' : 'unknown_error',
+          error_origin: isPasscodeNotSet
+            ? ErrorOrigin.DevicePasscode
+            : ErrorOrigin.UnlockWallet,
         });
       }
 
@@ -558,6 +614,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
+      track(MetaMetricsEvents.REHYDRATION_PASSWORD_ATTEMPTED, {
+        account_type: accountType,
+        login_type: 'global_password_update',
+        biometrics: biometryChoice,
+      });
+
       // Ask user to allow biometrics access control
       const authType = await requestBiometricsAccessControlForIOS(
         AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
@@ -587,6 +649,12 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
         Logger.log(alertErr, 'Failed to prompt biometric alert after unlock');
       }
 
+      track(MetaMetricsEvents.REHYDRATION_COMPLETED, {
+        account_type: accountType,
+        login_type: 'global_password_update',
+        biometrics: biometryChoice,
+      });
+
       setLoading(false);
       setError(null);
     } catch (loginErr) {
@@ -597,10 +665,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
   }, [
     password,
     finalLoading,
+    biometryChoice,
+    track,
     handleLoginError,
     promptBiometricFailedAlert,
     unlockWallet,
     requestBiometricsAccessControlForIOS,
+    accountType,
   ]);
 
   // Cleanup for isMountedRef tracking
@@ -621,7 +692,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
-    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {});
+    track(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, {
+      login_type: 'seedless_rehydration',
+    });
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     return () => {
