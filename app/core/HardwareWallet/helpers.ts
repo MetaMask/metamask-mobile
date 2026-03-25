@@ -2,6 +2,7 @@ import { isHardwareAccount } from '../../util/address';
 import ExtendedKeyringTypes from '../../constants/keyringTypes';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { strings } from '../../../locales/i18n';
+import { getDeviceId } from '../Ledger/Ledger';
 
 /**
  * Helper to get wallet type display name
@@ -35,6 +36,25 @@ export function getHardwareWalletTypeForAddress(
     return HardwareWalletType.Qr;
   }
   return undefined;
+}
+
+/**
+ * Resolve the transport-specific device id for a hardware wallet address.
+ *
+ * Some hardware wallets, like Ledger over BLE, require a persisted device id
+ * to reconnect. Others, like QR signers, do not.
+ */
+export async function getDeviceIdForAddress(
+  address: string,
+): Promise<string | undefined> {
+  const walletType = getHardwareWalletTypeForAddress(address);
+
+  switch (walletType) {
+    case HardwareWalletType.Ledger:
+      return await getDeviceId();
+    default:
+      return undefined;
+  }
 }
 
 /**

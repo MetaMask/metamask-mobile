@@ -1,25 +1,20 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { useLedgerConfirm } from './useLedgerConfirm';
 
-const mockEnsureDeviceReady = jest.fn();
-const mockShowAwaitingConfirmation = jest.fn();
-const mockHideAwaitingConfirmation = jest.fn();
-const mockShowHardwareWalletError = jest.fn();
-const mockIsUserCancellation = jest.fn().mockReturnValue(false);
+const mockExecuteHardwareWalletOperation = jest.fn();
+
+const mockUseHardwareWallet = {
+  ensureDeviceReady: jest.fn(),
+  setTargetWalletType: jest.fn(),
+  showAwaitingConfirmation: jest.fn(),
+  hideAwaitingConfirmation: jest.fn(),
+  showHardwareWalletError: jest.fn(),
+};
 
 jest.mock('../../../../core/HardwareWallet', () => ({
-  useHardwareWallet: () => ({
-    ensureDeviceReady: mockEnsureDeviceReady,
-    showAwaitingConfirmation: mockShowAwaitingConfirmation,
-    hideAwaitingConfirmation: mockHideAwaitingConfirmation,
-    showHardwareWalletError: mockShowHardwareWalletError,
-  }),
-  isUserCancellation: (...args: unknown[]) => mockIsUserCancellation(...args),
-}));
-
-const mockGetDeviceId = jest.fn().mockResolvedValue('device-123');
-jest.mock('../../../../core/Ledger/Ledger', () => ({
-  getDeviceId: () => mockGetDeviceId(),
+  useHardwareWallet: () => mockUseHardwareWallet,
+  executeHardwareWalletOperation: (...args: unknown[]) =>
+    mockExecuteHardwareWalletOperation(...args),
 }));
 
 describe('useLedgerConfirm', () => {
@@ -28,6 +23,7 @@ describe('useLedgerConfirm', () => {
   const executeApproval = jest.fn().mockResolvedValue(undefined);
 
   const defaultOptions = {
+    fromAddress: '0x123',
     onReject,
     onTransactionConfirm,
     executeApproval,
@@ -36,7 +32,7 @@ describe('useLedgerConfirm', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockEnsureDeviceReady.mockResolvedValue(true);
+    mockExecuteHardwareWalletOperation.mockResolvedValue(true);
   });
 
   it('calls executeApproval for message signing when device is ready', async () => {
@@ -46,14 +42,17 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('device-123');
-    expect(mockShowAwaitingConfirmation).toHaveBeenCalledWith(
-      'message',
-      expect.any(Function),
-    );
-    expect(executeApproval).toHaveBeenCalledTimes(1);
-    expect(mockHideAwaitingConfirmation).toHaveBeenCalledTimes(1);
-    expect(onReject).not.toHaveBeenCalled();
+    expect(mockExecuteHardwareWalletOperation).toHaveBeenCalledWith({
+      address: '0x123',
+      operationType: 'message',
+      ensureDeviceReady: mockUseHardwareWallet.ensureDeviceReady,
+      setTargetWalletType: mockUseHardwareWallet.setTargetWalletType,
+      showAwaitingConfirmation: mockUseHardwareWallet.showAwaitingConfirmation,
+      hideAwaitingConfirmation: mockUseHardwareWallet.hideAwaitingConfirmation,
+      showHardwareWalletError: mockUseHardwareWallet.showHardwareWalletError,
+      execute: expect.any(Function),
+      onRejected: expect.any(Function),
+    });
   });
 
   it('calls onTransactionConfirm for transaction signing when device is ready', async () => {
@@ -65,18 +64,18 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(mockShowAwaitingConfirmation).toHaveBeenCalledWith(
-      'transaction',
-      expect.any(Function),
-    );
+    const executeArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
+      .execute as () => Promise<void>;
+
+    await executeArg();
+
     expect(onTransactionConfirm).toHaveBeenCalledWith({
       onError: expect.any(Function),
     });
-    expect(executeApproval).not.toHaveBeenCalled();
   });
 
   it('rejects when device is not ready', async () => {
-    mockEnsureDeviceReady.mockResolvedValue(false);
+    mockExecuteHardwareWalletOperation.mockResolvedValue(false);
 
     const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
 
@@ -84,56 +83,26 @@ describe('useLedgerConfirm', () => {
       await result.current.onConfirm();
     });
 
-    expect(onReject).toHaveBeenCalledTimes(1);
-    expect(mockShowAwaitingConfirmation).not.toHaveBeenCalled();
-    expect(executeApproval).not.toHaveBeenCalled();
-  });
+    const onRejectedArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
+      .onRejected as () => void;
 
-  it('shows hardware wallet error and rejects on non-user-cancellation error', async () => {
-    const signingError = new Error('signing failed');
-    executeApproval.mockRejectedValueOnce(signingError);
+    onRejectedArg();
 
-    const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
-
-    await act(async () => {
-      await result.current.onConfirm();
-    });
-
-    expect(mockHideAwaitingConfirmation).toHaveBeenCalledTimes(1);
-    expect(mockShowHardwareWalletError).toHaveBeenCalledWith(signingError);
     expect(onReject).toHaveBeenCalledTimes(1);
   });
 
-  it('does not show hardware wallet error on user cancellation', async () => {
-    const userCancelError = new Error('User rejected');
-    executeApproval.mockRejectedValueOnce(userCancelError);
-    mockIsUserCancellation.mockReturnValueOnce(true);
-
+  it('passes the approval execution callback through to the shared hardware wallet operation', async () => {
     const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
 
     await act(async () => {
       await result.current.onConfirm();
     });
 
-    expect(mockHideAwaitingConfirmation).toHaveBeenCalledTimes(1);
-    expect(mockShowHardwareWalletError).not.toHaveBeenCalled();
-    expect(onReject).toHaveBeenCalledTimes(1);
-  });
+    const executeArg = mockExecuteHardwareWalletOperation.mock.calls[0][0]
+      .execute as () => Promise<void>;
 
-  it('rejects only once when cancellation callback fires after error', async () => {
-    executeApproval.mockRejectedValueOnce(new Error('fail'));
-    mockShowAwaitingConfirmation.mockImplementation(
-      (_type: string, cancelCb: () => void) => {
-        setTimeout(cancelCb, 0);
-      },
-    );
+    await executeArg();
 
-    const { result } = renderHook(() => useLedgerConfirm(defaultOptions));
-
-    await act(async () => {
-      await result.current.onConfirm();
-    });
-
-    expect(onReject).toHaveBeenCalledTimes(1);
+    expect(executeApproval).toHaveBeenCalledTimes(1);
   });
 });

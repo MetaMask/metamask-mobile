@@ -2,11 +2,11 @@ import { useCallback, useRef } from 'react';
 
 import {
   useHardwareWallet,
-  isUserCancellation,
+  executeHardwareWalletOperation,
 } from '../../../../core/HardwareWallet';
-import { getDeviceId } from '../../../../core/Ledger/Ledger';
 
 interface UseLedgerConfirmOptions {
+  fromAddress: string;
   onReject: () => void;
   onTransactionConfirm: (opts?: {
     onError?: (err: unknown) => void;
@@ -16,11 +16,12 @@ interface UseLedgerConfirmOptions {
 }
 
 /**
- * Encapsulates the Ledger-specific confirmation flow:
+ * Encapsulates the hardware-wallet confirmation flow:
  * device readiness check, awaiting on-device confirmation,
  * signing dispatch, and error / cancellation handling.
  */
-export function useLedgerConfirm({
+export function useHardwareWalletConfirm({
+  fromAddress,
   onReject,
   onTransactionConfirm,
   executeApproval,
@@ -28,9 +29,10 @@ export function useLedgerConfirm({
 }: UseLedgerConfirmOptions) {
   const {
     ensureDeviceReady,
-    showHardwareWalletError,
+    setTargetWalletType,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
+    showHardwareWalletError,
   } = useHardwareWallet();
 
   const hasRejectedRef = useRef(false);
@@ -44,46 +46,38 @@ export function useLedgerConfirm({
       onReject();
     };
 
-    try {
-      const deviceId = await getDeviceId();
-      const isReady = await ensureDeviceReady(deviceId);
+    const operationType = isTransactionReq ? 'transaction' : 'message';
 
-      if (!isReady) {
-        rejectOnce();
-        return;
-      }
+    await executeHardwareWalletOperation({
+      address: fromAddress,
+      operationType,
+      ensureDeviceReady,
+      setTargetWalletType,
+      showAwaitingConfirmation,
+      hideAwaitingConfirmation,
+      showHardwareWalletError,
+      execute: async () => {
+        if (isTransactionReq) {
+          await onTransactionConfirm({
+            onError: (err) => {
+              throw err;
+            },
+          });
+          return;
+        }
 
-      const operationType = isTransactionReq ? 'transaction' : 'message';
-      showAwaitingConfirmation(operationType, () => {
-        rejectOnce();
-      });
-
-      if (isTransactionReq) {
-        await onTransactionConfirm({
-          onError: (err) => {
-            throw err;
-          },
-        });
-      } else {
         await executeApproval();
-      }
-
-      hideAwaitingConfirmation();
-    } catch (err) {
-      hideAwaitingConfirmation();
-
-      if (!hasRejectedRef.current && !isUserCancellation(err)) {
-        showHardwareWalletError(err);
-      }
-
-      rejectOnce();
-    }
+      },
+      onRejected: rejectOnce,
+    });
   }, [
+    fromAddress,
     onReject,
     isTransactionReq,
     onTransactionConfirm,
     executeApproval,
     ensureDeviceReady,
+    setTargetWalletType,
     showAwaitingConfirmation,
     hideAwaitingConfirmation,
     showHardwareWalletError,
@@ -91,3 +85,5 @@ export function useLedgerConfirm({
 
   return { onConfirm };
 }
+
+export const useLedgerConfirm = useHardwareWalletConfirm;

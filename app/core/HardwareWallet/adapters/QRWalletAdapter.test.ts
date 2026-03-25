@@ -2,6 +2,16 @@ import { QRWalletAdapter } from './QRWalletAdapter';
 import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 
+const mockGetCameraPermissionStatus = jest.fn();
+const mockRequestCameraPermission = jest.fn();
+
+jest.mock('react-native-vision-camera', () => ({
+  Camera: {
+    getCameraPermissionStatus: () => mockGetCameraPermissionStatus(),
+    requestCameraPermission: () => mockRequestCameraPermission(),
+  },
+}));
+
 describe('QRWalletAdapter', () => {
   let adapter: QRWalletAdapter;
   let mockOptions: HardwareWalletAdapterOptions;
@@ -10,6 +20,8 @@ describe('QRWalletAdapter', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockGetCameraPermissionStatus.mockReturnValue('granted');
+    mockRequestCameraPermission.mockResolvedValue('granted');
 
     onDisconnect = jest.fn();
     onDeviceEvent = jest.fn();
@@ -204,10 +216,69 @@ describe('QRWalletAdapter', () => {
     });
   });
 
-  describe('isTransportAvailable', () => {
-    it('returns true (camera permission assumed granted)', async () => {
-      const result = await adapter.isTransportAvailable();
+  describe('ensurePermissions', () => {
+    it('returns true so the scanner modal can handle camera permission itself', async () => {
+      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
+      mockRequestCameraPermission.mockResolvedValueOnce('granted');
+
+      const result = await adapter.ensurePermissions();
+
       expect(result).toBe(true);
+      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('isTransportAvailable', () => {
+    it('returns true without pre-checking camera permission', async () => {
+      const result = await adapter.isTransportAvailable();
+
+      expect(result).toBe(true);
+      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+    });
+
+    it('does not request camera permission when status is not determined', async () => {
+      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
+      mockRequestCameraPermission.mockResolvedValueOnce('granted');
+
+      const result = await adapter.isTransportAvailable();
+
+      expect(result).toBe(true);
+      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+    });
+
+    it('returns true even when camera permission is denied', async () => {
+      mockGetCameraPermissionStatus.mockReturnValueOnce('denied');
+
+      const result = await adapter.isTransportAvailable();
+
+      expect(result).toBe(true);
+      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+    });
+
+    it('returns true even when a permission request would be denied', async () => {
+      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
+      mockRequestCameraPermission.mockResolvedValueOnce('denied');
+
+      const result = await adapter.isTransportAvailable();
+
+      expect(result).toBe(true);
+      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+    });
+
+    it('returns true even when camera permission APIs would throw', async () => {
+      mockGetCameraPermissionStatus.mockImplementationOnce(() => {
+        throw new Error('permission check failed');
+      });
+
+      const result = await adapter.isTransportAvailable();
+
+      expect(result).toBe(true);
+      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
     });
   });
 

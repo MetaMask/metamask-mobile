@@ -57,6 +57,19 @@ jest.mock('../../../util/transaction-controller', () => ({
   speedUpTransaction: jest.fn(),
 }));
 
+const mockExecuteHardwareWalletOperation = jest.fn();
+jest.mock('../../../core/HardwareWallet', () => ({
+  useHardwareWallet: () => ({
+    ensureDeviceReady: jest.fn(),
+    setTargetWalletType: jest.fn(),
+    showAwaitingConfirmation: jest.fn(),
+    hideAwaitingConfirmation: jest.fn(),
+    showHardwareWalletError: jest.fn(),
+  }),
+  executeHardwareWalletOperation: (...args: unknown[]) =>
+    mockExecuteHardwareWalletOperation(...args),
+}));
+
 jest.mock('../../../core/Engine', () => ({
   context: {
     ApprovalController: {
@@ -233,6 +246,7 @@ describe('Transactions', () => {
     mockIsHardwareAccount.mockReturnValue(false);
     mockNotificationManagerGetTransactionToView.mockReturnValue(null);
     mockUpdateIncomingTransactions.mockResolvedValue(undefined);
+    mockExecuteHardwareWalletOperation.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -2327,6 +2341,40 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
     await instance.cancelTransaction(transactionObject);
 
     expect(instance.signLedgerTransaction).toHaveBeenCalled();
+  });
+
+  it('should sign a plain Ledger transaction through ApprovalController when no replacement params are present', async () => {
+    instance.props = {
+      ...instance.props,
+      selectedAddress: '0xledger',
+      hardwareWallet: {
+        ensureDeviceReady: jest.fn(),
+        setTargetWalletType: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+        showHardwareWalletError: jest.fn(),
+      },
+    };
+    instance.closeSpeedUpCancelModal = jest.fn();
+
+    mockExecuteHardwareWalletOperation.mockImplementationOnce(
+      async ({ execute }) => {
+        await execute();
+        return true;
+      },
+    );
+
+    await instance.signLedgerTransaction({
+      id: 'plain-ledger-sign',
+    });
+
+    expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledWith(
+      'plain-ledger-sign',
+      undefined,
+      {
+        waitForResult: true,
+      },
+    );
   });
 
   it('should test retry method with different scenarios', () => {

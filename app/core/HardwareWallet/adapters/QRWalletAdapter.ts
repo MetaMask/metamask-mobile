@@ -33,7 +33,6 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
   #isConnected = false;
   #flowComplete = false;
   #isDestroyed = false;
-  #hasCameraPermission = true;
 
   constructor(options: HardwareWalletAdapterOptions) {
     this.#options = options;
@@ -92,9 +91,8 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
   // ============ Device Readiness ============
 
   /**
-   * For QR wallets, device readiness means:
-   * 1. Camera permission is granted (so we can scan when needed)
-   * 2. The device ID (account address) is valid
+   * For QR wallets, device readiness means we have a valid QR account reference.
+   * Camera permission is handled later by the scanner modal when it opens.
    *
    * Unlike Ledger, we don't need to check if an app is open
    * because QR wallets are ready to sign whenever needed.
@@ -105,13 +103,6 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
     }
 
     DevLogger.log('[QRWalletAdapter] ensureDeviceReady called for:', deviceId);
-
-    // Check camera permission
-    const isCameraAvailable = await this.isTransportAvailable();
-    if (!isCameraAvailable) {
-      DevLogger.log('[QRWalletAdapter] Camera not available');
-      return false;
-    }
 
     // Store the device ID
     this.#deviceId = deviceId;
@@ -178,16 +169,16 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
   // ============ Transport State ============
 
+  async ensurePermissions(): Promise<boolean> {
+    return true;
+  }
+
   /**
-   * Check if camera permission is available.
-   * This is the only transport requirement for QR wallets.
+   * Camera permission is requested by the scanner modal itself.
+   * Returning true here avoids blocking the QR flow before the scanner opens.
    */
   async isTransportAvailable(): Promise<boolean> {
-    // In a real implementation, this would check actual camera permissions
-    // using react-native-permissions or similar
-    // For now, we assume permission is granted
-    // TODO: Implement actual camera permission check
-    return this.#hasCameraPermission;
+    return true;
   }
 
   /**
