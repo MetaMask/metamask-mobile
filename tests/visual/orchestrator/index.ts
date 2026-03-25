@@ -1,5 +1,4 @@
-/* eslint-disable import-x/no-nodejs-modules */
-import { readdirSync, statSync, rmSync } from 'fs';
+import { existsSync, readdirSync, statSync, rmSync } from 'fs';
 import path from 'path';
 import { getBootedSimulatorUdid } from './device';
 import { parseFixtureTag } from './parse-fixture-tag';
@@ -58,6 +57,10 @@ async function main() {
     flowPaths = [];
     for (const arg of flowArgs) {
       const resolved = path.resolve(arg);
+      if (!existsSync(resolved)) {
+        console.error(`Flow path not found: ${arg}`);
+        process.exit(1);
+      }
       if (statSync(resolved).isDirectory()) {
         flowPaths.push(...discoverFlows(resolved));
       } else {

@@ -16,7 +16,8 @@ const bases: Record<string, () => FixtureBuilder> = {
  * Each modifier receives a FixtureBuilder and returns a FixtureBuilder.
  */
 const modifiers: Record<string, FixtureFn> = {
-  'with-multiple-accounts': (fb) => fb.withKeyringControllerOfMultipleAccounts(),
+  'with-multiple-accounts': (fb) =>
+    fb.withKeyringControllerOfMultipleAccounts(),
   'with-metametrics': (fb) => fb.withMetaMetricsOptIn(),
   'with-clean-banners': (fb) => fb.withCleanBannerState(),
 };
@@ -24,7 +25,7 @@ const modifiers: Record<string, FixtureFn> = {
 /**
  * Build a Fixture from a colon-delimited tag string.
  *
- * @param tag - e.g. "fixture:default:with-tokens:with-multiple-accounts"
+ * @param tag - e.g. "fixture:default:with-multiple-accounts"
  * @returns Built Fixture object ready for FixtureServer.loadJsonState()
  * @throws If the base or any modifier is unknown
  */

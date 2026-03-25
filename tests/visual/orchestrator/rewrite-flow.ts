@@ -1,9 +1,8 @@
-/* eslint-disable import-x/no-nodejs-modules */
-// tests/visual/orchestrator/rewrite-flow.ts
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import path from 'path';
 
 const TMP_DIR = path.join(__dirname, '..', '.tmp');
+const FLOWS_DIR = path.join(__dirname, '..', 'flows');
 
 /**
  * Rewrite a Maestro flow YAML, converting assertScreenshot to takeScreenshot.
@@ -18,9 +17,9 @@ export function rewriteFlowForCapture(flowPath: string): string {
   // Block syntax: - assertScreenshot:\n    path: foo.png
   content = content.replace(/- assertScreenshot:/g, '- takeScreenshot:');
 
-  // Inline syntax: - assertScreenshot: foo.png
+  // Inline syntax: - takeScreenshot: foo.png (same line only, [ \t]+ avoids matching newlines)
   content = content.replace(
-    /- takeScreenshot:\s+([^\n]+\.png)/g,
+    /- takeScreenshot:[ \t]+([^\n]+\.png)/g,
     (_, p) => `- takeScreenshot: ${p.replace(/\.png$/, '')}`,
   );
 
@@ -30,8 +29,10 @@ export function rewriteFlowForCapture(flowPath: string): string {
   // Remove thresholdPercentage lines (not used by takeScreenshot)
   content = content.replace(/\s+thresholdPercentage:\s+\d+(\.\d+)?\n/g, '\n');
 
-  const tempFileName = path.basename(flowPath);
-  const tempPath = path.join(TMP_DIR, tempFileName);
+  // Preserve directory structure in temp path to avoid collisions
+  const relativePath = path.relative(FLOWS_DIR, flowPath);
+  const tempPath = path.join(TMP_DIR, relativePath);
+  mkdirSync(path.dirname(tempPath), { recursive: true });
   writeFileSync(tempPath, content, 'utf-8');
 
   return tempPath;

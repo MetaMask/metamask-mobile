@@ -1,4 +1,3 @@
-/* eslint-disable import-x/no-nodejs-modules */
 import { execFileSync } from 'child_process';
 
 /**
@@ -15,10 +14,7 @@ export function getBootedSimulatorUdid(): string {
   );
 
   const data = JSON.parse(output) as {
-    devices: Record<
-      string,
-      { udid: string; state: string; name: string }[]
-    >;
+    devices: Record<string, { udid: string; state: string; name: string }[]>;
   };
 
   for (const [, deviceList] of Object.entries(data.devices)) {

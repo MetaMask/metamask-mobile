@@ -1,4 +1,3 @@
-/* eslint-disable import-x/no-nodejs-modules */
 import { execFileSync } from 'child_process';
 import { rmSync } from 'fs';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
