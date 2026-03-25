@@ -95,7 +95,6 @@ import {
   type OrderParams,
   type OrderType,
   type Position,
-  type TPSLTrackingData,
 } from '@metamask/perps-controller';
 import {
   PerpsOrderProvider,
@@ -766,7 +765,6 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
         _position?: Position,
         takeProfitPrice?: string,
         stopLossPrice?: string,
-        _trackingData?: TPSLTrackingData,
       ) => {
         // Order flow: no position; just persist TP/SL in form state
         const tpToSet = takeProfitPrice || undefined;

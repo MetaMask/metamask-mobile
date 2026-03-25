@@ -100,7 +100,6 @@ const mockUsePerpsLiveAccount = jest.fn();
 const mockUseHasExistingPosition = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn(() => Promise.resolve());
-const mockHandleUpdateTPSL = jest.fn().mockResolvedValue({ success: false });
 const mockUsePerpsLiveOrders = jest.fn();
 const mockUsePerpsLivePrices = jest.fn();
 
@@ -436,13 +435,6 @@ jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
   })),
 }));
 
-jest.mock('../../hooks/usePerpsTPSLUpdate', () => ({
-  usePerpsTPSLUpdate: jest.fn(() => ({
-    handleUpdateTPSL: mockHandleUpdateTPSL,
-    isUpdating: false,
-  })),
-}));
-
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: () => mockUsePerpsAccount(),
   usePerpsConnection: () => ({
@@ -469,7 +461,7 @@ jest.mock('../../hooks', () => ({
     loadPositions: jest.fn(),
   })),
   usePerpsTPSLUpdate: jest.fn(() => ({
-    handleUpdateTPSL: mockHandleUpdateTPSL,
+    updateTPSL: jest.fn(),
     isUpdating: false,
   })),
   usePerpsClosePosition: jest.fn(() => ({
@@ -1997,84 +1989,6 @@ describe('PerpsMarketDetailsView', () => {
         const result = await onConfirm(undefined, undefined, undefined);
         expect(result).toEqual({ success: false });
       });
-    });
-
-    it('calls handleUpdateTPSL with positionFromRoute when ref is stale', async () => {
-      mockNavigate.mockClear();
-      mockHandleUpdateTPSL.mockResolvedValue({ success: true });
-
-      const existingPosition = {
-        symbol: 'BTC',
-        size: '0.5',
-        entryPrice: '50000',
-        leverage: { value: 10, type: 'isolated' as const },
-        marginUsed: '5000',
-        unrealizedPnl: '100',
-        returnOnEquity: '0.02',
-        liquidationPrice: '45000',
-      };
-
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: true,
-        isLoading: false,
-        error: null,
-        existingPosition,
-        refreshPosition: jest.fn(),
-        positionOpenedTimestamp: undefined,
-      });
-
-      const viewTree = (
-        <PerpsConnectionProvider>
-          <PerpsMarketDetailsView />
-        </PerpsConnectionProvider>
-      );
-
-      const { getByTestId, rerender } = renderWithProvider(viewTree, {
-        state: initialState,
-      });
-
-      fireEvent.press(getByTestId('perps-position-card-auto-close-button'));
-
-      const tpslNavigateCall = mockNavigate.mock.calls.find(
-        (call) => call[0] === 'PerpsTPSL',
-      );
-      expect(tpslNavigateCall).toBeTruthy();
-      const { onConfirm } = (
-        tpslNavigateCall as [
-          string,
-          { onConfirm: (...args: unknown[]) => Promise<{ success: boolean }> },
-        ]
-      )[1];
-
-      // Clear position to simulate ref going stale
-      mockUseHasExistingPosition.mockReturnValue({
-        hasPosition: false,
-        isLoading: false,
-        error: null,
-        existingPosition: null,
-        refreshPosition: jest.fn(),
-        positionOpenedTimestamp: undefined,
-      });
-
-      rerender(viewTree);
-
-      // Call onConfirm with the route-captured position — should prefer positionFromRoute over stale ref
-      await act(async () => {
-        const result = await onConfirm(
-          existingPosition,
-          '55000',
-          '42000',
-          undefined,
-        );
-        expect(result).toEqual({ success: true });
-      });
-
-      expect(mockHandleUpdateTPSL).toHaveBeenCalledWith(
-        existingPosition,
-        '55000',
-        '42000',
-        undefined,
-      );
     });
   });
 
