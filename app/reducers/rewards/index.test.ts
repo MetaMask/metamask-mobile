@@ -2575,6 +2575,35 @@ describe('rewardsReducer', () => {
       // Assert
       expect(state).toEqual(currentState);
     });
+
+    it('should restore ondoCampaignLeaderboardPositions from persisted state', () => {
+      const mockPosition: CampaignLeaderboardPositionDto = {
+        projected_tier: 'MID',
+        rank: 3,
+        total_in_tier: 150,
+        rate_of_return: 0.15,
+        current_usd_value: 12500.5,
+        total_usd_deposited: 10000,
+        net_deposit: 8500,
+        computed_at: '2024-03-20T12:00:00.000Z',
+      };
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        ondoCampaignLeaderboardPositions: {
+          'sub-1:campaign-1': mockPosition,
+        },
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsState },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignLeaderboardPositions).toEqual({
+        'sub-1:campaign-1': mockPosition,
+      });
+    });
   });
 
   describe('unknown actions', () => {
@@ -4851,26 +4880,48 @@ const mockLeaderboard: CampaignLeaderboardDto = {
   tiers: {
     STARTER: {
       entries: [
-        { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
-        { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+        { rank: 1, referral_code: 'TOP001', rate_of_return: 0.325 },
+        { rank: 2, referral_code: 'TOP002', rate_of_return: 0.284 },
+        { rank: 3, referral_code: 'TOP003', rate_of_return: 0.261 },
+        { rank: 4, referral_code: 'TOP004', rate_of_return: 0.238 },
+        { rank: 5, referral_code: 'TOP005', rate_of_return: 0.217 },
+        { rank: 6, referral_code: 'TOP006', rate_of_return: 0.198 },
+        { rank: 7, referral_code: 'TOP007', rate_of_return: 0.182 },
+        { rank: 8, referral_code: 'TOP008', rate_of_return: 0.167 },
+        { rank: 9, referral_code: 'TOP009', rate_of_return: 0.154 },
+        { rank: 10, referral_code: 'TOP010', rate_of_return: 0.141 },
+        { rank: 11, referral_code: 'TOP011', rate_of_return: 0.129 },
+        { rank: 12, referral_code: 'TOP012', rate_of_return: 0.118 },
+        { rank: 13, referral_code: 'TOP013', rate_of_return: 0.108 },
+        { rank: 14, referral_code: 'TOP014', rate_of_return: 0.099 },
+        { rank: 15, referral_code: 'TOP015', rate_of_return: 0.091 },
+        { rank: 16, referral_code: 'TOP016', rate_of_return: 0.083 },
+        { rank: 17, referral_code: 'TOP017', rate_of_return: 0.076 },
+        { rank: 18, referral_code: 'TOP018', rate_of_return: 0.069 },
+        { rank: 19, referral_code: 'MY_CODE', rate_of_return: 0.063 },
+        { rank: 20, referral_code: 'TOP020', rate_of_return: 0.057 },
       ],
-      total_participants: 50,
+      total_participants: 150,
     },
     MID: {
-      entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
-      total_participants: 30,
+      entries: [
+        { rank: 1, referral_code: 'MID001', rate_of_return: 0.412 },
+        { rank: 2, referral_code: 'MID002', rate_of_return: 0.368 },
+        { rank: 3, referral_code: 'MID003', rate_of_return: 0.341 },
+      ],
+      total_participants: 75,
     },
   },
 };
 
 const mockPosition: CampaignLeaderboardPositionDto = {
   projected_tier: 'STARTER',
-  rank: 5,
-  total_in_tier: 50,
-  rate_of_return: 0.12,
-  current_usd_value: 1000,
-  total_usd_deposited: 900,
-  net_deposit: 800,
+  rank: 19,
+  total_in_tier: 150,
+  rate_of_return: 0.063,
+  current_usd_value: 5063,
+  total_usd_deposited: 5000,
+  net_deposit: 4800,
   computed_at: '2024-03-20T12:00:00.000Z',
 };
 

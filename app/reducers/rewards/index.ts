@@ -689,6 +689,8 @@ const rewardsSlice = createSlice({
               campaigns: action.payload.rewards.campaigns,
               campaignParticipantStatuses:
                 action.payload.rewards.campaignParticipantStatuses,
+              ondoCampaignLeaderboardPositions:
+                action.payload.rewards.ondoCampaignLeaderboardPositions,
               hideUnlinkedAccountsBanner:
                 action.payload.rewards.hideUnlinkedAccountsBanner,
               hideCurrentAccountNotOptedInBanner:
