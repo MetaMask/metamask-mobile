@@ -315,6 +315,7 @@ describe('MarketInsightsView', () => {
   it('renders report content and handles tweet/swap/buy actions', () => {
     mockUseMarketInsights.mockReturnValue({
       report: {
+        digestId: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
         asset: 'eth',
         generatedAt: '2026-02-17T11:55:00.000Z',
         headline: 'ETH extends gains',
@@ -434,6 +435,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
           asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
         }),
       }),
     );
@@ -443,6 +445,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
           asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
           interaction_type: 'swap',
         }),
       }),
@@ -453,6 +456,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
           asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
           interaction_type: 'buy',
         }),
       }),
@@ -599,6 +603,7 @@ describe('MarketInsightsView', () => {
             generatedAt: '2026-02-17T12:00:00.000Z',
             headline: 'USDC stable',
             summary: 'Stablecoin demand remains steady',
+            digestId: 'd1487f8a-f998-66cf-bed8-ifddch29hi255',
             trends: [],
             sources: [],
           },
@@ -614,6 +619,7 @@ describe('MarketInsightsView', () => {
           generatedAt: '2026-02-17T11:55:00.000Z',
           headline: 'ETH extends gains',
           summary: 'Momentum improves on macro risk-on signals',
+          digestId: 'e2598g9b-g009-77dg-cfe9-jgeedi30ij366',
           trends: [],
           sources: [],
         },
@@ -630,6 +636,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x123',
+          digest_id: 'e2598g9b-g009-77dg-cfe9-jgeedi30ij366',
         }),
       }),
     );
@@ -649,6 +656,7 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
         properties: expect.objectContaining({
           caip19: 'eip155:1/erc20:0x456',
+          digest_id: 'd1487f8a-f998-66cf-bed8-ifddch29hi255',
         }),
       }),
     );
@@ -785,6 +793,7 @@ describe('MarketInsightsView', () => {
         generatedAt: '2026-02-17T11:55:00.000Z',
         headline: 'ETH perps gaining traction',
         summary: 'Open interest rises as funding rates normalise',
+        digestId: 'c0376e79-e887-55be-adc7-heccbg18gh144',
         trends: [
           {
             title: 'Funding rates',
@@ -808,6 +817,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           perps_market: 'ETH',
           asset_symbol: 'eth',
+          digest_id: 'c0376e79-e887-55be-adc7-heccbg18gh144',
         }),
       }),
     );
@@ -820,7 +830,7 @@ describe('MarketInsightsView', () => {
       }),
     );
 
-    // Long button carries perps_market and interaction_type 'long'
+    // Long button carries perps_market, digest_id, and interaction_type 'long'
     fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.LONG_BUTTON));
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -828,6 +838,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           perps_market: 'ETH',
           asset_symbol: 'eth',
+          digest_id: 'c0376e79-e887-55be-adc7-heccbg18gh144',
           interaction_type: 'long',
         }),
       }),
@@ -842,7 +853,7 @@ describe('MarketInsightsView', () => {
       }),
     );
 
-    // Short button carries perps_market and interaction_type 'short'
+    // Short button carries perps_market, digest_id, and interaction_type 'short'
     fireEvent.press(getByTestId(MarketInsightsSelectorsIDs.SHORT_BUTTON));
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -850,6 +861,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           perps_market: 'ETH',
           asset_symbol: 'eth',
+          digest_id: 'c0376e79-e887-55be-adc7-heccbg18gh144',
           interaction_type: 'short',
         }),
       }),
@@ -862,6 +874,7 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           perps_market: 'ETH',
           asset_symbol: 'eth',
+          digest_id: 'c0376e79-e887-55be-adc7-heccbg18gh144',
           interaction_type: 'thumbs_up',
         }),
       }),
@@ -872,6 +885,26 @@ describe('MarketInsightsView', () => {
         properties: expect.objectContaining({
           caip19: expect.anything(),
           interaction_type: 'thumbs_up',
+        }),
+      }),
+    );
+  });
+
+  it('omits digest_id from analytics events when report is not yet loaded', () => {
+    mockUseMarketInsights.mockReturnValue({
+      report: null,
+      isLoading: true,
+      error: null,
+      timeAgo: null,
+    });
+
+    renderWithProvider(<MarketInsightsView />);
+
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          digest_id: expect.anything(),
         }),
       }),
     );
