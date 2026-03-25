@@ -139,12 +139,12 @@ describe('TokenWarningModal', () => {
       const { getByText } = renderModal();
       expect(
         getByText(strings('bridge.token_warning_modal_suspicious_title')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('shows the description from params', () => {
       const { getByText } = renderModal();
-      expect(getByText(defaultWarningParams.description)).toBeTruthy();
+      expect(getByText(defaultWarningParams.description)).toBeOnTheScreen();
     });
   });
 
@@ -160,20 +160,20 @@ describe('TokenWarningModal', () => {
       const { getByText } = renderModal();
       expect(
         getByText(strings('bridge.token_warning_modal_malicious_title')),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('shows the description from params', () => {
       const { getByText } = renderModal();
-      expect(getByText(defaultWarningParams.description)).toBeTruthy();
+      expect(getByText(defaultWarningParams.description)).toBeOnTheScreen();
     });
   });
 
   describe('rendering — Execution mode', () => {
     it('shows Proceed (secondary) and Cancel (primary) buttons', () => {
       const { getByText } = renderModal();
-      expect(getByText(strings('bridge.proceed'))).toBeTruthy();
-      expect(getByText(strings('bridge.cancel'))).toBeTruthy();
+      expect(getByText(strings('bridge.proceed'))).toBeOnTheScreen();
+      expect(getByText(strings('bridge.cancel'))).toBeOnTheScreen();
     });
 
     it('does not show the Got it button', () => {
@@ -190,7 +190,7 @@ describe('TokenWarningModal', () => {
       });
 
       const { getByText, queryByText } = renderModal();
-      expect(getByText(strings('bridge.got_it'))).toBeTruthy();
+      expect(getByText(strings('bridge.got_it'))).toBeOnTheScreen();
       expect(queryByText(strings('bridge.proceed'))).toBeNull();
       expect(queryByText(strings('bridge.cancel'))).toBeNull();
     });

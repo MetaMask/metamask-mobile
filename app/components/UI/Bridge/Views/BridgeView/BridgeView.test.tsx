@@ -2060,7 +2060,7 @@ describe('BridgeView', () => {
         getByText(
           strings('bridge.token_warning_suspicious_banner', { token: 'USDC' }),
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('shows the malicious banner for a MALICIOUS type token', () => {
@@ -2076,7 +2076,7 @@ describe('BridgeView', () => {
         getByText(
           strings('bridge.token_warning_malicious_banner', { token: 'USDC' }),
         ),
-      ).toBeTruthy();
+      ).toBeOnTheScreen();
     });
 
     it('navigates to TOKEN_WARNING_MODAL with Info mode when banner is pressed', async () => {
