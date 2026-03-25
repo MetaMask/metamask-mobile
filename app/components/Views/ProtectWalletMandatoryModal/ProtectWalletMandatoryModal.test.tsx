@@ -3,6 +3,10 @@ import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import { InteractionManager } from 'react-native';
+
+type RunAfterInteractionsTask = NonNullable<
+  Parameters<typeof InteractionManager.runAfterInteractions>[0]
+>;
 import ProtectWalletMandatoryModal from './ProtectWalletMandatoryModal';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
@@ -236,9 +240,18 @@ describe('ProtectWalletMandatoryModal', () => {
   it('tracks WALLET_SECURITY_PROTECT_ENGAGED after interactions when Secure Wallet is pressed', async () => {
     const runAfterSpy = jest
       .spyOn(InteractionManager, 'runAfterInteractions')
-      .mockImplementation((callback) => {
-        callback();
-        return { cancel: jest.fn() };
+      .mockImplementation((task?: RunAfterInteractionsTask) => {
+        if (typeof task === 'function') {
+          task();
+        } else if (task !== undefined) {
+          Promise.resolve(task.gen()).catch(() => undefined);
+        }
+        return {
+          then: (onfulfilled?: () => unknown, onrejected?: () => unknown) =>
+            Promise.resolve(undefined).then(onfulfilled, onrejected),
+          done: jest.fn(),
+          cancel: jest.fn(),
+        };
       });
     const store = createMockStore(false, false);
 
