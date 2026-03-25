@@ -130,18 +130,13 @@ export const useWithdrawalRequests = (
     }
   }, [pendingQueue.length]);
 
-  const checkForWithdrawalCompletion = useCallback(async () => {
-    if (pendingQueue.length === 0) {
-      return;
-    }
-
-    if (isFetchingRef.current) {
-      return;
-    }
-    isFetchingRef.current = true;
-
+  /**
+   * Fetches history and applies FIFO completion matching. Does not touch
+   * `isLoading` or `isFetchingRef` — callers must hold the fetch lock and
+   * decide whether the run is user-visible (loading) or background (poll).
+   */
+  const executeWithdrawalCompletionCheck = useCallback(async () => {
     try {
-      setIsLoading(true);
       setError(null);
 
       const controller = Engine.context.PerpsController;
@@ -249,11 +244,46 @@ export const useWithdrawalRequests = (
           : 'Failed to fetch completed withdrawals';
       console.error('Error checking withdrawal completion:', errorMessage);
       setError(errorMessage);
+    }
+  }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHashes]);
+
+  /** Background poll: same completion logic without toggling `isLoading`. */
+  const runWithdrawalCompletionCheck = useCallback(async () => {
+    if (pendingQueue.length === 0) {
+      return;
+    }
+
+    if (isFetchingRef.current) {
+      return;
+    }
+    isFetchingRef.current = true;
+
+    try {
+      await executeWithdrawalCompletionCheck();
+    } finally {
+      isFetchingRef.current = false;
+    }
+  }, [executeWithdrawalCompletionCheck, pendingQueue.length]);
+
+  /** Initial fetch and `refetch`: completion logic with loading indicator. */
+  const checkForWithdrawalCompletion = useCallback(async () => {
+    if (pendingQueue.length === 0) {
+      return;
+    }
+
+    if (isFetchingRef.current) {
+      return;
+    }
+    isFetchingRef.current = true;
+    setIsLoading(true);
+
+    try {
+      await executeWithdrawalCompletionCheck();
     } finally {
       isFetchingRef.current = false;
       setIsLoading(false);
     }
-  }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHashes]);
+  }, [executeWithdrawalCompletionCheck, pendingQueue.length]);
 
   useEffect(() => {
     if (pendingQueue.length === 0) {
@@ -280,7 +310,7 @@ export const useWithdrawalRequests = (
     );
 
     const pollInterval = setInterval(() => {
-      checkForWithdrawalCompletion();
+      runWithdrawalCompletionCheck();
     }, 5000);
 
     return () => {
@@ -290,7 +320,7 @@ export const useWithdrawalRequests = (
   }, [
     pendingQueue.length,
     oldestPendingTimestamp,
-    checkForWithdrawalCompletion,
+    runWithdrawalCompletionCheck,
   ]);
 
   const sortedForDisplay = useMemo(

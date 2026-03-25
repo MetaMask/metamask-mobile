@@ -250,6 +250,56 @@ describe('useWithdrawalRequests', () => {
       expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(2);
     });
 
+    it('does not toggle isLoading on poll ticks after initial fetch', async () => {
+      const { result } = renderHookWithProvider(() => useWithdrawalRequests(), {
+        state: createMockState(),
+      });
+
+      await act(async () => {
+        jest.advanceTimersByTime(0);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+
+      await act(async () => {
+        jest.advanceTimersByTime(5000);
+      });
+
+      expect(result.current.isLoading).toBe(false);
+      expect(mockProvider.getUserHistory).toHaveBeenCalledTimes(2);
+    });
+
+    it('sets isLoading while refetch is in flight', async () => {
+      let resolveHistory: (value: UserHistoryItem[]) => void = () => {
+        /* deferred */
+      };
+      const historyPromise = new Promise<UserHistoryItem[]>((resolve) => {
+        resolveHistory = resolve;
+      });
+      mockProvider.getUserHistory.mockReturnValue(historyPromise);
+
+      const { result } = renderHookWithProvider(
+        () => useWithdrawalRequests({ skipInitialFetch: true }),
+        { state: createMockState() },
+      );
+
+      expect(result.current.isLoading).toBe(false);
+
+      let refetchPromise: Promise<void>;
+      await act(async () => {
+        refetchPromise = result.current.refetch();
+      });
+
+      expect(result.current.isLoading).toBe(true);
+
+      await act(async () => {
+        resolveHistory([]);
+        await refetchPromise;
+      });
+
+      expect(result.current.isLoading).toBe(false);
+    });
+
     it('does not poll when pending queue is empty', async () => {
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
