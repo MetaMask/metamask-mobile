@@ -125,6 +125,7 @@ const createMockAccountGroup = (accounts: string[]): AccountGroupObject => ({
     name: 'Test Account Group',
     pinned: false,
     hidden: false,
+    lastSelected: 0,
   },
 });
 
@@ -139,6 +140,7 @@ const createMockMultichainAccountGroup = (
       name: 'Test Multichain Account Group',
       pinned: false,
       hidden: false,
+      lastSelected: 0,
     },
   }) as unknown as AccountGroupObject;
 
