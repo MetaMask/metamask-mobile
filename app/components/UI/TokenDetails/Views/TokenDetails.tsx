@@ -136,6 +136,9 @@ const TokenDetails: React.FC<{
     prices,
     isLoading,
     currentCurrency,
+    timePeriod,
+    setTimePeriod,
+    chartNavigationButtons,
   } = useTokenPrice({ token });
 
   const {
@@ -202,6 +205,9 @@ const TokenDetails: React.FC<{
         comparePrice={comparePrice}
         prices={prices}
         isLoading={isLoading}
+        timePeriod={timePeriod}
+        setTimePeriod={setTimePeriod}
+        chartNavigationButtons={chartNavigationButtons}
         isPerpsEnabled={isPerpsEnabled}
         displayBuyButton={isRampAvailable}
         displaySwapsButton={displaySwapsButton}

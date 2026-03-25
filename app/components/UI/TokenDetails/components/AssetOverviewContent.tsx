@@ -26,7 +26,10 @@ import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
 import { TokenOverviewSelectorsIDs } from '../../AssetOverview/TokenOverview.testIds';
-import { TokenPrice } from '../../../hooks/useTokenHistoricalPrices';
+import {
+  TimePeriod,
+  TokenPrice,
+} from '../../../hooks/useTokenHistoricalPrices';
 import { TokenI } from '../../Tokens/types';
 import { usePerpsActions } from '../hooks/usePerpsActions';
 import {
@@ -40,6 +43,7 @@ import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 import PerpsPositionCard from '../../Perps/components/PerpsPositionCard';
 import Price from '../../AssetOverview/Price';
+import ChartNavigationButton from '../../AssetOverview/ChartNavigationButton';
 import Balance from '../../AssetOverview/Balance';
 import TokenDetails from '../../AssetOverview/TokenDetails';
 import { PriceChartProvider } from '../../AssetOverview/PriceChart/PriceChart.context';
@@ -51,6 +55,7 @@ import { selectMerklCampaignClaimingEnabledFlag } from '../../Earn/selectors/fea
 import PerpsDiscoveryBanner from '../../Perps/components/PerpsDiscoveryBanner';
 import { isTokenTrustworthyForPerps } from '../../Perps/constants/perpsConfig';
 import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
+import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
@@ -123,6 +128,14 @@ const styleSheet = (params: { theme: Theme }) => {
       backgroundColor: colors.warning.muted,
       padding: 20,
     } as ViewStyle,
+    chartNavigationWrapper: {
+      display: 'flex',
+      flexDirection: 'row',
+      justifyContent: 'space-around',
+      paddingHorizontal: 10,
+      paddingTop: 20,
+      marginBottom: 16,
+    } as ViewStyle,
     tokenDetailsWrapper: {
       marginBottom: 20,
       paddingHorizontal: 16,
@@ -163,6 +176,10 @@ export interface AssetOverviewContentProps {
   comparePrice: number;
   prices: TokenPrice[];
   isLoading: boolean;
+
+  timePeriod: TimePeriod;
+  setTimePeriod: (period: TimePeriod) => void;
+  chartNavigationButtons: TimePeriod[];
 
   // Feature flags
   isPerpsEnabled: boolean;
@@ -217,6 +234,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   comparePrice,
   prices,
   isLoading,
+  timePeriod,
+  setTimePeriod,
+  chartNavigationButtons,
   isPerpsEnabled,
   displayBuyButton,
   displaySwapsButton,
@@ -242,7 +262,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
   const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
-
+  const isTokenOverviewAdvancedChartEnabled = useSelector(
+    selectTokenOverviewAdvancedChartEnabled,
+  );
   const {
     hasPerpsMarket,
     marketData,
@@ -568,6 +590,28 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     }
   }, [marketData, navigation]);
 
+  const handleSelectTimePeriod = useCallback(
+    (period: TimePeriod) => {
+      setTimePeriod(period);
+    },
+    [setTimePeriod],
+  );
+
+  const renderChartNavigationButton = useCallback(
+    () =>
+      chartNavigationButtons.map((label) => (
+        <ChartNavigationButton
+          key={label}
+          label={strings(
+            `asset_overview.chart_time_period_navigation.${label}`,
+          )}
+          onPress={() => handleSelectTimePeriod(label)}
+          selected={timePeriod === label}
+        />
+      )),
+    [handleSelectTimePeriod, timePeriod, chartNavigationButtons],
+  );
+
   const renderWarning = () => (
     <View style={styles.warningWrapper}>
       <TouchableOpacity
@@ -743,6 +787,8 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           <PriceChartProvider>
             <Price
               asset={token}
+              prices={prices}
+              timePeriod={timePeriod}
               priceDiff={priceDiff}
               currentCurrency={currentCurrency}
               currentPrice={currentPrice}
@@ -750,6 +796,12 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               isLoading={isLoading}
             />
           </PriceChartProvider>
+          {/* Same as main: chart period tabs under the legacy line chart. Omitted when the advanced chart is on (range selector lives inside Price). */}
+          {!isTokenOverviewAdvancedChartEnabled && (
+            <View style={styles.chartNavigationWrapper}>
+              {renderChartNavigationButton()}
+            </View>
+          )}
           {!isTokenTradingOpen(token as BridgeToken) && (
             <View style={styles.marketClosedActionButtonContainer}>
               <MarketClosedActionButton

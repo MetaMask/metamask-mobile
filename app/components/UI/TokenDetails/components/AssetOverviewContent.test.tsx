@@ -75,6 +75,13 @@ jest.mock('../../../../selectors/featureFlagController/tokenDetailsV2', () => ({
   selectTokenDetailsLayoutTestVariant: jest.fn(() => 'treatment'),
 }));
 
+jest.mock(
+  '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart',
+  () => ({
+    selectTokenOverviewAdvancedChartEnabled: jest.fn(() => false),
+  }),
+);
+
 jest.mock('../../Perps/hooks/usePerpsPositionForAsset', () => ({
   usePerpsPositionForAsset: (...args: unknown[]) =>
     mockUsePerpsPositionForAsset(...args),
@@ -157,6 +164,9 @@ const defaultProps: AssetOverviewContentProps = {
   comparePrice: 2000,
   prices: [],
   isLoading: false,
+  timePeriod: '1d',
+  setTimePeriod: jest.fn(),
+  chartNavigationButtons: ['1d', '1w', '1m', '3m', '1y', '3y'],
   isPerpsEnabled: true,
   displayBuyButton: false,
   displaySwapsButton: false,
