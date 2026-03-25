@@ -1410,7 +1410,6 @@ const Wallet = ({
                             BadgeWrapperPositionAnchorShape.Circular
                           }
                           badge={
-                            isNotificationsFeatureEnabled() &&
                             isNotificationEnabled &&
                             unreadNotificationCount > 0 ? (
                               <BadgeStatus
