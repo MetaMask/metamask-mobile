@@ -799,13 +799,11 @@ const Onboarding = () => {
             title: strings(`error_sheet.ios_need_update_title`),
             description: description(),
             primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
-            onPrimaryButtonPress: () => {
-              track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
-                account_type: accountType,
-              });
-            },
             closeOnPrimaryButtonPress: true,
             isInteractable: false,
+          });
+          track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
+            account_type: accountType,
           });
         }
         setLoading();
