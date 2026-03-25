@@ -5,7 +5,10 @@ import {
   createMockMessenger,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
 import { CandlePeriod } from '../constants/chartConfig';
-import { REFERRAL_CONFIG } from '../constants/hyperLiquidConfig';
+import {
+  BUILDER_FEE_CONFIG,
+  REFERRAL_CONFIG,
+} from '../constants/hyperLiquidConfig';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { HyperLiquidClientService } from '../services/HyperLiquidClientService';
 import { HyperLiquidSubscriptionService } from '../services/HyperLiquidSubscriptionService';
@@ -5656,6 +5659,39 @@ describe('HyperLiquidProvider', () => {
       expect(
         mockClientService.getExchangeClient().setReferrer,
       ).not.toHaveBeenCalled();
+    });
+
+    it('uses testnet builder address when in testnet mode', async () => {
+      // Arrange — flip to testnet mode
+      mockClientService.isTestnetMode.mockReturnValue(true);
+
+      mockClientService.getInfoClient = jest.fn().mockReturnValue(
+        createMockInfoClient({
+          maxBuilderFee: jest.fn().mockResolvedValue(1), // Already approved
+        }),
+      );
+
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        currentPrice: 50000,
+      };
+
+      // Act
+      const result = await provider.placeOrder(orderParams);
+
+      // Assert — order placed with the testnet builder address
+      expect(result.success).toBe(true);
+      expect(mockClientService.getExchangeClient().order).toHaveBeenCalledWith(
+        expect.objectContaining({
+          builder: {
+            b: BUILDER_FEE_CONFIG.TestnetBuilder,
+            f: expect.any(Number),
+          },
+        }),
+      );
     });
   });
 

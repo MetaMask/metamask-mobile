@@ -1628,16 +1628,24 @@ export class PerpsController extends BaseController<
           return undefined;
         })
         .catch((error: unknown) => {
-          const isModuleError =
-            error instanceof Error &&
-            /cannot find|not found|module/iu.test(error.message);
+          let errorMessage: string;
+          if (error instanceof Error) {
+            errorMessage = error.message;
+          } else {
+            const rawMessage = (error as Record<string, unknown>)?.message;
+            errorMessage =
+              typeof rawMessage === 'string' ? rawMessage : String(error);
+          }
+          const isModuleError = /cannot find|not found|module/iu.test(
+            errorMessage,
+          );
           if (isModuleError) {
             this.#debugLog(
               'PerpsController: MYX provider module not available, skipping registration',
             );
           } else {
             this.#logError(
-              error instanceof Error ? error : new Error(String(error)),
+              error instanceof Error ? error : new Error(errorMessage),
               this.#getErrorContext('createProviders.myx'),
             );
           }
