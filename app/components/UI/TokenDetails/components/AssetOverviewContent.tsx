@@ -10,7 +10,6 @@ import {
   View,
   Modal,
   StyleSheet,
-  TextStyle,
   ViewStyle,
 } from 'react-native';
 import { useSelector } from 'react-redux';
@@ -18,10 +17,6 @@ import { useNavigation } from '@react-navigation/native';
 import type { Theme } from '@metamask/design-tokens';
 import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
 import AppConstants from '../../../../core/AppConstants';
 import Routes from '../../../../constants/navigation/Routes';
 import { createWebviewNavDetails } from '../../../Views/SimpleWebview';
@@ -69,9 +64,6 @@ import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrust
 import type { TokenDetailsRouteParams } from '../constants/constants';
 import {
   Box,
-  Text as DSText,
-  TextVariant as DSTextVariant,
-  TextColor as DSTextColor,
   BoxFlexDirection,
   BoxAlignItems,
   Icon,
@@ -79,6 +71,9 @@ import {
   IconSize,
   IconColor,
   FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
 import Badge, {
   BadgeVariant,
@@ -155,9 +150,6 @@ const styleSheet = (params: { theme: Theme }) => {
       marginBottom: 20,
       paddingHorizontal: 16,
     } as ViewStyle,
-    perpsPositionTitle: {
-      marginBottom: 8,
-    } as TextStyle,
   });
 };
 
@@ -367,7 +359,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           iconColor: IconColor.WarningDefault,
           label: strings('security_trust.risky'),
           bg: 'bg-warning-muted',
-          textColor: DSTextColor.WarningDefault,
+          textColor: TextColor.WarningDefault,
         };
       case 'Malicious':
         return {
@@ -375,7 +367,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           iconColor: IconColor.ErrorDefault,
           label: strings('security_trust.malicious'),
           bg: 'bg-error-muted',
-          textColor: DSTextColor.ErrorDefault,
+          textColor: TextColor.ErrorDefault,
         };
       default:
         return null;
@@ -618,10 +610,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
         onPress={() => goToBrowserUrl(AppConstants.URLS.TOKEN_BALANCE)}
       >
         <View style={styles.warning}>
-          <Text variant={TextVariant.BodyMD}>
+          <Text variant={TextVariant.BodyMd}>
             {strings('asset_overview.were_unable')} {token.symbol}{' '}
             {strings('asset_overview.balance')}{' '}
-            <Text variant={TextVariant.BodyMD} color={TextColor.Primary}>
+            <Text variant={TextVariant.BodyMd} color={TextColor.PrimaryDefault}>
               {strings('asset_overview.troubleshooting_missing')}
             </Text>{' '}
             {strings('asset_overview.for_help')}
@@ -670,14 +662,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 alignItems={BoxAlignItems.Center}
                 twClassName="gap-1.5"
               >
-                <DSText
-                  variant={DSTextVariant.HeadingMd}
-                  color={DSTextColor.TextDefault}
+                <Text
+                  variant={TextVariant.HeadingMd}
+                  color={TextColor.TextDefault}
                   numberOfLines={1}
-                  twClassName="shrink"
+                  style={{ fontWeight: FontWeight.Medium }}
                 >
                   {token.name || token.symbol}
-                </DSText>
+                </Text>
                 {securityBadge && securityBadge.label === null && (
                   <TouchableOpacity
                     onPress={handleSecurityBadgePress}
@@ -709,15 +701,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                         size={IconSize.Sm}
                         color={securityBadge.iconColor}
                       />
-                      <DSText
-                        variant={DSTextVariant.BodySm}
+                      <Text
+                        variant={TextVariant.BodySm}
                         color={securityBadge.textColor}
                         fontWeight={FontWeight.Medium}
                         numberOfLines={1}
                         twClassName="overflow-hidden text-center"
                       >
                         {securityBadge.label}
-                      </DSText>
+                      </Text>
                     </Box>
                   </TouchableOpacity>
                 )}
@@ -731,14 +723,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   alignItems={BoxAlignItems.Center}
                   twClassName="gap-1"
                 >
-                  <DSText
-                    variant={DSTextVariant.BodyMd}
-                    color={DSTextColor.TextAlternative}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                     fontWeight={FontWeight.Medium}
                     numberOfLines={1}
                   >
                     {token.ticker || token.symbol}
-                  </DSText>
+                  </Text>
                   {isStockToken(token as BridgeToken) && (
                     <StockBadge token={token as BridgeToken} />
                   )}
@@ -765,21 +757,21 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                 alignItems={BoxAlignItems.Start}
                 twClassName="flex-1"
               >
-                <DSText
-                  variant={DSTextVariant.BodyMd}
-                  color={DSTextColor.TextDefault}
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                   fontWeight={FontWeight.Bold}
                 >
                   {strings('security_trust.malicious_token_title')}
-                </DSText>
-                <DSText
-                  variant={DSTextVariant.BodyMd}
-                  color={DSTextColor.TextDefault}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextDefault}
                 >
                   {strings('security_trust.malicious_token_description', {
                     symbol: token.symbol,
                   })}
-                </DSText>
+                </Text>
               </Box>
             </Box>
           )}
@@ -914,10 +906,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           }
           {showPerpsSection && perpsPosition && (
             <View style={styles.perpsPositionCardContainer}>
-              <Text
-                variant={TextVariant.HeadingMD}
-                style={styles.perpsPositionTitle}
-              >
+              <Text variant={TextVariant.HeadingMd} twClassName="mb-2">
                 {strings('asset_overview.perps_position')}
               </Text>
               <PerpsPositionCard

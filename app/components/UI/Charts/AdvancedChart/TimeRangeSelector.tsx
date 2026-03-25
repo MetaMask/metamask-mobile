@@ -133,12 +133,12 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           }
         >
           {chartType === ChartType.Candles ? (
+            <LineChartIcon color={colors.text.alternative} size={IconSize.Md} />
+          ) : (
             <CandlestickIcon
               color={colors.text.alternative}
               size={IconSize.Md}
             />
-          ) : (
-            <LineChartIcon color={colors.text.alternative} size={IconSize.Md} />
           )}
         </Pressable>
       ) : null}

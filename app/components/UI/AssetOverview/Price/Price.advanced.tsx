@@ -6,11 +6,6 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { addCurrencySymbol } from '../../../../util/number';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../component-library/components/Texts/Text';
-
 import styleSheet from './Price.styles';
 import { TOKEN_OVERVIEW_CHART_HEIGHT as CHART_HEIGHT } from './tokenOverviewChart.constants';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
@@ -29,7 +24,13 @@ import TimeRangeSelector, {
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
 import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 const TIME_RANGE_LABELS: Record<TimeRange, string> = {
   '1H': 'asset_overview.chart_time_period.1h',
@@ -86,10 +87,14 @@ const NoDataOverlay: React.FC<NoDataOverlayProps> = ({
             : 'price-chart-no-data'
         }
       >
-        <Text variant={TextVariant.HeadingSM} style={styles.noDataOverlayTitle}>
+        <Text variant={TextVariant.HeadingSm} twClassName="text-center">
           {strings('asset_overview.no_chart_data.title')}
         </Text>
-        <Text variant={TextVariant.BodyMD} style={styles.noDataOverlayText}>
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextAlternative}
+          twClassName="text-center"
+        >
           {strings('asset_overview.no_chart_data.description')}
         </Text>
       </View>
@@ -146,7 +151,7 @@ const PriceAdvanced = ({
 
   const dateLabel = strings(TIME_RANGE_LABELS[timeRange]);
 
-  const { styles, theme } = useStyles(styleSheet, { priceDiff });
+  const { styles, theme } = useStyles(styleSheet);
 
   const hasChartData = ohlcvData.length > 1;
   const hasInsufficientData = ohlcvData.length === 1;
@@ -158,7 +163,7 @@ const PriceAdvanced = ({
         {!isNaN(currentPrice) && (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.HeadingLG}
+            variant={TextVariant.DisplayLg}
           >
             {isLoading ? (
               <View style={styles.loadingPrice}>
@@ -194,8 +199,15 @@ const PriceAdvanced = ({
             </View>
           ) : priceDiff !== undefined ? (
             <Text
-              style={styles.priceDiff}
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={
+                priceDiff > 0
+                  ? TextColor.SuccessDefault
+                  : priceDiff < 0
+                    ? TextColor.ErrorDefault
+                    : TextColor.TextAlternative
+              }
               allowFontScaling={false}
             >
               {priceDiff > 0 ? '+' : ''}
@@ -207,8 +219,9 @@ const PriceAdvanced = ({
               %){' '}
               <Text
                 testID="price-label"
-                color={TextColor.Alternative}
-                variant={TextVariant.BodyMDMedium}
+                color={TextColor.TextAlternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 allowFontScaling={false}
               >
                 {dateLabel}

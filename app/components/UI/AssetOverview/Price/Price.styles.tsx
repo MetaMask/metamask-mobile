@@ -1,17 +1,8 @@
 import type { Theme } from '@metamask/design-tokens';
-import { StyleSheet, TextStyle, ViewStyle } from 'react-native';
+import { StyleSheet, ViewStyle } from 'react-native';
 
-const styleSheet = (params: {
-  theme: Theme;
-  vars: {
-    priceDiff: number;
-  };
-}) => {
-  const {
-    theme,
-    vars: { priceDiff },
-  } = params;
-  const { colors } = theme;
+const styleSheet = (params: { theme: Theme }) => {
+  const { theme } = params;
   return StyleSheet.create({
     wrapper: {
       width: '100%',
@@ -28,14 +19,6 @@ const styleSheet = (params: {
     stockBadge: {
       marginLeft: 8,
     },
-    priceDiff: {
-      color:
-        priceDiff > 0
-          ? colors.success.default
-          : priceDiff < 0
-            ? colors.error.default
-            : colors.text.alternative,
-    } as TextStyle,
     loadingPrice: {
       paddingTop: 8,
     },
@@ -67,13 +50,6 @@ const styleSheet = (params: {
       alignItems: 'center',
       zIndex: 2,
     } as ViewStyle,
-    noDataOverlayTitle: {
-      textAlign: 'center',
-    } as TextStyle,
-    noDataOverlayText: {
-      textAlign: 'center',
-      color: theme.colors.text.alternative,
-    } as TextStyle,
   });
 };
 

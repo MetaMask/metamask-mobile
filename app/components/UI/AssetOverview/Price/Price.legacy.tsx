@@ -10,10 +10,12 @@ import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
 import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
-import Text, {
+import {
+  FontWeight,
+  Text,
   TextColor,
   TextVariant,
-} from '../../../../component-library/components/Texts/Text';
+} from '@metamask/design-system-react-native';
 
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
@@ -83,9 +85,7 @@ const PriceLegacy = ({
 
   const displayDiff = diff ?? priceDiff;
 
-  const { styles, theme } = useStyles(styleSheet, {
-    priceDiff: displayDiff,
-  });
+  const { styles, theme } = useStyles(styleSheet);
 
   return (
     <>
@@ -93,7 +93,7 @@ const PriceLegacy = ({
         {!isNaN(price) && (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
-            variant={TextVariant.HeadingLG}
+            variant={TextVariant.DisplayLg}
           >
             {isLoading ? (
               <View style={styles.loadingPrice}>
@@ -129,8 +129,15 @@ const PriceLegacy = ({
             </View>
           ) : distributedPriceData.length > 0 ? (
             <Text
-              style={styles.priceDiff}
-              variant={TextVariant.BodyMDMedium}
+              variant={TextVariant.BodyMd}
+              fontWeight={FontWeight.Medium}
+              color={
+                displayDiff > 0
+                  ? TextColor.SuccessDefault
+                  : displayDiff < 0
+                    ? TextColor.ErrorDefault
+                    : TextColor.TextAlternative
+              }
               allowFontScaling={false}
             >
               {displayDiff > 0 ? '+' : displayDiff < 0 ? '-' : ''}
@@ -148,8 +155,9 @@ const PriceLegacy = ({
               %){' '}
               <Text
                 testID="price-label"
-                color={TextColor.Alternative}
-                variant={TextVariant.BodyMDMedium}
+                color={TextColor.TextAlternative}
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
                 allowFontScaling={false}
               >
                 {date}

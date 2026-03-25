@@ -280,7 +280,7 @@ function handleRealtimeUpdate(payload) {
 
   // Update price indicators based on current chart type
   if (window.currentChartType === 2) {
-    removeLastPriceLine();
+    removeAllLastPriceHorizontalOverlays();
     refreshLineChartOverlays();
   } else if (window.currentChartType === 1) {
     // Candlestick: update price line, ensure no end dot
@@ -978,7 +978,7 @@ function handleSetChartType(payload) {
 
   // Immediately remove old indicators when switching types (don't wait for setTimeout)
   if (type === 2) {
-    removeLastPriceLine();
+    removeAllLastPriceHorizontalOverlays();
   } else {
     ensureNoLineChartEndIcons();
   }
@@ -1145,22 +1145,48 @@ function handleSetPositionLines(payload) {
 // ============================================
 window.lastPriceShapeId = null;
 
+/**
+ * Deletes all horizontal_line drawing shapes except Perps position lines (IDs in
+ * positionShapeIds). TradingView createShape is async; rapid REALTIME_UPDATE (e.g.
+ * polling) or layout refreshes can create a new last-price line before the previous
+ * createShape finishes, leaving an orphan — two green price tags on the Y-axis.
+ * This sweep removes duplicates so only one last-price overlay can remain before
+ * a fresh createLastPriceLine / createLineLastPriceLine runs.
+ */
+function sweepNonPositionHorizontalLines() {
+  if (!window.chartWidget || !window.isChartReady) return;
+  try {
+    var chart = window.chartWidget.activeChart();
+    var shapes = chart.getAllShapes();
+    if (!shapes || !shapes.length) return;
+    var positionIds = window.positionShapeIds || [];
+    for (var i = 0; i < shapes.length; i++) {
+      var id = shapes[i].id;
+      var name = String(shapes[i].name || '');
+      if (!/horizontal|horz/i.test(name)) continue;
+      if (positionIds.indexOf(id) !== -1) continue;
+      try {
+        chart.removeEntity(id);
+      } catch (e) {}
+    }
+  } catch (e) {}
+}
+
 function createLastPriceLine() {
   if (!window.chartWidget || !window.isChartReady) return;
   if (window.ohlcvData.length === 0) return;
 
   // Custom shape duplicates the native last-price UI — only for candlesticks (type 1).
   if (window.currentChartType !== 1) {
-    removeLastPriceLine();
+    removeAllLastPriceHorizontalOverlays();
     return;
   }
 
-  removeLastPriceLine();
+  removeAllLastPriceHorizontalOverlays();
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
   var color = window.CONFIG.theme.successColor;
-  var chartTypeAtCreation = window.currentChartType;
 
   chart
     .createShape(
@@ -1201,25 +1227,29 @@ function createLastPriceLine() {
     });
 }
 
-function removeLastPriceLine() {
-  if (window.lastPriceShapeId) {
-    try {
-      window.chartWidget.activeChart().removeEntity(window.lastPriceShapeId);
-    } catch (e) {}
-    window.lastPriceShapeId = null;
-  }
+/**
+ * Clears last-close horizontal_line overlays for both chart modes. Candle mode
+ * tracks lastPriceShapeId; line mode tracks lineLastPriceShapeId — same sweep,
+ * both refs must be nulled when removing drawings.
+ */
+function removeAllLastPriceHorizontalOverlays() {
+  sweepNonPositionHorizontalLines();
+  window.lastPriceShapeId = null;
+  window.lineLastPriceShapeId = null;
 }
 
 function createLineLastPriceLine() {
   if (!window.chartWidget || !window.isChartReady) return;
   if (window.ohlcvData.length === 0) return;
 
-  if (window.currentChartType !== 2 || !getLineChrome().showLastPriceLine) {
-    removeLineLastPriceLine();
+  var shouldDrawLineLastPrice =
+    window.currentChartType === 2 && getLineChrome().showLastPriceLine;
+
+  removeAllLastPriceHorizontalOverlays();
+
+  if (!shouldDrawLineLastPrice) {
     return;
   }
-
-  removeLineLastPriceLine();
 
   var lastBar = window.ohlcvData[window.ohlcvData.length - 1];
   var chart = window.chartWidget.activeChart();
@@ -1261,23 +1291,12 @@ function createLineLastPriceLine() {
     .catch(function () {});
 }
 
-function removeLineLastPriceLine() {
-  if (window.lineLastPriceShapeId && window.chartWidget) {
-    try {
-      window.chartWidget
-        .activeChart()
-        .removeEntity(window.lineLastPriceShapeId);
-    } catch (e) {}
-  }
-  window.lineLastPriceShapeId = null;
-}
-
 function refreshLineChartOverlays() {
   refreshLineEndDot();
   if (window.currentChartType === 2 && getLineChrome().showLastPriceLine) {
     createLineLastPriceLine();
   } else {
-    removeLineLastPriceLine();
+    removeAllLastPriceHorizontalOverlays();
   }
 }
 
@@ -1301,7 +1320,7 @@ function removeLineEndDot() {
 function ensureNoLineChartEndIcons() {
   if (window.currentChartType === 2) return;
   removeLineEndDot();
-  removeLineLastPriceLine();
+  removeAllLastPriceHorizontalOverlays();
   window.lineEndDotShapeId = null;
   if (!window.chartWidget || !window.isChartReady) return;
   try {
@@ -1809,7 +1828,7 @@ function initChart() {
 
       // Initialize price indicators based on chart type
       if (window.currentChartType === 2) {
-        removeLastPriceLine();
+        removeAllLastPriceHorizontalOverlays();
         refreshLineChartOverlays();
       } else {
         // Candlestick: show price line, no end dot
