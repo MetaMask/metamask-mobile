@@ -2330,25 +2330,27 @@ export class MYXProvider implements PerpsProvider {
 
         // Attempt WS subscription (non-fatal if it fails)
         try {
-          wsCallback = async (rawData: unknown): Promise<void> => {
+          wsCallback = (rawData: unknown): void => {
             if (cancelled) {
               return;
             }
-            try {
-              const rawPositions = Array.isArray(rawData) ? rawData : [];
-              const positions = await this.#adaptAndEnrichPositions(
-                rawPositions as import('../types/myx-types').MYXPositionType[],
-                address,
-              );
-              if (!cancelled) {
-                params.callback(positions);
-              }
-            } catch (adaptError) {
-              this.#deps.debugLogger.log(
-                '[MYXProvider] WS position adapt error',
-                { error: String(adaptError) },
-              );
-            }
+            const rawPositions = Array.isArray(rawData) ? rawData : [];
+            this.#adaptAndEnrichPositions(
+              rawPositions as import('../types/myx-types').MYXPositionType[],
+              address,
+            )
+              .then((positions) => {
+                if (!cancelled) {
+                  params.callback(positions);
+                }
+                return undefined;
+              })
+              .catch((adaptError) => {
+                this.#deps.debugLogger.log(
+                  '[MYXProvider] WS position adapt error',
+                  { error: String(adaptError) },
+                );
+              });
           };
 
           await this.#clientService.subscribeToPositions(wsCallback);
@@ -2454,7 +2456,7 @@ export class MYXProvider implements PerpsProvider {
 
         // Attempt WS subscription (non-fatal if it fails)
         try {
-          wsCallback = async (rawData: unknown): Promise<void> => {
+          wsCallback = (rawData: unknown): void => {
             if (cancelled) {
               return;
             }

@@ -637,7 +637,8 @@ function parseAccountTuple(data: unknown): {
     unrealizedPnl: '0',
   };
 
-  const str = (val: unknown): string => String(val ?? '0');
+  const str = (val: unknown): string =>
+    typeof val === 'string' || typeof val === 'number' ? String(val) : '0';
 
   if (Array.isArray(data)) {
     return {

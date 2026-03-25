@@ -228,7 +228,7 @@ export class MYXWalletService {
 
         if (args.method === 'eth_sendTransaction') {
           const txParams = (args.params?.[0] ?? {}) as Record<string, string>;
-          const hexChainId = `0x${chainId.toString(16)}` as `0x${string}`;
+          const hexChainId: `0x${string}` = `0x${chainId.toString(16)}`;
           const networkClientId = this.#messenger.call(
             'NetworkController:findNetworkClientIdByChainId',
             hexChainId,
@@ -351,19 +351,19 @@ export class MYXWalletService {
           txParams.data = args.data;
         }
         if (args.value !== undefined) {
-          txParams.value = `0x${args.value.toString(16)}`;
+          txParams.value = `0x${BigInt(args.value).toString(16)}`;
         }
         if (args.gas !== undefined) {
-          txParams.gas = `0x${args.gas.toString(16)}`;
+          txParams.gas = `0x${BigInt(args.gas).toString(16)}`;
         }
         if (args.gasPrice !== undefined) {
-          txParams.gasPrice = `0x${args.gasPrice.toString(16)}`;
+          txParams.gasPrice = `0x${BigInt(args.gasPrice).toString(16)}`;
         }
         if (args.maxFeePerGas !== undefined) {
-          txParams.maxFeePerGas = `0x${args.maxFeePerGas.toString(16)}`;
+          txParams.maxFeePerGas = `0x${BigInt(args.maxFeePerGas).toString(16)}`;
         }
         if (args.maxPriorityFeePerGas !== undefined) {
-          txParams.maxPriorityFeePerGas = `0x${args.maxPriorityFeePerGas.toString(16)}`;
+          txParams.maxPriorityFeePerGas = `0x${BigInt(args.maxPriorityFeePerGas).toString(16)}`;
         }
         const hash = await transport.request({
           method: 'eth_sendTransaction',
