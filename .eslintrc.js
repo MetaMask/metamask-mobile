@@ -153,6 +153,7 @@ module.exports = {
       files: [
         'scripts/**/*.{js,ts}',
         'tests/tools/**/*.{js,ts}',
+        'tests/visual/orchestrator/**/*.{js,ts}',
         'app.config.js',
       ],
       rules: {
