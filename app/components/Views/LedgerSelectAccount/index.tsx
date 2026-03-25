@@ -50,7 +50,7 @@ import SelectOptionSheet from '../../UI/SelectOptionSheet';
 import { AccountsController } from '@metamask/accounts-controller';
 import { toFormattedAddress } from '../../../util/address';
 import { getConnectedDevicesCount } from '../../../core/HardwareWallets/analytics';
-import { isEthAppNotOpenErrorMessage } from '../../../core/Ledger/ledgerErrors';
+import { isEthAppNotOpenError } from '../../../core/Ledger/ledgerErrors';
 
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import { HardwareWalletType, ConnectionStatus } from '@metamask/hw-wallet-sdk';
@@ -58,13 +58,18 @@ import { sanitizeDeviceName } from '../../../util/hardwareWallet/deviceNameUtils
 import DevLogger from '../../../core/SDKConnect/utils/DevLogger';
 
 /**
- * Check if error message indicates ETH app is not open and return user-friendly message
+ * Extract a displayable error message, returning a user-friendly string when
+ * the Ledger ETH app is not open. Accepts `unknown` so callers don't need to
+ * assume the thrown value is an `Error`.
  */
-const getDisplayErrorMessage = (errorMessage: string): string => {
-  if (isEthAppNotOpenErrorMessage(errorMessage)) {
+const getDisplayErrorMessage = (error: unknown): string => {
+  if (isEthAppNotOpenError(error)) {
     return strings('ledger.eth_app_not_open_message');
   }
-  return errorMessage;
+  if (error instanceof Error) {
+    return error.message;
+  }
+  return String(error);
 };
 
 interface OptionType {
@@ -169,7 +174,7 @@ const LedgerSelectAccount = () => {
       );
       setAccounts(_accounts);
     } catch (e) {
-      setErrorMsg(getDisplayErrorMessage((e as Error).message));
+      setErrorMsg(getDisplayErrorMessage(e));
     }
   }, []);
 
@@ -231,7 +236,7 @@ const LedgerSelectAccount = () => {
           setAccounts(_accounts);
         })
         .catch((e) => {
-          setErrorMsg(getDisplayErrorMessage((e as Error).message));
+          setErrorMsg(getDisplayErrorMessage(e));
         })
         .finally(() => {
           setBlockingModalVisible(false);
@@ -249,7 +254,7 @@ const LedgerSelectAccount = () => {
       );
       setAccounts(_accounts);
     } catch (e) {
-      setErrorMsg(getDisplayErrorMessage((e as Error).message));
+      setErrorMsg(getDisplayErrorMessage(e));
     } finally {
       setBlockingModalVisible(false);
     }
@@ -263,7 +268,7 @@ const LedgerSelectAccount = () => {
       );
       setAccounts(_accounts);
     } catch (e) {
-      setErrorMsg(getDisplayErrorMessage((e as Error).message));
+      setErrorMsg(getDisplayErrorMessage(e));
     } finally {
       setBlockingModalVisible(false);
     }
@@ -335,17 +340,18 @@ const LedgerSelectAccount = () => {
         );
         navigation.dispatch(StackActions.pop(2));
       } catch (err) {
+        const errorMessage = err instanceof Error ? err.message : String(err);
         trackEvent(
           createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
             .addProperties({
               device_type: HardwareDeviceTypes.LEDGER,
               device_model: ledgerModelName,
-              error: (err as Error).message,
+              error: errorMessage,
             })
             .build(),
         );
         setBlockingModalVisible(false);
-        setErrorMsg(getDisplayErrorMessage((err as Error).message));
+        setErrorMsg(getDisplayErrorMessage(err));
         isUnlockingRef.current = false;
         return;
       }
