@@ -124,6 +124,7 @@ enum EVENT_NAME {
 
   // Analytics
   ANALYTICS_PREFERENCE_SELECTED = 'Analytics Preference Selected',
+  METRICS_OPT_IN = 'Metrics Opt In',
   METRICS_OPT_OUT = 'Metrics Opt Out',
   ANALYTICS_REQUEST_DATA_DELETION = 'Delete MetaMetrics Data Request Submitted',
   EXPERIMENT_VIEWED = 'Experiment Viewed',
@@ -832,6 +833,7 @@ const events = {
   ANALYTICS_PREFERENCE_SELECTED: generateOpt(
     EVENT_NAME.ANALYTICS_PREFERENCE_SELECTED,
   ),
+  METRICS_OPT_IN: generateOpt(EVENT_NAME.METRICS_OPT_IN),
   METRICS_OPT_OUT: generateOpt(EVENT_NAME.METRICS_OPT_OUT),
   ANALYTICS_REQUEST_DATA_DELETION: generateOpt(
     EVENT_NAME.ANALYTICS_REQUEST_DATA_DELETION,
