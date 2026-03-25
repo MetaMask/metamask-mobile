@@ -29,50 +29,6 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
-// ---------------------------------------------------------------------------
-// Monkey-patch mockttp's CallbackMatcher to skip eager body buffering.
-//
-// By default CallbackMatcher.matches() calls waitForCompletedRequest() which
-// buffers the request body via streamToBuffer() BEFORE the user callback runs.
-// When the client aborts a connection, streamToBuffer rejects with
-// Error('Aborted'). Because findMatchingRule() evaluates ALL rules at the
-// same priority concurrently, the abandoned matchesAll promises become
-// unhandled rejections that propagate to Jest as test failures.
-//
-// This patch removes the eager buffering and passes the OngoingRequest
-// directly to the callback. This is safe because:
-//
-// - URL-only matchers (setupMockRequest, setupSSEMockRequest) never touch
-//   the body, so no stream I/O occurs at all.
-// - Body-reading matchers (setupMockPostRequest) access the body through
-//   safeGetBodyText(), which calls body.getText() → body.asBuffer(). The
-//   asBuffer() method caches its promise internally — only one
-//   streamToBuffer call ever happens, and all concurrent callers share the
-//   same result. If the stream was aborted, safeGetBodyText catches the
-//   rejection and returns undefined, causing the matcher to return false.
-// - Body buffering for handlers still happens in CallbackHandler.handle()
-//   (thenCallback path) — that's a single, fully-caught call path with no
-//   abandoned promises.
-// ---------------------------------------------------------------------------
-try {
-  // eslint-disable-next-line @typescript-eslint/no-require-imports
-  const { CallbackMatcher } = require('mockttp/dist/rules/matchers');
-  CallbackMatcher.prototype.matches = async function (
-    request: Record<string, unknown>,
-  ) {
-    try {
-      return await this.callback(request);
-    } catch {
-      return false;
-    }
-  };
-} catch (e) {
-  logger.warn(
-    'Failed to patch CallbackMatcher — abort errors may still occur:',
-    e,
-  );
-}
-
 /**
  * Safely reads request body text, catching abort errors.
  * When a client drops a connection mid-request (e.g., app navigation, AbortController),
