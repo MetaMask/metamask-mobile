@@ -66,8 +66,14 @@ jest.mock('react-native-safe-area-context', () => ({
 }));
 
 jest.mock('../../hooks/useMarketInsights', () => ({
-  useMarketInsights: (assetIdentifier: string) =>
-    mockUseMarketInsights(assetIdentifier),
+  useMarketInsights: (assetIdentifier: string) => {
+    const result = mockUseMarketInsights(assetIdentifier);
+    return {
+      ...result,
+      reportAssetId:
+        result?.reportAssetId ?? (result?.report ? assetIdentifier : null),
+    };
+  },
 }));
 
 jest.mock('../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
@@ -905,6 +911,95 @@ describe('MarketInsightsView', () => {
         category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
         properties: expect.objectContaining({
           digest_id: expect.anything(),
+        }),
+      }),
+    );
+  });
+
+  it('does not fire VIEWED with stale report when assetIdentifier changes before report refreshes', () => {
+    const ethReport = {
+      asset: 'eth',
+      digestId: 'eth-digest-111',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH extends gains',
+      summary: 'Momentum improves',
+      trends: [],
+      sources: [],
+    };
+
+    mockUseMarketInsights.mockReturnValue({
+      report: ethReport,
+      reportAssetId: 'eip155:1/erc20:0x123',
+      isLoading: false,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    const { rerender } = renderWithProvider(<MarketInsightsView />);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x123',
+          digest_id: 'eth-digest-111',
+        }),
+      }),
+    );
+
+    mockTrackEvent.mockClear();
+
+    mockRouteParams = {
+      ...mockRouteParams,
+      assetSymbol: 'USDC',
+      assetIdentifier: 'eip155:1/erc20:0x456',
+      tokenAddress: '0x456',
+      tokenName: 'USD Coin',
+    };
+
+    mockUseMarketInsights.mockReturnValue({
+      report: ethReport,
+      reportAssetId: 'eip155:1/erc20:0x123',
+      isLoading: true,
+      error: null,
+      timeAgo: '5m ago',
+    });
+
+    rerender(<MarketInsightsView />);
+
+    expect(mockTrackEvent).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+      }),
+    );
+
+    const usdcReport = {
+      asset: 'usdc',
+      digestId: 'usdc-digest-222',
+      generatedAt: '2026-02-17T12:00:00.000Z',
+      headline: 'USDC stable',
+      summary: 'Stablecoin demand remains steady',
+      trends: [],
+      sources: [],
+    };
+
+    mockUseMarketInsights.mockReturnValue({
+      report: usdcReport,
+      reportAssetId: 'eip155:1/erc20:0x456',
+      isLoading: false,
+      error: null,
+      timeAgo: '1m ago',
+    });
+
+    rerender(<MarketInsightsView />);
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        category: MetaMetricsEvents.MARKET_INSIGHTS_VIEWED,
+        properties: expect.objectContaining({
+          caip19: 'eip155:1/erc20:0x456',
+          digest_id: 'usdc-digest-222',
+          asset_symbol: 'usdc',
         }),
       }),
     );

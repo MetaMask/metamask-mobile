@@ -188,7 +188,7 @@ const MarketInsightsView: React.FC = () => {
     ? isPerpsInsightsEnabled
     : isTokenInsightsEnabled;
 
-  const { report, isLoading, error } = useMarketInsights(
+  const { report, reportAssetId, isLoading, error } = useMarketInsights(
     assetIdentifier,
     isMarketInsightsEnabled,
   );
@@ -517,7 +517,11 @@ const MarketInsightsView: React.FC = () => {
   );
 
   useEffect(() => {
-    if (!report || hasTrackedViewRef.current) {
+    if (
+      !report ||
+      hasTrackedViewRef.current ||
+      reportAssetId !== assetIdentifier
+    ) {
       return;
     }
 
@@ -533,8 +537,10 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = true;
   }, [
     report,
+    reportAssetId,
     assetIdProperty,
     assetSymbolProperty,
+    assetIdentifier,
     trackEvent,
     createEventBuilder,
   ]);
