@@ -18,6 +18,77 @@ export type GasFeeEstimatesInput =
   | null
   | undefined;
 
+interface FeeMarketMediumLevel {
+  suggestedMaxFeePerGas?: string;
+  suggestedMaxPriorityFeePerGas?: string;
+}
+
+interface ResolvedMediumEstimate {
+  feeMarketLevel?: FeeMarketMediumLevel;
+  scalarGwei?: string;
+}
+
+/**
+ * Extracts the medium-level gas fee estimate from various possible shapes of gas fee estimates.
+ */
+function resolveMediumEstimate(
+  gasFeeEstimates: GasFeeEstimatesInput,
+): ResolvedMediumEstimate {
+  if (!gasFeeEstimates) {
+    return {};
+  }
+
+  if ('type' in (gasFeeEstimates as object)) {
+    const typedEstimates = gasFeeEstimates as GasFeeEstimates;
+    switch (typedEstimates.type) {
+      case GasFeeEstimateType.FeeMarket: {
+        const level = (typedEstimates as FeeMarketGasFeeEstimates)[
+          GasFeeEstimateLevel.Medium
+        ];
+        return {
+          feeMarketLevel: level as unknown as FeeMarketMediumLevel,
+        };
+      }
+      case GasFeeEstimateType.Legacy:
+        return {
+          scalarGwei: (typedEstimates as LegacyGasFeeEstimates)[
+            GasFeeEstimateLevel.Medium
+          ] as unknown as string,
+        };
+      case GasFeeEstimateType.GasPrice:
+        return {
+          scalarGwei: (typedEstimates as GasPriceGasFeeEstimates)
+            .gasPrice as string,
+        };
+      default:
+        return {};
+    }
+  }
+
+  const mediumLevel = (
+    gasFeeEstimates as { medium?: FeeMarketMediumLevel | string }
+  ).medium;
+
+  if (
+    mediumLevel &&
+    typeof mediumLevel === 'object' &&
+    ('suggestedMaxFeePerGas' in mediumLevel ||
+      'suggestedMaxPriorityFeePerGas' in mediumLevel)
+  ) {
+    return { feeMarketLevel: mediumLevel };
+  }
+  if (mediumLevel && typeof mediumLevel === 'string') {
+    return { scalarGwei: mediumLevel };
+  }
+
+  const maybeGasPrice = (gasFeeEstimates as { gasPrice?: string }).gasPrice;
+  if (maybeGasPrice) {
+    return { scalarGwei: maybeGasPrice };
+  }
+
+  return {};
+}
+
 /**
  * Returns the hex gas price (in wei) for the "medium" tier from gas fee estimates.
  * Used when a legacy tx has existing gasPrice 0x0 so cancel/speed-up can fall back to a mineable price.
@@ -55,45 +126,20 @@ export function addTenPercentAndRound(
 export function getMediumEstimateGwei(
   gasFeeEstimates: GasFeeEstimatesInput,
 ): string | undefined {
-  if (!gasFeeEstimates) return undefined;
+  const { feeMarketLevel, scalarGwei } = resolveMediumEstimate(gasFeeEstimates);
+  return feeMarketLevel?.suggestedMaxFeePerGas ?? scalarGwei;
+}
 
-  if ('type' in (gasFeeEstimates as object)) {
-    const typedEstimates = gasFeeEstimates as GasFeeEstimates;
-    switch (typedEstimates.type) {
-      case GasFeeEstimateType.FeeMarket: {
-        const level = (typedEstimates as FeeMarketGasFeeEstimates)[
-          GasFeeEstimateLevel.Medium
-        ];
-        return (level as unknown as { suggestedMaxFeePerGas: string })
-          .suggestedMaxFeePerGas;
-      }
-      case GasFeeEstimateType.Legacy:
-        return (typedEstimates as LegacyGasFeeEstimates)[
-          GasFeeEstimateLevel.Medium
-        ] as unknown as string;
-      case GasFeeEstimateType.GasPrice:
-        return (typedEstimates as GasPriceGasFeeEstimates).gasPrice as string;
-      default:
-        return undefined;
-    }
-  }
-
-  const mediumLevel = (
-    gasFeeEstimates as { medium?: { suggestedMaxFeePerGas?: string } | string }
-  ).medium;
-  if (
-    mediumLevel &&
-    typeof mediumLevel === 'object' &&
-    'suggestedMaxFeePerGas' in mediumLevel
-  ) {
-    return mediumLevel.suggestedMaxFeePerGas;
-  }
-  if (mediumLevel && typeof mediumLevel === 'string') {
-    return mediumLevel;
-  }
-
-  const maybeGasPrice = (gasFeeEstimates as { gasPrice?: string }).gasPrice;
-  return maybeGasPrice ?? undefined;
+/**
+ * Extracts the medium tier's `suggestedMaxPriorityFeePerGas` as a decimal GWEI string
+ * when present (EIP-1559 fee-market shapes only). Legacy string `medium`, GasPrice type,
+ * and `gasPrice` fallback do not carry priority and yield `undefined`.
+ */
+export function getMediumPriorityFeeGwei(
+  gasFeeEstimates: GasFeeEstimatesInput,
+): string | undefined {
+  const { feeMarketLevel } = resolveMediumEstimate(gasFeeEstimates);
+  return feeMarketLevel?.suggestedMaxPriorityFeePerGas;
 }
 
 /**
@@ -108,9 +154,7 @@ export function gasEstimateGreaterThanGasUsedPlusTenPercent(
   txParams: TransactionParams,
   gasFeeEstimates: GasFeeEstimatesInput,
 ): boolean {
-  const gasInTransaction =
-    (txParams?.maxFeePerGas as string | undefined) ??
-    (txParams?.gasPrice as string | undefined);
+  const gasInTransaction = txParams?.maxFeePerGas ?? txParams?.gasPrice;
   const bumped = addTenPercentAndRound(gasInTransaction);
   if (!bumped) {
     return false;

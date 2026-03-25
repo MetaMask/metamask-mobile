@@ -20,6 +20,7 @@ import {
   gasEstimateGreaterThanGasUsedPlusTenPercent,
   getMediumEstimateGwei,
   getMediumGasPriceHex,
+  getMediumPriorityFeeGwei,
 } from '../../../../../../util/confirmation/gas';
 import { decGWEIToHexWEI } from '../../../../../../util/conversions';
 import { addHexPrefix } from '../../../../../../util/number';
@@ -47,21 +48,8 @@ function getMarketEstimateParams(
   gasFeeEstimates: ReturnType<typeof selectGasFeeEstimates>,
 ): GasPriceValue | FeeMarketEIP1559Values | undefined {
   if (isEIP1559Transaction(txParams)) {
-    const mediumLevel = (
-      gasFeeEstimates as {
-        medium?: {
-          suggestedMaxFeePerGas?: string;
-          suggestedMaxPriorityFeePerGas?: string;
-        };
-      }
-    )?.medium;
-
     const mediumEstimateGwei = getMediumEstimateGwei(gasFeeEstimates);
-
-    const mediumPriorityGwei =
-      typeof mediumLevel === 'object'
-        ? mediumLevel?.suggestedMaxPriorityFeePerGas
-        : undefined;
+    const mediumPriorityGwei = getMediumPriorityFeeGwei(gasFeeEstimates) ?? '0';
 
     if (!mediumEstimateGwei) return undefined;
 
@@ -69,7 +57,7 @@ function getMarketEstimateParams(
       decGWEIToHexWEI(mediumEstimateGwei)?.toString(),
     );
     const maxPriorityFeePerGasHex = addHexPrefix(
-      decGWEIToHexWEI(mediumPriorityGwei ?? '0')?.toString(),
+      decGWEIToHexWEI(mediumPriorityGwei)?.toString(),
     );
 
     return {
