@@ -320,6 +320,11 @@ abstract class StreamChannel<T> {
     return null;
   }
 
+  // [PERPS_BENCH] Temporary — silently wipe cache without disconnecting WS or notifying subscribers
+  public purgeCache(): void {
+    this.cache.clear();
+  }
+
   public clearCache(): void {
     // This ensures no timers are orphaned during the disconnect/reconnect cycle
     this.subscribers.forEach((subscriber) => {
@@ -449,6 +454,12 @@ class PriceStreamChannel extends StreamChannel<Record<string, PriceUpdate>> {
     this.cleanupPrewarm();
     // Call parent clearCache
     super.clearCache();
+  }
+
+  // [PERPS_BENCH] Temporary
+  public override purgeCache(): void {
+    this.priceCache.clear();
+    super.purgeCache();
   }
 
   subscribeToSymbols(params: {
@@ -1289,6 +1300,12 @@ class TopOfBookStreamChannel extends StreamChannel<
     super.clearCache();
   }
 
+  // [PERPS_BENCH] Temporary
+  public override purgeCache(): void {
+    this.cachedTopOfBook = undefined;
+    super.purgeCache();
+  }
+
   subscribeToSymbol(params: {
     symbol: string;
     callback: (
@@ -1567,6 +1584,14 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
    * (default), subscribers are notified with `[]` and their throttle state is
    * reset so the next fetch result is delivered immediately.
    */
+  // [PERPS_BENCH] Temporary
+  public override purgeCache(): void {
+    this.lastFetchTime = 0;
+    this.fetchPromise = null;
+    this.cachedProviderId = null;
+    super.purgeCache();
+  }
+
   public clearCache(skipNotify = false): void {
     this.cache.clear();
     this.lastFetchTime = 0;
@@ -1670,6 +1695,18 @@ export class PerpsStreamManager {
     });
   }
 
+  // [PERPS_BENCH] Temporary — silently wipe all channel caches without disconnecting WS
+  purgeAllCaches(): void {
+    this.prices.purgeCache();
+    this.orders.purgeCache();
+    this.positions.purgeCache();
+    this.fills.purgeCache();
+    this.account.purgeCache();
+    this.marketData.purgeCache();
+    this.oiCaps.purgeCache();
+    this.topOfBook.purgeCache();
+  }
+
   /**
    * Force reconnection of all stream channels after WebSocket reconnection
    * Disconnects all channels and reconnects those with active subscribers
@@ -1692,6 +1729,11 @@ export class PerpsStreamManager {
 // Singleton instance
 const streamManager = new PerpsStreamManager();
 _streamManagerRef = streamManager;
+
+// [PERPS_BENCH] Temporary — expose purge for CDP access
+if (__DEV__) {
+  (globalThis as Record<string, unknown>).__PERPS_STREAM__ = streamManager;
+}
 
 // Export singleton for pre-warming in PerpsConnectionManager
 export const getStreamManagerInstance = () => streamManager;

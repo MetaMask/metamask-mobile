@@ -12,7 +12,10 @@ type CacheField =
  */
 function getMarketDataFromController(): unknown[] | null {
   const controller = Engine.context.PerpsController;
-  return controller?.getCachedMarketDataForActiveProvider?.() ?? null;
+  return (
+    controller?.getCachedMarketDataForActiveProvider?.({ skipTTL: true }) ??
+    null
+  );
 }
 
 /**
@@ -25,7 +28,9 @@ function getUserDataFromController(): {
   accountState: AccountState | null;
 } | null {
   const controller = Engine.context.PerpsController;
-  return controller?.getCachedUserDataForActiveProvider?.() ?? null;
+  return (
+    controller?.getCachedUserDataForActiveProvider?.({ skipTTL: true }) ?? null
+  );
 }
 
 /**

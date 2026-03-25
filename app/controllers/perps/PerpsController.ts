@@ -928,9 +928,15 @@ export class PerpsController extends BaseController<
    * Read cached market data for the currently active provider (or aggregated).
    * Returns null when no valid cache exists or when cache has expired.
    *
+   * @param options - Optional settings.
+   * @param options.skipTTL - When true, bypass the 5-minute TTL check.
+   * Used during initial render so disk-hydrated structural data (with
+   * placeholder prices) is returned regardless of age.
    * @returns The cached market data array, or null if no valid cache.
    */
-  getCachedMarketDataForActiveProvider(): PerpsMarketData[] | null {
+  getCachedMarketDataForActiveProvider(options?: {
+    skipTTL?: boolean;
+  }): PerpsMarketData[] | null {
     const { activeProvider } = this.state;
     const cache = this.state.cachedMarketDataByProvider;
 
@@ -954,7 +960,10 @@ export class PerpsController extends BaseController<
         return null;
       }
       // Check TTL against the oldest entry
-      if (Date.now() - oldestTimestamp > PerpsController.#preloadGuardMs * 10) {
+      if (
+        !options?.skipTTL &&
+        Date.now() - oldestTimestamp > PerpsController.#preloadGuardMs * 10
+      ) {
         return null;
       }
       return assembled;
@@ -969,7 +978,10 @@ export class PerpsController extends BaseController<
     if (!entry || entry.data.length === 0) {
       return null;
     }
-    if (Date.now() - entry.timestamp > PerpsController.#preloadGuardMs * 10) {
+    if (
+      !options?.skipTTL &&
+      Date.now() - entry.timestamp > PerpsController.#preloadGuardMs * 10
+    ) {
       return null;
     }
     return entry.data;
@@ -980,9 +992,13 @@ export class PerpsController extends BaseController<
    * Returns null when no valid cache exists, cache has expired, or address
    * does not match the currently selected EVM account.
    *
+   * @param options - Optional settings.
+   * @param options.skipTTL - When true, bypass the 60s staleness check.
+   * Used during initial render so disk-hydrated user data (positions/orders)
+   * is returned regardless of age, avoiding a skeleton flash.
    * @returns The cached user data, or null if no valid cache.
    */
-  getCachedUserDataForActiveProvider(): {
+  getCachedUserDataForActiveProvider(options?: { skipTTL?: boolean }): {
     positions: Position[];
     orders: Order[];
     accountState: AccountState | null;
@@ -1004,13 +1020,15 @@ export class PerpsController extends BaseController<
       // Can't determine current account — trust the cache
     }
 
+    const skipTTL = options?.skipTTL ?? false;
+
     const isValidEntry = (
       entry: { timestamp: number; address: string } | undefined,
     ): entry is { timestamp: number; address: string } => {
       if (!entry) {
         return false;
       }
-      if (Date.now() - entry.timestamp >= staleCutoff) {
+      if (!skipTTL && Date.now() - entry.timestamp >= staleCutoff) {
         return false;
       }
       if (
@@ -2654,9 +2672,19 @@ export class PerpsController extends BaseController<
             const existing =
               this.state.cachedMarketDataByProvider[parsed.providerNetworkKey];
             if (!existing || existing.timestamp < parsed.timestamp) {
+              // Strip volatile price fields — disk data may be hours old.
+              // Structural fields (symbol, name, leverage, volume) are preserved
+              // so the market list renders instantly; prices show $--- until
+              // REST/WS delivers fresh values.
+              const strippedData = parsed.data.map((market) => ({
+                ...market,
+                price: PERPS_CONSTANTS.FallbackPriceDisplay,
+                change24h: PERPS_CONSTANTS.FallbackDataDisplay,
+                change24hPercent: PERPS_CONSTANTS.FallbackPercentageDisplay,
+              }));
               this.update((state) => {
                 state.cachedMarketDataByProvider[parsed.providerNetworkKey] = {
-                  data: parsed.data,
+                  data: strippedData,
                   timestamp: parsed.timestamp,
                 };
               });
@@ -2772,11 +2800,17 @@ export class PerpsController extends BaseController<
     });
   }
 
+  // [PERPS_BENCH] Temporary — hydrate from disk WITHOUT starting REST preload.
+  // Used by benchmark to verify placeholder prices before REST overwrites them.
+  async hydrateCacheFromDiskOnly(): Promise<void> {
+    await this.#hydrateCacheFromDisk();
+  }
+
   // [PERPS_BENCH] Temporary — write current controller cache to disk immediately
   async seedDiskCache(): Promise<void> {
     const { diskCache } = this.#options.infrastructure;
     const { activeProvider } = this.state;
-    const {isTestnet} = this.state;
+    const { isTestnet } = this.state;
     const providerNetworkKey = `${activeProvider}:${isTestnet ? 'testnet' : 'mainnet'}`;
     const now = Date.now();
 
