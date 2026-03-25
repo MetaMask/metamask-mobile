@@ -3,7 +3,7 @@ import { render, fireEvent } from '@testing-library/react-native';
 import OndoLeaderboard, {
   CAMPAIGN_LEADERBOARD_TEST_IDS,
 } from './OndoLeaderboard';
-import type { OndoCampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
@@ -107,8 +107,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 const createMockEntry = (
-  overrides: Partial<OndoCampaignLeaderboardEntry> = {},
-): OndoCampaignLeaderboardEntry => ({
+  overrides: Partial<CampaignLeaderboardEntry> = {},
+): CampaignLeaderboardEntry => ({
   rank: 1,
   referral_code: 'ABC123',
   rate_of_return: 0.15,

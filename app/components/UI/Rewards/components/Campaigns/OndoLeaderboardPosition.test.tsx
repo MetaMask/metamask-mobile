@@ -4,7 +4,7 @@ import OndoLeaderboardPosition, {
   ONDO_LEADERBOARD_POSITION_TEST_IDS,
 } from './OndoLeaderboardPosition';
 import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
-import type { CampaignLeaderboardPositionDto } from '../../../../../../core/Engine/controllers/rewards-controller/types';
+import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('../../hooks/useGetOndoLeaderboardPosition');
 
