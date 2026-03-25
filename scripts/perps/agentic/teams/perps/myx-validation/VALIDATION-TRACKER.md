@@ -67,7 +67,7 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 - [x] **05-read-fills** — Read order fills (needs prior trades)
   - Tier 1: PASS — 20 orders in history (7 filled market orders, 13 rejected/cancelled limit/trigger orders)
   - Tier 2: PASS (5/5) — `myx-qa/05-read-fills.mp4`. Navigates to Perps home, shows activity section with recent trades.
-  - Tier 3: human review — _pending_
+  - Tier 3: PASS — human confirmed
   - Learning: Fills include filled market orders and rejected orders with `cancelReason`. Type `2` orders are trigger (TP/SL) orders.
 
 ### Market Orders
@@ -75,7 +75,7 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 - [x] **06-place-market-order** — Place market buy, verify position created
   - Tier 1: PASS — PoC placed $150 META LONG 2x, tx `0x98789a...`, position confirmed at entry $2156.05
   - Tier 2: PASS (7/7, flow 13/13) — `myx-qa/06-place-market-order.mp4`. Full UI: market detail → Long → $150 → Place Order → position appeared (META entry $2155.55) → cleanup closed position → 0 positions
-  - Tier 3: human review — _pending_
+  - Tier 3: PASS — human confirmed
   - Learning: MYX chain confirmation ~10s on testnet. Position appeared within first poll cycle. Cleanup via eval_ref close is faster than UI close for recipe cleanup.
 
 ### Position Management
@@ -83,54 +83,55 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 - [x] **07-update-tpsl** — Set TP/SL on open position
   - Tier 1: PASS — TP $2500 + SL $2000 set on META LONG, tx `0x6846ef...`, 2 trigger orders created. PoC shows TP/SL columns in position table.
   - Tier 2: PASS (21/21, flow 13/13) — `myx-qa/07-update-tpsl.mp4`. Full UI: opens position → presses auto-close toggle → TP/SL screen → +25% TP / -10% SL → Set → navigates back → scrolls to show "Auto close: TP $X / SL $Y" with Edit button → cleanup
-  - Tier 3: human review — _pending_
+  - Tier 3: PASS — human confirmed
   - **BUG FIXED**: MYX positions had `takeProfitPrice: undefined` because TP/SL are separate trigger orders, not position attributes. Fixed `getPositions()` to cross-reference open orders by `positionId` and inject TP/SL prices. Also fixed `adaptOrderItemFromMYX` to detect trigger orders (`orderType 2/3`) and set `isTrigger: true`, `isPositionTpsl: true`, `detailedOrderType: "Take Profit"/"Stop Loss"`.
   - Learning: MYX TP/SL are separate decrease trigger orders. TP uses GTE trigger (LONG) / LTE (SHORT), SL uses LTE (LONG) / GTE (SHORT). Cross-reference by `positionId` on `MYXOrderItem`.
 
 - [x] **08-add-margin** — Add $10 margin to open position
   - Tier 1: PASS — Margin $150 -> $160 (+$10), tx `0x0e91e9...`
   - Tier 2: PASS (15/15, flow 13/13) — `myx-qa/08-add-margin.mp4`. Opens position → shows Margin $150 → adds $10 → shows Margin $160 → cleanup
-  - Tier 3: human review — _pending_
+  - Tier 3: PASS — human confirmed
   - Codepath: `updateMargin()`
 
 - [x] **09-close-position** — Close single position, verify removed
   - Tier 1: PASS — Position opened and closed, tx confirmed
-  - Tier 2: PASS (11/11, flow 13/13) — `myx-qa/09-close-position.mp4`. Shows "Modify / Close Long" before → closes → shows "Long / Short" after (position gone)
-  - Tier 3: human review — _pending_
+  - Tier 2: PASS (8/8) — `myx-qa/09-close-position.mp4`. Opens position → closes via UI → position removed from list
+  - Tier 3: PASS — human confirmed
+  - **BUG FIXED**: `closePosition()` was sending empty `size` to SDK when closing 100% — fixed to pass the full position size.
   - Learning: Testnet keeper can get stuck when multiple orders queue. Cancel stale orders before placing new ones.
 
-- [ ] **10-place-and-close-all** — Place order -> close all -> verify zero positions
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 11 --leverage 2 --type market` then `npx tsx closeOrder.ts --close-all` — _pending_
-  - Tier 2: recipe + `myx-qa/10-place-and-close-all.mp4` — _pending_
-  - Tier 3: human review — _pending_
+- [x] **10-place-and-close-all** — Place order -> close all -> verify zero positions
+  - Tier 1: PASS — Placed META LONG, then closed all via `closePositions()`
+  - Tier 2: PASS (10/10) — `myx-qa/10-place-and-close-all.mp4`. UI Close All flow: opens position → navigates to Close All → confirms → 0 positions. Wait bumped to 20s for chain confirmation.
+  - Tier 3: PASS — human confirmed
   - Codepath: `closePositions()`
 
 ### Limit Orders
 
-- [ ] **11-place-limit-order** — Place limit buy, verify in open orders
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 150 --leverage 2 --type limit --price 1000` — _pending_
-  - Tier 2: recipe + `myx-qa/11-place-limit-order.mp4` — _pending_
-  - Tier 3: human review — _pending_
+- [x] **11-place-limit-order** — Place limit buy, verify in open orders
+  - Tier 1: PASS — Placed limit LONG on META at $1000
+  - Tier 2: PASS (8/8) — `myx-qa/11-place-limit-order.mp4`. Full UI: navigates home → market detail → Limit → sets price → Place Order → order appears in open orders. Screenshots captured.
+  - Tier 3: PASS — human confirmed
   - Codepath: `placeOrder()` (limit path)
 
-- [ ] **12-cancel-order** — Place limit -> cancel -> verify removed
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx closeOrder.ts --cancel <orderId>` — _pending_
-  - Tier 2: recipe + `myx-qa/12-cancel-order.mp4` — _pending_
-  - Tier 3: human review — _pending_
-  - Codepath: `cancelOrder()`
+- [x] **12-cancel-order** — Place limit -> cancel -> verify removed
+  - Tier 1: PASS — Placed limit order then cancelled via `cancelOrder()`
+  - Tier 2: PASS (11/11) — `myx-qa/12-cancel-order.mp4`. UI Cancel All flow: places limit order → navigates to orders → Cancel All → confirms → 0 open orders.
+  - Tier 3: PASS — human confirmed
+  - Codepath: `cancelOrder()`, `cancelOrders()`
 
-- [ ] **13-edit-order** — Place limit -> edit price -> cleanup
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx editOrder.ts --price-pct 1` — _pending_
-  - Tier 2: recipe + `myx-qa/13-edit-order.mp4` — _pending_
-  - Tier 3: human review — _pending_
+- [x] **13-edit-order** — Place limit -> edit price -> cleanup
+  - Tier 1: PASS — Placed limit order, edited price +1%, verified update
+  - Tier 2: PASS (15/15) — `myx-qa/13-edit-order.mp4`. Full UI with before/after screenshots: places limit → shows original price → edits price → shows updated price → cleanup.
+  - Tier 3: PASS — human confirmed
   - Codepath: `editOrder()`
 
 ### Full Lifecycle
 
-- [ ] **14-full-cycle** — Place -> TP/SL -> margin -> close -> log check
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 11 --leverage 2 --type market` then `npx tsx addTpSl.ts --tp 2500 --sl 2000` then `npx tsx addMargin.ts --usd 10` then `npx tsx closeOrder.ts --close <positionId>` — _pending_
-  - Tier 2: recipe + `myx-qa/14-full-cycle.mp4` — _pending_
-  - Tier 3: human review — _pending_
+- [x] **14-full-cycle** — Place -> TP/SL -> margin -> close -> log check
+  - Tier 1: PASS — Full lifecycle: place market → set TP/SL → add margin → close position
+  - Tier 2: PASS (20/20) — `myx-qa/14-full-cycle.mp4`. Full UI lifecycle with screenshots at each stage: open position → set TP/SL → add margin → close → verify 0 positions. All state transitions verified.
+  - Tier 3: PASS — human confirmed
 
 ## Codepath Review Findings
 
