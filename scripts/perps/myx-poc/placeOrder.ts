@@ -9,6 +9,10 @@
  * Auth required. Uses real funds on mainnet!
  */
 
+import {
+  TriggerType as MYXTriggerType,
+  OrderType as MYXOrderType,
+} from '@myx-trade/sdk';
 import type { PlaceOrderParams } from '@myx-trade/sdk';
 import {
   getNetworkConfig,
@@ -103,6 +107,18 @@ async function main() {
   }
   console.log(`Taker fee rate: ${takerFeeRate}`);
 
+  // Get network (execution) fee for limit orders — keepers need this to execute later
+  let executionFee = '0';
+  if (orderType === 'limit') {
+    try {
+      const networkFee = await client.utils.getNetworkFee(marketId, poolChainId);
+      executionFee = String(networkFee);
+      console.log(`Execution fee (limit order): ${executionFee}`);
+    } catch (e) {
+      console.warn(`getNetworkFee failed, using 0: ${e}`);
+    }
+  }
+
   // Determine price
   let orderPrice: number;
   if (priceArg) {
@@ -152,7 +168,15 @@ async function main() {
   ).toString();
 
   const direction = side === 'long' ? 0 : 1;
-  const sdkOrderType = orderType === 'limit' ? 1 : 0;
+  const sdkOrderType = orderType === 'limit' ? MYXOrderType.LIMIT : MYXOrderType.MARKET;
+
+  // Limit orders need a trigger type so the keeper knows when to execute:
+  //   LONG limit (buy low):  LTE — trigger when price ≤ limit
+  //   SHORT limit (sell high): GTE — trigger when price ≥ limit
+  const triggerType: typeof MYXTriggerType[keyof typeof MYXTriggerType] =
+    orderType === 'limit'
+      ? (direction === 0 ? MYXTriggerType.LTE : MYXTriggerType.GTE)
+      : MYXTriggerType.NONE;
 
   const sdkParams: PlaceOrderParams = {
     chainId: poolChainId,
@@ -160,7 +184,7 @@ async function main() {
     poolId,
     positionId: '',
     orderType: sdkOrderType,
-    triggerType: 0,
+    triggerType,
     direction,
     collateralAmount,
     size: toSize(computedSize),
