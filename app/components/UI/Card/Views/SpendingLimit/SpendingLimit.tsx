@@ -8,14 +8,21 @@ import {
   Text,
   TextVariant,
   BoxFlexDirection,
+  BoxAlignItems,
   Icon,
   IconName,
   IconSize,
   IconColor,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import { useSelector } from 'react-redux';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
+import { selectSelectedInternalAccount } from '../../../../../selectors/accountsController';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
+import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
+import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
+import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
 import Button, {
   ButtonSize,
   ButtonVariants,
@@ -26,9 +33,7 @@ import {
   DelegationSettingsResponse,
   CardExternalWalletDetailsResponse,
 } from '../../types';
-import useSpendingLimit, {
-  LINEA_CAIP_CHAIN_ID,
-} from '../../hooks/useSpendingLimit';
+import useSpendingLimit from '../../hooks/useSpendingLimit';
 import useSpendingLimitData from '../../hooks/useSpendingLimitData';
 import { AssetCard, LimitOptionItem } from './components';
 
@@ -68,6 +73,9 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
   const navigation = useNavigation();
   const theme = useTheme();
   const tw = useTailwind();
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const avatarAccountType = useSelector(selectAvatarAccountType);
+  const accountGroupName = useAccountGroupName();
 
   // Route params
   const flow = route?.params?.flow || 'manage';
@@ -108,10 +116,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     selectedToken,
     limitType,
     customLimit,
-    quickSelectTokens,
-    isOtherSelected,
     isLoading,
-    handleQuickSelectToken,
     handleOtherSelect,
     setLimitType,
     setCustomLimit,
@@ -141,18 +146,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     });
     return unsubscribe;
   }, [navigation]);
-
-  // Check if a quick-select token is selected
-  const isQuickSelectTokenSelected = useCallback(
-    (symbol: string) => {
-      if (!selectedToken) return false;
-      return (
-        selectedToken.symbol?.toUpperCase() === symbol.toUpperCase() &&
-        selectedToken.caipChainId === LINEA_CAIP_CHAIN_ID
-      );
-    },
-    [selectedToken],
-  );
 
   // Get the appropriate title based on flow
   const screenTitle = useMemo(() => {
@@ -255,6 +248,35 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           </Text>
         </Box>
 
+        {/* Spending with Section */}
+        {selectedAccount && (
+          <Box twClassName="mb-6">
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-default mb-3 font-medium"
+            >
+              {strings('card.card_spending_limit.spending_with_label')}
+            </Text>
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+              twClassName="bg-background-muted rounded-xl px-4 py-3 gap-3"
+            >
+              <AvatarAccount
+                type={avatarAccountType}
+                accountAddress={selectedAccount.address}
+                size={AvatarSize.Sm}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                twClassName="text-text-default font-medium"
+              >
+                {accountGroupName ?? selectedAccount.metadata.name}
+              </Text>
+            </Box>
+          </Box>
+        )}
+
         {/* Asset Section */}
         <Box twClassName="mb-6">
           <Text
@@ -266,20 +288,21 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
 
           {/* Asset Cards Row */}
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
-            {quickSelectTokens.map(({ symbol, token }) => (
+            {selectedToken && (
               <AssetCard
-                key={symbol}
-                symbol={symbol}
-                tokenAddress={token?.address ?? undefined}
-                stagingTokenAddress={token?.stagingTokenAddress ?? undefined}
-                isSelected={isQuickSelectTokenSelected(symbol)}
-                onPress={() => handleQuickSelectToken(symbol)}
-                testID={`asset-card-${symbol.toLowerCase()}`}
+                symbol={selectedToken.symbol ?? ''}
+                tokenAddress={selectedToken.address ?? undefined}
+                stagingTokenAddress={
+                  selectedToken.stagingTokenAddress ?? undefined
+                }
+                caipChainId={selectedToken.caipChainId}
+                isSelected
+                testID="asset-card-selected"
               />
-            ))}
+            )}
             <AssetCard
               symbol={strings('card.card_spending_limit.other_token')}
-              isSelected={isOtherSelected}
+              isSelected={false}
               isOther
               onPress={handleOtherSelect}
               testID="asset-card-other"

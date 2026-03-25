@@ -18,6 +18,7 @@ import Logger from '../../../../util/Logger';
 import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -70,6 +71,10 @@ jest.mock('../../../../util/Logger', () => ({
 
 jest.mock('../components/AssetSelectionBottomSheet', () => ({
   createAssetSelectionModalNavigationDetails: jest.fn(),
+}));
+
+jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: jest.fn(),
 }));
 
 const mockUseNavigation = useNavigation as jest.MockedFunction<
@@ -185,9 +190,11 @@ describe('useSpendingLimit', () => {
       refetchFaucetCheck: jest.fn(),
     });
 
-    // Setup SDK mock
+    // Setup SDK mock (getSupportedTokensByChainId used when building default token list)
     mockUseCardSDK.mockReturnValue({
-      sdk: {},
+      sdk: {
+        getSupportedTokensByChainId: jest.fn().mockReturnValue([]),
+      },
     } as never);
 
     // Setup metrics mock
@@ -219,6 +226,9 @@ describe('useSpendingLimit', () => {
       'AssetSelectionModal',
       { screen: 'AssetSelection' },
     ] as never);
+
+    // Default: no balances (triggers fallback to mUSD + USDC)
+    (useTokensWithBalance as jest.Mock).mockReturnValue([]);
   });
 
   afterEach(() => {
@@ -227,16 +237,13 @@ describe('useSpendingLimit', () => {
   });
 
   describe('Initial State', () => {
-    it('initializes with default values and pre-selects mUSD', () => {
+    it('initializes with default values', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams()),
       );
 
-      // mUSD is pre-selected as fallback when no initialToken or priorityToken
-      expect(result.current.selectedToken?.symbol).toBe('mUSD');
       expect(result.current.limitType).toBe('full');
       expect(result.current.customLimit).toBe('');
-      expect(result.current.isOtherSelected).toBe(false);
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -271,91 +278,118 @@ describe('useSpendingLimit', () => {
     });
   });
 
-  describe('Quick Select Tokens', () => {
-    it('builds quick select tokens from allTokens and delegationSettings', () => {
-      const allTokens = [
-        createMockToken({ symbol: 'mUSD' }),
-        createMockToken({ symbol: 'USDC' }),
-      ];
+  describe('Default token selection', () => {
+    it('defaults to the NotEnabled token with highest fiat balance', () => {
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const musdToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const enabledToken = createMockToken({
+        symbol: 'DAI',
+        address: '0xdai',
+        allowanceState: AllowanceState.Enabled,
+      });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 500 },
+        { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 100 },
+        { address: '0xdai', chainId: '0xe708', tokenFiatAmount: 9999 }, // Enabled — excluded
+      ]);
+
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ allTokens })),
+        useSpendingLimit(
+          createDefaultParams({
+            allTokens: [usdcToken, musdToken, enabledToken],
+          }),
+        ),
       );
 
-      expect(result.current.quickSelectTokens).toHaveLength(2);
-      expect(result.current.quickSelectTokens[0].symbol).toBe('mUSD');
-      expect(result.current.quickSelectTokens[1].symbol).toBe('USDC');
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
     });
 
-    it('handleQuickSelectToken selects token from quick select list', () => {
-      const allTokens = [
-        createMockToken({ symbol: 'mUSD' }),
-        createMockToken({ symbol: 'USDC' }),
-      ];
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ allTokens })),
-      );
-
-      act(() => {
-        result.current.handleQuickSelectToken('mUSD');
+    it('ignores Enabled tokens when picking the default', () => {
+      const enabledToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.Enabled,
       });
+      const notEnabledToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 9999 },
+        { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 10 },
+      ]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ allTokens: [enabledToken, notEnabledToken] }),
+        ),
+      );
 
       expect(result.current.selectedToken?.symbol).toBe('mUSD');
     });
 
-    it('handleQuickSelectToken is case-insensitive', () => {
-      const allTokens = [createMockToken({ symbol: 'USDC' })];
+    it('defaults to mUSD on Linea when all tokens have zero fiat balance', () => {
+      const musdToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        caipChainId: LINEA_CAIP_CHAIN_ID,
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([]);
+
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ allTokens })),
+        useSpendingLimit(
+          createDefaultParams({ allTokens: [usdcToken, musdToken] }),
+        ),
       );
 
-      act(() => {
-        result.current.handleQuickSelectToken('usdc');
+      expect(result.current.selectedToken?.symbol).toBe('mUSD');
+    });
+
+    it('falls back to first sorted token when mUSD on Linea is not present', () => {
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
       });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ allTokens: [usdcToken] })),
+      );
 
       expect(result.current.selectedToken?.symbol).toBe('USDC');
     });
-  });
 
-  describe('isOtherSelected', () => {
-    it('returns false when no token is selected', () => {
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams()),
-      );
-
-      expect(result.current.isOtherSelected).toBe(false);
-    });
-
-    it('returns false when selected token is in quick select list', () => {
-      const initialToken = createMockToken({ symbol: 'USDC' });
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ initialToken })),
-      );
-
-      expect(result.current.isOtherSelected).toBe(false);
-    });
-
-    it('returns true when selected token is not in quick select list', () => {
-      const initialToken = createMockToken({
-        symbol: 'ETH',
-        caipChainId: LINEA_CAIP_CHAIN_ID,
-      });
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ initialToken })),
-      );
-
-      expect(result.current.isOtherSelected).toBe(true);
-    });
-
-    it('returns true when token is on different chain', () => {
+    it('uses initialToken when provided, bypassing balance logic', () => {
       const initialToken = createMockToken({
         symbol: 'USDC',
-        caipChainId: 'eip155:8453', // Base chain
+        allowanceState: AllowanceState.Enabled,
       });
+
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ initialToken })),
       );
 
-      expect(result.current.isOtherSelected).toBe(true);
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
     });
   });
 
@@ -518,6 +552,40 @@ describe('useSpendingLimit', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('excludes the currently selected token from the bottomsheet', () => {
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const musdToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+
+      // USDC has highest balance → becomes selectedToken by default
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 200 },
+        { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 50 },
+      ]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ allTokens: [usdcToken, musdToken] }),
+        ),
+      );
+
+      act(() => {
+        result.current.handleOtherSelect();
+      });
+
+      const call =
+        mockCreateAssetSelectionModalNavigationDetails.mock.calls[0][0];
+      expect(call?.excludedTokens).toHaveLength(1);
+      expect(call?.excludedTokens?.[0]?.symbol).toBe('USDC');
     });
   });
 
@@ -884,7 +952,7 @@ describe('useSpendingLimit', () => {
       });
     });
 
-    it('does not overwrite user selection when quickSelectTokens loads after returning from bottom sheet', () => {
+    it('does not overwrite user selection when allTokens loads after returning from bottom sheet', () => {
       const userSelectedToken = createMockToken({
         symbol: 'ETH',
         caipChainId: LINEA_CAIP_CHAIN_ID,
@@ -918,7 +986,7 @@ describe('useSpendingLimit', () => {
       // Verify user's selection is set
       expect(result.current.selectedToken).toEqual(userSelectedToken);
 
-      // Now simulate quickSelectTokens loading with mUSD available
+      // Now simulate allTokens loading
       const loadedTokens = [
         createMockToken({ symbol: 'mUSD' }),
         createMockToken({ symbol: 'USDC' }),

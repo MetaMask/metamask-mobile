@@ -9,16 +9,23 @@ import { useTheme } from '../../../../util/theme';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import {
+  AllowanceState,
   CardTokenAllowance,
   DelegationSettingsResponse,
   CardExternalWalletDetailsResponse,
 } from '../types';
-import { BAANX_MAX_LIMIT, caipChainIdToNetwork } from '../constants';
 import {
-  buildQuickSelectTokens,
+  BAANX_MAX_LIMIT,
+  caipChainIdToNetwork,
+  CARD_CHAIN_IDS,
+} from '../constants';
+import {
+  buildTokenListFromSettings,
   LINEA_CAIP_CHAIN_ID,
-  QUICK_SELECT_TOKENS,
 } from '../util/buildTokenList';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
@@ -34,11 +41,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions, CardScreens } from '../util/metrics';
 
 export type LimitType = 'full' | 'restricted';
-
-export interface QuickSelectToken {
-  symbol: string;
-  token: CardTokenAllowance | null;
-}
 
 export interface UseSpendingLimitParams {
   flow: 'manage' | 'enable' | 'onboarding';
@@ -66,13 +68,10 @@ export interface UseSpendingLimitReturn {
   selectedToken: CardTokenAllowance | null;
   limitType: LimitType;
   customLimit: string;
-  quickSelectTokens: QuickSelectToken[];
-  isOtherSelected: boolean;
   isLoading: boolean;
 
   // Handlers
   setSelectedToken: (token: CardTokenAllowance | null) => void;
-  handleQuickSelectToken: (symbol: string) => void;
   handleOtherSelect: () => void;
   setLimitType: (type: LimitType) => void;
   setCustomLimit: (value: string) => void;
@@ -148,36 +147,17 @@ const useSpendingLimit = ({
     );
   }, [trackEvent, createEventBuilder, flow]);
 
-  // Build quick-select tokens with SDK lookup for production addresses (for icons)
-  const quickSelectTokens = useMemo(
-    () =>
-      buildQuickSelectTokens(
-        allTokens,
-        delegationSettings,
-        sdk
-          ? (chainId) =>
-              (sdk.getSupportedTokensByChainId(chainId) ?? []) as {
-                address?: string;
-                symbol?: string;
-                name?: string;
-              }[]
-          : undefined,
-      ),
-    [allTokens, delegationSettings, sdk],
-  );
+  // Wallet-only token balances for the currently selected MetaMask account.
+  // Using this (instead of useAssetBalances) ensures sorting reflects the active
+  // account's real wallet balance — not the card's availableBalance or another
+  // account's cached data — so account switches are reflected immediately.
+  const walletTokens = useTokensWithBalance({
+    chainIds: CARD_CHAIN_IDS as unknown as (
+      | `0x${string}`
+      | `${string}:${string}`
+    )[],
+  });
 
-  // Check if "Other" is selected (token not in quick-select list)
-  const isOtherSelected = useMemo(() => {
-    if (!selectedToken) return false;
-    return !QUICK_SELECT_TOKENS.some(
-      (symbol) =>
-        selectedToken.symbol?.toUpperCase() === symbol.toUpperCase() &&
-        selectedToken.caipChainId === LINEA_CAIP_CHAIN_ID,
-    );
-  }, [selectedToken]);
-
-  // Initialize selected token from initial or priority token, fallback to mUSD
-  // Only runs once on mount to avoid overwriting user selections from AssetSelectionBottomSheet
   useEffect(() => {
     if (hasInitialized) return;
 
@@ -193,12 +173,52 @@ const useSpendingLimit = ({
       return;
     }
 
-    if (quickSelectTokens.length > 0) {
-      const musdToken = quickSelectTokens.find(
-        (qt) => qt.symbol.toUpperCase() === 'MUSD',
-      )?.token;
-      if (musdToken) {
-        setSelectedToken(musdToken);
+    const notEnabledTokens = allTokens.filter(
+      (t) => t.allowanceState === AllowanceState.NotEnabled,
+    );
+
+    const getSdkTokens = sdk
+      ? (chainId: `${string}:${string}`) =>
+          (sdk.getSupportedTokensByChainId(chainId) ?? []) as {
+            address?: string;
+            symbol?: string;
+            name?: string;
+          }[]
+      : undefined;
+
+    const tokensToSearch =
+      notEnabledTokens.length > 0
+        ? notEnabledTokens
+        : buildTokenListFromSettings({
+            delegationSettings,
+            getSupportedTokensByChainId: getSdkTokens,
+          });
+
+    if (tokensToSearch.length > 0) {
+      const sorted = tokensToSearch
+        .map((token) => {
+          const chainIdForLookup = isSolanaChainId(token.caipChainId ?? '')
+            ? token.caipChainId
+            : safeFormatChainIdToHex(token.caipChainId ?? '');
+          const walletToken = walletTokens.find(
+            (wt) =>
+              wt.address?.toLowerCase() === token.address?.toLowerCase() &&
+              wt.chainId === chainIdForLookup,
+          );
+          return { token, fiat: walletToken?.tokenFiatAmount ?? 0 };
+        })
+        .sort((a, b) => b.fiat - a.fiat);
+      const topEntry = sorted[0];
+      const defaultToken =
+        topEntry.fiat > 0
+          ? topEntry.token
+          : (tokensToSearch.find(
+              (t) =>
+                t.symbol?.toUpperCase() === 'MUSD' &&
+                t.caipChainId === LINEA_CAIP_CHAIN_ID,
+            ) ?? topEntry.token);
+      if (defaultToken) {
+        setSelectedToken(defaultToken);
         setHasInitialized(true);
       }
     }
@@ -206,8 +226,11 @@ const useSpendingLimit = ({
     hasInitialized,
     initialToken,
     priorityToken,
-    quickSelectTokens,
     selectedToken,
+    allTokens,
+    walletTokens,
+    delegationSettings,
+    sdk,
   ]);
 
   // Handle returned token from AssetSelectionBottomSheet
@@ -244,30 +267,6 @@ const useSpendingLimit = ({
   }, [isOnboardingFlow, selectedToken, limitType, customLimit]);
 
   // Handlers
-  const handleQuickSelectToken = useCallback(
-    (symbol: string) => {
-      const quickSelectToken = quickSelectTokens.find(
-        (qt) => qt.symbol.toUpperCase() === symbol.toUpperCase(),
-      );
-      if (quickSelectToken?.token) {
-        const token = quickSelectToken.token;
-
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-            .addProperties({
-              action: CardActions.QUICK_SELECT_TOKEN_BUTTON,
-              token_symbol: token.symbol,
-              chain_id: token.caipChainId,
-            })
-            .build(),
-        );
-
-        setSelectedToken(token);
-      }
-    },
-    [quickSelectTokens, trackEvent, createEventBuilder],
-  );
-
   const handleOtherSelect = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -278,12 +277,15 @@ const useSpendingLimit = ({
     const { selectedToken: _excludedSelectedToken, ...restParams } =
       routeParams ?? {};
 
+    const excludedTokens = selectedToken ? [selectedToken] : [];
+
     navigation.navigate(
       ...createAssetSelectionModalNavigationDetails({
         tokensWithAllowances: allTokens ?? [],
         delegationSettings,
         cardExternalWalletDetails: externalWalletDetailsData,
         selectionOnly: true,
+        excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
         callerParams: restParams as Record<string, unknown>,
       }),
@@ -293,6 +295,7 @@ const useSpendingLimit = ({
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
+    selectedToken,
     trackEvent,
     createEventBuilder,
     routeParams,
@@ -463,13 +466,10 @@ const useSpendingLimit = ({
     selectedToken,
     limitType,
     customLimit,
-    quickSelectTokens,
-    isOtherSelected,
     isLoading,
 
     // Handlers
     setSelectedToken,
-    handleQuickSelectToken,
     handleOtherSelect,
     setLimitType,
     setCustomLimit,

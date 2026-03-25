@@ -7373,7 +7373,8 @@
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
-      "on_linea": "on Linea"
+      "on_linea": "on Linea",
+      "spending_with_label": "Spending with"
     },
     "cashback_screen": {
       "title": "Cashback",
