@@ -5992,6 +5992,7 @@
     "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
+    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
     "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
     "claim": "Claim",

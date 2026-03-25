@@ -55,6 +55,13 @@ jest.mock('../../UI/Perps/hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: {
+      unrealizedPnl: '0',
+      returnOnEquity: '0',
+    },
+    isInitialLoading: false,
+  })),
   usePerpsLiveOrders: jest.fn(() => ({
     orders: [],
     isInitialLoading: false,
@@ -177,6 +184,7 @@ jest.mock('../../UI/Earn/selectors/featureFlags', () => ({
   selectIsMusdConversionTokenListItemCtaEnabledFlag: jest.fn(() => false),
   selectIsMusdConversionAssetOverviewEnabledFlag: jest.fn(() => false),
   selectMusdQuickConvertEnabledFlag: jest.fn(() => false),
+  selectMerklCampaignClaimingEnabledFlag: jest.fn(() => false),
 }));
 
 const mockUseMusdConversionEligibility = jest.fn(() => ({ isEligible: false }));
