@@ -1616,7 +1616,6 @@ export class PerpsStreamManager {
   persistMarketDataToDisk(): void {
     const now = Date.now();
     if (now - this.marketDiskWriteTime < PERPS_DISK_CACHE_THROTTLE_MS) return;
-    this.marketDiskWriteTime = now;
 
     const snapshot = this.marketData.getSnapshot();
     if (!snapshot || snapshot.length === 0) return;
@@ -1624,6 +1623,7 @@ export class PerpsStreamManager {
     const controller = Engine.context.PerpsController;
     const providerNetworkKey = getProviderNetworkKey(controller.state);
 
+    this.marketDiskWriteTime = now;
     StorageWrapper.setItem(
       PERPS_DISK_CACHE_MARKETS,
       JSON.stringify({
@@ -1643,7 +1643,6 @@ export class PerpsStreamManager {
   persistUserDataToDisk(): void {
     const now = Date.now();
     if (now - this.userDiskWriteTime < PERPS_DISK_CACHE_THROTTLE_MS) return;
-    this.userDiskWriteTime = now;
 
     const address = getEvmAccountFromSelectedAccountGroup()?.address;
     if (!address) return;
@@ -1658,6 +1657,7 @@ export class PerpsStreamManager {
     const controller = Engine.context.PerpsController;
     const providerNetworkKey = getProviderNetworkKey(controller.state);
 
+    this.userDiskWriteTime = now;
     StorageWrapper.setItem(
       PERPS_DISK_CACHE_USER_DATA,
       JSON.stringify({
