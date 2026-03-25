@@ -246,7 +246,9 @@ export const selectOndoCampaignLeaderboardPositions = (state: RootState) =>
 export const selectOndoCampaignLeaderboardPositionById =
   (subscriptionId: string | undefined, campaignId: string | undefined) =>
   (state: RootState) =>
-    subscriptionId && campaignId
+    subscriptionId &&
+    campaignId &&
+    state.rewards.ondoCampaignLeaderboardPositions
       ? (state.rewards.ondoCampaignLeaderboardPositions[
           `${subscriptionId}:${campaignId}`
         ] ?? null)
