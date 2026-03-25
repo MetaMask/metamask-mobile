@@ -161,9 +161,8 @@ const TokenDetails: React.FC<{
 
   // Swaps view should always scroll to top when navigating from the token details view
   const goToSwapsFromDetails = useCallback(
-    () =>
-      goToSwaps(undefined, undefined, undefined, token.isFromTrending === true),
-    [goToSwaps, token],
+    () => goToSwaps(undefined, undefined, undefined, true),
+    [goToSwaps],
   );
 
   const {
