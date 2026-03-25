@@ -7942,7 +7942,7 @@
       "swap": "Swap",
       "how_it_works": "How it works"
     },
-    "leaderboard_position": {
+    "ondo_campaign_leaderboard_position": {
       "title": "Your Position",
       "rank": "Rank",
       "tier": "Tier",
@@ -7955,7 +7955,7 @@
       "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
       "retry": "Retry"
     },
-    "leaderboard": {
+    "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
       "your_position": "Your position",
       "of_total": "of {{total}} participants",

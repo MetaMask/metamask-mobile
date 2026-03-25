@@ -47,7 +47,7 @@ const OndoLeaderboardView: React.FC = () => {
         testID={ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER}
       >
         <HeaderCompactStandard
-          title={strings('rewards.leaderboard.title')}
+          title={strings('rewards.ondo_campaign_leaderboard.title')}
           onBack={() => navigation.goBack()}
           backButtonProps={{ testID: 'ondo-leaderboard-back-button' }}
           includesTopInset

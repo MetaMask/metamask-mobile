@@ -1411,7 +1411,7 @@ export type RewardsControllerState = {
   };
   /** Ondo campaign leaderboard data keyed by campaignId */
   ondoCampaignLeaderboard: { [campaignId: string]: CampaignLeaderboardState };
-  /** Ondo campaign leaderboard position keyed by compositeId (campaignId:subscriptionId) */
+  /** Ondo campaign leaderboard position keyed by compositeId (subscriptionId:campaignId) */
   ondoCampaignLeaderboardPositions: {
     [compositeId: string]: CampaignLeaderboardPositionState;
   };

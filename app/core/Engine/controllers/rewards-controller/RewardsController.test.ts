@@ -19184,7 +19184,7 @@ describe('RewardsController', () => {
         mockSubscriptionId,
       );
       expect(result).toEqual(mockPosition);
-      const cacheKey = `${mockCampaignId}:${mockSubscriptionId}`;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       expect(
         ctrl.state.ondoCampaignLeaderboardPositions[cacheKey],
       ).toBeDefined();
@@ -19192,7 +19192,7 @@ describe('RewardsController', () => {
 
     it('returns cached position when cache is fresh', async () => {
       const recentTime = Date.now() - 60000;
-      const cacheKey = `${mockCampaignId}:${mockSubscriptionId}`;
+      const cacheKey = `${mockSubscriptionId}:${mockCampaignId}`;
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: {

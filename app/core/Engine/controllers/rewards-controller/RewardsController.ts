@@ -3632,7 +3632,7 @@ export class RewardsController extends BaseController<
       return null;
     }
 
-    const key = `${campaignId}:${subscriptionId}`;
+    const key = `${subscriptionId}:${campaignId}`;
     const result = await wrapWithCache<CampaignLeaderboardPositionDto | null>({
       key,
       ttl: ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,

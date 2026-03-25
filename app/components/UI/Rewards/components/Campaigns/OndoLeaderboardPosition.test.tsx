@@ -56,17 +56,20 @@ jest.mock('../RewardsErrorBanner', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
-      'rewards.leaderboard_position.title': 'Your Position',
-      'rewards.leaderboard_position.rank': 'Rank',
-      'rewards.leaderboard_position.tier': 'Tier',
-      'rewards.leaderboard_position.rate_of_return': 'Return',
-      'rewards.leaderboard_position.total_deposited': 'Total Deposited',
-      'rewards.leaderboard_position.current_value': 'Current Value',
-      'rewards.leaderboard_position.updated_at': `Updated ${params?.time ?? ''}`,
-      'rewards.leaderboard_position.not_found': 'Not on the leaderboard yet',
-      'rewards.leaderboard_position.error_loading':
+      'rewards.ondo_campaign_leaderboard_position.title': 'Your Position',
+      'rewards.ondo_campaign_leaderboard_position.rank': 'Rank',
+      'rewards.ondo_campaign_leaderboard_position.tier': 'Tier',
+      'rewards.ondo_campaign_leaderboard_position.rate_of_return': 'Return',
+      'rewards.ondo_campaign_leaderboard_position.total_deposited':
+        'Total Deposited',
+      'rewards.ondo_campaign_leaderboard_position.current_value':
+        'Current Value',
+      'rewards.ondo_campaign_leaderboard_position.updated_at': `Updated ${params?.time ?? ''}`,
+      'rewards.ondo_campaign_leaderboard_position.not_found':
+        'Not on the leaderboard yet',
+      'rewards.ondo_campaign_leaderboard_position.error_loading':
         'Failed to load your position',
-      'rewards.leaderboard_position.retry': 'Retry',
+      'rewards.ondo_campaign_leaderboard_position.retry': 'Retry',
     };
     return translations[key] || key;
   },

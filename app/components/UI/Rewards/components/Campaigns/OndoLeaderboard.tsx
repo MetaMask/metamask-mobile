@@ -227,10 +227,12 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   if (hasError && entries.length === 0) {
     return (
       <RewardsErrorBanner
-        title={strings('rewards.leaderboard.error_loading')}
-        description={strings('rewards.leaderboard.error_loading_description')}
+        title={strings('rewards.ondo_campaign_leaderboard.error_loading')}
+        description={strings(
+          'rewards.ondo_campaign_leaderboard.error_loading_description',
+        )}
         onConfirm={onRetry}
-        confirmButtonLabel={strings('rewards.leaderboard.retry')}
+        confirmButtonLabel={strings('rewards.ondo_campaign_leaderboard.retry')}
         testID={CAMPAIGN_LEADERBOARD_TEST_IDS.ERROR}
       />
     );
@@ -247,7 +249,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
           color={TextColor.TextAlternative}
           twClassName="text-center"
         >
-          {strings('rewards.leaderboard.no_data')}
+          {strings('rewards.ondo_campaign_leaderboard.no_data')}
         </Text>
       </Box>
     );
@@ -263,7 +265,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         twClassName="mb-4"
       >
         <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
-          {strings('rewards.leaderboard.title')}
+          {strings('rewards.ondo_campaign_leaderboard.title')}
         </Text>
         {computedAt && (
           <Text
@@ -271,7 +273,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
             color={TextColor.TextAlternative}
             testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
           >
-            {strings('rewards.leaderboard.updated_at', {
+            {strings('rewards.ondo_campaign_leaderboard.updated_at', {
               time: formatComputedAt(computedAt),
             })}
           </Text>
@@ -304,7 +306,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
             color={TextColor.ErrorDefault}
             twClassName="flex-1"
           >
-            {strings('rewards.leaderboard.error_loading')}
+            {strings('rewards.ondo_campaign_leaderboard.error_loading')}
           </Text>
           {onRetry && (
             <Text
@@ -314,7 +316,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               onPress={onRetry}
               twClassName="ml-2"
             >
-              {strings('rewards.leaderboard.retry')}
+              {strings('rewards.ondo_campaign_leaderboard.retry')}
             </Text>
           )}
         </Box>
@@ -323,7 +325,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       {/* Total participants */}
       <Box twClassName="mb-2">
         <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-          {strings('rewards.leaderboard.total_participants', {
+          {strings('rewards.ondo_campaign_leaderboard.total_participants', {
             count: totalParticipants.toLocaleString(),
           })}
         </Text>
@@ -350,7 +352,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
             color={TextColor.TextAlternative}
             twClassName="text-center"
           >
-            {strings('rewards.leaderboard.no_entries_in_tier')}
+            {strings('rewards.ondo_campaign_leaderboard.no_entries_in_tier')}
           </Text>
         </Box>
       )}

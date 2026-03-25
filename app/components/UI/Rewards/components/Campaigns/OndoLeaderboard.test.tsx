@@ -89,14 +89,18 @@ jest.mock('../RewardsErrorBanner', () => {
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
-      'rewards.leaderboard.title': 'Leaderboard',
-      'rewards.leaderboard.updated_at': `Updated at ${params?.time ?? ''}`,
-      'rewards.leaderboard.total_participants': `${params?.count ?? ''} participants`,
-      'rewards.leaderboard.no_data': 'No leaderboard data available',
-      'rewards.leaderboard.no_entries_in_tier': 'No entries in this tier',
-      'rewards.leaderboard.error_loading': 'Failed to load leaderboard',
-      'rewards.leaderboard.error_loading_description': 'Please try again',
-      'rewards.leaderboard.retry': 'Retry',
+      'rewards.ondo_campaign_leaderboard.title': 'Leaderboard',
+      'rewards.ondo_campaign_leaderboard.updated_at': `Updated at ${params?.time ?? ''}`,
+      'rewards.ondo_campaign_leaderboard.total_participants': `${params?.count ?? ''} participants`,
+      'rewards.ondo_campaign_leaderboard.no_data':
+        'No leaderboard data available',
+      'rewards.ondo_campaign_leaderboard.no_entries_in_tier':
+        'No entries in this tier',
+      'rewards.ondo_campaign_leaderboard.error_loading':
+        'Failed to load leaderboard',
+      'rewards.ondo_campaign_leaderboard.error_loading_description':
+        'Please try again',
+      'rewards.ondo_campaign_leaderboard.retry': 'Retry',
     };
     return translations[key] || key;
   },
