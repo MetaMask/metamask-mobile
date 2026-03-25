@@ -29,6 +29,34 @@ const logger = createLogger({
   level: LogLevel.INFO,
 });
 
+// ---------------------------------------------------------------------------
+// Monkey-patch mockttp's CallbackMatcher to skip request body buffering.
+//
+// By default CallbackMatcher.matches() calls waitForCompletedRequest() which
+// buffers the request body via streamToBuffer(). When the client aborts a
+// connection, streamToBuffer rejects with Error('Aborted'). Because
+// findMatchingRule() starts matching ALL rules at the same priority
+// concurrently, the remaining abandoned matchesAll promises become unhandled
+// rejections that propagate to Jest as test failures.
+//
+// Our matching callbacks only inspect request.url (never the body), so body
+// buffering during matching is unnecessary. By passing the OngoingRequest
+// directly to the callback, we eliminate the streamToBuffer call in matchers.
+// Body buffering still happens in CallbackHandler.handle() for thenCallback
+// handlers — but that's a single, fully-caught call path.
+// ---------------------------------------------------------------------------
+try {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { CallbackMatcher } = require('mockttp/dist/rules/matchers');
+  CallbackMatcher.prototype.matches = async function (
+    request: Record<string, unknown>,
+  ) {
+    return this.callback(request);
+  };
+} catch (e) {
+  logger.warn('Failed to patch CallbackMatcher — abort errors may still occur:', e);
+}
+
 /**
  * Safely reads request body text, catching abort errors.
  * When a client drops a connection mid-request (e.g., app navigation, AbortController),
