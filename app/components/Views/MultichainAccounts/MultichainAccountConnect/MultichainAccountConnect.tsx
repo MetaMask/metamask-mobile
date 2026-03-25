@@ -33,7 +33,7 @@ import {
 // Internal dependencies.
 import { PermissionsRequest } from '@metamask/permission-controller';
 import PhishingModal from '../../../UI/PhishingModal/index.js';
-import { useMetrics } from '../../../hooks/useMetrics/index.ts';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import Routes from '../../../../constants/navigation/Routes.ts';
 import {
   MM_BLOCKLIST_ISSUE_URL,
@@ -133,7 +133,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
   const [tabIndex, setTabIndex] = useState(0);
   const previousIdentitiesListSize = useRef<number>();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [blockedUrl, setBlockedUrl] = useState('');
 
