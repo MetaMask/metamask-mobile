@@ -172,13 +172,13 @@ export const selectCampaignParticipantStatuses = (state: RootState) =>
 export const selectCampaignParticipantStatusById =
   (campaignId: string | undefined) => (state: RootState) =>
     campaignId
-      ? (state.rewards.campaignParticipantStatuses[campaignId] ?? null)
+      ? (state.rewards.campaignParticipantStatuses?.[campaignId] ?? null)
       : null;
 
 export const selectCampaignParticipantCount =
   (campaignId: string | undefined) => (state: RootState) =>
     campaignId
-      ? (state.rewards.campaignParticipantStatuses[campaignId]
+      ? (state.rewards.campaignParticipantStatuses?.[campaignId]
           ?.participantCount ?? null)
       : null;
 

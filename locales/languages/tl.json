@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Mga active boost",
     "season_1": "Season 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "bonus calculator ng mUSD",
       "description": "Tingnan kung magkano ang maaari mong kitain sa pamamagitan ng pag-convert sa mga stablecoin mo sa mUSD.",
       "amount_label": "Halagang na-convert",
