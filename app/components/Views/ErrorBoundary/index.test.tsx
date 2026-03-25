@@ -3,20 +3,19 @@ import { View, Alert } from 'react-native';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import ErrorBoundary, { Fallback } from './';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import {
   captureSentryFeedback,
   captureExceptionForced,
 } from '../../../util/sentry/utils';
 import Logger from '../../../util/Logger';
 import { strings } from '../../../../locales/i18n';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { analytics } from '../../../util/analytics/analytics';
 
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = AnalyticsEventBuilder.createEventBuilder;
-
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
+jest.mock('../../../util/analytics/analytics', () => ({
+  analytics: {
+    trackEvent: jest.fn(),
+  },
+}));
 
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -64,12 +63,6 @@ describe('ErrorBoundary', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
   });
 
   afterEach(() => {
@@ -88,7 +81,7 @@ describe('ErrorBoundary', () => {
       </ErrorBoundary>,
     );
 
-    expect(mockTrackEvent).toHaveBeenCalled();
+    expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalled();
   });
 
   it('renders all buttons when dataCollectionForMarketing is true', () => {
@@ -283,7 +276,7 @@ describe('ErrorBoundary', () => {
         { state: initialState },
       );
 
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalled();
       expect(Logger.error).toHaveBeenCalledWith(
         mockError,
         expect.objectContaining({
