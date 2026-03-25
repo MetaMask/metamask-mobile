@@ -1,5 +1,5 @@
 import React from 'react';
-import { screen } from '@testing-library/react-native';
+import { act, fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../util/test/renderWithProvider';
 import SelectHardwareWallet from './index';
 import { strings } from '../../../../../locales/i18n';
@@ -8,6 +8,7 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../../constants/keyringTypes';
 import { getConnectedDevicesCount } from '../../../../core/HardwareWallets/analytics';
 import { AppThemeKey } from '../../../../util/theme/models';
+import SelectHardwareTestIds from './SelectHardware.testIds';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string) => key),
@@ -71,8 +72,11 @@ describe('SelectHardwareWallet', () => {
   it('renders component with correct text', () => {
     renderWithProvider(<SelectHardwareWallet />, { state: initialState });
 
-    expect(strings).toHaveBeenCalledWith('connect_hardware.select_hardware');
-    expect(screen.getByText('connect_hardware.select_hardware')).toBeTruthy();
+    expect(strings).toHaveBeenCalledWith('connect_hardware.title_select_hardware');
+    expect(screen.getByText('connect_hardware.title_select_hardware')).toBeTruthy();
+    expect(screen.getByText('Keystone')).toBeTruthy();
+    expect(screen.getByText('OneKey')).toBeTruthy();
+    expect(screen.getByText('Other QR wallet')).toBeTruthy();
   });
 
   it('sets navigation options on mount', () => {
@@ -89,9 +93,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const ledgerButton = getByTestId('ledger-hardware-button');
+      const ledgerButton = getByTestId(SelectHardwareTestIds.LEDGER_BUTTON);
 
-      await ledgerButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(ledgerButton);
+      });
 
       expect(mockGetConnectedDevicesCount).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
@@ -114,9 +120,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const ledgerButton = getByTestId('ledger-hardware-button');
+      const ledgerButton = getByTestId(SelectHardwareTestIds.LEDGER_BUTTON);
 
-      await ledgerButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(ledgerButton);
+      });
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.LEDGER,
@@ -137,9 +145,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const ledgerButton = getByTestId('ledger-hardware-button');
+      const ledgerButton = getByTestId(SelectHardwareTestIds.LEDGER_BUTTON);
 
-      await ledgerButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(ledgerButton);
+      });
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.LEDGER,
@@ -156,16 +166,20 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const qrButton = getByTestId('qr-hardware-button');
+      const qrButton = getByTestId(SelectHardwareTestIds.OTHER_QR_BUTTON);
 
-      await qrButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(qrButton);
+      });
 
       expect(mockGetConnectedDevicesCount).toHaveBeenCalled();
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
       );
       expect(mockTrackEvent).toHaveBeenCalled();
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
+        hideMarketingContent: true,
+      });
     });
 
     it('includes connected devices count in metrics event', async () => {
@@ -181,15 +195,44 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const qrButton = getByTestId('qr-hardware-button');
+      const qrButton = getByTestId(SelectHardwareTestIds.OTHER_QR_BUTTON);
 
-      await qrButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(qrButton);
+      });
 
       expect(mockAddProperties).toHaveBeenCalledWith({
         device_type: HardwareDeviceTypes.QR,
         connected_device_count: connectedDeviceCount.toString(),
       });
       expect(mockBuild).toHaveBeenCalled();
+    });
+    it('navigates to QR device connection when Keystone is pressed', async () => {
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+      const keystoneButton = getByTestId(SelectHardwareTestIds.KEYSTONE_BUTTON);
+
+      await act(async () => {
+        fireEvent.press(keystoneButton);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE);
+    });
+
+    it('navigates to QR device connection when OneKey is pressed', async () => {
+      const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
+        state: initialState,
+      });
+      const oneKeyButton = getByTestId(SelectHardwareTestIds.ONEKEY_BUTTON);
+
+      await act(async () => {
+        fireEvent.press(oneKeyButton);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
+        hideMarketingContent: true,
+      });
     });
   });
 
@@ -205,9 +248,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const ledgerButton = getByTestId('ledger-hardware-button');
+      const ledgerButton = getByTestId(SelectHardwareTestIds.LEDGER_BUTTON);
 
-      await ledgerButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(ledgerButton);
+      });
 
       expect(mockCreateEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.CONNECT_HARDWARE_WALLET,
@@ -223,9 +268,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const ledgerButton = getByTestId('ledger-hardware-button');
+      const ledgerButton = getByTestId(SelectHardwareTestIds.LEDGER_BUTTON);
 
-      await ledgerButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(ledgerButton);
+      });
 
       expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_LEDGER);
     });
@@ -237,11 +284,15 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const qrButton = getByTestId('qr-hardware-button');
+      const qrButton = getByTestId(SelectHardwareTestIds.OTHER_QR_BUTTON);
 
-      await qrButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(qrButton);
+      });
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE);
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.HW.CONNECT_QR_DEVICE, {
+        hideMarketingContent: true,
+      });
     });
 
     it('logs error when analytics tracking fails for Ledger', async () => {
@@ -252,9 +303,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const ledgerButton = getByTestId('ledger-hardware-button');
+      const ledgerButton = getByTestId(SelectHardwareTestIds.LEDGER_BUTTON);
 
-      await ledgerButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(ledgerButton);
+      });
 
       expect(consoleSpy).toHaveBeenCalledWith(
         '[SelectHardware] Failed to track analytics:',
@@ -272,9 +325,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const qrButton = getByTestId('qr-hardware-button');
+      const qrButton = getByTestId(SelectHardwareTestIds.OTHER_QR_BUTTON);
 
-      await qrButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(qrButton);
+      });
 
       expect(consoleSpy).toHaveBeenCalledWith(
         '[SelectHardware] Failed to track analytics:',
@@ -291,9 +346,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const ledgerButton = getByTestId('ledger-hardware-button');
+      const ledgerButton = getByTestId(SelectHardwareTestIds.LEDGER_BUTTON);
 
-      await ledgerButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(ledgerButton);
+      });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
@@ -305,9 +362,11 @@ describe('SelectHardwareWallet', () => {
       const { getByTestId } = renderWithProvider(<SelectHardwareWallet />, {
         state: initialState,
       });
-      const qrButton = getByTestId('qr-hardware-button');
+      const qrButton = getByTestId(SelectHardwareTestIds.OTHER_QR_BUTTON);
 
-      await qrButton.props.onPress();
+      await act(async () => {
+        fireEvent.press(qrButton);
+      });
 
       expect(mockTrackEvent).not.toHaveBeenCalled();
     });
