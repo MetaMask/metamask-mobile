@@ -237,6 +237,25 @@ describe('OAuth login service', () => {
     );
   });
 
+  it('uses Android auth connection config for iOS Google web credential login before onboarding state is persisted', async () => {
+    mockLoginHandlerResponse.mockImplementation(() => ({
+      idToken: MOCK_JWT_TOKEN,
+      authConnection: AuthConnection.Google,
+      clientId: 'mock-android-google-client-id',
+      web3AuthNetwork: Web3AuthNetwork.Mainnet,
+    }));
+    const loginHandler = mockCreateLoginHandler();
+
+    await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+    expect(mockAuthenticate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        authConnectionId: 'mock-android-auth-connection-id',
+        groupedAuthConnectionId: 'mock-android-grouped-auth-connection-id',
+      }),
+    );
+  });
+
   it('uses Android auth connection config when persisted onboarding clientId matches the web Google client', async () => {
     jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
       getState: () => ({

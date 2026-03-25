@@ -38,9 +38,7 @@ import ReduxService from '../redux';
 import { setSeedlessOnboarding } from '../../actions/onboarding';
 import Device from '../../util/device';
 
-const getPlatformFromClientId = (): SupportedPlatforms => {
-  const clientId =
-    ReduxService.store.getState().onboarding.seedlessOnboarding?.clientId;
+const getPlatformFromClientId = (clientId?: string): SupportedPlatforms => {
   if (Device.isAndroid() || clientId === GoogleWebGID) {
     return SupportedPlatforms.Android;
   }
@@ -124,6 +122,7 @@ export class OAuthService {
   handleSeedlessAuthenticate = async (
     data: AuthResponse,
     authConnection: SeedlessAuthConnection,
+    clientId?: string,
   ): Promise<HandleOAuthLoginResult> => {
     try {
       const { userId, accountName } = this.localState;
@@ -132,7 +131,7 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
-      const platform = getPlatformFromClientId();
+      const platform = getPlatformFromClientId(clientId);
 
       const authConnectionConfig =
         this.config.authConnectionConfig[platform]?.[authConnection];
@@ -365,6 +364,7 @@ export class OAuthService {
           handleCodeFlowResult = await this.handleSeedlessAuthenticate(
             data,
             authConnection,
+            ouathResult.clientId,
           );
           seedlessAuthSuccess = true;
         } catch (error) {
