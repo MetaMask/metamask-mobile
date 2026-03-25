@@ -67,12 +67,12 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
-      'rewards.campaign_portfolio.error_title': 'Unable to load portfolio',
+      'rewards.campaign_portfolio.error_title':
+        'Unable to load campaign positions',
       'rewards.campaign_portfolio.error_description':
-        "We couldn't load your campaign portfolio. Please try again.",
+        "We couldn't load your campaign positions. Please try again.",
       'rewards.campaign_portfolio.retry': 'Retry',
-      'rewards.campaign_portfolio.empty_state':
-        'No positions yet. Start trading to build your portfolio.',
+      'rewards.campaign_portfolio.empty_state': 'No positions yet.',
     };
     return translations[key] || key;
   },
@@ -199,10 +199,10 @@ describe('RewardsCampaignPortfolio', () => {
         getByTestId(RewardsCampaignPortfolio.testIds.ERROR_BANNER),
       ).toBeDefined();
       expect(getByTestId('error-banner-title')).toHaveTextContent(
-        'Unable to load portfolio',
+        'Unable to load campaign positions',
       );
       expect(getByTestId('error-banner-description')).toHaveTextContent(
-        "We couldn't load your campaign portfolio. Please try again.",
+        "We couldn't load your campaign positions. Please try again.",
       );
       expect(
         queryByTestId(RewardsCampaignPortfolio.testIds.CONTAINER),
@@ -250,9 +250,7 @@ describe('RewardsCampaignPortfolio', () => {
       ).toBeDefined();
       expect(
         getByTestId(RewardsCampaignPortfolio.testIds.EMPTY_STATE),
-      ).toHaveTextContent(
-        'No positions yet. Start trading to build your portfolio.',
-      );
+      ).toHaveTextContent('No positions yet.');
       expect(
         queryByTestId(RewardsCampaignPortfolio.testIds.CONTAINER),
       ).toBeNull();

@@ -4565,7 +4565,7 @@ describe('RewardsDataService', () => {
       );
 
       expect(mockFetch).toHaveBeenCalledWith(
-        `https://uat.rewards.test/campaigns/${mockCampaignId}/portfolio/me`,
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/portfolio/me`,
         expect.objectContaining({
           method: 'GET',
           headers: expect.objectContaining({
