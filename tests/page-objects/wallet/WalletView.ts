@@ -1092,58 +1092,84 @@ class WalletView {
         description:
           'mUSD asset overview CTA already in view without scrolling',
       });
-      return;
     } catch {
       // CTA is below the fold in a tall header; scroll the FlatList.
-    }
-
-    await Utilities.executeWithRetry(
-      async () => {
-        try {
-          await Gestures.scrollToElement(
-            this.assetOverviewMusdCta as unknown as DetoxElement,
-            assetOverviewScrollContainer,
-            {
-              direction: 'down',
-              scrollAmount: 480,
-              elemDescription: 'Asset Overview mUSD CTA',
-              timeout: 10000,
-              delay: 400,
-            },
-          );
-        } catch {
+      await Utilities.executeWithRetry(
+        async () => {
+          try {
+            await Gestures.scrollToElement(
+              this.assetOverviewMusdCta as unknown as DetoxElement,
+              assetOverviewScrollContainer,
+              {
+                direction: 'down',
+                scrollAmount: 520,
+                elemDescription: 'Asset Overview mUSD CTA',
+                timeout: 10000,
+                delay: 400,
+              },
+            );
+          } catch {
+            await Gestures.swipe(transactionsList, 'up', {
+              percentage: 0.22,
+              speed: 'slow',
+              elemDescription:
+                'Recovery swipe when scrollToElement did not reach mUSD CTA',
+            });
+          }
+          // CTA can sit at the bottom edge (sticky footer / safe area) and fail Detox's
+          // visibility threshold; one slow swipe scrolls content up so the CTA clears it.
           await Gestures.swipe(transactionsList, 'up', {
-            percentage: 0.22,
+            percentage: 0.2,
             speed: 'slow',
             elemDescription:
-              'Recovery swipe when scrollToElement did not reach mUSD CTA',
+              'Nudge token details scroll so mUSD CTA clears bottom inset',
           });
-        }
-        // CTA can sit at the bottom edge (sticky footer / safe area) and fail Detox's
-        // visibility threshold; one slow swipe scrolls content up so the CTA clears it.
-        await Gestures.swipe(transactionsList, 'up', {
-          percentage: 0.18,
-          speed: 'slow',
-          elemDescription:
-            'Nudge token details scroll so mUSD CTA clears bottom inset',
-        });
-        await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
-          timeout: 8000,
-          description: 'Asset Overview mUSD CTA should be visible after scroll',
-        });
-      },
-      {
-        timeout: 28000,
-        description: 'Scroll to Asset Overview mUSD CTA',
-        elemDescription: 'Asset Overview mUSD CTA',
-      },
-    );
+          await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
+            timeout: 8000,
+            description:
+              'Asset Overview mUSD CTA should be visible after scroll',
+          });
+        },
+        {
+          timeout: 28000,
+          description: 'Scroll to Asset Overview mUSD CTA',
+          elemDescription: 'Asset Overview mUSD CTA',
+        },
+      );
+    }
+
+    // Detox tap requires ~100% visibility; visibility assertions are looser. Always nudge
+    // (including when the CTA was already "visible") so the CTA clears tab bar / home indicator.
+    await Gestures.swipe(transactionsList, 'up', {
+      percentage: 0.22,
+      speed: 'slow',
+      elemDescription:
+        'Nudge mUSD CTA above tab bar for Detox tap visibility threshold',
+    });
+    await Gestures.swipe(transactionsList, 'up', {
+      percentage: 0.18,
+      speed: 'slow',
+      elemDescription: 'Second nudge mUSD CTA above home indicator',
+    });
+    await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
+      timeout: 8000,
+      description: 'mUSD asset overview CTA ready to tap',
+    });
   }
 
   async tapAssetOverviewMusdCta(): Promise<void> {
+    const transactionsList = Matchers.getElementByID(
+      ActivitiesViewSelectorsIDs.CONTAINER,
+    );
+    await Gestures.swipe(transactionsList, 'up', {
+      percentage: 0.12,
+      speed: 'slow',
+      elemDescription: 'Pre-tap nudge so mUSD CTA is fully hittable',
+    });
     await Gestures.waitAndTap(this.assetOverviewMusdCta, {
       checkStability: true,
       delay: 800,
+      timeout: 20000,
       elemDescription: 'Asset Overview mUSD CTA',
     });
   }

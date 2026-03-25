@@ -134,6 +134,8 @@ describe(SmokePredictions('Claim winnings:'), () => {
 
         await PredictClaimPage.tapClaimConfirmButton();
 
+        await device.enableSynchronization();
+
         await verifyResolvedPositionsRemoved();
 
         await TabBarComponent.tapActivity();
@@ -275,8 +277,7 @@ describe(SmokePredictions('Claim winnings:'), () => {
           },
           {
             timeout: 10000,
-            description:
-              'Claim button on market destails should not be visible',
+            description: 'Claim button on market details should not be visible',
           },
         );
         await PredictDetailsPage.tapBackButton();
