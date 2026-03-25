@@ -42,6 +42,9 @@ module.exports = {
           'interface',
         ],
         '@typescript-eslint/no-explicit-any': 'error',
+        // no-parameter-properties removed in @typescript-eslint v7+ (replaced by parameter-properties)
+        '@typescript-eslint/no-parameter-properties': 'off',
+        '@typescript-eslint/parameter-properties': 'error',
         // Under discussion
         '@typescript-eslint/no-duplicate-enum-values': 'off',
         '@typescript-eslint/no-shadow': [
