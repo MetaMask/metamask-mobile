@@ -60,7 +60,6 @@ const NftDetails = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const selectedNativeConversionRate = useSelector(selectConversionRate);
   const { navigateToSendPage } = useSendNavigation();
-  const [isSending, setIsSending] = useState(false);
   const hasLastSalePrice = Boolean(
     collectible.lastSale?.price?.amount?.usd &&
       collectible.lastSale?.price?.amount?.native,
@@ -168,16 +167,11 @@ const NftDetails = () => {
     return Math.floor(date.getTime() / 1000);
   };
 
-  const onSend = useCallback(async () => {
-    setIsSending(true);
-    try {
-      navigateToSendPage({
-        location: InitSendLocation.NftDetails,
-        asset: collectible,
-      });
-    } finally {
-      setIsSending(false);
-    }
+  const onSend = useCallback(() => {
+    navigateToSendPage({
+      location: InitSendLocation.NftDetails,
+      asset: collectible,
+    });
   }, [collectible, navigateToSendPage]);
 
   const isTradable = useCallback(
@@ -658,8 +652,6 @@ const NftDetails = () => {
             variant={ButtonVariant.Primary}
             twClassName="flex-1"
             onPress={onSend}
-            isLoading={isSending}
-            isDisabled={isSending}
           >
             {strings('transaction.send')}
           </Button>
