@@ -43,9 +43,9 @@ Per-pool fields only diverge from zero when positions/orders exist in that pool.
 ## Fee Model
 
 ### Fee rate precision
-All fee rates use **1e6** precision (on-chain `RATE_PRECISION`).
-- `55000` = 55000 / 1,000,000 = **0.055%** (standard taker fee)
-- `-5000` = -5000 / 1,000,000 = **-0.005%** (negative = maker rebate)
+All fee rates use **1e8** precision (on-chain `RATE_PRECISION`).
+- `55000` = 55000 / 100,000,000 = **0.055%** (standard taker fee)
+- `-5000` = -5000 / 100,000,000 = **-0.005%** (negative = maker rebate)
 
 ### Getting fee rates
 ```typescript
@@ -60,7 +60,7 @@ Parameters:
 
 ### Trading fee calculation
 ```
-tradingFee = (collateralAmount * takerFeeRate) / 1,000,000
+tradingFee = (collateralAmount * takerFeeRate) / 100,000,000
 ```
 Passed as separate arg to `createIncreaseOrder(params, tradingFee, marketId)`.
 The SDK adds `tradingFee` to `collateralAmount` before sending to the contract.

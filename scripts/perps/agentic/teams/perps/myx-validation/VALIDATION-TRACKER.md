@@ -13,6 +13,7 @@ Each recipe is validated through 3 tiers, executed sequentially:
 | **3 - Human** | Watch .mp4, confirm pass/fail | User says "next" | Human |
 
 ### Commands
+
 ```bash
 # Tier 1 — PoC script
 cd scripts/perps/myx-poc && NETWORK=testnet npx tsx <script>.ts <args>
@@ -32,95 +33,95 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 
 ### Read-Only Operations (no on-chain cost)
 
-- [ ] **1. 09-read-markets** — Fetch MYX markets with prices
+- [ ] **01-read-markets** — Fetch MYX markets with prices
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx listMarkets.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/09-read-markets.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/01-read-markets.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `getMarkets()`, `getMarketDataWithPrices()`
 
-- [ ] **2. 10-read-account** — Fetch account state (availableBalance, totalBalance)
+- [ ] **02-read-account** — Fetch account state (availableBalance, totalBalance)
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx showAccount.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/10-read-account.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/02-read-account.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `getAccountState()`
 
-- [ ] **3. 12-calculate-fees** — Calculate fees for $1000 trade
+- [ ] **03-calculate-fees** — Calculate fees for $1000 trade
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx feeBreakdown.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/12-calculate-fees.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/03-calculate-fees.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `calculateFees()`
 
-- [ ] **4. 13-validate-order** — Validate small ($1, expect invalid) and valid ($120, expect valid) orders
+- [ ] **04-validate-order** — Validate small ($1, expect invalid) and valid ($120, expect valid) orders
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx checkPoolMinOrder.ts` (verifies per-pool min order size) — _pending_
-  - Tier 2: recipe + `myx-qa/13-validate-order.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/04-validate-order.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `validateOrder()`
 
-- [ ] **5. 11-read-fills** — Read order fills (needs prior trades)
+- [ ] **05-read-fills** — Read order fills (needs prior trades)
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx listOrders.ts` — _pending_
-  - Tier 2: recipe + `myx-qa/11-read-fills.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/05-read-fills.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `getOrderFills()`
 
 ### Market Orders
 
-- [ ] **6. 01-place-market-order** — Place market buy, verify position created
+- [ ] **06-place-market-order** — Place market buy, verify position created
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 11 --leverage 2 --type market` — _pending_
-  - Tier 2: recipe + `myx-qa/01-place-market-order.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/06-place-market-order.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `placeOrder()`
 
 ### Position Management
 
-- [ ] **7. 02-update-tpsl** — Set TP/SL on open position
+- [ ] **07-update-tpsl** — Set TP/SL on open position
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx addTpSl.ts --tp 2500 --sl 2000` — _pending_
-  - Tier 2: recipe + `myx-qa/02-update-tpsl.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/07-update-tpsl.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `updatePositionTPSL()`
 
-- [ ] **8. 03-add-margin** — Add $10 margin to open position
+- [ ] **08-add-margin** — Add $10 margin to open position
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx addMargin.ts --usd 10` — _pending_
-  - Tier 2: recipe + `myx-qa/03-add-margin.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/08-add-margin.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `updateMargin()`
 
-- [ ] **9. 04-close-position** — Close single position, verify removed
+- [ ] **09-close-position** — Close single position, verify removed
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx closeOrder.ts --close <positionId>` — _pending_
-  - Tier 2: recipe + `myx-qa/04-close-position.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/09-close-position.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `closePosition()`
 
-- [ ] **10. 05-place-and-close-all** — Place order -> close all -> verify zero positions
+- [ ] **10-place-and-close-all** — Place order -> close all -> verify zero positions
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 11 --leverage 2 --type market` then `npx tsx closeOrder.ts --close-all` — _pending_
-  - Tier 2: recipe + `myx-qa/05-place-and-close-all.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/10-place-and-close-all.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `closePositions()`
 
 ### Limit Orders
 
-- [ ] **11. 08-place-limit-order** — Place limit buy, verify in open orders
+- [ ] **11-place-limit-order** — Place limit buy, verify in open orders
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 150 --leverage 2 --type limit --price 1000` — _pending_
-  - Tier 2: recipe + `myx-qa/08-place-limit-order.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/11-place-limit-order.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `placeOrder()` (limit path)
 
-- [ ] **12. 06-cancel-order** — Place limit -> cancel -> verify removed
+- [ ] **12-cancel-order** — Place limit -> cancel -> verify removed
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx closeOrder.ts --cancel <orderId>` — _pending_
-  - Tier 2: recipe + `myx-qa/06-cancel-order.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/12-cancel-order.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `cancelOrder()`
 
-- [ ] **13. 07-edit-order** — Place limit -> edit price -> cleanup
+- [ ] **13-edit-order** — Place limit -> edit price -> cleanup
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx editOrder.ts --price-pct 1` — _pending_
-  - Tier 2: recipe + `myx-qa/07-edit-order.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/13-edit-order.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `editOrder()`
 
 ### Full Lifecycle
 
-- [ ] **14. full-cycle** — Place -> TP/SL -> margin -> close -> log check
+- [ ] **14-full-cycle** — Place -> TP/SL -> margin -> close -> log check
   - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx placeOrder.ts --symbol META --side long --usd 11 --leverage 2 --type market` then `npx tsx addTpSl.ts --tp 2500 --sl 2000` then `npx tsx addMargin.ts --usd 10` then `npx tsx closeOrder.ts --close <positionId>` — _pending_
-  - Tier 2: recipe + `myx-qa/full-cycle.mp4` — _pending_
+  - Tier 2: recipe + `myx-qa/14-full-cycle.mp4` — _pending_
   - Tier 3: human review — _pending_
 
 ## Codepath Review Findings
@@ -163,3 +164,4 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
 3. **Collateral token**: USDC `0xD984fd34...` on Linea Sepolia (6 decimals). No deposit step needed.
 4. **Eval ref resolution**: `myx/X` -> `perps/myx/X` (3-part) via validate-recipe.sh.
 5. **Provider-direct evals**: Must use `c.providers.get('myx')` — controller-level calls lack `providerId`.
+6. **Fee rate precision**: 1e8 (not 1e6). SDK returns `55000` for 0.055% taker fee.
