@@ -519,7 +519,7 @@ export const initialState = {
             },
           },
         } as AccountTreeControllerState['accountTree'],
-        selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0`,
+        selectedAccountGroup: `${AccountWalletType.Entropy}:wallet1/0` as const,
       },
       SmartTransactionsController: {
         smartTransactionsState: {
