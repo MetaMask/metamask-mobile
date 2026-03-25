@@ -391,24 +391,29 @@ export const MYX_MINIMUM_ORDER_SIZE_USD = 100;
 export const MYX_MIN_ORDER_SIZE_BUFFER = 1.1;
 
 /**
- * MYX fee rate precision: 1e6 (on-chain RATE_PRECISION).
+ * MYX fee rate precision: 1e8 (on-chain RATE_PRECISION).
  * All fee rates from getUserTradingFeeRate() use this precision.
- * Example: 55000 = 55000/1e6 = 0.055%
+ *
+ * Evidence (BSC mainnet, chainId 56):
+ * baseTakerFeeRate = 10000 -> 10000 / 1e8 = 0.01% (base fee)
+ * addOn = 45000 -> 45000 / 1e8 = 0.045% (tier add-on)
+ * takerFeeRate = 55000 -> 55000 / 1e8 = 0.055% (matches MYX docs)
  */
-export const MYX_FEE_RATE_PRECISION = 1_000_000;
+export const MYX_FEE_RATE_PRECISION = 100_000_000;
 
 /**
- * Default MYX taker fee rate (in 1e6 precision).
+ * Default MYX taker fee rate (in 1e8 precision).
  * Observed from getUserTradingFeeRate(0, 0, chainId) on both mainnet and testnet.
  * Used as fallback when the API call fails.
- * 55000 / 1e6 = 0.055%
+ * 55000 / 1e8 = 0.00055 = 0.055%
  */
 export const MYX_DEFAULT_TAKER_FEE_RATE = 55000;
 
 /**
  * MYX fee rates as decimals (derived from the above for UI display).
+ * 55000 / 100_000_000 = 0.00055 = 0.055%
  */
-export const MYX_FEE_RATE = MYX_DEFAULT_TAKER_FEE_RATE / MYX_FEE_RATE_PRECISION; // 0.055%
+export const MYX_FEE_RATE = MYX_DEFAULT_TAKER_FEE_RATE / MYX_FEE_RATE_PRECISION; // 0.00055 = 0.055%
 export const MYX_PROTOCOL_FEE_RATE = MYX_FEE_RATE; // Protocol takes the full fee (broker rebate is separate)
 
 /**

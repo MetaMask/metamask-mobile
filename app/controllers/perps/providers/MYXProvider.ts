@@ -888,7 +888,7 @@ export class MYXProvider implements PerpsProvider {
 
       const collateralAmount = toMYXCollateral(usdAmount, network);
 
-      // Compute trading fee: collateral * takerFeeRate / 1e6
+      // Compute trading fee: collateral * takerFeeRate / 1e8
       const takerFeeRate = BigInt(
         feeRates.takerFeeRate || String(MYX_DEFAULT_TAKER_FEE_RATE),
       );

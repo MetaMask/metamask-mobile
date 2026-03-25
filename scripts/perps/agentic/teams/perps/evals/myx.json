@@ -98,5 +98,10 @@
     "description": "MYX validateOrder with valid $150 order (expect valid — above per-pool min)",
     "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no MYX markets'});var m=markets[0];return p.validateOrder({symbol:m.symbol,isBuy:true,orderType:'market',size:'0.07',leverage:10,usdAmount:'150',currentPrice:parseFloat(m.price)}).then(function(r){return JSON.stringify(r)})})})()",
     "async": true
+  },
+  "fee-breakdown": {
+    "description": "MYX detailed fee breakdown: protocol rate, broker status, and comparison for $1000 trade",
+    "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({error:'no MYX provider'});return p.getMarketDataWithPrices().then(function(markets){if(!markets.length)return JSON.stringify({error:'no markets'});var m=markets[0];return p.calculateFees({amount:'1000',orderType:'market',symbol:m.symbol}).then(function(fees){return JSON.stringify({symbol:m.symbol,tradeSize:1000,fees:fees,brokerStatus:'referral_rebate_not_configured',comparison:{hyperliquidBuilderFeeRate:0.001,myxProtocolFeeRate:fees.protocolFeeRate,myxBrokerFeeRate:fees.metamaskFeeRate}})})})})()",
+    "async": true
   }
 }

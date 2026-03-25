@@ -45,7 +45,7 @@ kill -INT $RECORD_PID; wait $RECORD_PID 2>/dev/null
   - Codepath: `getAccountState()`
 
 - [ ] **3. 12-calculate-fees** — Calculate fees for $1000 trade
-  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx checkPoolMinOrder.ts` (verifies pool fee config) — _pending_
+  - Tier 1: `cd scripts/perps/myx-poc && NETWORK=testnet npx tsx feeBreakdown.ts` — _pending_
   - Tier 2: recipe + `myx-qa/12-calculate-fees.mp4` — _pending_
   - Tier 3: human review — _pending_
   - Codepath: `calculateFees()`

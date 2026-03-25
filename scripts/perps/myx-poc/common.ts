@@ -292,17 +292,25 @@ export const MYX_PRICE_DECIMALS = COMMON_PRICE_DECIMALS; // 30
 export const MYX_SIZE_DECIMALS = COMMON_LP_AMOUNT_DECIMALS; // 18
 
 /**
- * Fee rate precision: 1e6 (on-chain RATE_PRECISION).
+ * Fee rate precision: 1e8 (on-chain RATE_PRECISION).
  * All fee rates from getUserTradingFeeRate() use this precision.
- * Example: 55000 = 55000/1e6 = 0.055%
- * Not exported by SDK — no constant available.
+ * Example: 55000 / 1e8 = 0.00055 = 0.055%
+ *
+ * Evidence (mainnet chainId 56):
+ *   baseTakerFeeRate = 10000  → 10000/1e8 = 0.01%  (base fee)
+ *   addOn             = 45000  → 45000/1e8 = 0.045% (tier add-on)
+ *   takerFeeRate      = 55000  → 55000/1e8 = 0.055% (matches MYX docs)
+ *   With 1e6 the rate would be 5.5% — no perps DEX charges that.
+ *
+ * Not exported by SDK — no constant available. The on-chain contract
+ * exposes RATE_PRECISION() on the fee manager but not via the broker proxy.
  */
-export const MYX_RATE_PRECISION = 1000000n;
+export const MYX_RATE_PRECISION = 100000000n;
 
 /**
- * Default taker fee rate (in 1e6 precision).
+ * Default taker fee rate (in 1e8 precision).
  * Observed from getUserTradingFeeRate(0, 0, chainId) on both mainnet and testnet.
- * 55000 / 1e6 = 0.055%
+ * 55000 / 1e8 = 0.00055 = 0.055%
  */
 export const MYX_DEFAULT_TAKER_FEE_RATE = 55000n;
 

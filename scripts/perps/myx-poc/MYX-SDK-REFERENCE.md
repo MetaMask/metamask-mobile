@@ -106,7 +106,7 @@ Unlike positions/tickers, account balances come back as **scaled integers** in c
 |----------|-------|-------|
 | `MYX_PRICE_DECIMALS` | 30 | Price scaling for write APIs |
 | `MYX_SIZE_DECIMALS` | 18 | Position size scaling for write APIs |
-| `MYX_RATE_PRECISION` | 1e6 | Fee rate divisor (e.g. `55000 / 1e6 = 0.055%`) |
+| `MYX_RATE_PRECISION` | 1e8 | Fee rate divisor (e.g. `55000 / 1e8 = 0.00055 = 0.055%`) |
 
 ## Order Lifecycle
 

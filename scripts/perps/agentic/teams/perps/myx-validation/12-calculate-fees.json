@@ -27,6 +27,28 @@
           "assert": {
             "operator": "not_null"
           }
+        },
+        {
+          "id": "verify-protocol-rate",
+          "description": "Verify protocol fee rate is greater than zero",
+          "action": "eval_ref",
+          "ref": "myx/fee-breakdown",
+          "assert": {
+            "operator": "gt",
+            "field": "fees.protocolFeeRate",
+            "value": 0
+          }
+        },
+        {
+          "id": "verify-broker-status",
+          "description": "Verify MetaMask broker fee is zero (referral rebate not yet configured)",
+          "action": "eval_ref",
+          "ref": "myx/fee-breakdown",
+          "assert": {
+            "operator": "eq",
+            "field": "fees.metamaskFeeRate",
+            "value": 0
+          }
         }
       ]
     }
