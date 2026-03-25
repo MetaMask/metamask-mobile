@@ -16915,9 +16915,7 @@ describe('RewardsController', () => {
         testController.state.seasonStatuses[seasonCompositeKey],
       ).toBeUndefined();
       // Assert - campaigns are NOT cleared (global data, not subscription-specific)
-      expect(
-        testController.state.campaigns.CAMPAIGNS_CACHE_KEY,
-      ).toBeDefined();
+      expect(testController.state.campaigns.CAMPAIGNS_CACHE_KEY).toBeDefined();
       expect(
         testController.state.campaignParticipantStatus[campaignCompositeKey],
       ).toBeUndefined();
@@ -17006,9 +17004,7 @@ describe('RewardsController', () => {
       testController.invalidateSubscriptionCache(subscriptionId);
 
       // Assert - campaigns are NOT cleared (global data, not subscription-specific)
-      expect(
-        testController.state.campaigns.CAMPAIGNS_CACHE_KEY,
-      ).toBeDefined();
+      expect(testController.state.campaigns.CAMPAIGNS_CACHE_KEY).toBeDefined();
       expect(
         testController.state.campaignParticipantStatus[campaignKey1],
       ).toBeUndefined();
