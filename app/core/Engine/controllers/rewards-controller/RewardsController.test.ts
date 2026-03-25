@@ -18,7 +18,7 @@ import {
   type SeasonStateDto,
   SeasonRewardType,
   type LineaTokenRewardDto,
-  type CampaignsState,
+  type CampaignState,
   type CampaignParticipantStatusState,
   type CampaignLeaderboardPositionState,
 } from './types';
@@ -16873,7 +16873,7 @@ describe('RewardsController', () => {
       const campaignCompositeKey = `${subscriptionId}:${campaignId}`;
 
       initialState.seasonStatuses[seasonCompositeKey] = {} as SeasonStatusState;
-      initialState.campaigns[subscriptionId] = {
+      initialState.campaigns.CAMPAIGNS_CACHE_KEY = {
         campaigns: [
           {
             id: campaignId,
@@ -16881,14 +16881,15 @@ describe('RewardsController', () => {
             name: 'Test Campaign',
             startDate: '2024-01-01',
             endDate: '2024-12-31',
+            termsAndConditions: null,
             excludedRegions: [],
-            statusLabel: null,
+            statusLabel: 'Active',
             details: null,
-            isFeatured: false,
+            featured: false,
           },
         ],
         lastFetched: Date.now(),
-      } as CampaignsState;
+      } as CampaignState;
       initialState.campaignParticipantStatus[campaignCompositeKey] = {
         optedIn: true,
         participantCount: 10,
@@ -16913,8 +16914,10 @@ describe('RewardsController', () => {
       expect(
         testController.state.seasonStatuses[seasonCompositeKey],
       ).toBeUndefined();
-      // Assert - campaign data cleared
-      expect(testController.state.campaigns[subscriptionId]).toBeUndefined();
+      // Assert - campaigns are NOT cleared (global data, not subscription-specific)
+      expect(
+        testController.state.campaigns.CAMPAIGNS_CACHE_KEY,
+      ).toBeDefined();
       expect(
         testController.state.campaignParticipantStatus[campaignCompositeKey],
       ).toBeUndefined();
@@ -16937,14 +16940,35 @@ describe('RewardsController', () => {
       const campaignKey2 = `${subscriptionId}:${campaignId2}`;
       const otherCampaignKey = `${otherSubscriptionId}:${campaignId1}`;
 
-      initialState.campaigns[subscriptionId] = {
-        campaigns: [],
+      initialState.campaigns.CAMPAIGNS_CACHE_KEY = {
+        campaigns: [
+          {
+            id: campaignId1,
+            type: CampaignType.ONDO_HOLDING,
+            name: 'Campaign 1',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            termsAndConditions: null,
+            excludedRegions: [],
+            statusLabel: 'Active',
+            details: null,
+            featured: false,
+          },
+          {
+            id: campaignId2,
+            type: CampaignType.ONDO_HOLDING,
+            name: 'Campaign 2',
+            startDate: '2024-01-01',
+            endDate: '2024-12-31',
+            termsAndConditions: null,
+            excludedRegions: [],
+            statusLabel: 'Active',
+            details: null,
+            featured: false,
+          },
+        ],
         lastFetched: Date.now(),
-      } as CampaignsState;
-      initialState.campaigns[otherSubscriptionId] = {
-        campaigns: [],
-        lastFetched: Date.now(),
-      } as CampaignsState;
+      } as CampaignState;
       initialState.campaignParticipantStatus[campaignKey1] = {
         optedIn: true,
         participantCount: 5,
@@ -16981,8 +17005,10 @@ describe('RewardsController', () => {
       // Act
       testController.invalidateSubscriptionCache(subscriptionId);
 
-      // Assert - target subscription campaign data cleared
-      expect(testController.state.campaigns[subscriptionId]).toBeUndefined();
+      // Assert - campaigns are NOT cleared (global data, not subscription-specific)
+      expect(
+        testController.state.campaigns.CAMPAIGNS_CACHE_KEY,
+      ).toBeDefined();
       expect(
         testController.state.campaignParticipantStatus[campaignKey1],
       ).toBeUndefined();
@@ -16994,7 +17020,6 @@ describe('RewardsController', () => {
       ).toBeUndefined();
 
       // Assert - other subscription data untouched
-      expect(testController.state.campaigns[otherSubscriptionId]).toBeDefined();
       expect(
         testController.state.campaignParticipantStatus[otherCampaignKey],
       ).toBeDefined();
@@ -18846,25 +18871,23 @@ describe('RewardsController', () => {
       expect(result).toEqual(mockCampaigns);
       expect(result).toHaveLength(2);
 
-      const cachedData = controller.state.campaigns[mockSubscriptionId];
-      expect(cachedData).toBeDefined();
-      expect(cachedData.campaigns).toEqual(mockCampaigns);
-      expect(cachedData.lastFetched).toBeGreaterThan(Date.now() - 1000);
+      const cached = controller.state.campaigns.CAMPAIGNS_CACHE_KEY;
+      expect(cached).toBeDefined();
+      expect(cached.campaigns).toEqual(mockCampaigns);
+      expect(cached.lastFetched).toBeGreaterThan(Date.now() - 1000);
     });
 
     it('returns cached campaigns when cache is fresh', async () => {
       const recentTime = Date.now() - 60000; // 1 minute ago (within 5 minute threshold)
-      const mockCachedCampaigns = [
-        createTestCampaign({ id: 'cached-campaign' }),
-      ];
+      const mockCachedCampaign = createTestCampaign({ id: 'cached-campaign' });
 
       controller = new RewardsController({
         messenger: mockMessenger,
         state: {
           ...getRewardsControllerDefaultState(),
           campaigns: {
-            [mockSubscriptionId]: {
-              campaigns: mockCachedCampaigns,
+            CAMPAIGNS_CACHE_KEY: {
+              campaigns: [mockCachedCampaign],
               lastFetched: recentTime,
             },
           },
@@ -18873,13 +18896,13 @@ describe('RewardsController', () => {
 
       const result = await controller.getCampaigns(mockSubscriptionId);
 
-      expect(result).toEqual(mockCachedCampaigns);
+      expect(result).toEqual([mockCachedCampaign]);
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
     it('fetches fresh campaigns when cache is stale', async () => {
       const staleTime = Date.now() - 1000 * 60 * 10; // 10 minutes ago (beyond 5 minute threshold)
-      const staleCampaigns = [createTestCampaign({ id: 'stale-campaign' })];
+      const staleCampaign = createTestCampaign({ id: 'stale-campaign' });
       const freshCampaigns = [createTestCampaign({ id: 'fresh-campaign' })];
 
       controller = new RewardsController({
@@ -18887,8 +18910,8 @@ describe('RewardsController', () => {
         state: {
           ...getRewardsControllerDefaultState(),
           campaigns: {
-            [mockSubscriptionId]: {
-              campaigns: staleCampaigns,
+            CAMPAIGNS_CACHE_KEY: {
+              campaigns: [staleCampaign],
               lastFetched: staleTime,
             },
           },

@@ -159,41 +159,78 @@ export interface CampaignDto {
   featured: boolean;
 }
 
+/**
+ * Serializable version of OndoCampaignStep for state storage.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type CampaignsState = {
-  campaigns: {
-    id: string;
-    type: CampaignType;
-    name: string;
-    startDate: string;
-    endDate: string;
-    termsAndConditions: Json | null;
-    excludedRegions: string[];
-    statusLabel: string;
-    details: {
-      image: {
-        lightModeUrl: string;
-        darkModeUrl: string;
-      };
-      howItWorks: {
-        title: string;
-        description: string;
-        phases: {
-          name: string;
-          daysLabel: string;
-          sortOrder: number;
-          steps: {
-            title: string;
-            description: string;
-            iconName: string;
-          }[];
-          days?: number | null;
-        }[];
-        notes?: Json | null;
-      };
-    } | null;
-    featured: boolean;
-  }[];
+export type OndoCampaignStepState = {
+  title: string;
+  description: string;
+  iconName: string;
+};
+
+/**
+ * Serializable version of OndoCampaignPhase for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignPhaseState = {
+  name: string;
+  daysLabel: string;
+  sortOrder: number;
+  steps: OndoCampaignStepState[];
+  days?: number | null;
+};
+
+/**
+ * Serializable version of OndoCampaignHowItWorks for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignHowItWorksState = {
+  title: string;
+  description: string;
+  phases: OndoCampaignPhaseState[];
+  notes?: Json | null;
+};
+
+/**
+ * Serializable version of ThemeImage for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ThemeImageState = {
+  lightModeUrl: string;
+  darkModeUrl: string;
+};
+
+/**
+ * Serializable version of CampaignDetails for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignDetailsState = {
+  image: ThemeImageState;
+  howItWorks: OndoCampaignHowItWorksState;
+};
+
+/**
+ * Serializable version of CampaignDto for state storage.
+ * Uses plain string for type instead of CampaignType enum to satisfy StateConstraint.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignDtoState = {
+  id: string;
+  type: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  termsAndConditions: Json | null;
+  excludedRegions: string[];
+  statusLabel: string;
+  details: CampaignDetailsState | null;
+  featured: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignState = {
+  campaigns: CampaignDtoState[];
   lastFetched: number;
 };
 
@@ -1398,7 +1435,8 @@ export type RewardsControllerState = {
   offDeviceSubscriptionAccounts: {
     [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
   };
-  campaigns: { [subscriptionId: string]: CampaignsState };
+  /** Campaign data keyed by 'REWARDS_CAMPAIGNS' */
+  campaigns: { [key: string]: CampaignState };
   campaignParticipantStatus: {
     [compositeId: string]: CampaignParticipantStatusState;
   };

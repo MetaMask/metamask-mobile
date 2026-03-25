@@ -36,6 +36,8 @@ import {
   type LineaTokenRewardDto,
   type OffDeviceSubscriptionAccountsState,
   type ClientVersionRequirementDto,
+  type CampaignState,
+  type CampaignDtoState,
   BASE32_REGEX,
   CampaignType,
 } from './types';
@@ -102,6 +104,7 @@ const OFF_DEVICE_SUBSCRIPTION_ACCOUNTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 
 
 // Campaigns cache threshold
 const CAMPAIGNS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const CAMPAIGNS_CACHE_KEY = 'CAMPAIGNS_CACHE_KEY';
 
 // Campaign participant status cache threshold
 const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
@@ -3428,18 +3431,20 @@ export class RewardsController extends BaseController<
     if (!rewardsEnabled) {
       return [];
     }
-    const result = await wrapWithCache<CampaignDto[]>({
-      key: subscriptionId,
+
+    return wrapWithCache<CampaignDto[]>({
+      key: CAMPAIGNS_CACHE_KEY,
       ttl: CAMPAIGNS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
-        const cachedCampaigns = this.state.campaigns[key] || undefined;
-        if (!cachedCampaigns) return;
-        return {
-          payload: cachedCampaigns.campaigns,
-          lastFetched: cachedCampaigns.lastFetched,
-        };
+        const cached = this.state.campaigns[key];
+        return cached
+          ? {
+              payload: cached.campaigns as CampaignDto[],
+              lastFetched: cached.lastFetched,
+            }
+          : undefined;
       },
-      fetchFresh: async () =>
+      fetchFresh: () =>
         this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh campaigns data via API call',
@@ -3450,19 +3455,14 @@ export class RewardsController extends BaseController<
           )) as CampaignDto[];
           return response || [];
         }, subscriptionId),
-      writeCache: (key: string, payload: CampaignDto[]) => {
-        this.#writeCampaignsCache(key, payload);
+      writeCache: (key, campaigns) => {
+        this.update((state) => {
+          (state.campaigns as Record<string, unknown>)[key] = {
+            campaigns: campaigns as CampaignDtoState[],
+            lastFetched: Date.now(),
+          } as CampaignState;
+        });
       },
-    });
-
-    return result;
-  }
-
-  #writeCampaignsCache(key: string, campaigns: CampaignDto[]): void {
-    const cacheEntry = { campaigns, lastFetched: Date.now() };
-    this.update((state) => {
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      (state.campaigns as Record<string, unknown>)[key] = cacheEntry as any;
     });
   }
 
@@ -3912,8 +3912,6 @@ export class RewardsController extends BaseController<
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
         delete state.subscriptionReferralDetails[compositeKey];
-        // Invalidate campaign data for this subscription (not season-specific)
-        delete state.campaigns[subscriptionId];
         Object.keys(state.campaignParticipantStatus).forEach((key) => {
           if (key.startsWith(`${subscriptionId}:`)) {
             delete state.campaignParticipantStatus[key];
@@ -3960,8 +3958,6 @@ export class RewardsController extends BaseController<
             OffDeviceSubscriptionAccountsState
           >
         )[subscriptionId];
-        // Invalidate campaign data for this subscription
-        delete state.campaigns[subscriptionId];
         Object.keys(state.campaignParticipantStatus).forEach((key) => {
           if (key.startsWith(`${subscriptionId}:`)) {
             delete state.campaignParticipantStatus[key];
