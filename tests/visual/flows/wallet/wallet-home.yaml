@@ -1,0 +1,24 @@
+# Visual regression test for the wallet home screen in its default state.
+# Fixture provides a pre-configured wallet with default account and networks.
+appId: io.metamask.MetaMask
+tags:
+  - visual
+  - fixture:default
+---
+
+# Wait for wallet home to load (fixture provides logged-in state).
+# This also ensures the screen has settled before any conditional runFlow,
+# since runFlow's when: visible: check is instant and does not wait.
+#
+# testID from: e2e/selectors/wallet/WalletView.selectors.js
+- extendedWaitUntil:
+    visible:
+      id: "wallet-screen"
+    timeout: 15000
+
+# Capture wallet home — tokens tab (default view)
+- assertScreenshot:
+    path: ios/wallet/home-default.png
+    cropOn:
+      id: "wallet-screen"
+    thresholdPercentage: 95
