@@ -27,86 +27,6 @@ jest.mock(
   },
 );
 
-// Mock BottomSheetHeader and BottomSheetFooter from the design system so we can
-// trigger their onClose / button callbacks without a real native gesture handler.
-jest.mock('@metamask/design-system-react-native', () => {
-  const actual = jest.requireActual('@metamask/design-system-react-native');
-  const ReactModule = jest.requireActual('react');
-  const { View, TouchableOpacity, Text } = jest.requireActual('react-native');
-
-  return {
-    ...actual,
-    BottomSheetHeader: ({
-      children,
-      onClose,
-    }: {
-      children?: React.ReactNode;
-      onClose?: () => void;
-    }) =>
-      ReactModule.createElement(
-        View,
-        { testID: 'bottom-sheet-header' },
-        children,
-        ReactModule.createElement(
-          TouchableOpacity,
-          { testID: 'header-close-button', onPress: onClose },
-          ReactModule.createElement(Text, null, 'Close'),
-        ),
-      ),
-    BottomSheetFooter: ({
-      primaryButtonProps,
-      secondaryButtonProps,
-    }: {
-      primaryButtonProps?: {
-        children?: React.ReactNode;
-        onPress?: () => void;
-        isDisabled?: boolean;
-        isLoading?: boolean;
-      };
-      secondaryButtonProps?: {
-        children?: React.ReactNode;
-        onPress?: () => void;
-        isDisabled?: boolean;
-        isLoading?: boolean;
-      };
-    }) =>
-      ReactModule.createElement(
-        View,
-        { testID: 'bottom-sheet-footer' },
-        secondaryButtonProps
-          ? ReactModule.createElement(
-              TouchableOpacity,
-              {
-                testID: 'footer-secondary-button',
-                onPress: secondaryButtonProps.onPress,
-                disabled: secondaryButtonProps.isDisabled,
-              },
-              ReactModule.createElement(
-                Text,
-                null,
-                secondaryButtonProps.children,
-              ),
-            )
-          : null,
-        primaryButtonProps
-          ? ReactModule.createElement(
-              TouchableOpacity,
-              {
-                testID: 'footer-primary-button',
-                onPress: primaryButtonProps.onPress,
-                disabled: primaryButtonProps.isDisabled,
-              },
-              ReactModule.createElement(
-                Text,
-                null,
-                primaryButtonProps.children,
-              ),
-            )
-          : null,
-      ),
-  };
-});
-
 jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
@@ -399,9 +319,10 @@ describe('TokenWarningModal', () => {
       fireEvent.press(getByTestId('footer-secondary-button'));
 
       await waitFor(() => {
-        expect(getByTestId('footer-secondary-button').props.disabled).toBe(
-          true,
-        );
+        expect(
+          getByTestId('footer-secondary-button').props.accessibilityState
+            .disabled,
+        ).toBe(true);
       });
 
       resolveConfirm();

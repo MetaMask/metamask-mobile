@@ -117,7 +117,10 @@ export const TokenWarningModal = () => {
     <BottomSheet ref={sheetRef}>
       <BottomSheetHeader
         onClose={handleClose}
-        closeButtonProps={{ size: ButtonIconSize.Md }}
+        closeButtonProps={{
+          size: ButtonIconSize.Md,
+          testID: 'header-close-button',
+        }}
       >
         <Icon name={iconName} size={IconSize.Xl} color={iconColor} />
       </BottomSheetHeader>
@@ -142,11 +145,13 @@ export const TokenWarningModal = () => {
             onPress: handleProceed,
             isDisabled: loading,
             isLoading: loading,
+            testID: 'footer-secondary-button',
           }}
           primaryButtonProps={{
             children: strings('bridge.cancel'),
             onPress: handleClose,
             isDisabled: loading,
+            testID: 'footer-primary-button',
           }}
         />
       ) : (
@@ -154,6 +159,7 @@ export const TokenWarningModal = () => {
           primaryButtonProps={{
             children: strings('bridge.got_it'),
             onPress: handleClose,
+            testID: 'footer-primary-button',
           }}
         />
       )}
