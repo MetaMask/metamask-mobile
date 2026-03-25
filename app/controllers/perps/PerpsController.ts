@@ -1609,47 +1609,66 @@ export class PerpsController extends BaseController<
     const isMYXEnabled = this.#isMYXProviderEnabled();
     if (isMYXEnabled) {
       this.#myxRegistrationPromise = import('./providers/MYXProvider')
-        .then(({ MYXProvider }) => {
-          const myxIsTestnet =
-            PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
-          const myx =
-            this.#options.clientConfig?.providerCredentials?.myx ?? {};
-          const myxAuthConfig = resolveMyxAuthConfig(myx, myxIsTestnet);
-          const myxProvider = new MYXProvider({
-            isTestnet: myxIsTestnet,
-            platformDependencies: this.#options.infrastructure,
-            messenger: this.messenger,
-            myxAuthConfig,
-          });
-          this.providers.set('myx', myxProvider);
-          this.#debugLog('PerpsController: MYX provider registered', {
-            isTestnet: myxIsTestnet,
-          });
-          return undefined;
-        })
-        .catch((error: unknown) => {
-          let errorMessage: string;
-          if (error instanceof Error) {
-            errorMessage = error.message;
-          } else {
-            const rawMessage = (error as Record<string, unknown>)?.message;
-            errorMessage =
-              typeof rawMessage === 'string' ? rawMessage : String(error);
-          }
-          const isModuleError = /cannot find|not found|module/iu.test(
-            errorMessage,
-          );
-          if (isModuleError) {
-            this.#debugLog(
-              'PerpsController: MYX provider module not available, skipping registration',
-            );
-          } else {
-            this.#logError(
-              error instanceof Error ? error : new Error(errorMessage),
-              this.#getErrorContext('createProviders.myx'),
-            );
-          }
-        });
+        .then(({ MYXProvider }) => this.registerMYXProvider(MYXProvider))
+        .catch((error: unknown) => this.handleMYXImportError(error));
+    }
+  }
+
+  /**
+   * Registers the MYX provider after dynamic import resolves.
+   *
+   * Extracted from the import().then() callback so it can be tested directly
+   * (Jest cannot resolve dynamic imports without --experimental-vm-modules).
+   *
+   * @param MYXProvider - Constructor class for the MYX provider.
+   */
+  protected registerMYXProvider(
+    MYXProvider: new (opts: {
+      isTestnet: boolean;
+      platformDependencies: PerpsPlatformDependencies;
+      messenger: PerpsControllerMessenger;
+      myxAuthConfig: ReturnType<typeof resolveMyxAuthConfig>;
+    }) => PerpsProvider,
+  ): void {
+    const myxIsTestnet =
+      PROVIDER_CONFIG.MYX_TESTNET_ONLY || this.state.isTestnet;
+    const myx = this.#options.clientConfig?.providerCredentials?.myx ?? {};
+    const myxAuthConfig = resolveMyxAuthConfig(myx, myxIsTestnet);
+    const myxProvider = new MYXProvider({
+      isTestnet: myxIsTestnet,
+      platformDependencies: this.#options.infrastructure,
+      messenger: this.messenger,
+      myxAuthConfig,
+    });
+    this.providers.set('myx', myxProvider);
+    this.#debugLog('PerpsController: MYX provider registered', {
+      isTestnet: myxIsTestnet,
+    });
+  }
+
+  /**
+   * Handles errors from the MYX dynamic import.
+   *
+   * Module-not-found errors are expected (extension doesn't ship MYX) → debug log.
+   * Other errors indicate constructor/config problems → Sentry via logError.
+   *
+   * @param error - The caught error from the dynamic import or constructor.
+   */
+  protected handleMYXImportError(error: unknown): void {
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : String((error as Record<string, unknown>)?.message ?? error);
+    const isModuleError = /cannot find|not found|module/iu.test(errorMessage);
+    if (isModuleError) {
+      this.#debugLog(
+        'PerpsController: MYX provider module not available, skipping registration',
+      );
+    } else {
+      this.#logError(
+        error instanceof Error ? error : new Error(errorMessage),
+        this.#getErrorContext('createProviders.myx'),
+      );
     }
   }
 

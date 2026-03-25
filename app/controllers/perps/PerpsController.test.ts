@@ -389,6 +389,16 @@ class TestablePerpsController extends PerpsController {
   public testHasStandaloneProvider(): boolean {
     return this.hasStandaloneProvider();
   }
+
+  public testRegisterMYXProvider(
+    MYXProvider: new (opts: Record<string, unknown>) => PerpsProvider,
+  ) {
+    this.registerMYXProvider(MYXProvider as never);
+  }
+
+  public testHandleMYXImportError(error: unknown) {
+    this.handleMYXImportError(error);
+  }
 }
 
 describe('PerpsController', () => {
@@ -4686,43 +4696,45 @@ describe('PerpsController', () => {
       expect(controller.state.activeProvider).toBe('hyperliquid');
     });
 
-    it('logs debug message when MYX dynamic import fails with module-not-found error', async () => {
-      // Arrange — make dynamic import reject with a module error
-      const { MYXProvider: MockMYX } = jest.requireMock<
-        typeof import('./providers/MYXProvider')
-      >('./providers/MYXProvider');
-      (MockMYX as jest.Mock).mockImplementationOnce(() => {
-        throw new Error('Cannot find module ./providers/MYXProvider');
-      });
-
-      const testInfrastructure = createMockInfrastructure();
-      const myxMockCall = jest.fn().mockImplementation((action: string) => {
-        if (action === 'RemoteFeatureFlagController:getState') {
-          return { remoteFeatureFlags: {} };
-        }
-        return undefined;
-      });
-
-      const myxController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: myxMockCall }),
-        state: getDefaultPerpsControllerState(),
-        infrastructure: testInfrastructure,
-        clientConfig: {
-          providerCredentials: {
-            myx: { enabled: true },
-          },
-        },
-      });
+    it('registerMYXProvider creates and registers the MYX provider', () => {
+      // Arrange
+      const mockMYXInstance = createMockHyperLiquidProvider();
+      const MockMYXConstructor = jest.fn(() => mockMYXInstance);
 
       // Act
-      await myxController.init();
+      controller.testRegisterMYXProvider(
+        MockMYXConstructor as unknown as new (
+          opts: Record<string, unknown>,
+        ) => PerpsProvider,
+      );
 
-      // Assert — debug log was called, NOT the error logger
-      expect(testInfrastructure.debugLogger.log).toHaveBeenCalledWith(
+      // Assert
+      const providers = controller.testGetProviders();
+      expect(providers.get('myx')).toBe(mockMYXInstance);
+      expect(MockMYXConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ isTestnet: false }),
+      );
+    });
+
+    it('handleMYXImportError logs debug for module-not-found errors', () => {
+      // Act
+      controller.testHandleMYXImportError(
+        new Error('Cannot find module ./providers/MYXProvider'),
+      );
+
+      // Assert
+      expect(mockInfrastructure.debugLogger.log).toHaveBeenCalledWith(
         'PerpsController: MYX provider module not available, skipping registration',
       );
-      expect(testInfrastructure.logger.error).not.toHaveBeenCalledWith(
-        expect.any(Error),
+    });
+
+    it('handleMYXImportError routes runtime errors to logError', () => {
+      // Act
+      controller.testHandleMYXImportError(new Error('Invalid auth config'));
+
+      // Assert
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Invalid auth config' }),
         expect.objectContaining({
           context: expect.objectContaining({
             data: expect.objectContaining({
@@ -4733,41 +4745,16 @@ describe('PerpsController', () => {
       );
     });
 
-    it('routes non-module MYX errors to logError for Sentry reporting', async () => {
-      // Arrange — simulate a runtime error (no "module" keyword in message)
-      const testInfrastructure = createMockInfrastructure();
-      const myxMockCall = jest.fn().mockImplementation((action: string) => {
-        if (action === 'RemoteFeatureFlagController:getState') {
-          return { remoteFeatureFlags: {} };
-        }
-        return undefined;
-      });
+    it('handleMYXImportError handles cross-realm errors without instanceof Error', () => {
+      // Arrange — simulate cross-realm error (has .message but fails instanceof)
+      const crossRealmError = { message: 'Invalid auth config' };
 
-      const myxController = new TestablePerpsController({
-        messenger: createMockMessenger({ call: myxMockCall }),
-        state: getDefaultPerpsControllerState(),
-        infrastructure: testInfrastructure,
-        clientConfig: {
-          providerCredentials: {
-            myx: { enabled: true },
-          },
-        },
-      });
+      // Act
+      controller.testHandleMYXImportError(crossRealmError);
 
-      // The dynamic import() rejects with ERR_VM_DYNAMIC_IMPORT_CALLBACK_MISSING_FLAG
-      // in Jest, which contains "module" in its message. To test the non-module error
-      // branch, we directly invoke the catch logic by triggering init and then verifying
-      // the error is routed correctly. Since we can't control the import() error in Jest,
-      // verify the handler correctly categorizes the VM error as a module error.
-      await myxController.init();
-
-      // Assert — Jest's dynamic import error contains "module", so it hits the debug path
-      expect(testInfrastructure.debugLogger.log).toHaveBeenCalledWith(
-        'PerpsController: MYX provider module not available, skipping registration',
-      );
-      // And the error logger was NOT called (it's a module error, not a runtime error)
-      expect(testInfrastructure.logger.error).not.toHaveBeenCalledWith(
-        expect.any(Error),
+      // Assert — non-module message routes to logError
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Invalid auth config' }),
         expect.objectContaining({
           context: expect.objectContaining({
             data: expect.objectContaining({
