@@ -426,13 +426,6 @@ describe('LedgerSelectAccount', () => {
   });
 
   describe('Error Handling', () => {
-    it('renders account selector after accounts are loaded', async () => {
-      const { queryByText } = await renderAndWaitForAccounts();
-
-      expect(queryByText('Select an account')).toBeOnTheScreen();
-      expect(queryByText('Select HD Path')).toBeOnTheScreen();
-    });
-
     it('shows inline error when account fetching fails', async () => {
       mockGetLedgerAccountsByOperation.mockRejectedValue(
         new Error('Fetch failed'),
@@ -469,6 +462,13 @@ describe('LedgerSelectAccount', () => {
   });
 
   describe('Account Selector View', () => {
+    it('renders account selector after accounts are loaded', async () => {
+      const { queryByText } = await renderAndWaitForAccounts();
+
+      expect(queryByText('Select an account')).toBeOnTheScreen();
+      expect(queryByText('Select HD Path')).toBeOnTheScreen();
+    });
+
     it('renders account selector with correct elements', async () => {
       const { queryByText, getByTestId } = await renderAndWaitForAccounts();
 
