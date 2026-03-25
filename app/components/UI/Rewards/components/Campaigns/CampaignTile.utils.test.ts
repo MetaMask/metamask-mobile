@@ -7,6 +7,7 @@ import {
   formatCampaignStatusLabel,
   getCampaignPillLabel,
   getCampaignStatusInfo,
+  isCampaignTypeSupported,
 } from './CampaignTile.utils';
 import {
   type CampaignDto,
@@ -43,6 +44,7 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     excludedRegions: [],
     statusLabel: 'Active',
     details: null,
+    featured: true,
     ...overrides,
   };
 }
@@ -164,7 +166,7 @@ describe('CampaignTile.utils', () => {
       expect(result).toContain('"date"');
     });
 
-    it('returns formatted endDate for complete status without localization', () => {
+    it('returns localized ended_date for complete status with formatted endDate', () => {
       const campaign = buildCampaignDto({
         startDate: '2025-01-01T00:00:00.000Z',
         endDate: '2025-07-04T18:00:00.000Z',
@@ -172,8 +174,11 @@ describe('CampaignTile.utils', () => {
 
       const result = formatCampaignStatusLabel('complete', campaign);
 
-      expect(strings).not.toHaveBeenCalled();
-      expect(result).toBe('July 4');
+      expect(strings).toHaveBeenCalledWith('rewards.campaign.ended_date', {
+        date: 'July 4',
+      });
+      expect(result).toContain('rewards.campaign.ended_date:');
+      expect(result).toContain('"date"');
     });
 
     it('returns empty string for unknown status', () => {
@@ -275,9 +280,23 @@ describe('CampaignTile.utils', () => {
       expect(result).toEqual({
         status: 'complete',
         statusLabel: 'rewards.campaign.pill_complete',
-        dateLabel: 'December 31',
+        dateLabel: expect.stringContaining('rewards.campaign.ended_date'),
         dateLabelIcon: 'Confirmation',
       });
+    });
+  });
+
+  describe('isCampaignTypeSupported', () => {
+    it('returns true for ONDO_HOLDING campaign type', () => {
+      expect(isCampaignTypeSupported(CampaignType.ONDO_HOLDING)).toBe(true);
+    });
+
+    it('returns true for SEASON_1 campaign type', () => {
+      expect(isCampaignTypeSupported(CampaignType.SEASON_1)).toBe(true);
+    });
+
+    it('returns false for unknown campaign types', () => {
+      expect(isCampaignTypeSupported('UNKNOWN' as CampaignType)).toBe(false);
     });
   });
 });

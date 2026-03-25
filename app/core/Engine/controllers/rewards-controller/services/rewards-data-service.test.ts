@@ -4323,6 +4323,7 @@ describe('RewardsDataService', () => {
         excludedRegions: [],
         statusLabel: 'Active',
         details: null,
+        featured: false,
       },
     ];
 
