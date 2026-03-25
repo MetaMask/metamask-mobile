@@ -101,8 +101,7 @@ describe('MarketInsightsEntryCard', () => {
       }),
       properties: {
         caip19: 'eip155:1/erc20:0xtest',
-        digest_id: 'eip155:1/erc20:0xtest',
-        asset_name: 'eth',
+        asset_symbol: 'eth',
       },
     });
   });
