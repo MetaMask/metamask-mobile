@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useSelector } from 'react-redux';
 import usePrevious from '../../../hooks/usePrevious';
 import { BigNumber } from 'bignumber.js';
-import { TransactionType } from '@metamask/transaction-controller';
 import Engine from '../../../../core/Engine';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type { CaipAccountId } from '@metamask/utils';
@@ -19,6 +18,7 @@ import {
   transformUserHistoryToTransactions,
   transformWalletPerpsDepositsToTransactions,
 } from '../utils/transactionTransforms';
+import { hasPerpsDepositTransactionType } from '../../../../util/transactions/metamask-pay';
 
 interface UsePerpsTransactionHistoryParams {
   startTime?: number;
@@ -71,8 +71,7 @@ export const usePerpsTransactionHistory = ({
       (tx) =>
         selectedAddress &&
         areAddressesEqual(tx.txParams?.from ?? '', selectedAddress) &&
-        (tx.type === TransactionType.perpsDeposit ||
-          tx.type === TransactionType.perpsDepositAndOrder),
+        hasPerpsDepositTransactionType(tx),
     );
     return transformWalletPerpsDepositsToTransactions(filtered);
   }, [walletTransactions, selectedAddress]);
