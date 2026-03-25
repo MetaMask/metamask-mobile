@@ -830,6 +830,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
+          {isMarketInsightsEnabled &&
+          marketInsightsReport &&
+          marketInsightsCaip19Id ? (
+            <View style={styles.marketInsightsWrapper}>
+              <MarketInsightsEntryCard
+                report={marketInsightsReport}
+                timeAgo={marketInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+                caip19Id={marketInsightsCaip19Id}
+                testID="market-insights-entry-card"
+              />
+            </View>
+          ) : null}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && <TronEnergyBandwidthDetail />
@@ -913,19 +926,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               />
             </View>
           )}
-          {isMarketInsightsEnabled &&
-          marketInsightsReport &&
-          marketInsightsCaip19Id ? (
-            <View style={styles.marketInsightsWrapper}>
-              <MarketInsightsEntryCard
-                report={marketInsightsReport}
-                timeAgo={marketInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                caip19Id={marketInsightsCaip19Id}
-                testID="market-insights-entry-card"
-              />
-            </View>
-          ) : null}
           {showPerpsSection && !perpsPosition && marketData && (
             <PerpsDiscoveryBanner
               symbol={marketData.symbol}

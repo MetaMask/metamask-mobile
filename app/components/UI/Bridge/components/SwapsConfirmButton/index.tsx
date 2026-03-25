@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { useSelector } from 'react-redux';
@@ -213,14 +213,15 @@ export const SwapsConfirmButton = ({
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      size={ButtonSize.Lg}
-      loading={buttonIsInLoadingState}
-      label={label}
+      variant={ButtonVariant.Primary}
+      size={ButtonBaseSize.Lg}
+      isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
       isDisabled={needsNewQuote ? false : isSubmitDisabled}
-    />
+    >
+      {label}
+    </Button>
   );
 };
