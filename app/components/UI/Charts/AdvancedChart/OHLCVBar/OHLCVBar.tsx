@@ -48,7 +48,7 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
   }, [data.open, data.close, data.high, data.low, data.volume, currency]);
 
   return (
-    <Box twClassName="px-4" testID={testID}>
+    <Box twClassName="px-4 pb-3" testID={testID}>
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
@@ -58,7 +58,7 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
           <Box key={key} twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Bold}
+              style={{ fontWeight: FontWeight.Medium }}
               color={TextColor.TextDefault}
               numberOfLines={1}
               adjustsFontSizeToFit
@@ -71,7 +71,7 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
           <Box twClassName="flex-1">
             <Text
               variant={TextVariant.BodySm}
-              fontWeight={FontWeight.Bold}
+              style={{ fontWeight: FontWeight.Medium }}
               color={TextColor.TextDefault}
               numberOfLines={1}
               adjustsFontSizeToFit

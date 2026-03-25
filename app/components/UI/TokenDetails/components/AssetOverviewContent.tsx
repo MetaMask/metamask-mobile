@@ -663,7 +663,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   variant={TextVariant.HeadingMd}
                   color={TextColor.TextDefault}
                   numberOfLines={1}
-                  style={{ fontWeight: FontWeight.Medium }}
                 >
                   {token.name || token.symbol}
                 </Text>

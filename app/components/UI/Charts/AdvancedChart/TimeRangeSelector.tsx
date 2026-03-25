@@ -8,6 +8,7 @@ import {
   TextVariant,
   BoxFlexDirection,
   BoxAlignItems,
+  FontWeight,
 } from '@metamask/design-system-react-native';
 import { IconSize } from '../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../util/theme';
@@ -65,7 +66,7 @@ const TIME_RANGES: TimeRange[] = ['1H', '1D', '1W', '1M', '1Y'];
 
 /** padding 4px 16px, gap spacing/1, rounded 8 — filter control spec */
 const SEGMENT_BUTTON_BASE =
-  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1';
+  'min-w-0 flex-1 flex-row items-center justify-center gap-1 rounded-lg px-4 py-1 rounded-xl';
 
 interface TimeRangeSelectorProps {
   selected: TimeRange;
@@ -109,7 +110,8 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
             onPress={() => onSelect(range)}
           >
             <Text
-              variant={TextVariant.BodyMd}
+              variant={TextVariant.BodySm}
+              style={{ fontWeight: FontWeight.Medium }}
               twClassName={
                 isSelected ? 'text-text-default' : 'text-text-alternative'
               }
@@ -137,7 +139,7 @@ const TimeRangeSelector: React.FC<TimeRangeSelectorProps> = ({
           ) : (
             <CandlestickIcon
               color={colors.text.alternative}
-              size={IconSize.Md}
+              size={IconSize.Sm}
             />
           )}
         </Pressable>

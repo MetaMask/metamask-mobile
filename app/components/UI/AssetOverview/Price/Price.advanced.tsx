@@ -56,11 +56,13 @@ export interface PriceAdvancedProps {
 interface NoDataOverlayProps {
   hasInsufficientData: boolean;
   styles: ReturnType<typeof styleSheet>;
+  chartPlaceholderFill: string;
 }
 
 const NoDataOverlay: React.FC<NoDataOverlayProps> = ({
   hasInsufficientData,
   styles,
+  chartPlaceholderFill,
 }) => {
   const screenWidth = Dimensions.get('screen').width;
 
@@ -74,7 +76,7 @@ const NoDataOverlay: React.FC<NoDataOverlayProps> = ({
       >
         <Path
           d={PLACEHOLDER_SVG_PATH}
-          fill="#3a3a3a" // eslint-disable-line @metamask/design-tokens/color-no-hex
+          fill={chartPlaceholderFill}
           opacity={0.85}
         />
       </Svg>
@@ -230,7 +232,7 @@ const PriceAdvanced = ({
           ) : null}
         </Text>
       </View>
-      <Box twClassName={showEmptyState ? 'mt-5 mb-6' : 'mt-5'}>
+      <Box twClassName={showEmptyState ? 'mt-3 mb-6' : 'mt-3'}>
         {crosshairData && chartType === ChartType.Candles && (
           <OHLCVBar data={crosshairData} currency={currentCurrency} />
         )}
@@ -239,6 +241,7 @@ const PriceAdvanced = ({
             <NoDataOverlay
               hasInsufficientData={hasInsufficientData}
               styles={styles}
+              chartPlaceholderFill={theme.colors.border.muted}
             />
           ) : (
             <AdvancedChart

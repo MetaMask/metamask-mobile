@@ -22,13 +22,10 @@ const styleSheet = (params: { theme: Theme; vars: { height: number } }) =>
       width: '100%',
       overflow: 'hidden',
       position: 'relative',
+      backgroundColor: params.theme.colors.background.default,
     },
-    /** Same pattern as Perps `TradingViewChart` skeleton over the WebView until `CHART_READY`. */
     skeletonOverlay: {
-      position: 'absolute',
       zIndex: 10,
-      width: '100%',
-      height: params.vars.height,
       backgroundColor: params.theme.colors.background.default,
     },
     errorContainer: {

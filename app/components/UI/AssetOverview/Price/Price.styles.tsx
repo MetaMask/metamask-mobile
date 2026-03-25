@@ -8,7 +8,6 @@ const styleSheet = (params: { theme: Theme }) => {
       width: '100%',
       paddingHorizontal: 16,
       paddingVertical: 12,
-      gap: 4,
       flexDirection: 'column',
       alignItems: 'flex-start',
     } as ViewStyle,
