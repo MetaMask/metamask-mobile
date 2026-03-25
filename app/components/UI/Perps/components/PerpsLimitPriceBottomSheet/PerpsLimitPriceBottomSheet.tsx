@@ -34,6 +34,7 @@ import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { BigNumber } from 'bignumber.js';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 
 interface PerpsLimitPriceBottomSheetProps {
   isVisible: boolean;
@@ -377,9 +378,16 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             style={styles.percentageButton}
             onPress={() => {
               if (currentPrice) {
-                setLimitPrice(
-                  formatWithSignificantDigits(currentPrice, 4).value.toString(),
+                const result = formatWithSignificantDigits(currentPrice, 4);
+                DevLogger.log(
+                  '[PR-27907] BUG_MARKER: preset sig figs=4, price=' +
+                    currentPrice +
+                    ', result=' +
+                    result.value +
+                    ', decimals=' +
+                    result.decimals,
                 );
+                setLimitPrice(result.value.toString());
                 setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
               }
             }}
