@@ -1,4 +1,5 @@
 import logger from './logger';
+import { analytics } from '../../../util/analytics/analytics';
 
 // TODO: Replace this file with `@metamask/analytics` once its `Analytics`
 // class supports the `mobile/sdk-connect-v2` namespace. Currently
@@ -44,6 +45,8 @@ export function trackWalletEvent(
   eventName: WalletConnectionEventName,
   properties: WalletEventProperties,
 ): void {
+  if (!analytics.isEnabled()) return;
+
   const payload: MobileSDKConnectV2Payload[] = [
     {
       namespace: 'mobile/sdk-connect-v2',
