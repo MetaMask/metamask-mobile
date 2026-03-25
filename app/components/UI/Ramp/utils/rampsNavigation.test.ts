@@ -59,5 +59,25 @@ describe('rampsNavigation', () => {
         },
       });
     });
+
+    it('returns order details route with callbackUrl when returning from external browser', () => {
+      const routes = getNavigateAfterExternalBrowserRoutes({
+        returnDestination: 'order',
+        callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc123',
+        providerCode: 'paypal-staging',
+        walletAddress: '0x1234',
+      });
+
+      expect(routes).toHaveLength(1);
+      expect(routes[0]).toEqual({
+        name: Routes.RAMP.RAMPS_ORDER_DETAILS,
+        params: {
+          callbackUrl: 'metamask://on-ramp/providers/paypal?orderId=abc123',
+          providerCode: 'paypal-staging',
+          walletAddress: '0x1234',
+          showCloseButton: true,
+        },
+      });
+    });
   });
 });
