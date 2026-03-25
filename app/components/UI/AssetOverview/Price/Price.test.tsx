@@ -2,6 +2,7 @@ import React from 'react';
 import { useSelector } from 'react-redux';
 import { render } from '@testing-library/react-native';
 import Price from './Price';
+import type { TokenI } from '../../Tokens/types';
 import { PriceChartProvider } from '../PriceChart/PriceChart.context';
 import { selectTokenOverviewAdvancedChartEnabled } from '../../../../selectors/featureFlagController/tokenOverviewAdvancedChart';
 
@@ -56,14 +57,21 @@ function renderWithProviders(ui: React.ReactElement) {
   return render(<PriceChartProvider>{ui}</PriceChartProvider>);
 }
 
+const mockAsset: TokenI = {
+  address: '0x1234567890123456789012345678901234567890',
+  chainId: '0x1',
+  name: 'Test Token',
+  symbol: 'TST',
+  ticker: 'TST',
+  decimals: 18,
+  image: '',
+  balance: '0',
+  logo: undefined,
+  isETH: false,
+};
+
 const unifiedProps = {
-  asset: {
-    address: '0x1234567890123456789012345678901234567890',
-    chainId: '0x1',
-    name: 'Test Token',
-    symbol: 'TST',
-    ticker: 'TST',
-  },
+  asset: mockAsset,
   prices: [
     ['1736761237983', 100] as [string, number],
     ['1736761237986', 105] as [string, number],
