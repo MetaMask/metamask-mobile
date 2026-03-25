@@ -394,6 +394,7 @@ export default class Gestures {
         (
           el: {
             focus: () => void;
+            blur?: () => void;
             value: string;
             _valueTracker?: { setValue: (v: string) => void };
             dispatchEvent: (event: { bubbles?: boolean }) => void;
@@ -404,6 +405,8 @@ export default class Gestures {
           el.value = value;
           el._valueTracker && el._valueTracker.setValue('');
           el.dispatchEvent(new Event('input', { bubbles: true }));
+          // Dismiss iOS keyboard / input accessory so overlays (e.g. Confirm) stay hittable.
+          el.blur?.();
         },
         [text],
       );
