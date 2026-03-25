@@ -785,6 +785,7 @@
       }
     },
     "requests": {},
-    "orders": []
+    "orders": [],
+    "providerAutoSelected": false
   }
 }

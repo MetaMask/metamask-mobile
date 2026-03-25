@@ -354,13 +354,17 @@ describe('createBuildQuoteNavDetails', () => {
   });
 });
 
+const mockSetSelectedProvider = jest.fn();
+
 describe('BuildQuote', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseParams.mockReturnValue({});
     mockUseRampsController.mockReturnValue({
       userRegion: USER_REGION,
+      providers: [WIDGET_PROVIDER, NATIVE_PROVIDER],
       selectedProvider: WIDGET_PROVIDER,
+      setSelectedProvider: mockSetSelectedProvider,
       selectedToken: SELECTED_TOKEN,
       paymentMethods: [SELECTED_PAYMENT_METHOD],
       getBuyWidgetData: mockGetBuyWidgetData,
@@ -906,7 +910,9 @@ describe('BuildQuote', () => {
     const mockUnavailableController = (overrides: Record<string, unknown>) => {
       mockUseRampsController.mockReturnValue({
         userRegion: USER_REGION,
+        providers: [transakProvider, WIDGET_PROVIDER],
         selectedProvider: transakProvider,
+        setSelectedProvider: mockSetSelectedProvider,
         selectedToken: SELECTED_TOKEN,
         paymentMethods: [],
         getBuyWidgetData: mockGetBuyWidgetData,
@@ -1064,6 +1070,116 @@ describe('BuildQuote', () => {
           screen: 'RampTokenNotAvailableModal',
         }),
       );
+    });
+
+    describe('auto-switch when providerAutoSelected', () => {
+      const BTC_ASSET = 'eip155:1/slip44:0';
+
+      const paypalProvider = {
+        id: '/providers/paypal',
+        name: 'PayPal',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true, [BTC_ASSET]: false },
+        links: [],
+      };
+
+      const coinbaseProvider = {
+        id: '/providers/coinbase',
+        name: 'Coinbase',
+        supportedCryptoCurrencies: { [TOKEN_ASSET]: true, [BTC_ASSET]: true },
+        links: [],
+      };
+
+      const autoSelectedState = {
+        ...initialRootState,
+        engine: {
+          ...initialRootState.engine,
+          backgroundState: {
+            ...initialRootState.engine.backgroundState,
+            RampsController: {
+              ...initialRootState.engine.backgroundState.RampsController,
+              providerAutoSelected: true,
+            },
+          },
+        },
+      };
+
+      it('auto-switches to a supporting provider instead of showing the modal', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: autoSelectedState });
+        act(() => {
+          jest.advanceTimersByTime(650);
+        });
+
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider);
+        expect(mockNavigate).not.toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+          }),
+        );
+      });
+
+      it('falls back to modal when no provider supports the token', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: autoSelectedState });
+        act(() => {
+          jest.advanceTimersByTime(650);
+        });
+
+        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+          }),
+        );
+      });
+
+      it('shows modal when provider was not auto-selected', () => {
+        mockUnavailableController({
+          selectedProvider: paypalProvider,
+          providers: [paypalProvider, coinbaseProvider],
+          selectedToken: {
+            assetId: BTC_ASSET,
+            chainId: 'eip155:1',
+            symbol: 'BTC',
+          },
+        });
+        mockUseParams.mockReturnValue({ assetId: BTC_ASSET });
+
+        renderWithProvider(<BuildQuote />, { state: initialRootState });
+        act(() => {
+          jest.advanceTimersByTime(650);
+        });
+
+        expect(mockSetSelectedProvider).not.toHaveBeenCalled();
+        expect(mockNavigate).toHaveBeenCalledWith(
+          'RampModals',
+          expect.objectContaining({
+            screen: 'RampTokenNotAvailableModal',
+          }),
+        );
+      });
     });
   });
 });

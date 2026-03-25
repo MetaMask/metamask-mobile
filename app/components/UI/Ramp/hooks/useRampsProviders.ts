@@ -75,11 +75,14 @@ export function useRampsProviders(): UseRampsProvidersResult {
 
   useEffect(() => {
     if (providers && providers.length > 0 && !selectedProvider) {
-      setSelectedProvider(
-        determinePreferredProvider(completedOrders, providers),
-      );
+      const result = determinePreferredProvider(completedOrders, providers);
+      if (result) {
+        Engine.context.RampsController.setSelectedProvider(result.provider.id, {
+          autoSelected: result.autoSelected,
+        });
+      }
     }
-  }, [providers, selectedProvider, setSelectedProvider, completedOrders]);
+  }, [providers, selectedProvider, completedOrders]);
 
   return {
     providers,
