@@ -39,6 +39,7 @@ import {
   MYX_MAINTENANCE_MARGIN_MULTIPLIER,
   MYX_MARKET_DETAIL_CACHE_TTL_MS,
   MYX_MIN_ORDER_SIZE_BUFFER,
+  MYX_MAX_ORDER_VALUE_USD,
   MYX_MINIMUM_ORDER_SIZE_USD,
   MYX_NEAR_ZERO_THRESHOLD,
   MYX_ZERO_PRICE_FALLBACK,
@@ -125,10 +126,7 @@ import type {
 import { MYXOrderStatusEnum } from '../types/myx-types';
 import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
-import {
-  getMaxOrderValue,
-  validateOrderParams,
-} from '../utils/hyperLiquidValidation';
+import { validateOrderParams } from '../utils/hyperLiquidValidation';
 import {
   adaptMarketFromMYX,
   adaptMarketDataFromMYX,
@@ -357,11 +355,9 @@ export class MYXProvider implements PerpsProvider {
     }
 
     if (params.currentPrice && params.leverage) {
-      const maxLeverage = await this.getMaxLeverage(params.symbol);
-      const maxOrderValue = getMaxOrderValue(maxLeverage, params.orderType);
       const orderValue = Number.parseFloat(params.size) * params.currentPrice;
 
-      if (orderValue > maxOrderValue) {
+      if (orderValue > MYX_MAX_ORDER_VALUE_USD) {
         return {
           isValid: false,
           error: PERPS_ERROR_CODES.ORDER_MAX_VALUE_EXCEEDED,

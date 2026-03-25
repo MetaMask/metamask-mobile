@@ -391,6 +391,14 @@ export const MYX_MINIMUM_ORDER_SIZE_USD = 100;
 export const MYX_MIN_ORDER_SIZE_BUFFER = 1.1;
 
 /**
+ * Maximum order value in USD for MYX.
+ * MYX is an on-chain AMM — pool liquidity is the natural cap.
+ * This is a generous client-side guardrail; the on-chain contract
+ * will reject orders that exceed pool capacity regardless.
+ */
+export const MYX_MAX_ORDER_VALUE_USD = 1_000_000;
+
+/**
  * MYX fee rate precision: 1e8 (on-chain RATE_PRECISION).
  * All fee rates from getUserTradingFeeRate() use this precision.
  *
