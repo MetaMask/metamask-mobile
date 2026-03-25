@@ -44,6 +44,7 @@ export function getAccountTreeControllerMessenger(
       'UserStorageController:performBatchSetStorage',
       'AuthenticationController:getSessionProfile',
       'MultichainAccountService:createMultichainAccountGroup',
+      'MultichainAccountService:createMultichainAccountGroups',
       'SnapController:get',
       'KeyringController:getState',
     ],
