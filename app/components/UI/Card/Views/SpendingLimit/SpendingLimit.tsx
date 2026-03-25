@@ -13,6 +13,9 @@ import {
   IconName,
   IconSize,
   IconColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useSelector } from 'react-redux';
@@ -23,11 +26,6 @@ import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import AvatarAccount from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarAccount';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
 import { useAccountGroupName } from '../../../../hooks/multichainAccounts/useAccountGroupName';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
   CardTokenAllowance,
   DelegationSettingsResponse,
@@ -200,19 +198,21 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           </Text>
           <Box twClassName="w-full gap-3">
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_spending_limit.retry')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
               onPress={fetchHookData}
-              width={ButtonWidthTypes.Full}
-            />
+              isFullWidth
+            >
+              {strings('card.card_spending_limit.retry')}
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('card.card_spending_limit.skip')}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={skip}
-              width={ButtonWidthTypes.Full}
-            />
+              isFullWidth
+            >
+              {strings('card.card_spending_limit.skip')}
+            </Button>
           </Box>
         </Box>
       </SafeAreaView>
@@ -353,24 +353,26 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
             <Box twClassName="flex-1">
               <Button
-                variant={ButtonVariants.Secondary}
-                label={strings('card.card_spending_limit.cancel')}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={isOnboardingFlow ? skip : cancel}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 isDisabled={isLoading}
-              />
+              >
+                {strings('card.card_spending_limit.cancel')}
+              </Button>
             </Box>
             <Box twClassName="flex-1">
               <Button
-                variant={ButtonVariants.Primary}
-                label={strings('card.card_spending_limit.confirm_new_limit')}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={submit}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 isDisabled={!isValid || isLoading}
-                loading={isLoading}
-              />
+                isLoading={isLoading}
+              >
+                {strings('card.card_spending_limit.confirm_new_limit')}
+              </Button>
             </Box>
           </Box>
         </Box>
