@@ -612,9 +612,8 @@ describe('Wallet', () => {
               },
             },
             AccountTreeController: {
-              accountTree: {
-                selectedAccountGroup: 'group-id-123',
-              },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: 'group-id-123',
             },
             NetworkController: {
               ...mockInitialState.engine.backgroundState.NetworkController,
@@ -656,9 +655,8 @@ describe('Wallet', () => {
           backgroundState: {
             ...mockInitialState.engine.backgroundState,
             AccountTreeController: {
-              accountTree: {
-                selectedAccountGroup: 'group-id-123',
-              },
+              accountTree: { wallets: {} },
+              selectedAccountGroup: 'group-id-123',
             },
           },
         },
