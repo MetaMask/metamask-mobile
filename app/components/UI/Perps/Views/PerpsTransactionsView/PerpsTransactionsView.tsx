@@ -39,6 +39,7 @@ import {
   TransactionSection,
 } from '../../types/transactionHistory';
 import { formatDateSection } from '../../utils/formatUtils';
+import { PerpsTransactionsViewSelectorsIDs } from '../../Perps.testIds';
 import { styleSheet } from './PerpsTransactionsView.styles';
 import { usePerpsMeasurement } from '../../hooks/usePerpsMeasurement';
 import { TraceName } from '../../../../../util/trace';
@@ -230,6 +231,12 @@ const PerpsTransactionsView: React.FC = () => {
       // Convert tab to i18n key
       const i18nKeys = ['trades', 'orders', 'funding', 'deposits'];
       const i18nKey = i18nKeys[index];
+      const tabTestIDs = [
+        PerpsTransactionsViewSelectorsIDs.TAB_TRADES,
+        PerpsTransactionsViewSelectorsIDs.TAB_ORDERS,
+        PerpsTransactionsViewSelectorsIDs.TAB_FUNDING,
+        PerpsTransactionsViewSelectorsIDs.TAB_DEPOSITS,
+      ];
 
       const handleTabPress = () => {
         // Immediately scroll to top and switch tabs
@@ -256,6 +263,7 @@ const PerpsTransactionsView: React.FC = () => {
           size={ButtonSize.Md}
           onPress={handleTabPress}
           accessibilityRole="button"
+          testID={tabTestIDs[index]}
         >
           {strings(`perps.transactions.tabs.${i18nKey}`)}
         </ButtonFilter>
@@ -473,6 +481,7 @@ const PerpsTransactionsView: React.FC = () => {
       )}
 
       <FlashList
+        testID="perps-transactions-flash-list"
         ref={flashListRef}
         data={flatListData}
         renderItem={renderListItem}

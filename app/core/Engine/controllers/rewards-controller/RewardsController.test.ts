@@ -18610,8 +18610,8 @@ describe('RewardsController', () => {
         endDate: string;
         termsAndConditions: Json | null;
         excludedRegions: string[];
-        statusLabel: string;
         details: null;
+        featured: boolean;
       }> = {},
     ) => ({
       id: 'campaign-1',
@@ -18621,8 +18621,8 @@ describe('RewardsController', () => {
       endDate: '2027-01-01T00:00:00.000Z',
       termsAndConditions: null,
       excludedRegions: [],
-      statusLabel: 'Active',
       details: null,
+      featured: false,
       ...overrides,
     });
 
@@ -18655,27 +18655,10 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns empty array when campaigns feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => false,
-      });
-
-      const result = await disabledController.getCampaigns(mockSubscriptionId);
-
-      expect(result).toEqual([]);
-      expect(mockMessenger.call).not.toHaveBeenCalledWith(
-        'RewardsDataService:getCampaigns',
-        expect.anything(),
-      );
-    });
-
-    it('fetches campaigns when campaigns feature flag is enabled', async () => {
+    it('fetches campaigns when rewards is enabled', async () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       const mockCampaigns = [createTestCampaign({ id: 'campaign-flag-test' })];
@@ -18694,7 +18677,6 @@ describe('RewardsController', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       const mockCampaigns = [
@@ -18735,7 +18717,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       const result = await controller.getCampaigns(mockSubscriptionId);
@@ -18760,7 +18741,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(freshCampaigns);
@@ -18778,7 +18758,6 @@ describe('RewardsController', () => {
       controller = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue([]);
@@ -18831,27 +18810,10 @@ describe('RewardsController', () => {
       );
     });
 
-    it('returns { optedIn: false, participantCount: 0 } when campaigns feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => false,
-      });
-
-      const result = await disabledController.optInToCampaign(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual({ optedIn: false, participantCount: 0 });
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
     it('calls data service and returns status on success', async () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -18873,7 +18835,6 @@ describe('RewardsController', () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -18901,7 +18862,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -18947,27 +18907,10 @@ describe('RewardsController', () => {
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
-    it('returns { optedIn: false, participantCount: 0 } when campaigns feature flag is disabled', async () => {
-      const disabledController = new RewardsController({
-        messenger: mockMessenger,
-        state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => false,
-      });
-
-      const result = await disabledController.getCampaignParticipantStatus(
-        mockCampaignId,
-        mockSubscriptionId,
-      );
-
-      expect(result).toEqual({ optedIn: false, participantCount: 0 });
-      expect(mockMessenger.call).not.toHaveBeenCalled();
-    });
-
     it('fetches status from API and caches result', async () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -19007,7 +18950,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       const result = await ctrl.getCampaignParticipantStatus(
@@ -19035,7 +18977,6 @@ describe('RewardsController', () => {
             },
           },
         },
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
@@ -19057,7 +18998,6 @@ describe('RewardsController', () => {
       const ctrl = new RewardsController({
         messenger: mockMessenger,
         state: getRewardsControllerDefaultState(),
-        isCampaignsEnabled: () => true,
       });
 
       mockMessenger.call.mockResolvedValue(mockStatus);
