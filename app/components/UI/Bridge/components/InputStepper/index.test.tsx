@@ -1,5 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
+import {
+  type NativeSyntheticEvent,
+  type TextInputSelectionChangeEventData,
+} from 'react-native';
 import { InputStepper } from './index';
 import { InputStepperDescriptionType } from './constants';
 import {
@@ -113,6 +117,39 @@ describe('InputStepper', () => {
 
       const input = getByTestId('input-stepper-input');
       expect(input.props.placeholder).toBe('Enter amount');
+    });
+
+    it('passes selection through to the input when provided', () => {
+      const { getByTestId } = render(
+        <InputStepper {...defaultProps} selection={{ start: 2, end: 2 }} />,
+      );
+
+      const input = getByTestId('input-stepper-input');
+      expect(input.props.selection).toEqual({ start: 2, end: 2 });
+    });
+
+    it('passes onSelectionChange through to the input when provided', () => {
+      const onSelectionChange = jest.fn();
+      const event = {
+        nativeEvent: {
+          selection: {
+            start: 1,
+            end: 1,
+          },
+        },
+      } as NativeSyntheticEvent<TextInputSelectionChangeEventData>;
+
+      const { getByTestId } = render(
+        <InputStepper
+          {...defaultProps}
+          onSelectionChange={onSelectionChange}
+        />,
+      );
+
+      const input = getByTestId('input-stepper-input');
+      input.props.onSelectionChange(event);
+
+      expect(onSelectionChange).toHaveBeenCalledWith(event);
     });
   });
 
