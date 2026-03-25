@@ -39,6 +39,8 @@ import {
 
 export interface TokenWarningModalParams {
   warningType: TokenFeatureType.WARNING | TokenFeatureType.MALICIOUS;
+  // descriptions are not translated — they come from the backend directly in English.
+  // Until Blockaid provides a full list of error codes, these will remain in English for now.
   description: string;
   mode: TokenWarningModalMode;
   location: MetaMetricsSwapsEventSource;
