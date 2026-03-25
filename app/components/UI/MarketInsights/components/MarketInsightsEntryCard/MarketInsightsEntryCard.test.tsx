@@ -17,8 +17,11 @@ jest.mock('../../hooks/useViewportTracking', () => ({
   })),
 }));
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const MockAnimatedGradientBorder = jest.fn<null, any>(() => null);
 jest.mock('./AnimatedGradientBorder', () => ({
-  AnimatedGradientBorder: () => null,
+  AnimatedGradientBorder: (props: Record<string, unknown>) =>
+    MockAnimatedGradientBorder(props),
 }));
 
 const mockReport = {
@@ -98,7 +101,9 @@ describe('MarketInsightsEntryCard', () => {
   });
 
   it('updates card dimensions on layout and skips redundant updates', async () => {
-    const { getByTestId, UNSAFE_getAllByType } = renderWithProvider(
+    MockAnimatedGradientBorder.mockClear();
+
+    const { getByTestId } = renderWithProvider(
       <MarketInsightsEntryCard
         report={mockReport as never}
         timeAgo="3m ago"
@@ -107,28 +112,46 @@ describe('MarketInsightsEntryCard', () => {
       />,
     );
 
-    // The outer Pressable has testID; the inner Box with onLayout is a child
     const pressable = getByTestId('market-insights-entry-card');
-    // Find all Views to locate the inner Box with onLayout
-    const innerViews = pressable.children;
-    const innerBox = innerViews[0] as unknown as {
+    const innerBox = pressable.children[0] as unknown as {
       props: { onLayout?: (e: unknown) => void };
     };
 
-    const layoutEvent = {
-      nativeEvent: { layout: { width: 350, height: 200 } },
+    const getDimensions = () => {
+      const calls = MockAnimatedGradientBorder.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      return (lastCall[0] as Record<string, unknown>).dimensions;
     };
 
+    // Initial render has null dimensions
+    expect(getDimensions()).toBeNull();
+
+    // First layout sets dimensions
+    const renderCountBefore = MockAnimatedGradientBorder.mock.calls.length;
     await act(() => {
-      innerBox.props.onLayout?.(layoutEvent);
+      innerBox.props.onLayout?.({
+        nativeEvent: { layout: { width: 350, height: 200 } },
+      });
     });
+    expect(getDimensions()).toEqual({ width: 350, height: 200 });
+
+    // Same dimensions should not trigger a re-render
+    const renderCountAfterFirst = MockAnimatedGradientBorder.mock.calls.length;
     await act(() => {
-      innerBox.props.onLayout?.(layoutEvent);
+      innerBox.props.onLayout?.({
+        nativeEvent: { layout: { width: 350, height: 200 } },
+      });
     });
+    expect(MockAnimatedGradientBorder.mock.calls.length).toBe(
+      renderCountAfterFirst,
+    );
+
+    // Different dimensions should update
     await act(() => {
       innerBox.props.onLayout?.({
         nativeEvent: { layout: { width: 400, height: 250 } },
       });
     });
+    expect(getDimensions()).toEqual({ width: 400, height: 250 });
   });
 });
