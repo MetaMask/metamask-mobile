@@ -146,6 +146,10 @@ const useSpendingLimit = ({
   const selectedAccount = useSelector(selectSelectedInternalAccount);
   const accountIdRef = useRef(selectedAccount?.id);
 
+  // Guard that ensures the screen-view analytics event fires exactly once,
+  // but only after allTokens has loaded (non-empty) so cardSupportedKeys is accurate.
+  const screenViewFiredRef = useRef(false);
+
   useEffect(() => {
     if (selectedAccount?.id && selectedAccount.id !== accountIdRef.current) {
       accountIdRef.current = selectedAccount.id;
@@ -204,12 +208,15 @@ const useSpendingLimit = ({
     return `${network}:${token.symbol?.toLowerCase() ?? ''}`;
   };
 
-  // Track screen view
+  // Track screen view — fires exactly once, after allTokens has loaded so that
+  // cardSupportedKeys is accurate and top_card_chain_asset is not spuriously null.
   useEffect(() => {
+    if (screenViewFiredRef.current || allTokens.length === 0) return;
+    screenViewFiredRef.current = true;
+
     const screen =
       flow === 'enable' ? CardScreens.ENABLE_TOKEN : CardScreens.SPENDING_LIMIT;
 
-    // Balance context — snapshots Redux cache at mount time
     const musdOnLinea = walletTokens.find(
       (t) =>
         t.symbol?.toUpperCase() === 'MUSD' &&
@@ -262,8 +269,14 @@ const useSpendingLimit = ({
         })
         .build(),
     );
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [trackEvent, createEventBuilder, flow]);
+  }, [
+    trackEvent,
+    createEventBuilder,
+    flow,
+    allTokens,
+    walletTokens,
+    allWalletTokens,
+  ]);
 
   useEffect(() => {
     if (hasInitialized) return;

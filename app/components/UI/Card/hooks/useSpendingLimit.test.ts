@@ -1037,7 +1037,9 @@ describe('useSpendingLimit', () => {
     });
 
     it('emits null for top_card_chain_asset when wallet token is not in card-supported allTokens', () => {
-      // Native SOL has an address but is not in allTokens (card does not support it)
+      // Native SOL has an address but is not in allTokens (card does not support it).
+      // allTokens contains only an unrelated USDC token so allTokens.length > 0,
+      // which lets the effect fire while still excluding nativeSol from the result.
       const nativeSol = {
         address: 'So11111111111111111111111111111111111111112',
         symbol: 'SOL',
@@ -1048,10 +1050,8 @@ describe('useSpendingLimit', () => {
         .mockReturnValueOnce([nativeSol]) // walletTokens
         .mockReturnValueOnce([nativeSol]);
 
-      // allTokens is empty (no card-supported tokens) → nativeSol is excluded
-      renderHook(() =>
-        useSpendingLimit(createDefaultParams({ allTokens: [] })),
-      );
+      // allTokens has a card-supported token (USDC on Linea) but NOT nativeSol
+      renderHook(() => useSpendingLimit(createDefaultParams()));
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({ top_card_chain_asset: null }),
