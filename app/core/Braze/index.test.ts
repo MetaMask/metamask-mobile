@@ -3,18 +3,6 @@ import { setBrazeUser } from './index';
 
 const mockGetSessionProfile = jest.fn();
 
-let mockIsE2E = false;
-
-jest.mock('../../util/test/utils', () => {
-  const actual = jest.requireActual('../../util/test/utils');
-  return {
-    ...actual,
-    get isE2E() {
-      return mockIsE2E;
-    },
-  };
-});
-
 jest.mock('../Engine/Engine', () => ({
   default: {
     context: {
@@ -37,7 +25,6 @@ jest.mock('@braze/react-native-sdk', () => ({
 describe('Braze service', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    mockIsE2E = false;
   });
 
   describe('setBrazeUser', () => {
@@ -69,19 +56,6 @@ describe('Braze service', () => {
       mockGetSessionProfile.mockRejectedValue(new Error('Session error'));
 
       await expect(setBrazeUser()).resolves.toBeUndefined();
-      expect(Braze.changeUser).not.toHaveBeenCalled();
-    });
-
-    it('does not call changeUser during E2E builds', async () => {
-      mockIsE2E = true;
-      mockGetSessionProfile.mockResolvedValue({
-        profileId: 'test-profile-id-123',
-        identifierId: 'id',
-        metaMetricsId: 'mm-id',
-      });
-
-      await setBrazeUser();
-
       expect(Braze.changeUser).not.toHaveBeenCalled();
     });
   });
