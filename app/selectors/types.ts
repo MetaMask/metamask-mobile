@@ -7,7 +7,6 @@ import {
   TokensControllerState,
   TokenBalancesControllerState,
 } from '@metamask/assets-controllers';
-import SwapsController from '@metamask/swaps-controller';
 import { NetworkState } from '@metamask/network-controller';
 import { AddressBookControllerState } from '@metamask/address-book-controller';
 import { KeyringControllerMemState } from '@metamask/keyring-controller';
@@ -39,7 +38,6 @@ export interface EngineState {
       TokenBalancesController: TokenBalancesControllerState;
       TokenRatesController: TokenRatesControllerState;
       TransactionController: TransactionControllerState;
-      SwapsController: SwapsController;
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
       SnapController: SnapController;
       ///: END:ONLY_INCLUDE_IF

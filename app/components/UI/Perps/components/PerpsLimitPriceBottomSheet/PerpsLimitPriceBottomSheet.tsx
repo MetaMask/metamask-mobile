@@ -28,6 +28,7 @@ import {
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
+import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { BigNumber } from 'bignumber.js';
@@ -312,6 +313,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const footerButtonProps = [
     {
       label: strings('perps.order.limit_price_modal.set'),
+      testID: PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
@@ -342,7 +344,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         <Text style={styles.inputLabel}>
           {strings('perps.order.limit_price')}
         </Text>
-        <View style={styles.limitPriceDisplay}>
+        <View
+          testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRICE_DISPLAY}
+          style={styles.limitPriceDisplay}
+        >
           <View style={tw.style('flex-row items-center flex-1')}>
             <Text style={getLimitPriceTextStyle(limitPrice)}>
               {formatLimitPriceValue(limitPrice)}

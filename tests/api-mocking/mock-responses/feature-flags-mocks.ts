@@ -109,6 +109,19 @@ export const remoteFeatureMultichainAccountsAccountDetailsV2 = (
   },
 });
 
+/**
+ * Disables the full-screen Predict / Polymarket GTM onboarding shown after reaching wallet home.
+ * Production remote-flag defaults enable this; `selectPredictGtmOnboardingModalEnabledFlag` prefers
+ * the remote value over `MM_PREDICT_GTM_MODAL_ENABLED`, so E2E tests should merge this into
+ * {@link setupRemoteFeatureFlagsMock} when the modal would block flows.
+ */
+export const remoteFeaturePredictGtmOnboardingModalDisabled = () => ({
+  predictGtmOnboardingModalEnabled: {
+    enabled: false,
+    minimumVersion: '7.60.0',
+  },
+});
+
 export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   predictEnabled: enabled,
   predictTradingEnabled: {
@@ -135,9 +148,9 @@ export const remoteFeatureFlagRampsUnifiedV1Enabled = (active = true) => ({
   },
 });
 
-export const remoteFeatureFlagRampsUnifiedV2Enabled = (active = true) => ({
+export const remoteFeatureFlagRampsUnifiedV2Enabled = (enabled = true) => ({
   rampsUnifiedBuyV2: {
-    active,
+    enabled,
     minimumVersion: '7.63.0',
   },
 });
@@ -157,14 +170,14 @@ export const remoteFeatureFlagRampsUnifiedEnabled = (active = true) => ({
  */
 export const remoteFeatureFlagRampsUnifiedMatrixForE2E = (
   rampsUnifiedBuyV1Active: boolean,
-  rampsUnifiedBuyV2Active: boolean,
+  rampsUnifiedBuyV2Enabled: boolean,
 ) => ({
   rampsUnifiedBuyV1: {
     active: rampsUnifiedBuyV1Active,
     minimumVersion: '0.0.0',
   },
   rampsUnifiedBuyV2: {
-    active: rampsUnifiedBuyV2Active,
+    enabled: rampsUnifiedBuyV2Enabled,
     minimumVersion: '0.0.0',
   },
 });
