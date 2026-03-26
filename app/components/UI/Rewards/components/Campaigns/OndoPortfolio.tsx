@@ -99,7 +99,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
     [portfolio],
   );
 
-  const showSkeleton = isLoading && !hasFetched && !portfolio;
+  const showSkeleton = isLoading && !portfolio;
 
   if (hasError && !portfolio) {
     return (

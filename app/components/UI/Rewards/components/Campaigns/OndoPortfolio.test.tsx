@@ -197,7 +197,7 @@ describe('OndoPortfolio', () => {
       expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
     });
 
-    it('does not render skeleton when loading but already fetched', () => {
+    it('does not render skeleton when loading but portfolio data already present', () => {
       mockUseGetOndoPortfolioPosition.mockReturnValue({
         portfolio: MOCK_PORTFOLIO,
         isLoading: true,
@@ -211,6 +211,23 @@ describe('OndoPortfolio', () => {
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeNull();
+    });
+
+    it('renders skeleton during retry (isLoading=true, hasFetched=true, no portfolio)', () => {
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: null,
+        isLoading: true,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId, queryByTestId } = render(
+        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
+      expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
     });
   });
 
