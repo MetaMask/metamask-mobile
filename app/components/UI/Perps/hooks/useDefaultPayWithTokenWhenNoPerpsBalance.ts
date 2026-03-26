@@ -18,12 +18,18 @@ import {
 import { usePerpsNetwork } from './index';
 import { usePerpsPaymentTokens } from './usePerpsPaymentTokens';
 
+export interface DefaultPayTokenResult {
+  token: PerpsSelectedPaymentToken | null;
+  /** Fiat balance (USD) of the selected token; undefined when no token selected */
+  balanceUsd: number | undefined;
+}
+
 /**
  * When the user has no perps balance and the pay-with-any-token allowlist is enabled,
  * returns the allowlist token with the highest balance to use as the default payment method.
  * Otherwise returns null (caller should default to "Perps balance").
  */
-export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPaymentToken | null {
+export function useDefaultPayWithTokenWhenNoPerpsBalance(): DefaultPayTokenResult {
   const featureEnabled = useSelector(
     selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag,
   );
@@ -35,19 +41,24 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
   const currentNetwork = usePerpsNetwork();
   const paymentTokens = usePerpsPaymentTokens();
 
+  const NO_TOKEN: DefaultPayTokenResult = useMemo(
+    () => ({ token: null, balanceUsd: undefined }),
+    [],
+  );
+
   return useMemo(() => {
     if (!featureEnabled) {
-      return null;
+      return NO_TOKEN;
     }
     const availableBalance = Number.parseFloat(
       perpsAccount?.availableBalance?.toString() ?? '0',
     );
 
     if (availableBalance > PERPS_MIN_BALANCE_THRESHOLD) {
-      return null;
+      return NO_TOKEN;
     }
     if (!allowlistAssets?.length) {
-      return null;
+      return NO_TOKEN;
     }
 
     const allowSet = new Set(allowlistAssets);
@@ -70,27 +81,31 @@ export function useDefaultPayWithTokenWhenNoPerpsBalance(): PerpsSelectedPayment
       return allowSet.has(key);
     });
 
-    if (allowlistTokens.length === 0) return null;
+    if (allowlistTokens.length === 0) return NO_TOKEN;
 
     const tokensWithBalance = allowlistTokens
       .map((token) => ({
         ...token,
         balanceFiat: Number.parseFloat(
-          token.balanceFiat?.replace('US$', '').trim() || '0',
+          token.balanceFiat?.replace(/[^0-9.-]/g, '') || '0',
         ),
       }))
       .sort((a, b) => b.balanceFiat - a.balanceFiat);
 
     const top = tokensWithBalance[0];
 
-    if (top.balanceFiat < PERPS_MIN_BALANCE_THRESHOLD) return null;
+    if (top.balanceFiat < PERPS_MIN_BALANCE_THRESHOLD) return NO_TOKEN;
 
     return {
-      address: top.address as Hex,
-      chainId: top.chainId as Hex,
-      description: top.symbol,
+      token: {
+        address: top.address as Hex,
+        chainId: top.chainId as Hex,
+        description: top.symbol,
+      },
+      balanceUsd: top.balanceFiat,
     };
   }, [
+    NO_TOKEN,
     featureEnabled,
     perpsAccount?.availableBalance,
     allowlistAssets,

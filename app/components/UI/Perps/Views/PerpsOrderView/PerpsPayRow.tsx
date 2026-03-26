@@ -117,7 +117,7 @@ export const PerpsPayRow = ({
     selectPendingTradeConfiguration(state, initialAsset),
   );
   const selectedPaymentToken = usePerpsPayWithToken();
-  const defaultPayTokenWhenNoPerpsBalance =
+  const { token: defaultPayTokenWhenNoPerpsBalance } =
     useDefaultPayWithTokenWhenNoPerpsBalance();
 
   const pendingConfigSelectedPaymentToken = pendingConfig?.selectedPaymentToken;

@@ -138,7 +138,10 @@ describe('PerpsPayRow', () => {
     mockIsHardwareAccount.mockReturnValue(false);
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
-    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+      token: null,
+      balanceUsd: undefined,
+    });
   });
 
   it('renders pay with label', () => {
@@ -301,7 +304,10 @@ describe('PerpsPayRow', () => {
   it('calls setSelectedPaymentToken(null) when pending config has no selected token', () => {
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
-    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+      token: null,
+      balanceUsd: undefined,
+    });
 
     renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
 
@@ -319,7 +325,10 @@ describe('PerpsPayRow', () => {
     };
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
-    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(defaultToken);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+      token: defaultToken,
+      balanceUsd: 500,
+    });
     mockUseTransactionPayToken.mockReturnValue({
       payToken: null,
       setPayToken: setPayTokenMock,

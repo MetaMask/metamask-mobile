@@ -147,6 +147,7 @@ import createStyles from './PerpsOrderView.styles';
 import { PerpsPayRow } from './PerpsPayRow';
 import { useUpdateTokenAmount } from '../../../../Views/confirmations/hooks/transactions/useUpdateTokenAmount';
 import { useConfirmActions } from '../../../../Views/confirmations/hooks/useConfirmActions';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 
 // Navigation params interface
 interface OrderRouteParams {
@@ -1927,6 +1928,11 @@ const PerpsOrderView: React.FC = () => {
   const { payToken } = useTransactionPayToken();
   const hasCustomTokenSelected = !useIsPerpsBalanceSelected();
 
+  // Pre-compute default token so the balance is available from the first render,
+  // before PerpsPayRow's effect applies it asynchronously.
+  const { balanceUsd: defaultTokenBalanceUsd } =
+    useDefaultPayWithTokenWhenNoPerpsBalance();
+
   // Get navigation params to pass to context provider
   const {
     direction = 'long',
@@ -1939,10 +1945,18 @@ const PerpsOrderView: React.FC = () => {
   } = route.params || {};
 
   const effectiveAvailableBalance = useMemo(() => {
-    if (!hasCustomTokenSelected) return undefined;
-    const amount = payToken?.balanceUsd;
-    return amount !== undefined ? Number(amount) : undefined;
-  }, [hasCustomTokenSelected, payToken?.balanceUsd]);
+    if (hasCustomTokenSelected) {
+      const amount = payToken?.balanceUsd;
+      return amount !== undefined ? Number(amount) : undefined;
+    }
+    // When perps balance is selected but a default token will be applied by
+    // PerpsPayRow on the next render, use the default token's balance so the
+    // form doesn't briefly see 0 and flash "Insufficient funds".
+    if (defaultTokenBalanceUsd !== undefined) {
+      return defaultTokenBalanceUsd;
+    }
+    return undefined;
+  }, [hasCustomTokenSelected, payToken?.balanceUsd, defaultTokenBalanceUsd]);
 
   return (
     <PerpsOrderProvider

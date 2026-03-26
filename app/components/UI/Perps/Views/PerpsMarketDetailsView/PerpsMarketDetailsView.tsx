@@ -420,7 +420,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   });
 
   const { account, isInitialLoading: isLoadingAccount } = usePerpsLiveAccount();
-  const defaultPayTokenWhenNoPerpsBalance =
+  const { token: defaultPayTokenWhenNoPerpsBalance } =
     useDefaultPayWithTokenWhenNoPerpsBalance();
   const { depositWithConfirmation } = usePerpsTrading();
   const { navigateToConfirmation } = useConfirmNavigation();

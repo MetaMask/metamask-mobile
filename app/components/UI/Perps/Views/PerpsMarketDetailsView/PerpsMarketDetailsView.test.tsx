@@ -109,7 +109,10 @@ jest.mock('../../hooks/stream/usePerpsLiveAccount', () => ({
 }));
 
 jest.mock('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance', () => ({
-  useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(() => null),
+  useDefaultPayWithTokenWhenNoPerpsBalance: jest.fn(() => ({
+    token: null,
+    balanceUsd: undefined,
+  })),
 }));
 
 const mockUseDefaultPayWithTokenWhenNoPerpsBalance =
@@ -729,7 +732,10 @@ describe('PerpsMarketDetailsView', () => {
       isInitialLoading: false,
     });
 
-    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+      token: null,
+      balanceUsd: undefined,
+    });
 
     mockUseHasExistingPosition.mockReturnValue({
       hasPosition: false,
@@ -937,9 +943,12 @@ describe('PerpsMarketDetailsView', () => {
       // Override with zero balance; return a default pay token so Add funds CTA is not shown
       // (when user has allowlist token they can pay with, we show Long/Short)
       mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
-        address: '0xUSDC' as const,
-        chainId: '0xa4b1' as const,
-        description: 'USDC',
+        token: {
+          address: '0xUSDC' as const,
+          chainId: '0xa4b1' as const,
+          description: 'USDC',
+        },
+        balanceUsd: 500,
       });
       mockUsePerpsAccount.mockReturnValue({
         account: {
@@ -987,7 +996,10 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('shows add funds CTA when user balance is below threshold and no allowlist token', () => {
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+        token: null,
+        balanceUsd: undefined,
+      });
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
@@ -1028,7 +1040,10 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('calls navigateToConfirmation and depositWithConfirmation when add funds is pressed', async () => {
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+        token: null,
+        balanceUsd: undefined,
+      });
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
@@ -1074,7 +1089,10 @@ describe('PerpsMarketDetailsView', () => {
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
-      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
+      mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue({
+        token: null,
+        balanceUsd: undefined,
+      });
       mockUsePerpsAccount.mockReturnValue({
         account: {
           availableBalance: '0.00',
