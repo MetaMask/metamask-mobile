@@ -6,8 +6,6 @@ import { strings } from '../../../../../locales/i18n';
 import Engine from '../../../../core/Engine';
 import { backgroundState } from '../../../../util/test/initial-root-state';
 import Device from '../../../../util/device';
-import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 
 const originalFetch = global.fetch;
 
@@ -38,7 +36,6 @@ beforeEach(() => {
   mockNavigate.mockClear();
   mockGoBack.mockClear();
   mockSetSmartTransactionsOptInStatus.mockClear();
-  jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
 });
 
 jest.mock('@react-navigation/native', () => {
@@ -70,8 +67,6 @@ jest.mock('../../../../core/Engine', () => {
     },
   };
 });
-
-jest.mock('../../../../components/hooks/useAnalytics/useAnalytics');
 
 describe('AdvancedSettings', () => {
   it('should render correctly', () => {
