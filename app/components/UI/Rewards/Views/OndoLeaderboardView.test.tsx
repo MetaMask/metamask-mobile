@@ -115,6 +115,7 @@ const hookDefaults = {
   leaderboard: null,
   isLoading: false,
   hasError: false,
+  isLeaderboardNotYetComputed: false,
   tierNames: ['STARTER', 'MID'],
   selectedTier: 'STARTER',
   selectedTierData: { entries: [], totalParticipants: 10 },

@@ -51,6 +51,8 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
   const hasLoaded = useSelector(selectCampaignsHasLoaded);
   const dispatch = useDispatch();
   const isLoadingRef = useRef(false);
+  const hasLoadedRef = useRef(hasLoaded);
+  hasLoadedRef.current = hasLoaded;
 
   const fetchCampaigns = useCallback(async (): Promise<void> => {
     if (!subscriptionId) {
@@ -66,7 +68,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
     try {
       isLoadingRef.current = true;
-      if (!hasLoaded) {
+      if (!hasLoadedRef.current) {
         dispatch(setCampaignsLoading(true));
       }
       dispatch(setCampaignsError(false));
@@ -83,7 +85,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       isLoadingRef.current = false;
       dispatch(setCampaignsLoading(false));
     }
-  }, [dispatch, hasLoaded, subscriptionId]);
+  }, [dispatch, subscriptionId]);
 
   const campaignsList = useMemo(() => campaigns ?? [], [campaigns]);
 

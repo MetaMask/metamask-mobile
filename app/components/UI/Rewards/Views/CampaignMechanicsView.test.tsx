@@ -187,7 +187,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
               },
             },
           }),
@@ -244,7 +244,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: richTextNotes,
               },
             },
@@ -266,7 +266,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: null,
               },
             },
@@ -288,7 +288,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
               },
             },
           }),
@@ -309,7 +309,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: { title: 'Only title' },
               },
             },
@@ -331,7 +331,7 @@ describe('CampaignMechanicsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
-                phases: [],
+                steps: [],
                 notes: 'just a string',
               },
             },

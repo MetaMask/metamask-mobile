@@ -246,6 +246,23 @@ describe('OndoPortfolio', () => {
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();
     });
+
+    it('shows cached portfolio data instead of error banner when portfolio exists', () => {
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: MOCK_PORTFOLIO,
+        isLoading: false,
+        hasError: true,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+
+      const { queryByTestId, getByTestId } = render(
+        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.ERROR)).toBeNull();
+      expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeDefined();
+    });
   });
 
   describe('empty state', () => {

@@ -1,9 +1,4 @@
-import {
-  createSlice,
-  PayloadAction,
-  Action,
-  castDraft,
-} from '@reduxjs/toolkit';
+import { createSlice, PayloadAction, Action } from '@reduxjs/toolkit';
 import {
   SeasonStatusState,
   SeasonTierDto,
@@ -498,7 +493,7 @@ const rewardsSlice = createSlice({
 
     // Campaigns reducers
     setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
-      state.campaigns = castDraft(action.payload);
+      state.campaigns = action.payload;
       state.campaignsError = false;
       state.campaignsHasLoaded = true;
     },

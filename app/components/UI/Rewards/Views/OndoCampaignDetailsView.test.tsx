@@ -375,7 +375,7 @@ describe('OndoCampaignDetailsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Description',
-                phases: [],
+                steps: [],
               },
             },
           }),

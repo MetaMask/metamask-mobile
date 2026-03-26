@@ -101,7 +101,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
 
   const showSkeleton = isLoading && !hasFetched && !portfolio;
 
-  if (hasError) {
+  if (hasError && !portfolio) {
     return (
       <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.ERROR}>
         <Text variant={TextVariant.HeadingMd}>

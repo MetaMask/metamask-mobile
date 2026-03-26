@@ -16887,6 +16887,7 @@ describe('RewardsController', () => {
             termsAndConditions: null,
             excludedRegions: [],
             statusLabel: 'Active',
+            image: null,
             details: null,
             featured: false,
           },
@@ -16957,6 +16958,7 @@ describe('RewardsController', () => {
             termsAndConditions: null,
             excludedRegions: [],
             statusLabel: 'Active',
+            image: null,
             details: null,
             featured: false,
           },
@@ -16969,6 +16971,7 @@ describe('RewardsController', () => {
             termsAndConditions: null,
             excludedRegions: [],
             statusLabel: 'Active',
+            image: null,
             details: null,
             featured: false,
           },
@@ -18901,7 +18904,7 @@ describe('RewardsController', () => {
           ...getRewardsControllerDefaultState(),
           campaigns: {
             CAMPAIGNS_CACHE_KEY: {
-              campaigns: [mockCachedCampaign],
+              campaigns: [{ ...mockCachedCampaign, image: null }],
               lastFetched: recentTime,
             },
           },
@@ -18925,7 +18928,7 @@ describe('RewardsController', () => {
           ...getRewardsControllerDefaultState(),
           campaigns: {
             CAMPAIGNS_CACHE_KEY: {
-              campaigns: [staleCampaign],
+              campaigns: [{ ...staleCampaign, image: null }],
               lastFetched: staleTime,
             },
           },
