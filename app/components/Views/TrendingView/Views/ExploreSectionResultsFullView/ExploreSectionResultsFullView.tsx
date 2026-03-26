@@ -1,7 +1,13 @@
 import React, { useCallback, useRef } from 'react';
 import { Platform } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  NavigationProp,
+} from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
@@ -18,15 +24,6 @@ import {
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 import { TapView, trackExploreEvent } from '../../utils/exploreSearch';
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-type ExploreSectionResultsFullViewParams = {
-  ExploreSectionResultsFullView: {
-    sectionId: SectionId;
-    title: string;
-    searchQuery: string;
-  };
-};
 
 interface SectionContentProps {
   sectionId: SectionId;
@@ -115,14 +112,9 @@ const SectionContent: React.FC<SectionContentProps> = ({
 
 const ExploreSectionResultsFullView: React.FC = () => {
   const insets = useSafeAreaInsets();
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const route =
-    useRoute<
-      RouteProp<
-        ExploreSectionResultsFullViewParams,
-        'ExploreSectionResultsFullView'
-      >
-    >();
+    useRoute<RouteProp<RootStackParamList, 'ExploreSectionResultsFullView'>>();
 
   const { sectionId, title, searchQuery } = route.params;
   const section = SECTIONS_CONFIG[sectionId];

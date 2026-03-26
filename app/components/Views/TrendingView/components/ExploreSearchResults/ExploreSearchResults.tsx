@@ -1,6 +1,7 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, NavigationProp } from '@react-navigation/native';
+import type { RootStackParamList } from '../../../../../core/NavigationService/types';
 import {
   Box,
   Text,
@@ -58,7 +59,7 @@ type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
 }) => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
   const tw = useTailwind();
   const { data, isLoading, sectionsOrder } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
@@ -74,18 +75,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         searchQuery,
         sectionName: title,
       });
-      (
-        navigation as never as {
-          navigate: (
-            route: string,
-            params: {
-              sectionId: SectionId;
-              title: string;
-              searchQuery: string;
-            },
-          ) => void;
-        }
-      ).navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
+      navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
         sectionId,
         title,
         searchQuery,

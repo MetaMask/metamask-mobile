@@ -49,8 +49,8 @@ jest.mock('../../sections.config', () => {
         title: 'Trending tokens',
         RowItem: MockRowItem,
         Skeleton: MockSkeleton,
-        useSectionData: (searchQuery?: string) => ({
-          data: searchQuery !== undefined ? mockSectionData : mockSectionData,
+        useSectionData: () => ({
+          data: mockSectionData,
           isLoading: mockIsLoading,
           refetch: jest.fn(),
         }),
