@@ -2,6 +2,14 @@ import { renderHook, act } from '@testing-library/react-native';
 import { Dimensions } from 'react-native';
 import { useViewportTracking } from './useViewportTracking';
 
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+jest.mock('../../../../util/trace', () => ({
+  ...jest.requireActual('../../../../util/trace'),
+  trace: (...args: unknown[]) => mockTrace(...args),
+  endTrace: (...args: unknown[]) => mockEndTrace(...args),
+}));
+
 jest.useFakeTimers();
 
 const SCREEN_HEIGHT = Dimensions.get('window').height;
@@ -9,17 +17,21 @@ const SCREEN_HEIGHT = Dimensions.get('window').height;
 describe('useViewportTracking', () => {
   afterEach(() => {
     jest.clearAllTimers();
+    mockTrace.mockClear();
+    mockEndTrace.mockClear();
   });
 
   it('fires callback when component is fully visible on layout', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible));
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, 100);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, 100, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -33,11 +45,13 @@ describe('useViewportTracking', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible));
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, SCREEN_HEIGHT + 500);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, SCREEN_HEIGHT + 500, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -51,11 +65,13 @@ describe('useViewportTracking', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible));
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, SCREEN_HEIGHT - 40);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, SCREEN_HEIGHT - 40, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -69,11 +85,13 @@ describe('useViewportTracking', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible));
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, SCREEN_HEIGHT - 60);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, SCREEN_HEIGHT - 60, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -87,12 +105,14 @@ describe('useViewportTracking', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible));
 
-    let pageY = SCREEN_HEIGHT + 500;
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, pageY);
-    });
+    let y = SCREEN_HEIGHT + 500;
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, _y: number, w: number, h: number) => void) => {
+        cb(0, y, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -101,7 +121,7 @@ describe('useViewportTracking', () => {
 
     expect(onVisible).not.toHaveBeenCalled();
 
-    pageY = 100;
+    y = 100;
     act(() => {
       jest.advanceTimersByTime(250);
     });
@@ -113,11 +133,13 @@ describe('useViewportTracking', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible));
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, 100);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, 100, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -135,11 +157,13 @@ describe('useViewportTracking', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible));
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 0, 0, 100);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, 100, 300, 0);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -153,11 +177,13 @@ describe('useViewportTracking', () => {
     const onVisible = jest.fn();
     const { result } = renderHook(() => useViewportTracking(onVisible, 0.9));
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, SCREEN_HEIGHT - 60);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, SCREEN_HEIGHT - 60, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -174,11 +200,13 @@ describe('useViewportTracking', () => {
       useViewportTracking(onVisible),
     );
 
-    const mockMeasure = jest.fn((cb: (...args: number[]) => void) => {
-      cb(0, 0, 300, 100, 0, SCREEN_HEIGHT + 500);
-    });
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, SCREEN_HEIGHT + 500, 300, 100);
+      },
+    );
     (result.current.ref as { current: unknown }).current = {
-      measure: mockMeasure,
+      measureInWindow: mockMeasureInWindow,
     };
 
     act(() => {
@@ -192,5 +220,116 @@ describe('useViewportTracking', () => {
     });
 
     expect(onVisible).not.toHaveBeenCalled();
+  });
+
+  it('starts a trace on first layout and ends it on visibility', () => {
+    const onVisible = jest.fn();
+    const { result } = renderHook(() => useViewportTracking(onVisible));
+
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, 100, 300, 100);
+      },
+    );
+    (result.current.ref as { current: unknown }).current = {
+      measureInWindow: mockMeasureInWindow,
+    };
+
+    act(() => {
+      result.current.onLayout();
+    });
+
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Market Insights Viewport Tracking',
+        op: 'market_insights.viewport_tracking',
+      }),
+    );
+
+    expect(mockEndTrace).toHaveBeenCalledTimes(1);
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Market Insights Viewport Tracking',
+        data: expect.objectContaining({
+          measure_calls: 1,
+          resolved_by: 'visibility_threshold',
+        }),
+      }),
+    );
+  });
+
+  it('records measure_calls count when resolved via polling', () => {
+    const onVisible = jest.fn();
+    const { result } = renderHook(() => useViewportTracking(onVisible));
+
+    let y = SCREEN_HEIGHT + 500;
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, _y: number, w: number, h: number) => void) => {
+        cb(0, y, 300, 100);
+      },
+    );
+    (result.current.ref as { current: unknown }).current = {
+      measureInWindow: mockMeasureInWindow,
+    };
+
+    act(() => {
+      result.current.onLayout();
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(250);
+    });
+
+    act(() => {
+      jest.advanceTimersByTime(250);
+    });
+
+    y = 100;
+    act(() => {
+      jest.advanceTimersByTime(250);
+    });
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          measure_calls: 4,
+          resolved_by: 'visibility_threshold',
+        }),
+      }),
+    );
+  });
+
+  it('ends trace with unmount when component is never visible', () => {
+    const onVisible = jest.fn();
+    const { result, unmount } = renderHook(() =>
+      useViewportTracking(onVisible),
+    );
+
+    const mockMeasureInWindow = jest.fn(
+      (cb: (x: number, y: number, w: number, h: number) => void) => {
+        cb(0, SCREEN_HEIGHT + 500, 300, 100);
+      },
+    );
+    (result.current.ref as { current: unknown }).current = {
+      measureInWindow: mockMeasureInWindow,
+    };
+
+    act(() => {
+      result.current.onLayout();
+    });
+
+    expect(mockTrace).toHaveBeenCalledTimes(1);
+
+    unmount();
+
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: 'Market Insights Viewport Tracking',
+        data: expect.objectContaining({
+          resolved_by: 'unmount',
+        }),
+      }),
+    );
   });
 });
