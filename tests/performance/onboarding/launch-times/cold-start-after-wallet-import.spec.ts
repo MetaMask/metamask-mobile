@@ -1,4 +1,4 @@
-import { test } from '../../../framework/fixtures/performance';
+import { test } from '../../../framework/fixture';
 import WelcomeScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingCarousel.js';
 import TermOfUseScreen from '../../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
@@ -21,42 +21,21 @@ import ConfirmationScreen from '../../../../wdio/screen-objects/ConfirmationScre
 import WalletActionModal from '../../../../wdio/screen-objects/Modals/WalletActionModal.js';
 import AmountScreen from '../../../../wdio/screen-objects/AmountScreen.js';
 import MultichainAccountEducationModal from '../../../../wdio/screen-objects/Modals/MultichainAccountEducationModal.js';
-import AppwrightGestures from '../../../framework/AppwrightGestures';
+import AppwrightGestures from '../../../framework/AppwrightGestures.js';
 import LoginScreen from '../../../../wdio/screen-objects/LoginScreen.js';
 import {
   PerformanceOnboarding,
   PerformanceLaunch,
 } from '../../../tags.performance.js';
+import PlaywrightGestures from '../../../framework/PlaywrightGestures';
 
 test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
   test(
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
-    async ({ device, performanceTracker }, testInfo) => {
-      WelcomeScreen.device = device;
-      TermOfUseScreen.device = device;
-      OnboardingScreen.device = device;
-      CreateNewWalletScreen.device = device;
-      MetaMetricsScreen.device = device;
-      OnboardingSucessScreen.device = device;
-      OnboardingSheet.device = device;
-      WalletAccountModal.device = device;
-      SkipAccountSecurityModal.device = device;
-      ImportFromSeedScreen.device = device;
-      CreatePasswordScreen.device = device;
-      WalletMainScreen.device = device;
-      AccountListComponent.device = device;
-      AddAccountModal.device = device;
-      WalletActionModal.device = device;
-      ConfirmationScreen.device = device;
-      AmountScreen.device = device;
-      MultichainAccountEducationModal.device = device;
-      LoginScreen.device = device;
-      WalletActionModal.device = device;
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await onboardingFlowImportSRP(device, process.env.TEST_SRP_3);
-      // await importSRPFlow(device, process.env.TEST_SRP_2);
-      // await importSRPFlow(device, process.env.TEST_SRP_3);
-      await AppwrightGestures.terminateApp(device);
+      await PlaywrightGestures.terminateApp();
       await AppwrightGestures.activateApp(device);
       await LoginScreen.waitForScreenToDisplay();
       await login(device, {
