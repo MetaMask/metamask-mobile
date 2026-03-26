@@ -470,6 +470,7 @@ const Routes = {
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
       VIEW_PIN: 'CardViewPinModal',
+      SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
     },
   },
   SEND: {
