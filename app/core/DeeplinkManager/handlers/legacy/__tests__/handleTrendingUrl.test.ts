@@ -1,8 +1,13 @@
+import { InteractionManager } from 'react-native';
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux';
 import Routes from '../../../../../constants/navigation/Routes';
 import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
 import { handleTrendingUrl } from '../handleTrendingUrl';
+
+// Mock Variable used for testing purposes only
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type MockedVar = any;
 
 jest.mock('../../../../NavigationService', () => ({
   navigation: {
@@ -39,6 +44,14 @@ describe('handleTrendingUrl - stocks deeplink (screen=stocks)', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    jest
+      .mocked(InteractionManager.runAfterInteractions)
+      .mockImplementation((task) => {
+        if (typeof task === 'function') {
+          task();
+        }
+        return null as MockedVar;
+      });
   });
 
   const geoBlockedCases = [...ONDO_RESTRICTED_COUNTRIES].map((location) => ({
@@ -86,7 +99,9 @@ describe('handleTrendingUrl - stocks deeplink (screen=stocks)', () => {
 
       handleTrendingUrl({ actionPath: '?screen=stocks' });
 
-      expect(mockNavigate).toHaveBeenCalledWith(
+      expect(mockNavigate).toHaveBeenNthCalledWith(1, Routes.TRENDING_VIEW);
+      expect(mockNavigate).toHaveBeenNthCalledWith(
+        2,
         Routes.WALLET.RWA_TOKENS_FULL_VIEW,
       );
     },

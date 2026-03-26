@@ -1,3 +1,4 @@
+import { InteractionManager } from 'react-native';
 import NavigationService from '../../../NavigationService';
 import Routes from '../../../../constants/navigation/Routes';
 import ReduxService from '../../../redux';
@@ -35,7 +36,10 @@ const shouldOpenStocksScreen = (): boolean => {
 export function handleTrendingUrl({ actionPath }: HandleTrendingUrlParams) {
   // Explore -> Stocks Deeplink
   if (isStocksPath(actionPath) && shouldOpenStocksScreen()) {
-    NavigationService.navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
+    NavigationService.navigation.navigate(Routes.TRENDING_VIEW);
+    InteractionManager.runAfterInteractions(() => {
+      NavigationService.navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
+    });
     return;
   }
 
