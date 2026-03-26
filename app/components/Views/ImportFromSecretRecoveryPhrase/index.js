@@ -708,6 +708,9 @@ const ImportFromSecretRecoveryPhrase = ({
                     />
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
+                  }
                 />
                 <Text
                   variant={TextVariant.BodySm}
@@ -758,6 +761,9 @@ const ImportFromSecretRecoveryPhrase = ({
                     />
                   }
                   testID={ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                  }
                   isDisabled={password === ''}
                 />
                 {isError && (

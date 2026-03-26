@@ -154,8 +154,38 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
   const passwordLoginAttemptTraceCtxRef = useRef<TraceContext | null>(null);
 
-  const { unlockWallet, getAuthType, requestBiometricsAccessControlForIOS } =
-    useAuthentication();
+  const {
+    unlockWallet,
+    getAuthType,
+    requestBiometricsAccessControlForIOS,
+    updateAuthPreference,
+  } = useAuthentication();
+
+  /**
+   * After a successful password unlock, offer device auth / biometrics for keychain storage.
+   */
+  const upgradeKeychainAuthAfterSuccessfulUnlock = useCallback(async () => {
+    try {
+      const upgradeAuthType = await requestBiometricsAccessControlForIOS(
+        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+      );
+      if (upgradeAuthType !== AUTHENTICATION_TYPE.PASSWORD) {
+        await updateAuthPreference({
+          authType: upgradeAuthType,
+          password,
+          fallbackToPassword: true,
+        });
+      }
+    } catch (postUnlockAuthErr) {
+      Logger.error(
+        ensureError(
+          postUnlockAuthErr,
+          'Post-unlock auth preference update failed',
+        ),
+        'OAuthRehydration: post-unlock biometric preference',
+      );
+    }
+  }, [password, requestBiometricsAccessControlForIOS, updateAuthPreference]);
 
   const track = useCallback(
     (
@@ -491,14 +521,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // Ask user to allow biometrics access control
-      const authType = await requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-
-      // Only set oauth2Login for normal rehydration, not when password is outdated
+      // Password first: do not prompt biometrics until unlock succeeds
       const authData: AuthData = {
-        currentAuthType: authType,
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         oauth2Login: true,
       };
 
@@ -511,6 +536,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           await unlockWallet({ password, authPreference: authData });
         },
       );
+
+      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
@@ -548,7 +575,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     track,
     promptBiometricFailedAlert,
     unlockWallet,
-    requestBiometricsAccessControlForIOS,
+    upgradeKeychainAuthAfterSuccessfulUnlock,
     accountType,
   ]);
 
@@ -558,14 +585,9 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
       setLoading(true);
 
-      // Ask user to allow biometrics access control
-      const authType = await requestBiometricsAccessControlForIOS(
-        AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
-      );
-
-      // Only set oauth2Login for normal rehydration, not when password is outdated
+      // biometrics/passcode preference is applied only after sync succeeds
       const authData: AuthData = {
-        currentAuthType: authType,
+        currentAuthType: AUTHENTICATION_TYPE.PASSWORD,
         oauth2Login: false,
       };
 
@@ -578,6 +600,8 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           await unlockWallet({ password, authPreference: authData });
         },
       );
+
+      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
@@ -600,7 +624,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
     handleLoginError,
     promptBiometricFailedAlert,
     unlockWallet,
-    requestBiometricsAccessControlForIOS,
+    upgradeKeychainAuthAfterSuccessfulUnlock,
   ]);
 
   // Cleanup for isMountedRef tracking

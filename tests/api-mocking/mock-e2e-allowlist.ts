@@ -14,6 +14,7 @@ export const ALLOWLISTED_HOSTS = [
   'nft.dev-api.cx.metamask.io',
   'nft.uat-api.cx.metamask.io',
   'nft.api.cx.metamask.io',
+  'digest.dev-api.cx.metamask.io', // Market digest API for tokens
   'gamma-api.polymarket.com',
   'clob.polymarket.com',
   '*.polymarket.com',

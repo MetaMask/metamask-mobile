@@ -12,15 +12,13 @@ import {
   IconName,
   IconSize,
   IconColor,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
   CardTokenAllowance,
   DelegationSettingsResponse,
@@ -119,7 +117,6 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
     cancel,
     skip,
     isValid,
-    isSolanaSelected,
   } = useSpendingLimit({
     flow,
     initialToken: selectedTokenFromRoute,
@@ -208,19 +205,21 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
           </Text>
           <Box twClassName="w-full gap-3">
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_spending_limit.retry')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
               onPress={fetchHookData}
-              width={ButtonWidthTypes.Full}
-            />
+              isFullWidth
+            >
+              {strings('card.card_spending_limit.retry')}
+            </Button>
             <Button
-              variant={ButtonVariants.Secondary}
-              label={strings('card.card_spending_limit.skip')}
+              variant={ButtonVariant.Secondary}
               size={ButtonSize.Md}
               onPress={skip}
-              width={ButtonWidthTypes.Full}
-            />
+              isFullWidth
+            >
+              {strings('card.card_spending_limit.skip')}
+            </Button>
           </Box>
         </Box>
       </SafeAreaView>
@@ -328,47 +327,29 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
 
         {/* Footer Buttons */}
         <Box twClassName="gap-3 mt-6">
-          {/* Solana Warning */}
-          {isSolanaSelected && (
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="p-3 bg-warning-muted rounded-lg items-center"
-            >
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                color={IconColor.WarningDefault}
-              />
-              <Text
-                variant={TextVariant.BodySm}
-                twClassName="flex-1 ml-2 text-warning-default"
-              >
-                {strings('card.card_spending_limit.solana_not_supported')}
-              </Text>
-            </Box>
-          )}
-
           <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-3">
             <Box twClassName="flex-1">
               <Button
-                variant={ButtonVariants.Secondary}
-                label={strings('card.card_spending_limit.cancel')}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 onPress={isOnboardingFlow ? skip : cancel}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 isDisabled={isLoading}
-              />
+              >
+                {strings('card.card_spending_limit.cancel')}
+              </Button>
             </Box>
             <Box twClassName="flex-1">
               <Button
-                variant={ButtonVariants.Primary}
-                label={strings('card.card_spending_limit.confirm_new_limit')}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={submit}
-                width={ButtonWidthTypes.Full}
+                isFullWidth
                 isDisabled={!isValid || isLoading}
-                loading={isLoading}
-              />
+                isLoading={isLoading}
+              >
+                {strings('card.card_spending_limit.confirm_new_limit')}
+              </Button>
             </Box>
           </Box>
         </Box>
