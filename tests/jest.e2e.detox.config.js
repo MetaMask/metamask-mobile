@@ -8,10 +8,6 @@ require('dotenv').config({ path: '.e2e.env' });
 module.exports = {
   rootDir: '..',
   testMatch: ['<rootDir>/tests/**/*.spec.{js,ts}'],
-  // Appwright / Playwright performance specs under tests/performance must not run under
-  // Jest+Detox (they use @playwright/test APIs and fail with "test.beforeAll() did not expect...").
-  // Same exclusion intent as root jest.config.js testPathIgnorePatterns.
-  testPathIgnorePatterns: ['<rootDir>/tests/performance/'],
   testTimeout: 300000,
   maxWorkers: 1,
   clearMocks: true,

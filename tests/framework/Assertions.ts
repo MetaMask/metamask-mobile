@@ -32,21 +32,9 @@ export default class Assertions {
           // eslint-disable-next-line jest/valid-expect, @typescript-eslint/no-explicit-any
           await (expect(el) as any).toExist();
         } else if (device.getPlatform() === 'ios') {
-          // 100ms is too aggressive after rehydration / navigation; scale with outer timeout
-          // so iOS has time to mount native views between executeWithRetry attempts.
-          const iosExistWaitMs = Math.min(
-            2500,
-            Math.max(500, Math.floor(timeout / 8)),
-          );
-          await waitFor(el).toExist().withTimeout(iosExistWaitMs);
+          await waitFor(el).toExist().withTimeout(100);
         } else {
-          // Match iOS: a fixed 100ms per attempt is too aggressive on Android after
-          // rehydration (Fabric mount errors) and heavy fixtures.
-          const androidVisibleWaitMs = Math.min(
-            2500,
-            Math.max(500, Math.floor(timeout / 8)),
-          );
-          await waitFor(el).toBeVisible().withTimeout(androidVisibleWaitMs);
+          await waitFor(el).toBeVisible().withTimeout(100);
         }
       },
       {
