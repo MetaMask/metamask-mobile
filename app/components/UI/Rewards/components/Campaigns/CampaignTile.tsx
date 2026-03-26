@@ -64,8 +64,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const {
     status: campaignStatus,
     statusLabel,
-    dateLabel,
-    dateLabelIcon,
+    /* dateLabel,
+    dateLabelIcon, */
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
   const isInteractive =
@@ -123,18 +123,7 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
             twClassName="gap-1"
             testID="campaign-tile-date-label"
           >
-            <Icon
-              name={dateLabelIcon}
-              size={IconSize.Sm}
-              color={IconColor.OverlayInverse}
-            />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.OverlayInverse}
-              fontWeight={FontWeight.Medium}
-            >
-              {dateLabel}
-            </Text>
+            {/* removed content for now; will be moved to bottom half of card instead */}
           </Box>
           <Box>
             <Box>
