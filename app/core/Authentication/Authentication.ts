@@ -845,34 +845,31 @@ class AuthenticationService {
     } catch (error) {
       // Error while submitting password.
 
-      let shouldResetOnLock = false;
+      const errorToHandle = ensureError(error, 'Unlock wallet failed');
+      Alert.alert(errorToHandle.message);
+      const shouldResetOnLock = false;
       // check for specific error
-      if (
-        error instanceof Error &&
-        error.message.includes(
-          UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
-        )
-      ) {
-        shouldResetOnLock = await new Promise<boolean>((resolve) => {
-          // Alert user biometric changed
-          Alert.alert(
-            strings('login.biometric_changed'),
-            strings('login.biometric_changed_alert_desc'),
-            [
-              {
-                text: strings('login.biometric_changed_alert_confirm'),
-                onPress: async () => {
-                  resolve(true);
-                },
-              },
-            ],
-            {
-              // Prevent dismissing without confirmation, which can otherwise deadlock unlock flow.
-              cancelable: false,
-            },
-          );
-        });
-      }
+      // if (errorToHandle.message.includes(UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED)) {
+      //   shouldResetOnLock = await new Promise<boolean>((resolve) => {
+      //     // Alert user biometric changed
+      //     Alert.alert(
+      //       strings('login.biometric_changed'),
+      //       strings('login.biometric_changed_alert_desc'),
+      //       [
+      //         {
+      //           text: strings('login.biometric_changed_alert_confirm'),
+      //           onPress: async () => {
+      //             resolve(true);
+      //           },
+      //         },
+      //       ],
+      //       {
+      //         // Prevent dismissing without confirmation, which can otherwise deadlock unlock flow.
+      //         cancelable: false,
+      //       },
+      //     );
+      //   });
+      // }
 
       // TODO: Refactor lockApp to be more deterministic or create another clean up method.
       try {
