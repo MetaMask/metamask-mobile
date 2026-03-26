@@ -1,7 +1,6 @@
 import { LoginViewSelectors } from '../../../app/components/Views/Login/LoginView.testIds';
 import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
-import { PlaywrightAssertions } from '../../framework';
 import {
   encapsulated,
   EncapsulatedElementType,
@@ -19,19 +18,20 @@ class LoginView {
 
   get passwordInput(): EncapsulatedElementType {
     return encapsulated({
-      // Use getElementByID: testID is on the native TextInput (component-library
-      // TextField). iOS secure text fields often omit accessibilityLabel from the
-      // hierarchy, so by.label is unreliable; accessibilityIdentifier from testID is stable.
-      detox: () => Matchers.getElementByID(LoginViewSelectors.PASSWORD_INPUT),
+      // Use getElementByLabel so Detox targets the inner TextInput (EditText on
+      // Android) rather than the outer Pressable container which carries the
+      // testID but has no input connection and therefore rejects typeText.
+      detox: () =>
+        Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            LoginViewSelectors.PASSWORD_INPUT,
-          ),
-        ios: () =>
           PlaywrightMatchers.getElementById(LoginViewSelectors.PASSWORD_INPUT, {
             exact: true,
           }),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            LoginViewSelectors.PASSWORD_INPUT,
+          ),
       },
     });
   }
@@ -58,9 +58,7 @@ class LoginView {
     return encapsulated({
       detox: () => Matchers.getElementByID(LoginViewSelectors.TITLE_ID),
       appium: () =>
-        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID, {
-          exact: true,
-        }),
+        PlaywrightMatchers.getElementById(LoginViewSelectors.TITLE_ID),
     });
   }
 
@@ -91,13 +89,8 @@ class LoginView {
   async waitForScreenToDisplay(): Promise<void> {
     await encapsulatedAction({
       appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(this.title),
-          {
-            timeout: 15000,
-            description: 'Login title should be visible',
-          },
-        );
+        const titleEl = await asPlaywrightElement(this.title);
+        await titleEl.waitForDisplayed({ timeout: 15000 });
       },
     });
   }
