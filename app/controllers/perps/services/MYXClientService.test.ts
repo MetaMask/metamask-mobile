@@ -1048,16 +1048,14 @@ describe('MYXClientService', () => {
   // ==========================================================================
 
   describe('authenticate', () => {
-    it('calls SDK auth with signer, getAccessToken, and walletClient', async () => {
+    it('calls SDK auth with walletClient only', async () => {
       const walletClient = {};
 
       await service.authenticate(mockSignerLike, walletClient, '0xuser');
 
       expect(mockAuth).toHaveBeenCalledWith(
         expect.objectContaining({
-          signer: mockSignerLike,
           walletClient,
-          getAccessToken: expect.any(Function),
         }),
       );
     });

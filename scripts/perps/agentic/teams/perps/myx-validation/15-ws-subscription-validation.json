@@ -1,0 +1,85 @@
+{
+  "title": "MYX: WebSocket Subscription Validation",
+  "pr": "myx-write-integration",
+  "initial_conditions": { "testnet": true },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        "perps.myx_testnet_ready",
+        "perps.sufficient_balance"
+      ],
+      "steps": [
+        {
+          "id": "verify-ws-auth",
+          "description": "Verify WS auth succeeded in Metro logs (walletClient-only auth pattern)",
+          "action": "log_watch",
+          "window_seconds": 30,
+          "watch_for": ["WebSocket auth successful"],
+          "must_not_appear": ["WebSocket auth failed"]
+        },
+        {
+          "id": "verify-ws-subscriptions",
+          "description": "Verify position + order WS subscriptions are active",
+          "action": "log_watch",
+          "window_seconds": 30,
+          "watch_for": [
+            "Position WS subscription active",
+            "Order WS subscription active"
+          ]
+        },
+        {
+          "id": "auth-check",
+          "description": "Verify MYX provider is authenticated",
+          "action": "eval_ref",
+          "ref": "myx/auth",
+          "assert": { "operator": "eq", "field": "ready", "value": true }
+        },
+        {
+          "id": "pre-snapshot",
+          "description": "Snapshot position count before trade",
+          "action": "eval_ref",
+          "ref": "myx/pre-trade"
+        },
+        {
+          "id": "open-position",
+          "description": "Place market buy via UI to trigger WS events",
+          "action": "flow_ref",
+          "ref": "trade-open-market",
+          "params": { "symbol": "META", "side": "long", "usdAmount": "150" }
+        },
+        {
+          "id": "wait-position",
+          "description": "Poll until position appears (WS should deliver faster than REST polling)",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "verify-position",
+          "description": "Verify position details after trade",
+          "action": "eval_ref",
+          "ref": "myx/post-trade",
+          "assert": { "operator": "gt", "field": "positionCount", "value": 0 }
+        },
+        {
+          "id": "cleanup",
+          "description": "Close all positions to leave account clean",
+          "action": "eval_ref",
+          "ref": "myx/close-all-positions"
+        },
+        {
+          "id": "wait-closed",
+          "description": "Poll until all positions are gone",
+          "action": "wait_for",
+          "expression": "(function(){var c=Engine.context.PerpsController;var p=c.providers.get('myx');if(!p)return JSON.stringify({count:0});return p.getPositions().then(function(r){return JSON.stringify({count:r.length})})})()",
+          "timeout_ms": 60000,
+          "poll_ms": 2000,
+          "assert": { "operator": "eq", "field": "count", "value": 0 }
+        }
+      ]
+    }
+  }
+}

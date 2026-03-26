@@ -251,28 +251,14 @@ export async function authenticateClient(
   client: MyxClient,
   config: NetworkConfig,
 ): Promise<void> {
-  const signer = createSigner(config);
   const walletClient = createViemWalletClient(config);
 
-  const getAccessToken = async () => {
-    const token = await generateAccessToken(config, ADDRESS);
-    const prefixed = token.accessToken.startsWith('sdk.')
-      ? token.accessToken
-      : `sdk.${token.accessToken}`;
-    return { accessToken: prefixed, expireAt: token.expireAt };
-  };
-
-  // Cast needed on signer: SDK expects ethers v6 Signer, we use ethers v5 Wallet.
-  // The runtime interface is compatible but the types differ.
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  client.auth({
-    signer: signer as unknown as Parameters<typeof client.auth>[0]['signer'],
-    getAccessToken,
+  // MYX example: await client.auth({ walletClient }) — walletClient only, no signer/getAccessToken.
+  // The SDK handles token generation internally when walletClient is provided.
+  await client.auth({
     walletClient,
   });
 
-  // Trigger token generation to verify auth works
-  await getAccessToken();
   console.log('Authentication successful');
 }
 

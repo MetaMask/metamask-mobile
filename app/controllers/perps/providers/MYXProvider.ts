@@ -2287,20 +2287,15 @@ export class MYXProvider implements PerpsProvider {
   }
 
   // ============================================================================
-  // Subscriptions (WS + REST heartbeat hybrid)
+  // Subscriptions (WS for instant updates + REST polling for continuous refresh)
   // ============================================================================
 
   subscribeToPositions(params: SubscribePositionsParams): () => void {
-    // Hybrid: WS subscription for instant pushes + REST heartbeat as safety net.
-    // MYX SDK subscribePosition() is wired but server doesn't push yet
-    // (verified via PoC wsSubscriptions.ts). REST heartbeat ensures freshness.
-    // When MYX enables push, the WS callback will deliver instant updates
-    // and the REST poll acts as a fallback only.
     let cancelled = false;
     let wsCallback: ((data: unknown) => void) | null = null;
     let pollTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const pollPositions = async (): Promise<void> => {
+    const fetchAndNotify = async (): Promise<void> => {
       if (cancelled) {
         return;
       }
@@ -2313,43 +2308,27 @@ export class MYXProvider implements PerpsProvider {
         // Non-fatal: keep polling
       }
       if (!cancelled) {
-        pollTimeout = setTimeout(pollPositions, MYX_PRICE_POLLING_INTERVAL_MS);
+        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
       }
     };
 
     const setup = async (): Promise<void> => {
       try {
         await this.#ensureAuthenticated();
-        const address = this.#getWalletService().getUserAddress();
 
-        // Attempt WS subscription (non-fatal if it fails)
         try {
-          wsCallback = (rawData: unknown): void => {
-            if (cancelled) {
-              return;
-            }
-            const rawPositions = Array.isArray(rawData) ? rawData : [];
-            this.#adaptAndEnrichPositions(
-              rawPositions as import('../types/myx-types').MYXPositionType[],
-              address,
-            )
-              .then((positions) => {
-                if (!cancelled) {
-                  params.callback(positions);
-                }
-                return undefined;
-              })
-              .catch((adaptError) => {
-                this.#deps.debugLogger.log(
-                  '[MYXProvider] WS position adapt error',
-                  { error: String(adaptError) },
-                );
-              });
+          wsCallback = (): void => {
+            fetchAndNotify().catch((callbackError: unknown) => {
+              this.#deps.debugLogger.log(
+                '[MYXProvider] WS position callback error',
+                { error: String(callbackError) },
+              );
+            });
           };
 
           await this.#clientService.subscribeToPositions(wsCallback);
           this.#deps.debugLogger.log(
-            '[MYXProvider] Position WS subscription active, REST heartbeat continues',
+            '[MYXProvider] Position WS subscription active',
           );
         } catch (wsError) {
           wsCallback = null;
@@ -2359,11 +2338,11 @@ export class MYXProvider implements PerpsProvider {
           );
         }
       } catch {
-        // Auth failed — REST polling still works (getPositions calls ensureAuthenticated)
+        // Auth failed — polling still works
       }
 
-      // Always run REST heartbeat polling
-      pollPositions().catch(() => {
+      // Start polling (also serves as initial fetch)
+      fetchAndNotify().catch(() => {
         // Error handled inside
       });
     };
@@ -2422,12 +2401,11 @@ export class MYXProvider implements PerpsProvider {
   }
 
   subscribeToOrders(params: SubscribeOrdersParams): () => void {
-    // Hybrid: WS subscription for instant pushes + REST heartbeat as safety net.
     let cancelled = false;
     let wsCallback: ((data: unknown) => void) | null = null;
     let pollTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const pollOrders = async (): Promise<void> => {
+    const fetchAndNotify = async (): Promise<void> => {
       if (cancelled) {
         return;
       }
@@ -2440,7 +2418,7 @@ export class MYXProvider implements PerpsProvider {
         // Non-fatal: keep polling
       }
       if (!cancelled) {
-        pollTimeout = setTimeout(pollOrders, MYX_PRICE_POLLING_INTERVAL_MS);
+        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
       }
     };
 
@@ -2448,33 +2426,19 @@ export class MYXProvider implements PerpsProvider {
       try {
         await this.#ensureAuthenticated();
 
-        // Attempt WS subscription (non-fatal if it fails)
         try {
-          wsCallback = (rawData: unknown): void => {
-            if (cancelled) {
-              return;
-            }
-            try {
-              const rawOrders = Array.isArray(rawData) ? rawData : [];
-              const orders = rawOrders.map((order) =>
-                adaptOrderItemFromMYX(
-                  order as import('../types/myx-types').MYXOrderItem,
-                  this.#poolSymbolMap,
-                ),
+          wsCallback = (): void => {
+            fetchAndNotify().catch((callbackError: unknown) => {
+              this.#deps.debugLogger.log(
+                '[MYXProvider] WS order callback error',
+                { error: String(callbackError) },
               );
-              if (!cancelled) {
-                params.callback(orders);
-              }
-            } catch (adaptError) {
-              this.#deps.debugLogger.log('[MYXProvider] WS order adapt error', {
-                error: String(adaptError),
-              });
-            }
+            });
           };
 
           await this.#clientService.subscribeToOrders(wsCallback);
           this.#deps.debugLogger.log(
-            '[MYXProvider] Order WS subscription active, REST heartbeat continues',
+            '[MYXProvider] Order WS subscription active',
           );
         } catch (wsError) {
           wsCallback = null;
@@ -2484,11 +2448,10 @@ export class MYXProvider implements PerpsProvider {
           );
         }
       } catch {
-        // Auth failed — REST polling still works (getOpenOrders calls ensureAuthenticated)
+        // Auth failed — polling still works
       }
 
-      // Always run REST heartbeat polling
-      pollOrders().catch(() => {
+      fetchAndNotify().catch(() => {
         // Error handled inside
       });
     };

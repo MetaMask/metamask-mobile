@@ -19,13 +19,11 @@ import type {
 import { ChainId, MyxClient } from '@myx-trade/sdk';
 
 import {
-  MYX_API_TOKEN_EXPIRY_SECONDS,
   MYX_MARKETS_CACHE_TTL_MS,
   MYX_PRICE_POLLING_INTERVAL_MS,
   MYX_COLLATERAL_TOKEN_MAINNET,
   MYX_COLLATERAL_TOKEN_TESTNET,
   getMYXChainId,
-  getMYXHttpEndpoint,
 } from '../constants/myxConfig';
 import { PERPS_CONSTANTS, ZERO_ADDRESS } from '../constants/perpsConfig';
 import type { PerpsPlatformDependencies } from '../types';
@@ -445,7 +443,7 @@ export class MYXClientService {
       return;
     }
 
-    this.#authenticating = this.#doAuthenticate(signer, walletClient, address);
+    this.#authenticating = this.#doAuthenticate(walletClient, address);
     try {
       await this.#authenticating;
     } finally {
@@ -453,48 +451,16 @@ export class MYXClientService {
     }
   }
 
-  async #doAuthenticate(
-    signer: SignerLike,
-    walletClient: unknown,
-    address: string,
-  ): Promise<void> {
+  async #doAuthenticate(walletClient: unknown, address: string): Promise<void> {
     try {
       this.#deps.debugLogger.log('[MYXClientService] Authenticating...', {
         address: `${address.slice(0, 6)}...${address.slice(-4)}`,
       });
 
-      // Create getAccessToken callback for the SDK.
-      // The SDK calls this when it needs a fresh token.
-      // Must return {accessToken, expireAt} or undefined.
-      const getAccessToken = async (): Promise<
-        { accessToken: string; expireAt: number } | undefined
-      > => {
-        try {
-          const token = await this.#generateAccessToken(address);
-          if (!token) {
-            return undefined;
-          }
-          // Workaround: MYX WS requires 'sdk.' prefix on access tokens.
-          // The SDK's subscription.auth() omits it — prepend here.
-          // Guard against double-prefix if SDK fixes this in the future.
-          const prefixed = token.accessToken.startsWith('sdk.')
-            ? token.accessToken
-            : `sdk.${token.accessToken}`;
-          return { accessToken: prefixed, expireAt: token.expireAt };
-        } catch (tokenError) {
-          this.#deps.debugLogger.log(
-            '[MYXClientService] Token generation failed',
-            { error: String(tokenError) },
-          );
-          return undefined;
-        }
-      };
-
-      // walletClient is our adapter satisfying viem WalletClient shape at runtime;
-      // SDK types expect viem's WalletClient which we can't import without adding viem.
+      // MYX example pattern: auth with walletClient only.
+      // The SDK handles token generation internally when walletClient is provided.
+      // No signer or getAccessToken callback needed.
       this.#myxClient.auth({
-        signer,
-        getAccessToken,
         // @ts-expect-error Adapter implements the WalletClient subset the SDK uses at runtime; full viem type unavailable without adding viem
         walletClient,
       });
@@ -502,8 +468,7 @@ export class MYXClientService {
       this.#authenticatedAddress = address.toLowerCase();
 
       // Authenticate the WebSocket connection for private subscriptions
-      // (positions, orders). Must be called after myxClient.auth() which
-      // registers the getAccessToken callback used by subscription.auth().
+      // (positions, orders). Must be called after myxClient.auth().
       try {
         await this.#myxClient.subscription.auth();
         this.#deps.debugLogger.log(
@@ -531,88 +496,6 @@ export class MYXClientService {
       );
       throw wrappedError;
     }
-  }
-
-  // ============================================================================
-  // Token Generation (moved from myxConfig.ts)
-  // ============================================================================
-
-  /**
-   * Compute SHA-256 hex digest using the Web Crypto API (available in React Native).
-   *
-   * @param input - The string to hash.
-   * @returns Hex-encoded SHA-256 digest.
-   */
-  async #sha256Hex(input: string): Promise<string> {
-    const encoder = new TextEncoder();
-    const data = encoder.encode(input);
-    const hashBuffer = await globalThis.crypto.subtle.digest(
-      'SHA-256',
-      data.buffer as ArrayBuffer,
-    );
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
-  }
-
-  /**
-   * Generate MYX access token via Token API.
-   * Token = SHA256({appId}&{timestamp}&{expireTime}&{address}&{secret})
-   *
-   * @param address - User wallet address.
-   * @returns Access token response with token string and expiry.
-   */
-  async #generateAccessToken(
-    address: string,
-  ): Promise<{ accessToken: string; expireAt: number }> {
-    const { appId, apiSecret } = this.#authConfig;
-
-    if (!appId || !apiSecret) {
-      throw new Error(
-        `MYX credentials not configured for ${this.#network}. Ensure MM_PERPS_MYX_APP_ID and MM_PERPS_MYX_API_SECRET are set in .js.env`,
-      );
-    }
-
-    const timestamp = Math.floor(Date.now() / 1000);
-    const expireTime = MYX_API_TOKEN_EXPIRY_SECONDS; // Server computes expireAt = timestamp + expireTime
-    const signString = `${appId}&${timestamp}&${expireTime}&${address}&${apiSecret}`;
-    const signature = await this.#sha256Hex(signString);
-
-    // GET request with query params (per SDK integration guide)
-    const params = new URLSearchParams({
-      appId,
-      timestamp: String(timestamp),
-      expireTime: String(expireTime),
-      allowAccount: address,
-      signature,
-    });
-
-    const tokenApiUrl = `${getMYXHttpEndpoint(this.#network)}/openapi/gateway/auth/api_key/create_token`;
-
-    const response = await fetch(`${tokenApiUrl}?${params.toString()}`);
-
-    if (!response.ok) {
-      throw new Error(`MYX token API request failed: ${response.status}`);
-    }
-
-    const result = (await response.json()) as {
-      code: number;
-      data?: { accessToken: string; expireAt: number };
-      message?: string;
-    };
-
-    if (
-      (result.code !== 9200 && result.code !== 0) ||
-      !result.data?.accessToken
-    ) {
-      throw new Error(
-        `MYX token API error: code=${result.code} message=${result.message ?? 'unknown'}`,
-      );
-    }
-
-    return {
-      accessToken: result.data.accessToken,
-      expireAt: result.data.expireAt,
-    };
   }
 
   /**
