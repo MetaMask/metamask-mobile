@@ -5,11 +5,11 @@ import {
   PlaywrightTestConfig,
   ReporterDescription,
 } from '@playwright/test';
-import { WebDriverConfig } from '../types.ts';
+import { WebDriverConfig } from '../types';
 import {
   DEFAULT_ACTION_TIMEOUT_MS,
   DEFAULT_IMPLICIT_WAIT_MS,
-} from '../Constants.ts';
+} from '../Constants';
 
 const resolveGlobalSetup = () => path.join(__dirname, 'global.setup.ts');
 

@@ -1,3 +1,4 @@
+import { CurrentDeviceDetails } from './fixture';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
@@ -167,20 +168,21 @@ export default class PlaywrightGestures {
 
   /**
    * Terminate the app
-   * @param packageName - The package name of the app to terminate (Android only)
-   * @param appId - The app id of the app to terminate (iOS only)
+   * @param currentDeviceDetails - The current device details
    */
   @boxedStep
   static async terminateApp(
-    packageName?: string,
-    appId?: string,
+    currentDeviceDetails: CurrentDeviceDetails,
   ): Promise<void> {
     const driver = getDriver();
     if (!driver) throw new Error('Driver is not available');
-    if ((await PlatformDetector.isAndroid()) && packageName) {
-      await driver.terminateApp(packageName);
-    } else if ((await PlatformDetector.isIOS()) && appId) {
-      await driver.terminateApp(appId);
+    if (
+      (await PlatformDetector.isAndroid()) &&
+      currentDeviceDetails.packageName
+    ) {
+      await driver.terminateApp(currentDeviceDetails.packageName);
+    } else if ((await PlatformDetector.isIOS()) && currentDeviceDetails.appId) {
+      await driver.terminateApp(currentDeviceDetails.appId);
     } else {
       throw new Error('Package name or app id is not available');
     }
