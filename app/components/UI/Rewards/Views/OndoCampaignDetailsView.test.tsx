@@ -16,10 +16,28 @@ import Routes from '../../../../constants/navigation/Routes';
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
 
-jest.mock('@react-navigation/native', () => ({
-  useNavigation: () => ({ goBack: mockGoBack, navigate: mockNavigate }),
-  useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
-}));
+jest.mock('@react-navigation/native', () => {
+  const React = jest.requireActual('react');
+  return {
+    useNavigation: () => ({
+      goBack: mockGoBack,
+      navigate: mockNavigate,
+      addListener: jest.fn(() => jest.fn()),
+      isFocused: () => true,
+    }),
+    useRoute: () => ({ params: { campaignId: 'campaign-1' } }),
+    /**
+     * Stub: run the focus callback on mount / when memoized callback deps change.
+     * (Real `useFocusEffect` needs a navigator; `CampaignJoinCTA` uses this hook.)
+     */
+    useFocusEffect: (effect: () => void | (() => void)) => {
+      React.useEffect(() => {
+        const cleanup = effect();
+        return typeof cleanup === 'function' ? cleanup : undefined;
+      }, [effect]);
+    },
+  };
+});
 
 jest.mock('react-native-safe-area-context', () => {
   const ReactActual = jest.requireActual('react');
