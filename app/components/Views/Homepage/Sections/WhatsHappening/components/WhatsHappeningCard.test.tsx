@@ -4,6 +4,13 @@ import renderWithProvider from '../../../../../../util/test/renderWithProvider';
 import WhatsHappeningCard from './WhatsHappeningCard';
 import type { WhatsHappeningItem } from '../types';
 
+const mockRelatedAsset = {
+  sourceAssetId: 'btc-mainnet',
+  symbol: 'BTC',
+  name: 'Bitcoin',
+  caip19: ['eip155:1/slip44:0'],
+};
+
 const baseItem: WhatsHappeningItem = {
   id: 'trend-0',
   title: 'Bitcoin ETF inflows hit record high',
@@ -11,7 +18,7 @@ const baseItem: WhatsHappeningItem = {
   date: '2026-03-15T10:00:00.000Z',
   category: 'macro',
   impact: 'positive',
-  relatedAssets: ['BTC'],
+  relatedAssets: [mockRelatedAsset],
   articles: [],
 };
 
@@ -45,7 +52,13 @@ describe('WhatsHappeningCard', () => {
   });
 
   it('renders multiple related asset symbols', () => {
-    const item = { ...baseItem, relatedAssets: ['BTC', 'ETH'] };
+    const ethAsset = {
+      sourceAssetId: 'eth-mainnet',
+      symbol: 'ETH',
+      name: 'Ethereum',
+      caip19: ['eip155:1/slip44:60'],
+    };
+    const item = { ...baseItem, relatedAssets: [mockRelatedAsset, ethAsset] };
     renderWithProvider(<WhatsHappeningCard item={item} />);
     expect(screen.getByText('BTC')).toBeOnTheScreen();
     expect(screen.getByText('ETH')).toBeOnTheScreen();

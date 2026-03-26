@@ -1,4 +1,4 @@
-import type { Article } from '@metamask/ai-controllers';
+import type { Article, RelatedAsset } from '@metamask/ai-controllers';
 
 /**
  * Represents a single "What's Happening" trending item.
@@ -16,7 +16,6 @@ export interface WhatsHappeningItem {
     | 'social'
     | 'other';
   impact?: 'positive' | 'negative' | 'neutral';
-  /** Short labels for carousel pills (from `RelatedAsset.symbol` / `name`) */
-  relatedAssets: string[];
+  relatedAssets: RelatedAsset[];
   articles: Article[];
 }

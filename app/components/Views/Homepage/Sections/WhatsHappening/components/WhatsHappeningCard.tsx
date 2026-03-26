@@ -81,9 +81,9 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
               alignItems={BoxAlignItems.Center}
               twClassName="flex-wrap gap-1"
             >
-              {item.relatedAssets.map((assetLabel) => (
+              {item.relatedAssets.map((asset) => (
                 <Box
-                  key={assetLabel}
+                  key={asset.sourceAssetId}
                   twClassName="rounded-full bg-background-default px-2 py-0.5"
                 >
                   <Text
@@ -91,7 +91,7 @@ const WhatsHappeningCard: React.FC<WhatsHappeningCardProps> = ({
                     color={TextColor.TextDefault}
                     fontWeight={FontWeight.Medium}
                   >
-                    {assetLabel}
+                    {asset.symbol}
                   </Text>
                 </Box>
               ))}

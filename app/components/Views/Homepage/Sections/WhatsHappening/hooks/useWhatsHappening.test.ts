@@ -29,17 +29,16 @@ const mockTrend = {
   impact: 'positive',
   relatedAssets: [
     {
-      name: 'Bitcoin',
+      sourceAssetId: 'btc-mainnet',
       symbol: 'BTC',
-      caip19: [],
-      sourceAssetId: 'bitcoin',
+      name: 'Bitcoin',
+      caip19: ['eip155:1/slip44:0'],
     },
   ],
   articles: [
     {
       title: 'Article',
       url: 'https://example.com',
-      source: 'example.com',
       date: '2026-03-15T10:00:00.000Z',
     },
   ],
@@ -70,32 +69,10 @@ describe('useWhatsHappening', () => {
     expect(result.current.items).toHaveLength(1);
     expect(result.current.items[0].title).toBe(mockTrend.title);
     expect(result.current.items[0].category).toBe(mockTrend.category);
-    expect(result.current.items[0].relatedAssets).toEqual(['BTC']);
+    expect(result.current.items[0].relatedAssets).toEqual(
+      mockTrend.relatedAssets,
+    );
     expect(result.current.error).toBeNull();
-  });
-
-  it('uses asset name for relatedAssets when symbol is missing', async () => {
-    mockFetchMarketOverview.mockResolvedValue({
-      ...mockOverview,
-      trends: [
-        {
-          ...mockTrend,
-          relatedAssets: [
-            {
-              name: 'Ether',
-              symbol: '',
-              caip19: [],
-              sourceAssetId: 'eth',
-            },
-          ],
-        },
-      ],
-    });
-    const { result } = renderHook(() => useWhatsHappening());
-
-    await waitFor(() => expect(result.current.isLoading).toBe(false));
-
-    expect(result.current.items[0].relatedAssets).toEqual(['Ether']);
   });
 
   it('uses article date as item date when articles are present', async () => {

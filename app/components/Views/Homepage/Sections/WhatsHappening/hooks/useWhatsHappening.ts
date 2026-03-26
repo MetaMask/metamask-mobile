@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import type { MarketOverview, RelatedAsset } from '@metamask/ai-controllers';
+import type { MarketOverview } from '@metamask/ai-controllers';
 import Engine from '../../../../../../core/Engine';
 import { selectWhatsHappeningEnabled } from '../../../../../../selectors/featureFlagController/whatsHappening';
 import type { WhatsHappeningItem } from '../types';
@@ -15,9 +15,6 @@ export interface UseWhatsHappeningResult {
   refresh: () => Promise<void>;
 }
 
-const mapRelatedAssetsToLabels = (assets: RelatedAsset[]): string[] =>
-  assets.map((asset) => asset.symbol || asset.name);
-
 const mapTrendsToItems = (
   overview: MarketOverview,
   limit: number,
@@ -29,7 +26,7 @@ const mapTrendsToItems = (
     date: trend.articles[0]?.date ?? overview.generatedAt,
     category: trend.category,
     impact: trend.impact,
-    relatedAssets: mapRelatedAssetsToLabels(trend.relatedAssets),
+    relatedAssets: trend.relatedAssets,
     articles: trend.articles,
   }));
 
