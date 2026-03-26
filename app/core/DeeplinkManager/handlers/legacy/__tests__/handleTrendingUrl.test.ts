@@ -1,6 +1,7 @@
 import NavigationService from '../../../../NavigationService';
 import ReduxService from '../../../../redux';
 import Routes from '../../../../../constants/navigation/Routes';
+import { ONDO_RESTRICTED_COUNTRIES } from '../../../../../util/ondoGeoRestrictions';
 import { handleTrendingUrl } from '../handleTrendingUrl';
 
 jest.mock('../../../../NavigationService', () => ({
@@ -40,30 +41,54 @@ describe('handleTrendingUrl - stocks deeplink (screen=stocks)', () => {
     jest.clearAllMocks();
   });
 
-  it.each([
-    {
-      description: 'navigates to stocks full view when user is not geo-blocked',
-      location: 'AR',
-      expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
-    },
-    {
-      description: 'navigates to trending view when user is geo-blocked',
-      location: 'US',
-      expectedRoute: Routes.TRENDING_VIEW,
-    },
-  ])('$description', ({ location, expectedRoute }) => {
-    mockGetState.mockReturnValue({
-      engine: {
-        backgroundState: {
-          GeolocationController: {
-            location,
+  const geoBlockedCases = [...ONDO_RESTRICTED_COUNTRIES].map((location) => ({
+    location,
+  }));
+
+  /** ISO codes known to be outside `ONDO_RESTRICTED_COUNTRIES` for stocks deeplink routing. */
+  const notBlockedCases = [
+    { location: 'AR' },
+    { location: 'JP' },
+    { location: 'MX' },
+  ];
+
+  it.each(geoBlockedCases)(
+    'navigates to trending view for geo-blocked country $location',
+    ({ location }) => {
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            GeolocationController: {
+              location,
+            },
           },
         },
-      },
-    });
+      });
 
-    handleTrendingUrl({ actionPath: '?screen=stocks' });
+      handleTrendingUrl({ actionPath: '?screen=stocks' });
 
-    expect(mockNavigate).toHaveBeenCalledWith(expectedRoute);
-  });
+      expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    },
+  );
+
+  it.each(notBlockedCases)(
+    'navigates to RWA tokens full view for non-geo-blocked country $location',
+    ({ location }) => {
+      mockGetState.mockReturnValue({
+        engine: {
+          backgroundState: {
+            GeolocationController: {
+              location,
+            },
+          },
+        },
+      });
+
+      handleTrendingUrl({ actionPath: '?screen=stocks' });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+      );
+    },
+  );
 });
