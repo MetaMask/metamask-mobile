@@ -244,6 +244,87 @@ describe('useRampsPaymentMethods', () => {
     ).toHaveBeenCalledWith(mockPaymentMethods[0].id);
   });
 
+  it('enables the query when the token is missing from supportedCryptoCurrencies (not explicitly false)', () => {
+    const store = createMockStore({
+      providers: {
+        ...baseRampsState.providers,
+        selected: {
+          id: '/providers/banxa',
+          name: 'Banxa',
+          supportedCryptoCurrencies: {
+            'eip155:1/slip44:60': true,
+            // MUSD assetId is NOT in the map (undefined, not false)
+          },
+        },
+      },
+      tokens: {
+        ...baseRampsState.tokens,
+        selected: {
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          chainId: 'eip155:1',
+          name: 'MetaMask USD',
+          symbol: 'MUSD',
+          decimals: 6,
+          iconUrl: '',
+          tokenSupported: true,
+        },
+      },
+    });
+    const { Wrapper } = createWrapper(store);
+
+    (
+      Engine.context.RampsController.getPaymentMethods as jest.Mock
+    ).mockImplementation(() => new Promise(() => undefined));
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    // Query should be enabled (loading), not idle
+    expect(result.current.status).toBe('loading');
+    expect(result.current.isLoading).toBe(true);
+    expect(Engine.context.RampsController.getPaymentMethods).toHaveBeenCalled();
+  });
+
+  it('disables the query when the token is explicitly false in supportedCryptoCurrencies', () => {
+    const store = createMockStore({
+      providers: {
+        ...baseRampsState.providers,
+        selected: {
+          id: '/providers/banxa',
+          name: 'Banxa',
+          supportedCryptoCurrencies: {
+            'eip155:1/slip44:60': true,
+            'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da': false,
+          },
+        },
+      },
+      tokens: {
+        ...baseRampsState.tokens,
+        selected: {
+          assetId: 'eip155:1/erc20:0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          chainId: 'eip155:1',
+          name: 'MetaMask USD',
+          symbol: 'MUSD',
+          decimals: 6,
+          iconUrl: '',
+          tokenSupported: true,
+        },
+      },
+    });
+    const { Wrapper } = createWrapper(store);
+
+    const { result } = renderHook(() => useRampsPaymentMethods(), {
+      wrapper: Wrapper,
+    });
+
+    expect(result.current.status).toBe('idle');
+    expect(result.current.isLoading).toBe(false);
+    expect(
+      Engine.context.RampsController.getPaymentMethods,
+    ).not.toHaveBeenCalled();
+  });
+
   it('calls Engine.context.RampsController.setSelectedPaymentMethod with undefined when payment method is null', () => {
     const store = createMockStore({
       providers: { ...baseRampsState.providers, selected: null },
