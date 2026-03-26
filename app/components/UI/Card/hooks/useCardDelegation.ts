@@ -16,9 +16,8 @@ import Logger from '../../../../util/Logger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import { useCardSDK } from '../sdk';
 import { CardNetwork, CardTokenAllowance } from '../types';
-import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
-import { Hex } from '@metamask/utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useEnsureCardNetworkExists } from './useEnsureCardNetworkExists';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { ARBITRARY_ALLOWANCE } from '../constants';
 import { toTokenMinimalUnit } from '../../../../util/number';
@@ -78,8 +77,8 @@ interface SignCardMessageResult {
  */
 export const useCardDelegation = (token?: CardTokenAllowance | null) => {
   const { sdk } = useCardSDK();
-  const { KeyringController, TransactionController, NetworkController } =
-    Engine.context;
+  const { KeyringController, TransactionController } = Engine.context;
+  const { ensureNetworkExists } = useEnsureCardNetworkExists();
   const selectAccountByScope = useSelector(
     selectSelectedInternalAccountByScope,
   );
@@ -143,8 +142,8 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         throw new Error('Missing token address');
       }
 
-      const networkClientId = NetworkController.findNetworkClientIdByChainId(
-        safeFormatChainIdToHex(token.caipChainId ?? '') as Hex,
+      const networkClientId = await ensureNetworkExists(
+        token.caipChainId ?? '',
       );
 
       // Convert amount to minimal units based on token decimals
@@ -235,7 +234,7 @@ export const useCardDelegation = (token?: CardTokenAllowance | null) => {
         rethrowAsUserCancelledIfApplicable(error);
       }
     },
-    [sdk, token, TransactionController, NetworkController],
+    [sdk, token, TransactionController, ensureNetworkExists],
   );
 
   /**

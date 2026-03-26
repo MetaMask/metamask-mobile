@@ -29,6 +29,7 @@ import { MOCK_ENTROPY_SOURCE as mockEntropySource } from '../../../../../util/te
 import { RootState } from '../../../../../reducers';
 import { mockQuoteWithMetadata } from '../../_mocks_/bridgeQuoteWithMetadata';
 import { BridgeTrendingTokensSectionTestIds } from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection.testIds';
+import { Button } from '@metamask/design-system-react-native';
 
 // Mock the account-tree-controller file that imports the problematic module
 jest.mock(
@@ -1536,14 +1537,21 @@ describe('BridgeView', () => {
         mockState,
       );
 
-      const { getByTestId } = renderScreen(
+      const rendered = renderScreen(
         BridgeView,
         { name: Routes.BRIDGE.ROOT },
         { state: testState },
       );
 
+      // The new Pressable-based Button does not expose onPress on the host View
+      // when disabled, so we find the Button component instance and call onPress directly.
+      const buttons = rendered.UNSAFE_getAllByType(Button);
+      const confirmButton = buttons.find(
+        (b) => b.props.testID === BridgeViewSelectorsIDs.CONFIRM_BUTTON,
+      );
+
       await act(async () => {
-        fireEvent.press(getByTestId(BridgeViewSelectorsIDs.CONFIRM_BUTTON));
+        confirmButton?.props.onPress?.();
       });
 
       await waitFor(() => {

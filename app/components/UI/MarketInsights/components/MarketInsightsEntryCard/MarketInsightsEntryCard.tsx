@@ -1,27 +1,37 @@
-import React, { useEffect } from 'react';
-import { Pressable, View } from 'react-native';
+import React, { useCallback, useEffect, useState } from 'react';
+import { Pressable } from 'react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
   Text,
   TextVariant,
   TextColor,
-  Icon,
-  IconName,
-  IconSize,
   IconColor,
-  ButtonIcon,
-  ButtonIconSize,
   BoxFlexDirection,
   BoxAlignItems,
 } from '@metamask/design-system-react-native';
+import AiSVG from '../../../../../component-library/components/Icons/Icon/assets/ai.svg';
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import { AnimatedGradientBorder } from './AnimatedGradientBorder';
+import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
+import { useViewportTracking } from '../../hooks/useViewportTracking';
 
-const SparkleIcon: React.FC = () => (
-  <Icon name={IconName.Ai} size={IconSize.Lg} color={IconColor.IconDefault} />
-);
+const SPARKLE_SIZE = 20;
+
+const SparkleIcon: React.FC = () => {
+  const tw = useTailwind();
+  const { color } = tw.style(IconColor.IconAlternative);
+  return (
+    <AiSVG
+      name="ai"
+      width={SPARKLE_SIZE}
+      height={SPARKLE_SIZE}
+      fill={color as string}
+    />
+  );
+};
 
 /**
  * MarketInsightsEntryCard is the entry point card shown on the token details page.
@@ -35,11 +45,18 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+  const [cardDimensions, setCardDimensions] = useState<{
+    width: number;
+    height: number;
+  } | null>(null);
+
+  const [shouldAnimate, setShouldAnimate] = useState(false);
+  const { ref: cardRef, onLayout: onVisibilityLayout } = useViewportTracking(
+    () => setShouldAnimate(true),
+    VISIBILITY_THRESHOLD,
+  );
 
   useEffect(() => {
-    // End the trace started by the parent (AssetOverviewContent) to measure
-    // how long it takes for the entry card to mount after navigation.
-    // caip19Id is only provided when the parent started a matching trace.
     if (caip19Id) {
       endTrace({
         name: TraceName.MarketInsightsEntryCardLoad,
@@ -48,61 +65,63 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
     }
   }, [caip19Id]);
 
+  const handleLayout = useCallback(
+    (event: { nativeEvent: { layout: { width: number; height: number } } }) => {
+      const { width, height } = event.nativeEvent.layout;
+      setCardDimensions((prev) => {
+        if (prev && prev.width === width && prev.height === height) {
+          return prev;
+        }
+        return { width, height };
+      });
+    },
+    [],
+  );
+
   return (
     <Pressable
+      ref={cardRef}
       onPress={onPress}
+      onLayout={onVisibilityLayout}
       style={({ pressed }) =>
         tw.style('px-4 mt-2 mb-4', pressed && 'opacity-80')
       }
       testID={testID}
     >
-      <Box gap={2}>
+      <Box
+        twClassName="bg-background-muted rounded-2xl"
+        padding={4}
+        gap={3}
+        onLayout={handleLayout}
+      >
+        <AnimatedGradientBorder
+          dimensions={cardDimensions}
+          shouldAnimate={shouldAnimate}
+        />
+
+        <Text
+          variant={TextVariant.BodyMd}
+          color={TextColor.TextDefault}
+          numberOfLines={3}
+        >
+          {report.summary}
+        </Text>
+
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
           gap={1}
         >
-          <Text variant={TextVariant.HeadingMd} color={TextColor.TextDefault}>
-            {strings('market_insights.title')}
-          </Text>
-          <View pointerEvents="none" style={tw.style('ml-1')}>
-            <ButtonIcon
-              iconName={IconName.ArrowRight}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.IconAlternative }}
-            />
-          </View>
-        </Box>
-
-        <Box gap={3}>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
-            {report.summary}
-          </Text>
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            gap={1}
+          <SparkleIcon />
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            twClassName="flex-shrink"
           >
-            <SparkleIcon />
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {strings('market_insights.footer_disclaimer')}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {'•'}
-            </Text>
-            <Text
-              variant={TextVariant.BodySm}
-              color={TextColor.TextAlternative}
-            >
-              {timeAgo}
-            </Text>
-          </Box>
+            {strings('market_insights.footer_disclaimer')}
+            {' • '}
+            {timeAgo}
+          </Text>
         </Box>
       </Box>
     </Pressable>
