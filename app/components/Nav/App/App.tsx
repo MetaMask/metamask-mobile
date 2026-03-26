@@ -326,25 +326,33 @@ const OnboardingRootNav = () => (
   </Stack.Navigator>
 );
 
-const VaultRecoveryFlow = () => (
-  <Stack.Navigator
-    initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-    screenOptions={{ headerShown: false }}
-  >
-    <Stack.Screen
-      name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
-      component={RestoreWallet}
-    />
-    <Stack.Screen
-      name={Routes.VAULT_RECOVERY.WALLET_RESTORED}
-      component={WalletRestored}
-    />
-    <Stack.Screen
-      name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
-      component={WalletResetNeeded}
-    />
-  </Stack.Navigator>
-);
+const VaultRecoveryFlow = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      initialRouteName={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+      screenOptions={{
+        headerShown: false,
+        presentation: 'card',
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen
+        name={Routes.VAULT_RECOVERY.RESTORE_WALLET}
+        component={RestoreWallet}
+      />
+      <Stack.Screen
+        name={Routes.VAULT_RECOVERY.WALLET_RESTORED}
+        component={WalletRestored}
+      />
+      <Stack.Screen
+        name={Routes.VAULT_RECOVERY.WALLET_RESET_NEEDED}
+        component={WalletResetNeeded}
+      />
+    </Stack.Navigator>
+  );
+};
 
 const AddNetworkFlow = () => {
   const route = useRoute();
