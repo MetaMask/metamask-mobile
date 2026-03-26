@@ -178,30 +178,27 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
       // When quotes aren't available, separate by supportedCryptoCurrencies
       const assetId = selectedToken?.assetId;
       if (assetId) {
-        const supported: Provider[] = [];
-        const unsupported: Provider[] = [];
-        for (const provider of providers) {
-          if (provider.supportedCryptoCurrencies?.[assetId] === true) {
-            supported.push(provider);
-          } else {
-            unsupported.push(provider);
-          }
-        }
+        const [supported, unsupported] = providers.reduce<
+          [ProviderListItem[], ProviderListItem[]]
+        >(
+          ([sup, unsup], provider) => {
+            const item: ProviderListItem = { type: 'provider', provider };
+            return provider.supportedCryptoCurrencies?.[assetId] === true
+              ? [[...sup, item], unsup]
+              : [sup, [...unsup, item]];
+          },
+          [[], []],
+        );
+
         if (supported.length > 0 && unsupported.length > 0) {
-          return [
-            ...supported.map((provider) => ({
-              type: 'provider' as const,
-              provider,
-            })),
-            { type: 'separator' as const },
-            ...unsupported.map((provider) => ({
-              type: 'provider' as const,
-              provider,
-            })),
-          ];
+          return [...supported, { type: 'separator' as const }, ...unsupported];
         }
+        return [...supported, ...unsupported];
       }
-      return providers.map((provider) => ({ type: 'provider', provider }));
+      return providers.map((provider) => ({
+        type: 'provider' as const,
+        provider,
+      }));
     }
 
     const sortOrder =
