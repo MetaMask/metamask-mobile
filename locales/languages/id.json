@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Peningkatan aktif",
     "season_1": "Musim 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "kalkulator bonus mUSD",
       "description": "Lihat berapa banyak yang bisa diperoleh dengan mengonversi stablecoin Anda menjadi mUSD.",
       "amount_label": "Jumlah yang dikonversi",

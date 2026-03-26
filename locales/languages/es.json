@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Potenciadores activos",
     "season_1": "Temporada 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "Calculadora del bono en mUSD",
       "description": "Descubre cuánto podrías ganar al convertir tus monedas estables a mUSD.",
       "amount_label": "Monto convertido",
