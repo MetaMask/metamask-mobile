@@ -6,6 +6,7 @@ import React, {
   useRef,
   useMemo,
   useContext,
+  forwardRef,
 } from 'react';
 import {
   View,
@@ -71,6 +72,46 @@ export const createPrivateKeyListNavigationDetails =
   createNavigationDetails<PrivateKeyListParams>(
     Routes.MULTICHAIN_ACCOUNTS.PRIVATE_KEY_LIST,
   );
+
+/**
+ * Shared context that lets the module-level GestureScrollComponent write back
+ * the RNGH ScrollView ref to its PrivateKeyList ancestor, which then passes it
+ * to BottomSheet's simultaneousHandlers on Android.
+ */
+const GestureScrollRefContext = React.createContext<
+  React.MutableRefObject<React.ComponentRef<typeof ScrollView> | null>
+>({ current: null });
+
+/**
+ * Stable RNGH-backed scroll component for FlashList.
+ *
+ * Defined at module level (not inside PrivateKeyList) to satisfy the
+ * react/no-unstable-nested-components rule. Uses forwardRef so FlashList can
+ * properly forward its internal scroll ref — plain function components have
+ * their ref prop stripped by React 18's reconciler. Also reads
+ * GestureScrollRefContext to populate the parent's flashListScrollGestureRef,
+ * which BottomSheet uses for simultaneousHandlers on Android so that scroll
+ * gestures are not captured as dismiss-sheet pans.
+ */
+const GestureScrollComponent = forwardRef<
+  React.ComponentRef<typeof ScrollView>,
+  ScrollViewProps
+>((props, ref) => {
+  const scrollGestureRef = useContext(GestureScrollRefContext);
+  return (
+    <ScrollView
+      {...props}
+      ref={(node) => {
+        scrollGestureRef.current = node;
+        if (typeof ref === 'function') {
+          ref(node);
+        } else if (ref) {
+          (ref as React.MutableRefObject<typeof node | null>).current = node;
+        }
+      }}
+    />
+  );
+});
 
 /**
  * Check if the account has the private key available according to its keyring type.
@@ -280,28 +321,6 @@ export const PrivateKeyList = () => {
     ],
   );
 
-  const renderGestureScrollComponent = useCallback(
-    (scrollProps: ScrollViewProps & { ref?: React.Ref<unknown> }) => {
-      const { ref: upstreamScrollRef, ...restScrollProps } = scrollProps;
-      return (
-        <ScrollView
-          {...restScrollProps}
-          ref={(node) => {
-            flashListScrollGestureRef.current = node;
-            if (typeof upstreamScrollRef === 'function') {
-              upstreamScrollRef(node);
-            } else if (upstreamScrollRef) {
-              (
-                upstreamScrollRef as React.MutableRefObject<typeof node | null>
-              ).current = node;
-            }
-          }}
-        />
-      );
-    },
-    [],
-  );
-
   const renderPrivateKeyList = useCallback(
     () => (
       <View style={styles.container}>
@@ -309,7 +328,7 @@ export const PrivateKeyList = () => {
           data={filteredAccounts()}
           keyExtractor={(item) => item.scope}
           renderItem={renderAddressItem}
-          renderScrollComponent={renderGestureScrollComponent}
+          renderScrollComponent={GestureScrollComponent}
           testID={PrivateKeyListIds.LIST}
           onLoad={() => {
             endTrace({ name: TraceName.ShowAccountPrivateKeyList });
@@ -317,12 +336,7 @@ export const PrivateKeyList = () => {
         />
       </View>
     ),
-    [
-      filteredAccounts,
-      renderAddressItem,
-      renderGestureScrollComponent,
-      styles.container,
-    ],
+    [filteredAccounts, renderAddressItem, styles.container],
   );
 
   const privateKeyBannerDescription = useMemo(
@@ -343,26 +357,30 @@ export const PrivateKeyList = () => {
   );
 
   return (
-    <BottomSheet
-      style={styles.bottomSheetContent}
-      ref={sheetRef}
-      simultaneousHandlers={
-        Platform.OS === 'android' ? flashListScrollGestureRef : undefined
-      }
-    >
-      <Fragment>
-        <SheetHeader title={title} />
-        <Banner
-          variant={BannerVariant.Alert}
-          severity={BannerAlertSeverity.Error}
-          title={strings('multichain_accounts.private_key_list.warning_title')}
-          description={privateKeyBannerDescription}
-          style={styles.banner}
-          testID={PrivateKeyListIds.BANNER}
-        />
+    <GestureScrollRefContext.Provider value={flashListScrollGestureRef}>
+      <BottomSheet
+        style={styles.bottomSheetContent}
+        ref={sheetRef}
+        simultaneousHandlers={
+          Platform.OS === 'android' ? flashListScrollGestureRef : undefined
+        }
+      >
+        <Fragment>
+          <SheetHeader title={title} />
+          <Banner
+            variant={BannerVariant.Alert}
+            severity={BannerAlertSeverity.Error}
+            title={strings(
+              'multichain_accounts.private_key_list.warning_title',
+            )}
+            description={privateKeyBannerDescription}
+            style={styles.banner}
+            testID={PrivateKeyListIds.BANNER}
+          />
 
-        {reveal ? renderPrivateKeyList() : renderPassword()}
-      </Fragment>
-    </BottomSheet>
+          {reveal ? renderPrivateKeyList() : renderPassword()}
+        </Fragment>
+      </BottomSheet>
+    </GestureScrollRefContext.Provider>
   );
 };

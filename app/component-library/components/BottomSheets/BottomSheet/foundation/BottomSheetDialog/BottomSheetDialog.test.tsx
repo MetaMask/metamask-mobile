@@ -110,4 +110,46 @@ describe('BottomSheetDialog', () => {
     expect(onCloseMock).toHaveBeenCalled();
   });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
+
+  describe('simultaneousHandlers', () => {
+    it('accepts a single ref as simultaneousHandlers without error', () => {
+      const handler = React.createRef<unknown>();
+      const wrapper = render(
+        <BottomSheetDialog simultaneousHandlers={handler}>
+          <Text>Test Child</Text>
+        </BottomSheetDialog>,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('accepts an array of refs as simultaneousHandlers without error', () => {
+      const handler1 = React.createRef<unknown>();
+      const handler2 = React.createRef<unknown>();
+      const wrapper = render(
+        <BottomSheetDialog simultaneousHandlers={[handler1, handler2]}>
+          <Text>Test Child</Text>
+        </BottomSheetDialog>,
+      );
+      expect(wrapper).toMatchSnapshot();
+    });
+
+    it('renders children correctly when simultaneousHandlers is provided', () => {
+      const handler = React.createRef<unknown>();
+      const { getByText } = render(
+        <BottomSheetDialog simultaneousHandlers={handler}>
+          <Text>Scrollable Content</Text>
+        </BottomSheetDialog>,
+      );
+      expect(getByText('Scrollable Content')).toBeTruthy();
+    });
+
+    it('renders normally when simultaneousHandlers is undefined', () => {
+      const { getByText } = render(
+        <BottomSheetDialog simultaneousHandlers={undefined}>
+          <Text>No Handler</Text>
+        </BottomSheetDialog>,
+      );
+      expect(getByText('No Handler')).toBeTruthy();
+    });
+  });
 });
