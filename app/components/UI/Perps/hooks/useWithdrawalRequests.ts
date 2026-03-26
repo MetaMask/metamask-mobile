@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
 import { useStableArray } from './useStableArray';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
 import type { UserHistoryItem } from '@metamask/perps-controller';
 
@@ -83,41 +82,6 @@ export const useWithdrawalRequests = (
     const currentStates = new Map<string, string>();
     allWithdrawals.forEach((w) => currentStates.set(w.id, w.status));
 
-    const prevStates = prevWithdrawalStatesRef.current;
-
-    for (const withdrawal of allWithdrawals) {
-      if (!prevStates.has(withdrawal.id)) {
-        DevLogger.log('Withdrawal initialized:', {
-          id: withdrawal.id,
-          amount: withdrawal.amount,
-          asset: withdrawal.asset,
-          status: withdrawal.status,
-          timestamp: new Date(withdrawal.timestamp).toISOString(),
-        });
-      }
-    }
-
-    for (const withdrawal of allWithdrawals) {
-      const prevStatus = prevStates.get(withdrawal.id);
-      if (prevStatus && prevStatus !== withdrawal.status) {
-        if (withdrawal.status === 'completed') {
-          DevLogger.log('Withdrawal completed:', {
-            id: withdrawal.id,
-            amount: withdrawal.amount,
-            asset: withdrawal.asset,
-            txHash: withdrawal.txHash,
-          });
-        } else {
-          DevLogger.log('Withdrawal status changed:', {
-            id: withdrawal.id,
-            previousStatus: prevStatus,
-            newStatus: withdrawal.status,
-            amount: withdrawal.amount,
-          });
-        }
-      }
-    }
-
     prevWithdrawalStatesRef.current = currentStates;
   }, [allWithdrawals]);
 
@@ -152,18 +116,6 @@ export const useWithdrawalRequests = (
       const oldestPending = pendingQueue[0];
       const searchStartTime = oldestPending.timestamp - 60000;
 
-      DevLogger.log(
-        'useWithdrawalRequests: Checking for withdrawal completion (FIFO)',
-        {
-          queueLength: pendingQueue.length,
-          oldestPendingId: oldestPending.id,
-          oldestPendingSubmittedAt: new Date(
-            oldestPending.timestamp,
-          ).toISOString(),
-          searchStartTime: new Date(searchStartTime).toISOString(),
-        },
-      );
-
       const history: UserHistoryItem[] = await provider.getUserHistory({
         startTime: searchStartTime,
         endTime: undefined,
@@ -178,9 +130,6 @@ export const useWithdrawalRequests = (
         .sort((a, b) => a.timestamp - b.timestamp);
 
       if (completedWithdrawals.length === 0) {
-        DevLogger.log(
-          'useWithdrawalRequests: No completed withdrawals in history yet',
-        );
         return;
       }
 
@@ -193,43 +142,8 @@ export const useWithdrawalRequests = (
       );
 
       if (!matchingCompleted) {
-        DevLogger.log(
-          'useWithdrawalRequests: No NEW completed withdrawals after oldest pending submission',
-          {
-            oldestPendingTimestamp: new Date(
-              oldestPending.timestamp,
-            ).toISOString(),
-            lastCompletedTimestamp: lastCompletedTimestamp
-              ? new Date(lastCompletedTimestamp).toISOString()
-              : 'none',
-            latestInHistory:
-              completedWithdrawals.length > 0
-                ? new Date(
-                    completedWithdrawals[
-                      completedWithdrawals.length - 1
-                    ].timestamp,
-                  ).toISOString()
-                : 'none',
-          },
-        );
         return;
       }
-
-      DevLogger.log(
-        'useWithdrawalRequests: FIFO match found! NEW withdrawal completed and visible in history',
-        {
-          pendingId: oldestPending.id,
-          pendingSubmittedAt: new Date(oldestPending.timestamp).toISOString(),
-          completedTxHash: matchingCompleted.txHash,
-          completedTimestamp: new Date(
-            matchingCompleted.timestamp,
-          ).toISOString(),
-          lastCompletedTimestamp: lastCompletedTimestamp
-            ? new Date(lastCompletedTimestamp).toISOString()
-            : 'none',
-          remainingInQueue: pendingQueue.length - 1,
-        },
-      );
 
       controller.completeWithdrawalFromHistory(oldestPending.id, {
         txHash: matchingCompleted.txHash,
@@ -242,7 +156,6 @@ export const useWithdrawalRequests = (
         err instanceof Error
           ? err.message
           : 'Failed to fetch completed withdrawals';
-      console.error('Error checking withdrawal completion:', errorMessage);
       setError(errorMessage);
     }
   }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHashes]);
@@ -301,20 +214,11 @@ export const useWithdrawalRequests = (
       return;
     }
 
-    DevLogger.log(
-      'useWithdrawalRequests: Starting polling for withdrawal completion (FIFO)',
-      {
-        queueLength: pendingQueue.length,
-        oldestSubmittedAt: new Date(oldestPendingTimestamp).toISOString(),
-      },
-    );
-
     const pollInterval = setInterval(() => {
       runWithdrawalCompletionCheck();
     }, 5000);
 
     return () => {
-      DevLogger.log('useWithdrawalRequests: Stopping polling');
       clearInterval(pollInterval);
     };
   }, [
