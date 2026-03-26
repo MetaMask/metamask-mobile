@@ -22,6 +22,7 @@ import {
 } from '@metamask/design-system-react-native';
 
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
+import { TOKEN_LIST_ITEM_TEST_IDS } from './TokenListItem.testIds';
 
 interface TokenListItemProps {
   token: DepositCryptoCurrency;
@@ -53,7 +54,11 @@ function TokenListItem({
       isSelected={isSelected}
       onPress={onPress}
       isDisabled={isDisabled}
-      testID={`token-list-item-${token.assetId}`}
+      gap={20}
+      listItemProps={{
+        style: { paddingVertical: 8, paddingHorizontal: 16 },
+      }}
+      testID={`${TOKEN_LIST_ITEM_TEST_IDS.ITEM_PREFIX}${token.assetId}`}
     >
       <ListItemColumn widthType={WidthType.Auto}>
         <BadgeWrapper
@@ -68,13 +73,13 @@ function TokenListItem({
           <AvatarToken
             name={token.name}
             imageSource={{ uri: token.iconUrl }}
-            size={AvatarSize.Md}
+            size={AvatarSize.Lg}
           />
         </BadgeWrapper>
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyLGMedium}>{token.name}</Text>
-        <Text variant={TextVariant.BodyMD} color={textColor}>
+        <Text variant={TextVariant.BodyMDMedium}>{token.name}</Text>
+        <Text variant={TextVariant.BodySMMedium} color={textColor}>
           {token.symbol}
         </Text>
       </ListItemColumn>
@@ -84,7 +89,7 @@ function TokenListItem({
             size={ButtonIconSize.Md}
             iconName={IconName.Info}
             onPress={handleInfoPress}
-            testID="token-unsupported-info-button"
+            testID={TOKEN_LIST_ITEM_TEST_IDS.UNSUPPORTED_INFO_BUTTON}
           />
         </ListItemColumn>
       )}

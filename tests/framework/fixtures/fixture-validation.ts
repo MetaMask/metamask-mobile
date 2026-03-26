@@ -1,5 +1,5 @@
-/* eslint-disable import/no-nodejs-modules */
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-nodejs-modules */
+/* eslint-disable import-x/no-namespace */
 import * as fs from 'fs';
 import * as path from 'path';
 
@@ -342,8 +342,6 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     'swaps.hasOnboarded',
     'navigation.currentRoute',
     'inpageProvider.networkId',
-    'engine.backgroundState.SwapsController.pollingCyclesLeft',
-
     // ── Redux-persist internals ──
     '_persist',
   ];

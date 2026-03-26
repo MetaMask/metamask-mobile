@@ -1,5 +1,5 @@
-/* eslint-disable import/no-commonjs */
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
+/* eslint-disable import-x/no-commonjs */
 // react-native.config.js
 
 const fs = require('fs');

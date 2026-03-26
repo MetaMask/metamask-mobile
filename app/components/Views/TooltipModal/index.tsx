@@ -1,32 +1,29 @@
 import React, { useRef, isValidElement, useCallback } from 'react';
-import { View } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import {
+  Box,
+  Text,
+  TextVariant,
+  TextColor,
+  BottomSheetFooter,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetFooter, {
-  ButtonsAlignment,
-} from '../../../component-library/components/BottomSheets/BottomSheetFooter';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
-import {
-  ButtonSize,
-  ButtonVariants,
-} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 
 import { TooltipModalRouteParams } from './ToolTipModal.types';
-import { useStyles } from '../../../component-library/hooks';
-import styleSheet from './ToolTipModal.styles';
 import { useParams } from '../../../util/navigation/navUtils';
 
 const TooltipModal = () => {
-  const { tooltip, title, footerText, buttonText, bottomPadding } =
+  const { tooltip, title, footerText, buttonText } =
     useParams<TooltipModalRouteParams>();
 
-  const { styles } = useStyles(styleSheet, { bottomPadding });
+  const tw = useTailwind();
+  const insets = useSafeAreaInsets();
 
   const bottomSheetRef = useRef<BottomSheetRef>(null);
 
@@ -36,38 +33,37 @@ const TooltipModal = () => {
     bottomSheetRef.current?.onCloseBottomSheet();
   }, []);
 
-  const footerButtons = [
-    {
-      label: buttonText ?? strings('browser.got_it'),
-      onPress: handleGotItPress,
-      variant: ButtonVariants.Primary,
-      size: ButtonSize.Lg,
-    },
-  ];
-
   return (
     <BottomSheet ref={bottomSheetRef}>
       <HeaderCompactStandard title={title} onClose={onCloseModal} />
-      <View style={styles.content}>
+      <Box twClassName="px-4">
         {isValidElement(tooltip) ? (
           tooltip
         ) : (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
+          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
             {tooltip}
           </Text>
         )}
-      </View>
+      </Box>
       <BottomSheetFooter
-        buttonsAlignment={ButtonsAlignment.Horizontal}
-        buttonPropsArray={footerButtons}
-        style={styles.footerContainer}
+        primaryButtonProps={{
+          size: ButtonSize.Lg,
+          children: buttonText ?? strings('browser.got_it'),
+          onPress: handleGotItPress,
+        }}
+        twClassName="px-4 pt-6"
+        style={tw.style({ paddingBottom: footerText ? 0 : insets.bottom })}
       />
       {footerText && (
-        <View style={styles.footerTextContainer}>
-          <Text variant={TextVariant.BodySM} color={TextColor.Alternative}>
+        <Box
+          style={tw.style('flex-row justify-center px-4 pt-1', {
+            paddingBottom: insets.bottom,
+          })}
+        >
+          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
             {footerText}
           </Text>
-        </View>
+        </Box>
       )}
     </BottomSheet>
   );

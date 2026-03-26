@@ -42,21 +42,7 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { MUSD_MAINNET_ASSET_FOR_DETAILS } from './CashGetMusdEmptyState.constants';
 import NavigationService from '../../../../../core/NavigationService';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
-
-/** Minimum claimable bonus (USD) to show the "Claim bonus" CTA; below this we show "3% bonus" instead. */
-const MIN_CLAIMABLE_BONUS_USD = 0.01;
-
-/**
- * Returns true when the claimable reward string represents an amount >= MIN_CLAIMABLE_BONUS_USD.
- * useMerklRewards returns "< 0.01" for very small amounts; we do not show "Claim bonus" for those.
- */
-const isClaimableBonusAboveThreshold = (reward: string | null): boolean => {
-  if (!reward || typeof reward !== 'string') return false;
-  if (reward.startsWith('<')) return false;
-  const value = parseFloat(reward);
-  if (Number.isNaN(value)) return false;
-  return value >= MIN_CLAIMABLE_BONUS_USD;
-};
+import Routes from '../../../../../constants/navigation/Routes';
 
 /**
  * Minimal mUSD asset for useMerklBonusClaim (claim runs on Linea).
@@ -77,15 +63,20 @@ const LINEA_MUSD_ASSET: TokenI = {
 const MusdAggregatedRow = () => {
   const tw = useTailwind();
   const privacyMode = useSelector(selectPrivacyMode);
-  const { tokenBalanceAggregated, fiatBalanceAggregatedFormatted } =
-    useMusdBalance();
+  const {
+    tokenBalanceAggregated,
+    fiatBalanceAggregatedFormatted,
+    hasMusdBalanceOnAnyChain,
+  } = useMusdBalance();
   const { claimableReward, hasPendingClaim, claimRewards, isClaiming } =
-    useMerklBonusClaim(LINEA_MUSD_ASSET);
+    useMerklBonusClaim(
+      LINEA_MUSD_ASSET,
+      MUSD_EVENTS_CONSTANTS.EVENT_LOCATIONS.HOME_CASH_SECTION,
+    );
   const { trackEvent, createEventBuilder } = useAnalytics();
   const networkName = useNetworkName(LINEA_MUSD_ASSET.chainId as Hex);
 
-  const hasClaimableBonus =
-    isClaimableBonusAboveThreshold(claimableReward) && !hasPendingClaim;
+  const hasClaimableBonus = !!claimableReward && !hasPendingClaim;
 
   const handleClaimBonus = useCallback(() => {
     trackEvent(
@@ -104,14 +95,21 @@ const MusdAggregatedRow = () => {
   }, [trackEvent, createEventBuilder, networkName, claimRewards]);
 
   const handleTokenRowPress = useCallback(() => {
+    if (hasMusdBalanceOnAnyChain) {
+      NavigationService.navigation.navigate(
+        Routes.WALLET.CASH_TOKENS_FULL_VIEW as never,
+      );
+      return;
+    }
+
     NavigationService.navigation.navigate(
       'Asset' as never,
       {
         ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.MobileTokenListPage,
+        source: TokenDetailsSource.HomeSection,
       } as never,
     );
-  }, []);
+  }, [hasMusdBalanceOnAnyChain]);
 
   const tokenBalanceDisplay = `${getIntlNumberFormatter(I18n.locale, {
     minimumFractionDigits: 0,
@@ -129,18 +127,19 @@ const MusdAggregatedRow = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1 gap-5"
+        twClassName="flex-1"
       >
         <AvatarToken
           name={MUSD_TOKEN.symbol}
           src={MUSD_TOKEN.imageSource as number}
           size={AvatarTokenSize.Lg}
         />
-        <Box twClassName="flex-1 gap-0.5">
+        {/* Same two-line layout / typography as TokenListItemV2 (flex-1 ml-5, BodyMDMedium fiat). */}
+        <Box twClassName="flex-1 ml-5">
           <Box
             flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -150,7 +149,7 @@ const MusdAggregatedRow = () => {
               {MUSD_TOKEN.name}
             </Text>
             <SensitiveText
-              variant={CLTextVariant.BodyMDBold}
+              variant={CLTextVariant.BodyMDMedium}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >
@@ -159,35 +158,40 @@ const MusdAggregatedRow = () => {
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
+            twClassName="gap-2.5"
           >
-            {isClaiming ? (
-              <AnimatedSpinner size={SpinnerSize.SM} />
-            ) : hasClaimableBonus ? (
-              <Pressable
-                onPress={handleClaimBonus}
-                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-              >
+            <Box
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              {isClaiming ? (
+                <AnimatedSpinner size={SpinnerSize.SM} />
+              ) : hasClaimableBonus ? (
+                <Pressable
+                  onPress={handleClaimBonus}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <Text
+                    variant={TextVariant.BodySm}
+                    fontWeight={FontWeight.Medium}
+                    color={TextColor.PrimaryDefault}
+                  >
+                    {strings('earn.claim_bonus')}
+                  </Text>
+                </Pressable>
+              ) : (
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.PrimaryDefault}
+                  color={TextColor.SuccessDefault}
                 >
-                  {strings('earn.claim_bonus')}
+                  {strings('earn.musd_conversion.percentage_bonus', {
+                    percentage: MUSD_CONVERSION_APY,
+                  })}
                 </Text>
-              </Pressable>
-            ) : (
-              <Text
-                variant={TextVariant.BodySm}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                {strings('earn.musd_conversion.percentage_bonus', {
-                  percentage: MUSD_CONVERSION_APY,
-                })}
-              </Text>
-            )}
+              )}
+            </Box>
             <SensitiveText
               variant={CLTextVariant.BodySMMedium}
               color={CLTextColor.Alternative}

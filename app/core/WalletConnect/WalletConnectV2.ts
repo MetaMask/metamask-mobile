@@ -1,8 +1,5 @@
 import { AccountsController } from '@metamask/accounts-controller';
-import {
-  toChecksumHexAddress,
-  ORIGIN_METAMASK,
-} from '@metamask/controller-utils';
+import { toChecksumHexAddress } from '@metamask/controller-utils';
 import { KeyringController } from '@metamask/keyring-controller';
 import { PermissionController } from '@metamask/permission-controller';
 import { NavigationContainerRef } from '@react-navigation/native';
@@ -10,7 +7,6 @@ import { IWalletKit, WalletKit, WalletKitTypes } from '@reown/walletkit';
 import { Core } from '@walletconnect/core';
 import { SessionTypes } from '@walletconnect/types';
 import { getSdkError } from '@walletconnect/utils';
-import { rpcErrors } from '@metamask/rpc-errors';
 
 import { updateWC2Metadata } from '../../../app/actions/sdk';
 import {
@@ -59,6 +55,7 @@ export const ERROR_MESSAGES = {
   USER_REJECT: 'User reject',
   AUTO_REMOVE: 'Automatic removal',
   INVALID_ID: 'Invalid Id',
+  INVALID_ORIGIN: 'Invalid origin',
 };
 
 // Safety timeout for the proposal serialization lock.
@@ -121,6 +118,22 @@ export class WC2Manager {
         delete this.sessions[event.topic];
       },
     );
+  }
+
+  // Milliseconds to wait between consecutive session restorations on startup.
+  private static readonly SESSION_RESTORE_STAGGER_MS = 200;
+
+  /**
+   * Restores all active WalletConnect sessions one at a time.
+   *
+   * This method processes sessions serially with a small delay between
+   * each one so that relay traffic is smoothed out over time.
+   */
+  private async restoreSessions(): Promise<void> {
+    const activeSessions = this.getSessions();
+    if (!activeSessions?.length) {
+      return;
+    }
 
     const accountsController = (
       Engine.context as {
@@ -140,83 +153,76 @@ export class WC2Manager {
       }
     ).PermissionController;
 
-    const activeSessions = this.getSessions();
+    for (const session of activeSessions) {
+      if (INTERNAL_ORIGINS.includes(session.peer.metadata.url)) {
+        console.warn(
+          `WC2::init skipping session with invalid url: ${session.topic}`,
+        );
+        continue;
+      }
 
-    if (activeSessions) {
-      activeSessions.forEach(async (session) => {
-        if (session.peer.metadata.url === ORIGIN_METAMASK) {
-          console.warn(
-            `WC2::init skipping session with invalid url: ${session.topic}`,
+      const sessionKey = session.topic;
+      const pairingTopic = session.pairingTopic;
+      try {
+        const wcSession = new WalletConnect2Session({
+          web3Wallet: this.web3Wallet,
+          channelId: pairingTopic,
+          navigation: this.navigation,
+          deeplink:
+            typeof this.deeplinkSessions[session.pairingTopic] !== 'undefined',
+          session,
+        });
+        this.sessions[sessionKey] = wcSession;
+
+        // Find approvedAccounts for current sessions
+        DevLogger.log(
+          `WC2::init getPermittedAccounts for ${sessionKey} origin=${sessionKey}`,
+          JSON.stringify(permissionController.state, null, 2),
+        );
+        const accountPermission = permissionController.getPermission(
+          pairingTopic,
+          'eth_accounts',
+        );
+
+        DevLogger.log(
+          `WC2::init accountPermission`,
+          JSON.stringify(accountPermission, null, 2),
+        );
+
+        let approvedAccounts = getPermittedAccounts(pairingTopic) ?? [];
+
+        DevLogger.log(
+          `WC2::init approvedAccounts id ${accountPermission?.id}`,
+          approvedAccounts,
+        );
+
+        if (approvedAccounts?.length === 0) {
+          DevLogger.log(
+            `WC2::init fallback to parsing accountPermission`,
+            accountPermission,
           );
-          return;
+          // FIXME: Why getPermitted accounts doesn't work???
+          approvedAccounts = extractApprovedAccounts(accountPermission);
+          DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
         }
 
-        const sessionKey = session.topic;
-        const pairingTopic = session.pairingTopic;
-        try {
-          const wcSession = new WalletConnect2Session({
-            web3Wallet,
-            channelId: pairingTopic,
-            navigation: this.navigation,
-            deeplink:
-              typeof deeplinkSessions[session.pairingTopic] !== 'undefined',
-            session,
-          });
-          this.sessions[sessionKey] = wcSession;
+        updatePermittedChains(pairingTopic, wcSession.getAllowedChainIds, true);
 
-          // Find approvedAccounts for current sessions
-          DevLogger.log(
-            `WC2::init getPermittedAccounts for ${sessionKey} origin=${sessionKey}`,
-            JSON.stringify(permissionController.state, null, 2),
-          );
-          const accountPermission = permissionController.getPermission(
-            pairingTopic,
-            'eth_accounts',
-          );
+        const chainId = wcSession.getCurrentChainId();
 
-          DevLogger.log(
-            `WC2::init accountPermission`,
-            JSON.stringify(accountPermission, null, 2),
-          );
-
-          let approvedAccounts = getPermittedAccounts(pairingTopic) ?? [];
-
-          DevLogger.log(
-            `WC2::init approvedAccounts id ${accountPermission?.id}`,
-            approvedAccounts,
-          );
-
-          if (approvedAccounts?.length === 0) {
-            DevLogger.log(
-              `WC2::init fallback to parsing accountPermission`,
-              accountPermission,
-            );
-            // FIXME: Why getPermitted accounts doesn't work???
-            approvedAccounts = extractApprovedAccounts(accountPermission);
-            DevLogger.log(`WC2::init approvedAccounts`, approvedAccounts);
-          }
-
-          updatePermittedChains(
-            pairingTopic,
-            wcSession.getAllowedChainIds,
-            true,
-          );
-
-          const chainId = wcSession.getCurrentChainId();
-
-          const nChainId = parseInt(chainId, 16);
-          DevLogger.log(
-            `WC2::init updateSession session=${pairingTopic} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
-            approvedAccounts,
-          );
-          await this.sessions[sessionKey].updateSession({
-            chainId: nChainId,
-            accounts: approvedAccounts,
-          });
-        } catch (err) {
-          console.warn(`WC2::init can't update session ${sessionKey}`);
-        }
-      });
+        const nChainId = parseInt(chainId, 16);
+        DevLogger.log(
+          `WC2::init updateSession session=${pairingTopic} chainId=${chainId} nChainId=${nChainId} selectedAddress=${selectedInternalAccountChecksummedAddress}`,
+          approvedAccounts,
+        );
+        await this.sessions[sessionKey].updateSession({
+          chainId: nChainId,
+          accounts: approvedAccounts,
+        });
+      } catch (err) {
+        console.warn(`WC2::init can't update session ${sessionKey}`);
+      }
+      await wait(WC2Manager.SESSION_RESTORE_STAGGER_MS);
     }
   }
 
@@ -320,6 +326,7 @@ export class WC2Manager {
         navigation,
         sessions,
       );
+      await this.instance.restoreSessions();
     } catch (error) {
       Logger.error(error as Error, `WC2@init() failed to create instance`);
     }
@@ -374,10 +381,10 @@ export class WC2Manager {
         }
       ).PermissionController;
       DevLogger.log(
-        `WC2::removeSession revokeAllPermissions for ${session.topic}`,
+        `WC2::removeSession revokeAllPermissions for ${session.pairingTopic}`,
         permissionsController.state,
       );
-      permissionsController.revokeAllPermissions(session.topic);
+      permissionsController.revokeAllPermissions(session.pairingTopic);
     } catch (err) {
       DevLogger.log(`WC2::removeSession error while disconnecting`, err);
     }
@@ -385,6 +392,15 @@ export class WC2Manager {
 
   public async removeAll() {
     this.deeplinkSessions = {};
+    // Tear down WalletConnect2Session (Redux subscription, BackgroundBridge)
+    // before clearing the map. Otherwise session_delete may run after this.sessions
+    // is empty and skip removeListeners(), leaking listeners and relay churn.
+    const wcSessions = Object.values(this.sessions);
+    await Promise.allSettled(
+      wcSessions.map((wcSession) => wcSession.removeListeners()),
+    );
+    this.sessions = {};
+
     const actives = this.web3Wallet.getActiveSessions() || {};
     Object.values(actives).forEach(async (session) => {
       this.web3Wallet
@@ -396,9 +412,6 @@ export class WC2Manager {
           console.warn(`Can't remove active session ${session.topic}`, err);
         });
     });
-
-    // Clear local sessions
-    this.sessions = {};
 
     await StorageWrapper.setItem(
       AppConstants.WALLET_CONNECT.DEEPLINK_SESSIONS,
@@ -538,7 +551,9 @@ export class WC2Manager {
       return;
     }
 
-    if (url === ORIGIN_METAMASK) {
+    // Prevent external connections from using internal origins
+    // This is an external connection (WalletConnect), so block any internal origin
+    if (INTERNAL_ORIGINS.includes(url)) {
       console.warn(`WC2::session_proposal rejected - invalid url: ${url}`);
       await this.web3Wallet.rejectSession({
         id: proposal.id,
@@ -566,18 +581,6 @@ export class WC2Manager {
     const walletChainIdDecimal = parseInt(walletChainIdHex, 16);
 
     try {
-      // Prevent external connections from using internal origins
-      // This is an external connection (WalletConnect), so block any internal origin
-      if (INTERNAL_ORIGINS.includes(origin)) {
-        await this.web3Wallet.rejectSession({
-          id: proposal.id,
-          reason: getSdkError('USER_REJECTED_METHODS'),
-        });
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
-
       // Create a modified CAIP-25 caveat value that includes the current chain
       const caveatValue = getDefaultCaip25CaveatValue();
 
@@ -673,6 +676,8 @@ export class WC2Manager {
 
       this.sessions[activeSession.topic] = session;
 
+      await this.enforceSessionLimit();
+
       DevLogger.log(`WC2::session_proposal updateSession`, {
         chainId: walletChainIdDecimal,
         accounts: approvedAccounts,
@@ -722,6 +727,25 @@ export class WC2Manager {
         }),
       );
     }
+  }
+
+  private async enforceSessionLimit() {
+    const activeSessions = this.getSessions();
+    const limit = AppConstants.WALLET_CONNECT.LIMIT_SESSIONS;
+
+    if (activeSessions.length <= limit) {
+      return;
+    }
+
+    const oldestSession = activeSessions.reduce((oldest, session) =>
+      session.expiry < oldest.expiry ? session : oldest,
+    );
+
+    DevLogger.log(
+      `WC2::enforceSessionLimit removing oldest session topic=${oldestSession.topic} (${activeSessions.length} sessions exceed limit of ${limit})`,
+    );
+
+    await this.removeSession(oldestSession);
   }
 
   private async onSessionRequest(requestEvent: WalletKitTypes.SessionRequest) {

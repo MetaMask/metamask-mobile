@@ -24,6 +24,8 @@ import {
   PerpsController,
   getDefaultPerpsControllerState,
   InitializationState,
+  firstNonEmpty,
+  resolveMyxAuthConfig,
 } from './PerpsController';
 import type { PerpsControllerState } from './PerpsController';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
@@ -387,6 +389,16 @@ class TestablePerpsController extends PerpsController {
   public testHasStandaloneProvider(): boolean {
     return this.hasStandaloneProvider();
   }
+
+  public testRegisterMYXProvider(
+    MYXProvider: new (opts: Record<string, unknown>) => PerpsProvider,
+  ) {
+    this.registerMYXProvider(MYXProvider as never);
+  }
+
+  public testHandleMYXImportError(error: unknown) {
+    this.handleMYXImportError(error);
+  }
 }
 
 describe('PerpsController', () => {
@@ -677,6 +689,156 @@ describe('PerpsController', () => {
             }),
           }),
         }),
+      );
+    });
+  });
+
+  describe('deferEligibilityCheck', () => {
+    it('skips refreshEligibility when eligibility check is deferred', async () => {
+      // Arrange
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return { remoteFeatureFlags: {} };
+        }
+        if (action === 'GeolocationController:getGeolocation') {
+          return 'US';
+        }
+        return undefined;
+      });
+
+      const deferredController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
+        deferEligibilityCheck: true,
+      });
+
+      // Act
+      await deferredController.refreshEligibility();
+
+      // Assert — geolocation was never called because refreshEligibility returned early
+      expect(testMockCall).not.toHaveBeenCalledWith(
+        'GeolocationController:getGeolocation',
+      );
+    });
+
+    it('resumes eligibility checks after startEligibilityMonitoring is called', () => {
+      // Arrange
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      const deferredController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
+        deferEligibilityCheck: true,
+      });
+
+      // Reset mocks after construction to isolate startEligibilityMonitoring behavior
+      testMockCall.mockClear();
+      mockFeatureFlagConfigurationServiceInstance.refreshEligibility.mockClear();
+
+      // Re-wire the mock so it still returns flags when called again
+      testMockCall.mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return {
+            remoteFeatureFlags: {
+              perpsPerpTradingGeoBlockedCountriesV2: {
+                blockedRegions: ['US'],
+              },
+            },
+          };
+        }
+        return undefined;
+      });
+
+      // Act
+      deferredController.startEligibilityMonitoring();
+
+      // Assert — startEligibilityMonitoring itself reads remote flags and triggers eligibility
+      expect(testMockCall).toHaveBeenCalledWith(
+        'RemoteFeatureFlagController:getState',
+      );
+      expect(
+        mockFeatureFlagConfigurationServiceInstance.refreshEligibility,
+      ).toHaveBeenCalled();
+    });
+
+    it('logs error when RemoteFeatureFlagController throws during startEligibilityMonitoring', () => {
+      // Arrange
+      const testInfrastructure = createMockInfrastructure();
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          throw new Error('Controller not ready');
+        }
+        return undefined;
+      });
+
+      const deferredController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: testInfrastructure,
+        deferEligibilityCheck: true,
+      });
+
+      // Reset mock to isolate startEligibilityMonitoring errors from constructor errors
+      (testInfrastructure.logger.error as jest.Mock).mockClear();
+
+      // Act — should not throw
+      expect(() =>
+        deferredController.startEligibilityMonitoring(),
+      ).not.toThrow();
+
+      // Assert — error was logged
+      expect(testInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.any(Error),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'startEligibilityMonitoring',
+              operation: 'readRemoteFeatureFlags',
+            }),
+          }),
+        }),
+      );
+    });
+
+    it('stopEligibilityMonitoring defers subsequent refreshEligibility calls', async () => {
+      // Arrange — controller without deferral
+      const testMockCall = jest.fn().mockImplementation((action: string) => {
+        if (action === 'RemoteFeatureFlagController:getState') {
+          return { remoteFeatureFlags: {} };
+        }
+        if (action === 'GeolocationController:getGeolocation') {
+          return 'US';
+        }
+        return undefined;
+      });
+
+      const testController = new TestablePerpsController({
+        messenger: createMockMessenger({ call: testMockCall }),
+        state: getDefaultPerpsControllerState(),
+        infrastructure: createMockInfrastructure(),
+      });
+      testMockCall.mockClear();
+
+      // Act
+      testController.stopEligibilityMonitoring();
+      await testController.refreshEligibility();
+
+      // Assert — geolocation was never called
+      expect(testMockCall).not.toHaveBeenCalledWith(
+        'GeolocationController:getGeolocation',
       );
     });
   });
@@ -4430,6 +4592,17 @@ describe('PerpsController', () => {
       providers.set('myx', mockMYXProvider as any);
       myxController.testSetProviders(providers);
 
+      // Mock init on the reinit call inside switchProvider.
+      // Dynamic import() rejects in Jest (no --experimental-vm-modules),
+      // so MYX can't register via #createProviders. Mock init to
+      // simulate successful reinitialization while preserving our
+      // manually-injected MYX provider in the map.
+      jest.spyOn(myxController, 'init').mockImplementationOnce(async () => {
+        myxController.testUpdate((state) => {
+          state.initializationState = InitializationState.Initialized;
+        });
+      });
+
       const result = await myxController.switchProvider('myx');
 
       expect(result.success).toBe(true);
@@ -4521,6 +4694,59 @@ describe('PerpsController', () => {
 
       // The init path should detect MYX is not available and fall back
       expect(controller.state.activeProvider).toBe('hyperliquid');
+    });
+
+    it('registerMYXProvider creates and registers the MYX provider', () => {
+      // Arrange
+      const mockMYXInstance = createMockHyperLiquidProvider();
+      const MockMYXConstructor = jest.fn(() => mockMYXInstance);
+
+      // Act
+      controller.testRegisterMYXProvider(
+        MockMYXConstructor as unknown as new (
+          opts: Record<string, unknown>,
+        ) => PerpsProvider,
+      );
+
+      // Assert
+      const providers = controller.testGetProviders();
+      expect(providers.get('myx')).toBe(mockMYXInstance);
+      expect(MockMYXConstructor).toHaveBeenCalledWith(
+        expect.objectContaining({ isTestnet: false }),
+      );
+    });
+
+    it('handleMYXImportError logs debug for MODULE_NOT_FOUND errors', () => {
+      // Arrange — Node sets code: 'MODULE_NOT_FOUND' on missing modules
+      const moduleError = Object.assign(
+        new Error('Cannot find module ./providers/MYXProvider'),
+        { code: 'MODULE_NOT_FOUND' },
+      );
+
+      // Act
+      controller.testHandleMYXImportError(moduleError);
+
+      // Assert
+      expect(mockInfrastructure.debugLogger.log).toHaveBeenCalledWith(
+        'PerpsController: MYX provider module not available, skipping registration',
+      );
+    });
+
+    it('handleMYXImportError routes runtime errors to logError', () => {
+      // Act — error without MODULE_NOT_FOUND code goes to Sentry
+      controller.testHandleMYXImportError(new Error('Invalid auth config'));
+
+      // Assert
+      expect(mockInfrastructure.logger.error).toHaveBeenCalledWith(
+        expect.objectContaining({ message: 'Invalid auth config' }),
+        expect.objectContaining({
+          context: expect.objectContaining({
+            data: expect.objectContaining({
+              method: 'createProviders.myx',
+            }),
+          }),
+        }),
+      );
     });
   });
 
@@ -5036,7 +5262,7 @@ describe('PerpsController', () => {
       await jest.advanceTimersByTimeAsync(500);
 
       const userCache = preloadController.state.cachedUserDataByProvider;
-      const cacheKey = Object.keys(userCache)[0] as string;
+      const cacheKey = Object.keys(userCache)[0];
       expect(cacheKey).toBeDefined();
       const entry = userCache[cacheKey];
       expect(entry.positions).toEqual(mockPositions);
@@ -5112,7 +5338,7 @@ describe('PerpsController', () => {
       await jest.advanceTimersByTimeAsync(500);
 
       const freshCache = preloadController.state.cachedUserDataByProvider;
-      const freshKey = Object.keys(freshCache)[0] as string;
+      const freshKey = Object.keys(freshCache)[0];
       expect(freshKey).toBeDefined();
       expect(freshCache[freshKey].address).toBe(mockEvmAccount.address);
       expect(freshCache[freshKey].timestamp).toBeGreaterThan(0);
@@ -5552,5 +5778,95 @@ describe('PerpsController', () => {
       expect(hlEntry?.data).toHaveLength(1);
       expect(hlEntry?.data[0].symbol).toBe('BTC');
     });
+  });
+});
+
+describe('firstNonEmpty', () => {
+  it('returns the first non-empty string', () => {
+    expect(firstNonEmpty('', undefined, 'hello', 'world')).toBe('hello');
+  });
+
+  it('returns empty string when all values are empty or undefined', () => {
+    expect(firstNonEmpty('', undefined, '')).toBe('');
+  });
+
+  it('returns the first value if it is non-empty', () => {
+    expect(firstNonEmpty('first', 'second')).toBe('first');
+  });
+
+  it('skips empty strings and returns the fallback', () => {
+    expect(firstNonEmpty('', 'fallback')).toBe('fallback');
+  });
+});
+
+describe('resolveMyxAuthConfig', () => {
+  it('uses testnet credentials on testnet', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: 'main-app',
+      apiSecretMainnet: 'main-secret',
+      brokerAddressMainnet: '0xMainBroker',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, true);
+
+    // Assert
+    expect(result.appId).toBe('test-app');
+    expect(result.apiSecret).toBe('test-secret');
+    expect(result.brokerAddress).toBe('0xTestBroker');
+  });
+
+  it('uses mainnet credentials on mainnet', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: 'main-app',
+      apiSecretMainnet: 'main-secret',
+      brokerAddressMainnet: '0xMainBroker',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, false);
+
+    // Assert
+    expect(result.appId).toBe('main-app');
+    expect(result.apiSecret).toBe('main-secret');
+    expect(result.brokerAddress).toBe('0xMainBroker');
+  });
+
+  it('falls back to testnet credentials when mainnet are empty', () => {
+    // Arrange
+    const myx = {
+      appIdTestnet: 'test-app',
+      apiSecretTestnet: 'test-secret',
+      brokerAddressTestnet: '0xTestBroker',
+      appIdMainnet: '',
+      apiSecretMainnet: '',
+      brokerAddressMainnet: '',
+    };
+
+    // Act
+    const result = resolveMyxAuthConfig(myx, false);
+
+    // Assert
+    expect(result.appId).toBe('test-app');
+    expect(result.apiSecret).toBe('test-secret');
+    expect(result.brokerAddress).toBe('0xTestBroker');
+  });
+
+  it('returns empty strings when no credentials are set', () => {
+    // Act
+    const result = resolveMyxAuthConfig({}, true);
+
+    // Assert
+    expect(result.appId).toBe('');
+    expect(result.apiSecret).toBe('');
+    expect(result.brokerAddress).toBe('');
   });
 });

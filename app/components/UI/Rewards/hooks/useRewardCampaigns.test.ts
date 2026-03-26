@@ -12,12 +12,12 @@ import {
   selectCampaigns,
   selectCampaignsLoading,
   selectCampaignsError,
+  selectCampaignsHasLoaded,
 } from '../../../../reducers/rewards/selectors';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
-import type {
-  CampaignDto,
+import {
+  type CampaignDto,
   CampaignType,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 
@@ -43,14 +43,11 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectCampaigns: jest.fn(),
   selectCampaignsLoading: jest.fn(),
   selectCampaignsError: jest.fn(),
+  selectCampaignsHasLoaded: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
-}));
-
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectCampaignsRewardsEnabledFlag: jest.fn(),
 }));
 
 jest.mock('@react-navigation/native', () => ({
@@ -61,17 +58,31 @@ jest.mock('./useInvalidateByRewardEvents', () => ({
   useInvalidateByRewardEvents: jest.fn(),
 }));
 
+jest.mock('../components/Campaigns/CampaignTile.utils', () => ({
+  getCampaignStatus: jest.fn(
+    (campaign: { startDate: string; endDate: string }) => {
+      const now = new Date();
+      const startDate = new Date(campaign.startDate);
+      const endDate = new Date(campaign.endDate);
+      if (now < startDate) return 'upcoming';
+      if (now >= startDate && now < endDate) return 'active';
+      return 'complete';
+    },
+  ),
+}));
+
 const createTestCampaign = (
   overrides: Partial<CampaignDto> = {},
 ): CampaignDto => ({
   id: 'campaign-1',
-  type: 'ONDO_HOLDING' as CampaignType,
+  type: CampaignType.ONDO_HOLDING,
   name: 'ONDO Holding Campaign',
   startDate: '2025-01-01T00:00:00.000Z',
   endDate: '2027-01-01T00:00:00.000Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
+  details: null,
+  featured: true,
   ...overrides,
 });
 
@@ -128,7 +139,7 @@ describe('useRewardCampaigns', () => {
       campaigns?: CampaignDto[];
       isLoading?: boolean;
       hasError?: boolean;
-      isCampaignsEnabled?: boolean;
+      hasLoaded?: boolean;
     } = {},
   ) => {
     const {
@@ -136,7 +147,7 @@ describe('useRewardCampaigns', () => {
       campaigns = [],
       isLoading = false,
       hasError = false,
-      isCampaignsEnabled = true,
+      hasLoaded = true,
     } = options;
 
     mockUseSelector.mockImplementation((selector) => {
@@ -144,8 +155,7 @@ describe('useRewardCampaigns', () => {
       if (selector === selectCampaigns) return campaigns;
       if (selector === selectCampaignsLoading) return isLoading;
       if (selector === selectCampaignsError) return hasError;
-      if (selector === selectCampaignsRewardsEnabledFlag)
-        return isCampaignsEnabled;
+      if (selector === selectCampaignsHasLoaded) return hasLoaded;
       return undefined;
     });
   };
@@ -160,7 +170,16 @@ describe('useRewardCampaigns', () => {
       expect(result.current.campaigns).toEqual(testCampaigns);
       expect(result.current.isLoading).toBe(false);
       expect(result.current.hasError).toBe(false);
+      expect(result.current.hasLoaded).toBe(true);
       expect(typeof result.current.fetchCampaigns).toBe('function');
+    });
+
+    it('returns hasLoaded as false when campaigns have never been loaded', () => {
+      setupSelectorMocks({ hasLoaded: false });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.hasLoaded).toBe(false);
     });
 
     it('returns empty array when campaigns selector returns undefined', () => {
@@ -170,7 +189,6 @@ describe('useRewardCampaigns', () => {
         if (selector === selectRewardsSubscriptionId) return 'subscription-1';
         if (selector === selectCampaignsLoading) return false;
         if (selector === selectCampaignsError) return false;
-        if (selector === selectCampaignsRewardsEnabledFlag) return true;
         return undefined;
       });
 
@@ -244,8 +262,9 @@ describe('useRewardCampaigns', () => {
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
     });
 
-    it('returns empty list and does not fetch when feature flag is disabled', async () => {
-      setupSelectorMocks({ isCampaignsEnabled: false });
+    it('dispatches setCampaignsLoading(true) when campaigns have not been loaded before', async () => {
+      setupSelectorMocks({ hasLoaded: false });
+      mockEngineCall.mockResolvedValueOnce([]);
 
       const { result } = renderHook(() => useRewardCampaigns());
 
@@ -253,10 +272,20 @@ describe('useRewardCampaigns', () => {
         await result.current.fetchCampaigns();
       });
 
-      expect(mockEngineCall).not.toHaveBeenCalled();
-      expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaigns([]));
-      expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
-      expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsError(false));
+      expect(mockSetCampaignsLoading).toHaveBeenCalledWith(true);
+    });
+
+    it('does not dispatch setCampaignsLoading(true) when campaigns were already loaded', async () => {
+      setupSelectorMocks({ hasLoaded: true });
+      mockEngineCall.mockResolvedValueOnce([]);
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      await act(async () => {
+        await result.current.fetchCampaigns();
+      });
+
+      expect(mockSetCampaignsLoading).not.toHaveBeenCalledWith(true);
     });
 
     it('does not fetch when subscriptionId is null', async () => {
@@ -334,6 +363,167 @@ describe('useRewardCampaigns', () => {
         'RewardsController:getCampaigns',
         'subscription-1',
       );
+    });
+  });
+
+  describe('categorizedCampaigns', () => {
+    it('categorizes campaigns into active, upcoming, and previous', () => {
+      const activeCampaign = createTestCampaign({
+        id: 'active-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const upcomingCampaign = createTestCampaign({
+        id: 'upcoming-1',
+        startDate: '2099-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const completeCampaign = createTestCampaign({
+        id: 'complete-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.categorizedCampaigns.active).toEqual([
+        activeCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.upcoming).toEqual([
+        upcomingCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.previous).toEqual([
+        completeCampaign,
+      ]);
+    });
+
+    it('returns empty categories when no campaigns', () => {
+      setupSelectorMocks({ campaigns: [] });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.categorizedCampaigns).toEqual({
+        active: [],
+        upcoming: [],
+        previous: [],
+      });
+    });
+
+    it('preserves API order for active campaigns', () => {
+      const activeFirst = createTestCampaign({
+        id: 'active-1',
+        startDate: '2022-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const activeSecond = createTestCampaign({
+        id: 'active-2',
+        startDate: '2021-01-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [activeFirst, activeSecond],
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.categorizedCampaigns.active[0].id).toBe('active-1');
+      expect(result.current.categorizedCampaigns.active[1].id).toBe('active-2');
+    });
+
+    it('preserves API order for upcoming campaigns', () => {
+      const upcomingFirst = createTestCampaign({
+        id: 'upcoming-1',
+        startDate: '2099-09-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const upcomingSecond = createTestCampaign({
+        id: 'upcoming-2',
+        startDate: '2099-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [upcomingFirst, upcomingSecond],
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.categorizedCampaigns.upcoming[0].id).toBe(
+        'upcoming-1',
+      );
+      expect(result.current.categorizedCampaigns.upcoming[1].id).toBe(
+        'upcoming-2',
+      );
+    });
+
+    it('preserves API order for previous campaigns', () => {
+      const completeFirst = createTestCampaign({
+        id: 'complete-1',
+        startDate: '2020-07-01T00:00:00.000Z',
+        endDate: '2020-12-31T23:59:59.999Z',
+      });
+      const completeSecond = createTestCampaign({
+        id: 'complete-2',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-06-30T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [completeFirst, completeSecond],
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.categorizedCampaigns.previous[0].id).toBe(
+        'complete-1',
+      );
+      expect(result.current.categorizedCampaigns.previous[1].id).toBe(
+        'complete-2',
+      );
+    });
+
+    it('returns all campaigns', () => {
+      const activeCampaign = createTestCampaign({
+        id: 'active-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const upcomingCampaign = createTestCampaign({
+        id: 'upcoming-1',
+        startDate: '2099-06-01T00:00:00.000Z',
+        endDate: '2099-12-31T23:59:59.999Z',
+      });
+      const completeCampaign = createTestCampaign({
+        id: 'complete-1',
+        startDate: '2020-01-01T00:00:00.000Z',
+        endDate: '2020-12-31T23:59:59.999Z',
+      });
+
+      setupSelectorMocks({
+        campaigns: [activeCampaign, upcomingCampaign, completeCampaign],
+      });
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      expect(result.current.campaigns).toEqual([
+        activeCampaign,
+        upcomingCampaign,
+        completeCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.active).toEqual([
+        activeCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.upcoming).toEqual([
+        upcomingCampaign,
+      ]);
+      expect(result.current.categorizedCampaigns.previous).toEqual([
+        completeCampaign,
+      ]);
     });
   });
 });

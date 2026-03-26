@@ -10,6 +10,7 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useRegisterPhysicalAddress from '../../hooks/useRegisterPhysicalAddress';
 import useRegisterUserConsent from '../../hooks/useRegisterUserConsent';
 import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import { useCardSDK } from '../../sdk';
 
 // Mock navigation
@@ -21,6 +22,7 @@ jest.mock('@react-navigation/native', () => ({
 jest.mock('../../hooks/useRegisterPhysicalAddress');
 jest.mock('../../hooks/useRegisterUserConsent');
 jest.mock('../../hooks/useRegistrationSettings');
+jest.mock('../../hooks/useRegions');
 
 // Mock SDK
 jest.mock('../../sdk', () => ({
@@ -153,14 +155,40 @@ jest.mock('@metamask/design-system-react-native', () => {
   }: React.PropsWithChildren<Record<string, unknown>>) =>
     React.createElement(RNText, props, children);
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
+  const Button = ({
+    children,
+    testID,
+    onPress,
+    isDisabled,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) =>
+    React.createElement(
+      TouchableOpacity,
+      { testID, onPress, disabled: isDisabled, ...props },
+      React.createElement(RNText, {}, children),
+    );
+
   return {
     Box,
     Label,
     Text,
     Icon,
+    Button,
     TextVariant: {
       BodySm: 'BodySm',
       BodyMd: 'BodyMd',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
     IconName: {
       ArrowDown: 'arrow-down',
@@ -351,18 +379,8 @@ const createTestStore = (initialState = {}) =>
       card: (
         state = {
           onboarding: {
-            selectedCountry: {
-              key: 'US',
-              name: 'United States',
-              emoji: '🇺🇸',
-              areaCode: '1',
-            },
             onboardingId: 'test-id',
             contactVerificationId: 'contact-id',
-            user: {
-              id: 'user-id',
-              email: 'test@example.com',
-            },
           },
           userCardLocation: 'us',
           ...initialState,
@@ -444,7 +462,17 @@ describe('PhysicalAddress Component', () => {
       reset: jest.fn(),
     });
 
-    // Mock useRegistrationSettings
+    const mockUserCountryUS = {
+      key: 'US',
+      name: 'United States',
+      emoji: '🇺🇸',
+      areaCode: '1',
+    };
+    (useRegions as jest.Mock).mockReturnValue({
+      userCountry: mockUserCountryUS,
+    });
+
+    // Mock useRegistrationSettings (for AddressFields usStates and links)
     mockUseRegistrationSettings.mockReturnValue({
       data: {
         countries: [
@@ -524,18 +552,9 @@ describe('PhysicalAddress Component', () => {
       selector({
         card: {
           onboarding: {
-            selectedCountry: {
-              key: 'US',
-              name: 'United States',
-              emoji: '🇺🇸',
-              areaCode: '1',
-            },
             onboardingId: 'test-id',
-            user: {
-              id: 'user-id',
-              email: 'test@example.com',
-            },
           },
+          consentSetId: null,
         },
       }),
     );
@@ -1399,22 +1418,14 @@ describe('PhysicalAddress Component', () => {
 
   describe('Conditional Rendering', () => {
     it('shows state field for US users', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation((selector: any) =>
-        selector({
-          card: {
-            onboarding: {
-              selectedCountry: {
-                key: 'US',
-                name: 'United States',
-                emoji: '🇺🇸',
-                areaCode: '1',
-              },
-              onboardingId: 'test-id',
-            },
-          },
-        }),
-      );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: {
+          key: 'US',
+          name: 'United States',
+          emoji: '🇺🇸',
+          areaCode: '1',
+        },
+      });
 
       const { getByTestId } = render(
         <Provider store={store}>
@@ -1426,22 +1437,14 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('hides state field for non-US users', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation((selector: any) =>
-        selector({
-          card: {
-            onboarding: {
-              selectedCountry: {
-                key: 'CA',
-                name: 'Canada',
-                emoji: '🇨🇦',
-                areaCode: '1',
-              },
-              onboardingId: 'test-id',
-            },
-          },
-        }),
-      );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: {
+          key: 'CA',
+          name: 'Canada',
+          emoji: '🇨🇦',
+          areaCode: '1',
+        },
+      });
 
       const { queryByTestId } = render(
         <Provider store={store}>
@@ -1460,13 +1463,15 @@ describe('PhysicalAddress Component', () => {
         selector({
           card: {
             onboarding: {
-              selectedCountry: null,
               onboardingId: null,
-              user: null,
             },
+            consentSetId: null,
           },
         }),
       );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: null,
+      });
 
       const { getByTestId } = render(
         <Provider store={store}>
@@ -1761,22 +1766,14 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('does not render legal links for non-US users', () => {
-      const { useSelector } = jest.requireMock('react-redux');
-      useSelector.mockImplementation((selector: any) =>
-        selector({
-          card: {
-            onboarding: {
-              selectedCountry: {
-                key: 'CA',
-                name: 'Canada',
-                emoji: '🇨🇦',
-                areaCode: '1',
-              },
-              onboardingId: 'test-id',
-            },
-          },
-        }),
-      );
+      (useRegions as jest.Mock).mockReturnValue({
+        userCountry: {
+          key: 'CA',
+          name: 'Canada',
+          emoji: '🇨🇦',
+          areaCode: '1',
+        },
+      });
 
       const { queryByText } = render(
         <Provider store={store}>
@@ -1815,7 +1812,7 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('displays translated text correctly', () => {
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PhysicalAddress />
         </Provider>,
@@ -1823,13 +1820,12 @@ describe('PhysicalAddress Component', () => {
 
       const title = getByTestId('onboarding-step-title');
       const description = getByTestId('onboarding-step-description');
-      const buttonText = getByTestId('button-text');
 
       expect(title.props.children).toBe('Physical Address');
       expect(description.props.children).toBe(
         'Enter your physical address information',
       );
-      expect(buttonText.props.children).toBe('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
   });
 
