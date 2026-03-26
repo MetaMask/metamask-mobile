@@ -25,7 +25,7 @@ perfTest.describe(PerformancePredict, () => {
   perfTest(
     'Predict Available Balance - Complete Flow Performance',
     { tag: '@team-predict' },
-    async ({ currentDeviceDetails, performanceTracker }, testInfo) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       // Login to the app
       await loginToAppPlaywright();
 

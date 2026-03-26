@@ -47,15 +47,11 @@ class PredictDetailsPage {
       appium: {
         android: () =>
           PlaywrightMatchers.getElementByXPath(
-            getAndroidTabBarTabXPath(
-              PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
-            ),
+            PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
           ),
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
-            getIOSTabBarTabXPath(
-              PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
-            ),
+            PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
           ),
       },
     });
@@ -69,16 +65,12 @@ class PredictDetailsPage {
         ),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            getAndroidTabBarTabXPath(
-              PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
-            ),
+          PlaywrightMatchers.getElementByCatchAll(
+            PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            getIOSTabBarTabXPath(
-              PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
-            ),
+          PlaywrightMatchers.getElementByCatchAll(
+            PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
           ),
       },
     });
@@ -92,16 +84,12 @@ class PredictDetailsPage {
         ),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            getAndroidTabBarTabXPath(
-              PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
-            ),
+          PlaywrightMatchers.getElementByCatchAll(
+            PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
           ),
         ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            getIOSTabBarTabXPath(
-              PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
-            ),
+          PlaywrightMatchers.getElementByCatchAll(
+            PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
           ),
       },
     });
@@ -111,10 +99,12 @@ class PredictDetailsPage {
   get aboutTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
+        Matchers.getElementByID(
+          PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
+        ),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          PredictMarketDetailsSelectorsIDs.ABOUT_TAB,
+          PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
           { exact: true },
         ),
     });
@@ -125,10 +115,12 @@ class PredictDetailsPage {
   get outcomesTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB),
+        Matchers.getElementByID(
+          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
+        ),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB,
+          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
           { exact: true },
         ),
     });

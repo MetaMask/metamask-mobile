@@ -29,7 +29,7 @@ perfTest.describe(PerformancePredict, () => {
   perfTest(
     'Predict Market Details - Complete Flow Performance',
     { tag: '@team-predict' },
-    async ({ currentDeviceDetails, performanceTracker }, testInfo) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       // Login to the app
       await loginToAppPlaywright();
 
@@ -55,7 +55,7 @@ perfTest.describe(PerformancePredict, () => {
         currentDeviceDetails.platform,
       );
 
-      await PredictMarketList.tapMarketCard('trending', 2);
+      await PredictMarketList.tapMarketCard('trending', 1);
       await timer2.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictDetailsPage.container),
@@ -72,7 +72,7 @@ perfTest.describe(PerformancePredict, () => {
       await PredictDetailsPage.tapAboutTab();
       await timer3.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictDetailsPage.aboutTabContent),
+          asPlaywrightElement(PredictDetailsPage.aboutTab),
         );
         await PlaywrightAssertions.expectElementToBeVisible(
           asPlaywrightElement(PredictDetailsPage.volumeLabel),
@@ -98,7 +98,7 @@ perfTest.describe(PerformancePredict, () => {
 
         await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictDetailsPage.outcomesTabContent),
+            asPlaywrightElement(PredictDetailsPage.outcomesTab),
           );
         });
 
