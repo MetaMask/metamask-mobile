@@ -471,6 +471,7 @@ const Routes = {
       DAIMO_PAY: 'CardDaimoPayModal',
       VIEW_PIN: 'CardViewPinModal',
       SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
+      WAITLIST_FORM: 'CardWaitlistFormModal',
     },
   },
   SEND: {
