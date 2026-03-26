@@ -27,6 +27,7 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
@@ -97,8 +98,20 @@ class WalletView {
     );
   }
 
-  get accountIcon(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON);
+  get accountIcon(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_ICON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(
+            WalletViewSelectorsIDs.ACCOUNT_ICON,
+          ),
+      },
+    });
   }
 
   get eyeSlashIcon(): DetoxElement {
@@ -432,8 +445,17 @@ class WalletView {
   }
 
   async tapIdenticon(): Promise<void> {
-    await Gestures.waitAndTap(this.accountIcon, {
-      elemDescription: 'Top Account Icon',
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.accountIcon, {
+          elemDescription: 'Top Account Icon',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.accountIcon),
+        );
+      },
     });
   }
 

@@ -1,3 +1,23 @@
+// Device Matrix
+
+export interface DeviceMatrixEntry {
+  name: string;
+  os_version: string;
+  category: 'high' | 'medium' | 'low';
+  description: string;
+}
+
+export interface DeviceMatrix {
+  android_devices: DeviceMatrixEntry[];
+  ios_devices: DeviceMatrixEntry[];
+  device_categories: Record<string, string>;
+  os_coverage: {
+    android: string[];
+    ios: string[];
+  };
+  notes: Record<string, string>;
+}
+
 // Gestures
 
 import { LanguageAndLocale } from 'detox/detox';

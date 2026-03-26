@@ -10,13 +10,13 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
   test(
     'Cross-chain swap flow - ETH to SOL - 50+ accounts, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
-    async ({ currentPlatform, driver, performanceTracker }, testInfo) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
 
       const timer1 = new TimerHelper(
         'Time since the user clicks on the "Swap" button until the swap page is loaded',
         { ios: 1100, android: 2200 },
-        currentPlatform,
+        currentDeviceDetails.platform,
       );
 
       await WalletView.tapWalletSwapButton();
@@ -28,7 +28,7 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       const timer2 = new TimerHelper(
         'Time since the user enters the amount until the quote is displayed',
         { ios: 9000, android: 7000 },
-        currentPlatform,
+        currentDeviceDetails.platform,
       );
 
       await timer2.measure(() => QuoteView.isQuoteDisplayed());

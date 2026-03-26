@@ -14,13 +14,13 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
   perfTest(
     'Asset View, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },
-    async ({ currentPlatform, driver, performanceTracker }, testInfo) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
 
       const assetViewScreen = new TimerHelper(
         'Time since the user clicks on the asset view button until the user sees the token overview screen',
         { ios: 600, android: 600 },
-        currentPlatform,
+        currentDeviceDetails.platform,
       );
 
       await WalletView.tapOnTokensSection();

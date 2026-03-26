@@ -2,14 +2,17 @@ import WalletView from '../page-objects/wallet/WalletView';
 import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
-  PlatformDetector,
+  PlaywrightAssertions,
   PortManager,
   ResourceType,
   sleep,
   Utilities,
 } from '../framework';
 import Assertions from '../framework/Assertions';
-import { asDetoxElement } from '../framework/EncapsulatedElement';
+import {
+  asDetoxElement,
+  asPlaywrightElement,
+} from '../framework/EncapsulatedElement';
 import NetworkEducationModal from '../page-objects/Network/NetworkEducationModal';
 import {
   getAnvilPortForFixture,
@@ -34,6 +37,7 @@ import { waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import PlaywrightUtilities from '../framework/PlaywrightUtilities';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -427,6 +431,8 @@ export const loginToApp = async (password?: string): Promise<void> => {
   );
 };
 
+// Playwright (appium specific functions)
+// -----------------------------------------
 /**
  * Logs into the application using the provided password or a default password.
  *
@@ -444,4 +450,38 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await PlaywrightUtilities.wait(5000);
+};
+
+/**
+ * Selects the account for the device based on the device-matrix.json file.
+ * @param deviceName - The name of the device the test is running on to map
+ * against the device-matrix.json file
+ * @returns {Promise<void>} Resolves when the account is selected.
+ * @throws {Error} Throws an error if the account name is not found for the device.
+ */
+export const selectAccountByDevice = async (
+  deviceName: string,
+): Promise<void> => {
+  const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
+  const accountName = deviceAccountMapping[deviceName];
+
+  if (!(deviceName in deviceAccountMapping)) {
+    throw new Error(`Account name not found for device: ${deviceName}`);
+  }
+
+  if (!accountName) {
+    logger.info(
+      `Device "${deviceName}" uses default Account 1 — skipping account switch`,
+    );
+    return;
+  }
+
+  logger.info(`Selecting account: ${accountName} for device: ${deviceName}`);
+
+  await WalletView.tapIdenticon();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(AccountListBottomSheet.accountList),
+  );
+  await AccountListBottomSheet.waitForAccountSyncToComplete();
+  await AccountListBottomSheet.tapAccountByNameV2(accountName);
 };

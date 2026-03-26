@@ -10,13 +10,13 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
   test(
     'Swap flow - ETH to LINK, SRP 1 + SRP 2 + SRP 3',
     { tag: '@swap-bridge-dev-team' },
-    async ({ currentPlatform, driver, performanceTracker }, testInfo) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
 
       const swapLoadTimer = new TimerHelper(
         'Time since the user clicks on the "Swap" button until the swap page is loaded',
         { ios: 2000, android: 2500 },
-        currentPlatform,
+        currentDeviceDetails.platform,
       );
 
       await WalletView.tapWalletSwapButton();
@@ -25,7 +25,7 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       const swapTimer = new TimerHelper(
         'Time since the user enters the amount until the quote is displayed',
         { ios: 9000, android: 7000 },
-        currentPlatform,
+        currentDeviceDetails.platform,
       );
       await QuoteView.selectNetworkAndTokenTo('Ethereum', 'LINK');
       await QuoteView.enterSourceTokenAmount('1');

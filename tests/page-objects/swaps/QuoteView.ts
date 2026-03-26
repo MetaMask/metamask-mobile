@@ -190,7 +190,11 @@ class QuoteView {
           timeout: TIMEOUT.TOKEN_SELECT,
           description: `Token ${symbol} should be visible`,
         });
-        await tokenElement.click();
+        await PlaywrightGestures.waitAndTap(tokenElement, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+          delay: 1000,
+        });
       },
     });
   }

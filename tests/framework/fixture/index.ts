@@ -1,5 +1,6 @@
 import { test as base, type FullProject } from '@playwright/test';
 import { WebDriverConfig } from '../types.ts';
+import { DEFAULT_IMPLICIT_WAIT_MS } from '../Constants.ts';
 import { createServiceProvider, type ServiceProvider } from '../services';
 import {
   MetricsOutput,
@@ -20,12 +21,17 @@ declare global {
   var driver: WebdriverIO.Browser | undefined;
 }
 
+interface CurrentDeviceDetails {
+  platform: 'android' | 'ios';
+  deviceName: string;
+}
+
 interface TestLevelFixtures {
   /**
    * Platform detector to be used for the test.
    * This detects the platform of the device being tested.
    */
-  currentPlatform: 'android' | 'ios';
+  currentDeviceDetails: CurrentDeviceDetails;
 
   /**
    * Device provider to be used for the test.
@@ -50,17 +56,28 @@ interface TestLevelFixtures {
 
 export const test = base.extend<TestLevelFixtures>({
   // eslint-disable-next-line no-empty-pattern
-  currentPlatform: async ({}, use, testInfo) => {
+  currentDeviceDetails: async ({}, use, testInfo) => {
     const project = testInfo.project as FullProject<WebDriverConfig>;
     const platform = project.use.platform;
+    const deviceName = project.use.device?.name;
 
-    if (!platform) {
+    const missingFields = [
+      ...(!platform ? ['"use.platform"'] : []),
+      ...(!deviceName ? ['"use.device.name"'] : []),
+    ];
+
+    if (missingFields.length > 0) {
       throw new Error(
-        `Missing "use.platform" for project "${project.name}" in tests/playwright.config.ts.`,
+        `Missing ${missingFields.join(' and ')} for project "${project.name}" in tests/playwright.config.ts.`,
       );
     }
 
-    await use(platform);
+    const deviceDetails: CurrentDeviceDetails = {
+      platform: platform as 'android' | 'ios',
+      deviceName: deviceName as string,
+    };
+
+    await use(deviceDetails);
   },
 
   // eslint-disable-next-line no-empty-pattern
@@ -79,7 +96,7 @@ export const test = base.extend<TestLevelFixtures>({
 
       // Set the implicit timeout for the driver
       await driver.setTimeout({
-        implicit: project.use.expectTimeout ?? 30_000,
+        implicit: project.use.expectTimeout ?? DEFAULT_IMPLICIT_WAIT_MS,
       });
 
       // Make driver globally accessible for utilities
