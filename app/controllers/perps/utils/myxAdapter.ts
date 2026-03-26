@@ -642,7 +642,11 @@ function parseAccountTuple(data: unknown): {
   };
 
   const str = (val: unknown): string =>
-    typeof val === 'string' || typeof val === 'number' ? String(val) : '0';
+    typeof val === 'string' ||
+    typeof val === 'number' ||
+    typeof val === 'bigint'
+      ? String(val)
+      : '0';
 
   if (Array.isArray(data)) {
     return {
