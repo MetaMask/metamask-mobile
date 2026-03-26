@@ -710,6 +710,8 @@
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "campaigns": {},
+    "ondoCampaignLeaderboardPositions": {},
+    "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
