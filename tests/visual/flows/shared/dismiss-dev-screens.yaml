@@ -22,8 +22,6 @@ appId: io.metamask.MetaMask
 # Step 3: Tap "Continue" on the developer menu onboarding
 - tapOn: "Continue"
 
-# Step 4: Dismiss the developer menu options by tapping the X icon
-# The X is a native icon without a text/accessibility label, so we use coordinates.
-# Position: upper-right of the bottom sheet (~93% x, ~37% y on iPhone 16 Pro)
+# Step 4: Dismiss the developer menu by tapping any option (closes the menu)
 - tapOn:
-    point: "93%,37%"
+    id: "fast-refresh"
