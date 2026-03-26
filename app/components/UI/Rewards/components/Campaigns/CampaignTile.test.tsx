@@ -322,6 +322,72 @@ describe('CampaignTile', () => {
     });
   });
 
+  describe('participant status hook call conditions', () => {
+    it('calls hook with campaign.id when campaign is active and ONDO_HOLDING type', () => {
+      const campaign = createTestCampaign({
+        id: 'ondo-active',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        'ondo-active',
+      );
+    });
+
+    it('calls hook with undefined when campaign is upcoming', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Up next',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'ondo-upcoming',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+
+    it('calls hook with undefined when campaign is complete', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'complete',
+        statusLabel: 'Complete',
+        dateLabel: 'December 31',
+        dateLabelIcon: 'Confirmation',
+      });
+      const campaign = createTestCampaign({
+        id: 'ondo-complete',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+
+    it('calls hook with undefined when campaign is active but not ONDO_HOLDING type', () => {
+      const campaign = createTestCampaign({
+        id: 'season-active',
+        type: CampaignType.SEASON_1,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+  });
+
   describe('navigation', () => {
     it('navigates to Ondo campaign details for ONDO_HOLDING type', () => {
       const campaign = createTestCampaign({

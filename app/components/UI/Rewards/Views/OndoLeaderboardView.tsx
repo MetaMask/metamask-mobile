@@ -36,6 +36,7 @@ const OndoLeaderboardView: React.FC = () => {
     setSelectedTier,
     isLoading: isLeaderboardLoading,
     hasError: hasLeaderboardError,
+    isLeaderboardNotYetComputed,
     refetch: refetchLeaderboard,
   } = useGetOndoLeaderboard(campaignId);
 
@@ -59,7 +60,10 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position card */}
           <Box twClassName="px-4 pt-4">
-            <OndoLeaderboardPosition campaignId={campaignId} />
+            <OndoLeaderboardPosition
+              campaignId={campaignId}
+              isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
+            />
           </Box>
 
           {/* Full leaderboard */}
@@ -74,6 +78,7 @@ const OndoLeaderboardView: React.FC = () => {
               computedAt={computedAt}
               isLoading={isLeaderboardLoading}
               hasError={hasLeaderboardError}
+              isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
             />
           </Box>

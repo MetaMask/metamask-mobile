@@ -66,7 +66,9 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
 
     try {
       isLoadingRef.current = true;
-      dispatch(setCampaignsLoading(true));
+      if (!hasLoaded) {
+        dispatch(setCampaignsLoading(true));
+      }
       dispatch(setCampaignsError(false));
 
       const campaignsData = await Engine.controllerMessenger.call(
@@ -81,7 +83,7 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
       isLoadingRef.current = false;
       dispatch(setCampaignsLoading(false));
     }
-  }, [dispatch, subscriptionId]);
+  }, [dispatch, hasLoaded, subscriptionId]);
 
   const campaignsList = useMemo(() => campaigns ?? [], [campaigns]);
 

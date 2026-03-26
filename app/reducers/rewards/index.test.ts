@@ -31,6 +31,7 @@ import rewardsReducer, {
   setOndoCampaignLeaderboard,
   setOndoCampaignLeaderboardLoading,
   setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardNotYetComputed,
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,
@@ -2151,6 +2152,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboard: null,
         ondoCampaignLeaderboardLoading: false,
         ondoCampaignLeaderboardError: false,
+        ondoCampaignLeaderboardNotYetComputed: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
@@ -2265,6 +2267,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboard: null,
         ondoCampaignLeaderboardLoading: false,
         ondoCampaignLeaderboardError: false,
+        ondoCampaignLeaderboardNotYetComputed: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
         ondoCampaignPortfolio: {},
@@ -5124,6 +5127,28 @@ describe('setOndoCampaignLeaderboardError', () => {
     const state = rewardsReducer(stateWithError, action);
 
     expect(state.ondoCampaignLeaderboardError).toBe(false);
+  });
+});
+
+describe('setOndoCampaignLeaderboardNotYetComputed', () => {
+  it('should set notYetComputed to true', () => {
+    const action = setOndoCampaignLeaderboardNotYetComputed(true);
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignLeaderboardNotYetComputed).toBe(true);
+  });
+
+  it('should set notYetComputed to false', () => {
+    const stateWithNotYetComputed: RewardsState = {
+      ...initialState,
+      ondoCampaignLeaderboardNotYetComputed: true,
+    };
+    const action = setOndoCampaignLeaderboardNotYetComputed(false);
+
+    const state = rewardsReducer(stateWithNotYetComputed, action);
+
+    expect(state.ondoCampaignLeaderboardNotYetComputed).toBe(false);
   });
 });
 

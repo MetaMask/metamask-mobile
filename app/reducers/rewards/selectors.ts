@@ -213,6 +213,9 @@ export const selectOndoCampaignLeaderboardLoading = (state: RootState) =>
 export const selectOndoCampaignLeaderboardError = (state: RootState) =>
   state.rewards.ondoCampaignLeaderboardError;
 
+export const selectOndoCampaignLeaderboardNotYetComputed = (state: RootState) =>
+  state.rewards.ondoCampaignLeaderboardNotYetComputed;
+
 export const selectOndoCampaignLeaderboardSelectedTier = (state: RootState) =>
   state.rewards.ondoCampaignLeaderboardSelectedTier;
 

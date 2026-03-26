@@ -11,7 +11,6 @@ import SeasonOneCampaignDetailsView from './Views/SeasonOneCampaignDetailsView';
 import CampaignMechanicsView from './Views/CampaignMechanicsView';
 import MusdCalculatorView from './Views/MusdCalculatorView';
 import OndoLeaderboardView from './Views/OndoLeaderboardView';
-import OndoCampaignPortfolioView from './Views/OndoCampaignPortfolioView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
@@ -117,11 +116,6 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD}
             component={OndoLeaderboardView}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name={Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO}
-            component={OndoCampaignPortfolioView}
             options={{ headerShown: false }}
           />
         </>

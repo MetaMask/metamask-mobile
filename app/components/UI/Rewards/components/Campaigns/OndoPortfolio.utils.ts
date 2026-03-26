@@ -64,3 +64,30 @@ export function sumPositionField(
     ZERO,
   );
 }
+
+/**
+ * Formats a PnL percent string (e.g. "0.0775") as "+7.75%" / "-5.00%".
+ * Returns '' for non-parseable values (e.g. "—").
+ */
+export function formatPnlPercent(pnlPercent: string): string {
+  try {
+    const n = new BigNumber(pnlPercent);
+    if (n.isNaN()) return '';
+    const percentage = n.multipliedBy(100);
+    const sign = percentage.gte(0) ? '+' : '';
+    return `${sign}${percentage.toFixed(2)}%`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Returns true if the given PnL percent string represents a non-negative value.
+ */
+export function isPnlNonNegative(pnlPercent: string): boolean {
+  try {
+    return new BigNumber(pnlPercent).gte(0);
+  } catch {
+    return true;
+  }
+}

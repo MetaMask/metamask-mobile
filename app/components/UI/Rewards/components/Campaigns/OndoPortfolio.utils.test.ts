@@ -1,4 +1,4 @@
-import { groupPortfolioPositionsByAsset } from './OndoCampaignPortfolio.utils';
+import { groupPortfolioPositionsByAsset } from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
   it('merges rows with the same tokenAsset', () => {

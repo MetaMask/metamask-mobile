@@ -53,10 +53,6 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const colorScheme = useColorScheme();
   const navigation = useNavigation();
 
-  const { status: participantStatus } = useGetCampaignParticipantStatus(
-    campaign.id,
-  );
-
   const participantCount = useSelector(
     selectCampaignParticipantCount(campaign.id),
   );
@@ -67,6 +63,12 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
     dateLabel,
     dateLabelIcon,
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
+
+  const { status: participantStatus } = useGetCampaignParticipantStatus(
+    campaignStatus === 'active' && campaign.type === CampaignType.ONDO_HOLDING
+      ? campaign.id
+      : undefined,
+  );
 
   const isInteractive =
     campaignStatus !== 'upcoming' &&

@@ -5,6 +5,7 @@ import {
   selectOndoCampaignLeaderboard,
   selectOndoCampaignLeaderboardLoading,
   selectOndoCampaignLeaderboardError,
+  selectOndoCampaignLeaderboardNotYetComputed,
   selectOndoCampaignLeaderboardTierNames,
   selectOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards/selectors';
@@ -12,6 +13,7 @@ import {
   setOndoCampaignLeaderboard,
   setOndoCampaignLeaderboardLoading,
   setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardNotYetComputed,
   setOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards';
 import type {
@@ -31,6 +33,8 @@ export interface UseGetOndoLeaderboardResult {
   isLoading: boolean;
   /** Whether there was an error fetching the leaderboard */
   hasError: boolean;
+  /** Whether the leaderboard hasn't been computed yet by the backend (404) */
+  isLeaderboardNotYetComputed: boolean;
   /** List of available tier names (e.g., ['STARTER', 'MID', 'UPPER']) */
   tierNames: string[];
   /** Currently selected tier name */
@@ -63,6 +67,9 @@ export const useGetOndoLeaderboard = (
   const leaderboard = useSelector(selectOndoCampaignLeaderboard);
   const isLoading = useSelector(selectOndoCampaignLeaderboardLoading);
   const hasError = useSelector(selectOndoCampaignLeaderboardError);
+  const isLeaderboardNotYetComputed = useSelector(
+    selectOndoCampaignLeaderboardNotYetComputed,
+  );
   const tierNames = useSelector(selectOndoCampaignLeaderboardTierNames);
   const selectedTier = useSelector(selectOndoCampaignLeaderboardSelectedTier);
 
@@ -73,19 +80,28 @@ export const useGetOndoLeaderboard = (
     if (!campaignId) {
       dispatch(setOndoCampaignLeaderboardLoading(false));
       dispatch(setOndoCampaignLeaderboardError(false));
+      dispatch(setOndoCampaignLeaderboardNotYetComputed(false));
       return;
     }
 
     try {
       dispatch(setOndoCampaignLeaderboardLoading(true));
       dispatch(setOndoCampaignLeaderboardError(false));
+      dispatch(setOndoCampaignLeaderboardNotYetComputed(false));
       const result = await Engine.controllerMessenger.call(
         'RewardsController:getOndoCampaignLeaderboard',
         campaignId,
       );
       dispatch(setOndoCampaignLeaderboard(result));
-    } catch {
-      dispatch(setOndoCampaignLeaderboardError(true));
+    } catch (error) {
+      const is404 =
+        error instanceof Error &&
+        error.message.includes('Get campaign leaderboard failed: 404');
+      if (is404) {
+        dispatch(setOndoCampaignLeaderboardNotYetComputed(true));
+      } else {
+        dispatch(setOndoCampaignLeaderboardError(true));
+      }
     } finally {
       dispatch(setOndoCampaignLeaderboardLoading(false));
     }
@@ -126,6 +142,7 @@ export const useGetOndoLeaderboard = (
     leaderboard,
     isLoading,
     hasError,
+    isLeaderboardNotYetComputed,
     tierNames,
     selectedTier,
     selectedTierData,

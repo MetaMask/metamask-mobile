@@ -193,6 +193,39 @@ describe('OndoLeaderboard', () => {
     });
   });
 
+  describe('not yet computed state', () => {
+    it('renders info banner when leaderboard not yet computed and no data', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          isLeaderboardNotYetComputed
+          entries={[]}
+          tierNames={[]}
+        />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED),
+      ).toBeDefined();
+    });
+
+    it('does not render info banner when still loading', () => {
+      const { queryByTestId } = render(
+        <OndoLeaderboard
+          {...defaultProps}
+          isLeaderboardNotYetComputed
+          isLoading
+          entries={[]}
+          tierNames={[]}
+        />,
+      );
+
+      expect(
+        queryByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED),
+      ).toBeNull();
+    });
+  });
+
   describe('empty state', () => {
     it('renders empty state when no tier names', () => {
       const { getByTestId } = render(

@@ -1,4 +1,9 @@
-import { createSlice, PayloadAction, Action, Draft } from '@reduxjs/toolkit';
+import {
+  createSlice,
+  PayloadAction,
+  Action,
+  castDraft,
+} from '@reduxjs/toolkit';
 import {
   SeasonStatusState,
   SeasonTierDto,
@@ -137,6 +142,7 @@ export interface RewardsState {
   ondoCampaignLeaderboard: CampaignLeaderboardDto | null;
   ondoCampaignLeaderboardLoading: boolean;
   ondoCampaignLeaderboardError: boolean;
+  ondoCampaignLeaderboardNotYetComputed: boolean;
   // Currently selected tier for leaderboard display
   ondoCampaignLeaderboardSelectedTier: string | null;
 
@@ -228,6 +234,7 @@ export const initialState: RewardsState = {
   ondoCampaignLeaderboard: null,
   ondoCampaignLeaderboardLoading: false,
   ondoCampaignLeaderboardError: false,
+  ondoCampaignLeaderboardNotYetComputed: false,
   ondoCampaignLeaderboardSelectedTier: null,
 
   // Campaign leaderboard position initial state
@@ -490,8 +497,8 @@ const rewardsSlice = createSlice({
     },
 
     // Campaigns reducers
-    setCampaigns: (state, action: PayloadAction<Draft<CampaignDto>[]>) => {
-      state.campaigns = action.payload;
+    setCampaigns: (state, action: PayloadAction<CampaignDto[]>) => {
+      state.campaigns = castDraft(action.payload);
       state.campaignsError = false;
       state.campaignsHasLoaded = true;
     },
@@ -567,6 +574,12 @@ const rewardsSlice = createSlice({
       action: PayloadAction<boolean>,
     ) => {
       state.ondoCampaignLeaderboardError = action.payload;
+    },
+    setOndoCampaignLeaderboardNotYetComputed: (
+      state,
+      action: PayloadAction<boolean>,
+    ) => {
+      state.ondoCampaignLeaderboardNotYetComputed = action.payload;
     },
     setOndoCampaignLeaderboardSelectedTier: (
       state,
@@ -784,6 +797,7 @@ export const {
   setOndoCampaignLeaderboard,
   setOndoCampaignLeaderboardLoading,
   setOndoCampaignLeaderboardError,
+  setOndoCampaignLeaderboardNotYetComputed,
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,

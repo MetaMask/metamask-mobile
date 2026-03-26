@@ -1,7 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { useSelector, useDispatch } from 'react-redux';
-import { useGetOndoCampaignPortfolioPosition } from './useGetOndoCampaignPortfolioPosition';
+import { useGetOndoPortfolioPosition } from './useGetOndoPortfolioPosition';
 import Engine from '../../../../core/Engine';
 import {
   selectRewardsSubscriptionId,
@@ -95,7 +95,7 @@ function setupSelectors(state: SelectorState) {
   });
 }
 
-describe('useGetOndoCampaignPortfolioPosition', () => {
+describe('useGetOndoPortfolioPosition', () => {
   const mockDispatch = jest.fn();
 
   beforeEach(() => {
@@ -114,7 +114,7 @@ describe('useGetOndoCampaignPortfolioPosition', () => {
     });
 
     const { result } = renderHook(() =>
-      useGetOndoCampaignPortfolioPosition(CAMPAIGN_ID),
+      useGetOndoPortfolioPosition(CAMPAIGN_ID),
     );
 
     expect(mockCall).not.toHaveBeenCalled();
@@ -125,7 +125,7 @@ describe('useGetOndoCampaignPortfolioPosition', () => {
     mockCall.mockResolvedValueOnce(MOCK_PORTFOLIO as never);
 
     const { result } = renderHook(() =>
-      useGetOndoCampaignPortfolioPosition(CAMPAIGN_ID),
+      useGetOndoPortfolioPosition(CAMPAIGN_ID),
     );
 
     await waitFor(() => {
@@ -151,7 +151,7 @@ describe('useGetOndoCampaignPortfolioPosition', () => {
   it('subscribes to RewardsController:portfolioPositionInvalidated to auto-refetch', async () => {
     mockCall.mockResolvedValue(MOCK_PORTFOLIO);
 
-    renderHook(() => useGetOndoCampaignPortfolioPosition(CAMPAIGN_ID));
+    renderHook(() => useGetOndoPortfolioPosition(CAMPAIGN_ID));
 
     await waitFor(() => {
       expect(mockUseInvalidateByRewardEvents).toHaveBeenCalled();
@@ -168,7 +168,7 @@ describe('useGetOndoCampaignPortfolioPosition', () => {
   it('calls selectOndoCampaignPortfolioById with subscriptionId and campaignId', async () => {
     mockCall.mockResolvedValue(MOCK_PORTFOLIO);
 
-    renderHook(() => useGetOndoCampaignPortfolioPosition(CAMPAIGN_ID));
+    renderHook(() => useGetOndoPortfolioPosition(CAMPAIGN_ID));
 
     await waitFor(() => {
       expect(mockSelectOndoCampaignPortfolioById).toHaveBeenCalled();

@@ -10,7 +10,7 @@ import { setOndoCampaignPortfolioPosition } from '../../../../reducers/rewards';
 import type { OndoGmPortfolioDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
-export interface UseGetOndoCampaignPortfolioPositionResult {
+export interface UseGetOndoPortfolioPositionResult {
   /** User's portfolio, or null when not found/not yet loaded */
   portfolio: OndoGmPortfolioDto | null;
   /** Whether the portfolio is being fetched */
@@ -28,9 +28,9 @@ export interface UseGetOndoCampaignPortfolioPositionResult {
  * This is an authenticated endpoint.
  * Results are cached for 5 minutes by the RewardsController.
  */
-export const useGetOndoCampaignPortfolioPosition = (
+export const useGetOndoPortfolioPosition = (
   campaignId: string | undefined,
-): UseGetOndoCampaignPortfolioPositionResult => {
+): UseGetOndoPortfolioPositionResult => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isOptedIn = useSelector(
@@ -93,4 +93,4 @@ export const useGetOndoCampaignPortfolioPosition = (
   };
 };
 
-export default useGetOndoCampaignPortfolioPosition;
+export default useGetOndoPortfolioPosition;

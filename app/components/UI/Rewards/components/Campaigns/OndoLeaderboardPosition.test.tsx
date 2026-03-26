@@ -105,7 +105,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
         'Total Deposited',
       'rewards.ondo_campaign_leaderboard_position.current_value':
         'Current Value',
-      'rewards.ondo_campaign_leaderboard_position.updated_at': `Updated ${params?.time ?? ''}`,
       'rewards.ondo_campaign_leaderboard_position.not_found':
         'Not on the leaderboard yet',
       'rewards.ondo_campaign_leaderboard_position.error_loading':
@@ -402,16 +401,6 @@ describe('OndoLeaderboardPosition', () => {
       );
 
       expect(getByText('-5.00%')).toBeDefined();
-    });
-
-    it('renders computedAt timestamp', () => {
-      const { getByTestId } = render(
-        <OndoLeaderboardPosition campaignId={CAMPAIGN_ID} />,
-      );
-
-      expect(
-        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.COMPUTED_AT),
-      ).toBeDefined();
     });
 
     it('renders total deposited and current value stat cells', () => {
