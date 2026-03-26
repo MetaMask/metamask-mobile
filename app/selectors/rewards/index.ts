@@ -42,6 +42,17 @@ export const selectRewardsSubscriptionId = createSelector(
   },
 );
 
+export const selectCampaignParticipantOptedIn =
+  (subscriptionId: string | null, campaignId: string | undefined) =>
+  (state: RootState): boolean => {
+    if (!subscriptionId || !campaignId) return false;
+    return (
+      state.engine.backgroundState.RewardsController.campaignParticipantStatus[
+        `${subscriptionId}:${campaignId}`
+      ]?.optedIn === true
+    );
+  };
+
 export const selectRewardsActiveAccountAddress = createSelector(
   selectRewardsControllerState,
   (rewardsControllerState): string | null => {
