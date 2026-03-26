@@ -353,6 +353,151 @@ export interface CampaignLeaderboardPositionDto {
 }
 
 /**
+ * Single position in GET /ondo-gm/:campaignId/portfolio/me
+ */
+export interface OndoGmPortfolioPositionDto {
+  /**
+   * @example 'AAPLon'
+   */
+  tokenSymbol: string;
+
+  /**
+   * @example 'Apple Inc.'
+   */
+  tokenName: string;
+
+  /**
+   * CAIP-19 asset type identifier for this position
+   * @example 'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c'
+   */
+  tokenAsset: string;
+
+  /**
+   * @example '45.2'
+   */
+  units: string;
+
+  /**
+   * @example '9040.000000'
+   */
+  costBasis: string;
+
+  /**
+   * @example '200.000000'
+   */
+  avgCostPerUnit: string;
+
+  /**
+   * @example '215.500000'
+   */
+  currentPrice: string;
+
+  /**
+   * @example '9740.600000'
+   */
+  currentValue: string;
+
+  /**
+   * @example '700.600000'
+   */
+  unrealizedPnl: string;
+
+  /**
+   * @example '0.0775'
+   */
+  unrealizedPnlPercent: string;
+}
+
+/**
+ * Portfolio summary in GET /ondo-gm/:campaignId/portfolio/me
+ */
+export interface OndoGmPortfolioSummaryDto {
+  /**
+   * @example '9740.600000'
+   */
+  totalCurrentValue: string;
+
+  /**
+   * @example '9040.000000'
+   */
+  totalCostBasis: string;
+
+  /**
+   * @example '9040.000000'
+   */
+  totalUsdDeposited: string;
+
+  /**
+   * @example '9040.000000'
+   */
+  netDeposit: string;
+
+  /**
+   * @example '700.600000'
+   */
+  portfolioPnl: string;
+
+  /**
+   * @example '0.0775'
+   */
+  portfolioPnlPercent: string;
+}
+
+/**
+ * Response DTO for GET /ondo-gm/:campaignId/portfolio/me
+ */
+export interface OndoGmPortfolioDto {
+  positions: OndoGmPortfolioPositionDto[];
+  summary: OndoGmPortfolioSummaryDto;
+
+  /**
+   * @example '2026-03-20T12:00:00.000Z'
+   */
+  computedAt: string;
+}
+
+/**
+ * Single cached portfolio row (mirrors {@link OndoGmPortfolioPositionDto}; explicit plain-object shape for cache / Json).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmPortfolioPositionState = {
+  tokenSymbol: string;
+  tokenName: string;
+  tokenAsset: string;
+  units: string;
+  costBasis: string;
+  avgCostPerUnit: string;
+  currentPrice: string;
+  currentValue: string;
+  unrealizedPnl: string;
+  unrealizedPnlPercent: string;
+};
+
+/**
+ * Cached portfolio summary (mirrors {@link OndoGmPortfolioSummaryDto}; explicit plain-object shape for cache / Json).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmPortfolioSummaryState = {
+  totalCurrentValue: string;
+  totalCostBasis: string;
+  totalUsdDeposited: string;
+  netDeposit: string;
+  portfolioPnl: string;
+  portfolioPnlPercent: string;
+};
+
+/**
+ * Cached portfolio payload (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmPortfolioState = {
+  positions: OndoGmPortfolioPositionState[];
+  summary: OndoGmPortfolioSummaryState;
+  computedAt: string;
+  lastFetched: number;
+};
+
+/**
  * State for cached leaderboard data in the controller
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -1432,6 +1577,14 @@ export type RewardsControllerState = {
     [compositeId: string]: CampaignLeaderboardPositionState;
   };
   /**
+   * Ondo campaign portfolio keyed by compositeId (subscriptionId:campaignId).
+   * Each value is a cached successful GET /portfolio/me response plus {@link OndoGmPortfolioState.lastFetched}.
+   * Null API responses are not cached (unlike leaderboard position, which uses a not-found sentinel).
+   */
+  ondoCampaignPortfolio: {
+    [compositeId: string]: OndoGmPortfolioState;
+  };
+  /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
    * Array is ordered by timestamp (most recent first)
@@ -1523,6 +1676,20 @@ export interface RewardsControllerLeaderboardPositionInvalidatedEvent {
 }
 
 /**
+ * Event emitted when a user opts into a campaign, invalidating the cached
+ * portfolio so hooks can refetch fresh data.
+ */
+export interface RewardsControllerPortfolioPositionInvalidatedEvent {
+  type: 'RewardsController:portfolioPositionInvalidated';
+  payload: [
+    {
+      campaignId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1532,7 +1699,8 @@ export type RewardsControllerEvents =
   | RewardsControllerBalanceUpdatedEvent
   | RewardsControllerPointsEventsUpdatedEvent
   | RewardsControllerCampaignOptedInEvent
-  | RewardsControllerLeaderboardPositionInvalidatedEvent;
+  | RewardsControllerLeaderboardPositionInvalidatedEvent
+  | RewardsControllerPortfolioPositionInvalidatedEvent;
 
 /**
  * Patch type for state changes
@@ -1842,6 +2010,17 @@ export interface RewardsControllerGetOndoCampaignLeaderboardPositionAction {
 }
 
 /**
+ * Action for getting the current user's Ondo GM portfolio (authenticated)
+ */
+export interface RewardsControllerGetOndoCampaignPortfolioPositionAction {
+  type: 'RewardsController:getOndoCampaignPortfolioPosition';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<OndoGmPortfolioDto | null>;
+}
+
+/**
  * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
  */
 export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
@@ -1963,6 +2142,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetCampaignParticipantStatusAction
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
+  | RewardsControllerGetOndoCampaignPortfolioPositionAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction

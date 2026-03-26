@@ -33,6 +33,7 @@ import rewardsReducer, {
   setOndoCampaignLeaderboardError,
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
+  setOndoCampaignPortfolioPosition,
   bulkLinkStarted,
   bulkLinkAccountResult,
   bulkLinkCompleted,
@@ -55,6 +56,7 @@ import {
   CampaignType,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  OndoGmPortfolioDto,
 } from '../../core/Engine/controllers/rewards-controller/types';
 import { AccountGroupId } from '@metamask/account-api';
 import { brandColor } from '@metamask/design-tokens';
@@ -2151,6 +2153,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardError: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
+        ondoCampaignPortfolio: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2264,6 +2267,7 @@ describe('rewardsReducer', () => {
         ondoCampaignLeaderboardError: false,
         ondoCampaignLeaderboardSelectedTier: null,
         ondoCampaignLeaderboardPositions: {},
+        ondoCampaignPortfolio: {},
         versionGuardMinimumMobileVersion: null,
         versionGuardLoading: false,
         versionGuardError: false,
@@ -2618,6 +2622,52 @@ describe('rewardsReducer', () => {
       const state = rewardsReducer(initialState, rehydrateAction);
 
       expect(state.ondoCampaignLeaderboardPositions).toEqual({});
+    });
+
+    it('should restore ondoCampaignPortfolio from persisted state', () => {
+      const persisted: OndoGmPortfolioDto = {
+        positions: [],
+        summary: {
+          totalCurrentValue: '1',
+          totalCostBasis: '1',
+          totalUsdDeposited: '1',
+          netDeposit: '1',
+          portfolioPnl: '0',
+          portfolioPnlPercent: '0',
+        },
+        computedAt: '2024-03-20T12:00:00.000Z',
+      };
+      const persistedRewardsState: RewardsState = {
+        ...initialState,
+        ondoCampaignPortfolio: {
+          'sub-1:campaign-1': persisted,
+        },
+      };
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsState },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignPortfolio).toEqual({
+        'sub-1:campaign-1': persisted,
+      });
+    });
+
+    it('should default ondoCampaignPortfolio to {} when absent from persisted state (upgrade path)', () => {
+      const persistedRewardsStateWithoutField = {
+        ...initialState,
+        ondoCampaignPortfolio: undefined,
+      } as unknown as RewardsState;
+      const rehydrateAction = {
+        type: 'persist/REHYDRATE',
+        payload: { rewards: persistedRewardsStateWithoutField },
+      };
+
+      const state = rewardsReducer(initialState, rehydrateAction);
+
+      expect(state.ondoCampaignPortfolio).toEqual({});
     });
   });
 
@@ -4940,6 +4990,19 @@ const mockPosition: CampaignLeaderboardPositionDto = {
   computedAt: '2024-03-20T12:00:00.000Z',
 };
 
+const mockPortfolio: OndoGmPortfolioDto = {
+  positions: [],
+  summary: {
+    totalCurrentValue: '5063',
+    totalCostBasis: '5000',
+    totalUsdDeposited: '5000',
+    netDeposit: '4800',
+    portfolioPnl: '63',
+    portfolioPnlPercent: '0.0126',
+  },
+  computedAt: '2024-03-20T12:00:00.000Z',
+};
+
 describe('setOndoCampaignLeaderboard', () => {
   it('should set leaderboard data', () => {
     const action = setOndoCampaignLeaderboard(mockLeaderboard);
@@ -5147,5 +5210,37 @@ describe('setOndoCampaignLeaderboardPosition', () => {
     expect(
       currentState.ondoCampaignLeaderboardPositions['sub-1:campaign-2'],
     ).toEqual(position2);
+  });
+});
+
+describe('setOndoCampaignPortfolioPosition', () => {
+  it('should set portfolio for a campaign', () => {
+    const action = setOndoCampaignPortfolioPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      portfolio: mockPortfolio,
+    });
+
+    const state = rewardsReducer(initialState, action);
+
+    expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toEqual(
+      mockPortfolio,
+    );
+  });
+
+  it('should remove portfolio when null is provided', () => {
+    const stateWithPortfolio: RewardsState = {
+      ...initialState,
+      ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+    };
+    const action = setOndoCampaignPortfolioPosition({
+      subscriptionId: 'sub-1',
+      campaignId: 'campaign-1',
+      portfolio: null,
+    });
+
+    const state = rewardsReducer(stateWithPortfolio, action);
+
+    expect(state.ondoCampaignPortfolio['sub-1:campaign-1']).toBeUndefined();
   });
 });

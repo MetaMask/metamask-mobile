@@ -257,3 +257,15 @@ export const selectOndoCampaignLeaderboardPositionById =
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;
+
+export const selectOndoCampaignPortfolio = (state: RootState) =>
+  state.rewards.ondoCampaignPortfolio;
+
+export const selectOndoCampaignPortfolioById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignPortfolio
+      ? (state.rewards.ondoCampaignPortfolio[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;

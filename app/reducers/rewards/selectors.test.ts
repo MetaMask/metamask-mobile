@@ -68,6 +68,8 @@ import {
   selectOndoCampaignLeaderboardTotalParticipantsByTier,
   selectOndoCampaignLeaderboardPositions,
   selectOndoCampaignLeaderboardPositionById,
+  selectOndoCampaignPortfolio,
+  selectOndoCampaignPortfolioById,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -3425,6 +3427,30 @@ describe('Rewards selectors', () => {
     computedAt: '2024-03-20T12:00:00.000Z',
   };
 
+  const mockPortfolio = {
+    positions: [] as {
+      tokenSymbol: string;
+      tokenName: string;
+      tokenAsset: string;
+      units: string;
+      costBasis: string;
+      avgCostPerUnit: string;
+      currentPrice: string;
+      currentValue: string;
+      unrealizedPnl: string;
+      unrealizedPnlPercent: string;
+    }[],
+    summary: {
+      totalCurrentValue: '1000',
+      totalCostBasis: '900',
+      totalUsdDeposited: '900',
+      netDeposit: '800',
+      portfolioPnl: '100',
+      portfolioPnlPercent: '0.1',
+    },
+    computedAt: '2024-03-20T12:00:00.000Z',
+  };
+
   describe('selectOndoCampaignLeaderboard', () => {
     it('returns null when leaderboard is not set', () => {
       const state = createMockRootState({
@@ -3657,6 +3683,61 @@ describe('Rewards selectors', () => {
       expect(
         selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
       ).toEqual(mockPosition);
+    });
+  });
+
+  describe('selectOndoCampaignPortfolio', () => {
+    it('returns empty object when no portfolios', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: {},
+      });
+      expect(selectOndoCampaignPortfolio(state)).toEqual({});
+    });
+
+    it('returns portfolios when set', () => {
+      const portfolios = { 'sub-1:campaign-1': mockPortfolio };
+      const state = createMockRootState({
+        ondoCampaignPortfolio: portfolios,
+      });
+      expect(selectOndoCampaignPortfolio(state)).toEqual(portfolios);
+    });
+  });
+
+  describe('selectOndoCampaignPortfolioById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById(undefined, 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when portfolio does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: {},
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns portfolio for specified subscription and campaign', () => {
+      const state = createMockRootState({
+        ondoCampaignPortfolio: { 'sub-1:campaign-1': mockPortfolio },
+      });
+      expect(
+        selectOndoCampaignPortfolioById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockPortfolio);
     });
   });
 });

@@ -25,6 +25,8 @@ import {
   type CampaignParticipantStatusDto,
   type CampaignLeaderboardDto,
   type CampaignLeaderboardPositionDto,
+  type OndoGmPortfolioDto,
+  type OndoGmPortfolioState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -114,6 +116,9 @@ const ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaign leaderboard position cache threshold
 const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign portfolio position cache threshold
+const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -212,6 +217,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  ondoCampaignPortfolio: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -244,6 +255,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   campaignParticipantStatus: {},
   ondoCampaignLeaderboard: {},
   ondoCampaignLeaderboardPositions: {},
+  ondoCampaignPortfolio: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -629,6 +641,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getOndoCampaignLeaderboardPosition',
       this.getOndoCampaignLeaderboardPosition.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignPortfolioPosition',
+      this.getOndoCampaignPortfolioPosition.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -2680,6 +2696,11 @@ export class RewardsController extends BaseController<
             delete state.ondoCampaignLeaderboardPositions[key];
           }
         });
+        Object.keys(state.ondoCampaignPortfolio).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignPortfolio[key];
+          }
+        });
       });
 
       Logger.log('RewardsController: Logout completed successfully');
@@ -3490,10 +3511,16 @@ export class RewardsController extends BaseController<
         campaignId,
       )) as CampaignParticipantStatusDto;
     }, subscriptionId);
-    // Invalidate the participant status cache and leaderboard position cache
+    // Invalidate the participant status cache and leaderboard / portfolio cache
     this.update((state) => {
       delete state.campaignParticipantStatus[key];
       delete state.ondoCampaignLeaderboardPositions[key];
+      delete (
+        state.ondoCampaignPortfolio as Record<
+          string,
+          OndoGmPortfolioState | undefined
+        >
+      )[key];
     });
     // Only emit if the user wasn't already opted in, to avoid redundant refetches
     if (!wasAlreadyOptedIn) {
@@ -3508,6 +3535,10 @@ export class RewardsController extends BaseController<
           subscriptionId,
         },
       );
+      this.messenger.publish('RewardsController:portfolioPositionInvalidated', {
+        campaignId,
+        subscriptionId,
+      });
     }
     return result;
   }
@@ -3690,6 +3721,78 @@ export class RewardsController extends BaseController<
             };
           });
         }
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the current user's Ondo GM portfolio for a campaign.
+   * This is an authenticated endpoint.
+   * Results are cached for 5 minutes under
+   * `state.ondoCampaignPortfolio[subscriptionId:campaignId]` as
+   * {@link OndoGmPortfolioState}. Null API responses are not written to the cache.
+   * @param campaignId - The campaign ID to get portfolio for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The portfolio, or null if not found.
+   */
+  async getOndoCampaignPortfolioPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmPortfolioDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<OndoGmPortfolioDto | null>({
+      key,
+      ttl: ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignPortfolio[k];
+        if (!cached) {
+          return undefined;
+        }
+        return {
+          payload: {
+            positions: cached.positions,
+            summary: cached.summary,
+            computedAt: cached.computedAt,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign portfolio via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getOndoCampaignPortfolioPosition',
+            campaignId,
+            subscriptionId,
+          )) as OndoGmPortfolioDto | null;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        if (payload === null) {
+          this.update((state) => {
+            delete (
+              state.ondoCampaignPortfolio as Record<
+                string,
+                OndoGmPortfolioState | undefined
+              >
+            )[k];
+          });
+          return;
+        }
+        this.update((state) => {
+          state.ondoCampaignPortfolio[k] = {
+            positions: payload.positions,
+            summary: payload.summary,
+            computedAt: payload.computedAt,
+            lastFetched: Date.now(),
+          };
+        });
       },
     });
     return result;
@@ -3928,6 +4031,15 @@ export class RewardsController extends BaseController<
             delete state.ondoCampaignLeaderboardPositions[key];
           }
         });
+        const portfolioByKeySeason = state.ondoCampaignPortfolio as Record<
+          string,
+          OndoGmPortfolioState | undefined
+        >;
+        Object.keys(portfolioByKeySeason).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete portfolioByKeySeason[key];
+          }
+        });
       });
     } else {
       // Invalidate all seasons for this subscription
@@ -3972,6 +4084,15 @@ export class RewardsController extends BaseController<
         Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
           if (key.startsWith(`${subscriptionId}:`)) {
             delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
+        const portfolioByKeyAllSeasons = state.ondoCampaignPortfolio as Record<
+          string,
+          OndoGmPortfolioState | undefined
+        >;
+        Object.keys(portfolioByKeyAllSeasons).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete portfolioByKeyAllSeasons[key];
           }
         });
       });

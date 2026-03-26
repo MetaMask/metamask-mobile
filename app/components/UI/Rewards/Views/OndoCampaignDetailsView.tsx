@@ -20,6 +20,7 @@ import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
+import OndoCampaignPortfolioSnippet from '../components/Campaigns/OndoCampaignPortfolioSnippet';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -160,7 +161,7 @@ const OndoCampaignDetailsView: React.FC = () => {
               {(isOptedIn || Boolean(leaderboardCampaignId)) && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="px-4 pt-4">
+                  <Box twClassName="p-4">
                     {isOptedIn && (
                       <Pressable
                         onPress={() =>
@@ -199,6 +200,34 @@ const OndoCampaignDetailsView: React.FC = () => {
                         onRetry={refetchLeaderboard}
                       />
                     )}
+                  </Box>
+                </>
+              )}
+
+              {isOptedIn && (
+                <>
+                  <Box twClassName="border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <Pressable
+                      onPress={() =>
+                        navigation.navigate(
+                          Routes.REWARDS_ONDO_CAMPAIGN_PORTFOLIO,
+                          { campaignId },
+                        )
+                      }
+                    >
+                      <Box
+                        flexDirection={BoxFlexDirection.Row}
+                        alignItems={BoxAlignItems.Center}
+                        twClassName="gap-2 mb-4"
+                      >
+                        <Text variant={TextVariant.HeadingMd}>
+                          {strings('rewards.ondo_campaign_portfolio.title')}
+                        </Text>
+                        <Icon name={IconName.ArrowRight} size={IconSize.Md} />
+                      </Box>
+                    </Pressable>
+                    <OndoCampaignPortfolioSnippet campaignId={campaignId} />
                   </Box>
                 </>
               )}

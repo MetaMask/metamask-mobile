@@ -4597,6 +4597,89 @@ describe('RewardsDataService', () => {
     });
   });
 
+  describe('getOndoCampaignPortfolioPosition', () => {
+    const mockCampaignId = 'campaign-ondo-portfolio';
+    const mockSubscriptionId = 'sub-portfolio-1';
+    const mockToken = 'test-bearer-token';
+    const mockPortfolio = {
+      positions: [
+        {
+          tokenSymbol: 'AAPL',
+          tokenName: 'Apple Inc.',
+          tokenAsset:
+            'eip155:1/erc20:0x14c3abf95cb9c93a8b82c1cdcb76d72cb87b2d4c',
+          units: '10',
+          costBasis: '1000.000000',
+          avgCostPerUnit: '100.000000',
+          currentPrice: '110.000000',
+          currentValue: '1100.000000',
+          unrealizedPnl: '100.000000',
+          unrealizedPnlPercent: '0.1',
+        },
+      ],
+      summary: {
+        totalCurrentValue: '1100.000000',
+        totalCostBasis: '1000.000000',
+        totalUsdDeposited: '1000.000000',
+        netDeposit: '1000.000000',
+        portfolioPnl: '100.000000',
+        portfolioPnlPercent: '0.1',
+      },
+      computedAt: '2024-03-20T12:00:00.000Z',
+    };
+
+    beforeEach(() => {
+      mockGetSubscriptionToken.mockResolvedValue({
+        success: true,
+        token: mockToken,
+      });
+      mockFetch.mockResolvedValue({
+        ok: true,
+        json: jest.fn().mockResolvedValue(mockPortfolio),
+      } as unknown as Response);
+    });
+
+    it('calls the correct authenticated endpoint with GET and returns portfolio', async () => {
+      const result = await service.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(mockFetch).toHaveBeenCalledWith(
+        `https://uat.rewards.test/ondo-gm/${mockCampaignId}/portfolio/me`,
+        expect.objectContaining({
+          method: 'GET',
+          headers: expect.objectContaining({
+            'rewards-access-token': mockToken,
+          }),
+        }),
+      );
+      expect(result).toEqual(mockPortfolio);
+    });
+
+    it('returns null when response status is 404', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 404 } as Response);
+
+      const result = await service.getOndoCampaignPortfolioPosition(
+        mockCampaignId,
+        mockSubscriptionId,
+      );
+
+      expect(result).toBeNull();
+    });
+
+    it('throws when response is not ok with non-404 status', async () => {
+      mockFetch.mockResolvedValue({ ok: false, status: 500 } as Response);
+
+      await expect(
+        service.getOndoCampaignPortfolioPosition(
+          mockCampaignId,
+          mockSubscriptionId,
+        ),
+      ).rejects.toThrow('Get campaign portfolio position failed: 500');
+    });
+  });
+
   describe('getClientVersionRequirements', () => {
     const mockVersionRequirements = {
       minimumMobileVersion: '7.72.0',

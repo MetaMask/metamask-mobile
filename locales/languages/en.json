@@ -7961,6 +7961,22 @@
       "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
       "retry": "Retry"
     },
+    "ondo_campaign_portfolio": {
+      "title": "Portfolio",
+      "total_value": "Total value",
+      "portfolio_pnl": "P&L",
+      "summary_cost_basis": "Cost basis",
+      "summary_net_deposit": "Net deposit",
+      "positions_heading": "Positions",
+      "position_current_value": "Value",
+      "position_unrealized_pnl": "P&L",
+      "updated_at": "Updated {{time}}",
+      "error_loading": "Failed to load portfolio",
+      "error_loading_description": "There was an error loading your portfolio. Please try again.",
+      "retry": "Retry",
+      "loading": "Loading portfolio…",
+      "empty": "No portfolio data available yet."
+    },
     "ondo_campaign_leaderboard": {
       "title": "Leaderboard",
       "your_position": "Your position",
