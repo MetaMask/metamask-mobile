@@ -106,6 +106,7 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     await mockServer.start();
     await mockNotificationServices(mockServer.server);
     await setupRemoteFeatureFlagsMock(mockServer.server);
+
     console.log(`  Mock server started on port ${MOCK_SERVER_PORT}`);
 
     // 4. Start fixture server on the well-known fallback port.
