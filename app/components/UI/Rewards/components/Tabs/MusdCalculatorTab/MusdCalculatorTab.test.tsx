@@ -44,7 +44,7 @@ describe('MusdCalculatorTab', () => {
     expect(getByText('rewards.musd.initial_amount')).toBeTruthy();
     expect(getByText('rewards.musd.daily_bonus')).toBeTruthy();
     expect(getByText('rewards.musd.annualized_bonus')).toBeTruthy();
-    expect(getByText('rewards.musd.disclaimer')).toBeTruthy();
+    expect(getByText('rewards.musd.disclaimer_brief')).toBeTruthy();
     expect(getByText('rewards.musd.buy_button')).toBeTruthy();
     expect(getByText('rewards.musd.swap_button')).toBeTruthy();
   });
