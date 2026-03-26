@@ -1,5 +1,4 @@
 import React from 'react';
-import { Text } from 'react-native';
 
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import {
@@ -10,8 +9,6 @@ import {
   upgradeOnlyAccountConfirmation,
 } from '../../../../../util/test/confirm-data-helpers';
 import { approveERC20TransactionStateMock } from '../../__mocks__/approve-transaction-mock';
-// eslint-disable-next-line import-x/no-namespace
-import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
 import { ConfirmationInfoComponentIDs } from '../../constants/info-ids';
 import Info from './info-root';
 import { contractDeploymentTransactionStateMock } from '../../__mocks__/contract-deployment-transaction-mock';
@@ -80,19 +77,6 @@ jest.mock(
     }),
   }),
 );
-
-const MockText = Text;
-jest.mock('../qr-info', () => () => {
-  const View = jest.requireActual('react-native').View;
-  const componentIDs = jest.requireActual(
-    '../../constants/info-ids',
-  ).ConfirmationInfoComponentIDs;
-  return (
-    <View testID={componentIDs.QR_INFO}>
-      <MockText>QR Scanning Component</MockText>
-    </View>
-  );
-});
 
 jest.mock('../../../../../core/Engine', () => ({
   getTotalEvmFiatAccountBalance: () => ({ tokenFiat: 10 }),
@@ -171,16 +155,6 @@ describe('Info', () => {
     expect(
       getByTestId(ConfirmationInfoComponentIDs.PERSONAL_SIGN),
     ).toBeDefined();
-  });
-
-  it('renders QRInfo if user is signing using QR hardware', () => {
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isSigningQRObject: true,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
-    const { getByTestId } = renderWithProvider(<Info />, {
-      state: personalSignatureConfirmationState,
-    });
-    expect(getByTestId(ConfirmationInfoComponentIDs.QR_INFO)).toBeDefined();
   });
 
   it('renders SwitchAccountType for smart account type - downgrade confirmations', () => {

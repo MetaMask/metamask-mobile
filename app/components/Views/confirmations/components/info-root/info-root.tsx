@@ -2,7 +2,6 @@ import { ApprovalType } from '@metamask/controller-utils';
 import { TransactionType } from '@metamask/transaction-controller';
 import React from 'react';
 import { UnstakeConfirmationViewProps } from '../../../../UI/Stake/Views/UnstakeConfirmationView/UnstakeConfirmationView.types';
-import { useQRHardwareContext } from '../../context/qr-hardware-context';
 import StakingClaim from '../../external/staking/info/staking-claim';
 import StakingDeposit from '../../external/staking/info/staking-deposit';
 import StakingWithdrawal from '../../external/staking/info/staking-withdrawal';
@@ -17,7 +16,6 @@ import Transfer from '../info/transfer';
 import TypedSignV1 from '../info/typed-sign-v1';
 import TypedSignV3V4 from '../info/typed-sign-v3v4';
 import Approve from '../info/approve';
-import QRInfo from '../qr-info';
 import ContractDeployment from '../info/contract-deployment';
 import { PerpsDepositInfo } from '../info/perps-deposit-info';
 import { PredictDepositInfo } from '../info/predict-deposit-info';
@@ -85,7 +83,6 @@ interface InfoProps {
 const Info = ({ route }: InfoProps) => {
   const { approvalRequest } = useApprovalRequest();
   const transactionMetadata = useTransactionMetadataRequest();
-  const { isSigningQRObject } = useQRHardwareContext();
   const { isDowngrade, isUpgradeOnly } = use7702TransactionType();
   // Refresh STX liveness for the transaction's network
   useRefreshSmartTransactionsLiveness(transactionMetadata?.chainId);
@@ -96,10 +93,6 @@ const Info = ({ route }: InfoProps) => {
 
   if (isDowngrade || isUpgradeOnly) {
     return <SwitchAccountType />;
-  }
-
-  if (isSigningQRObject) {
-    return <QRInfo />;
   }
 
   if (

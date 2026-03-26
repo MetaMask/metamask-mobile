@@ -1,5 +1,15 @@
-import React, { useMemo } from 'react';
+import React, {
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
 import { View, StyleSheet, ActivityIndicator } from 'react-native';
+import { UR } from '@ngraveio/bc-ur';
+import { ETHSignature } from '@keystonehq/bc-ur-registry-eth';
+import { stringify as uuidStringify } from 'uuid';
+import { QrScanRequestType } from '@metamask/eth-qr-keyring';
 
 import Text, {
   TextVariant,
@@ -15,17 +25,28 @@ import Icon, {
   IconSize,
   IconColor,
 } from '../../../../../component-library/components/Icons/Icon';
+import Alert, { AlertType } from '../../../../../components/Base/Alert';
 
 import { strings } from '../../../../../../locales/i18n';
 import { useTheme } from '../../../../../util/theme';
 import { HardwareWalletType } from '@metamask/hw-wallet-sdk';
 import { getHardwareWalletTypeName } from '../../../helpers';
 import { ContentLayout } from './ContentLayout';
+import QRSigningContext from '../../../contexts/QRSigningContext';
+import Engine from '../../../../Engine';
+import AnimatedQRCode from '../../../../../components/UI/QRHardware/AnimatedQRCode';
+import AnimatedQRScannerModal from '../../../../../components/UI/QRHardware/AnimatedQRScanner';
+import { MetaMetricsEvents } from '../../../../Analytics';
+import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
 
 export const AWAITING_CONFIRMATION_CONTENT_TEST_ID =
   'awaiting-confirmation-content';
 export const AWAITING_CONFIRMATION_SPINNER_TEST_ID =
   'awaiting-confirmation-spinner';
+export const AWAITING_CONFIRMATION_QR_CONTAINER_TEST_ID =
+  'awaiting-confirmation-qr-container';
+export const AWAITING_CONFIRMATION_QR_GET_SIGN_BUTTON_TEST_ID =
+  'awaiting-confirmation-qr-get-sign-button';
 
 const styles = StyleSheet.create({
   messageText: {
@@ -34,6 +55,16 @@ const styles = StyleSheet.create({
   spinnerContainer: {
     alignItems: 'center',
     marginTop: 8,
+  },
+  qrContainer: {
+    alignItems: 'center',
+    gap: 16,
+  },
+  qrTitle: {
+    textAlign: 'center',
+  },
+  qrErrorText: {
+    textAlign: 'center',
   },
 });
 
@@ -50,7 +81,81 @@ export const AwaitingConfirmationContent: React.FC<
   AwaitingConfirmationContentProps
 > = ({ deviceType, operationType, onCancel }) => {
   const { colors } = useTheme();
+  const { createEventBuilder, trackEvent } = useAnalytics();
   const deviceName = getHardwareWalletTypeName(deviceType);
+  const qrSigningContext = useContext(QRSigningContext);
+  const isQrFlow = deviceType === HardwareWalletType.Qr;
+  const isSigningQRObject = qrSigningContext?.isSigningQRObject ?? false;
+  const pendingScanRequest = qrSigningContext?.pendingScanRequest;
+  const setRequestCompleted = qrSigningContext?.setRequestCompleted;
+
+  const [scannerVisible, setScannerVisible] = useState(false);
+  const [shouldPause, setShouldPause] = useState(false);
+  const [errorMessage, setErrorMessage] = useState<string | undefined>();
+
+  useEffect(() => {
+    if (!isSigningQRObject) {
+      setScannerVisible(false);
+      setShouldPause(false);
+      setErrorMessage(undefined);
+    }
+  }, [isSigningQRObject]);
+
+  useEffect(() => {
+    if (scannerVisible) {
+      setErrorMessage(undefined);
+    }
+  }, [scannerVisible]);
+
+  const onScanSuccess = useCallback(
+    (ur: UR) => {
+      setScannerVisible(false);
+
+      const signature = ETHSignature.fromCBOR(ur.cbor);
+      const buffer = signature.getRequestId();
+      if (buffer) {
+        const requestId = uuidStringify(buffer);
+        if (pendingScanRequest?.request?.requestId === requestId) {
+          Engine.getQrKeyringScanner().resolvePendingScan({
+            type: ur.type,
+            cbor: ur.cbor.toString('hex'),
+          });
+          setRequestCompleted?.();
+          return;
+        }
+      }
+
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_ERROR)
+          .addProperties({
+            error:
+              'received signature request id is not matched with origin request',
+          })
+          .build(),
+      );
+      setErrorMessage(strings('transaction.mismatched_qr_request_id'));
+    },
+    [
+      createEventBuilder,
+      pendingScanRequest?.request?.requestId,
+      setRequestCompleted,
+      trackEvent,
+    ],
+  );
+
+  const onScanError = useCallback((error: string) => {
+    setScannerVisible(false);
+    setErrorMessage(error);
+  }, []);
+
+  const onQrCancel = useCallback(() => {
+    setScannerVisible(false);
+    onCancel?.();
+  }, [onCancel]);
+
+  const onShowScanner = useCallback(() => {
+    setScannerVisible(true);
+  }, []);
 
   const title = useMemo(() => {
     switch (operationType) {
@@ -66,6 +171,98 @@ export const AwaitingConfirmationContent: React.FC<
         );
     }
   }, [operationType, deviceName]);
+
+  if (isQrFlow) {
+    return (
+      <>
+        <ContentLayout
+          testID={AWAITING_CONFIRMATION_CONTENT_TEST_ID}
+          title={
+            isSigningQRObject
+              ? strings('confirm.qr_scan_text')
+              : strings('hardware_wallet.awaiting_confirmation.title_message', {
+                  device: deviceName,
+                })
+          }
+          body={
+            isSigningQRObject && pendingScanRequest?.request ? (
+              <View style={styles.qrContainer}>
+                {errorMessage ? (
+                  <Alert
+                    type={AlertType.Error}
+                    onPress={() => setErrorMessage(undefined)}
+                  >
+                    <Text
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
+                      style={styles.qrErrorText}
+                    >
+                      {errorMessage}
+                    </Text>
+                  </Alert>
+                ) : null}
+                <View testID={AWAITING_CONFIRMATION_QR_CONTAINER_TEST_ID}>
+                  <AnimatedQRCode
+                    cbor={pendingScanRequest.request.payload.cbor}
+                    type={pendingScanRequest.request.payload.type}
+                    shouldPause={scannerVisible || shouldPause}
+                  />
+                </View>
+              </View>
+            ) : (
+              <>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  style={styles.messageText}
+                >
+                  {strings('hardware_wallet.awaiting_confirmation.message', {
+                    device: deviceName,
+                  })}
+                </Text>
+                <View style={styles.spinnerContainer}>
+                  <ActivityIndicator
+                    testID={AWAITING_CONFIRMATION_SPINNER_TEST_ID}
+                    size="large"
+                    color={colors.primary.default}
+                  />
+                </View>
+              </>
+            )
+          }
+          footer={
+            <>
+              <Button
+                variant={ButtonVariants.Secondary}
+                size={ButtonSize.Lg}
+                label={strings('hardware_wallet.common.cancel')}
+                width={ButtonWidthTypes.Full}
+                onPress={onQrCancel}
+              />
+              {isSigningQRObject ? (
+                <Button
+                  testID={AWAITING_CONFIRMATION_QR_GET_SIGN_BUTTON_TEST_ID}
+                  variant={ButtonVariants.Primary}
+                  size={ButtonSize.Lg}
+                  label={strings('confirm.qr_get_sign')}
+                  width={ButtonWidthTypes.Full}
+                  onPress={onShowScanner}
+                />
+              ) : null}
+            </>
+          }
+        />
+        <AnimatedQRScannerModal
+          pauseQRCode={setShouldPause}
+          visible={scannerVisible}
+          purpose={QrScanRequestType.SIGN}
+          onScanSuccess={onScanSuccess}
+          onScanError={onScanError}
+          hideModal={() => setScannerVisible(false)}
+        />
+      </>
+    );
+  }
 
   return (
     <ContentLayout

@@ -6,8 +6,9 @@ import PPOMUtil from '../../../../lib/ppom/ppom-util';
 import Routes from '../../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { isSignatureRequest } from '../utils/confirm';
-import { useQRHardwareContext } from '../context/qr-hardware-context';
+import { useQRSigning } from '../../../../core/HardwareWallet';
 import useApprovalRequest from './useApprovalRequest';
+
 import { useSignatureMetrics } from './signatures/useSignatureMetrics';
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useIsConfirmationFromHardwareWalletAccount } from './useIsConfirmationFromLedgerAccount';
@@ -23,8 +24,7 @@ export const useConfirmActions = () => {
   const { onConfirm: onTransactionConfirm } = useTransactionConfirm();
   const transactionMetadata = useTransactionMetadataRequest();
   const { captureSignatureMetrics } = useSignatureMetrics();
-  const { cancelQRScanRequestIfPresent, isSigningQRObject, setScannerVisible } =
-    useQRHardwareContext();
+  const { cancelQRScanRequestIfPresent } = useQRSigning();
   const navigation = useNavigation();
   const approvalType = approvalRequest?.type;
   const isSignatureReq = approvalType && isSignatureRequest(approvalType);
@@ -36,8 +36,7 @@ export const useConfirmActions = () => {
     (transactionMetadata?.txParams?.from as string) ||
     '';
 
-  const isHardwareWalletAccount =
-    useIsConfirmationFromHardwareWalletAccount();
+  const isHardwareWalletAccount = useIsConfirmationFromHardwareWalletAccount();
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
@@ -99,18 +98,19 @@ export const useConfirmActions = () => {
       executeApproval,
       isTransactionReq: Boolean(isTransactionReq),
     }),
-    [fromAddress, onReject, onTransactionConfirm, executeApproval, isTransactionReq],
+    [
+      fromAddress,
+      onReject,
+      onTransactionConfirm,
+      executeApproval,
+      isTransactionReq,
+    ],
   );
 
   const { onConfirm: onHardwareWalletConfirm } =
     useHardwareWalletConfirm(ledgerConfirmOptions);
 
   const onConfirm = useCallback(async () => {
-    if (isSigningQRObject) {
-      setScannerVisible(true);
-      return;
-    }
-
     if (isHardwareWalletAccount) {
       await onHardwareWalletConfirm();
       return;
@@ -123,10 +123,8 @@ export const useConfirmActions = () => {
 
     await executeApproval();
   }, [
-    isSigningQRObject,
     isHardwareWalletAccount,
     isTransactionReq,
-    setScannerVisible,
     onTransactionConfirm,
     executeApproval,
     onHardwareWalletConfirm,

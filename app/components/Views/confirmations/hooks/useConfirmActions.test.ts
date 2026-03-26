@@ -9,7 +9,20 @@ import {
 } from '../../../../util/test/confirm-data-helpers';
 import PPOMUtil from '../../../../lib/ppom/ppom-util';
 // eslint-disable-next-line import-x/no-namespace
-import * as QRHardwareHook from '../context/qr-hardware-context/qr-hardware-context';
+import * as QRSigningHook from '../../../../core/HardwareWallet/contexts/QRSigningContext';
+
+jest.mock('../../../../core/HardwareWallet/contexts/QRSigningContext', () => ({
+  ...jest.requireActual(
+    '../../../../core/HardwareWallet/contexts/QRSigningContext',
+  ),
+  useQRSigning: jest.fn(() => ({
+    isSigningQRObject: false,
+    isRequestCompleted: false,
+    pendingScanRequest: undefined,
+    setRequestCompleted: jest.fn(),
+    cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+  })),
+}));
 import { useTransactionConfirm } from './transactions/useTransactionConfirm';
 import { useConfirmActions } from './useConfirmActions';
 
@@ -71,6 +84,14 @@ describe('useConfirmAction', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    jest.mocked(QRSigningHook.useQRSigning).mockReturnValue({
+      isSigningQRObject: false,
+      isRequestCompleted: false,
+      pendingScanRequest: undefined,
+      setRequestCompleted: jest.fn(),
+      cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+    });
+
     useNavigationMock.mockReturnValue({
       goBack: jest.fn(),
       navigate: navigateMock,
@@ -79,28 +100,6 @@ describe('useConfirmAction', () => {
     useTransactionConfirmMock.mockReturnValue({
       onConfirm: jest.fn(),
     });
-  });
-
-  it('call setScannerVisible if QR signing is in progress', async () => {
-    const clearSecurityAlertResponseSpy = jest.spyOn(
-      PPOMUtil,
-      'clearSignatureSecurityAlertResponse',
-    );
-    const mockSetScannerVisible = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isSigningQRObject: true,
-      setScannerVisible: mockSetScannerVisible,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: personalSignatureConfirmationState,
-    });
-    result?.current?.onConfirm();
-    expect(mockSetScannerVisible).toHaveBeenCalledTimes(1);
-    expect(mockSetScannerVisible).toHaveBeenLastCalledWith(true);
-    expect(Engine.acceptPendingApproval).toHaveBeenCalledTimes(0);
-    await flushPromises();
-    expect(mockCaptureSignatureMetrics).toHaveBeenCalledTimes(0);
-    expect(clearSecurityAlertResponseSpy).toHaveBeenCalledTimes(0);
   });
 
   it('delegates to useLedgerConfirm when account is Ledger', async () => {
@@ -117,30 +116,6 @@ describe('useConfirmAction', () => {
 
     expect(mockOnLedgerConfirm).toHaveBeenCalledTimes(1);
     expect(Engine.acceptPendingApproval).not.toHaveBeenCalled();
-
-    useIsConfirmationFromHardwareWalletAccount.mockReturnValue(false);
-  });
-
-  it('prioritizes the QR scanner flow when QR signing is already in progress for a hardware wallet account', async () => {
-    const { useIsConfirmationFromHardwareWalletAccount } = jest.requireMock(
-      './useIsConfirmationFromLedgerAccount',
-    );
-    useIsConfirmationFromHardwareWalletAccount.mockReturnValue(true);
-
-    const mockSetScannerVisible = jest.fn().mockResolvedValue(undefined);
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isSigningQRObject: true,
-      setScannerVisible: mockSetScannerVisible,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
-
-    const { result } = renderHookWithProvider(() => useConfirmActions(), {
-      state: personalSignatureConfirmationState,
-    });
-
-    await result.current.onConfirm();
-
-    expect(mockSetScannerVisible).toHaveBeenCalledWith(true);
-    expect(mockOnLedgerConfirm).not.toHaveBeenCalled();
 
     useIsConfirmationFromHardwareWalletAccount.mockReturnValue(false);
   });
@@ -182,9 +157,9 @@ describe('useConfirmAction', () => {
     const mockCancelQRScanRequestIfPresent = jest
       .fn()
       .mockResolvedValue(undefined);
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+    jest.mocked(QRSigningHook.useQRSigning).mockReturnValue({
       cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    } as unknown as QRSigningHook.QRSigningContextValue);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: stakingDepositConfirmationState,
     });
@@ -204,9 +179,9 @@ describe('useConfirmAction', () => {
     const mockCancelQRScanRequestIfPresent = jest
       .fn()
       .mockResolvedValue(undefined);
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
+    jest.mocked(QRSigningHook.useQRSigning).mockReturnValue({
       cancelQRScanRequestIfPresent: mockCancelQRScanRequestIfPresent,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
+    } as unknown as QRSigningHook.QRSigningContextValue);
     const { result } = renderHookWithProvider(() => useConfirmActions(), {
       state: personalSignatureConfirmationState,
     });

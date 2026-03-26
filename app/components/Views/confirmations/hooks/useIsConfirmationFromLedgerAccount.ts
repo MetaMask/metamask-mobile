@@ -5,11 +5,12 @@ import useApprovalRequest from './useApprovalRequest';
 import { useTransactionMetadataRequest } from './transactions/useTransactionMetadataRequest';
 
 /**
- * Determines whether the current confirmation originates from a hardware wallet.
+ * Determines whether the current confirmation originates from a hardware
+ * wallet account (Ledger or QR).
  *
- * Uses the `from` address on the approval request / transaction metadata
- * rather than the currently selected account so that edge cases where
- * they differ are handled correctly.
+ * Both hardware transports now use the unified awaiting-confirmation flow in
+ * the hardware wallet bottom sheet. QR-specific UI is rendered inside that
+ * state when a SIGN request becomes available.
  */
 export function useIsConfirmationFromHardwareWalletAccount(): boolean {
   const { approvalRequest } = useApprovalRequest();
