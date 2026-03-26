@@ -641,24 +641,25 @@ const RootModalFlow = (props: RootModalFlowProps) => (
   </Stack.Navigator>
 );
 
-const ImportPrivateKeyView = () => (
-  <Stack.Navigator
-    screenOptions={{
-      headerShown: false,
-    }}
-  >
-    <Stack.Screen
-      name="ImportPrivateKey"
-      component={ImportPrivateKey}
-      options={{ cardStyle: { backgroundColor: importedColors.white } }}
-    />
-    <Stack.Screen
-      name="ImportPrivateKeySuccess"
-      component={ImportPrivateKeySuccess}
-    />
-    <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
-  </Stack.Navigator>
-);
+const ImportPrivateKeyView = () => {
+  const { colors } = useTheme();
+
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        cardStyle: { backgroundColor: colors.background.default },
+      }}
+    >
+      <Stack.Screen name="ImportPrivateKey" component={ImportPrivateKey} />
+      <Stack.Screen
+        name="ImportPrivateKeySuccess"
+        component={ImportPrivateKeySuccess}
+      />
+      <Stack.Screen name={Routes.QR_TAB_SWITCHER} component={QRTabSwitcher} />
+    </Stack.Navigator>
+  );
+};
 
 const ImportSRPView = () => (
   <Stack.Navigator
@@ -959,7 +960,10 @@ const AppFlow = () => {
       <Stack.Screen
         name="ImportPrivateKeyView"
         component={ImportPrivateKeyView}
-        options={{ animationEnabled: true }}
+        options={{
+          animationEnabled: true,
+          cardStyle: { backgroundColor: colors.background.default },
+        }}
       />
       {
         <Stack.Screen
