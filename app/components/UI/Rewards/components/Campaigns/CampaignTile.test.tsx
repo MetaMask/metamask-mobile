@@ -197,7 +197,7 @@ describe('CampaignTile', () => {
     it('does not render enter-now when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
-        statusLabel: 'Up next',
+        statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });
@@ -339,7 +339,7 @@ describe('CampaignTile', () => {
     it('calls hook with undefined when campaign is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
-        statusLabel: 'Up next',
+        statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });
@@ -469,7 +469,7 @@ describe('CampaignTile', () => {
     it('does not navigate for any campaign type when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
-        statusLabel: 'Up next',
+        statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });
@@ -487,7 +487,7 @@ describe('CampaignTile', () => {
     it('does not call onPress for any campaign type when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
-        statusLabel: 'Up next',
+        statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });

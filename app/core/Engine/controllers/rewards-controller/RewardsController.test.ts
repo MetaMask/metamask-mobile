@@ -18913,7 +18913,7 @@ describe('RewardsController', () => {
 
       const result = await controller.getCampaigns(mockSubscriptionId);
 
-      expect(result).toEqual([mockCachedCampaign]);
+      expect(result).toEqual([{ ...mockCachedCampaign, image: null }]);
       expect(mockMessenger.call).not.toHaveBeenCalled();
     });
 
