@@ -31,8 +31,6 @@ import {
   IconColor,
   Checkbox,
   TextFieldSize,
-  TextButton,
-  TextButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import StorageWrapper from '../../../store/storage-wrapper';
