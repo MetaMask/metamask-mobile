@@ -264,7 +264,7 @@ const mockTrackEvent = jest.fn();
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
-    trackEvent: mockTrackEvent,
+    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
   },
 }));
 
@@ -4636,7 +4636,7 @@ describe('Authentication', () => {
       // Assert
       expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(analytics.trackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('returns early when checkIsSeedlessPasswordOutdated returns false', async () => {
@@ -4667,7 +4667,7 @@ describe('Authentication', () => {
         captureSentryError: true,
       });
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(analytics.trackEvent).not.toHaveBeenCalled();
+      expect(mockTrackEvent).not.toHaveBeenCalled();
     });
 
     it('navigates to modal when password is outdated', async () => {
@@ -4697,8 +4697,8 @@ describe('Authentication', () => {
         skipCache: false,
         captureSentryError: true,
       });
-      expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
-      expect(analytics.trackEvent).toHaveBeenCalledWith(
+      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+      expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Password Outdated Modal Viewed',
           properties: expect.objectContaining({ category: 'App' }),
