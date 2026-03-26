@@ -256,9 +256,7 @@ const OrderDetails = () => {
       <ScreenLayout>
         <ScreenLayout.Body>
           <ScreenLayout.Content>
-            <ActivityIndicator
-              testID={RampsOrderDetailsSelectorsIDs.LOADING_INDICATOR}
-            />
+            <ActivityIndicator />
           </ScreenLayout.Content>
         </ScreenLayout.Body>
       </ScreenLayout>
@@ -272,10 +270,7 @@ const OrderDetails = () => {
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
-          <Box
-            testID={RampsOrderDetailsSelectorsIDs.ERROR_CONTAINER}
-            twClassName="flex-1 items-center justify-center px-16 py-16"
-          >
+          <Box twClassName="flex-1 items-center justify-center px-16 py-16">
             <Icon
               name={IconName.Danger}
               size={IconSize.Xl}
@@ -295,7 +290,6 @@ const OrderDetails = () => {
               {error}
             </Text>
             <Button
-              testID={RampsOrderDetailsSelectorsIDs.TRY_AGAIN_BUTTON}
               variant={ButtonVariants.Primary}
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
