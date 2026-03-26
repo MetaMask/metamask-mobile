@@ -26,19 +26,6 @@ describe('handleLocalAuthentication', () => {
     jest.restoreAllMocks();
   });
 
-  describe('Baanx login disabled', () => {
-    it('returns not authenticated when Baanx login is disabled', async () => {
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: false,
-      });
-
-      expect(result).toEqual({
-        isAuthenticated: false,
-      });
-      expect(mockGetCardBaanxToken).not.toHaveBeenCalled();
-    });
-  });
-
   describe('Token retrieval failures', () => {
     it('returns not authenticated when token retrieval fails', async () => {
       mockGetCardBaanxToken.mockResolvedValue({
@@ -47,10 +34,9 @@ describe('handleLocalAuthentication', () => {
         error: 'Keychain error',
       });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
+      expect(mockGetCardBaanxToken).toHaveBeenCalledTimes(1);
       expect(result).toEqual({
         isAuthenticated: false,
       });
@@ -62,9 +48,7 @@ describe('handleLocalAuthentication', () => {
         tokenData: null,
       });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -76,9 +60,7 @@ describe('handleLocalAuthentication', () => {
         null as unknown as Awaited<ReturnType<typeof getCardBaanxToken>>,
       );
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -102,9 +84,7 @@ describe('handleLocalAuthentication', () => {
       });
       mockRemoveCardBaanxToken.mockResolvedValue({ success: true });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       expect(result).toEqual({
@@ -127,9 +107,7 @@ describe('handleLocalAuthentication', () => {
       });
       mockRemoveCardBaanxToken.mockResolvedValue({ success: true });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRemoveCardBaanxToken).toHaveBeenCalled();
       expect(result).toEqual({
@@ -161,9 +139,7 @@ describe('handleLocalAuthentication', () => {
       mockRefreshCardToken.mockResolvedValue(refreshedTokenData);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockRefreshCardToken).toHaveBeenCalled();
@@ -189,9 +165,7 @@ describe('handleLocalAuthentication', () => {
         tokenData: freshTokenData,
       });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRefreshCardToken).not.toHaveBeenCalled();
       expect(mockStoreCardBaanxToken).not.toHaveBeenCalled();
@@ -215,9 +189,7 @@ describe('handleLocalAuthentication', () => {
         tokenData: freshTokenData,
       });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRefreshCardToken).not.toHaveBeenCalled();
       expect(result).toEqual({
@@ -240,9 +212,7 @@ describe('handleLocalAuthentication', () => {
         tokenData: boundaryTokenData,
       });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRefreshCardToken).not.toHaveBeenCalled();
       expect(result).toEqual({
@@ -277,9 +247,7 @@ describe('handleLocalAuthentication', () => {
       mockRefreshCardToken.mockResolvedValue(refreshedTokenData);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRefreshCardToken).toHaveBeenCalledWith(
         'old-refresh-token',
@@ -322,9 +290,7 @@ describe('handleLocalAuthentication', () => {
       mockRefreshCardToken.mockResolvedValue(refreshedTokenData);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRefreshCardToken).toHaveBeenCalledWith(
         'old-refresh-token',
@@ -360,9 +326,7 @@ describe('handleLocalAuthentication', () => {
       });
       mockRefreshCardToken.mockRejectedValue(new Error('Token refresh failed'));
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -393,9 +357,7 @@ describe('handleLocalAuthentication', () => {
       });
       mockRefreshCardToken.mockResolvedValue(invalidRefreshedToken);
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -426,9 +388,7 @@ describe('handleLocalAuthentication', () => {
       });
       mockRefreshCardToken.mockResolvedValue(invalidRefreshedToken);
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -453,9 +413,7 @@ describe('handleLocalAuthentication', () => {
         null as unknown as Awaited<ReturnType<typeof refreshCardToken>>,
       );
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -470,9 +428,7 @@ describe('handleLocalAuthentication', () => {
         new Error('Keychain access denied'),
       );
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -494,9 +450,7 @@ describe('handleLocalAuthentication', () => {
       });
       mockRemoveCardBaanxToken.mockRejectedValue(new Error('Removal failed'));
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -527,9 +481,7 @@ describe('handleLocalAuthentication', () => {
       mockRefreshCardToken.mockResolvedValue(refreshedTokenData);
       mockStoreCardBaanxToken.mockRejectedValue(new Error('Storage failed'));
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(result).toEqual({
         isAuthenticated: false,
@@ -562,9 +514,7 @@ describe('handleLocalAuthentication', () => {
       mockRefreshCardToken.mockResolvedValue(refreshedTokenData);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRemoveCardBaanxToken).not.toHaveBeenCalled();
       expect(mockRefreshCardToken).toHaveBeenCalled();
@@ -588,9 +538,7 @@ describe('handleLocalAuthentication', () => {
         tokenData: freshTokenData,
       });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRefreshCardToken).not.toHaveBeenCalled();
       expect(result).toEqual({
@@ -623,9 +571,7 @@ describe('handleLocalAuthentication', () => {
       mockRefreshCardToken.mockResolvedValue(refreshedTokenData);
       mockStoreCardBaanxToken.mockResolvedValue({ success: true });
 
-      const result = await handleLocalAuthentication({
-        isBaanxLoginEnabled: true,
-      });
+      const result = await handleLocalAuthentication();
 
       expect(mockRefreshCardToken).toHaveBeenCalled();
       expect(result).toEqual({
