@@ -25,7 +25,7 @@ export interface AnalyticsHelper {
   optOut: () => Promise<void>;
   getAnalyticsId: () => Promise<string>;
   isEnabled: () => boolean;
-  isOptedIn: () => boolean;
+  isOptedIn: () => Promise<boolean>;
 }
 
 /**
@@ -149,9 +149,9 @@ const isEnabled = (): boolean => {
 /**
  * Check if user opted in
  *
- * @returns True if opted in, false otherwise
+ * @returns Promise with true if opted in, false otherwise
  */
-const isOptedIn = (): boolean => {
+const isOptedIn = async (): Promise<boolean> => {
   try {
     const optedIn = selectAnalyticsOptedIn(store.getState());
     return optedIn ?? false;
