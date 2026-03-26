@@ -2,18 +2,30 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
+import enContent from '../../../locales/languages/en.json';
 import {
   Assertions,
   FrameworkDetector,
   Matchers,
+  PlatformDetector,
+  PlaywrightAssertions,
+  PlaywrightGestures,
   PlaywrightMatchers,
   UnifiedGestures,
   asDetoxElement,
   asPlaywrightElement,
   encapsulated,
   encapsulatedAction,
+  getDriver,
   type EncapsulatedElementType,
 } from '../../framework';
+
+const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
+
+export function getKeypadKeyTestId(key: string): string {
+  return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
+}
 
 class TransactionPayConfirmation {
   get bridgeTime(): EncapsulatedElementType {
@@ -30,6 +42,19 @@ class TransactionPayConfirmation {
     });
   }
 
+  get keyboardContainer(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(TransactionPayComponentIDs.KEYBOARD_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          TransactionPayComponentIDs.KEYBOARD_CONTAINER,
+          {
+            exact: true,
+          },
+        ),
+    });
+  }
   get payWithRow(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
@@ -156,6 +181,20 @@ class TransactionPayConfirmation {
     );
   }
 
+  get tokenSearchInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByID(TEXTFIELDSEARCH_TEST_ID),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(TEXTFIELDSEARCH_TEST_ID, {
+            exact: true,
+          }),
+        ios: () =>
+          PlaywrightMatchers.getElementByCatchAll(TOKEN_SEARCH_PLACEHOLDER),
+      },
+    });
+  }
+
   private getTokenOptionAt(
     tokenSymbol: string,
     index: number,
@@ -180,10 +219,27 @@ class TransactionPayConfirmation {
     });
   }
 
+  private getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(tokenSymbol, 0),
+      appium: () => PlaywrightMatchers.getElementByCatchAll(tokenSymbol),
+    });
+  }
+
+  private getNetworkFilter(networkName: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(networkName),
+      appium: () => PlaywrightMatchers.getElementByCatchAll(networkName),
+    });
+  }
+
   private getKeypadButton(key: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(key),
-      appium: () => PlaywrightMatchers.getElementByText(key),
+      appium: () =>
+        PlaywrightMatchers.getElementById(getKeypadKeyTestId(key), {
+          exact: true,
+        }),
     });
   }
 
@@ -218,17 +274,78 @@ class TransactionPayConfirmation {
     });
   }
 
-  async isAmountEntryVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.keyboardContinueButton, {
-      description: 'Transaction pay keyboard continue button',
-      timeout: 15000,
+  async searchToken(tokenName: string): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.typeText(this.tokenSearchInput, tokenName, {
+          description: `Search token ${tokenName}`,
+        });
+      },
+      appium: async () => {
+        const searchField = await asPlaywrightElement(this.tokenSearchInput);
+        await PlaywrightAssertions.expectElementToBeVisible(searchField, {
+          timeout: 15000,
+          description: 'Token search field should be visible',
+        });
+        await searchField.fill(tokenName);
+      },
     });
   }
 
-  async isPayWithTokenListVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.payWithTokenList, {
-      description: 'Pay with token list',
-      timeout: 15000,
+  async tapEthereumFilter(): Promise<void> {
+    const ethereumFilter = this.getNetworkFilter('Ethereum');
+
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(ethereumFilter, {
+          description: 'Ethereum filter should be visible',
+          timeout: 15000,
+        });
+
+        await UnifiedGestures.waitAndTap(ethereumFilter, {
+          description: 'Ethereum Filter',
+        });
+      },
+      appium: async () => {
+        const resolvedFilter = await asPlaywrightElement(ethereumFilter);
+        await PlaywrightAssertions.expectElementToBeVisible(resolvedFilter, {
+          timeout: 15000,
+          description: 'Ethereum filter should be visible',
+        });
+
+        if (await PlatformDetector.isIOS()) {
+          await PlaywrightGestures.dblTap(resolvedFilter);
+          return;
+        }
+
+        await PlaywrightGestures.waitAndTap(resolvedFilter, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
+      },
+    });
+  }
+
+  async tapFirstUsdc(tokenName: string): Promise<void> {
+    const tokenElement = this.getFirstTokenOption(tokenName);
+
+    await encapsulatedAction({
+      detox: async () => {
+        await UnifiedGestures.waitAndTap(tokenElement, {
+          description: `First token ${tokenName}`,
+        });
+      },
+      appium: async () => {
+        const resolvedToken = await asPlaywrightElement(tokenElement);
+        await PlaywrightAssertions.expectElementToBeVisible(resolvedToken, {
+          timeout: 15000,
+          description: `${tokenName} token should be visible`,
+        });
+        await PlaywrightGestures.waitAndTap(resolvedToken, {
+          checkForDisplayed: true,
+          checkForEnabled: true,
+        });
+      },
     });
   }
 
@@ -253,11 +370,26 @@ class TransactionPayConfirmation {
   }
 
   async tapKeyboardAmount(amount: string): Promise<void> {
-    for (const char of amount) {
-      await UnifiedGestures.waitAndTap(this.getKeypadButton(char), {
-        description: `Keyboard Key ${char}`,
-      });
-    }
+    await encapsulatedAction({
+      detox: async () => {
+        for (const char of amount) {
+          await UnifiedGestures.waitAndTap(this.getKeypadButton(char), {
+            description: `Keyboard Key ${char}`,
+          });
+        }
+      },
+      appium: async () => {
+        for (const char of amount) {
+          await PlaywrightGestures.waitAndTap(
+            await asPlaywrightElement(this.getKeypadButton(char)),
+            {
+              checkForDisplayed: true,
+              checkForEnabled: true,
+            },
+          );
+        }
+      },
+    });
   }
 
   async enterAmountAndContinue(amount: string): Promise<void> {
@@ -271,29 +403,6 @@ class TransactionPayConfirmation {
       time,
       'Bridge time should be correct',
     );
-  }
-
-  async verifyAmount(amount: string): Promise<void> {
-    await this.expectText(this.amount, amount, 'Amount should be correct');
-  }
-
-  async verifyTotal(total: string): Promise<void> {
-    await this.expectText(this.total, total, 'Total should be correct');
-  }
-
-  async verifyTransactionFee(fee: string): Promise<void> {
-    await this.expectText(
-      this.transactionFee,
-      fee,
-      'Transaction fee should be correct',
-    );
-  }
-
-  async verifyTransactionFeeVisible(): Promise<void> {
-    await Assertions.expectElementToBeVisible(this.transactionFee, {
-      description: 'Transaction fee row should be visible',
-      timeout: 15000,
-    });
   }
 }
 

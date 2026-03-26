@@ -14,6 +14,17 @@ import {
   PredictMarketDetailsSelectorsIDs,
   PredictMarketDetailsSelectorsText,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+
+const TAB_BAR_TAB_ID_PREFIX = `${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-`;
+
+function getAndroidTabBarTabXPath(label: string): string {
+  return `//*[contains(@resource-id,'${TAB_BAR_TAB_ID_PREFIX}') and (@text='${label}' or @content-desc='${label}')]`;
+}
+
+function getIOSTabBarTabXPath(label: string): string {
+  return `//*[contains(@name,'${TAB_BAR_TAB_ID_PREFIX}') and (@label='${label}' or contains(@label,'${label}'))]`;
+}
+
 class PredictDetailsPage {
   get container(): EncapsulatedElementType {
     return encapsulated({
@@ -33,10 +44,20 @@ class PredictDetailsPage {
         Matchers.getElementByText(
           PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            getAndroidTabBarTabXPath(
+              PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
+            ),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            getIOSTabBarTabXPath(
+              PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
+            ),
+          ),
+      },
     });
   }
 
@@ -46,10 +67,20 @@ class PredictDetailsPage {
         Matchers.getElementByText(
           PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            getAndroidTabBarTabXPath(
+              PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
+            ),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            getIOSTabBarTabXPath(
+              PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
+            ),
+          ),
+      },
     });
   }
 
@@ -59,36 +90,45 @@ class PredictDetailsPage {
         Matchers.getElementByText(
           PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementByText(
-          PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByXPath(
+            getAndroidTabBarTabXPath(
+              PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
+            ),
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            getIOSTabBarTabXPath(
+              PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
+            ),
+          ),
+      },
     });
   }
-
+  //TODO: Add the correct TESTID on the component for the about tab content
+  // This was migrated from the old screen-objects/PredictDetailsScreen.js file
   get aboutTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByID(
-          PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
-        ),
+        Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.ABOUT_TAB),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          PredictMarketDetailsSelectorsIDs.ABOUT_TAB_CONTENT,
+          PredictMarketDetailsSelectorsIDs.ABOUT_TAB,
           { exact: true },
         ),
     });
   }
 
+  //TODO: Add the correct TESTID on the component for the outcomes tab content
+  // This was migrated from the old screen-objects/PredictDetailsScreen.js file
   get outcomesTabContent(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByID(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
-        ),
+        Matchers.getElementByID(PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB),
       appium: () =>
         PlaywrightMatchers.getElementById(
-          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB_CONTENT,
+          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB,
           { exact: true },
         ),
     });
