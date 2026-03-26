@@ -5113,7 +5113,7 @@ describe('Authentication', () => {
           const alertSpy = jest
             .spyOn(Alert, 'alert')
             .mockImplementation((_title, _message, buttons) => {
-              void buttons?.[0]?.onPress?.();
+              buttons?.[0]?.onPress?.();
             });
           const resetPasswordSpy = jest
             .spyOn(Authentication, 'resetPassword')
@@ -5145,7 +5145,7 @@ describe('Authentication', () => {
           const alertSpy = jest
             .spyOn(Alert, 'alert')
             .mockImplementation((_title, _message, buttons) => {
-              void buttons?.[0]?.onPress?.();
+              buttons?.[0]?.onPress?.();
             });
           const lockAppSpy = jest.spyOn(Authentication, 'lockApp');
 
@@ -5195,7 +5195,7 @@ describe('Authentication', () => {
 
           await expect(
             Authentication.unlockWallet({ password: passwordToUse }),
-          ).rejects.toBe('User not authenticated string');
+          ).rejects.toThrow('User not authenticated string');
 
           expect(alertSpy).not.toHaveBeenCalled();
 
