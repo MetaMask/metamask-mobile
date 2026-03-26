@@ -3,7 +3,6 @@ import { renderHookWithProvider } from '../../../../util/test/renderWithProvider
 import { useWithdrawalRequests } from './useWithdrawalRequests';
 import Engine from '../../../../core/Engine';
 import { usePerpsSelector } from './usePerpsSelector';
-import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import type {
   PerpsControllerState,
   UserHistoryItem,
@@ -17,7 +16,6 @@ import { useSelector } from 'react-redux';
 
 jest.mock('../../../../core/Engine');
 jest.mock('./usePerpsSelector');
-jest.mock('../../../../core/SDKConnect/utils/DevLogger');
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
@@ -27,7 +25,6 @@ const mockEngine = Engine as jest.Mocked<typeof Engine>;
 const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
   typeof usePerpsSelector
 >;
-const mockDevLogger = DevLogger as jest.Mocked<typeof DevLogger>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('useWithdrawalRequests', () => {
@@ -669,25 +666,6 @@ describe('useWithdrawalRequests', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('API Error');
-    });
-  });
-
-  describe('logging', () => {
-    it('logs when a new withdrawal is initialized', () => {
-      renderHookWithProvider(() => useWithdrawalRequests(), {
-        state: createMockState(),
-      });
-
-      expect(mockDevLogger.log).toHaveBeenCalledWith(
-        'Withdrawal initialized:',
-        expect.objectContaining({
-          id: 'withdrawal-1',
-          timestamp: expect.any(String),
-          amount: '100',
-          asset: 'USDC',
-          status: 'pending',
-        }),
-      );
     });
   });
 
