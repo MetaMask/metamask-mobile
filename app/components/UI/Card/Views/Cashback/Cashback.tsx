@@ -6,16 +6,14 @@ import {
   TextVariant,
   TextColor,
   Skeleton,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { useTheme } from '../../../../../util/theme';
 import { strings } from '../../../../../../locales/i18n';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import {
   ToastContext,
   ToastVariants,
@@ -253,15 +251,16 @@ const Cashback: React.FC = () => {
 
       <Box twClassName="px-4 pb-4">
         <Button
-          variant={ButtonVariants.Primary}
-          label={buttonLabel}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={handleWithdraw}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           isDisabled={isButtonDisabled}
-          loading={isProcessing}
+          isLoading={isProcessing}
           testID={CashbackSelectors.WITHDRAW_BUTTON}
-        />
+        >
+          {buttonLabel}
+        </Button>
       </Box>
     </SafeAreaView>
   );
