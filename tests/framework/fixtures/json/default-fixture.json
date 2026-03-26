@@ -749,7 +749,6 @@
       },
       "ondoCampaignLeaderboard": null,
       "ondoCampaignLeaderboardError": false,
-      "ondoCampaignLeaderboardNotYetComputed": false,
       "ondoCampaignLeaderboardLoading": false,
       "ondoCampaignLeaderboardPositions": {},
       "ondoCampaignLeaderboardSelectedTier": null,

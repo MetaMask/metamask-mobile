@@ -76,6 +76,6 @@ export function isPnlNonNegative(pnlPercent: string): boolean {
   try {
     return new BigNumber(pnlPercent).gte(0);
   } catch {
-    return true;
+    return false;
   }
 }

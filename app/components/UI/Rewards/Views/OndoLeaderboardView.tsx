@@ -60,10 +60,7 @@ const OndoLeaderboardView: React.FC = () => {
         >
           {/* User position card */}
           <Box twClassName="px-4 pt-4">
-            <OndoLeaderboardPosition
-              campaignId={campaignId}
-              isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
-            />
+            <OndoLeaderboardPosition campaignId={campaignId} />
           </Box>
 
           {/* Full leaderboard */}

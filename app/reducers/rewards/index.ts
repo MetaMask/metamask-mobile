@@ -137,7 +137,6 @@ export interface RewardsState {
   ondoCampaignLeaderboard: CampaignLeaderboardDto | null;
   ondoCampaignLeaderboardLoading: boolean;
   ondoCampaignLeaderboardError: boolean;
-  ondoCampaignLeaderboardNotYetComputed: boolean;
   // Currently selected tier for leaderboard display
   ondoCampaignLeaderboardSelectedTier: string | null;
 
@@ -229,7 +228,6 @@ export const initialState: RewardsState = {
   ondoCampaignLeaderboard: null,
   ondoCampaignLeaderboardLoading: false,
   ondoCampaignLeaderboardError: false,
-  ondoCampaignLeaderboardNotYetComputed: false,
   ondoCampaignLeaderboardSelectedTier: null,
 
   // Campaign leaderboard position initial state
@@ -570,12 +568,6 @@ const rewardsSlice = createSlice({
     ) => {
       state.ondoCampaignLeaderboardError = action.payload;
     },
-    setOndoCampaignLeaderboardNotYetComputed: (
-      state,
-      action: PayloadAction<boolean>,
-    ) => {
-      state.ondoCampaignLeaderboardNotYetComputed = action.payload;
-    },
     setOndoCampaignLeaderboardSelectedTier: (
       state,
       action: PayloadAction<string>,
@@ -792,7 +784,6 @@ export const {
   setOndoCampaignLeaderboard,
   setOndoCampaignLeaderboardLoading,
   setOndoCampaignLeaderboardError,
-  setOndoCampaignLeaderboardNotYetComputed,
   setOndoCampaignLeaderboardSelectedTier,
   setOndoCampaignLeaderboardPosition,
   setOndoCampaignPortfolioPosition,

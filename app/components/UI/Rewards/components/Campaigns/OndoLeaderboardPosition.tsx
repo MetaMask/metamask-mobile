@@ -13,7 +13,6 @@ import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import RewardsInfoBanner from '../RewardsInfoBanner';
 import { formatRateOfReturn } from './OndoLeaderboard.utils';
 import formatFiat from '../../../../../util/formatFiat';
 import { BigNumber } from 'bignumber.js';
@@ -32,13 +31,10 @@ export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
   LOADING: 'ondo-leaderboard-position-loading',
   ERROR: 'ondo-leaderboard-position-error',
   NOT_FOUND: 'ondo-leaderboard-position-not-found',
-  NOT_YET_COMPUTED: 'ondo-leaderboard-position-not-yet-computed',
 } as const;
 
 interface OndoLeaderboardPositionProps {
   campaignId: string | undefined;
-  /** When true, shows an info banner instead of position data */
-  isLeaderboardNotYetComputed?: boolean;
 }
 
 const formatUsd = (value: number): string =>
@@ -110,7 +106,6 @@ const StatCell: React.FC<StatCellProps> = ({
  */
 const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
   campaignId,
-  isLeaderboardNotYetComputed = false,
 }) => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
   const isOptedIn = useSelector(
@@ -141,18 +136,6 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
           'rewards.ondo_campaign_leaderboard_position.retry',
         )}
         testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.ERROR}
-      />
-    );
-  }
-
-  if (isLeaderboardNotYetComputed && !isLoading && !position) {
-    return (
-      <RewardsInfoBanner
-        title={<></>}
-        description={strings(
-          'rewards.ondo_campaign_leaderboard.not_yet_computed',
-        )}
-        testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_YET_COMPUTED}
       />
     );
   }

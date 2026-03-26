@@ -60,7 +60,6 @@ import {
   selectOndoCampaignLeaderboard,
   selectOndoCampaignLeaderboardLoading,
   selectOndoCampaignLeaderboardError,
-  selectOndoCampaignLeaderboardNotYetComputed,
   selectOndoCampaignLeaderboardSelectedTier,
   selectOndoCampaignLeaderboardTiers,
   selectOndoCampaignLeaderboardComputedAt,
@@ -3497,22 +3496,6 @@ describe('Rewards selectors', () => {
         ondoCampaignLeaderboardError: true,
       });
       expect(selectOndoCampaignLeaderboardError(state)).toBe(true);
-    });
-  });
-
-  describe('selectOndoCampaignLeaderboardNotYetComputed', () => {
-    it('returns false when leaderboard has been computed', () => {
-      const state = createMockRootState({
-        ondoCampaignLeaderboardNotYetComputed: false,
-      });
-      expect(selectOndoCampaignLeaderboardNotYetComputed(state)).toBe(false);
-    });
-
-    it('returns true when leaderboard has not yet been computed', () => {
-      const state = createMockRootState({
-        ondoCampaignLeaderboardNotYetComputed: true,
-      });
-      expect(selectOndoCampaignLeaderboardNotYetComputed(state)).toBe(true);
     });
   });
 

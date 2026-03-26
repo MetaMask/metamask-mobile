@@ -615,35 +615,6 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByText('rewards.ondo_campaign_leaderboard.title')).toBeNull();
     });
 
-    it('forwards isLeaderboardNotYetComputed to OndoLeaderboardPosition', () => {
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [createTestCampaign()],
-      });
-      mockUseGetCampaignParticipantStatus.mockReturnValue({
-        status: { optedIn: true, participantCount: 1 },
-        isLoading: false,
-        hasError: false,
-        refetch: jest.fn(),
-      });
-      mockUseGetOndoLeaderboard.mockReturnValue({
-        leaderboard: null,
-        isLoading: false,
-        hasError: false,
-        isLeaderboardNotYetComputed: true,
-        tierNames: [],
-        selectedTier: null,
-        selectedTierData: null,
-        computedAt: null,
-        setSelectedTier: jest.fn(),
-        refetch: jest.fn(),
-      });
-      render(<OndoCampaignDetailsView />);
-      expect(mockOndoLeaderboardPosition).toHaveBeenCalledWith(
-        expect.objectContaining({ isLeaderboardNotYetComputed: true }),
-      );
-    });
-
     it('shows leaderboard section header when opted in', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,

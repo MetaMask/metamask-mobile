@@ -6,7 +6,6 @@ import {
   selectOndoCampaignLeaderboard,
   selectOndoCampaignLeaderboardLoading,
   selectOndoCampaignLeaderboardError,
-  selectOndoCampaignLeaderboardNotYetComputed,
   selectOndoCampaignLeaderboardTierNames,
   selectOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards/selectors';
@@ -14,7 +13,6 @@ import {
   setOndoCampaignLeaderboard,
   setOndoCampaignLeaderboardLoading,
   setOndoCampaignLeaderboardError,
-  setOndoCampaignLeaderboardNotYetComputed,
   setOndoCampaignLeaderboardSelectedTier,
 } from '../../../../reducers/rewards';
 import type { CampaignLeaderboardDto } from '../../../../core/Engine/controllers/rewards-controller/types';
@@ -32,7 +30,6 @@ jest.mock('../../../../reducers/rewards/selectors', () => ({
   selectOndoCampaignLeaderboard: jest.fn(),
   selectOndoCampaignLeaderboardLoading: jest.fn(),
   selectOndoCampaignLeaderboardError: jest.fn(),
-  selectOndoCampaignLeaderboardNotYetComputed: jest.fn(),
   selectOndoCampaignLeaderboardTierNames: jest.fn(),
   selectOndoCampaignLeaderboardSelectedTier: jest.fn(),
 }));
@@ -52,10 +49,6 @@ jest.mock('../../../../reducers/rewards', () => ({
   })),
   setOndoCampaignLeaderboardSelectedTier: jest.fn((payload) => ({
     type: 'rewards/setOndoCampaignLeaderboardSelectedTier',
-    payload,
-  })),
-  setOndoCampaignLeaderboardNotYetComputed: jest.fn((payload) => ({
-    type: 'rewards/setOndoCampaignLeaderboardNotYetComputed',
     payload,
   })),
 }));
@@ -89,7 +82,6 @@ interface SelectorState {
   leaderboard: CampaignLeaderboardDto | null;
   isLoading: boolean;
   hasError: boolean;
-  isLeaderboardNotYetComputed?: boolean;
   tierNames: string[];
   selectedTier: string | null;
 }
@@ -100,8 +92,6 @@ function setupSelectors(state: SelectorState) {
     if (selector === selectOndoCampaignLeaderboardLoading)
       return state.isLoading;
     if (selector === selectOndoCampaignLeaderboardError) return state.hasError;
-    if (selector === selectOndoCampaignLeaderboardNotYetComputed)
-      return state.isLeaderboardNotYetComputed ?? false;
     if (selector === selectOndoCampaignLeaderboardTierNames)
       return state.tierNames;
     if (selector === selectOndoCampaignLeaderboardSelectedTier)
@@ -362,42 +352,36 @@ describe('useGetOndoLeaderboard', () => {
     expect(result.current.hasError).toBe(true);
   });
 
-  it('dispatches setOndoCampaignLeaderboardNotYetComputed(false) when campaignId is undefined', async () => {
-    renderHook(() => useGetOndoLeaderboard(undefined));
+  it('returns isLeaderboardNotYetComputed as false initially', () => {
+    const { result } = renderHook(() => useGetOndoLeaderboard(undefined));
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardNotYetComputed(false),
-    );
+    expect(result.current.isLeaderboardNotYetComputed).toBe(false);
   });
 
-  it('dispatches setOndoCampaignLeaderboardNotYetComputed(false) before fetching', async () => {
+  it('returns isLeaderboardNotYetComputed as false after successful fetch', async () => {
     mockCall.mockResolvedValueOnce(MOCK_LEADERBOARD as never);
 
-    renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     await act(async () => {
       await Promise.resolve();
     });
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardNotYetComputed(false),
-    );
+    expect(result.current.isLeaderboardNotYetComputed).toBe(false);
   });
 
-  it('dispatches setOndoCampaignLeaderboardNotYetComputed(true) on 404 error', async () => {
+  it('returns isLeaderboardNotYetComputed as true on 404 error', async () => {
     mockCall.mockRejectedValueOnce(
       new Error('Get campaign leaderboard failed: 404') as never,
     );
 
-    renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
+    const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
     await act(async () => {
       await Promise.resolve();
     });
 
-    expect(mockDispatch).toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardNotYetComputed(true),
-    );
+    expect(result.current.isLeaderboardNotYetComputed).toBe(true);
     expect(mockDispatch).not.toHaveBeenCalledWith(
       setOndoCampaignLeaderboardError(true),
     );
@@ -415,23 +399,17 @@ describe('useGetOndoLeaderboard', () => {
     expect(mockDispatch).toHaveBeenCalledWith(
       setOndoCampaignLeaderboardError(true),
     );
-    expect(mockDispatch).not.toHaveBeenCalledWith(
-      setOndoCampaignLeaderboardNotYetComputed(true),
-    );
   });
 
-  it('returns isLeaderboardNotYetComputed from selector', () => {
-    setupSelectors({
-      leaderboard: null,
-      isLoading: false,
-      hasError: false,
-      isLeaderboardNotYetComputed: true,
-      tierNames: [],
-      selectedTier: null,
-    });
+  it('returns isLeaderboardNotYetComputed as false when error is not a 404', async () => {
+    mockCall.mockRejectedValueOnce(new Error('Server error') as never);
 
     const { result } = renderHook(() => useGetOndoLeaderboard(CAMPAIGN_ID));
 
-    expect(result.current.isLeaderboardNotYetComputed).toBe(true);
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.isLeaderboardNotYetComputed).toBe(false);
   });
 });
