@@ -20,6 +20,7 @@ import {
   type Funding,
   type UpdatePositionTPSLParams,
   type PerpsControllerState,
+  WebSocketConnectionState,
 } from '@metamask/perps-controller';
 
 // Interface for controller with update method access
@@ -297,6 +298,17 @@ export function applyE2EPerpsControllerMocks(controller: unknown): void {
       ? originalGetActiveProvider.call(controller)
       : {};
     const providerRecord = provider as Record<string, unknown>;
+
+    // Keep connection manager healthy in E2E by forcing provider health/status to connected.
+    providerRecord.ping = async () => undefined;
+    providerRecord.getWebSocketConnectionState = () =>
+      WebSocketConnectionState.Connected;
+    providerRecord.subscribeToConnectionState = (
+      listener: (state: WebSocketConnectionState, attempt: number) => void,
+    ) => {
+      setTimeout(() => listener(WebSocketConnectionState.Connected, 0), 0);
+      return () => undefined;
+    };
 
     // Patch only the methods we need for Activity history
     providerRecord.getOrders = (

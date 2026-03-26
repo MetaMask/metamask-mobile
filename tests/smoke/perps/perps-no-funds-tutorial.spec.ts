@@ -6,10 +6,14 @@ import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsTabView from '../../page-objects/Perps/PerpsTabView';
 import Assertions from '../../framework/Assertions';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 
 describe(
   SmokePerps('Perps - no funds shows Start Trading and tutorial'),
@@ -32,6 +36,10 @@ describe(
               ...remoteFeatureFlagHomepageSectionsV1Enabled(),
             });
             await PERPS_ARBITRUM_MOCKS(mockServer);
+            await mockPerpsGeolocation(
+              mockServer,
+              RampsRegions[RampsRegionsEnum.SPAIN],
+            );
           },
         },
         async () => {

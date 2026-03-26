@@ -4,7 +4,10 @@ import { SmokePerps } from '../../tags';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
@@ -14,6 +17,7 @@ import Assertions from '../../framework/Assertions';
 import Matchers from '../../framework/Matchers';
 import { PerpsPositionsViewSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
 import { TestSuiteParams } from '../../framework/types';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
@@ -29,6 +33,7 @@ describe(SmokePerps('Perps Position Liquidation'), () => {
       {
         fixture: new FixtureBuilder()
           .withPerpsProfile('position-testing')
+          .withPerpsFirstTimeUser(false)
           .build(),
         restartDevice: true,
         testSpecificMock: async (mockServer: Mockttp) => {
@@ -36,6 +41,10 @@ describe(SmokePerps('Perps Position Liquidation'), () => {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });
           await PERPS_ARBITRUM_MOCKS(mockServer);
+          await mockPerpsGeolocation(
+            mockServer,
+            RampsRegions[RampsRegionsEnum.SPAIN],
+          );
         },
         useCommandQueueServer: true,
       },

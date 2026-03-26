@@ -2,13 +2,17 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { SmokePerps } from '../../tags';
 import { loginToApp } from '../../flows/wallet.flow';
-import { PERPS_ARBITRUM_MOCKS } from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
+import {
+  PERPS_ARBITRUM_MOCKS,
+  mockPerpsGeolocation,
+} from '../../api-mocking/mock-responses/perps-arbitrum-mocks';
 import WalletView from '../../page-objects/wallet/WalletView';
 import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
 import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
 import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
 import PerpsHomeView from '../../page-objects/Perps/PerpsHomeView';
 import PerpsView from '../../page-objects/Perps/PerpsView';
+import { RampsRegions, RampsRegionsEnum } from '../../framework/Constants';
 import PerpsE2EModifiers from '../../helpers/perps/perps-modifiers';
 import { TestSuiteParams } from '../../framework/types';
 import { Mockttp } from 'mockttp';
@@ -30,6 +34,10 @@ describe(SmokePerps('Perps - ETH limit long fill'), () => {
             ...remoteFeatureFlagHomepageSectionsV1Enabled(),
           });
           await PERPS_ARBITRUM_MOCKS(mockServer);
+          await mockPerpsGeolocation(
+            mockServer,
+            RampsRegions[RampsRegionsEnum.SPAIN],
+          );
         },
         useCommandQueueServer: true,
       },
