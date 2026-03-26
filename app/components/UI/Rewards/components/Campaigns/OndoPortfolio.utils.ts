@@ -1,8 +1,6 @@
 import { BigNumber } from 'bignumber.js';
 import type { OndoGmPortfolioPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
-const ZERO = new BigNumber(0);
-
 /**
  * Merges positions that share the same CAIP-19 `tokenAsset` by summing numeric fields.
  * Recomputes average cost per unit and unrealized PnL percent from merged totals when possible.
@@ -53,16 +51,6 @@ export function groupPortfolioPositionsByAsset(
   }
 
   return Array.from(map.values());
-}
-
-export function sumPositionField(
-  positions: OndoGmPortfolioPositionDto[],
-  field: 'currentValue' | 'unrealizedPnl',
-): BigNumber {
-  return positions.reduce(
-    (acc, p) => acc.plus(new BigNumber(p[field] || 0)),
-    ZERO,
-  );
 }
 
 /**

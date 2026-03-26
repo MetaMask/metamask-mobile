@@ -51,6 +51,10 @@ jest.mock('../../../../reducers/rewards', () => ({
     type: 'rewards/setOndoCampaignLeaderboardSelectedTier',
     payload,
   })),
+  setOndoCampaignLeaderboardNotYetComputed: jest.fn((payload) => ({
+    type: 'rewards/setOndoCampaignLeaderboardNotYetComputed',
+    payload,
+  })),
 }));
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
