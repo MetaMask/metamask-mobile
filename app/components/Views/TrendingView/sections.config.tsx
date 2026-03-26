@@ -55,7 +55,7 @@ export interface SectionConfig {
   id: SectionId;
   title: string;
   icon: SectionIcon;
-  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  viewAllAction: (navigation: AppNavigationProp) => void;
   /** Returns a stable identifier for an item (e.g. assetId, symbol, url) used in analytics */
   getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<{

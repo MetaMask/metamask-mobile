@@ -1,6 +1,12 @@
 import React, { useEffect, useMemo } from 'react';
 import { Pressable, ScrollView } from 'react-native';
-import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  RouteProp,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
 import {
   Box,
   BoxAlignItems,
@@ -37,13 +43,19 @@ type OndoCampaignDetailsRouteParams = {
   CampaignDetails: { campaignId: string };
 };
 
+/** Rewards stack: navigate from campaign details to leaderboard (not all routes listed). */
+type RewardsCampaignStackParamList = ParamListBase & {
+  RewardsOndoCampaignLeaderboard: { campaignId: string };
+};
+
 export const CAMPAIGN_DETAILS_TEST_IDS = {
   CONTAINER: 'campaign-details-container',
 } as const;
 
 const OndoCampaignDetailsView: React.FC = () => {
   const tw = useTailwind();
-  const navigation = useNavigation();
+  const navigation =
+    useNavigation<NavigationProp<RewardsCampaignStackParamList>>();
   const route =
     useRoute<RouteProp<OndoCampaignDetailsRouteParams, 'CampaignDetails'>>();
   const { campaignId } = route.params;
@@ -169,7 +181,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                         <Pressable
                           onPress={() =>
                             navigation.navigate(
-                              Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD as never,
+                              Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
                               { campaignId },
                             )
                           }
