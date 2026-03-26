@@ -48,7 +48,6 @@ export interface EmulatorConfig {
   provider: 'emulator';
   name?: string;
   osVersion?: string;
-  launchableActivity?: string;
   udid?: string;
   orientation?: DeviceOrientation;
 }
