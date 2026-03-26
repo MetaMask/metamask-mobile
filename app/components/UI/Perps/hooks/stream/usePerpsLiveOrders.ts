@@ -37,12 +37,14 @@ export function usePerpsLiveOrders(
 ): UsePerpsLiveOrdersReturn {
   const { throttleMs = 0, hideTpSl = false, hideReduceOnly = false } = options; // No throttling by default for instant updates
   const stream = usePerpsStream();
-  const [orders, setOrders] = useState<Order[]>(
-    () => getPreloadedData<Order[]>('cachedOrders') ?? EMPTY_ORDERS,
-  );
-  const [isInitialLoading, setIsInitialLoading] = useState(
-    () => !hasPreloadedData('cachedOrders'),
-  );
+  const [orders, setOrders] = useState<Order[]>(() => {
+    const cached = getPreloadedData<Order[]>('cachedOrders') ?? EMPTY_ORDERS;
+    return cached;
+  });
+  const [isInitialLoading, setIsInitialLoading] = useState(() => {
+    const hasCached = hasPreloadedData('cachedOrders');
+    return !hasCached;
+  });
   const lastOrdersRef = useRef<Order[]>(EMPTY_ORDERS);
   const hasReceivedFirstUpdate = useRef(false);
 

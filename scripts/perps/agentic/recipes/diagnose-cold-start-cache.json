@@ -1,0 +1,55 @@
+{
+  "title": "Verify cold-start cache — disk hydration populates controller before hooks mount",
+  "initial_conditions": { "testnet": false },
+  "validate": {
+    "runtime": {
+      "steps": [
+        {
+          "id": "check_controller_market_cache",
+          "description": "Controller market cache should be populated from disk at construction time",
+          "action": "eval_sync",
+          "expression": "(function() { var keys = Object.keys(Engine.context.PerpsController.state.cachedMarketDataByProvider); var count = 0; for (var i = 0; i < keys.length; i++) { var entry = Engine.context.PerpsController.state.cachedMarketDataByProvider[keys[i]]; if (entry && entry.data) count += entry.data.length; } return JSON.stringify({keys: keys, count: count}) })()",
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "check_controller_user_cache",
+          "description": "Controller user cache should be populated from disk at construction time",
+          "action": "eval_sync",
+          "expression": "(function() { var keys = Object.keys(Engine.context.PerpsController.state.cachedUserDataByProvider); var result = {keys: keys, hasData: false}; for (var i = 0; i < keys.length; i++) { var entry = Engine.context.PerpsController.state.cachedUserDataByProvider[keys[i]]; if (entry && entry.positions) { result.hasData = true; result.positions = entry.positions.length; result.orders = entry.orders ? entry.orders.length : 0; } } return JSON.stringify(result) })()",
+          "assert": { "operator": "eq", "field": "hasData", "value": true }
+        },
+        {
+          "id": "check_active_provider_market",
+          "description": "getCachedMarketDataForActiveProvider returns data (what hooks read)",
+          "action": "eval_sync",
+          "expression": "(function() { var d = Engine.context.PerpsController.getCachedMarketDataForActiveProvider({skipTTL: true}); return JSON.stringify({hasData: d != null, count: d ? d.length : 0}) })()",
+          "assert": { "operator": "gt", "field": "count", "value": 0 }
+        },
+        {
+          "id": "check_active_provider_user",
+          "description": "getCachedUserDataForActiveProvider returns data (what hooks read)",
+          "action": "eval_sync",
+          "expression": "(function() { var d = Engine.context.PerpsController.getCachedUserDataForActiveProvider({skipTTL: true}); if (!d) return JSON.stringify({hasData: false}); return JSON.stringify({hasData: true, positions: d.positions ? d.positions.length : 0, orders: d.orders ? d.orders.length : 0}) })()",
+          "assert": { "operator": "eq", "field": "hasData", "value": true }
+        },
+        {
+          "id": "nav_perps_home",
+          "action": "navigate",
+          "target": "PerpsHome"
+        },
+        {
+          "id": "wait_render",
+          "action": "wait",
+          "ms": 3000
+        },
+        {
+          "id": "check_positions_loaded",
+          "description": "Verify positions are available from controller",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps) { return JSON.stringify({count: ps.length, symbols: ps.map(function(p) { return p.symbol })}) })",
+          "assert": { "operator": "not_null" }
+        }
+      ]
+    }
+  }
+}

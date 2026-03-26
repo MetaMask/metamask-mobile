@@ -4918,10 +4918,9 @@ describe('PerpsController', () => {
       expect(() => controller.stopMarketDataPreload()).not.toThrow();
     });
 
-    it('hydrates market data from disk on start', async () => {
+    it('hydrates market data from disk synchronously on start', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
-      // Preload never resolves — we only care about the disk hydration path
       mockProvider.getMarketDataWithPrices.mockReturnValue(
         new Promise(() => {
           /* never resolves */
@@ -4943,17 +4942,17 @@ describe('PerpsController', () => {
         ],
         timestamp: Date.now(),
       };
-      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
-        (key: string) => {
-          if (key === PERPS_DISK_CACHE_MARKETS) {
-            return Promise.resolve(JSON.stringify(diskMarkets));
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (
+        mockInfrastructure.diskCache.getItemSync as jest.Mock
+      ).mockImplementation((key: string) => {
+        if (key === PERPS_DISK_CACHE_MARKETS) {
+          return JSON.stringify(diskMarkets);
+        }
+        return null;
+      });
 
       controller.startMarketDataPreload();
-      await jest.advanceTimersByTimeAsync(100);
+      // No await needed — sync hydration populates cache immediately
 
       const cached =
         controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
@@ -4970,7 +4969,7 @@ describe('PerpsController', () => {
       );
     });
 
-    it('hydrates user data from disk when address matches', async () => {
+    it('hydrates user data from disk synchronously when address matches', () => {
       const mockAddress = '0x1234567890123456789012345678901234567890';
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
@@ -4994,17 +4993,17 @@ describe('PerpsController', () => {
         },
         timestamp: Date.now(),
       };
-      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
-        (key: string) => {
-          if (key === PERPS_DISK_CACHE_USER_DATA) {
-            return Promise.resolve(JSON.stringify(diskUserData));
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (
+        mockInfrastructure.diskCache.getItemSync as jest.Mock
+      ).mockImplementation((key: string) => {
+        if (key === PERPS_DISK_CACHE_USER_DATA) {
+          return JSON.stringify(diskUserData);
+        }
+        return null;
+      });
 
       controller.startMarketDataPreload();
-      await jest.advanceTimersByTimeAsync(100);
+      // No await needed — sync hydration populates cache immediately
 
       const cached =
         controller.state.cachedUserDataByProvider['hyperliquid:mainnet'];
@@ -5014,7 +5013,7 @@ describe('PerpsController', () => {
       expect(cached?.address).toBe(mockAddress);
     });
 
-    it('skips user data hydration when address does not match', async () => {
+    it('hydrates user data from disk even when address differs (filtered at read time)', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       mockProvider.getMarketDataWithPrices.mockReturnValue(
@@ -5031,24 +5030,34 @@ describe('PerpsController', () => {
         accountState: null,
         timestamp: Date.now(),
       };
-      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
-        (key: string) => {
-          if (key === PERPS_DISK_CACHE_USER_DATA) {
-            return Promise.resolve(JSON.stringify(diskUserData));
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (
+        mockInfrastructure.diskCache.getItemSync as jest.Mock
+      ).mockImplementation((key: string) => {
+        if (key === PERPS_DISK_CACHE_USER_DATA) {
+          return JSON.stringify(diskUserData);
+        }
+        return null;
+      });
 
       controller.startMarketDataPreload();
-      await jest.advanceTimersByTimeAsync(100);
 
+      // Sync hydration populates cache unconditionally — address
+      // validation happens in getCachedUserDataForActiveProvider at read time
       const cached =
         controller.state.cachedUserDataByProvider['hyperliquid:mainnet'];
-      expect(cached).toBeUndefined();
+      expect(cached).not.toBeNull();
+      expect(cached?.address).toBe(
+        '0xDEADBEEF00000000000000000000000000000000',
+      );
+
+      // But getCachedUserDataForActiveProvider filters it out (address mismatch)
+      const read = controller.getCachedUserDataForActiveProvider({
+        skipTTL: true,
+      });
+      expect(read).toBeNull();
     });
 
-    it('does not overwrite fresher in-memory data from disk', async () => {
+    it('does not overwrite fresher in-memory data from disk', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       mockProvider.getMarketDataWithPrices.mockReturnValue(
@@ -5070,17 +5079,16 @@ describe('PerpsController', () => {
         data: [{ symbol: 'BTC', name: 'Bitcoin', price: '50000' }],
         timestamp: freshTimestamp - 60_000, // older than in-memory
       };
-      (mockInfrastructure.diskCache.getItem as jest.Mock).mockImplementation(
-        (key: string) => {
-          if (key === PERPS_DISK_CACHE_MARKETS) {
-            return Promise.resolve(JSON.stringify(diskMarkets));
-          }
-          return Promise.resolve(null);
-        },
-      );
+      (
+        mockInfrastructure.diskCache.getItemSync as jest.Mock
+      ).mockImplementation((key: string) => {
+        if (key === PERPS_DISK_CACHE_MARKETS) {
+          return JSON.stringify(diskMarkets);
+        }
+        return null;
+      });
 
       controller.startMarketDataPreload();
-      await jest.advanceTimersByTimeAsync(100);
 
       const cached =
         controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'];
@@ -5088,7 +5096,7 @@ describe('PerpsController', () => {
       expect(cached?.timestamp).toBe(freshTimestamp);
     });
 
-    it('handles corrupt disk JSON gracefully', async () => {
+    it('handles corrupt disk JSON gracefully', () => {
       markControllerAsInitialized();
       controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
       mockProvider.getMarketDataWithPrices.mockReturnValue(
@@ -5097,14 +5105,32 @@ describe('PerpsController', () => {
         }),
       );
 
-      (mockInfrastructure.diskCache.getItem as jest.Mock).mockResolvedValue(
+      (mockInfrastructure.diskCache.getItemSync as jest.Mock).mockReturnValue(
         'not valid json{{{',
       );
 
       controller.startMarketDataPreload();
-      await jest.advanceTimersByTimeAsync(100);
 
       // Corrupt JSON is silently ignored — no market data hydrated from disk
+      expect(
+        controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'],
+      ).toBeUndefined();
+    });
+
+    it('falls back gracefully when getItemSync is undefined', () => {
+      markControllerAsInitialized();
+      controller.testSetProviders(new Map([['hyperliquid', mockProvider]]));
+      mockProvider.getMarketDataWithPrices.mockReturnValue(
+        new Promise(() => {
+          /* never resolves */
+        }),
+      );
+
+      // Simulate platform without sync API
+      (mockInfrastructure.diskCache as any).getItemSync = undefined;
+
+      expect(() => controller.startMarketDataPreload()).not.toThrow();
+
       expect(
         controller.state.cachedMarketDataByProvider['hyperliquid:mainnet'],
       ).toBeUndefined();

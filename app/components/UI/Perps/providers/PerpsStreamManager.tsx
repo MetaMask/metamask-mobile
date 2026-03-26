@@ -673,8 +673,11 @@ class OrderStreamChannel extends StreamChannel<Order[] | null> {
 
   protected getCachedData() {
     const cached = this.cache.get('orders');
-    if (cached !== undefined) return cached;
-    return getPreloadedData<Order[]>('cachedOrders');
+    if (cached !== undefined) {
+      return cached;
+    }
+    const preloaded = getPreloadedData<Order[]>('cachedOrders');
+    return preloaded;
   }
 
   protected getClearedData(): Order[] | null {
@@ -810,8 +813,11 @@ class PositionStreamChannel extends StreamChannel<Position[] | null> {
 
   protected getCachedData() {
     const cached = this.cache.get('positions');
-    if (cached !== undefined) return cached;
-    return getPreloadedData<Position[]>('cachedPositions');
+    if (cached !== undefined) {
+      return cached;
+    }
+    const preloaded = getPreloadedData<Position[]>('cachedPositions');
+    return preloaded;
   }
 
   protected getClearedData(): Position[] | null {
@@ -1083,8 +1089,11 @@ class AccountStreamChannel extends StreamChannel<AccountState | null> {
 
   protected getCachedData(): AccountState | null {
     const cached = this.cache.get('account');
-    if (cached !== undefined) return cached;
-    return getPreloadedData<AccountState>('cachedAccountState');
+    if (cached !== undefined) {
+      return cached;
+    }
+    const preloaded = getPreloadedData<AccountState>('cachedAccountState');
+    return preloaded;
   }
 
   protected getClearedData(): AccountState | null {
@@ -1521,11 +1530,15 @@ class MarketDataChannel extends StreamChannel<PerpsMarketData[]> {
   protected getCachedData(): PerpsMarketData[] | null {
     // Return channel cache if available (from previous fetch)
     const cached = this.cache.get('markets');
-    if (cached !== undefined) return cached;
+    if (cached !== undefined) {
+      return cached;
+    }
 
     // Fallback: read per-provider cache via helper
     const controller = Engine.context.PerpsController;
-    return controller.getCachedMarketDataForActiveProvider?.() ?? null;
+    const fromController =
+      controller.getCachedMarketDataForActiveProvider?.() ?? null;
+    return fromController;
   }
 
   protected getClearedData(): PerpsMarketData[] {

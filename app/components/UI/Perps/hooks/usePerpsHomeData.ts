@@ -63,7 +63,7 @@ export const usePerpsHomeData = ({
   searchQuery = '',
 }: UsePerpsHomeDataParams = {}): UsePerpsHomeDataReturn => {
   // Get connection state to guard REST calls that require an initialized controller
-  const { isConnected, isInitialized, isConnecting } = usePerpsConnection();
+  const { isConnected, isInitialized } = usePerpsConnection();
 
   // Fetch positions via WebSocket with throttling for performance
   const { positions, isInitialLoading: isPositionsLoading } =
@@ -376,16 +376,20 @@ export const usePerpsHomeData = ({
     forexMarkets: searchedForexMarkets,
     recentActivity: limitedActivity,
     sortBy,
-    isLoading: {
-      // During reconnection, treat WebSocket-backed data as loading so the UI
-      // shows skeletons instead of briefly flashing "no positions" → positions.
-      positions: isPositionsLoading || isConnecting,
-      orders: isOrdersLoading || isConnecting,
-      markets: isMarketsLoading,
-      // Only wait for WebSocket fills (fast ~100ms), not REST fills (slow 3s+)
-      // REST fills merge in background via mergedFills without blocking initial render
-      activity: isFillsLoading || isConnecting,
-    },
+    isLoading: (() => {
+      const loading = {
+        // Hooks handle reconnection internally: clearCache() sends null →
+        // callback sets isInitialLoading=true. No need to override with
+        // isConnecting, which would defeat disk-cache instant display on
+        // cold start (isConnecting is true while WS connects, but cached
+        // data is already available).
+        positions: isPositionsLoading,
+        orders: isOrdersLoading,
+        markets: isMarketsLoading,
+        activity: isFillsLoading,
+      };
+      return loading;
+    })(),
     refresh,
   };
 };

@@ -98,6 +98,7 @@ export const createMockInfrastructure =
       // === Disk Cache (cold-start persistence) ===
       diskCache: {
         getItem: jest.fn().mockResolvedValue(null),
+        getItemSync: jest.fn().mockReturnValue(null),
         setItem: jest.fn().mockResolvedValue(undefined),
         removeItem: jest.fn().mockResolvedValue(undefined),
       },

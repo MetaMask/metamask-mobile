@@ -79,14 +79,20 @@ export const usePerpsMarkets = (
   const [markets, setMarkets] = useState<PerpsMarketDataWithVolumeNumber[]>(
     () => {
       const cached = getPreloadedData<PerpsMarketData[]>('cachedMarketData');
-      if (!cached) return [];
-      return filterAndSortMarkets({ marketData: cached, showZeroVolume });
+      if (!cached) {
+        return [];
+      }
+      const sorted = filterAndSortMarkets({
+        marketData: cached,
+        showZeroVolume,
+      });
+      return sorted;
     },
   );
   const [isLoading, setIsLoading] = useState(() => {
     const hit = hasPreloadedData('cachedMarketData');
-    if (skipInitialFetch) return false;
-    return !hit;
+    const loading = skipInitialFetch ? false : !hit;
+    return loading;
   });
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);

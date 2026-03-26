@@ -251,6 +251,7 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
     // === Disk Cache (cold-start persistence via MMKV) ===
     diskCache: {
       getItem: (key: string) => StorageWrapper.getItem(key),
+      getItemSync: (key: string) => StorageWrapper.getItemSync(key),
       setItem: (key: string, value: string) =>
         StorageWrapper.setItem(key, value),
       removeItem: (key: string) =>
