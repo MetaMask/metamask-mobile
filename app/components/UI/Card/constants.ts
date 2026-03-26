@@ -2,7 +2,6 @@ import { ethers } from 'ethers';
 import balanceScannerAbi from './sdk/balanceScannerAbi.json';
 import { CardNetwork, CardNetworkInfo } from './types';
 import { CaipChainId } from '@metamask/utils';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 const InfuraKey = process.env.MM_INFURA_PROJECT_ID;
 const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
@@ -60,12 +59,9 @@ export const cardNetworkInfos: Record<CardNetwork, CardNetworkInfo> = {
   },
 };
 
-export const CARD_CHAIN_IDS = [
-  CHAIN_IDS.LINEA_MAINNET,
-  CHAIN_IDS.BASE,
-  '0x8f' as `0x${string}`,
-  cardNetworkInfos.solana.caipChainId,
-] as const;
+export const CARD_CHAIN_IDS = Object.values(cardNetworkInfos).map(
+  (info) => info.caipChainId,
+);
 
 export const caipChainIdToNetwork = Object.fromEntries(
   Object.entries(cardNetworkInfos).map(([network, info]) => [

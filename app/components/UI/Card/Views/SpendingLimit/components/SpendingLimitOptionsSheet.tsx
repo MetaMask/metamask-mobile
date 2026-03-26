@@ -19,6 +19,7 @@ import {
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
 import { LimitType } from '../../../hooks/useSpendingLimit';
+import { sanitizeCustomLimit } from '../../../util/sanitizeCustomLimit';
 import LimitOptionItem from './LimitOptionItem';
 
 interface SpendingLimitOptionsNavigationDetails {
@@ -44,11 +45,7 @@ const SpendingLimitOptionsSheet: React.FC = () => {
   const [customLimit, setCustomLimitState] = useState(currentCustomLimit);
 
   const setCustomLimit = useCallback((value: string) => {
-    const sanitized = value.replace(/[^0-9.]/g, '');
-    const parts = sanitized.split('.');
-    const formatted =
-      parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : sanitized;
-    setCustomLimitState(formatted);
+    setCustomLimitState(sanitizeCustomLimit(value));
   }, []);
 
   const handleClose = useCallback(() => {

@@ -86,10 +86,7 @@ export const useAssetBalances = (
   const { MultichainAssetsRatesController, TokenRatesController } =
     Engine.context;
   const tokensWithBalance = useTokensWithBalance({
-    chainIds: CARD_CHAIN_IDS as unknown as (
-      | `0x${string}`
-      | `${string}:${string}`
-    )[],
+    chainIds: CARD_CHAIN_IDS,
   });
 
   // Get raw state needed for asset lookups - these are stable references from Redux

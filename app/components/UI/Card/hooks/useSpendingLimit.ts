@@ -33,6 +33,7 @@ import {
   buildTokenListFromSettings,
   LINEA_CAIP_CHAIN_ID,
 } from '../util/buildTokenList';
+import { sanitizeCustomLimit } from '../util/sanitizeCustomLimit';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
 import { isSolanaChainId } from '@metamask/bridge-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
@@ -177,10 +178,7 @@ const useSpendingLimit = ({
   // account's real wallet balance — not the card's availableBalance or another
   // account's cached data — so account switches are reflected immediately.
   const walletTokens = useTokensWithBalance({
-    chainIds: CARD_CHAIN_IDS as unknown as (
-      | `0x${string}`
-      | `${string}:${string}`
-    )[],
+    chainIds: CARD_CHAIN_IDS,
   });
 
   useEffect(() => {
@@ -360,12 +358,7 @@ const useSpendingLimit = ({
   }, [navigation, limitType, customLimit, routeParams]);
 
   const setCustomLimit = useCallback((value: string) => {
-    // Sanitize: only numbers and single decimal point
-    const sanitized = value.replace(/[^0-9.]/g, '');
-    const parts = sanitized.split('.');
-    const formatted =
-      parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : sanitized;
-    setCustomLimitState(formatted);
+    setCustomLimitState(sanitizeCustomLimit(value));
   }, []);
 
   // Toast helpers
