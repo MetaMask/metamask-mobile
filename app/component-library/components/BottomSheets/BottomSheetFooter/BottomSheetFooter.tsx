@@ -33,20 +33,18 @@ const BottomSheetFooter: React.FC<BottomSheetFooterProps> = ({
 
   return (
     <View style={styles.base} testID={TESTID_BOTTOMSHEETFOOTER}>
-      {buttonPropsArray.map((buttonProp, index) => {
-        const fallbackTestId =
-          index > 0
-            ? TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT
-            : TESTID_BOTTOMSHEETFOOTER_BUTTON;
-        return (
-          <Button
-            key={index}
-            style={index > 0 ? styles.subsequentButton : styles.button}
-            {...buttonProp}
-            testID={buttonProp.testID ?? fallbackTestId}
-          />
-        );
-      })}
+      {buttonPropsArray.map((buttonProp, index) => (
+        <Button
+          key={index}
+          style={index > 0 ? styles.subsequentButton : styles.button}
+          testID={
+            index > 0
+              ? TESTID_BOTTOMSHEETFOOTER_BUTTON_SUBSEQUENT
+              : TESTID_BOTTOMSHEETFOOTER_BUTTON
+          }
+          {...buttonProp}
+        />
+      ))}
     </View>
   );
 };
