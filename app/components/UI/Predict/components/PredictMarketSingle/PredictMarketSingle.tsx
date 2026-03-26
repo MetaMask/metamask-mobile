@@ -206,7 +206,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
 
   return (
     <TouchableOpacity
-      accessible={false}
       testID={testID}
       onPress={() => {
         navigation.navigate(Routes.PREDICT.ROOT, {
@@ -267,7 +266,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             }
             onPress={() => handleBuy(outcome.tokens[0])}
             style={styles.buttonYes}
-            testID={testID ? `${testID}-action-buttons-bet-yes` : undefined}
           />
           <Button
             variant={ButtonVariants.Secondary}
@@ -284,7 +282,6 @@ const PredictMarketSingle: React.FC<PredictMarketSingleProps> = ({
             }
             onPress={() => handleBuy(outcome.tokens[1])}
             style={styles.buttonNo}
-            testID={testID ? `${testID}-action-buttons-bet-no` : undefined}
           />
         </View>
         <View style={styles.marketFooter}>

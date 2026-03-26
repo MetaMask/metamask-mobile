@@ -24,7 +24,6 @@ import {
   TransactionDetailLocation,
 } from '../../../../../core/Analytics/events/transactions';
 import { POLYGON_MAINNET_CHAIN_ID } from '../../providers/polymarket/constants';
-import { PredictActivitySelectorsIDs } from './PredictActivity.testIds';
 
 interface PredictActivityProps {
   item: PredictActivityItem;
@@ -77,13 +76,11 @@ const PredictActivity: React.FC<PredictActivityProps> = ({ item }) => {
   };
 
   return (
-    <TouchableOpacity onPress={handlePress} activeOpacity={0.7}>
+    <TouchableOpacity onPress={handlePress}>
       <Box
-        collapsable={false}
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Start}
         justifyContent={BoxJustifyContent.Between}
-        testID={PredictActivitySelectorsIDs.row(item.id)}
         twClassName="w-full p-2"
       >
         <Box twClassName="pt-1">
