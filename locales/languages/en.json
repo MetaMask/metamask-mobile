@@ -2200,6 +2200,7 @@
     },
     "outcomes_singular": "outcome",
     "outcomes_plural": "outcomes",
+    "buy": "Buy",
     "outcome_winner": "Winner",
     "outcome_loser": "Loser",
     "outcome_draw": "Draw",

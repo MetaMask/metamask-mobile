@@ -71,6 +71,7 @@ import PredictMarket from '../../components/PredictMarket';
 import PredictMarketSkeleton from '../../components/PredictMarketSkeleton';
 import { PredictBalance } from '../../components/PredictBalance';
 import PredictOffline from '../../components/PredictOffline';
+import FeaturedCarousel from '../../components/FeaturedCarousel';
 import PredictFeedSessionManager from '../../services/PredictFeedSessionManager';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { strings } from '../../../../../../locales/i18n';
@@ -185,6 +186,9 @@ const AnimatedHeader: React.FC<AnimatedHeaderProps> = ({
         onLayout={onHeaderLayout}
       >
         <PredictFeedHeader />
+        <Box twClassName="pb-3">
+          <FeaturedCarousel />
+        </Box>
       </Animated.View>
       <View ref={tabBarRef} onLayout={onTabBarLayout}>
         <PredictFeedTabBar
