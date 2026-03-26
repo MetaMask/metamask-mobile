@@ -7,6 +7,146 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [7.72.0]
+
+### Uncategorized
+
+- chore(release): sync stable to main for version 7.70.1 (#27913)
+- Add commas to PnL (#27815)
+- Added Stable network logo and USDT0 native token icon (#27258)
+- Added a checkbox to upload sourcemap on build mobile workflow (#27750)
+- chore: consolidate source_branch and ref in build.yml (#27768)
+- Modified useERC20Tokens to make an API call instead of reading from the cache (#27611)
+- chore(release): sync stable to main for version 7.72.0 (#27809)
+- Improved performance when loading Predict withdraw token selection (#27735)
+- Remove token list item V2 FF and token list item V1 (#27731)
+- Added press opacity feedback to NFT grid items (#27488)
+- Remove deprecated payment request (#27519)
+- Added Ramp env variables to push-eas-update.yml and builds.yml (#27553)
+- Fixed RAMP_INTERNAL_BUILD default for OTA push (#27507)
+- chore(release): sync stable to main for version 7.69.0 (#27467)
+
+### Added
+
+- Card Spending limit screen analytics include Linea mUSD fiat balance, top card-supported asset by fiat, and top wallet-wide (#27981)
+  asset by fiat when the screen is viewed.
+- Ondo GM campaign portfolio positions (#27971)
+- Added 'View All' button for all sections in the Explore page (#26569)
+- Card spending limit screen uses account-scoped wallet fiat to pick and order default tokens; main view is a settings card (#27918)
+  (account, token, limit) with asset sheet exclusions and fiat sort for
+  NotEnabled tokens; full vs restricted limit is configured in a dedicated
+  bottom sheet.
+- Added Ondo leaderboard view displaying user's rank, tier, and financial position within the campaign (#27917)
+- Added a remote feature flag to control visibility of the Tron unstaked TRX claim button on the token details banner. (#27908)
+- Hid incoming native coin transfers from unknown senders in the Activity tab; transfers from your own accounts or address book (#27799)
+  contacts still appear.
+- Upgrade @metamask/seedless-onboarding-controller to v9.0.0 (#27859)
+- Added access restricted modal that notifies users when their wallet address has been flagged during compliance screening (#27694)
+- Added support for sending ERC1155 NFTs from the NFT details screen (#27800)
+- [removed]: Remove rewardsCampaignsEnabled feature flag; campaigns are now controlled by rewardsEnabled (#27863)
+- Fixed unrecoverable crash when a core provider fails to render by moving ErrorBoundary to wrap the entire component tree (#27816)
+- Added the Money home screen empty state scaffold. (#27831)
+- Added new workflow runway_ios_rc_workflow (#27662)
+- Updated the General settings language picker to show each language in its native name. (#27788)
+- Fixed incorrect block explorer name and link on the activity “View full history” action for custom networks when the (#27734)
+  selected wallet network did not match the activity chain
+- Add Perps Withdraw button into Developer Options, show new Perps Withdraw UI (#27792)
+- Added Solana delegation support for MetaMask Card spending limits (#25276)
+- Added check to hide Speed up and Cancel buttons in the activity list and transaction details when the user has selected another (#27404)
+  token to pay for gas
+- Improves quote loading UI (#27174)
+- Changed the default search engine to Brave Search for a privacy-focused, ad-free browsing experience (#26356)
+- Added Earn Rewards preview section to the Rewards Dashboard with geo-gated mUSD calculator and MetaMask Card earn cards (#27684)
+- Fixed cross-chain bridge transactions not appearing on the destination chain's activity list (#27536)
+- Added geo-restriction guard to campaign opt-in sheet, disabling opt-in for users in restricted regions (#27676)
+- Added edit gas from cancel/speed up modal: users can tap the network fee row to open the gas fee modal and adjust gas before (#27194)
+  confirming cancel or speed up
+- Added an experiment for the bridge token selector balance layout. (#27690)
+- Updated mUSD aggregated balance row to redirect to the Cash tokens list when the user holds mUSD on any network (#27703)
+- Restored mUSD claimable bonus claim section on asset overview screen (#27567)
+- Extracted Card supported-country check into `selectIsUserInSupportedCardCountry` selector. (#27695)
+- Migrated Card authentication to CardController with new `useCardAuth` hook for controller-based auth flow. (#27656)
+- Fixed false "Token Not Available" errors during Buy flow when payment methods are still loading after provider change; fixed (#27448)
+  missing "Token Not Available" modal in home buy flow; fixed crash when
+  navigating back from "Token Not Available" modal in token info buy flow
+- Authenticate transaction submission to sentinel and transaction API (#27410)
+- Added campaign opt-in flow with details and mechanics screens in the Rewards section (#27619)
+- Updated Ramp buy flow modal headers and typography to use shared compact header and design system components (#27627)
+- Redirect buy deeplinks to the new Ramps Buy flow when Ramps Unified V2 is enabled. Deprecated cash deposit deeplinks. (#27557)
+- Added a "Withdraw" button to the unstaked TRX banner so users can claim TRX that has completed the lock period. (#27076)
+- Enable campaigns view under feature flag (#27556)
+- Updated Predict withdraw to default to the user’s last used destination token before falling back to the remote preferred (#27532)
+  token.
+- Add attention badge on Card button (#27425)
+- Adds support for ramps providers such as PayPal, Robinhood & Coinbase that use a different checkout browser (#27364)
+- Applied a minimum $0.01 threshold for showing the "Claim bonus" CTA for Merkl rewards so that amounts below the threshold (#27522)
+  show the 3% bonus label instead.
+- Use backend-provided intent typedData for signing intent swap txs (#25913)
+- Added Security & Trust section to Token Details page showing risk level, contract security features, buy/sell tax, token (#27073)
+  distribution, and official links powered by Blockaid.
+- Improved bridge/swap quote expiry experience; expired quotes now remain visible inline with a prompt to refresh, replacing a (#27340)
+  separate modal flow.
+- Update earn balance row layout (logo size, badge size, balance/percentage placement) and add privacy mode support for (#27457)
+  StakingBalance and EarnLendingBalance
+- Added a new tab for users to see their NFTs Fixed a bug that was causing some NFTs to flicker (#27437)
+- Added skeleton loading indicator to NFT grid items while images are loading (#27413)
+- Removed OTA workflow commit hash input (#27386)
+- Embed the metal card checkout flow into the Card onboarding/sign-up flow. (#27420)
+- Added Segment event tracking for mUSD Quick Convert flow and enrich generic Transaction\* events for mUSD conversion (#27305)
+  transactions
+
+### Fixed
+
+- Fixed incorrect PnL and order size for multi-fill trades on the Perp Market screen and Home screen recent activity (#27906)
+- Fixed incorrect market category assignments for URNM (now Commodity) and USAR (now Stock) in the Perps market list. (#27910)
+- Fixed TP/SL trigger price input for low-price assets (e.g. PUMP) now accepting up to 6 decimal places (#27901)
+- Fixed a bug where long sports prediction outcome names could break the action button layout on market details. (#27832)
+- Card delegation now auto-adds Card-supported EVM networks from the popular list when missing, so approval transactions (#27833)
+  get a valid `networkClientId` (e.g. Monad).
+- Fixed Perps orders at 100% margin sometimes failing with "Insufficient margin" by applying a small buffer to the maximum (#27417)
+  order amount.
+- Fixed stop loss and take profit pills not appearing on recent activity rows in Perps Home and Activity screens (#27685)
+- Fixed incorrect toast design shown when submitting a perps order with perps balance, and made the deposit progress toast (#27487)
+  persistent and closable when trading with a different token
+- Ensure error messages are never empty in authentication and login flows (#27705)
+- Adds "Paid by MetaMask" on Activity "Total gas fee" row when the tx was a gas-sponsored swap. (#27268)
+- Fixed an issue where certain error reporting would not work (#27794)
+- Supress js dialogs when page is not focused (#26705)
+- fix: replace static hex colors with design tokens in test files (#26396)
+- Updated Cash (mUSD) row typography and layout to match the token list and aligned aggregated mUSD fiat formatting with token (#27736)
+  balance locale handling.
+- Fixed swap amount fields not lining up horizontally with swap quote details on mobile (#27730)
+- Fixed tapping a trending token from the Swap screen dismissing Swap instead of opening the token details page (#27707)
+- Fixed a bug where Bridge amount edits did not respect the cursor position when using the keypad. (#27367)
+- Fixed several wallet regressions affecting mUSD analytics tracking and address copy messaging consistency (#27670)
+- Fixed button flash (Long/Short briefly visible) when opening a market with an existing position (#27671)
+- Fixed miscategorization of BRENTOIL and other non-crypto instruments appearing in the "Explore Crypto" section on (#27699)
+  Perps Home
+- Removed a stale feature-flag gate so the Networks menu item is always available. (#27591)
+- Fixed Network Details so network name is required and no longer labeled optional. (#27541)
+- Fixed a bug where Perps activity could appear blank after reopening the Activity screen from Perps home. (#27509)
+- Fixed MegaETH explorer button to display "View on Megaeth Explorer" instead of "View on (#27592)
+  Megaeth"
+
+## **Related issues**
+
+Fixes:
+
+- Fixed onboarding import button text being invisible in dark mode; ensured both CTAs have proper contrast in dark mode (#27550)
+- Adjusts spacing in homepage (#27637)
+- Fix TokenList crash when switching networks (#27655)
+- Skip handling universal link for redirect-oauth (#27511)
+- Fix padding in security screen header (#27621)
+- Refactors Card onboarding to use the `useRegions` hook instead of Redux `selectedCountry` for region/country data. (#27539)
+- Fix stop loss banner rendering issue (#27458)
+- Fixed a bug where the RPC URL field in network details could appear focused after blur and had inconsistent typography between (#27482)
+  states.
+- Fixed Order Details screen displaying excessive decimal places for crypto amounts after ramp purchases. (#27469)
+- Fixed the custom network header trash icon color to match other trash icons in the app. (#27481)
+- Fixed remove network confirmation header casing to sentence case. (#27480)
+- Fixed Ledger connect screen image being cut off on iOS after using the keyboard. (#26783)
+- Fixed token row display on homepage to show price and variation separated by a dot for consistency with token list items (#27449)
+
 ## [7.70.1]
 
 ### Fixed
@@ -11015,7 +11155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - [#957](https://github.com/MetaMask/metamask-mobile/pull/957): fix timeouts (#957)
 - [#954](https://github.com/MetaMask/metamask-mobile/pull/954): Bugfix: onboarding navigation (#954)
 
-[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...HEAD
+[Unreleased]: https://github.com/MetaMask/metamask-mobile/compare/v7.72.0...HEAD
+[7.72.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.1...v7.72.0
 [7.70.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.70.0...v7.70.1
 [7.70.0]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.1...v7.70.0
 [7.69.1]: https://github.com/MetaMask/metamask-mobile/compare/v7.69.0...v7.69.1
