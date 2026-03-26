@@ -371,7 +371,11 @@ describe('useWithdrawalRequests', () => {
     });
 
     it('does not match completion when timestamp is not newer than lastCompletedTimestamp', async () => {
+      // Oldest pending is 1640995200000. Completed must be newer than that but
+      // strictly before lastCompletedTimestamp so the FIFO timestamp guard fails —
+      // not the txHash guard (use a fresh hash not in lastCompletedWithdrawalTxHashes).
       const lastCompletedTimestamp = 1640995205000;
+      const completedTimestamp = 1640995204000;
 
       mockUsePerpsSelector.mockImplementation((selector) =>
         selector({
@@ -384,11 +388,11 @@ describe('useWithdrawalRequests', () => {
       mockProvider.getUserHistory.mockResolvedValue([
         {
           id: 'history-1',
-          timestamp: 1640995204000,
+          timestamp: completedTimestamp,
           type: 'withdrawal',
           amount: '100',
           asset: 'USDC',
-          txHash: '0xalreadyKnown',
+          txHash: '0xfreshTxNotInHashesArray',
           status: 'completed',
           details: { source: 'HyperLiquid' },
         },

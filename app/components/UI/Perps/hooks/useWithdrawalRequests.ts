@@ -90,10 +90,16 @@ export const useWithdrawalRequests = (
    * Fetches history and applies FIFO completion matching. Does not touch
    * `isLoading` or `isFetchingRef` — callers must hold the fetch lock and
    * decide whether the run is user-visible (loading) or background (poll).
+   *
+   * Returns immediately when the pending queue is empty (no history fetch).
    */
   const executeWithdrawalCompletionCheck = useCallback(async () => {
     try {
       setError(null);
+
+      if (pendingQueue.length === 0) {
+        return;
+      }
 
       const controller = Engine.context.PerpsController;
       if (!controller) {
