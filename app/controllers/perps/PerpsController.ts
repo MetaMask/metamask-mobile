@@ -2509,22 +2509,18 @@ export class PerpsController extends BaseController<
       asset?: string;
     },
   ): void {
-    if (
-      this.state.withdrawalRequests.findIndex(
-        (req) => req.id === withdrawalRequestId,
-      ) === -1
-    ) {
-      return;
-    }
-
+    let didRemove = false;
     this.update((state) => {
       const requestIndex = state.withdrawalRequests.findIndex(
         (req) => req.id === withdrawalRequestId,
       );
 
-      if (requestIndex !== -1) {
-        state.withdrawalRequests.splice(requestIndex, 1);
+      if (requestIndex === -1) {
+        return;
       }
+
+      didRemove = true;
+      state.withdrawalRequests.splice(requestIndex, 1);
 
       // Update the FIFO guard. The timestamp is persisted for cross-restart
       // protection. The txHashes array (not persisted) accumulates within a
@@ -2549,6 +2545,10 @@ export class PerpsController extends BaseController<
 
       state.lastUpdateTimestamp = Date.now();
     });
+
+    if (!didRemove) {
+      return;
+    }
 
     this.#debugLog(
       'PerpsController: Completed withdrawal from transaction history (FIFO)',
