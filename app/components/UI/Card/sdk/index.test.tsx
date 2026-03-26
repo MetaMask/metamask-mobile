@@ -37,7 +37,6 @@ import { getErrorMessage } from '../util/getErrorMessage';
 
 jest.mock('./CardSDK', () => ({
   CardSDK: jest.fn().mockImplementation(() => ({
-    isCardEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),
@@ -165,7 +164,6 @@ describe('CardSDK Context', () => {
   const createMockSDK = (
     overrides: Partial<CardSDK> = {},
   ): Partial<CardSDK> => ({
-    isCardEnabled: true,
     getSupportedTokensByChainId: jest.fn(() => []),
     isCardHolder: jest.fn(),
     getSupportedTokensAllowances: jest.fn(),

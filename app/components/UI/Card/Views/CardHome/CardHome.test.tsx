@@ -2,12 +2,6 @@
 const mockLogoutFromProvider = jest.fn();
 const mockSetIsAuthenticated = jest.fn();
 const mockSdk = {
-  get isBaanxLoginEnabled() {
-    return true;
-  },
-  get isCardEnabled() {
-    return true;
-  },
   getSupportedTokensByChainId: jest.fn(() => []),
   isCardHolder: jest.fn(),
   getGeoLocation: jest.fn(),
