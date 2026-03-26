@@ -13,7 +13,7 @@ import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
 
 export const useBenefits = (): {
   initBenefits: (refreshCache?: boolean) => Promise<void>;
-  getMoreBenefits: () => Promise<void>;
+  getAllBenefits: () => Promise<void>;
 } => {
   const dispatch = useDispatch();
   const subscriptionId = useSelector(selectRewardsSubscriptionId);

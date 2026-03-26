@@ -5,7 +5,7 @@ import { Image, TouchableOpacity } from 'react-native';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {SubscriptionBenefitDto} from "../../../../../core/Engine/controllers/rewards-controller/types.ts";
+import { SubscriptionBenefitDto } from '../../../../../core/Engine/controllers/rewards-controller/types.ts';
 
 interface Props {
   benefit: SubscriptionBenefitDto;
@@ -25,9 +25,7 @@ const BenefitCard = ({ benefit }: Props) => {
       activeOpacity={0.7}
     >
       <Box twClassName="flex-row items-start gap-4">
-        <Box
-          twClassName="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center"
-        >
+        <Box twClassName="w-[78px] h-[78px] rounded-lg bg-muted overflow-hidden items-center justify-center">
           <Image
             source={{ uri: benefit.thumbnail }}
             style={tw.style('w-full h-full rounded-lg')}

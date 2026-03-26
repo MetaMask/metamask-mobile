@@ -20,6 +20,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import { BenefitDetailsViewRouteProp } from './BenefitDetailsView.types.ts';
+import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 
 const BenefitDetailsView = () => {
   const tw = useTailwind();
@@ -50,17 +51,18 @@ const BenefitDetailsView = () => {
 
       <ScrollView
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={tw.style('pb-24')}
+        contentContainerStyle={tw.style('px-4 pb-24')}
       >
-        <Box twClassName="w-full aspect-square">
+        <Box twClassName="w-full rounded-lg overflow-hidden">
           <Image
             source={{ uri: benefit.thumbnail }}
-            style={tw.style('w-full h-full')}
+            style={tw.style('w-full h-[248px]')}
             resizeMode="cover"
+            testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}
           />
         </Box>
 
-        <Box twClassName="px-4 py-6 gap-4">
+        <Box twClassName="py-6 gap-4">
           <Text
             variant={TextVariant.HeadingLg}
             fontWeight={FontWeight.Bold}
@@ -73,21 +75,21 @@ const BenefitDetailsView = () => {
           </Text>
         </Box>
       </ScrollView>
-      <Box twClassName="absolute bottom-0 left-0 right-0 px-4 pb-10 pt-4">
+      <Box twClassName="absolute bottom-0 left-0 right-0 p-4">
         <TouchableOpacity
           onPress={handleClaim}
           activeOpacity={0.8}
           style={[
-            tw.style('rounded-full py-4 items-center'),
-            { backgroundColor: colors.primary.default },
+            tw.style('rounded-2xl py-3 items-center border border-1'),
+            { backgroundColor: colors.background.default },
           ]}
         >
           <Text
             variant={TextVariant.BodyMd}
             fontWeight={FontWeight.Medium}
-            style={{ color: colors.primary.inverse }}
+            style={{ color: colors.text.default }}
           >
-            Claim Benefit
+            Claim
           </Text>
         </TouchableOpacity>
       </Box>

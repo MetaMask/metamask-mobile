@@ -6,6 +6,7 @@ import {
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useEffect } from 'react';
+import { TouchableOpacity } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants';
 import { useSelector } from 'react-redux';
@@ -39,9 +40,7 @@ const BenefitsSummary = () => {
       <Box twClassName="flex-row items-center justify-between">
         <TouchableOpacity
           onPress={() =>
-            NavigationService.navigation.navigate(Routes.BENEFIT_LIST_VIEW, {
-              benefit,
-            })
+            NavigationService.navigation.navigate(Routes.BENEFIT_LIST_VIEW)
           }
           activeOpacity={0.7}
         >

@@ -6,7 +6,7 @@ import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
 import BenefitDetailsView from './Views/BenefitDetailsView';
-import BenefitListView from './Views/BenefitDetailsView';
+import BenefitListView from './Views/BenefitListView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
