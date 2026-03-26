@@ -758,16 +758,19 @@ describe('GestureWebViewWrapper', () => {
     });
 
     describe('callback invocation via runOnJS', () => {
-      // TODO: Re-enable after investigating React 19 worklet callback mock behavior
-      it.skip('triggerHapticFeedback invokes impactAsync', () => {
-        const { impactAsync } = jest.requireMock('expo-haptics');
+      it('triggerHapticFeedback invokes impactAsync', async () => {
+        const { impactAsync, ImpactFeedbackStyle } =
+          jest.requireMock('expo-haptics');
         renderComponent({ backEnabled: true });
         const stateManager = createStateManager();
         const event = createTouchEvent(10, 200);
 
         capturedCallbacks.onTouchesDown?.(event, stateManager);
 
-        expect(impactAsync).toHaveBeenCalled();
+        // react-native-worklets' Jest mock schedules runOnJS callbacks via queueMicrotask
+        await Promise.resolve();
+
+        expect(impactAsync).toHaveBeenCalledWith(ImpactFeedbackStyle.Light);
       });
     });
 

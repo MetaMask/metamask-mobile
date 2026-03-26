@@ -14,6 +14,7 @@ import { QrKeyringBridge } from '@metamask/eth-qr-keyring';
 import { removeAccountsFromPermissions } from '../../../core/Permissions';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { HardwareDeviceTypes } from '../../../constants/keyringTypes';
+import { strings } from '../../../../locales/i18n';
 
 jest.mock('../../../core/Permissions', () => ({
   removeAccountsFromPermissions: jest.fn(),
@@ -120,7 +121,9 @@ const mockQrKeyring = {
       '0x49A10E12ceaacC302548d3c1C72836C9298d180e',
     ]),
   setAccountToUnlock: jest.fn(),
-  addAccounts: jest.fn().mockResolvedValue(['0x4678901234567890123456789012345678901210']),
+  addAccounts: jest
+    .fn()
+    .mockResolvedValue(['0x4678901234567890123456789012345678901210']),
 };
 
 const mockQrKeyringBridge: QrKeyringBridge = {
@@ -351,11 +354,10 @@ describe('ConnectQRHardware', () => {
     expect(mockTrackEvent).toHaveBeenCalled();
   });
 
-  // TODO: Re-enable after React 19 async flow changes for hardware wallet account unlock
-  it.skip('tracks hardware wallet add account event with QR device type when accounts are unlocked', async () => {
+  it('tracks hardware wallet add account event with QR device type when accounts are unlocked', async () => {
     mockKeyringController.getAccounts.mockResolvedValue([]);
 
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getByText, getAllByRole } = renderWithProvider(
       <ConnectQRHardware navigation={mockedNavigate} />,
       { state: mockInitialState },
     );
@@ -366,21 +368,20 @@ describe('ConnectQRHardware', () => {
       fireEvent.press(button);
     });
 
-    const checkbox = getByText(mockPage0Accounts[0].shortenedAddress);
-
+    // Pressing the address label does not toggle @react-native-community/checkbox; drive onValueChange.
+    const [firstRowCheckbox] = getAllByRole('checkbox');
     await act(async () => {
-      fireEvent.press(checkbox);
+      fireEvent(firstRowCheckbox, 'onValueChange', true);
     });
 
-    const unlockButton = getByText('Unlock');
+    const unlockButton = getByText(strings('account_selector.unlock'));
 
     await act(async () => {
       fireEvent.press(unlockButton);
     });
 
-    // Wait for async onUnlock flow to complete
     await waitFor(() => {
-      expect(mockedNavigate.pop).toHaveBeenCalled();
+      expect(mockedNavigate.pop).toHaveBeenCalledWith(2);
     });
 
     expect(mockCreateEventBuilder).toHaveBeenCalledWith(

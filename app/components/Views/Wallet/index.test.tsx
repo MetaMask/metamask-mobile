@@ -78,7 +78,9 @@ jest.mock('../../../component-library/components-temp/Tabs', () => {
   // Store reference for tests
   mockTabsListComponent = renderFn;
 
-  const TabsList = ReactMock.forwardRef(function TabsList(props: any, ref: any) {
+  const TabsList = ReactMock.forwardRef((
+    props: TabsListProps,
+  ) => {
     renderFn(props);
     return ReactMock.createElement(View, null, props.children);
   });
@@ -107,6 +109,7 @@ import Engine from '../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { mockedPerpsFeatureFlagsEnabledState } from '../../UI/Perps/mocks/remoteFeatureFlagMocks';
 import { initialState as cardInitialState } from '../../../core/redux/slices/card';
+import { initialState as networkConnectionBannerInitialState } from '../../../reducers/networkConnectionBanner';
 import {
   NavigationProp,
   ParamListBase,
@@ -118,6 +121,7 @@ import {
   IconName,
 } from '../../../component-library/components/Icons/Icon';
 import { PERFORMANCE_CONFIG } from '@metamask/perps-controller';
+import { TabsListProps } from '../../../component-library/components-temp/Tabs';
 
 const MOCK_ADDRESS = '0xc4955c0d639d99699bfd7ec54d9fafee40e4d272';
 
@@ -137,6 +141,9 @@ jest.mock('../../../core/Engine', () => {
   const { MOCK_ACCOUNTS_CONTROLLER_STATE: MockAccountsState } =
     jest.requireActual('../../../util/test/accountsControllerTestUtils');
   const { KeyringTypes } = jest.requireActual('@metamask/keyring-controller');
+
+  const startPolling = jest.fn();
+  const stopPollingByPollingToken = jest.fn();
 
   return {
     getTotalEvmFiatAccountBalance: jest.fn().mockReturnValue({
@@ -171,11 +178,31 @@ jest.mock('../../../core/Engine', () => {
           },
         },
       },
+      CurrencyRateController: {
+        startPolling,
+        stopPollingByPollingToken,
+      },
       TokenRatesController: {
         poll: jest.fn(),
+        startPolling,
+        stopPollingByPollingToken,
       },
       TokenDetectionController: {
         detectTokens: jest.fn(),
+        startPolling,
+        stopPollingByPollingToken,
+      },
+      TokenListController: {
+        startPolling,
+        stopPollingByPollingToken,
+      },
+      TokenBalancesController: {
+        startPolling,
+        stopPollingByPollingToken,
+      },
+      MultichainAssetsRatesController: {
+        startPolling,
+        stopPollingByPollingToken,
       },
       NftDetectionController: {
         detectNfts: jest.fn(),
@@ -286,6 +313,7 @@ const mockInitialState = {
     newPrivacyPolicyToastShownDate: null,
     newPrivacyPolicyToastClickedOrClosed: false,
   },
+  networkConnectionBanner: networkConnectionBannerInitialState,
   engine: {
     backgroundState: {
       ...backgroundState,
@@ -483,8 +511,7 @@ describe('Wallet', () => {
     expect(wrapper.toJSON()).toMatchSnapshot();
   });
 
-  // TODO: Re-enable after React 19 rendering changes for deeply integrated component mocks
-  it.skip('should render TabsList', () => {
+  it('should render TabsList', () => {
     //@ts-expect-error we are ignoring the navigation params on purpose because we do not want to mock setOptions to test the navbar
     render(Wallet);
 

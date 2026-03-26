@@ -9,6 +9,10 @@ import { MultichainAccountPermissions } from './MultichainAccountPermissions';
 import Engine from '../../../../core/Engine';
 import { MAINNET_DISPLAY_NAME } from '../../../../core/Engine/constants';
 import { getNetworkImageSource } from '../../../../util/networks';
+import {
+  Caip25CaveatType,
+  Caip25EndowmentPermissionName,
+} from '@metamask/chain-agnostic-permission';
 
 const mockedNavigate = jest.fn();
 const mockedGoBack = jest.fn();
@@ -282,6 +286,50 @@ const mockInitialState = () => {
   return mockState as DeepPartial<RootState>;
 };
 
+/** CAIP-25 permissions in Redux so getPermissions + network avatars enable the connect button. */
+const mockInitialStateWithTestComPermissions = (): DeepPartial<RootState> => {
+  const base = mockInitialState();
+  return {
+    ...base,
+    engine: {
+      ...base.engine,
+      backgroundState: {
+        ...base.engine?.backgroundState,
+        PermissionController: {
+          subjects: {
+            'test.com': {
+              permissions: {
+                [Caip25EndowmentPermissionName]: {
+                  caveats: [
+                    {
+                      type: Caip25CaveatType,
+                      value: {
+                        requiredScopes: {},
+                        optionalScopes: {
+                          'eip155:1': {
+                            accounts: [
+                              `eip155:1:${mockEvmAccount1Address}`,
+                              `eip155:1:${mockEvmAccount2Address}`,
+                            ],
+                          },
+                        },
+                        sessionProperties: {},
+                        isMultichainOrigin: true,
+                      },
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      } as (typeof base)['engine'] extends { backgroundState: infer BG }
+        ? BG
+        : never,
+    },
+  };
+};
+
 describe('MultichainAccountPermissions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -304,8 +352,8 @@ describe('MultichainAccountPermissions', () => {
 
       const cancelButton = getByTestId('cancel-button');
       await act(async () => {
-      fireEvent.press(cancelButton);
-    });
+        fireEvent.press(cancelButton);
+      });
 
       expect(mockedGoBack).toHaveBeenCalledTimes(1);
     });
@@ -328,8 +376,8 @@ describe('MultichainAccountPermissions', () => {
       expect(editButton).toBeDefined();
 
       await act(async () => {
-      fireEvent.press(editButton);
-    });
+        fireEvent.press(editButton);
+      });
 
       // After pressing edit, the screen should show the EditAccountsPermissions screen
       // We can verify this by checking for the "Edit accounts" title
@@ -354,8 +402,8 @@ describe('MultichainAccountPermissions', () => {
         'navigate_to_edit_networks_permissions_button',
       );
       await act(async () => {
-      fireEvent.press(editNetworksButton);
-    });
+        fireEvent.press(editNetworksButton);
+      });
 
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
       expect(getByTestId(`${MAINNET_DISPLAY_NAME}-not-selected`)).toBeDefined();
@@ -363,8 +411,7 @@ describe('MultichainAccountPermissions', () => {
   });
 
   describe('handleConfirm', () => {
-    // TODO: Re-enable after React 19 async permission update flow is investigated
-    it.skip('should update permissions and navigate back when confirm is pressed', async () => {
+    it('should update permissions and navigate back when confirm is pressed', async () => {
       const mockUpdateCaveat = Engine.context.PermissionController
         .updateCaveat as jest.Mock;
 
@@ -376,21 +423,26 @@ describe('MultichainAccountPermissions', () => {
             },
           }}
         />,
-        { state: mockInitialState() },
+        { state: mockInitialStateWithTestComPermissions() },
       );
 
       const confirmButton = getByTestId('connect-button');
 
       await act(async () => {
-      fireEvent.press(confirmButton);
-    });
+        fireEvent.press(confirmButton);
+      });
 
       await waitFor(() => {
         expect(mockUpdateCaveat).toHaveBeenCalledWith(
           'test.com',
-          'endowment:caip25',
-          'authorizedScopes',
-          undefined,
+          Caip25EndowmentPermissionName,
+          Caip25CaveatType,
+          expect.objectContaining({
+            optionalScopes: expect.any(Object),
+            requiredScopes: expect.any(Object),
+            isMultichainOrigin: true,
+            sessionProperties: expect.any(Object),
+          }),
         );
       });
     });
@@ -434,8 +486,8 @@ describe('MultichainAccountPermissions', () => {
         'navigate_to_edit_networks_permissions_button',
       );
       await act(async () => {
-      fireEvent.press(editNetworksButton);
-    });
+        fireEvent.press(editNetworksButton);
+      });
 
       // Check that we're in the network selection screen
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
@@ -462,20 +514,20 @@ describe('MultichainAccountPermissions', () => {
         'navigate_to_edit_networks_permissions_button',
       );
       await act(async () => {
-      fireEvent.press(editNetworksButton);
-    });
+        fireEvent.press(editNetworksButton);
+      });
 
       // Act - Select Sepolia
       const sepoliaNetwork = getByText('Sepolia');
       await act(async () => {
-      fireEvent.press(sepoliaNetwork);
-    });
+        fireEvent.press(sepoliaNetwork);
+      });
 
       const updateButton = getByTestId('multiconnect-connect-network-button');
       await act(async () => {
         await act(async () => {
-      fireEvent.press(updateButton);
-    });
+          fireEvent.press(updateButton);
+        });
       });
 
       // Assert - The component renders correctly and handles network selection
@@ -557,15 +609,15 @@ describe('MultichainAccountPermissions', () => {
         'navigate_to_edit_networks_permissions_button',
       );
       await act(async () => {
-      fireEvent.press(editNetworksButton);
-    });
+        fireEvent.press(editNetworksButton);
+      });
 
       expect(getByTestId('sheet-header-back-button')).toBeDefined();
 
       const backButton = getByTestId('sheet-header-back-button');
       await act(async () => {
-      fireEvent.press(backButton);
-    });
+        fireEvent.press(backButton);
+      });
 
       expect(getByTestId('cancel-button')).toBeDefined();
     });
