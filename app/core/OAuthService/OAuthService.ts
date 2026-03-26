@@ -125,6 +125,14 @@ export class OAuthService {
         throw new Error('No user id found');
       }
 
+      if (isE2EMockOAuth()) {
+        return {
+          type: OAuthLoginResultType.SUCCESS,
+          existingUser: false,
+          accountName,
+        };
+      }
+
       const authConnectionConfig =
         this.config.authConnectionConfig[Platform.OS as SupportedPlatforms]?.[
           authConnection
@@ -256,7 +264,7 @@ export class OAuthService {
       '[OAuthService] E2E_MOCK_OAUTH: bypassing native OAuth UI, using UAT QA mock tokens',
     );
 
-    const byoaSecret = getE2EByoaAuthSecret() ?? '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
+    const byoaSecret = getE2EByoaAuthSecret();
     if (!byoaSecret) {
       throw new OAuthError(
         'E2E_MOCK_OAUTH requires E2E_BYOA_AUTH_SECRET for QA mock token exchange',
@@ -300,14 +308,10 @@ export class OAuthService {
 
     this.updateLocalState({ userId, accountName });
 
-    Logger.log(
-      '[OAuthService] E2E_MOCK_OAUTH: skipping SeedlessOnboardingController.authenticate',
+    const result = await this.handleSeedlessAuthenticate(
+      data,
+      loginHandler.authConnection as SeedlessAuthConnection,
     );
-    const result: HandleOAuthLoginResult = {
-      type: OAuthLoginResultType.SUCCESS,
-      existingUser: false,
-      accountName,
-    };
 
     this.#dispatchPostLogin(result);
     return result;
