@@ -72,6 +72,8 @@ export default {
   ONE,
   FTM,
   ETHEREUM,
+  /** Native ETH symbol  */
+  ETH: ETHEREUM,
   BNB,
   AETH,
   AVAX,

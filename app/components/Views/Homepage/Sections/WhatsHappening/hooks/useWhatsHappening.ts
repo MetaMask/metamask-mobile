@@ -13,6 +13,12 @@ export interface UseWhatsHappeningResult {
   isLoading: boolean;
   error: string | null;
   refresh: () => Promise<void>;
+  /**
+   * Temporary digest identifier derived from `generatedAt` until the
+   * `/market-overview` API exposes a real `id` field on the response envelope.
+   * TODO: Replace with `overview.digestId` once the API/controller adds it.
+   */
+  digestId: string | null;
 }
 
 const mapTrendsToItems = (
@@ -46,12 +52,14 @@ export const useWhatsHappening = (limit = 5): UseWhatsHappeningResult => {
   const [items, setItems] = useState<WhatsHappeningItem[]>([]);
   const [isLoading, setIsLoading] = useState(!!isEnabled);
   const [error, setError] = useState<string | null>(null);
+  const [digestId, setDigestId] = useState<string | null>(null);
 
   const fetchItems = useCallback(async () => {
     if (!isEnabled) {
       setItems([]);
       setIsLoading(false);
       setError(null);
+      setDigestId(null);
       return;
     }
 
@@ -62,16 +70,21 @@ export const useWhatsHappening = (limit = 5): UseWhatsHappeningResult => {
       const data =
         await Engine.context.AiDigestController.fetchMarketOverview();
 
-      if (data === null) {
+      if (data === null || data.trends.length === 0) {
         setItems([]);
+        setDigestId(null);
       } else {
         setItems(mapTrendsToItems(data, limit));
+        // TODO: Replace with `data.digestId` once the /market-overview API
+        // exposes a real `id` field on the response envelope.
+        setDigestId(data.generatedAt);
       }
     } catch (err) {
       setError(
         err instanceof Error ? err.message : 'Failed to fetch trending items',
       );
       setItems([]);
+      setDigestId(null);
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +98,7 @@ export const useWhatsHappening = (limit = 5): UseWhatsHappeningResult => {
     fetchItems();
   }, [fetchItems]);
 
-  return { items, isLoading, error, refresh };
+  return { items, isLoading, error, refresh, digestId };
 };
 
 export default useWhatsHappening;

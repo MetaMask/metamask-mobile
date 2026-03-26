@@ -60,6 +60,7 @@ export const useMarketInsights = (
         await Engine.context.AiDigestController.fetchMarketInsights(
           assetIdentifier,
         );
+
       setReport(data as MarketInsightsReport | null);
       setReportAssetId(data ? assetIdentifier : null);
     } catch (err) {

@@ -626,6 +626,12 @@ enum EVENT_NAME {
   // Trending
   TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
 
+  // Breaking News (What's Happening)
+  BREAKING_NEWS_CARD_CLICKED = 'Breaking News Card Clicked',
+  BREAKING_NEWS_SCREEN_VIEWED = 'Breaking News Screen Viewed',
+  BREAKING_NEWS_TRADE_BUTTON_CLICKED = 'Breaking News Trade Button Clicked',
+  BREAKING_NEWS_CARD_SWIPED = 'Breaking News Card Swiped',
+
   // Market Insights
   MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW = 'Market Insights Card Scrolled to View',
   MARKET_INSIGHTS_OPENED = 'Market Insights Opened',
@@ -1549,6 +1555,17 @@ const events = {
   ASSET_FILTER_CUSTOM_SELECTED: generateOpt(
     EVENT_NAME.ASSET_FILTER_CUSTOM_SELECTED,
   ),
+  // Breaking News (What's Happening)
+  BREAKING_NEWS_CARD_CLICKED: generateOpt(
+    EVENT_NAME.BREAKING_NEWS_CARD_CLICKED,
+  ),
+  BREAKING_NEWS_SCREEN_VIEWED: generateOpt(
+    EVENT_NAME.BREAKING_NEWS_SCREEN_VIEWED,
+  ),
+  BREAKING_NEWS_TRADE_BUTTON_CLICKED: generateOpt(
+    EVENT_NAME.BREAKING_NEWS_TRADE_BUTTON_CLICKED,
+  ),
+  BREAKING_NEWS_CARD_SWIPED: generateOpt(EVENT_NAME.BREAKING_NEWS_CARD_SWIPED),
   // Market Insights
   MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW: generateOpt(
     EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,

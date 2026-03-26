@@ -32,6 +32,7 @@ import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
+import WhatsHappeningDetailView from '../../Views/WhatsHappeningDetailView';
 import CashTokensFullView from '../../Views/CashTokensFullView';
 import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
 import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
@@ -1026,6 +1027,11 @@ const MainNavigator = () => {
         name="RWATokensFullView"
         component={RWATokensFullView}
         options={slideFromRightAnimation}
+      />
+      <Stack.Screen
+        name={Routes.WHATS_HAPPENING_DETAIL}
+        component={WhatsHappeningDetailView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
       />
 
       <Stack.Screen name="Webview" component={Webview} />

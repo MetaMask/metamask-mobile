@@ -75,6 +75,14 @@ describe('useWhatsHappening', () => {
     expect(result.current.error).toBeNull();
   });
 
+  it('returns digestId equal to generatedAt on success', async () => {
+    const { result } = renderHook(() => useWhatsHappening());
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.digestId).toBe(mockOverview.generatedAt);
+  });
+
   it('uses article date as item date when articles are present', async () => {
     const { result } = renderHook(() => useWhatsHappening());
 
@@ -103,6 +111,7 @@ describe('useWhatsHappening', () => {
 
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBeNull();
+    expect(result.current.digestId).toBeNull();
   });
 
   it('sets empty items when trends array is empty', async () => {
@@ -134,6 +143,7 @@ describe('useWhatsHappening', () => {
 
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBe('Network error');
+    expect(result.current.digestId).toBeNull();
   });
 
   it('sets fallback error message for non-Error rejections', async () => {
@@ -154,6 +164,7 @@ describe('useWhatsHappening', () => {
     expect(mockFetchMarketOverview).not.toHaveBeenCalled();
     expect(result.current.items).toHaveLength(0);
     expect(result.current.error).toBeNull();
+    expect(result.current.digestId).toBeNull();
   });
 
   it('refresh re-fetches items', async () => {
