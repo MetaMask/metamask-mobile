@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef } from 'react';
 import { View, SectionList, Linking } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
@@ -85,6 +85,8 @@ const MusdQuickConvertView = () => {
 
   const { trackEvent, createEventBuilder } = useAnalytics();
 
+  const isInitiatingRef = useRef(false);
+
   // Feature flags
   const isQuickConvertEnabled = useSelector(selectMusdQuickConvertEnabledFlag);
 
@@ -126,6 +128,11 @@ const MusdQuickConvertView = () => {
   // navigate to max conversion bottom sheet
   const handleMaxPress = useCallback(
     async (token: AssetType) => {
+      if (isInitiatingRef.current) {
+        return;
+      }
+      isInitiatingRef.current = true;
+
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
@@ -161,6 +168,8 @@ const MusdQuickConvertView = () => {
             },
           },
         });
+      } finally {
+        isInitiatingRef.current = false;
       }
     },
     [createEventBuilder, initiateMaxConversion, trackEvent],
@@ -169,6 +178,11 @@ const MusdQuickConvertView = () => {
   // navigate to existing confirmation screen
   const handleEditPress = useCallback(
     async (token: AssetType) => {
+      if (isInitiatingRef.current) {
+        return;
+      }
+      isInitiatingRef.current = true;
+
       trackEvent(
         createEventBuilder(
           MetaMetricsEvents.MUSD_QUICK_CONVERT_TOKEN_ROW_BUTTON_CLICKED,
@@ -209,6 +223,8 @@ const MusdQuickConvertView = () => {
             },
           },
         });
+      } finally {
+        isInitiatingRef.current = false;
       }
     },
     [createEventBuilder, initiateCustomConversion, trackEvent],
