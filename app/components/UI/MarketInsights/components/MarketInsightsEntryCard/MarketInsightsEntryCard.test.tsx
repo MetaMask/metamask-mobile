@@ -1,20 +1,30 @@
 import React from 'react';
 import { fireEvent, act } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { endTrace, TraceName } from '../../../../../util/trace';
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
+import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
+import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
+import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+
+const mockTrackEvent = jest.fn();
+jest.mock('../../../../hooks/useAnalytics/useAnalytics');
+
+let capturedOnVisible: (() => void) | null = null;
+jest.mock('../../hooks/useViewportTracking', () => ({
+  useViewportTracking: (onVisible: () => void) => {
+    capturedOnVisible = onVisible;
+    return {
+      ref: { current: null },
+      onLayout: jest.fn(),
+    };
+  },
+}));
 
 jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: { MarketInsightsEntryCardLoad: 'MarketInsightsEntryCardLoad' },
-}));
-
-jest.mock('../../hooks/useViewportTracking', () => ({
-  useViewportTracking: jest.fn(() => ({
-    ref: { current: null },
-    onLayout: jest.fn(),
-  })),
 }));
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -34,6 +44,13 @@ const mockReport = {
 describe('MarketInsightsEntryCard', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    capturedOnVisible = null;
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
   });
 
   it('renders summary text and handles press', () => {
@@ -57,34 +74,67 @@ describe('MarketInsightsEntryCard', () => {
     expect(mockPress).toHaveBeenCalledTimes(1);
   });
 
-  it('calls endTrace when caip19Id is provided', () => {
+  it('tracks Market Insights Card Scrolled to View when card becomes visible', () => {
     renderWithProvider(
       <MarketInsightsEntryCard
-        report={mockReport as never}
-        timeAgo="3m ago"
+        report={
+          {
+            asset: 'eth',
+            digestId: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
+            headline: 'ETH rallies',
+            summary: 'Summary text',
+            trends: [],
+            sources: [],
+          } as never
+        }
+        timeAgo="1m ago"
         onPress={jest.fn()}
         caip19Id={'eip155:1/erc20:0xtest' as CaipAssetType}
         testID="market-insights-entry-card"
       />,
     );
 
-    expect(endTrace).toHaveBeenCalledWith({
-      name: TraceName.MarketInsightsEntryCardLoad,
-      id: 'eip155:1/erc20:0xtest',
+    expect(capturedOnVisible).toBeDefined();
+    act(() => {
+      capturedOnVisible?.();
     });
+
+    expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW,
+        properties: {
+          caip19: 'eip155:1/erc20:0xtest',
+          asset_symbol: 'eth',
+          digest_id: 'a8154c57-c665-449c-8bb5-fcaae96ef922',
+        },
+      }),
+    );
   });
 
-  it('does not call endTrace when caip19Id is not provided', () => {
+  it('does not track visibility event when caip19Id is missing', () => {
     renderWithProvider(
       <MarketInsightsEntryCard
-        report={mockReport as never}
-        timeAgo="3m ago"
+        report={
+          {
+            asset: 'eth',
+            headline: 'ETH rallies',
+            summary: 'Summary text',
+            trends: [],
+            sources: [],
+          } as never
+        }
+        timeAgo="1m ago"
         onPress={jest.fn()}
         testID="market-insights-entry-card"
       />,
     );
 
-    expect(endTrace).not.toHaveBeenCalled();
+    expect(capturedOnVisible).toBeDefined();
+    act(() => {
+      capturedOnVisible?.();
+    });
+
+    expect(mockTrackEvent).not.toHaveBeenCalled();
   });
 
   it('renders the footer disclaimer and timeAgo', () => {
