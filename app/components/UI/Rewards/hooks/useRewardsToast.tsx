@@ -25,10 +25,7 @@ export interface RewardsToastConfig {
 /** Built-in rewards toast presets (success, error, entries closed). */
 export type RewardsToastPreset = keyof RewardsToastConfig;
 
-const getRewardsToastLabels = (
-  title: string,
-  subtitle?: string,
-): ToastLabelOptions => {
+const getRewardsToastLabels = (title: string): ToastLabelOptions => {
   const labels: ToastLabelOptions = [
     {
       label: title,
@@ -36,27 +33,19 @@ const getRewardsToastLabels = (
     },
   ];
 
-  if (subtitle) {
-    labels.push(
-      {
-        label: '\n',
-        isBold: false,
-      },
-      {
-        label: subtitle,
-        isBold: false,
-      },
-    );
-  }
-
   return labels;
 };
 
 const getRewardsToastDescription = (
-  description: string,
-): ToastDescriptionOptions => ({
-  description,
-});
+  subtitle?: string,
+): ToastDescriptionOptions | undefined => {
+  if (!subtitle) {
+    return undefined;
+  }
+  return {
+    description: subtitle,
+  };
+};
 
 const REWARDS_TOASTS_DEFAULT_OPTIONS: Partial<RewardsToastOptions> = {
   hasNoTimeout: false,
@@ -87,7 +76,7 @@ const useRewardsToast = (): {
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Success,
         labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescription(subtitle ?? ''),
+        descriptionOptions: getRewardsToastDescription(subtitle),
         hasNoTimeout: false,
         closeButtonOptions: {
           variant: ButtonIconVariant.Icon,
@@ -105,7 +94,7 @@ const useRewardsToast = (): {
         backgroundColor: 'transparent',
         hapticsType: NotificationFeedbackType.Error,
         labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescription(subtitle ?? ''),
+        descriptionOptions: getRewardsToastDescription(subtitle),
         hasNoTimeout: false,
         closeButtonOptions: {
           variant: ButtonIconVariant.Icon,
@@ -124,7 +113,7 @@ const useRewardsToast = (): {
         backgroundColor: 'muted',
         hapticsType: NotificationFeedbackType.Warning,
         labelOptions: getRewardsToastLabels(title),
-        descriptionOptions: getRewardsToastDescription(subtitle ?? ''),
+        descriptionOptions: getRewardsToastDescription(subtitle),
         hasNoTimeout: true,
         closeButtonOptions: {
           variant: ButtonIconVariant.Icon,

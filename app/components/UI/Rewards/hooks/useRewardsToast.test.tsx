@@ -104,7 +104,7 @@ describe('useRewardsToast', () => {
       expect(config.labelOptions).toEqual([
         { label: 'Test Title', isBold: true },
       ]);
-      expect(config.descriptionOptions).toEqual({ description: '' });
+      expect(config.descriptionOptions).toBeUndefined();
       expect(config.closeButtonOptions).toMatchObject({
         variant: ButtonIconVariant.Icon,
         iconName: IconName.Close,
@@ -153,7 +153,7 @@ describe('useRewardsToast', () => {
       expect(config.labelOptions).toEqual([
         { label: 'Error Title', isBold: true },
       ]);
-      expect(config.descriptionOptions).toEqual({ description: '' });
+      expect(config.descriptionOptions).toBeUndefined();
       expect(config.closeButtonOptions).toMatchObject({
         variant: ButtonIconVariant.Icon,
         iconName: IconName.Close,
@@ -203,7 +203,7 @@ describe('useRewardsToast', () => {
       expect(config.labelOptions).toEqual([
         { label: 'Closed Title', isBold: true },
       ]);
-      expect(config.descriptionOptions).toEqual({ description: '' });
+      expect(config.descriptionOptions).toBeUndefined();
       expect(config.closeButtonOptions).toMatchObject({
         variant: ButtonIconVariant.Icon,
         iconName: IconName.Close,
@@ -347,6 +347,16 @@ describe('useRewardsToast', () => {
 
       expect(config.labelOptions).toEqual([{ label: '   ', isBold: true }]);
     });
+
+    it('omits descriptionOptions when subtitle is only whitespace', () => {
+      const { result } = renderHook(() => useRewardsToast());
+      const config = result.current.RewardsToastOptions.success(
+        'Title',
+        '   \n\t  ',
+      );
+
+      expect(config.descriptionOptions).toBeUndefined();
+    });
   });
 
   describe('memoization and dependency changes', () => {
@@ -402,7 +412,7 @@ describe('useRewardsToast', () => {
         label: 'Test Title',
         isBold: true,
       });
-      expect(config.descriptionOptions).toEqual({ description: '' });
+      expect(config.descriptionOptions).toBeUndefined();
     });
 
     it('puts the subtitle in descriptionOptions for success with subtitle', () => {
@@ -431,7 +441,7 @@ describe('useRewardsToast', () => {
         label: 'Error Title',
         isBold: true,
       });
-      expect(config.descriptionOptions).toEqual({ description: '' });
+      expect(config.descriptionOptions).toBeUndefined();
     });
 
     it('puts the subtitle in descriptionOptions for error with subtitle', () => {
