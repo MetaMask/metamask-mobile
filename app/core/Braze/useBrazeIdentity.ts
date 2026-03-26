@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../selectors/identity';
 import { setBrazeUser } from './index';
@@ -12,18 +12,10 @@ import { setBrazeUser } from './index';
  */
 export function useBrazeIdentity(): void {
   const isSignedIn = useSelector(selectIsSignedIn);
-  const hasRunInitialSync = useRef(false);
 
   useEffect(() => {
-    if (isSignedIn && !hasRunInitialSync.current) {
-      hasRunInitialSync.current = true;
+    if (isSignedIn) {
       setBrazeUser();
-    } else if (isSignedIn && hasRunInitialSync.current) {
-      setBrazeUser();
-    }
-
-    if (!isSignedIn) {
-      hasRunInitialSync.current = false;
     }
   }, [isSignedIn]);
 }

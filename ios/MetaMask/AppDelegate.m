@@ -48,7 +48,7 @@ static Braze *_braze = nil;
   if (brazeApiKey.length > 0 && brazeEndpoint.length > 0) {
     BRZConfiguration *configuration = [[BRZConfiguration alloc] initWithApiKey:brazeApiKey
                                                                       endpoint:brazeEndpoint];
-    configuration.logger.level = BRZLoggerLevelDebug;
+    configuration.logger.level = BRZLoggerLevelInfo;
     // push.automation handles APNs token registration and Braze-originated notification display.
     // requestAuthorizationAtLaunch is NO so the existing permission flow (Firebase/Notifee) is preserved.
     configuration.push.automation = [[BRZConfigurationPushAutomation alloc] initEnablingAllAutomations:YES];
