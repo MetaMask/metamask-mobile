@@ -131,7 +131,6 @@ import {
   validateBalance,
   validateCoinExists,
   validateDepositParams,
-  validateOrderParams,
   validateWithdrawalParams,
 } from '../utils/hyperLiquidValidation';
 import { transformMarketData } from '../utils/marketDataTransform';
@@ -145,6 +144,7 @@ import {
   calculateFinalPositionSize,
   calculateOrderPriceAndSize,
 } from '../utils/orderCalculations';
+import { validateOrderParams } from '../utils/orderValidation';
 import {
   createStandaloneInfoClient,
   queryStandaloneClearinghouseStates,

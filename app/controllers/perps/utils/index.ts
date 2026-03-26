@@ -23,6 +23,7 @@ export {
 export * from './hyperLiquidOrderBookProcessor';
 export * from './hyperLiquidValidation';
 export * from './idUtils';
+export * from './orderValidation';
 export * from './marketDataTransform';
 export * from './myxAdapter';
 export * from './marketUtils';

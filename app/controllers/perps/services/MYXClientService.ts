@@ -19,6 +19,8 @@ import type {
 import { ChainId, MyxClient } from '@myx-trade/sdk';
 
 import {
+  MYX_API_TOKEN_EXPIRY_SECONDS,
+  MYX_MARKETS_CACHE_TTL_MS,
   MYX_PRICE_POLLING_INTERVAL_MS,
   MYX_COLLATERAL_TOKEN_MAINNET,
   MYX_COLLATERAL_TOKEN_TESTNET,
@@ -98,7 +100,7 @@ export class MYXClientService {
 
   #marketsCacheTimestamp = 0;
 
-  readonly #marketsCacheTtlMs = 5 * 60 * 1000; // 5 minutes
+  readonly #marketsCacheTtlMs = MYX_MARKETS_CACHE_TTL_MS;
 
   // globalId cache: poolId → globalId (for WS subscriptions)
   readonly #globalIdCache: Map<string, number> = new Map();
@@ -488,14 +490,13 @@ export class MYXClientService {
         }
       };
 
-      // Call SDK auth with signer, walletClient, and getAccessToken.
       // walletClient is our adapter satisfying viem WalletClient shape at runtime;
       // SDK types expect viem's WalletClient which we can't import without adding viem.
       this.#myxClient.auth({
         signer,
         getAccessToken,
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        walletClient: walletClient as any,
+        // @ts-expect-error Adapter implements the WalletClient subset the SDK uses at runtime; full viem type unavailable without adding viem
+        walletClient,
       });
 
       this.#authenticatedAddress = address.toLowerCase();
@@ -572,7 +573,7 @@ export class MYXClientService {
     }
 
     const timestamp = Math.floor(Date.now() / 1000);
-    const expireTime = 86400; // Duration in seconds — server computes expireAt = timestamp + expireTime
+    const expireTime = MYX_API_TOKEN_EXPIRY_SECONDS; // Server computes expireAt = timestamp + expireTime
     const signString = `${appId}&${timestamp}&${expireTime}&${address}&${apiSecret}`;
     const signature = await this.#sha256Hex(signString);
 

@@ -26,9 +26,9 @@ import {
   validateBalance,
   validateCoinExists,
   validateDepositParams,
-  validateOrderParams,
   validateWithdrawalParams,
 } from '../utils/hyperLiquidValidation';
+import { validateOrderParams } from '../utils/orderValidation';
 import { createStandaloneInfoClient } from '../utils/standaloneInfoClient';
 
 import { HyperLiquidProvider } from './HyperLiquidProvider';
@@ -52,8 +52,11 @@ jest.mock('../utils/standaloneInfoClient', () => ({
   createStandaloneInfoClient: jest.fn(() => mockStandaloneInfoClient),
 }));
 
-jest.mock('../utils/hyperLiquidValidation', () => ({
+jest.mock('../utils/orderValidation', () => ({
   validateOrderParams: jest.fn(),
+}));
+
+jest.mock('../utils/hyperLiquidValidation', () => ({
   validateWithdrawalParams: jest.fn(),
   validateDepositParams: jest.fn(),
   validateCoinExists: jest.fn(),

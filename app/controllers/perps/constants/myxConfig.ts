@@ -445,6 +445,26 @@ export const MYX_CONTRACT_PRICE_DECIMALS = 30;
 export const MYX_MARKET_DETAIL_CACHE_TTL_MS = 60_000;
 
 /**
+ * Markets list cache TTL in milliseconds (5 minutes).
+ * Used for getPoolSymbolAll() results in MYXClientService.
+ */
+export const MYX_MARKETS_CACHE_TTL_MS = 5 * 60 * 1000;
+
+/**
+ * API access token expiry duration in seconds (24 hours).
+ * Passed to the MYX token API as the `expireTime` parameter.
+ */
+export const MYX_API_TOKEN_EXPIRY_SECONDS = 86_400;
+
+/**
+ * Public JSON-RPC endpoints per MYX network, matching the SDK's internal CHAIN_INFO.
+ */
+export const MYX_RPC_URLS: Record<MYXNetwork, string> = {
+  mainnet: 'https://bsc-dataseed.bnbchain.org',
+  testnet: 'https://rpc.sepolia.linea.build',
+};
+
+/**
  * Slippage buffer multipliers for market orders.
  * LONG orders use the high multiplier (accept higher price),
  * SHORT orders use the low multiplier (accept lower price).

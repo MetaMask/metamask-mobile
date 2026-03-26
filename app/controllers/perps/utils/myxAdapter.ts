@@ -41,10 +41,13 @@ import {
   MYXDirection,
   MYXDirectionEnum,
   MYXOperationEnum,
+  MYXOperationType,
   MYXOrderStatusEnum,
+  MYXOrderType,
   MYXOrderTypeEnum,
   MYXExecTypeEnum,
   MYXTradeFlowTypeEnum,
+  MYXTriggerType,
 } from '../types/myx-types';
 import type {
   MYXNetwork,
@@ -420,19 +423,15 @@ export function adaptOrderFromMYX(
   }
 
   // Map status
-  let status: Order['status'] = 'open';
+  let status: Order['status'];
   switch (historyOrder.orderStatus) {
     case MYXOrderStatusEnum.Successful:
+    case MYXOrderStatusEnum.PartialFilled:
       status = 'filled';
       break;
     case MYXOrderStatusEnum.Cancelled:
-      status = 'canceled';
-      break;
     case MYXOrderStatusEnum.Expired:
       status = 'canceled';
-      break;
-    case MYXOrderStatusEnum.PartialFilled:
-      status = 'filled';
       break;
     default:
       status = 'open';
@@ -545,22 +544,26 @@ export function adaptOrderItemFromMYX(
   const filledSizeNum = fromMYXApiSize(order.filledSize);
   const remainingSize = Math.max(0, sizeNum - filledSizeNum);
 
-  const side: 'buy' | 'sell' = order.direction === 0 ? 'buy' : 'sell';
-  // MYX OrderTypeEnum: 0=Market, 1=Limit, 2=Stop (trigger), 3=Conditional
-  const isTrigger = order.orderType === 2 || order.orderType === 3;
+  const side: 'buy' | 'sell' =
+    order.direction === MYXDirection.LONG ? 'buy' : 'sell';
+  const isTrigger =
+    order.orderType === MYXOrderType.STOP ||
+    order.orderType === MYXOrderType.CONDITIONAL;
   const orderType: 'market' | 'limit' =
-    order.orderType === 1 ? 'limit' : 'market';
-  const reduceOnly = order.operation === 1 ? true : undefined;
+    order.orderType === MYXOrderType.LIMIT ? 'limit' : 'market';
+  const reduceOnly =
+    order.operation === MYXOperationType.DECREASE ? true : undefined;
   // TP/SL trigger orders are tied to the full position (decrease with trigger)
-  const isPositionTpsl = isTrigger && order.operation === 1;
+  const isPositionTpsl =
+    isTrigger && order.operation === MYXOperationType.DECREASE;
 
   // Determine if this is a TP or SL based on triggerType:
   // For LONG positions: TP triggers when price >= target (GTE=1), SL when price <= target (LTE=2)
   // For SHORT positions: TP triggers when price <= target (LTE=2), SL when price >= target (GTE=1)
   let detailedOrderType: string | undefined;
   if (isTrigger) {
-    const isLong = order.direction === 0;
-    const isGTE = order.triggerType === 1;
+    const isLong = order.direction === MYXDirection.LONG;
+    const isGTE = order.triggerType === MYXTriggerType.GTE;
     const isTakeProfit = isLong ? isGTE : !isGTE;
     detailedOrderType = isTakeProfit ? 'Take Profit' : 'Stop Loss';
   }
@@ -718,9 +721,9 @@ export function adaptAccountStateFromMYX(
     let weightedRoe = 0;
     let totalMargin = 0;
     for (const pos of positions) {
-      unrealizedPnl += parseFloat(pos.unrealizedPnl || '0');
-      const roe = parseFloat(pos.returnOnEquity || '0');
-      const margin = parseFloat(pos.marginUsed || '0');
+      unrealizedPnl += Number.parseFloat(pos.unrealizedPnl || '0');
+      const roe = Number.parseFloat(pos.returnOnEquity || '0');
+      const margin = Number.parseFloat(pos.marginUsed || '0');
       weightedRoe += roe * margin;
       totalMargin += margin;
     }

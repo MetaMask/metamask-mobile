@@ -110,6 +110,30 @@ export type MYXUpdateOrderParams = {
 };
 
 // ============================================================================
+// Wallet Client Adapter Type
+// ============================================================================
+
+/**
+ * Minimal WalletClient-like interface for the MYX SDK.
+ * The SDK expects viem's WalletClient but we provide a lightweight adapter
+ * (created by MYXWalletService) without importing viem as a dependency.
+ */
+export type MYXWalletClientLike = {
+  account: { address: string };
+  chain: { id: number };
+  transport: {
+    request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  };
+  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
+  getAddresses: () => Promise<readonly `0x${string}`[]>;
+  signMessage: (args: {
+    message: string | { raw: Uint8Array };
+  }) => Promise<`0x${string}`>;
+  sendTransaction: (args: Record<string, unknown>) => Promise<`0x${string}`>;
+  signTypedData: (args: Record<string, unknown>) => Promise<string>;
+};
+
+// ============================================================================
 // Network Configuration Types
 // ============================================================================
 

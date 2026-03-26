@@ -24,6 +24,7 @@ import type { CaipAccountId, Hex } from '@metamask/utils';
 
 import {
   getMYXChainId,
+  MYX_RPC_URLS,
   MYX_TESTNET_CHAIN_ID,
   MYX_MAINNET_CHAIN_ID,
 } from '../constants/myxConfig';
@@ -32,14 +33,6 @@ import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import type { PerpsPlatformDependencies } from '../types';
 import type { MYXNetwork } from '../types/myx-types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
-
-/**
- * Public JSON-RPC endpoints per MYX network, matching the SDK's internal CHAIN_INFO.
- */
-const MYX_RPC_URLS: Record<MYXNetwork, string> = {
-  mainnet: 'https://bsc-dataseed.bnbchain.org',
-  testnet: 'https://rpc.sepolia.linea.build',
-};
 
 export class MYXWalletService {
   #isTestnet: boolean;
@@ -132,8 +125,9 @@ export class MYXWalletService {
         }
 
         // Determine primaryType from types (exclude EIP712Domain)
-        const typeKeys = Object.keys(types).filter((k) => k !== 'EIP712Domain');
-        const primaryType = typeKeys[0] ?? 'EIP712Domain';
+        const primaryType =
+          Object.keys(types).find((k) => k !== 'EIP712Domain') ??
+          'EIP712Domain';
 
         this.#deps.debugLogger.log('MYXWalletService: Signing typed data', {
           address: currentAccount.address,
@@ -227,66 +221,12 @@ export class MYXWalletService {
         }
 
         if (args.method === 'eth_sendTransaction') {
-          const txParams = (args.params?.[0] ?? {}) as Record<string, string>;
-          const hexChainId: `0x${string}` = `0x${chainId.toString(16)}`;
-          const networkClientId = this.#messenger.call(
-            'NetworkController:findNetworkClientIdByChainId',
-            hexChainId,
+          return this.#handleSendTransaction(
+            args.params,
+            evmAccount.address,
+            chainId,
+            transport,
           );
-          if (!networkClientId) {
-            throw new Error(
-              `No network client for chain ${hexChainId}. Add the BNB network first.`,
-            );
-          }
-
-          // If SDK didn't provide gas price, fetch it from the node.
-          // TransactionController with requireApproval:false skips the
-          // approval flow that normally estimates gas pricing.
-          let gasPriceFields: Record<string, string> = {};
-          if (txParams.gasPrice) {
-            gasPriceFields = { gasPrice: txParams.gasPrice };
-          } else if (txParams.maxFeePerGas) {
-            gasPriceFields = {
-              maxFeePerGas: txParams.maxFeePerGas,
-              ...(txParams.maxPriorityFeePerGas
-                ? { maxPriorityFeePerGas: txParams.maxPriorityFeePerGas }
-                : {}),
-            };
-          } else {
-            // Fetch gas price via the same transport abstraction
-            const gasPrice = await transport.request({
-              method: 'eth_gasPrice',
-              params: [],
-            });
-            if (gasPrice) {
-              gasPriceFields = { gasPrice: gasPrice as string };
-            }
-          }
-
-          const txData: TransactionParams = {
-            from: (txParams.from ?? evmAccount.address) as Hex,
-            to: txParams.to as Hex,
-            data: txParams.data as Hex,
-            value: (txParams.value ?? '0x0') as Hex,
-            gas: txParams.gas ?? txParams.gasLimit,
-            ...gasPriceFields,
-          };
-
-          const txOptions: AddTransactionOptions = {
-            networkClientId,
-            origin: 'metamask-perps-myx',
-            // User already confirmed intent via the perps UI (Place Order / Close Position).
-            // Showing a second native tx approval would be confusing UX.
-            requireApproval: false,
-          };
-
-          const result = await this.#messenger.call(
-            'TransactionController:addTransaction',
-            txData,
-            txOptions,
-          );
-          const hash = await result.result;
-          return hash;
         }
 
         if (args.method === 'eth_chainId') {
@@ -450,6 +390,75 @@ export class MYXWalletService {
   ): Promise<Hex> {
     const id = accountId ?? (await this.getCurrentAccountId());
     return this.getUserAddressFromAccountId(id);
+  }
+
+  async #handleSendTransaction(
+    params: unknown[] | undefined,
+    fromAddress: string,
+    chainId: number,
+    transport: {
+      request: (args: {
+        method: string;
+        params?: unknown[];
+      }) => Promise<unknown>;
+    },
+  ): Promise<unknown> {
+    const txParams = (params?.[0] ?? {}) as Record<string, string>;
+    const hexChainId: `0x${string}` = `0x${chainId.toString(16)}`;
+    const networkClientId = this.#messenger.call(
+      'NetworkController:findNetworkClientIdByChainId',
+      hexChainId,
+    );
+    if (!networkClientId) {
+      throw new Error(
+        `No network client for chain ${hexChainId}. Add the BNB network first.`,
+      );
+    }
+
+    // If SDK didn't provide gas price, fetch it from the node.
+    // TransactionController with requireApproval:false skips the
+    // approval flow that normally estimates gas pricing.
+    let gasPriceFields: Record<string, string> = {};
+    if (txParams.gasPrice) {
+      gasPriceFields = { gasPrice: txParams.gasPrice };
+    } else if (txParams.maxFeePerGas) {
+      gasPriceFields = {
+        maxFeePerGas: txParams.maxFeePerGas,
+        ...(txParams.maxPriorityFeePerGas
+          ? { maxPriorityFeePerGas: txParams.maxPriorityFeePerGas }
+          : {}),
+      };
+    } else {
+      const gasPrice = await transport.request({
+        method: 'eth_gasPrice',
+        params: [],
+      });
+      if (gasPrice) {
+        gasPriceFields = { gasPrice: gasPrice as string };
+      }
+    }
+
+    const txData: TransactionParams = {
+      from: (txParams.from ?? fromAddress) as Hex,
+      to: txParams.to as Hex,
+      data: txParams.data as Hex,
+      value: (txParams.value ?? '0x0') as Hex,
+      gas: txParams.gas ?? txParams.gasLimit,
+      ...gasPriceFields,
+    };
+
+    const txOptions: AddTransactionOptions = {
+      networkClientId,
+      origin: 'metamask-perps-myx',
+      requireApproval: false,
+    };
+
+    const result = await this.#messenger.call(
+      'TransactionController:addTransaction',
+      txData,
+      txOptions,
+    );
+    return result.result;
   }
 
   public setTestnetMode(isTestnet: boolean): void {

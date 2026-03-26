@@ -36,6 +36,10 @@ jest.mock('../constants/myxConfig', () => ({
   getMYXChainId: jest.fn((network: string) =>
     network === 'testnet' ? 421614 : 56,
   ),
+  MYX_RPC_URLS: {
+    mainnet: 'https://bsc-dataseed.bnbchain.org',
+    testnet: 'https://rpc.sepolia.linea.build',
+  },
   MYX_TESTNET_CHAIN_ID: '421614',
   MYX_MAINNET_CHAIN_ID: '56',
 }));

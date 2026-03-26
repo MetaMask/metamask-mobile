@@ -14,6 +14,7 @@
 import type { CaipAccountId } from '@metamask/utils';
 import {
   Direction as MYXDirection,
+  OperationType as MYXOperationType,
   OrderType as MYXOrderType,
   TimeInForce as MYXTimeInForce,
   TriggerType as MYXTriggerType,
@@ -126,7 +127,6 @@ import type {
 import { MYXOrderStatusEnum } from '../types/myx-types';
 import type { CandleData } from '../types/perps-types';
 import { ensureError } from '../utils/errorUtils';
-import { validateOrderParams } from '../utils/hyperLiquidValidation';
 import {
   adaptMarketFromMYX,
   adaptMarketDataFromMYX,
@@ -144,6 +144,7 @@ import {
   buildPoolSymbolMap,
   toMYXKlineResolution,
 } from '../utils/myxAdapter';
+import { validateOrderParams } from '../utils/orderValidation';
 
 // ============================================================================
 // Constants
@@ -1794,18 +1795,18 @@ export class MYXProvider implements PerpsProvider {
       const ordersResult = await this.#clientService.getOrders(address);
       if (ordersResult.data && Array.isArray(ordersResult.data)) {
         for (const order of ordersResult.data) {
-          // Trigger orders: orderType 2 (Stop) or 3 (Conditional), operation 1 (decrease)
           if (
-            (order.orderType === 2 || order.orderType === 3) &&
-            order.operation === 1 &&
+            (order.orderType === MYXOrderType.STOP ||
+              order.orderType === MYXOrderType.CONDITIONAL) &&
+            order.operation === MYXOperationType.DECREASE &&
             order.positionId
           ) {
             const existing = tpslByPosition.get(order.positionId) ?? {};
             const priceStr = fromMYXPrice(order.price).toString();
-            // For LONG: GTE (triggerType=1) = TP, LTE (triggerType=2) = SL
-            // For SHORT: LTE (triggerType=2) = TP, GTE (triggerType=1) = SL
-            const isLong = order.direction === 0;
-            const isGTE = order.triggerType === 1;
+            // For LONG: GTE = TP, LTE = SL
+            // For SHORT: LTE = TP, GTE = SL
+            const isLong = order.direction === MYXDirection.LONG;
+            const isGTE = order.triggerType === MYXTriggerType.GTE;
             const isTakeProfit = isLong ? isGTE : !isGTE;
             if (isTakeProfit) {
               existing.takeProfitPrice = priceStr;
