@@ -1,5 +1,6 @@
 import React, { ReactNode, useState } from 'react';
-import { TouchableOpacity, View } from 'react-native';
+import { TouchableOpacity, useWindowDimensions, View } from 'react-native';
+import { ScrollView } from 'react-native-gesture-handler';
 
 import { useStyles } from '../../../../../../component-library/hooks';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
@@ -32,6 +33,7 @@ const Expandable = ({
 }: ExpandableProps) => {
   const { styles } = useStyles(styleSheet, { isCompact });
   const [expanded, setExpanded] = useState(false);
+  const { height: windowHeight } = useWindowDimensions();
 
   return (
     <>
@@ -47,7 +49,7 @@ const Expandable = ({
       </TouchableOpacity>
       {expanded && (
         <BottomModal onClose={() => setExpanded(false)}>
-          <View style={styles.modalContent}>
+          <View style={[styles.modalContent, { maxHeight: windowHeight * 0.9 }]}>
             <HeaderCompactStandard
               title={expandedContentTitle}
               onClose={() => setExpanded(false)}
@@ -55,13 +57,19 @@ const Expandable = ({
                 testID: collapseButtonTestID ?? 'collapseButtonTestID',
               }}
             />
-            <View style={styles.modalExpandedContent}>
+            <View style={styles.scrollableArea}>
               {copyText && (
                 <View style={styles.copyButtonContainer}>
                   <CopyButton copyText={copyText} />
                 </View>
               )}
-              {expandedContent}
+              <ScrollView
+                style={styles.modalExpandedContent}
+                contentContainerStyle={styles.modalExpandedContentContainer}
+                nestedScrollEnabled
+              >
+                {expandedContent}
+              </ScrollView>
             </View>
           </View>
         </BottomModal>
