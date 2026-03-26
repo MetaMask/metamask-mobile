@@ -74,7 +74,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
   [ErrorCode.DeviceNotFound]: {
     recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Search,
-    iconColor: IconColor.Default,
+    iconColor: IconColor.Error,
     getLocalizedTitle: (walletType) =>
       strings('hardware_wallet.error.device_not_found_title', {
         device: getHardwareWalletTypeName(walletType),
@@ -223,21 +223,6 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
     getLocalizedTitle: () =>
       strings('hardware_wallet.error.something_went_wrong'),
     getLocalizedMessage: () => strings('hardware_wallet.errors.not_supported'),
-  },
-
-  // QR-specific (using existing error codes with QR-specific messaging)
-  [ErrorCode.DeviceNotFound]: {
-    recoveryAction: RecoveryAction.RETRY,
-    icon: IconName.Search,
-    iconColor: IconColor.Error,
-    getLocalizedTitle: (walletType) =>
-      strings('hardware_wallet.error.device_not_found_title', {
-        device: getHardwareWalletTypeName(walletType),
-      }),
-    getLocalizedMessage: (walletType) =>
-      strings('hardware_wallet.errors.device_not_found', {
-        device: getHardwareWalletTypeName(walletType),
-      }),
   },
 
   // Unknown

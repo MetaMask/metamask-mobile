@@ -4,6 +4,7 @@ import {
   DeviceEventPayload,
   ErrorCode,
 } from '@metamask/hw-wallet-sdk';
+import { Camera } from 'react-native-vision-camera';
 import {
   DiscoveredDevice,
   HardwareWalletAdapter,
@@ -91,11 +92,8 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
   // ============ Device Readiness ============
 
   /**
-   * For QR wallets, device readiness means we have a valid QR account reference.
-   * Camera permission is handled later by the scanner modal when it opens.
-   *
-   * Unlike Ledger, we don't need to check if an app is open
-   * because QR wallets are ready to sign whenever needed.
+   * For QR wallets, device readiness requires camera permission.
+   * This checks camera permission and emits an error if denied.
    */
   async ensureDeviceReady(deviceId: string): Promise<boolean> {
     if (this.#isDestroyed) {
@@ -103,6 +101,12 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
     }
 
     DevLogger.log('[QRWalletAdapter] ensureDeviceReady called for:', deviceId);
+
+    // Check camera permission first
+    const hasPermission = await this.#checkCameraPermission();
+    if (!hasPermission) {
+      return false;
+    }
 
     // Store the device ID
     this.#deviceId = deviceId;
@@ -169,44 +173,50 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
   // ============ Transport State ============
 
+  /**
+   * Ensures camera permission is granted.
+   * Requests permission if not determined, emits error if denied.
+   */
   async ensurePermissions(): Promise<boolean> {
-    return true;
+    return this.#checkCameraPermission();
   }
 
   /**
-   * Camera permission is requested by the scanner modal itself.
-   * Returning true here avoids blocking the QR flow before the scanner opens.
+   * Checks if camera permission is granted.
+   * Returns true if camera is available for scanning.
    */
   async isTransportAvailable(): Promise<boolean> {
-    return true;
+    const status = Camera.getCameraPermissionStatus();
+    return status === 'granted';
   }
 
   /**
-   * QR wallets don't need transport state monitoring since
-   * camera is only needed during scanning, not for a persistent connection.
+   * Returns the error code for when camera permission is denied.
+   * This triggers the permission error content in the bottom sheet.
+   */
+  getTransportDisabledErrorCode(): ErrorCode | null {
+    return ErrorCode.PermissionNearbyDevicesDenied;
+  }
+
+  /**
+   * QR wallets don't need persistent transport state monitoring.
+   * Camera permission is checked when needed via ensurePermissions.
    */
   onTransportStateChange(
     _callback: (isAvailable: boolean) => void,
   ): () => void {
     // No-op for QR wallets - camera permission is checked on-demand
-    // Return a no-op cleanup function
     return () => {
       // no-op
     };
   }
 
-  getRequiredAppName(): string | undefined {
-    // QR wallets don't have an app concept like Ledger
-    return undefined;
-  }
-
   /**
    * Returns null because QR wallets don't need persistent transport monitoring.
-   * Camera permission is only needed during the actual QR scan,
-   * which happens when signing transactions, not during connection.
+   * Camera permission is checked when needed via ensurePermissions.
    */
-  getTransportDisabledErrorCode(): ErrorCode | null {
-    return null;
+  getRequiredAppName(): string | undefined {
+    return undefined;
   }
 
   // ============ Cleanup ============
@@ -226,5 +236,60 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
 
   #emitEvent(payload: DeviceEventPayload): void {
     this.#options.onDeviceEvent(payload);
+  }
+
+  /**
+   * Checks camera permission status and handles the flow:
+   * - granted: returns true
+   * - not-determined: requests permission
+   * - denied: emits ConnectionFailed event with CameraPermissionDenied error
+   */
+  async #checkCameraPermission(): Promise<boolean> {
+    try {
+      const status = Camera.getCameraPermissionStatus();
+      DevLogger.log('[QRWalletAdapter] Camera permission status:', status);
+
+      if (status === 'granted') {
+        return true;
+      }
+
+      if (status === 'not-determined') {
+        const newStatus = await Camera.requestCameraPermission();
+        DevLogger.log(
+          '[QRWalletAdapter] Camera permission after request:',
+          newStatus,
+        );
+        return newStatus === 'granted';
+      }
+
+      // status === 'denied' - emit error event
+      DevLogger.log(
+        '[QRWalletAdapter] Camera permission denied, emitting error',
+      );
+      this.#emitEvent({
+        event: DeviceEvent.ConnectionFailed,
+        error: {
+          name: 'CameraPermissionDenied',
+          message: 'Camera permission is required to scan QR codes',
+        },
+      });
+      return false;
+    } catch (error) {
+      DevLogger.log(
+        '[QRWalletAdapter] Error checking camera permission:',
+        error,
+      );
+      this.#emitEvent({
+        event: DeviceEvent.ConnectionFailed,
+        error: {
+          name: 'CameraPermissionDenied',
+          message:
+            error instanceof Error
+              ? error.message
+              : 'Failed to check camera permission',
+        },
+      });
+      return false;
+    }
   }
 }
