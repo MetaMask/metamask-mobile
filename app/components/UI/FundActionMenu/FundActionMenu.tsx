@@ -17,7 +17,7 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/
 import { strings } from '../../../../locales/i18n';
 
 // Internal dependencies
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { trace, TraceName } from '../../../util/trace';
 import { selectCanSignTransactions } from '../../../selectors/accountsController';
 import { RampType } from '../../../reducers/fiatOrders/types';
@@ -45,7 +45,7 @@ const FundActionMenu = () => {
   const [isNetworkRampSupported] = useRampNetwork();
 
   const { isDepositEnabled } = useDepositEnabled();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const canSignTransactions = useSelector(selectCanSignTransactions);
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
