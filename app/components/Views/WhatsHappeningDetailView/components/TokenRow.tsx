@@ -17,9 +17,12 @@ import type { RelatedAsset } from '@metamask/ai-controllers';
 import { strings } from '../../../../../locales/i18n';
 import { getRelatedAssetImageSource } from '../utils/getRelatedAssetImageSource';
 import { useRampNavigation } from '../../../UI/Ramp/hooks/useRampNavigation';
+import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
 
 interface TokenRowProps {
   asset: RelatedAsset;
+  digestId: string | null;
 }
 
 /**
@@ -28,13 +31,31 @@ interface TokenRowProps {
  * Ramp buy flow. Extracted as its own component so hooks can be called
  * per-asset (hooks cannot be called inside a loop).
  */
-const TokenRow: React.FC<TokenRowProps> = ({ asset }) => {
+const TokenRow: React.FC<TokenRowProps> = ({ asset, digestId }) => {
   const { goToBuy } = useRampNavigation();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const handleBuy = useCallback(() => {
+    // Perps-only assets have no caip19 but carry hlPerpsMarket.
+    // Use perps_market for those; use caip19 for regular tokens.
+    const assetIdProperty =
+      asset.caip19.length === 0 && asset.hlPerpsMarket
+        ? { perps_market: asset.hlPerpsMarket }
+        : { caip19: asset.caip19[0] };
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BREAKING_NEWS_TRADE_BUTTON_CLICKED)
+        .addProperties({
+          ...assetIdProperty,
+          digest_id: digestId,
+          destination: 'buy',
+        })
+        .build(),
+    );
+
     const assetId = asset.caip19[0];
     goToBuy({ assetId });
-  }, [goToBuy, asset.caip19]);
+  }, [goToBuy, asset, digestId, trackEvent, createEventBuilder]);
 
   // Wallet CDN (via CAIP-19) → Perps SVG (perpsAssetId only) → bundled image-icons.
   const rawImageSource = getRelatedAssetImageSource(asset);

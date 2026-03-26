@@ -21,6 +21,8 @@ import { WhatsHappeningCard, WhatsHappeningCardSkeleton } from './components';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 const MAX_ITEMS_DISPLAYED = 5;
 
@@ -51,8 +53,9 @@ const WhatsHappeningSection = forwardRef<
   const navigation = useNavigation();
   const isEnabled = useSelector(selectWhatsHappeningEnabled);
   const title = strings('homepage.sections.whats_happening');
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { items, isLoading, error, refresh } =
+  const { items, isLoading, error, refresh, digestId } =
     useWhatsHappening(MAX_ITEMS_DISPLAYED);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
@@ -85,10 +88,10 @@ const WhatsHappeningSection = forwardRef<
       //    so no extra network request will be made.
       navigation.navigate(
         Routes.WHATS_HAPPENING_DETAIL as never,
-        { items, initialIndex } as never,
+        { items, initialIndex, digestId } as never,
       );
     },
-    [navigation, items],
+    [navigation, items, digestId],
   );
 
   const handleViewAll = useCallback(() => {
@@ -97,9 +100,14 @@ const WhatsHappeningSection = forwardRef<
 
   const handleCardPress = useCallback(
     (index: number) => {
+      trackEvent(
+        createEventBuilder(MetaMetricsEvents.BREAKING_NEWS_CARD_CLICKED)
+          .addProperties({ digest_id: digestId })
+          .build(),
+      );
       navigateToDetail(index);
     },
-    [navigateToDetail],
+    [navigateToDetail, trackEvent, createEventBuilder, digestId],
   );
 
   if (!isEnabled) {

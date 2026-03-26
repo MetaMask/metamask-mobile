@@ -19,6 +19,8 @@ import { strings } from '../../../../locales/i18n';
 import type { WhatsHappeningItem } from '../Homepage/Sections/WhatsHappening/types';
 import WhatsHappeningExpandedCard from './components/WhatsHappeningExpandedCard';
 import PageIndicator from './components/PageIndicator';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -30,6 +32,7 @@ const SNAP_INTERVAL = CARD_WIDTH + GAP;
 interface WhatsHappeningDetailParams {
   items: WhatsHappeningItem[];
   initialIndex: number;
+  digestId: string | null;
 }
 
 const WhatsHappeningDetailView = () => {
@@ -37,8 +40,9 @@ const WhatsHappeningDetailView = () => {
   const tw = useTailwind();
   const route =
     useRoute<RouteProp<{ params: WhatsHappeningDetailParams }, 'params'>>();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
-  const { items, initialIndex = 0 } = route.params;
+  const { items, initialIndex = 0, digestId } = route.params;
 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const scrollViewRef = useRef<ScrollView>(null);
@@ -52,6 +56,16 @@ const WhatsHappeningDetailView = () => {
     }
   }, [initialIndex]);
 
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.BREAKING_NEWS_SCREEN_VIEWED)
+        .addProperties({ digest_id: digestId })
+        .build(),
+    );
+    // Fire once on mount only.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleBackPress = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -59,10 +73,21 @@ const WhatsHappeningDetailView = () => {
   const handleScrollEnd = useCallback(
     (event: NativeSyntheticEvent<NativeScrollEvent>) => {
       const offsetX = event.nativeEvent.contentOffset.x;
-      const index = Math.round(offsetX / SNAP_INTERVAL);
-      setCurrentIndex(Math.max(0, Math.min(index, items.length - 1)));
+      const newIndex = Math.round(offsetX / SNAP_INTERVAL);
+      const clampedIndex = Math.max(0, Math.min(newIndex, items.length - 1));
+
+      if (clampedIndex !== currentIndex) {
+        const direction = clampedIndex > currentIndex ? 'left' : 'right';
+        trackEvent(
+          createEventBuilder(MetaMetricsEvents.BREAKING_NEWS_CARD_SWIPED)
+            .addProperties({ digest_id: digestId, direction })
+            .build(),
+        );
+      }
+
+      setCurrentIndex(clampedIndex);
     },
-    [items.length],
+    [items.length, currentIndex, trackEvent, createEventBuilder, digestId],
   );
 
   return (
@@ -100,6 +125,7 @@ const WhatsHappeningDetailView = () => {
               key={item.id}
               item={item}
               cardWidth={CARD_WIDTH}
+              digestId={digestId}
             />
           ))}
         </ScrollView>

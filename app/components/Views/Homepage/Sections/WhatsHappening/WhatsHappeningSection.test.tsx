@@ -3,8 +3,22 @@ import { screen, fireEvent } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import WhatsHappeningSection from './WhatsHappeningSection';
 import Routes from '../../../../../constants/navigation/Routes';
+import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
 
 const mockNavigate = jest.fn();
+const mockTrackEvent = jest.fn();
+const mockBuild = jest.fn(() => ({}));
+const mockAddProperties = jest.fn(() => ({ build: mockBuild }));
+const mockCreateEventBuilder = jest.fn(() => ({
+  addProperties: mockAddProperties,
+}));
+
+jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('@react-navigation/native', () => {
   const actual = jest.requireActual('@react-navigation/native');
@@ -27,6 +41,7 @@ jest.mock('./hooks', () => ({
     isLoading: false,
     error: null,
     refresh: jest.fn(),
+    digestId: null,
   })),
 }));
 
@@ -51,12 +66,18 @@ const defaultProps = { sectionIndex: 1, totalSectionsLoaded: 3 };
 describe('WhatsHappeningSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockBuild.mockReturnValue({});
+    mockAddProperties.mockReturnValue({ build: mockBuild });
+    mockCreateEventBuilder.mockReturnValue({
+      addProperties: mockAddProperties,
+    });
     mockSelectWhatsHappeningEnabled.mockImplementation(() => true);
     mockUseWhatsHappening.mockReturnValue({
       items: [],
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+      digestId: null,
     });
   });
 
@@ -81,6 +102,7 @@ describe('WhatsHappeningSection', () => {
       isLoading: true,
       error: null,
       refresh: jest.fn(),
+      digestId: null,
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
@@ -94,6 +116,7 @@ describe('WhatsHappeningSection', () => {
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+      digestId: null,
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
@@ -108,6 +131,7 @@ describe('WhatsHappeningSection', () => {
       isLoading: false,
       error: 'Network error',
       refresh: jest.fn(),
+      digestId: null,
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     expect(
@@ -123,6 +147,7 @@ describe('WhatsHappeningSection', () => {
       isLoading: false,
       error: 'Network error',
       refresh: mockRefresh,
+      digestId: null,
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText('Retry'));
@@ -135,6 +160,7 @@ describe('WhatsHappeningSection', () => {
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+      digestId: null,
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(mockItem.title));
@@ -150,6 +176,7 @@ describe('WhatsHappeningSection', () => {
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+      digestId: null,
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(/view more/i));
@@ -170,12 +197,48 @@ describe('WhatsHappeningSection', () => {
       isLoading: false,
       error: null,
       refresh: jest.fn(),
+      digestId: null,
     });
     renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
     fireEvent.press(screen.getByText(secondItem.title));
     expect(mockNavigate).toHaveBeenCalledWith(
       Routes.WHATS_HAPPENING_DETAIL,
       expect.objectContaining({ initialIndex: 1 }),
+    );
+  });
+
+  it('fires BREAKING_NEWS_CARD_CLICKED with digest_id when a card is pressed', () => {
+    const digestId = '2026-03-15T10:00:00.000Z';
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      digestId,
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    fireEvent.press(screen.getByText(mockItem.title));
+    expect(mockCreateEventBuilder).toHaveBeenCalledWith(
+      MetaMetricsEvents.BREAKING_NEWS_CARD_CLICKED,
+    );
+    expect(mockAddProperties).toHaveBeenCalledWith({ digest_id: digestId });
+    expect(mockTrackEvent).toHaveBeenCalledTimes(1);
+  });
+
+  it('passes digestId in navigation params when a card is pressed', () => {
+    const digestId = '2026-03-15T10:00:00.000Z';
+    mockUseWhatsHappening.mockReturnValue({
+      items: [mockItem],
+      isLoading: false,
+      error: null,
+      refresh: jest.fn(),
+      digestId,
+    });
+    renderWithProvider(<WhatsHappeningSection {...defaultProps} />);
+    fireEvent.press(screen.getByText(mockItem.title));
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.WHATS_HAPPENING_DETAIL,
+      expect.objectContaining({ digestId }),
     );
   });
 });

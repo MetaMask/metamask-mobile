@@ -25,6 +25,7 @@ import WhatsHappeningSourcesBottomSheet from './WhatsHappeningSourcesBottomSheet
 interface WhatsHappeningExpandedCardProps {
   item: WhatsHappeningItem;
   cardWidth: number;
+  digestId: string | null;
 }
 
 const getImpactLabel = (impact: WhatsHappeningItem['impact']): string => {
@@ -63,6 +64,7 @@ const getImpactStyles = (
 const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
   item,
   cardWidth,
+  digestId,
 }) => {
   const tw = useTailwind();
   const [sourcesVisible, setSourcesVisible] = useState(false);
@@ -135,7 +137,11 @@ const WhatsHappeningExpandedCard: React.FC<WhatsHappeningExpandedCardProps> = ({
               </Text>
 
               {item.relatedAssets.map((asset) => (
-                <TokenRow key={asset.sourceAssetId} asset={asset} />
+                <TokenRow
+                  key={asset.sourceAssetId}
+                  asset={asset}
+                  digestId={digestId}
+                />
               ))}
             </Box>
           )}
