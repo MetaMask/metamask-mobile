@@ -148,7 +148,7 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           description: 'Wallet view should be visible',
         });
 
-        await WalletView.scrollToToken('USD Coin');
+        await WalletView.scrollToToken('USDCoin');
         await Assertions.expectElementToBeVisible(
           WalletView.tokenListItemConvertToMusdCta,
           {
@@ -205,10 +205,8 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
           description: 'Wallet view should be visible',
         });
 
-        // Scroll USDC into view then open Asset Overview (matches Token List test; avoids Android
-        // tapping the wrong row when the list is still settling).
-        await WalletView.scrollToToken('USD Coin');
-        await WalletView.tapOnToken('USD Coin');
+        // Tap on USDC to go to Asset Overview, scroll to mUSD CTA (ensures loaded), then tap
+        await WalletView.tapOnToken('USDCoin');
         await WalletView.scrollDownToAssetOverviewMusdCta();
         await WalletView.tapAssetOverviewMusdCta();
 
