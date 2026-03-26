@@ -885,7 +885,12 @@ const PerpsTPSLView: React.FC = () => {
                 })()}
                 onChange={handleKeypadChange}
                 currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
-                decimals={keypadDecimals}
+                decimals={
+                  focusedInput === 'takeProfitPercentage' ||
+                  focusedInput === 'stopLossPercentage'
+                    ? DECIMAL_PRECISION_CONFIG.MaxSignificantFigures
+                    : keypadDecimals
+                }
               />
             </View>
           </>
