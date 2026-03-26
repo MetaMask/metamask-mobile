@@ -1017,4 +1017,68 @@ These issues were discovered and fixed during the smoke test. They inform the cu
 6. **Dev menu dismissal** — Tap server row → wait for Continue → tap Continue → tap X at coordinates `93%,37%`
 7. **`register.js` shims** — ESM-only `@metamask/native-utils` needs Module.\_resolveFilename redirect; `global.device` stub needed for PlatformDetector
 8. **`takeScreenshot` doesn't support `cropOn`** — Only `assertScreenshot` does
+9. **Dev menu dismissal improved** — Use `fast-refresh` testID instead of coordinates (`93%,37%`) for reliability across device sizes
+
+---
+
+## Next Steps
+
+### Task 12: Add Send Flow
+
+Add a visual regression flow for the send ETH flow, capturing multiple screens: asset selection, amount input, and recipient input.
+
+**Files:**
+
+- Create: `tests/visual/flows/wallet/send-eth.yaml`
+
+Key screens to capture:
+
+- Tap `wallet-send-button` → asset selection screen (`assertScreenshot`)
+- Tap "Ethereum" → amount input screen with `send_amount` testID (`assertScreenshot`)
+- Enter amount, tap "Continue" → recipient input screen with `recipient-address-input` testID (`assertScreenshot`)
+
+Uses `fixture:default` preset. No local node needed since we're only capturing UI screens, not submitting transactions.
+
+---
+
+### Task 13: Add Android Support
+
+Extend the orchestrator to support Android emulators alongside iOS simulators.
+
+**Areas to address:**
+
+- `device.ts` — detect booted Android emulator via `adb devices` (in addition to `xcrun simctl`)
+- `run-flow.ts` — use `adb shell am force-stop` instead of `xcrun simctl terminate`
+- CLI — add `--platform android|ios` flag or auto-detect based on available devices
+- Flows — Android may need different `appId` (`io.metamask.MetaMask.debug` vs `io.metamask.MetaMask`)
+- Baselines — separate baseline paths per platform (`ios/` vs `android/`)
+
+---
+
+### Task 14: Explore Guardrails for Specific Emulator/Simulator
+
+Screenshots vary across device models, OS versions, and screen sizes. We need guardrails to ensure baselines are generated and asserted on a consistent environment.
+
+**Areas to explore:**
+
+- Pin a canonical device model + OS version for CI (e.g. iPhone 16 Pro + iOS 18.4)
+- Validate the booted simulator matches the expected device before running flows — fail fast with a clear error if mismatched
+- Store device/OS metadata alongside baselines so stale baselines from a different environment are flagged
+- Consider per-device baseline directories (e.g. `baselines/iPhone-16-Pro-iOS-18.4/`)
+- Dark mode vs light mode — may need separate fixture presets and baseline sets
+
+---
+
+### Task 15: Explore Baseline Management
+
+Maestro has no built-in baseline management. We need a strategy for storing, updating, and reviewing baselines.
+
+**Areas to explore:**
+
+- **Storage**: commit to repo (visible in PR diffs, but binary bloat) vs external storage (S3, Git LFS)
+- **Update workflow**: who generates baselines, how are they reviewed (PR diff? separate approval step?)
+- **Staleness**: how to detect baselines generated on a different device/OS than CI
+- **CI integration**: generate baselines in CI on a pinned simulator, assert against them on every PR
+- **Diff visualization**: Maestro generates comparison images on failure — surface these in CI artifacts or PR comments
+
 9. **Rewritten flows need absolute `runFlow` paths** — Temp files in `.tmp/` break relative paths
