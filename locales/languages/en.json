@@ -6810,7 +6810,13 @@
     "oauth_error_button": "Try again",
     "no_internet_connection_title": "Unable to connect",
     "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
-    "no_internet_connection_button": "Try again"
+    "no_internet_connection_button": "Try again",
+    "ios_need_update_title": "iOS update required",
+    "ios_need_update_description": "MetaMask Google Sign-In will soon require ",
+    "ios_need_update_description_version": "iOS 17.4 or later",
+    "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
+    "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We strongly recommend backing up your Secret Recovery Phrase to ensure uninterrupted access.",
+    "ios_need_update_button": "Continue"
   },
   "password_hint": {
     "title": "Password hint",
@@ -7872,6 +7878,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD bonus calculator",
       "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
@@ -7947,6 +7954,32 @@
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
+    },
+    "ondo_campaign_leaderboard_position": {
+      "title": "Your Position",
+      "rank": "Rank",
+      "tier": "Tier",
+      "rate_of_return": "Return",
+      "total_deposited": "Total Deposited",
+      "current_value": "Current Value",
+      "updated_at": "Updated {{time}}",
+      "not_found": "Not on the leaderboard yet. Please check back later.",
+      "error_loading": "Failed to load your position",
+      "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
+      "retry": "Retry"
+    },
+    "ondo_campaign_leaderboard": {
+      "title": "Leaderboard",
+      "your_position": "Your position",
+      "of_total": "of {{total}} participants",
+      "total_participants": "{{count}} participants",
+      "updated_at": "Updated {{time}}",
+      "error_loading": "Failed to load leaderboard",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "error_loading_position": "Failed to load your position",
+      "retry": "Retry",
+      "no_data": "No leaderboard data available",
+      "no_entries_in_tier": "No participants in this tier yet"
     },
     "campaigns_preview": {
       "title": "Campaigns",

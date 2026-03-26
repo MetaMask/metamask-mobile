@@ -6,11 +6,11 @@ import Text, {
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from '../../../../Settings/DeveloperOptions/DeveloperOptions.styles';
 import { Hex } from '@metamask/utils';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTheme } from '@react-navigation/native';
 import { addTransactionBatch } from '../../../../../../util/transaction-controller';
 import { useSelector } from 'react-redux';
@@ -275,14 +275,15 @@ function DeveloperButton({
         {description}
       </Text>
       <Button
-        variant={ButtonVariants.Secondary}
+        variant={ButtonVariant.Secondary}
         size={ButtonSize.Lg}
-        label={buttonLabel}
         onPress={onPress}
         testID={testID}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         style={styles.accessory}
-      />
+      >
+        {buttonLabel}
+      </Button>
     </>
   );
 }

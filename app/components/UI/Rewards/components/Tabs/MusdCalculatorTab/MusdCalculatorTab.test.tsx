@@ -2,8 +2,11 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import MusdCalculatorTab from './MusdCalculatorTab';
 
+const mockGoToSwaps = jest.fn();
+
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(() => 'usd'),
+  useDispatch: jest.fn(() => jest.fn()),
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
@@ -12,6 +15,11 @@ jest.mock('../../../../../../../locales/i18n', () => ({
 
 jest.mock('../../../../../../core/DeeplinkManager', () => ({
   handleDeeplink: jest.fn(),
+}));
+
+jest.mock('../../../../Bridge/hooks/useSwapBridgeNavigation', () => ({
+  useSwapBridgeNavigation: () => ({ goToSwaps: mockGoToSwaps }),
+  SwapBridgeNavigationLocation: { Rewards: 'Rewards' },
 }));
 
 jest.mock('../../../../../../util/theme', () => {
@@ -54,17 +62,11 @@ describe('MusdCalculatorTab', () => {
     });
   });
 
-  it('calls handleDeeplink with swap URL when Swap button is pressed', () => {
-    const { handleDeeplink } = jest.requireMock(
-      '../../../../../../core/DeeplinkManager',
-    );
-
+  it('navigates to swap screen when Swap button is pressed', () => {
     const { getByText } = render(<MusdCalculatorTab />);
     fireEvent.press(getByText('rewards.musd.swap_button'));
 
-    expect(handleDeeplink).toHaveBeenCalledWith({
-      uri: expect.stringContaining('link.metamask.io/swap'),
-    });
+    expect(mockGoToSwaps).toHaveBeenCalled();
   });
 
   it('updates input value when amount changes', () => {
