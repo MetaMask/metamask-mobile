@@ -34,6 +34,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { ImportSRPIDs } from './SRPImport.testIds';
 import { importNewSecretRecoveryPhrase } from '../../../actions/multiSrp';
+import { trace, TraceOperation, TraceName } from '../../../util/trace';
 import { IconName as ComponentIconName } from '../../../component-library/components/Icons/Icon';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
 import TitleStandard from '../../../component-library/components-temp/TitleStandard';
@@ -180,11 +181,17 @@ const ImportNewSecretRecoveryPhrase = () => {
     setLoading(true);
     try {
       // check if seedless pwd is outdated skip cache before importing SRP
-      const isSeedlessPwdOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated({
-          skipCache: true,
-          captureSentryError: true,
-        });
+      const isSeedlessPwdOutdated = await trace(
+        {
+          name: TraceName.ImportSrpSeedlessPasswordCheck,
+          op: TraceOperation.ImportSrp,
+        },
+        () =>
+          Authentication.checkIsSeedlessPasswordOutdated({
+            skipCache: true,
+            captureSentryError: true,
+          }),
+      );
       if (isSeedlessPwdOutdated) {
         // no need to handle error here, password outdated state will trigger modal that force user to log out
         setLoading(false);

@@ -125,6 +125,11 @@ export enum TraceName {
   // Accounts
   CreateMultichainAccount = 'Create Multichain Account',
   DiscoverAccounts = 'Discover Accounts',
+  ImportSrp = 'Import SRP',
+  ImportSrpCreateWallet = 'Import SRP - Create Wallet',
+  ImportSrpBackground = 'Import SRP - Background',
+  ImportSrpSyncUserStorage = 'Import SRP - Sync User Storage',
+  ImportSrpSeedlessPasswordCheck = 'Import SRP - Seedless Password Check',
   ShowAccountAddressList = 'Show Account Address List',
   ShowAccountList = 'Show Account List',
   ShowAccountPrivateKeyList = 'Show Account Private Key List',
@@ -247,6 +252,8 @@ export enum TraceOperation {
   AccountCreate = 'account.create',
   AccountDiscover = 'account.discover',
   AccountUi = 'account.ui',
+  ImportSrp = 'import.srp',
+  SyncUserStorage = 'sync.user_storage',
   // Perps
   PerpsOperation = 'perps.operation',
   PerpsMarketData = 'perps.market_data',

@@ -44,10 +44,14 @@ export async function importNewSecretRecoveryPhrase(
   const seedLower = seed.toLowerCase();
   const mnemonic = mnemonicPhraseToBytes(seedLower);
 
-  const wallet = await MultichainAccountService.createMultichainAccountWallet({
-    type: 'import',
-    mnemonic,
-  });
+  const wallet = await trace(
+    { name: TraceName.ImportSrpCreateWallet, op: TraceOperation.ImportSrp },
+    () =>
+      MultichainAccountService.createMultichainAccountWallet({
+        type: 'import',
+        mnemonic,
+      }),
+  );
   const entropySource = wallet.entropySource;
 
   const [newAccountAddress] = await KeyringController.withKeyring(
@@ -112,11 +116,21 @@ export async function importNewSecretRecoveryPhrase(
   // We use an IIFE to be able to use async/await but not block the main thread.
   (async () => {
     let capturedError;
+    trace({
+      name: TraceName.ImportSrpBackground,
+      op: TraceOperation.AccountDiscover,
+    });
     try {
       // HACK: Force Snap keyring instantiation.
       await Engine.getSnapKeyring();
       // We need to dispatch a full sync here since this is a new SRP
-      await Engine.context.AccountTreeController.syncWithUserStorage();
+      await trace(
+        {
+          name: TraceName.ImportSrpSyncUserStorage,
+          op: TraceOperation.SyncUserStorage,
+        },
+        () => Engine.context.AccountTreeController.syncWithUserStorage(),
+      );
       // Then we discover accounts
       discoveredAccountsCount = await discoverAccounts(entropySource);
     } catch (error) {
@@ -127,6 +141,10 @@ export async function importNewSecretRecoveryPhrase(
 
       captureException(capturedError);
     } finally {
+      endTrace({
+        name: TraceName.ImportSrpBackground,
+        data: { discoveredAccountsCount },
+      });
       // We trigger the callback with the results, even in case of error (0 discovered accounts)
       await callback?.({
         address: newAccountAddress,
