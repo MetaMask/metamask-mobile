@@ -10,3 +10,17 @@ appId: io.metamask.MetaMask
 - tapOn: "Enter password"
 - inputText: "123123123"
 - tapOn: "Unlock"
+
+# Wait for wallet home to fully load (balance + token list)
+- extendedWaitUntil:
+    visible:
+      id: "wallet-screen"
+    timeout: 30000
+- extendedWaitUntil:
+    visible:
+      id: "total-balance-text"
+    timeout: 15000
+- extendedWaitUntil:
+    visible:
+      id: "token-list"
+    timeout: 15000

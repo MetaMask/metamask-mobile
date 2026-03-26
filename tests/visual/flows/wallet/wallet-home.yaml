@@ -16,20 +16,6 @@ tags:
 # Unlock the app with fixture default password
 - runFlow: ../shared/unlock-app.yaml
 
-# Wait for wallet home to fully load (balance + token list)
-- extendedWaitUntil:
-    visible:
-      id: "wallet-screen"
-    timeout: 30000
-- extendedWaitUntil:
-    visible:
-      id: "total-balance-text"
-    timeout: 15000
-- extendedWaitUntil:
-    visible:
-      id: "token-list"
-    timeout: 15000
-
 # Capture wallet home — tokens tab (default view)
 - assertScreenshot:
     path: ios/wallet/home-default.png
