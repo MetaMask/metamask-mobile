@@ -1872,15 +1872,14 @@ describe('WC2Manager', () => {
 
       const now = Math.floor(Date.now() / 1000);
 
-      // Pre-populate active sessions at the limit (20). The oldest session has the
-      // smallest expiry value (topic 'oldest-topic').
+      // Pre-populate 20 active sessions
       const existingSessions: Record<string, SessionTypes.Struct> = {};
       for (let i = 0; i < 20; i++) {
-        const topic = i === 0 ? 'oldest-topic' : `existing-topic-${i}`;
+        const topic = `topic-${i}`;
         existingSessions[topic] = {
           topic,
           pairingTopic: `pairing-${topic}`,
-          expiry: now + i * 100, // oldest has smallest expiry
+          expiry: now + i * 100,
           relay: { protocol: 'irn' },
           acknowledged: true,
           controller: 'controller',
@@ -1901,7 +1900,7 @@ describe('WC2Manager', () => {
       }
 
       // Make getActiveSessions return all 20 existing sessions plus the new one
-      // (i.e. 21 total) so enforceSessionLimit fires.
+      // so enforceSessionLimit fires.
       const newSessionTopic = 'new-session-topic';
       (web3Wallet.getActiveSessions as jest.Mock).mockReturnValue({
         ...existingSessions,
@@ -1970,9 +1969,8 @@ describe('WC2Manager', () => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       await manager.onSessionProposal(proposal as any);
 
-      // The oldest session (smallest expiry) should have been disconnected.
       expect(mockDisconnectSession).toHaveBeenCalledWith(
-        expect.objectContaining({ topic: 'oldest-topic' }),
+        expect.objectContaining({ topic: 'topic-0' }),
       );
     });
 
