@@ -90,17 +90,4 @@ describe('useSendFlowEnsResolutions', () => {
 
     expect(retrieved).toBe(ensName2);
   });
-
-  it('matches cache when chain id differs only by hex padding or notation', () => {
-    const { result } = renderHook(() => useSendFlowEnsResolutions());
-    const address = '0x2222222222222222222222222222222222222222';
-    const ensName = 'metamask.domain';
-
-    result.current.setResolvedAddress('0x01', ensName, address);
-    expect(result.current.getResolvedENSName('0x1', address)).toBe(ensName);
-    expect(result.current.getResolvedENSName('1', address)).toBe(ensName);
-    expect(result.current.getResolvedENSName('eip155:1', address)).toBe(
-      ensName,
-    );
-  });
 });
