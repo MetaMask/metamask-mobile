@@ -600,7 +600,7 @@ exports[`UnsupportedStateModal render match snapshot 1`] = `
                                   "backgroundColor": "transparent",
                                   "borderRadius": 12,
                                   "flexDirection": "row",
-                                  "height": NaN,
+                                  "height": 48,
                                   "justifyContent": "center",
                                   "overflow": "hidden",
                                   "paddingHorizontal": 16,

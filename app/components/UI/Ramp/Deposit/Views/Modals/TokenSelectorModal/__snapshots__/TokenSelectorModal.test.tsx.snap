@@ -1632,7 +1632,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                 "backgroundColor": "transparent",
                                 "borderRadius": 12,
                                 "flexDirection": "row",
-                                "height": NaN,
+                                "height": 32,
                                 "justifyContent": "center",
                                 "overflow": "hidden",
                                 "paddingHorizontal": 16,
