@@ -54,6 +54,27 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({ style: (...args: unknown[]) => args }),
 }));
 
+jest.mock('../RewardsInfoBanner', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      description,
+      testID,
+    }: {
+      title: React.ReactNode;
+      description: string;
+      testID?: string;
+    }) =>
+      ReactActual.createElement(
+        View,
+        { testID },
+        ReactActual.createElement(Text, null, description),
+      ),
+  };
+});
+
 jest.mock('../RewardsErrorBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
@@ -110,6 +131,8 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard_position.error_loading':
         'Failed to load your position',
       'rewards.ondo_campaign_leaderboard_position.retry': 'Retry',
+      'rewards.ondo_campaign_leaderboard.not_yet_computed':
+        'Leaderboard not yet computed',
     };
     return translations[key] || key;
   },
@@ -446,6 +469,71 @@ describe('OndoLeaderboardPosition', () => {
       render(<OndoLeaderboardPosition campaignId={undefined} />);
 
       expect(mockUseGetOndoLeaderboardPosition).toHaveBeenCalledWith(undefined);
+    });
+  });
+
+  describe('not yet computed state', () => {
+    it('renders NOT_YET_COMPUTED banner when leaderboard not yet computed and no position', () => {
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
+        isLoading: false,
+        hasError: false,
+        hasFetched: false,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId } = render(
+        <OndoLeaderboardPosition
+          campaignId={CAMPAIGN_ID}
+          isLeaderboardNotYetComputed
+        />,
+      );
+
+      expect(
+        getByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_YET_COMPUTED),
+      ).toBeDefined();
+    });
+
+    it('does not render NOT_YET_COMPUTED banner when loading', () => {
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: null,
+        isLoading: true,
+        hasError: false,
+        hasFetched: false,
+        refetch: mockRefetch,
+      });
+
+      const { queryByTestId } = render(
+        <OndoLeaderboardPosition
+          campaignId={CAMPAIGN_ID}
+          isLeaderboardNotYetComputed
+        />,
+      );
+
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_YET_COMPUTED),
+      ).toBeNull();
+    });
+
+    it('does not render NOT_YET_COMPUTED banner when position data is present', () => {
+      mockUseGetOndoLeaderboardPosition.mockReturnValue({
+        position: MOCK_POSITION,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+
+      const { queryByTestId } = render(
+        <OndoLeaderboardPosition
+          campaignId={CAMPAIGN_ID}
+          isLeaderboardNotYetComputed
+        />,
+      );
+
+      expect(
+        queryByTestId(ONDO_LEADERBOARD_POSITION_TEST_IDS.NOT_YET_COMPUTED),
+      ).toBeNull();
     });
   });
 });

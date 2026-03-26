@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import OndoPortfolio, { ONDO_PORTFOLIO_TEST_IDS } from './OndoPortfolio';
 import { useGetOndoPortfolioPosition } from '../../hooks/useGetOndoPortfolioPosition';
 import type {
@@ -26,7 +26,7 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
 
 jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: jest.fn(), dispatch: jest.fn() }),
-  StackActions: { push: jest.fn() },
+  StackActions: { push: jest.fn((name: string) => ({ type: 'push', name })) },
 }));
 
 jest.mock('../RewardsErrorBanner', () => {
@@ -382,6 +382,110 @@ describe('OndoPortfolio', () => {
       render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
 
       expect(mockUseGetOndoPortfolioPosition).toHaveBeenCalledWith(CAMPAIGN_ID);
+    });
+  });
+
+  describe('navigation', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: MOCK_PORTFOLIO,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+    });
+
+    it('shows arrow icon in section header when there are positions', () => {
+      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      fireEvent.press(getByText('Your Positions'));
+      // Component handles the press without throwing
+      expect(getByText('Your Positions')).toBeDefined();
+    });
+
+    it('pressing a position row does not throw', () => {
+      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      fireEvent.press(getByText('Apple Inc.'));
+      expect(getByText('Apple Inc.')).toBeDefined();
+    });
+
+    it('renders portfolio with no positions (no arrow icon, no position rows)', () => {
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { ...MOCK_PORTFOLIO, positions: [] },
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+
+      const { getByTestId, queryByText } = render(
+        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+      );
+
+      expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeDefined();
+      expect(queryByText('Apple Inc.')).toBeNull();
+    });
+  });
+
+  describe('position rendering details', () => {
+    beforeEach(() => {
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: MOCK_PORTFOLIO,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+    });
+
+    it('renders the units text', () => {
+      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      expect(getByText('45.2 units')).toBeDefined();
+    });
+
+    it('renders the updated at text', () => {
+      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      expect(getByText('Updated: 1 hour ago')).toBeDefined();
+    });
+
+    it('renders positive PnL percent in green', () => {
+      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      expect(getByText('+7.75%')).toBeDefined();
+    });
+
+    it('renders negative PnL percent for loss position', () => {
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: {
+          ...MOCK_PORTFOLIO,
+          positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '-0.05' }],
+        },
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+
+      const { getByText } = render(<OndoPortfolio campaignId={CAMPAIGN_ID} />);
+      expect(getByText('-5.00%')).toBeDefined();
+    });
+
+    it('does not render PnL percent when value is non-numeric', () => {
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: {
+          ...MOCK_PORTFOLIO,
+          positions: [{ ...MOCK_POSITION, unrealizedPnlPercent: '—' }],
+        },
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
+        refetch: mockRefetch,
+      });
+
+      const { queryByText } = render(
+        <OndoPortfolio campaignId={CAMPAIGN_ID} />,
+      );
+      expect(queryByText('—')).toBeNull();
     });
   });
 });

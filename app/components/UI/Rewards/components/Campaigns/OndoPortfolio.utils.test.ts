@@ -1,4 +1,8 @@
-import { groupPortfolioPositionsByAsset } from './OndoPortfolio.utils';
+import {
+  groupPortfolioPositionsByAsset,
+  formatPnlPercent,
+  isPnlNonNegative,
+} from './OndoPortfolio.utils';
 
 describe('groupPortfolioPositionsByAsset', () => {
   it('merges rows with the same tokenAsset', () => {
@@ -65,5 +69,45 @@ describe('groupPortfolioPositionsByAsset', () => {
     ]);
 
     expect(merged).toHaveLength(2);
+  });
+});
+
+describe('formatPnlPercent', () => {
+  it('formats a positive decimal as a signed percent', () => {
+    expect(formatPnlPercent('0.0775')).toBe('+7.75%');
+  });
+
+  it('formats a negative decimal with minus sign', () => {
+    expect(formatPnlPercent('-0.05')).toBe('-5.00%');
+  });
+
+  it('formats zero as +0.00%', () => {
+    expect(formatPnlPercent('0')).toBe('+0.00%');
+  });
+
+  it('returns empty string for non-numeric value', () => {
+    expect(formatPnlPercent('—')).toBe('');
+  });
+
+  it('returns empty string for empty string input', () => {
+    expect(formatPnlPercent('')).toBe('');
+  });
+});
+
+describe('isPnlNonNegative', () => {
+  it('returns true for a positive value', () => {
+    expect(isPnlNonNegative('0.1')).toBe(true);
+  });
+
+  it('returns true for zero', () => {
+    expect(isPnlNonNegative('0')).toBe(true);
+  });
+
+  it('returns false for a negative value', () => {
+    expect(isPnlNonNegative('-0.05')).toBe(false);
+  });
+
+  it('returns false for non-parseable value (BigNumber NaN is not >= 0)', () => {
+    expect(isPnlNonNegative('—')).toBe(false);
   });
 });

@@ -179,4 +179,13 @@ describe('OndoLeaderboardView', () => {
     const { getByTestId } = render(<OndoLeaderboardView />);
     expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
   });
+
+  it('renders when leaderboard is not yet computed', () => {
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      ...hookDefaults,
+      isLeaderboardNotYetComputed: true,
+    });
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
+  });
 });
