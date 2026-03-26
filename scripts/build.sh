@@ -548,16 +548,6 @@ generateIosBinary() {
 
 	echo "exportOptionsPlist: $exportOptionsPlist"
 	echo "Generating archive packages for $scheme in $configuration configuration"
-	# Ensure React Native codegen artifacts exist before Xcode compiles the ReactCodegen pod.
-	# The CocoaPods "[CP-User] Generate Specs" script only declares react-codegen.log as an output;
-	# Xcode may skip that script while sources under ios/build/generated/ios are missing (e.g. after
-	# a partial clean or when derived data shares ios/build with codegen output).
-	echo "Generating React Native iOS codegen artifacts..."
-	mkdir -p "${REPO_ROOT_DIR}/ios/build/generated/ios"
-	node "${REPO_ROOT_DIR}/node_modules/react-native/scripts/generate-codegen-artifacts.js" \
-		-p "${REPO_ROOT_DIR}" \
-		-t ios \
-		-o "${REPO_ROOT_DIR}/ios/build/generated/ios"
 	if [ "$IS_SIM_BUILD" = "true" ]; then
     	echo "Binary build type: Simulator"
 		xcodebuild -workspace MetaMask.xcworkspace -scheme $scheme -configuration $configuration -sdk iphonesimulator -derivedDataPath build
