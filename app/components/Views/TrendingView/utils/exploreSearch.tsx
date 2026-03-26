@@ -1,8 +1,15 @@
-import React, { useRef } from 'react';
-import { View } from 'react-native';
-import type { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
+import React, { useCallback, useRef } from 'react';
+import { Box } from '@metamask/design-system-react-native';
+import {
+  useNavigation,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
+import type { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
+import type { SectionConfig } from '../sections.config';
 
 /**
  * Minimum vertical movement (in pixels) to consider a touch gesture a scroll
@@ -24,7 +31,7 @@ export const TapView: React.FC<{
   const startY = useRef(0);
   const didScroll = useRef(false);
   return (
-    <View
+    <Box
       onTouchStart={(e) => {
         startY.current = e.nativeEvent.pageY;
         didScroll.current = false;
@@ -39,7 +46,7 @@ export const TapView: React.FC<{
       }}
     >
       {children}
-    </View>
+    </Box>
   );
 };
 
@@ -55,5 +62,80 @@ export const trackExploreEvent = (
     AnalyticsEventBuilder.createEventBuilder(event)
       .addProperties(properties)
       .build(),
+  );
+};
+
+/**
+ * Returns a stable `onScrollBeginDrag` handler that fires a one-shot
+ * analytics event the first time the user begins scrolling.
+ * Uses a ref for `searchQuery` so the callback identity never changes.
+ */
+export const useScrollTracking = (
+  interactionType: string,
+  searchQuery: string,
+  extraProperties?: Record<string, string>,
+) => {
+  const hasTracked = useRef(false);
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+
+  const extraPropsRef = useRef(extraProperties);
+  extraPropsRef.current = extraProperties;
+
+  const onScrollBeginDrag = useCallback(() => {
+    if (hasTracked.current) return;
+    hasTracked.current = true;
+    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
+      interaction_type: interactionType,
+      search_query: searchQueryRef.current,
+      ...extraPropsRef.current,
+    });
+  }, [interactionType]);
+
+  const resetScrollTracking = useCallback(() => {
+    hasTracked.current = false;
+  }, []);
+
+  return { onScrollBeginDrag, resetScrollTracking };
+};
+
+interface TrackedRowItemProps {
+  section: SectionConfig;
+  item: unknown;
+  index: number;
+  searchQuery: string;
+  interactionType: string;
+}
+
+/**
+ * Renders a section RowItem (or its search override) wrapped in a TapView
+ * that fires an analytics event on tap with the item identifier.
+ */
+export const TrackedRowItem: React.FC<TrackedRowItemProps> = ({
+  section,
+  item,
+  index,
+  searchQuery,
+  interactionType,
+}) => {
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const RowComponent = section.OverrideRowItemSearch ?? section.RowItem;
+
+  const searchQueryRef = useRef(searchQuery);
+  searchQueryRef.current = searchQuery;
+
+  const handleItemTouch = useCallback(() => {
+    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
+      interaction_type: interactionType,
+      search_query: searchQueryRef.current,
+      section_name: section.title,
+      item_clicked: section.getItemIdentifier(item),
+    });
+  }, [interactionType, section, item]);
+
+  return (
+    <TapView onTap={handleItemTouch}>
+      <RowComponent item={item} index={index} navigation={navigation} />
+    </TapView>
   );
 };

@@ -19,7 +19,11 @@ import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Pressable } from 'react-native';
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
 import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import { TapView, trackExploreEvent } from '../../utils/exploreSearch';
+import {
+  TrackedRowItem,
+  trackExploreEvent,
+  useScrollTracking,
+} from '../../utils/exploreSearch';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
@@ -67,34 +71,31 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
-  const hasScrollTracked = useRef(false);
+  const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
+    'scrolled',
+    searchQuery,
+  );
+
+  useEffect(() => {
+    resetScrollTracking();
+  }, [searchQuery, resetScrollTracking]);
 
   const handleViewMore = useCallback(
     (sectionId: SectionId, title: string) => {
-      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_VIEW_ALL_CLICKED, {
-        searchQuery,
-        sectionName: title,
+      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
+        interaction_type: 'view_all_clicked',
+        search_query: searchQuery,
+        section_name: title,
       });
       navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
         sectionId,
         title,
         searchQuery,
+        data: data[sectionId],
       });
     },
-    [navigation, searchQuery],
+    [navigation, searchQuery, data],
   );
-
-  const handleScroll = useCallback(() => {
-    if (hasScrollTracked.current) return;
-    hasScrollTracked.current = true;
-    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_SCROLLED, {
-      searchQuery,
-    });
-  }, [searchQuery]);
-
-  useEffect(() => {
-    hasScrollTracked.current = false;
-  }, [searchQuery]);
 
   const renderSectionHeader = useCallback(
     (item: ListItemHeader) => (
@@ -111,6 +112,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
           <Pressable
             onPress={() => handleViewMore(item.sectionId, item.title)}
             hitSlop={8}
+            accessibilityRole="button"
+            accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
           >
             <Box
               flexDirection={BoxFlexDirection.Row}
@@ -223,29 +226,17 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return <section.Skeleton />;
       }
 
-      const RowComponent = section.OverrideRowItemSearch ?? section.RowItem;
-      const { getItemIdentifier } = section;
-      const handleItemTouch = getItemIdentifier
-        ? () => {
-            trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_RESULT_CLICKED, {
-              searchQuery,
-              sectionName: section.title,
-              itemClicked: getItemIdentifier(item.data),
-            });
-          }
-        : undefined;
-
       return (
-        <TapView onTap={handleItemTouch}>
-          <RowComponent
-            item={item.data}
-            index={index}
-            navigation={navigation}
-          />
-        </TapView>
+        <TrackedRowItem
+          section={section}
+          item={item.data}
+          index={index}
+          searchQuery={searchQuery}
+          interactionType="result_clicked"
+        />
       );
     },
-    [navigation, renderSectionHeader, searchQuery],
+    [renderSectionHeader, searchQuery],
   );
 
   const keyExtractor = useCallback((item: FlatListItem, index: number) => {
@@ -270,8 +261,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         keyboardShouldPersistTaps="handled"
         testID="trending-search-results-list"
         ListFooterComponent={renderFooter}
-        onScroll={handleScroll}
-        scrollEventThrottle={400}
+        onScrollBeginDrag={onScrollBeginDrag}
       />
     </Box>
   );

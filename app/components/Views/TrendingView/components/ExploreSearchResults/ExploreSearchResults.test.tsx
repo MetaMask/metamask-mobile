@@ -4,6 +4,7 @@ import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
@@ -458,11 +459,17 @@ describe('ExploreSearchResults', () => {
       fireEvent.press(getByText('View all'));
 
       expect(mockNavigate).toHaveBeenCalledWith(
-        'ExploreSectionResultsFullView',
+        Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW,
         {
           sectionId: 'tokens',
           title: 'Trending tokens',
           searchQuery: 'bitcoin',
+          data: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+            { assetId: '3', symbol: 'SOL', name: 'Solana' },
+            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+          ],
         },
       );
     });

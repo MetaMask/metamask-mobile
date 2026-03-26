@@ -1185,22 +1185,7 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW}
           component={ExploreSectionResultsFullView}
-          options={{
-            headerShown: false,
-            animationEnabled: true,
-            cardStyleInterpolator: ({ current, layouts }) => ({
-              cardStyle: {
-                transform: [
-                  {
-                    translateX: current.progress.interpolate({
-                      inputRange: [0, 1],
-                      outputRange: [layouts.screen.width, 0],
-                    }),
-                  },
-                ],
-              },
-            }),
-          }}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen
           name={Routes.BROWSER.HOME}

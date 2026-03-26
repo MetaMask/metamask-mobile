@@ -161,7 +161,7 @@ describe('trackExploreEvent', () => {
 
   it('calls analytics.trackEvent with a built event', () => {
     const mockEvent = { category: 'Explore', action: 'Click' };
-    const properties = { searchQuery: 'bitcoin', sectionName: 'Tokens' };
+    const properties = { search_query: 'bitcoin', section_name: 'Tokens' };
 
     trackExploreEvent(mockEvent as never, properties);
 
@@ -176,9 +176,9 @@ describe('trackExploreEvent', () => {
   it('passes all properties to the event builder', () => {
     const mockEvent = { category: 'Explore', action: 'Scroll' };
     const properties = {
-      searchQuery: 'eth',
-      sectionName: 'Perps',
-      itemClicked: 'ETH-USD',
+      search_query: 'eth',
+      section_name: 'Perps',
+      item_clicked: 'ETH-USD',
     };
 
     trackExploreEvent(mockEvent as never, properties);

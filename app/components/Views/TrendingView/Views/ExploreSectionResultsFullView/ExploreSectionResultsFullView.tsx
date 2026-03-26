@@ -1,4 +1,4 @@
-import React, { useCallback, useRef } from 'react';
+import React, { useCallback } from 'react';
 import { Platform } from 'react-native';
 import { FlashList, ListRenderItem } from '@shopify/flash-list';
 import {
@@ -22,80 +22,45 @@ import {
   FontWeight,
 } from '@metamask/design-system-react-native';
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import { TapView, trackExploreEvent } from '../../utils/exploreSearch';
+import { TrackedRowItem, useScrollTracking } from '../../utils/exploreSearch';
 
 interface SectionContentProps {
   sectionId: SectionId;
   searchQuery: string;
+  data: unknown[];
 }
 
 const SectionContent: React.FC<SectionContentProps> = ({
   sectionId,
   searchQuery,
+  data,
 }) => {
   const tw = useTailwind();
-  const navigation = useNavigation();
   const section = SECTIONS_CONFIG[sectionId];
-  const hasScrollTracked = useRef(false);
 
-  const { data, isLoading } = section.useSectionData(searchQuery);
-
-  const handleScroll = useCallback(() => {
-    if (hasScrollTracked.current) return;
-    hasScrollTracked.current = true;
-    trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_VIEW_ALL_SCROLLED, {
-      searchQuery,
-      sectionName: section.title,
-    });
-  }, [searchQuery, section.title]);
+  const { onScrollBeginDrag } = useScrollTracking(
+    'view_all_scrolled',
+    searchQuery,
+    { section_name: section.title },
+  );
 
   const renderItem: ListRenderItem<unknown> = useCallback(
-    ({ item, index }) => {
-      const RowItemComponent = section.OverrideRowItemSearch ?? section.RowItem;
-      const { getItemIdentifier } = section;
-      const handleItemTouch = getItemIdentifier
-        ? () => {
-            trackExploreEvent(
-              MetaMetricsEvents.EXPLORE_SEARCH_VIEW_ALL_ITEM_CLICKED,
-              {
-                searchQuery,
-                sectionName: section.title,
-                itemClicked: getItemIdentifier(item),
-              },
-            );
-          }
-        : undefined;
-
-      return (
-        <TapView onTap={handleItemTouch}>
-          <RowItemComponent
-            item={item}
-            index={index}
-            navigation={navigation as never}
-          />
-        </TapView>
-      );
-    },
-    [section, navigation, searchQuery],
+    ({ item, index }) => (
+      <TrackedRowItem
+        section={section}
+        item={item}
+        index={index}
+        searchQuery={searchQuery}
+        interactionType="view_all_item_clicked"
+      />
+    ),
+    [section, searchQuery],
   );
 
   const keyExtractor = useCallback(
     (_item: unknown, index: number) => `${sectionId}-${index}`,
     [sectionId],
   );
-
-  if (isLoading) {
-    const SkeletonComponent =
-      section.OverrideSkeletonSearch ?? section.Skeleton;
-    return (
-      <Box twClassName="px-4">
-        {Array.from({ length: 10 }).map((_, i) => (
-          <SkeletonComponent key={`skeleton-${i}`} />
-        ))}
-      </Box>
-    );
-  }
 
   return (
     <FlashList
@@ -104,8 +69,7 @@ const SectionContent: React.FC<SectionContentProps> = ({
       keyExtractor={keyExtractor}
       contentContainerStyle={tw.style('px-4')}
       showsVerticalScrollIndicator={false}
-      onScroll={handleScroll}
-      scrollEventThrottle={400}
+      onScrollBeginDrag={onScrollBeginDrag}
     />
   );
 };
@@ -116,7 +80,7 @@ const ExploreSectionResultsFullView: React.FC = () => {
   const route =
     useRoute<RouteProp<RootStackParamList, 'ExploreSectionResultsFullView'>>();
 
-  const { sectionId, title, searchQuery } = route.params;
+  const { sectionId, title, searchQuery, data } = route.params;
   const section = SECTIONS_CONFIG[sectionId];
   const Wrapper = section.SectionWrapper ?? React.Fragment;
 
@@ -146,7 +110,11 @@ const ExploreSectionResultsFullView: React.FC = () => {
       </Box>
 
       <Wrapper>
-        <SectionContent sectionId={sectionId} searchQuery={searchQuery} />
+        <SectionContent
+          sectionId={sectionId}
+          searchQuery={searchQuery}
+          data={data}
+        />
       </Wrapper>
     </Box>
   );

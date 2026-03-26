@@ -301,6 +301,7 @@ export interface RootStackParamList extends ParamListBase {
     sectionId: SectionId;
     title: string;
     searchQuery: string;
+    data: unknown[];
   };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
