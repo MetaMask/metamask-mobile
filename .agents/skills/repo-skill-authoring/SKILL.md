@@ -97,7 +97,7 @@ Required agent response sections:
 
 ### Canonical Repo Skill
 
-````md
+```md
 ---
 name: topic
 description: Create and update the repo-local topic workflow. Use for new skill content or harness shims in this repository.
@@ -114,7 +114,7 @@ Explain when this repo-local skill is needed and when existing repo docs are eno
 1. Discover current implementation.
 2. Apply repo-specific workflow.
 3. Confirm any shims stay aligned.
-````
+```
 
 ### Claude Skill Shim
 
@@ -131,7 +131,7 @@ Follow `.agents/skills/topic/SKILL.md`.
 
 ```yaml
 interface:
-  display_name: "Topic"
-  short_description: "Create and validate the repo-local topic workflow."
-  default_prompt: "Use $topic to create or update the canonical repo-local topic workflow."
+  display_name: 'Topic'
+  short_description: 'Create and validate the repo-local topic workflow.'
+  default_prompt: 'Use $topic to create or update the canonical repo-local topic workflow.'
 ```
