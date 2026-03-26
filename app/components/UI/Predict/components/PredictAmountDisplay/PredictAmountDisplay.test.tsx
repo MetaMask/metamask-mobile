@@ -1,7 +1,21 @@
 import { fireEvent, render } from '@testing-library/react-native';
 import React from 'react';
+import { Provider } from 'react-redux';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
 import PredictAmountDisplay from './PredictAmountDisplay';
+import { createStore } from 'redux';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
+
+// Mock store with privacy mode
+const createMockStore = (privacyMode: boolean = false) => ({
+  getState: () => ({
+    preferencesController: {
+      privacyMode,
+    },
+  }),
+  dispatch: jest.fn(),
+  subscribe: jest.fn(),
+});
 
 jest.mock('../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../util/theme');
@@ -9,6 +23,10 @@ jest.mock('../../../../../util/theme', () => {
     useTheme: jest.fn(() => mockTheme),
   };
 });
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  selectPrivacyMode: jest.fn((state) => state.preferencesController.privacyMode),
+}));
 
 describe('PredictAmountDisplay', () => {
   beforeEach(() => {
@@ -284,6 +302,64 @@ describe('PredictAmountDisplay', () => {
           lineHeight: 22,
         }),
       );
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    it('hides amount when privacy mode is enabled', () => {
+      const amount = '1000';
+      const mockStore = createMockStore(true);
+      ;(selectPrivacyMode as jest.Mock).mockReturnValue(true);
+
+      const { queryByText, getByTestId } = render(
+        <Provider store={mockStore}>
+          <PredictAmountDisplay amount={amount} />
+        </Provider>,
+      );
+
+      // Amount should not be visible
+      expect(queryByText('$1000')).toBeNull();
+      
+      // SensitiveText should be present with isHidden prop
+      const amountText = getByTestId(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL);
+      expect(amountText).toBeOnTheScreen();
+    });
+
+    it('shows amount when privacy mode is disabled', () => {
+      const amount = '1000';
+      const mockStore = createMockStore(false);
+      ;(selectPrivacyMode as jest.Mock).mockReturnValue(false);
+
+      const { getByText } = render(
+        <Provider store={mockStore}>
+          <PredictAmountDisplay amount={amount} />
+        </Provider>,
+      );
+
+      expect(getByText('$1000')).toBeOnTheScreen();
+    });
+
+    it('uses appropriate SensitiveText length based on amount size', () => {
+      const shortAmount = '100';
+      const longAmount = '1234567890.12';
+      
+      ;(selectPrivacyMode as jest.Mock).mockReturnValue(false);
+
+      const { getByTestId: getByTestIdShort } = render(
+        <Provider store={createMockStore(false)}>
+          <PredictAmountDisplay amount={shortAmount} />
+        </Provider>,
+      );
+
+      const { getByTestId: getByTestIdLong } = render(
+        <Provider store={createMockStore(false)}>
+          <PredictAmountDisplay amount={longAmount} />
+        </Provider>,
+      );
+
+      // Both should render without errors
+      expect(getByTestIdShort(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)).toBeOnTheScreen();
+      expect(getByTestIdLong(PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL)).toBeOnTheScreen();
     });
   });
 

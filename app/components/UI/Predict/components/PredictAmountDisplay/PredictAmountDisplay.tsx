@@ -6,12 +6,16 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
 import { Animated, TouchableOpacity } from 'react-native';
+import { useSelector } from 'react-redux';
 import { PerpsAmountDisplaySelectorsIDs } from '../../../Perps/Perps.testIds';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as ComponentTextVariant,
+} from '../../../../../component-library/components/Texts/Text/Text.types';
 import { useTheme } from '../../../../../util/theme';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { PREDICT_AMOUNT_DISPLAY_TEST_IDS } from './PredictAmountDisplay.testIds';
 
 interface PredictAmountDisplayProps {
@@ -48,6 +52,7 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
 }) => {
   const tw = useTailwind();
   const { colors } = useTheme();
+  const privacyMode = useSelector(selectPrivacyMode);
   const fadeAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -87,17 +92,19 @@ const PredictAmountDisplay: React.FC<PredictAmountDisplayProps> = ({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
       >
-        {/* Text only takes 1 arg */}
-        <Text
+        {/* SensitiveText takes 1 arg */}
+        <SensitiveText
           testID={PerpsAmountDisplaySelectorsIDs.AMOUNT_LABEL}
-          color={hasError ? TextColor.Error : TextColor.Default}
-          variant={TextVariant.BodyMDMedium}
+          variant={ComponentTextVariant.BodyMDMedium}
+          isHidden={privacyMode}
+          length={amountValue.length > 8 ? SensitiveTextLength.Long : SensitiveTextLength.Medium}
           style={tw.style(
             `text-[${fontSize}px] tracking-tight leading-[${lineHeight}px] font-medium px-2`,
+            hasError && 'text-error',
           )}
         >
           {amountValue}
-        </Text>
+        </SensitiveText>
         {isActive && (
           <Animated.View
             testID={PREDICT_AMOUNT_DISPLAY_TEST_IDS.CURSOR}

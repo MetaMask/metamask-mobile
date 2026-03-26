@@ -39,6 +39,14 @@ import Button, {
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as ComponentTextVariant,
+  TextColor as ComponentTextColor,
+} from '../../../../../component-library/components/Texts/Text/Text.types';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import Engine from '../../../../../core/Engine';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
@@ -71,6 +79,7 @@ const PredictBuyPreview = () => {
   const tw = useTailwind();
   const keypadRef = useRef<PredictKeypadHandles>(null);
   const feeBreakdownSheetRef = useRef<BottomSheetRef>(null);
+  const privacyMode = useSelector(selectPrivacyMode);
   const { goBack, dispatch } = useNavigation();
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
@@ -328,13 +337,22 @@ const PredictBuyPreview = () => {
           {isBalanceLoading ? (
             <Skeleton width={120} height={20} />
           ) : (
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {`${strings('predict.order.available')}: `}
-              {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
-            </Text>
+            <>
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {`${strings('predict.order.available')}: `}
+              </Text>
+              <SensitiveText
+                variant={ComponentTextVariant.BodyMd}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Medium}
+                style={tw.style('text-alternative')}
+              >
+                {formatPrice(balance, { minimumDecimals: 2, maximumDecimals: 2 })}
+              </SensitiveText>
+            </>
           )}
         </Box>
         <Box
@@ -353,16 +371,17 @@ const PredictBuyPreview = () => {
           {isCalculating && isUserInputChange ? (
             <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
           ) : (
-            <Text
-              variant={TextVariant.BodyLg}
-              twClassName="font-medium"
-              color={TextColor.SuccessDefault}
+            <SensitiveText
+              variant={ComponentTextVariant.BodyLg}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              style={tw.style('font-medium text-success-default')}
             >
               {formatPrice(toWin, {
                 minimumDecimals: 2,
                 maximumDecimals: 2,
               })}
-            </Text>
+            </SensitiveText>
           )}
         </Box>
       </Box>
@@ -409,8 +428,15 @@ const PredictBuyPreview = () => {
           style={tw.style('text-white font-medium')}
         >
           {outcomeToken?.title} ·{' '}
-          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
         </Text>
+        <SensitiveText
+          variant={ComponentTextVariant.BodyMd}
+          isHidden={privacyMode}
+          length={SensitiveTextLength.Short}
+          style={tw.style('text-white font-medium')}
+        >
+          {formatCents(preview?.sharePrice ?? outcomeToken?.price ?? 0)}
+        </SensitiveText>
       </ButtonHero>
     );
   };
@@ -421,18 +447,29 @@ const PredictBuyPreview = () => {
     }
 
     return (
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.ErrorDefault}
-        style={tw.style('text-center pb-2')}
-      >
-        {strings('predict.order.prediction_minimum_bet', {
-          amount: formatPrice(MINIMUM_BET, {
-            minimumDecimals: 2,
-            maximumDecimals: 2,
-          }),
-        })}
-      </Text>
+      <>
+        <Text
+          variant={TextVariant.BodySm}
+          color={TextColor.ErrorDefault}
+          style={tw.style('text-center pb-2')}
+        >
+          {strings('predict.order.prediction_minimum_bet', {
+            amount: (
+              <SensitiveText
+                variant={ComponentTextVariant.BodySm}
+                isHidden={privacyMode}
+                length={SensitiveTextLength.Short}
+                style={tw.style('text-error')}
+              >
+                {formatPrice(MINIMUM_BET, {
+                  minimumDecimals: 2,
+                  maximumDecimals: 2,
+                })}
+              </SensitiveText>
+            ),
+          })}
+        </Text>
+      </>
     );
   };
 

@@ -10,11 +10,19 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import React, { useEffect, useRef } from 'react';
 import { Animated } from 'react-native';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../../../locales/i18n';
 import Skeleton from '../../../../../../../component-library/components/Skeleton/Skeleton';
 import { formatPrice } from '../../../../utils/format';
 import PredictAmountDisplay from '../../../../components/PredictAmountDisplay';
 import type { PredictKeypadHandles } from '../../../../components/PredictKeypad';
+import SensitiveText, {
+  SensitiveTextLength,
+} from '../../../../../../../component-library/components/Texts/SensitiveText';
+import {
+  TextVariant as ComponentTextVariant,
+} from '../../../../../../../component-library/components/Texts/Text/Text.types';
+import { selectPrivacyMode } from '../../../../../../../selectors/preferencesController';
 
 interface PredictBuyAmountSectionProps {
   currentValueUSDString: string;
@@ -38,6 +46,7 @@ const PredictBuyAmountSection = ({
   isShowingToWinSkeleton,
 }: PredictBuyAmountSectionProps) => {
   const tw = useTailwind();
+  const privacyMode = useSelector(selectPrivacyMode);
   const pulseAnim = useRef(new Animated.Value(1)).current;
 
   useEffect(() => {
@@ -84,8 +93,15 @@ const PredictBuyAmountSection = ({
               twClassName="text-center"
             >
               {`${strings('predict.order.available')}: `}
-              {availableBalanceDisplay}
             </Text>
+            <SensitiveText
+              variant={ComponentTextVariant.BodyMd}
+              isHidden={privacyMode}
+              length={SensitiveTextLength.Medium}
+              style={tw.style('text-center text-alternative')}
+            >
+              {availableBalanceDisplay}
+            </SensitiveText>
           </Animated.View>
         )}
       </Box>
@@ -105,16 +121,17 @@ const PredictBuyAmountSection = ({
         {isShowingToWinSkeleton ? (
           <Skeleton width={80} height={24} style={tw.style('rounded-md')} />
         ) : (
-          <Text
-            variant={TextVariant.BodyLg}
-            twClassName="font-medium"
-            color={TextColor.SuccessDefault}
+          <SensitiveText
+            variant={ComponentTextVariant.BodyLg}
+            isHidden={privacyMode}
+            length={SensitiveTextLength.Medium}
+            style={tw.style('font-medium text-success-default')}
           >
             {formatPrice(toWin, {
               minimumDecimals: 2,
               maximumDecimals: 2,
             })}
-          </Text>
+          </SensitiveText>
         )}
       </Box>
     </>
