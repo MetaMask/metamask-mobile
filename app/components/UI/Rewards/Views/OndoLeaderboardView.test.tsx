@@ -115,9 +115,10 @@ const hookDefaults = {
   leaderboard: null,
   isLoading: false,
   hasError: false,
+  isLeaderboardNotYetComputed: false,
   tierNames: ['STARTER', 'MID'],
   selectedTier: 'STARTER',
-  selectedTierData: { entries: [], total_participants: 10 },
+  selectedTierData: { entries: [], totalParticipants: 10 },
   computedAt: '2024-03-20T12:00:00.000Z',
   setSelectedTier: jest.fn(),
   refetch: jest.fn(),
@@ -174,6 +175,15 @@ describe('OndoLeaderboardView', () => {
     mockUseGetOndoLeaderboard.mockReturnValue({
       ...hookDefaults,
       hasError: true,
+    });
+    const { getByTestId } = render(<OndoLeaderboardView />);
+    expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
+  });
+
+  it('renders when leaderboard is not yet computed', () => {
+    mockUseGetOndoLeaderboard.mockReturnValue({
+      ...hookDefaults,
+      isLeaderboardNotYetComputed: true,
     });
     const { getByTestId } = render(<OndoLeaderboardView />);
     expect(getByTestId(ONDO_LEADERBOARD_VIEW_TEST_IDS.CONTAINER)).toBeDefined();
