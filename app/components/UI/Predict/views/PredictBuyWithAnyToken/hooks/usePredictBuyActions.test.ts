@@ -9,7 +9,7 @@ import {
 } from '../../../types';
 
 const mockDispatch = jest.fn();
-const mockOnApprovalReject = jest.fn();
+const mockOnConfirmActionsReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockUnsubscribe = jest.fn();
 const mockInvalidateQueries = jest.fn();
@@ -68,10 +68,15 @@ jest.mock(
     __esModule: true,
     default: () => ({
       onConfirm: mockOnApprovalConfirm,
-      onReject: mockOnApprovalReject,
     }),
   }),
 );
+
+jest.mock('../../../../../Views/confirmations/hooks/useConfirmActions', () => ({
+  useConfirmActions: () => ({
+    onReject: mockOnConfirmActionsReject,
+  }),
+}));
 
 jest.mock('../../../hooks/usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
@@ -171,7 +176,7 @@ describe('usePredictBuyActions', () => {
 
       expect(mockTransitionEndUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockBeforeRemoveUnsubscribe).toHaveBeenCalledTimes(1);
-      expect(mockOnApprovalReject).toHaveBeenCalledTimes(1);
+      expect(mockOnConfirmActionsReject).toHaveBeenCalledTimes(1);
     });
 
     it('only calls initiPayWithAnyToken once even if transitionEnd fires again', () => {
