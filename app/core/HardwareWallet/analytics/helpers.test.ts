@@ -7,12 +7,15 @@ import {
   Category,
   type HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
+import { TransactionType } from '@metamask/transaction-controller';
 import {
   HardwareWalletAnalyticsErrorType,
+  HardwareWalletAnalyticsFlow,
   getAnalyticsErrorType,
   getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,
   getErrorDetails,
+  getAnalyticsFlowFromApproval,
 } from './helpers';
 
 describe('analytics helpers', () => {
@@ -253,6 +256,110 @@ describe('analytics helpers', () => {
       const result = getErrorDetails(state);
       expect(result.error_code).toBe('');
       expect(result.error_message).toBe('');
+    });
+  });
+
+  describe('getAnalyticsFlowFromApproval', () => {
+    it('returns Message for personal_sign', () => {
+      expect(
+        getAnalyticsFlowFromApproval({ approvalType: 'personal_sign' }),
+      ).toBe(HardwareWalletAnalyticsFlow.Message);
+    });
+
+    it('returns Message for eth_signTypedData', () => {
+      expect(
+        getAnalyticsFlowFromApproval({ approvalType: 'eth_signTypedData' }),
+      ).toBe(HardwareWalletAnalyticsFlow.Message);
+    });
+
+    it('returns Send for simpleSend', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.simpleSend,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Send);
+    });
+
+    it('returns Send for tokenMethodTransfer', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.tokenMethodTransfer,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Send);
+    });
+
+    it('returns Send for tokenMethodTransferFrom', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.tokenMethodTransferFrom,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Send);
+    });
+
+    it('returns Swaps for swap', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.swap,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Swaps);
+    });
+
+    it('returns Swaps for swapApproval', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.swapApproval,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Swaps);
+    });
+
+    it('returns Swaps for bridge', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.bridge,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Swaps);
+    });
+
+    it('returns Swaps for bridgeApproval', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.bridgeApproval,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Swaps);
+    });
+
+    it('returns Transaction for contractInteraction', () => {
+      expect(
+        getAnalyticsFlowFromApproval({
+          approvalType: 'transaction',
+          transactionType: TransactionType.contractInteraction,
+        }),
+      ).toBe(HardwareWalletAnalyticsFlow.Transaction);
+    });
+
+    it('returns Connection for transaction without type', () => {
+      expect(
+        getAnalyticsFlowFromApproval({ approvalType: 'transaction' }),
+      ).toBe(HardwareWalletAnalyticsFlow.Connection);
+    });
+
+    it('returns Connection when no approvalType', () => {
+      expect(getAnalyticsFlowFromApproval({})).toBe(
+        HardwareWalletAnalyticsFlow.Connection,
+      );
+    });
+
+    it('returns Connection for undefined approvalType', () => {
+      expect(getAnalyticsFlowFromApproval({ approvalType: undefined })).toBe(
+        HardwareWalletAnalyticsFlow.Connection,
+      );
     });
   });
 });

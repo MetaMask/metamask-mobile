@@ -1,6 +1,7 @@
 export {
-  HARDWARE_WALLET_CONNECTION_FLOW,
+  HardwareWalletAnalyticsFlow,
   HardwareWalletAnalyticsErrorType,
+  getAnalyticsFlowFromApproval,
   getAnalyticsErrorType,
   getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,

@@ -9,7 +9,10 @@ import {
   type HardwareWalletConnectionState,
 } from '@metamask/hw-wallet-sdk';
 import { useHardwareWalletAnalytics } from './useHardwareWalletAnalytics';
-import { HardwareWalletAnalyticsErrorType } from './helpers';
+import {
+  HardwareWalletAnalyticsErrorType,
+  HardwareWalletAnalyticsFlow,
+} from './helpers';
 import { MetaMetricsEvents } from '../../Analytics';
 
 const mockTrackEvent = jest.fn();
@@ -48,7 +51,7 @@ describe('useHardwareWalletAnalytics', () => {
       status: ConnectionStatus.Disconnected,
     } as HardwareWalletConnectionState,
     walletType: HardwareWalletType.Ledger,
-    flow: 'connection',
+    flow: HardwareWalletAnalyticsFlow.Connection,
     deviceModel: 'Nano X',
   };
 
@@ -414,17 +417,20 @@ describe('useHardwareWalletAnalytics', () => {
   });
 
   describe('flow variants', () => {
-    it('tracks transaction flow as Transaction', () => {
+    it('tracks Transaction flow', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         {
-          initialProps: { ...defaultOptions, flow: 'transaction' },
+          initialProps: {
+            ...defaultOptions,
+            flow: HardwareWalletAnalyticsFlow.Transaction,
+          },
         },
       );
 
       rerender({
         ...defaultOptions,
-        flow: 'transaction',
+        flow: HardwareWalletAnalyticsFlow.Transaction,
         connectionState: {
           status: ConnectionStatus.ErrorState,
           error: createError(ErrorCode.DeviceDisconnected),
@@ -436,17 +442,20 @@ describe('useHardwareWalletAnalytics', () => {
       );
     });
 
-    it('tracks message flow as Message', () => {
+    it('tracks Message flow', () => {
       const { rerender } = renderHook(
         (props) => useHardwareWalletAnalytics(props),
         {
-          initialProps: { ...defaultOptions, flow: 'message' },
+          initialProps: {
+            ...defaultOptions,
+            flow: HardwareWalletAnalyticsFlow.Message,
+          },
         },
       );
 
       rerender({
         ...defaultOptions,
-        flow: 'message',
+        flow: HardwareWalletAnalyticsFlow.Message,
         connectionState: {
           status: ConnectionStatus.ErrorState,
           error: createError(ErrorCode.DeviceDisconnected),
@@ -455,6 +464,56 @@ describe('useHardwareWalletAnalytics', () => {
 
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({ location: 'Message' }),
+      );
+    });
+
+    it('tracks Send flow', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: {
+            ...defaultOptions,
+            flow: HardwareWalletAnalyticsFlow.Send,
+          },
+        },
+      );
+
+      rerender({
+        ...defaultOptions,
+        flow: HardwareWalletAnalyticsFlow.Send,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ location: 'Send' }),
+      );
+    });
+
+    it('tracks Swaps flow', () => {
+      const { rerender } = renderHook(
+        (props) => useHardwareWalletAnalytics(props),
+        {
+          initialProps: {
+            ...defaultOptions,
+            flow: HardwareWalletAnalyticsFlow.Swaps,
+          },
+        },
+      );
+
+      rerender({
+        ...defaultOptions,
+        flow: HardwareWalletAnalyticsFlow.Swaps,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: createError(ErrorCode.DeviceDisconnected),
+        },
+      });
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ location: 'Swaps' }),
       );
     });
 

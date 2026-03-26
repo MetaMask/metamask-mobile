@@ -1,4 +1,10 @@
-import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
+import React, {
+  ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
@@ -13,9 +19,10 @@ import {
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
 import {
-  HARDWARE_WALLET_CONNECTION_FLOW,
+  HardwareWalletAnalyticsFlow,
   useHardwareWalletAnalytics,
 } from './analytics';
+import { useAnalyticsFlowFromApproval } from './analytics/useAnalyticsFlowFromApproval';
 
 interface HardwareWalletProviderProps {
   children: ReactNode;
@@ -76,8 +83,13 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
   const operationTypeRef = useRef<'transaction' | 'message' | null>(null);
 
-  const analyticsFlow =
-    operationTypeRef.current ?? HARDWARE_WALLET_CONNECTION_FLOW;
+  const [analyticsFlow, setAnalyticsFlow] = useState(
+    HardwareWalletAnalyticsFlow.Connection,
+  );
+
+  const derivedAnalyticsFlow = useAnalyticsFlowFromApproval();
+  const derivedAnalyticsFlowRef = useRef(derivedAnalyticsFlow);
+  derivedAnalyticsFlowRef.current = derivedAnalyticsFlow;
 
   const { trackCTAClicked, resetAnalyticsState } = useHardwareWalletAnalytics({
     connectionState,
@@ -85,6 +97,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     flow: analyticsFlow,
     deviceModel: deviceSelection.selectedDevice?.name ?? null,
   });
+
+  const handleFlowStart = useCallback(() => {
+    resetAnalyticsState();
+    setAnalyticsFlow(derivedAnalyticsFlowRef.current);
+  }, [resetAnalyticsState]);
 
   const {
     ensureDeviceReady,
@@ -102,7 +119,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     createAdapterWithCallbacks,
     initializeAdapter,
     checkTransportEnabledOrShowError,
-    onFlowStart: resetAnalyticsState,
+    onFlowStart: handleFlowStart,
   });
 
   const showHardwareWalletError = useCallback(
@@ -137,6 +154,11 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     operationTypeRef.current = null;
     updateConnectionState({ status: ConnectionStatus.Disconnected });
   }, [updateConnectionState]);
+
+  const handleCloseFlow = useCallback(() => {
+    setAnalyticsFlow(HardwareWalletAnalyticsFlow.Connection);
+    closeFlow();
+  }, [closeFlow]);
 
   const handleAwaitingConfirmationCancel = useCallback(() => {
     DevLogger.log('[HardwareWallet] handleAwaitingConfirmationCancel');
@@ -182,7 +204,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         selectDevice={selectDevice}
         rescan={rescan}
         connect={connect}
-        onClose={closeFlow}
+        onClose={handleCloseFlow}
         onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
         onConnectionSuccess={handleConnectionSuccess}
         onCTAClicked={trackCTAClicked}

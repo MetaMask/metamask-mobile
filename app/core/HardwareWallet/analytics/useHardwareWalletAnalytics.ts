@@ -8,18 +8,17 @@ import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytic
 import { MetaMetricsEvents } from '../../Analytics';
 import {
   HardwareWalletAnalyticsErrorType,
+  HardwareWalletAnalyticsFlow,
   getErrorTypeFromConnectionState,
   getAnalyticsDeviceType,
   getErrorDetails,
   type ErrorDetails,
 } from './helpers';
 
-const capitalize = (s: string) => s.charAt(0).toUpperCase() + s.slice(1);
-
 interface UseHardwareWalletAnalyticsOptions {
   connectionState: HardwareWalletConnectionState;
   walletType: HardwareWalletType | null;
-  flow: string;
+  flow: HardwareWalletAnalyticsFlow;
   deviceModel: string | null;
 }
 
@@ -101,7 +100,7 @@ export function useHardwareWalletAnalytics({
           MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_MODAL_VIEWED,
         )
           .addProperties({
-            location: capitalize(flow),
+            location: flow,
             device_type: getAnalyticsDeviceType(walletType),
             ...(deviceModel && { device_model: deviceModel }),
             error_type: errorType,
@@ -121,7 +120,7 @@ export function useHardwareWalletAnalytics({
           MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_SUCCESS_MODAL_VIEWED,
         )
           .addProperties({
-            location: capitalize(flow),
+            location: flow,
             device_type: getAnalyticsDeviceType(walletType),
             ...(deviceModel && { device_model: deviceModel }),
             ...(lastErrorType && {
@@ -155,7 +154,7 @@ export function useHardwareWalletAnalytics({
     trackEvent(
       createEventBuilder(MetaMetricsEvents.HARDWARE_WALLET_RECOVERY_CTA_CLICKED)
         .addProperties({
-          location: capitalize(flow),
+          location: flow,
           device_type: getAnalyticsDeviceType(walletType),
           ...(deviceModel && { device_model: deviceModel }),
           error_type: errorType,

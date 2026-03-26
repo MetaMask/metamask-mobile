@@ -4,12 +4,74 @@ import {
   HardwareWalletConnectionState,
   ConnectionStatus,
 } from '@metamask/hw-wallet-sdk';
+import { ApprovalType } from '@metamask/controller-utils';
+import { TransactionType } from '@metamask/transaction-controller';
 
 /**
- * Default location value used before `showAwaitingConfirmation` is called
- * (i.e. during the initial connection / device-readiness phase).
+ * Analytics flow locations for hardware wallet interactions.
  */
-export const HARDWARE_WALLET_CONNECTION_FLOW = 'connection';
+export enum HardwareWalletAnalyticsFlow {
+  Connection = 'Connection',
+  Send = 'Send',
+  Swaps = 'Swaps',
+  Transaction = 'Transaction',
+  Message = 'Message',
+}
+
+const SIGNATURE_APPROVAL_TYPES = new Set<string>([
+  'personal_sign',
+  'eth_signTypedData',
+]);
+
+const SEND_TRANSACTION_TYPES = new Set<TransactionType>([
+  TransactionType.simpleSend,
+  TransactionType.tokenMethodTransfer,
+  TransactionType.tokenMethodTransferFrom,
+  TransactionType.tokenMethodSafeTransferFrom,
+]);
+
+const SWAP_TRANSACTION_TYPES = new Set<TransactionType>([
+  TransactionType.swap,
+  TransactionType.swapApproval,
+  TransactionType.swapAndSend,
+  TransactionType.bridge,
+  TransactionType.bridgeApproval,
+]);
+
+/**
+ * Derives the analytics flow from the current pending approval.
+ *
+ * @param approvalType - The pending approval's `type` string (e.g. 'transaction', 'personal_sign').
+ * @param transactionType - The transaction type from TransactionMeta, if available.
+ * @returns The analytics flow to report as `location`.
+ */
+export function getAnalyticsFlowFromApproval({
+  approvalType,
+  transactionType,
+}: {
+  approvalType?: string;
+  transactionType?: TransactionType;
+}): HardwareWalletAnalyticsFlow {
+  if (!approvalType) {
+    return HardwareWalletAnalyticsFlow.Connection;
+  }
+
+  if (SIGNATURE_APPROVAL_TYPES.has(approvalType)) {
+    return HardwareWalletAnalyticsFlow.Message;
+  }
+
+  if (approvalType === ApprovalType.Transaction && transactionType) {
+    if (SEND_TRANSACTION_TYPES.has(transactionType)) {
+      return HardwareWalletAnalyticsFlow.Send;
+    }
+    if (SWAP_TRANSACTION_TYPES.has(transactionType)) {
+      return HardwareWalletAnalyticsFlow.Swaps;
+    }
+    return HardwareWalletAnalyticsFlow.Transaction;
+  }
+
+  return HardwareWalletAnalyticsFlow.Connection;
+}
 
 /**
  * Normalized error type categories for analytics.
