@@ -301,8 +301,8 @@ export class OAuthService {
 
       Logger.log('handleOAuthLogin: before getAuthToken');
 
-      const ouathResult = result;
-      if (ouathResult) {
+      const oauthResult = result;
+      if (oauthResult) {
         let getAuthTokensSuccess = false;
         try {
           trace({
@@ -364,7 +364,7 @@ export class OAuthService {
           handleCodeFlowResult = await this.handleSeedlessAuthenticate(
             data,
             authConnection,
-            ouathResult.clientId,
+            oauthResult.clientId,
           );
           seedlessAuthSuccess = true;
         } catch (error) {
@@ -399,7 +399,7 @@ export class OAuthService {
         // store client id and auth connection in redux
         ReduxService.store.dispatch(
           setSeedlessOnboarding({
-            clientId: ouathResult.clientId,
+            clientId: oauthResult.clientId,
             authConnection: loginHandler.authConnection,
           }),
         );
