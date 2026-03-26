@@ -4,6 +4,7 @@ import { useTransactionPayTotals } from '../../../../../Views/confirmations/hook
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { OrderPreview } from '../../../types';
+import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
 
 interface UsePredictBuyInfoParams {
   currentValue: number;
@@ -24,16 +25,36 @@ export const usePredictBuyInfo = ({
   const payTotals = useTransactionPayTotals();
   const { data: predictBalance = 0 } = usePredictBalance();
 
+  const [insufficientPayTokenBalanceAlert] =
+    useInsufficientPayTokenBalanceAlert();
+
   const [acceptedDepositFee, setAcceptedDepositFee] = useState(0);
 
+  const totalPayForPredictBalance = useMemo(
+    () =>
+      currentValue +
+      (preview?.fees?.providerFee ?? 0) +
+      (preview?.fees?.metamaskFee ?? 0),
+    [currentValue, preview?.fees?.providerFee, preview?.fees?.metamaskFee],
+  );
+
   const computedDepositFee = useMemo(() => {
-    if (isPredictBalanceSelected || !payTotals?.fees) return 0;
+    if (
+      isPredictBalanceSelected ||
+      !payTotals?.fees ||
+      !!insufficientPayTokenBalanceAlert
+    )
+      return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
     return new BigNumber(provider?.usd ?? 0)
       .plus(sourceNetwork?.estimate?.usd ?? 0)
       .plus(targetNetwork?.usd ?? 0)
       .toNumber();
-  }, [isPredictBalanceSelected, payTotals]);
+  }, [
+    insufficientPayTokenBalanceAlert,
+    isPredictBalanceSelected,
+    payTotals?.fees,
+  ]);
 
   useEffect(() => {
     if (computedDepositFee > 0) {
@@ -60,34 +81,28 @@ export const usePredictBuyInfo = ({
       isRateLimited: preview?.rateLimited ?? false,
       metamaskFee: preview?.fees?.metamaskFee ?? 0,
       providerFee: preview?.fees?.providerFee ?? 0,
-      total:
-        currentValue +
-        (preview?.fees?.providerFee ?? 0) +
-        (preview?.fees?.metamaskFee ?? 0) +
-        depositFee,
+      total: totalPayForPredictBalance + depositFee,
     }),
     [
-      currentValue,
       depositFee,
       preview?.fees?.metamaskFee,
       preview?.fees?.providerFee,
       preview?.minAmountReceived,
       preview?.rateLimited,
+      totalPayForPredictBalance,
     ],
   );
 
   const depositAmount = useMemo(() => {
-    const previewTotal =
-      (preview?.maxAmountSpent ?? 0) + (preview?.fees?.totalFee ?? 0);
     const remainingAmount = Math.max(
       0,
-      Math.ceil((previewTotal - predictBalance) * 100) / 100,
+      Math.ceil((totalPayForPredictBalance - predictBalance) * 100) / 100,
     );
     if (remainingAmount <= 0) {
-      return previewTotal;
+      return totalPayForPredictBalance;
     }
     return remainingAmount;
-  }, [preview, predictBalance]);
+  }, [totalPayForPredictBalance, predictBalance]);
 
   return {
     toWin,

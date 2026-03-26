@@ -68,27 +68,28 @@ export const usePredictBuyError = ({
       return previewError;
     }
 
-    if (!errorResult) {
-      if (isBelowMinimum) {
-        return strings('predict.order.prediction_minimum_bet', {
-          amount: formatPrice(MINIMUM_BET, {
-            minimumDecimals: 2,
-            maximumDecimals: 2,
-          }),
-        });
-      }
-
-      if (isInsufficientBalance) {
-        const formattedMax = formatPrice(maxBetAmount, {
+    if (isBelowMinimum) {
+      return strings('predict.order.prediction_minimum_bet', {
+        amount: formatPrice(MINIMUM_BET, {
           minimumDecimals: 2,
           maximumDecimals: 2,
-        });
-        return maxBetAmount >= MINIMUM_BET
-          ? strings('predict.order.prediction_insufficient_funds', {
-              amount: formattedMax,
-            })
-          : strings('predict.order.no_funds_enough');
-      }
+        }),
+      });
+    }
+
+    if (isInsufficientBalance) {
+      const formattedMax = formatPrice(maxBetAmount, {
+        minimumDecimals: 2,
+        maximumDecimals: 2,
+      });
+      return maxBetAmount >= MINIMUM_BET
+        ? strings('predict.order.prediction_insufficient_funds', {
+            amount: formattedMax,
+          })
+        : strings('predict.order.no_funds_enough');
+    }
+
+    if (!errorResult) {
       return undefined;
     }
 
