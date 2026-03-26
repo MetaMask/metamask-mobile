@@ -1,5 +1,6 @@
 import Braze from '@braze/react-native-sdk';
 import Logger from '../../util/Logger';
+import { isE2E } from '../../util/test/utils';
 
 type UnsubscribeFunc = () => void;
 
@@ -27,8 +28,15 @@ export function subscribeToBrazePushEvents(): UnsubscribeFunc {
  * and attributes are associated with this identity.
  *
  * Callers are responsible for gating on sign-in state before invoking this.
+ *
+ * Skipped during E2E (IS_TEST / METAMASK_ENVIRONMENT=e2e) so CI does not create
+ * Braze profiles from mocked identity sessions.
  */
 export async function setBrazeUser(): Promise<void> {
+  if (isE2E) {
+    return;
+  }
+
   try {
     // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
     const Engine = require('../Engine/Engine').default;
