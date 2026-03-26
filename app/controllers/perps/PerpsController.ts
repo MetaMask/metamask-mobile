@@ -2656,7 +2656,9 @@ export class PerpsController extends BaseController<
    */
   #hydrateCacheFromDiskSync(): void {
     const { diskCache } = this.#options.infrastructure;
-    if (!diskCache.getItemSync) {return;}
+    if (!diskCache.getItemSync) {
+      return;
+    }
 
     const hydrateT0 = Date.now();
     let marketCount = 0;
@@ -2745,114 +2747,6 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Hydrate in-memory caches from disk-persisted snapshots (async version).
-   * Reads MMKV keys written by PerpsStreamManager and populates
-   * cachedMarketDataByProvider / cachedUserDataByProvider so the UI
-   * can render last-known data instantly on cold start.
-   */
-  async #hydrateCacheFromDisk(): Promise<void> {
-    const hydrateT0 = Date.now();
-    const { diskCache } = this.#options.infrastructure;
-    let marketCount = 0;
-    let userPositions = 0;
-    let userOrders = 0;
-
-    try {
-      const [marketsRaw, userRaw] = await Promise.all([
-        diskCache.getItem(PERPS_DISK_CACHE_MARKETS),
-        diskCache.getItem(PERPS_DISK_CACHE_USER_DATA),
-      ]);
-
-      if (marketsRaw) {
-        try {
-          const parsed = JSON.parse(marketsRaw) as {
-            providerNetworkKey: string;
-            data: PerpsMarketData[];
-            timestamp: number;
-          };
-          if (parsed.providerNetworkKey && Array.isArray(parsed.data)) {
-            const existing =
-              this.state.cachedMarketDataByProvider[parsed.providerNetworkKey];
-            if (!existing || existing.timestamp < parsed.timestamp) {
-              // Strip volatile price fields — disk data may be hours old.
-              // Structural fields (symbol, name, leverage, volume) are preserved
-              // so the market list renders instantly; prices show $--- until
-              // REST/WS delivers fresh values.
-              const strippedData = parsed.data.map((market) => ({
-                ...market,
-                price: PERPS_CONSTANTS.FallbackPriceDisplay,
-                change24h: PERPS_CONSTANTS.FallbackDataDisplay,
-                change24hPercent: PERPS_CONSTANTS.FallbackPercentageDisplay,
-              }));
-              this.update((state) => {
-                state.cachedMarketDataByProvider[parsed.providerNetworkKey] = {
-                  data: strippedData,
-                  timestamp: parsed.timestamp,
-                };
-              });
-              marketCount = strippedData.length;
-            }
-          }
-        } catch {
-          // Corrupt JSON — silently ignore
-        }
-      }
-
-      if (userRaw) {
-        try {
-          const parsed = JSON.parse(userRaw) as {
-            providerNetworkKey: string;
-            address: string;
-            positions: Position[];
-            orders: Order[];
-            accountState: AccountState | null;
-            timestamp: number;
-          };
-          if (parsed.providerNetworkKey && parsed.address) {
-            // Only hydrate if address matches current user
-            const evmAccount = getSelectedEvmAccount(
-              this.messenger.call(
-                'AccountTreeController:getAccountsFromSelectedAccountGroup',
-              ),
-            );
-            if (
-              evmAccount?.address &&
-              evmAccount.address.toLowerCase() === parsed.address.toLowerCase()
-            ) {
-              const existing =
-                this.state.cachedUserDataByProvider[parsed.providerNetworkKey];
-              if (!existing || existing.timestamp < parsed.timestamp) {
-                this.update((state) => {
-                  state.cachedUserDataByProvider[parsed.providerNetworkKey] = {
-                    positions: parsed.positions,
-                    orders: parsed.orders,
-                    accountState: parsed.accountState,
-                    timestamp: parsed.timestamp,
-                    address: parsed.address,
-                  };
-                });
-                userPositions = parsed.positions.length;
-                userOrders = parsed.orders.length;
-              }
-            }
-          }
-        } catch {
-          // Corrupt JSON — silently ignore
-        }
-      }
-    } catch {
-      // Disk read failure — non-critical
-    }
-
-    this.#debugLog('PerpsController: Disk cache hydrated (async)', {
-      markets: marketCount,
-      positions: userPositions,
-      orders: userOrders,
-      duration_ms: Date.now() - hydrateT0,
-    });
-  }
-
-  /**
    * Start background market data preloading.
    * Fetches market data immediately and refreshes every 5 minutes.
    * Watches for isTestnet and hip3ConfigVersion changes to re-preload.
@@ -2864,10 +2758,6 @@ export class PerpsController extends BaseController<
     }
 
     this.#debugLog('PerpsController: Starting market data preload');
-
-    // Synchronously hydrate in-memory caches from disk (~1ms MMKV read).
-    // Must complete before hooks mount so they see HIT instead of MISS.
-    this.#hydrateCacheFromDiskSync();
 
     // Track current values for change detection
     this.#previousIsTestnet = this.state.isTestnet;
