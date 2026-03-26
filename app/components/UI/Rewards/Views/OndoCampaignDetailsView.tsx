@@ -197,7 +197,12 @@ const OndoCampaignDetailsView: React.FC = () => {
                             </Box>
                           </Box>
                         </Pressable>
-                        <OndoLeaderboardPosition campaignId={campaignId} />
+                        <OndoLeaderboardPosition
+                          campaignId={campaignId}
+                          isLeaderboardNotYetComputed={
+                            isLeaderboardNotYetComputed
+                          }
+                        />
                       </>
                     ) : (
                       <>

@@ -129,7 +129,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
     );
   }
 
-  if (hasFetched) {
+  if (hasFetched && !portfolio) {
     return (
       <Box testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY} twClassName="gap-3">
         <Text variant={TextVariant.HeadingMd}>

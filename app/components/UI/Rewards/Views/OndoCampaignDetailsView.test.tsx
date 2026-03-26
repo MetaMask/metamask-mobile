@@ -132,15 +132,18 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   };
 });
 
+const mockOndoLeaderboardPosition = jest.fn();
 jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
-    default: () =>
-      ReactActual.createElement(View, {
+    default: (props: Record<string, unknown>) => {
+      mockOndoLeaderboardPosition(props);
+      return ReactActual.createElement(View, {
         testID: 'ondo-leaderboard-position',
-      }),
+      });
+    },
   };
 });
 
@@ -266,6 +269,7 @@ const hookDefaults = {
 describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOndoLeaderboardPosition.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
@@ -277,6 +281,7 @@ describe('OndoCampaignDetailsView', () => {
       leaderboard: null,
       isLoading: false,
       hasError: false,
+      isLeaderboardNotYetComputed: false,
       tierNames: [],
       selectedTier: null,
       selectedTierData: null,
@@ -608,6 +613,35 @@ describe('OndoCampaignDetailsView', () => {
       });
       const { queryByText } = render(<OndoCampaignDetailsView />);
       expect(queryByText('rewards.ondo_campaign_leaderboard.title')).toBeNull();
+    });
+
+    it('forwards isLeaderboardNotYetComputed to OndoLeaderboardPosition', () => {
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [createTestCampaign()],
+      });
+      mockUseGetCampaignParticipantStatus.mockReturnValue({
+        status: { optedIn: true, participantCount: 1 },
+        isLoading: false,
+        hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoLeaderboard.mockReturnValue({
+        leaderboard: null,
+        isLoading: false,
+        hasError: false,
+        isLeaderboardNotYetComputed: true,
+        tierNames: [],
+        selectedTier: null,
+        selectedTierData: null,
+        computedAt: null,
+        setSelectedTier: jest.fn(),
+        refetch: jest.fn(),
+      });
+      render(<OndoCampaignDetailsView />);
+      expect(mockOndoLeaderboardPosition).toHaveBeenCalledWith(
+        expect.objectContaining({ isLeaderboardNotYetComputed: true }),
+      );
     });
 
     it('shows leaderboard section header when opted in', () => {
