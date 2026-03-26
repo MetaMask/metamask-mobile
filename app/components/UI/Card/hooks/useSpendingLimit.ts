@@ -1,26 +1,45 @@
-import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useContext,
+  useRef,
+} from 'react';
 import {
   useFocusEffect,
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../../../util/theme';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import {
+  AllowanceState,
   CardTokenAllowance,
   DelegationSettingsResponse,
   CardExternalWalletDetailsResponse,
 } from '../types';
-import { BAANX_MAX_LIMIT, caipChainIdToNetwork } from '../constants';
 import {
-  buildQuickSelectTokens,
+  BAANX_MAX_LIMIT,
+  caipChainIdToNetwork,
+  CARD_CHAIN_IDS,
+} from '../constants';
+import {
+  buildTokenListFromSettings,
   LINEA_CAIP_CHAIN_ID,
-  QUICK_SELECT_TOKENS,
 } from '../util/buildTokenList';
+import { sanitizeCustomLimit } from '../util/sanitizeCustomLimit';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { isSolanaChainId } from '@metamask/bridge-controller';
+import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
+import { createSpendingLimitOptionsNavigationDetails } from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
@@ -34,11 +53,6 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions, CardScreens } from '../util/metrics';
 
 export type LimitType = 'full' | 'restricted';
-
-export interface QuickSelectToken {
-  symbol: string;
-  token: CardTokenAllowance | null;
-}
 
 export interface UseSpendingLimitParams {
   flow: 'manage' | 'enable' | 'onboarding';
@@ -66,14 +80,13 @@ export interface UseSpendingLimitReturn {
   selectedToken: CardTokenAllowance | null;
   limitType: LimitType;
   customLimit: string;
-  quickSelectTokens: QuickSelectToken[];
-  isOtherSelected: boolean;
   isLoading: boolean;
 
   // Handlers
   setSelectedToken: (token: CardTokenAllowance | null) => void;
-  handleQuickSelectToken: (symbol: string) => void;
+  handleAccountSelect: () => void;
   handleOtherSelect: () => void;
+  handleLimitSelect: () => void;
   setLimitType: (type: LimitType) => void;
   setCustomLimit: (value: string) => void;
 
@@ -126,6 +139,18 @@ const useSpendingLimit = ({
 
   const isOnboardingFlow = flow === 'onboarding';
 
+  // Track account changes to reset token selection when user switches account
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const accountIdRef = useRef(selectedAccount?.id);
+
+  useEffect(() => {
+    if (selectedAccount?.id && selectedAccount.id !== accountIdRef.current) {
+      accountIdRef.current = selectedAccount.id;
+      setHasInitialized(false);
+      setSelectedToken(null);
+    }
+  }, [selectedAccount?.id]);
+
   // Delegation hook (includes faucet check)
   const {
     submitDelegation,
@@ -148,36 +173,14 @@ const useSpendingLimit = ({
     );
   }, [trackEvent, createEventBuilder, flow]);
 
-  // Build quick-select tokens with SDK lookup for production addresses (for icons)
-  const quickSelectTokens = useMemo(
-    () =>
-      buildQuickSelectTokens(
-        allTokens,
-        delegationSettings,
-        sdk
-          ? (chainId) =>
-              (sdk.getSupportedTokensByChainId(chainId) ?? []) as {
-                address?: string;
-                symbol?: string;
-                name?: string;
-              }[]
-          : undefined,
-      ),
-    [allTokens, delegationSettings, sdk],
-  );
+  // Wallet-only token balances for the currently selected MetaMask account.
+  // Using this (instead of useAssetBalances) ensures sorting reflects the active
+  // account's real wallet balance — not the card's availableBalance or another
+  // account's cached data — so account switches are reflected immediately.
+  const walletTokens = useTokensWithBalance({
+    chainIds: CARD_CHAIN_IDS,
+  });
 
-  // Check if "Other" is selected (token not in quick-select list)
-  const isOtherSelected = useMemo(() => {
-    if (!selectedToken) return false;
-    return !QUICK_SELECT_TOKENS.some(
-      (symbol) =>
-        selectedToken.symbol?.toUpperCase() === symbol.toUpperCase() &&
-        selectedToken.caipChainId === LINEA_CAIP_CHAIN_ID,
-    );
-  }, [selectedToken]);
-
-  // Initialize selected token from initial or priority token, fallback to mUSD
-  // Only runs once on mount to avoid overwriting user selections from AssetSelectionBottomSheet
   useEffect(() => {
     if (hasInitialized) return;
 
@@ -193,12 +196,52 @@ const useSpendingLimit = ({
       return;
     }
 
-    if (quickSelectTokens.length > 0) {
-      const musdToken = quickSelectTokens.find(
-        (qt) => qt.symbol.toUpperCase() === 'MUSD',
-      )?.token;
-      if (musdToken) {
-        setSelectedToken(musdToken);
+    const notEnabledTokens = allTokens.filter(
+      (t) => t.allowanceState === AllowanceState.NotEnabled,
+    );
+
+    const getSdkTokens = sdk
+      ? (chainId: `${string}:${string}`) =>
+          (sdk.getSupportedTokensByChainId(chainId) ?? []) as {
+            address?: string;
+            symbol?: string;
+            name?: string;
+          }[]
+      : undefined;
+
+    const tokensToSearch =
+      notEnabledTokens.length > 0
+        ? notEnabledTokens
+        : buildTokenListFromSettings({
+            delegationSettings,
+            getSupportedTokensByChainId: getSdkTokens,
+          });
+
+    if (tokensToSearch.length > 0) {
+      const sorted = tokensToSearch
+        .map((token) => {
+          const chainIdForLookup = isSolanaChainId(token.caipChainId ?? '')
+            ? token.caipChainId
+            : safeFormatChainIdToHex(token.caipChainId ?? '');
+          const walletToken = walletTokens.find(
+            (wt) =>
+              wt.address?.toLowerCase() === token.address?.toLowerCase() &&
+              wt.chainId === chainIdForLookup,
+          );
+          return { token, fiat: walletToken?.tokenFiatAmount ?? 0 };
+        })
+        .sort((a, b) => b.fiat - a.fiat);
+      const topEntry = sorted[0];
+      const defaultToken =
+        topEntry.fiat > 0
+          ? topEntry.token
+          : (tokensToSearch.find(
+              (t) =>
+                t.symbol?.toUpperCase() === 'MUSD' &&
+                t.caipChainId === LINEA_CAIP_CHAIN_ID,
+            ) ?? topEntry.token);
+      if (defaultToken) {
+        setSelectedToken(defaultToken);
         setHasInitialized(true);
       }
     }
@@ -206,22 +249,41 @@ const useSpendingLimit = ({
     hasInitialized,
     initialToken,
     priorityToken,
-    quickSelectTokens,
     selectedToken,
+    allTokens,
+    walletTokens,
+    delegationSettings,
+    sdk,
   ]);
 
-  // Handle returned token from AssetSelectionBottomSheet
+  // Handle returned values from modal sheets
   useFocusEffect(
     useCallback(() => {
       const params = routeParams as
-        | { returnedSelectedToken?: CardTokenAllowance }
+        | {
+            returnedSelectedToken?: CardTokenAllowance;
+            returnedLimitType?: LimitType;
+            returnedCustomLimit?: string;
+          }
         | undefined;
+
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
         setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
           selectedToken: undefined,
+        } as Record<string, unknown>);
+      }
+
+      if (params?.returnedLimitType !== undefined) {
+        setLimitType(params.returnedLimitType);
+        if (params.returnedCustomLimit !== undefined) {
+          setCustomLimitState(params.returnedCustomLimit);
+        }
+        navigation.setParams({
+          returnedLimitType: undefined,
+          returnedCustomLimit: undefined,
         } as Record<string, unknown>);
       }
     }, [routeParams, navigation]),
@@ -244,29 +306,11 @@ const useSpendingLimit = ({
   }, [isOnboardingFlow, selectedToken, limitType, customLimit]);
 
   // Handlers
-  const handleQuickSelectToken = useCallback(
-    (symbol: string) => {
-      const quickSelectToken = quickSelectTokens.find(
-        (qt) => qt.symbol.toUpperCase() === symbol.toUpperCase(),
-      );
-      if (quickSelectToken?.token) {
-        const token = quickSelectToken.token;
-
-        trackEvent(
-          createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
-            .addProperties({
-              action: CardActions.QUICK_SELECT_TOKEN_BUTTON,
-              token_symbol: token.symbol,
-              chain_id: token.caipChainId,
-            })
-            .build(),
-        );
-
-        setSelectedToken(token);
-      }
-    },
-    [quickSelectTokens, trackEvent, createEventBuilder],
-  );
+  const handleAccountSelect = useCallback(() => {
+    navigation.navigate(
+      ...createAccountSelectorNavDetails({ disableAddAccountButton: true }),
+    );
+  }, [navigation]);
 
   const handleOtherSelect = useCallback(() => {
     trackEvent(
@@ -278,12 +322,15 @@ const useSpendingLimit = ({
     const { selectedToken: _excludedSelectedToken, ...restParams } =
       routeParams ?? {};
 
+    const excludedTokens = selectedToken ? [selectedToken] : [];
+
     navigation.navigate(
       ...createAssetSelectionModalNavigationDetails({
         tokensWithAllowances: allTokens ?? [],
         delegationSettings,
         cardExternalWalletDetails: externalWalletDetailsData,
         selectionOnly: true,
+        excludedTokens,
         callerRoute: Routes.CARD.SPENDING_LIMIT,
         callerParams: restParams as Record<string, unknown>,
       }),
@@ -293,18 +340,25 @@ const useSpendingLimit = ({
     allTokens,
     delegationSettings,
     externalWalletDetailsData,
+    selectedToken,
     trackEvent,
     createEventBuilder,
     routeParams,
   ]);
 
+  const handleLimitSelect = useCallback(() => {
+    navigation.navigate(
+      ...createSpendingLimitOptionsNavigationDetails({
+        currentLimitType: limitType,
+        currentCustomLimit: customLimit,
+        callerRoute: Routes.CARD.SPENDING_LIMIT,
+        callerParams: routeParams as Record<string, unknown> | undefined,
+      }),
+    );
+  }, [navigation, limitType, customLimit, routeParams]);
+
   const setCustomLimit = useCallback((value: string) => {
-    // Sanitize: only numbers and single decimal point
-    const sanitized = value.replace(/[^0-9.]/g, '');
-    const parts = sanitized.split('.');
-    const formatted =
-      parts.length > 2 ? parts[0] + '.' + parts.slice(1).join('') : sanitized;
-    setCustomLimitState(formatted);
+    setCustomLimitState(sanitizeCustomLimit(value));
   }, []);
 
   // Toast helpers
@@ -463,14 +517,13 @@ const useSpendingLimit = ({
     selectedToken,
     limitType,
     customLimit,
-    quickSelectTokens,
-    isOtherSelected,
     isLoading,
 
     // Handlers
     setSelectedToken,
-    handleQuickSelectToken,
+    handleAccountSelect,
     handleOtherSelect,
+    handleLimitSelect,
     setLimitType,
     setCustomLimit,
 
