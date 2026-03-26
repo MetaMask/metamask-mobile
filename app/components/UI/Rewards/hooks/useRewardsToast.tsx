@@ -22,9 +22,6 @@ export interface RewardsToastConfig {
   entriesClosed: (title: string, subtitle?: string) => RewardsToastOptions;
 }
 
-/** Built-in rewards toast presets (success, error, entries closed). */
-export type RewardsToastPreset = keyof RewardsToastConfig;
-
 const getRewardsToastLabels = (title: string): ToastLabelOptions => {
   const labels: ToastLabelOptions = [
     {
@@ -111,7 +108,6 @@ const useRewardsToast = (): {
         variant: ToastVariants.Icon,
         iconName: IconName.Lock,
         iconColor: theme.colors.icon.default,
-        backgroundColor: 'muted',
         hapticsType: NotificationFeedbackType.Warning,
         labelOptions: getRewardsToastLabels(title),
         descriptionOptions: getRewardsToastDescription(subtitle),
