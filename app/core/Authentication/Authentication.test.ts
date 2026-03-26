@@ -259,21 +259,32 @@ jest.mock('../BackupVault/backupVault', () => ({
   clearAllVaultBackups: jest.fn(),
 }));
 
-const mockTrackEvent = jest.fn();
-
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
-    trackEvent: (...args: unknown[]) => mockTrackEvent(...args),
+    trackEvent: jest.fn(),
   },
 }));
 
 jest.mock('../../util/analytics/AnalyticsEventBuilder', () => ({
   AnalyticsEventBuilder: {
-    createEventBuilder: jest.fn(() => ({
-      addProperties: jest.fn().mockReturnThis(),
-      build: jest.fn().mockReturnValue({ category: 'test' }),
-    })),
+    createEventBuilder: jest.fn((eventOrName: unknown) => {
+      const name =
+        typeof eventOrName === 'string'
+          ? eventOrName
+          : ((eventOrName as Record<string, string>)?.category ??
+            (eventOrName as Record<string, string>)?.name ??
+            'test');
+      const properties: Record<string, unknown> = {};
+      const builder = {
+        addProperties: jest.fn((props: Record<string, unknown>): unknown => {
+          Object.assign(properties, props);
+          return builder;
+        }),
+        build: jest.fn(() => ({ name, properties })),
+      };
+      return builder;
+    }),
   },
 }));
 
@@ -3926,7 +3937,7 @@ describe('Authentication', () => {
       expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_COMPLETED,
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(analytics.trackEvent).toHaveBeenCalled();
     });
 
     it('does not track success event when no migration occurred', async () => {
@@ -3941,7 +3952,7 @@ describe('Authentication', () => {
         Engine.context.SeedlessOnboardingController.runMigrations,
       ).toHaveBeenCalled();
       expect(AnalyticsEventBuilder.createEventBuilder).not.toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
     it('tracks failure event on migration error', async () => {
@@ -3958,7 +3969,7 @@ describe('Authentication', () => {
       expect(AnalyticsEventBuilder.createEventBuilder).toHaveBeenCalledWith(
         MetaMetricsEvents.SEEDLESS_ONBOARDING_MIGRATION_FAILED,
       );
-      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(analytics.trackEvent).toHaveBeenCalled();
     });
 
     it('re-throws error on migration error', async () => {
@@ -4636,7 +4647,7 @@ describe('Authentication', () => {
       // Assert
       expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
     it('returns early when checkIsSeedlessPasswordOutdated returns false', async () => {
@@ -4667,7 +4678,7 @@ describe('Authentication', () => {
         captureSentryError: true,
       });
       expect(mockNavigate).not.toHaveBeenCalled();
-      expect(mockTrackEvent).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
     it('navigates to modal when password is outdated', async () => {
@@ -4697,8 +4708,8 @@ describe('Authentication', () => {
         skipCache: false,
         captureSentryError: true,
       });
-      expect(mockTrackEvent).toHaveBeenCalledTimes(1);
-      expect(mockTrackEvent).toHaveBeenCalledWith(
+      expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
           name: 'Password Outdated Modal Viewed',
           properties: expect.objectContaining({ category: 'App' }),
