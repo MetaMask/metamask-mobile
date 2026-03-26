@@ -151,12 +151,14 @@ export type PredictControllerState = {
   // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
 
-  activeOrder?: {
-    batchId?: string;
-    state: ActiveOrderState;
-    error?: string;
-    analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-  } | null;
+  activeOrder: {
+    [address: string]: {
+      batchId?: string;
+      state: ActiveOrderState;
+      error?: string;
+      analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+    };
+  };
 
   selectedPaymentToken: {
     address: string;
@@ -182,7 +184,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   pendingDeposits: {},
   pendingClaims: {},
   withdrawTransaction: null,
-  activeOrder: null,
+  activeOrder: {},
   selectedPaymentToken: null,
   accountMeta: {},
 });
@@ -365,7 +367,7 @@ export class PredictController extends BaseController<
 > {
   private provider: PolymarketProvider;
 
-  private depositPreview?: OrderPreview;
+  private depositPreview: { [address: string]: OrderPreview } = {};
 
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
@@ -1450,14 +1452,19 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
-    if (this.state.activeOrder?.state === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
+    const activeOrderAddress = this.getEvmAccountAddress();
+
+    if (
+      this.state.activeOrder[activeOrderAddress]?.state ===
+      ActiveOrderState.PAY_WITH_ANY_TOKEN
+    ) {
       this.update((state) => {
-        state.activeOrder = {
+        state.activeOrder[activeOrderAddress] = {
           state: ActiveOrderState.DEPOSITING,
           analyticsProperties: params.analyticsProperties,
         };
       });
-      this.depositPreview = params.preview;
+      this.depositPreview[activeOrderAddress] = params.preview;
       return {
         success: false,
         response: { status: 'deposit_in_progress' },
@@ -1465,14 +1472,16 @@ export class PredictController extends BaseController<
     }
 
     this.update((state) => {
-      state.activeOrder = { state: ActiveOrderState.PLACING_ORDER };
+      state.activeOrder[activeOrderAddress] = {
+        state: ActiveOrderState.PLACING_ORDER,
+      };
     });
 
     const startTime = performance.now();
     const { analyticsProperties, preview: previewParam } = params;
 
-    const preview = this.depositPreview ?? previewParam;
-    this.depositPreview = undefined;
+    const preview = this.depositPreview[activeOrderAddress] ?? previewParam;
+    delete this.depositPreview[activeOrderAddress];
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
@@ -1532,7 +1541,9 @@ export class PredictController extends BaseController<
       }
 
       this.update((state) => {
-        state.activeOrder = { state: ActiveOrderState.SUCCESS };
+        state.activeOrder[activeOrderAddress] = {
+          state: ActiveOrderState.SUCCESS,
+        };
       });
 
       const { spentAmount, receivedAmount } = result.response;
@@ -1605,7 +1616,7 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-        state.activeOrder = {
+        state.activeOrder[activeOrderAddress] = {
           state: ActiveOrderState.PREVIEW,
           error: errorMessage,
         };
@@ -1961,17 +1972,19 @@ export class PredictController extends BaseController<
   }
 
   public clearOrderError(): void {
+    const address = this.getEvmAccountAddress();
     this.update((state) => {
-      if (state.activeOrder) {
-        delete state.activeOrder.error;
+      if (state.activeOrder[address]) {
+        delete state.activeOrder[address].error;
       }
     });
   }
 
-  public onPlaceOrderEnd(): void {
-    this.clearActiveOrder();
+  public onPlaceOrderEnd(address?: string): void {
+    const resolvedAddress = address ?? this.getEvmAccountAddress();
+    this.clearActiveOrder(resolvedAddress);
     this.setSelectedPaymentToken(null);
-    this.depositPreview = undefined;
+    delete this.depositPreview[resolvedAddress];
   }
 
   public selectPaymentToken(token: AssetType | null): void {
@@ -1992,7 +2005,8 @@ export class PredictController extends BaseController<
           },
     );
 
-    const activeOrder = this.state.activeOrder;
+    const activeOrderAddress = this.getEvmAccountAddress();
+    const activeOrder = this.state.activeOrder[activeOrderAddress];
     if (!activeOrder) {
       return;
     }
@@ -2004,8 +2018,9 @@ export class PredictController extends BaseController<
         return;
       }
       this.update((state) => {
-        if (state.activeOrder) {
-          state.activeOrder.state = ActiveOrderState.PREVIEW;
+        if (state.activeOrder[activeOrderAddress]) {
+          state.activeOrder[activeOrderAddress].state =
+            ActiveOrderState.PREVIEW;
         }
       });
       return;
@@ -2016,22 +2031,18 @@ export class PredictController extends BaseController<
         return;
       }
       this.update((state) => {
-        if (state.activeOrder) {
-          state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
+        if (state.activeOrder[activeOrderAddress]) {
+          state.activeOrder[activeOrderAddress].state =
+            ActiveOrderState.PAY_WITH_ANY_TOKEN;
         }
       });
     }
   }
 
-  public clearActiveOrder(): void {
+  public clearActiveOrder(address?: string): void {
+    const resolvedAddress = address ?? this.getEvmAccountAddress();
     this.update((state) => {
-      state.activeOrder = null;
-    });
-  }
-
-  public setActiveOrder(order: PredictControllerState['activeOrder']): void {
-    this.update((state) => {
-      state.activeOrder = order;
+      delete state.activeOrder[resolvedAddress];
     });
   }
 
@@ -2176,17 +2187,18 @@ export class PredictController extends BaseController<
    */
   public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
+    const activeOrderAddress = this.getEvmAccountAddress();
 
-    if (!this.state.activeOrder) {
+    if (!this.state.activeOrder[activeOrderAddress]) {
       this.update((state) => {
         state.selectedPaymentToken = null;
-        state.activeOrder = {
+        state.activeOrder[activeOrderAddress] = {
           state: ActiveOrderState.PREVIEW,
         };
       });
     }
 
-    const activeOrder = this.state.activeOrder;
+    const activeOrder = this.state.activeOrder[activeOrderAddress];
     if (!activeOrder) {
       throw new Error(
         'Active order is required for pay-with-any-token confirmation',
@@ -2201,8 +2213,8 @@ export class PredictController extends BaseController<
       const signer = this.getSigner();
 
       this.update((state) => {
-        if (state.activeOrder) {
-          delete state.activeOrder.batchId;
+        if (state.activeOrder[activeOrderAddress]) {
+          delete state.activeOrder[activeOrderAddress].batchId;
         }
       });
 
@@ -2277,9 +2289,9 @@ export class PredictController extends BaseController<
       const { batchId } = batchResult;
 
       this.update((state) => {
-        if (state.activeOrder) {
-          state.activeOrder.batchId = batchId;
-          delete state.activeOrder.error;
+        if (state.activeOrder[activeOrderAddress]) {
+          state.activeOrder[activeOrderAddress].batchId = batchId;
+          delete state.activeOrder[activeOrderAddress].error;
         }
       });
 
@@ -2424,9 +2436,9 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'depositAndOrder' && status === 'confirmed') {
-      if (!this.depositPreview) {
+      if (!this.depositPreview[address]) {
         this.update((state) => {
-          state.activeOrder = {
+          state.activeOrder[address] = {
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
           };
@@ -2434,8 +2446,9 @@ export class PredictController extends BaseController<
         return;
       }
       this.placeOrder({
-        analyticsProperties: this.state.activeOrder?.analyticsProperties,
-        preview: this.depositPreview,
+        analyticsProperties:
+          this.state.activeOrder[address]?.analyticsProperties,
+        preview: this.depositPreview[address],
       });
     }
 
@@ -2444,17 +2457,17 @@ export class PredictController extends BaseController<
         transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
       this.update((state) => {
-        if (state.activeOrder) {
-          state.activeOrder.state = ActiveOrderState.PREVIEW;
-          state.activeOrder.error = errorMessage;
-          delete state.activeOrder.batchId;
+        if (state.activeOrder[address]) {
+          state.activeOrder[address].state = ActiveOrderState.PREVIEW;
+          state.activeOrder[address].error = errorMessage;
+          delete state.activeOrder[address].batchId;
         }
       });
       this.initPayWithAnyToken();
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {
-      this.onPlaceOrderEnd();
+      this.onPlaceOrderEnd(address);
     }
 
     if (type === 'claim' && isTerminal) {
