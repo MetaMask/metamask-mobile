@@ -171,6 +171,8 @@ export interface RealtimeUpdatePayload {
 
 export interface ToggleVolumePayload {
   visible: boolean;
+  /** When true, volume on main pane + `no-scale`. Omitted/false = classic second pane (default). */
+  volumeOverlay?: boolean;
 }
 
 export interface SetLineChromePayload extends LineChromeOptions {}
@@ -335,6 +337,11 @@ export interface AdvancedChartProps {
   chartType?: ChartType;
   /** Show volume bars below the chart */
   showVolume?: boolean;
+  /**
+   * Put volume on the main pane (single crosshair). Default is two panes (price + volume).
+   * Ignored when `showVolume` is false.
+   */
+  volumeOverlay?: boolean;
   /** Enable left-side drawing toolbar */
   enableDrawingTools?: boolean;
   /**
@@ -357,7 +364,10 @@ export interface AdvancedChartProps {
   /** Crosshair OHLC data callback (for overlay legend) */
   onCrosshairMove?: (data: CrosshairData | null) => void;
 
-  /** External loading state */
+  /**
+   * When true, keeps the native skeleton overlay on top of the WebView (in addition to
+   * while the chart is not yet `CHART_READY`). Cleared when set false and the chart is ready.
+   */
   isLoading?: boolean;
 }
 

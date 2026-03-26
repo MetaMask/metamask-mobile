@@ -208,6 +208,7 @@ function handleSetOHLCVData(payload) {
         window.isChartReady = false;
         window.activeStudies = {};
         window.volumeStudyId = null;
+        window.volumeIsOverlay = null;
         window.lastPriceShapeId = null;
         window.lineEndDotShapeId = null;
         window.lineLastPriceShapeId = null;
@@ -1403,36 +1404,40 @@ function refreshLineEndDot() {
 // Volume Helpers
 // ============================================
 window.volumeStudyId = null;
+/** null when hidden; tracks overlay vs two-pane for TOGGLE_VOLUME changes while visible */
+window.volumeIsOverlay = null;
 
-function createVolumeStudy() {
+function createVolumeStudy(useOverlay) {
   if (!window.chartWidget || !window.isChartReady) return;
   if (window.volumeStudyId) return;
 
   try {
     var chart = window.chartWidget.activeChart();
     var theme = window.CONFIG.theme;
-    chart
-      .createStudy(
-        'Volume',
-        false,
-        false,
-        {},
-        {
-          'volume ma.display': 0, // Hide moving average line
-          'volume.color.0': theme.errorColor, // Down/bearish bars (red)
-          'volume.color.1': theme.successColor, // Up/bullish bars (green)
-          'volume.transparency': 0, // No transparency - same shade as candles
-        },
-      )
+    var inputs = {
+      'volume ma.display': 0,
+      'volume.color.0': theme.errorColor,
+      'volume.color.1': theme.successColor,
+      'volume.transparency': 0,
+    };
+    var promise = useOverlay
+      ? chart.createStudy(
+          'Volume',
+          true,
+          false,
+          {},
+          inputs,
+          { priceScale: 'no-scale' },
+        )
+      : chart.createStudy('Volume', false, false, {}, inputs);
+
+    promise
       .then(function (studyId) {
         window.volumeStudyId = studyId;
         try {
           var heights = chart.getAllPanesHeight();
           if (heights.length === 2) {
             var total = heights[0] + heights[1];
-            // Default ~22% volume is often too short — TV draws the watermark on the bottom pane
-            // and the ring is canvas-clipped. Min height keeps the logo visible *and* matches the
-            // same bottom-corner placement as line mode (single full-height pane).
             var minVolumePx = 56;
             var minMainPx = 72;
             var vol = Math.max(Math.round(total * 0.22), minVolumePx);
@@ -1459,19 +1464,36 @@ function createVolumeStudy() {
 }
 
 function handleToggleVolume(payload) {
-  if (!window.chartWidget || !window.isChartReady) return;
-  if (!payload) return;
+  if (!window.chartWidget || !window.isChartReady || !payload) return;
 
-  if (payload.visible && !window.volumeStudyId) {
-    createVolumeStudy();
-  } else if (!payload.visible && window.volumeStudyId) {
+  var useOverlay = payload.volumeOverlay === true;
+
+  if (!payload.visible) {
+    if (window.volumeStudyId) {
+      try {
+        window.chartWidget.activeChart().removeEntity(window.volumeStudyId);
+      } catch (e) {}
+      window.volumeStudyId = null;
+    }
+    window.volumeIsOverlay = null;
+    updateCandleVolumeScaleColumnVisibility();
+    return;
+  }
+
+  if (
+    window.volumeStudyId &&
+    window.volumeIsOverlay !== null &&
+    window.volumeIsOverlay !== useOverlay
+  ) {
     try {
       window.chartWidget.activeChart().removeEntity(window.volumeStudyId);
-    } catch (e) {
-      // Already removed
-    }
+    } catch (e) {}
     window.volumeStudyId = null;
-    updateCandleVolumeScaleColumnVisibility();
+  }
+
+  window.volumeIsOverlay = useOverlay;
+  if (!window.volumeStudyId) {
+    createVolumeStudy(useOverlay);
   }
 }
 

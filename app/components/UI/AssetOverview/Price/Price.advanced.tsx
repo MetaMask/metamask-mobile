@@ -248,6 +248,7 @@ const PriceAdvanced = ({
               ohlcvData={ohlcvData}
               height={CHART_HEIGHT}
               showVolume={chartType === ChartType.Candles}
+              volumeOverlay
               chartType={chartType}
               indicators={indicators}
               isLoading={chartLoading}

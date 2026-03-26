@@ -50,6 +50,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       positionLines,
       chartType,
       showVolume = false,
+      volumeOverlay = false,
       enableDrawingTools = false,
       disabledFeatures = DEFAULT_DISABLED_FEATURES,
       onChartReady,
@@ -343,14 +344,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       setChartTypeInternal(chartType);
     }, [chartType, chartReadyCount, setChartTypeInternal]);
 
-    // Sync showVolume prop (always fires on chart ready to set initial state)
+    // Sync showVolume + optional volumeOverlay (fires on chart ready)
     useEffect(() => {
       if (chartReadyCount === 0) return;
       postMessage({
         type: 'TOGGLE_VOLUME',
-        payload: { visible: showVolume },
+        payload: { visible: showVolume, volumeOverlay },
       });
-    }, [showVolume, chartReadyCount, postMessage]);
+    }, [showVolume, volumeOverlay, chartReadyCount, postMessage]);
 
     // Line chart chrome presets (time axis / last-price line); merges in WebView without requiring HTML edits
     useEffect(() => {
