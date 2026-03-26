@@ -2496,6 +2496,14 @@ export class PerpsController extends BaseController<
       asset?: string;
     },
   ): void {
+    if (
+      this.state.withdrawalRequests.findIndex(
+        (req) => req.id === withdrawalRequestId,
+      ) === -1
+    ) {
+      return;
+    }
+
     this.update((state) => {
       const requestIndex = state.withdrawalRequests.findIndex(
         (req) => req.id === withdrawalRequestId,
