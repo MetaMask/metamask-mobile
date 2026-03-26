@@ -1,0 +1,50 @@
+diff --git a/ios/WebAuthSession.swift b/ios/WebAuthSession.swift
+index 0d8101b01d7c6cd803acf6a359ceaa026993bdd0..c1beeabd962e561bf48392d58c084272247a95cc 100644
+--- a/ios/WebAuthSession.swift
++++ b/ios/WebAuthSession.swift
+@@ -20,17 +20,34 @@ final internal class WebAuthSession {
+   private var presentationContextProvider = PresentationContextProvider()
+ 
+   init(authUrl: URL, redirectUrl: URL?, options: AuthSessionOptions) {
+-    self.authSession = ASWebAuthenticationSession(
+-      url: authUrl,
+-      callbackURLScheme: redirectUrl?.scheme,
+-      completionHandler: { callbackUrl, error in
+-        self.finish(with: [
+-          "type": callbackUrl != nil ? "success" : "cancel",
+-          "url": callbackUrl?.absoluteString,
+-          "error": error?.localizedDescription
+-        ])
+-      }
+-    )
++    let completionHandler: (URL?, Error?) -> Void = { callbackUrl, error in
++      self.finish(with: [
++        "type": callbackUrl != nil ? "success" : "cancel",
++        "url": callbackUrl?.absoluteString,
++        "error": error?.localizedDescription
++      ])
++    }
++
++    // iOS 17.4+/macOS 14.4+ supports HTTPS callbacks with host/path matching
++    if #available(iOS 17.4, macOS 14.4, *),
++       let redirectUrl,
++       redirectUrl.scheme?.lowercased() == "https",
++       let host = redirectUrl.host(percentEncoded: false),
++       !host.isEmpty {
++      let rawPath = redirectUrl.path
++      let path = (rawPath.isEmpty || rawPath == "/") ? "" : rawPath
++      self.authSession = ASWebAuthenticationSession(
++        url: authUrl,
++        callback: .https(host: host, path: path),
++        completionHandler: completionHandler
++      )
++    } else {
++      self.authSession = ASWebAuthenticationSession(
++        url: authUrl,
++        callbackURLScheme: redirectUrl?.scheme,
++        completionHandler: completionHandler
++      )
++    }
+     self.authSession?.prefersEphemeralWebBrowserSession = options.preferEphemeralSession
+   }
+ 

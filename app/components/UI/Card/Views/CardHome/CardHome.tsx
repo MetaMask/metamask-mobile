@@ -17,7 +17,14 @@ import {
   Switch,
   TouchableOpacity,
 } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
@@ -40,11 +47,6 @@ import { TextVariant as ComponentTextVariant } from '../../../../../component-li
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import {
@@ -1017,13 +1019,14 @@ const CardHome = () => {
     if (!isBaanxLoginEnabled) {
       return (
         <Button
-          variant={ButtonVariants.Primary}
-          label={strings('card.card_home.add_funds')}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={addFundsAction}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-        />
+        >
+          {strings('card.card_home.add_funds')}
+        </Button>
       );
     }
 
@@ -1038,44 +1041,47 @@ const CardHome = () => {
 
       return (
         <Button
-          variant={ButtonVariants.Primary}
-          label={strings('card.card_home.enable_card_button_label')}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={
             shouldRedirectToChooseCard
               ? navigateToChooseYourCard
               : openOnboardingDelegationAction
           }
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={cardSetupState.setupTestId}
-        />
+        >
+          {strings('card.card_home.enable_card_button_label')}
+        </Button>
       );
     }
 
     return (
       <Box twClassName="w-full gap-2 flex-row justify-between items-center">
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={tw.style(
             'w-1/2',
             !isSwapEnabledForPriorityToken && 'opacity-50',
           )}
-          label={strings('card.card_home.add_funds')}
           size={ButtonSize.Lg}
           onPress={addFundsAction}
-          width={ButtonWidthTypes.Full}
-          disabled={!isSwapEnabledForPriorityToken}
+          isFullWidth
+          isDisabled={!isSwapEnabledForPriorityToken}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-        />
+        >
+          {strings('card.card_home.add_funds')}
+        </Button>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={tw.style('w-1/2')}
-          label={strings('card.card_home.change_asset')}
           size={ButtonSize.Lg}
           onPress={changeAssetAction}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-        />
+        >
+          {strings('card.card_home.change_asset')}
+        </Button>
       </Box>
     );
   }, [
@@ -1277,15 +1283,16 @@ const CardHome = () => {
         {retries < 3 && !isAuthenticationError(cardError) && (
           <Box twClassName="pt-2">
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_home.try_again')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
               onPress={() => {
                 setRetries((prevState) => prevState + 1);
                 fetchAllData();
               }}
               testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
-            />
+            >
+              {strings('card.card_home.try_again')}
+            </Button>
           </Box>
         )}
       </Box>
@@ -1571,23 +1578,21 @@ const CardHome = () => {
               testID="freeze-card-list-item"
             />
           )}
-        {isBaanxLoginEnabled &&
-          !isLoading &&
-          !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
-            <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.manage_spending_limit',
-              )}
-              description={strings(
-                priorityToken?.allowanceState === AllowanceState.Enabled
-                  ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-                  : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={manageSpendingLimitAction}
-              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-            />
-          )}
+        {isBaanxLoginEnabled && !isLoading && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.manage_spending_limit',
+            )}
+            description={strings(
+              priorityToken?.allowanceState === AllowanceState.Enabled
+                ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+                : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={manageSpendingLimitAction}
+            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+          />
+        )}
       </Box>
       {!isLoading &&
         !cardSetupState.isKYCPending &&

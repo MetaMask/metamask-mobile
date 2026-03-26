@@ -160,6 +160,8 @@ interface MarketInsightsRouteParams {
   tokenChainId?: string;
   /** When true, indicates the view was opened from the Perps market details view */
   isPerps?: boolean;
+  /** When true, the user has an existing perps position for this asset */
+  hasPerpsPosition?: boolean;
 }
 
 /**
@@ -189,13 +191,14 @@ const MarketInsightsView: React.FC = () => {
     tokenName,
     tokenChainId,
     isPerps = false,
+    hasPerpsPosition = false,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
     ? isPerpsInsightsEnabled
     : isTokenInsightsEnabled;
 
-  const { report, isLoading, error } = useMarketInsights(
+  const { report, reportAssetId, isLoading, error } = useMarketInsights(
     assetIdentifier,
     isMarketInsightsEnabled,
   );
@@ -274,10 +277,19 @@ const MarketInsightsView: React.FC = () => {
   // Sends the identifier under the right analytics property name.
   // Token flow uses caip19 (a real CAIP-19 ID); perps flow uses perps_market
   // (a plain market symbol like "ETH") to keep the two dimensions clean.
+  // digest_id is the UUID from the API envelope, available once the report loads.
   const assetIdProperty = useMemo(
-    () =>
-      isPerps ? { perps_market: assetIdentifier } : { caip19: assetIdentifier },
-    [isPerps, assetIdentifier],
+    () => ({
+      ...(isPerps
+        ? { perps_market: assetIdentifier }
+        : { caip19: assetIdentifier }),
+      ...(report ? { digest_id: report.digestId } : {}),
+    }),
+    [isPerps, assetIdentifier, report],
+  );
+  const assetSymbolProperty = useMemo(
+    () => (report?.asset ? { asset_symbol: report.asset } : {}),
+    [report?.asset],
   );
   const { goToBuy } = useRampNavigation();
 
@@ -302,12 +314,19 @@ const MarketInsightsView: React.FC = () => {
     )
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: 'swap',
       })
       .build();
     trackEvent(event);
     goToSwaps();
-  }, [goToSwaps, trackEvent, createEventBuilder, assetIdProperty]);
+  }, [
+    goToSwaps,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
 
   const handlePerpsDirectionPress = useCallback(
     (direction: 'long' | 'short') => {
@@ -316,6 +335,7 @@ const MarketInsightsView: React.FC = () => {
       )
         .addProperties({
           ...assetIdProperty,
+          ...assetSymbolProperty,
           interaction_type: direction,
         })
         .build();
@@ -326,7 +346,14 @@ const MarketInsightsView: React.FC = () => {
         params: { direction, asset: assetSymbol },
       });
     },
-    [navigation, trackEvent, createEventBuilder, assetIdProperty, assetSymbol],
+    [
+      navigation,
+      trackEvent,
+      createEventBuilder,
+      assetIdProperty,
+      assetSymbolProperty,
+      assetSymbol,
+    ],
   );
 
   const handleBuyPress = useCallback(() => {
@@ -335,6 +362,7 @@ const MarketInsightsView: React.FC = () => {
     )
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: 'buy',
       })
       .build();
@@ -360,6 +388,7 @@ const MarketInsightsView: React.FC = () => {
     trackEvent,
     createEventBuilder,
     assetIdProperty,
+    assetSymbolProperty,
     tokenAddress,
     tokenChainId,
   ]);
@@ -412,6 +441,7 @@ const MarketInsightsView: React.FC = () => {
     ) => {
       const properties = {
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: interactionType,
         ...(options?.source ? { source: options.source } : {}),
         ...(options?.feedbackReason
@@ -428,7 +458,7 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
     },
-    [trackEvent, createEventBuilder, assetIdProperty],
+    [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -524,7 +554,11 @@ const MarketInsightsView: React.FC = () => {
   );
 
   useEffect(() => {
-    if (!report || hasTrackedViewRef.current) {
+    if (
+      !report ||
+      hasTrackedViewRef.current ||
+      reportAssetId !== assetIdentifier
+    ) {
       return;
     }
 
@@ -533,11 +567,20 @@ const MarketInsightsView: React.FC = () => {
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
       })
       .build();
     trackEvent(event);
     hasTrackedViewRef.current = true;
-  }, [report, assetIdProperty, trackEvent, createEventBuilder]);
+  }, [
+    report,
+    reportAssetId,
+    assetIdProperty,
+    assetSymbolProperty,
+    assetIdentifier,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   if (showLoadingSkeleton && !report && !error) {
     return (
@@ -710,65 +753,79 @@ const MarketInsightsView: React.FC = () => {
           >
             {strings('market_insights.helpful_prompt')}
           </Text>
+          {isPerps && hasPerpsPosition && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="pt-3"
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
+          )}
         </Box>
       </ScrollView>
 
-      <Box
-        twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-      >
-        {isPerps ? (
-          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              twClassName="flex-1"
-              onPress={() => handlePerpsDirectionPress('long')}
-              testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
-            >
-              {strings('perps.market.long')}
-            </Button>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              twClassName="flex-1"
-              onPress={() => handlePerpsDirectionPress('short')}
-              testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
-            >
-              {strings('perps.market.short')}
-            </Button>
-          </Box>
-        ) : (
-          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-            <Box twClassName="flex-1">
+      {!(isPerps && hasPerpsPosition) && (
+        <Box
+          twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+        >
+          {isPerps ? (
+            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handleSwapPress}
-                testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+                twClassName="flex-1"
+                onPress={() => handlePerpsDirectionPress('long')}
+                testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
               >
-                {strings('market_insights.swap_button')}
+                {strings('perps.market.long')}
               </Button>
-            </Box>
-            <Box twClassName="flex-1">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handleBuyPress}
-                testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+                twClassName="flex-1"
+                onPress={() => handlePerpsDirectionPress('short')}
+                testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
               >
-                {strings('market_insights.buy_button')}
+                {strings('perps.market.short')}
               </Button>
             </Box>
+          ) : (
+            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleSwapPress}
+                  testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+                >
+                  {strings('market_insights.swap_button')}
+                </Button>
+              </Box>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('market_insights.buy_button')}
+                </Button>
+              </Box>
+            </Box>
+          )}
+          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
           </Box>
-        )}
-        <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('market_insights.footer_disclaimer')}
-          </Text>
         </Box>
-      </Box>
+      )}
 
       {selectedTrend ? (
         <MarketInsightsTrendSourcesBottomSheet

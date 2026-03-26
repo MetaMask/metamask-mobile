@@ -8,9 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -145,17 +143,19 @@ const SDKDisconnectModal = ({ route }: SDKDisconnectModalProps) => {
           {strings(description, { account: accountName, dapp })}
         </Text>
         <Button
-          label={strings('sdk_disconnect_modal.disconnect_confirm')}
           style={styles.btn}
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           onPress={onConfirm}
-        />
+        >
+          {strings('sdk_disconnect_modal.disconnect_confirm')}
+        </Button>
         <Button
-          label={strings('sdk_disconnect_modal.cancel')}
           style={styles.btn}
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           onPress={onCancel}
-        />
+        >
+          {strings('sdk_disconnect_modal.cancel')}
+        </Button>
       </View>
     </BottomSheet>
   );
