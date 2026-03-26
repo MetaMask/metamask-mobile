@@ -57,6 +57,17 @@ import {
   selectVersionGuardMinimumMobileVersion,
   selectVersionGuardLoading,
   selectVersionGuardError,
+  selectOndoCampaignLeaderboard,
+  selectOndoCampaignLeaderboardLoading,
+  selectOndoCampaignLeaderboardError,
+  selectOndoCampaignLeaderboardSelectedTier,
+  selectOndoCampaignLeaderboardTiers,
+  selectOndoCampaignLeaderboardComputedAt,
+  selectOndoCampaignLeaderboardTierNames,
+  selectOndoCampaignLeaderboardEntriesByTier,
+  selectOndoCampaignLeaderboardTotalParticipantsByTier,
+  selectOndoCampaignLeaderboardPositions,
+  selectOndoCampaignLeaderboardPositionById,
 } from './selectors';
 // eslint-disable-next-line import-x/no-namespace
 import * as remoteFeatureFlagModule from '../../util/remoteFeatureFlag';
@@ -3139,7 +3150,6 @@ describe('Rewards selectors', () => {
     endDate: '2027-01-01T00:00:00.000Z',
     termsAndConditions: null,
     excludedRegions: [],
-    statusLabel: 'Active',
     details: null,
     featured: false,
   };
@@ -3383,6 +3393,271 @@ describe('Rewards selectors', () => {
         });
         expect(selectIsRewardsVersionBlocked(state)).toBe(true);
       });
+    });
+  });
+
+  const mockLeaderboard = {
+    campaign_id: 'campaign-1',
+    computed_at: '2024-03-20T12:00:00.000Z',
+    tiers: {
+      STARTER: {
+        entries: [
+          { rank: 1, referral_code: 'ABC123', rate_of_return: 0.15 },
+          { rank: 2, referral_code: 'DEF456', rate_of_return: 0.1 },
+        ],
+        total_participants: 50,
+      },
+      MID: {
+        entries: [{ rank: 1, referral_code: 'GHI789', rate_of_return: 0.2 }],
+        total_participants: 30,
+      },
+    },
+  };
+
+  const mockPosition = {
+    projected_tier: 'STARTER',
+    rank: 5,
+    total_in_tier: 50,
+    rate_of_return: 0.12,
+    current_usd_value: 1000,
+    total_usd_deposited: 900,
+    net_deposit: 800,
+    computed_at: '2024-03-20T12:00:00.000Z',
+    referral_code: 'XYZ789',
+  };
+
+  describe('selectOndoCampaignLeaderboard', () => {
+    it('returns null when leaderboard is not set', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: null,
+      });
+      expect(selectOndoCampaignLeaderboard(state)).toBeNull();
+    });
+
+    it('returns leaderboard when set', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectOndoCampaignLeaderboard(state)).toEqual(mockLeaderboard);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardLoading', () => {
+    it('returns false when not loading', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardLoading: false,
+      });
+      expect(selectOndoCampaignLeaderboardLoading(state)).toBe(false);
+    });
+
+    it('returns true when loading', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardLoading: true,
+      });
+      expect(selectOndoCampaignLeaderboardLoading(state)).toBe(true);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardError', () => {
+    it('returns false when no error', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardError: false,
+      });
+      expect(selectOndoCampaignLeaderboardError(state)).toBe(false);
+    });
+
+    it('returns true when has error', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardError: true,
+      });
+      expect(selectOndoCampaignLeaderboardError(state)).toBe(true);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardSelectedTier', () => {
+    it('returns null when no tier selected', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardSelectedTier: null,
+      });
+      expect(selectOndoCampaignLeaderboardSelectedTier(state)).toBeNull();
+    });
+
+    it('returns selected tier', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardSelectedTier: 'STARTER',
+      });
+      expect(selectOndoCampaignLeaderboardSelectedTier(state)).toBe('STARTER');
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardTiers', () => {
+    it('returns empty object when no leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: null,
+      });
+      expect(selectOndoCampaignLeaderboardTiers(state)).toEqual({});
+    });
+
+    it('returns tiers from leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectOndoCampaignLeaderboardTiers(state)).toEqual(
+        mockLeaderboard.tiers,
+      );
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardComputedAt', () => {
+    it('returns null when no leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: null,
+      });
+      expect(selectOndoCampaignLeaderboardComputedAt(state)).toBeNull();
+    });
+
+    it('returns computed_at from leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectOndoCampaignLeaderboardComputedAt(state)).toBe(
+        '2024-03-20T12:00:00.000Z',
+      );
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardTierNames', () => {
+    it('returns empty array when no leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: null,
+      });
+      expect(selectOndoCampaignLeaderboardTierNames(state)).toEqual([]);
+    });
+
+    it('returns tier names from leaderboard', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectOndoCampaignLeaderboardTierNames(state)).toEqual([
+        'STARTER',
+        'MID',
+      ]);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardEntriesByTier', () => {
+    it('returns empty array when tier name is null', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(selectOndoCampaignLeaderboardEntriesByTier(null)(state)).toEqual(
+        [],
+      );
+    });
+
+    it('returns empty array when tier does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectOndoCampaignLeaderboardEntriesByTier('UPPER')(state),
+      ).toEqual([]);
+    });
+
+    it('returns entries for specified tier', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectOndoCampaignLeaderboardEntriesByTier('STARTER')(state),
+      ).toEqual(mockLeaderboard.tiers.STARTER.entries);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardTotalParticipantsByTier', () => {
+    it('returns 0 when tier name is null', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectOndoCampaignLeaderboardTotalParticipantsByTier(null)(state),
+      ).toBe(0);
+    });
+
+    it('returns 0 when tier does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectOndoCampaignLeaderboardTotalParticipantsByTier('UPPER')(state),
+      ).toBe(0);
+    });
+
+    it('returns total participants for specified tier', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboard: mockLeaderboard,
+      });
+      expect(
+        selectOndoCampaignLeaderboardTotalParticipantsByTier('STARTER')(state),
+      ).toBe(50);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardPositions', () => {
+    it('returns empty object when no positions', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: {},
+      });
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual({});
+    });
+
+    it('returns positions when set', () => {
+      const positions = { 'sub-1:campaign-1': mockPosition };
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: positions,
+      });
+      expect(selectOndoCampaignLeaderboardPositions(state)).toEqual(positions);
+    });
+  });
+
+  describe('selectOndoCampaignLeaderboardPositionById', () => {
+    it('returns null when subscriptionId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById(
+          undefined,
+          'campaign-1',
+        )(state),
+      ).toBeNull();
+    });
+
+    it('returns null when campaignId is undefined', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById('sub-1', undefined)(state),
+      ).toBeNull();
+    });
+
+    it('returns null when position does not exist', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: {},
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
+      ).toBeNull();
+    });
+
+    it('returns position for specified subscription and campaign', () => {
+      const state = createMockRootState({
+        ondoCampaignLeaderboardPositions: { 'sub-1:campaign-1': mockPosition },
+      });
+      expect(
+        selectOndoCampaignLeaderboardPositionById('sub-1', 'campaign-1')(state),
+      ).toEqual(mockPosition);
     });
   });
 });
