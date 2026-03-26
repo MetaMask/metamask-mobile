@@ -62,9 +62,6 @@ const Root = ({ foxCode }: RootProps) => {
     } else {
       setIsStoreLoading(false);
     }
-    return () => {
-      unsubBrazePush();
-    };
   }, [foxCode]);
 
   // Only wait for store in test mode, fonts are handled inside theme context
