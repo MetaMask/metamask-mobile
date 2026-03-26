@@ -4,7 +4,7 @@ import { MINIMUM_BET } from '../../../constants/transactions';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
 import { OrderPreview } from '../../../types';
 import { formatPrice } from '../../../utils/format';
-import { checkPlaceOrderError } from '../../../utils/predictErrorHandler';
+import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyAvailableBalance } from './usePredictBuyAvailableBalance';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
 import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert';
@@ -48,7 +48,7 @@ export const usePredictBuyError = ({
     }
 
     return activeOrder?.error
-      ? checkPlaceOrderError({
+      ? getPlaceOrderErrorOutcome({
           error: activeOrder?.error,
           orderParams: { preview },
         })

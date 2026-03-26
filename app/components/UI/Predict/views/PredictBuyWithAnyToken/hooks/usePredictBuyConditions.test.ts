@@ -71,7 +71,6 @@ jest.mock(
 
 const defaultParams = {
   currentValue: 10,
-  total: 10.5,
   depositFee: 0,
   preview: {
     rateLimited: false,
@@ -81,7 +80,6 @@ const defaultParams = {
   isPreviewCalculating: false,
   isUserInputChange: false,
   isConfirming: false,
-  depositAmount: 0,
 };
 
 describe('usePredictBuyConditions', () => {
@@ -351,7 +349,7 @@ describe('usePredictBuyConditions', () => {
       mockAvailableBalance = 5;
 
       const { result } = renderHook(() =>
-        usePredictBuyConditions({ ...defaultParams, total: 10.5 }),
+        usePredictBuyConditions({ ...defaultParams, currentValue: 10.5 }),
       );
 
       expect(result.current.canPlaceBet).toBe(false);

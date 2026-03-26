@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-native';
 import { OrderPreview, Side } from '../../../types';
-import { checkPlaceOrderError } from '../../../utils/predictErrorHandler';
+import { getPlaceOrderErrorOutcome } from '../../../utils/predictErrorHandler';
 import { usePredictBuyError } from './usePredictBuyError';
 
 const mockClearOrderError = jest.fn();
@@ -77,12 +77,13 @@ jest.mock('../../../constants/transactions', () => ({
 }));
 
 jest.mock('../../../utils/predictErrorHandler', () => ({
-  checkPlaceOrderError: jest.fn(),
+  getPlaceOrderErrorOutcome: jest.fn(),
 }));
 
-const mockCheckPlaceOrderError = checkPlaceOrderError as jest.MockedFunction<
-  typeof checkPlaceOrderError
->;
+const mockGetPlaceOrderErrorOutcome =
+  getPlaceOrderErrorOutcome as jest.MockedFunction<
+    typeof getPlaceOrderErrorOutcome
+  >;
 
 const createMockPreview = (
   overrides?: Partial<OrderPreview>,
@@ -134,7 +135,7 @@ describe('usePredictBuyError', () => {
     it('returns undefined errorMessage when isBalanceLoading is true', () => {
       mockIsBalanceLoading = true;
       mockActiveOrder = { error: 'some error' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'parsed error',
       });
@@ -142,12 +143,12 @@ describe('usePredictBuyError', () => {
       const { result } = renderHook(() => usePredictBuyError(defaultParams));
 
       expect(result.current.errorMessage).toBeUndefined();
-      expect(mockCheckPlaceOrderError).not.toHaveBeenCalled();
+      expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
     });
 
     it('returns undefined errorMessage when isPlacingOrder is true', () => {
       mockActiveOrder = { error: 'some error' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'parsed error',
       });
@@ -157,12 +158,12 @@ describe('usePredictBuyError', () => {
       );
 
       expect(result.current.errorMessage).toBeUndefined();
-      expect(mockCheckPlaceOrderError).not.toHaveBeenCalled();
+      expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
     });
 
     it('returns undefined errorMessage when isConfirming is true', () => {
       mockActiveOrder = { error: 'some error' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'parsed error',
       });
@@ -172,12 +173,12 @@ describe('usePredictBuyError', () => {
       );
 
       expect(result.current.errorMessage).toBeUndefined();
-      expect(mockCheckPlaceOrderError).not.toHaveBeenCalled();
+      expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
     });
 
     it('returns undefined errorMessage when preview is null', () => {
       mockActiveOrder = { error: 'some error' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'parsed error',
       });
@@ -187,19 +188,19 @@ describe('usePredictBuyError', () => {
       );
 
       expect(result.current.errorMessage).toBeUndefined();
-      expect(mockCheckPlaceOrderError).not.toHaveBeenCalled();
+      expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
     });
 
-    it('calls checkPlaceOrderError when activeOrder has error and no blocking conditions', () => {
+    it('calls getPlaceOrderErrorOutcome when activeOrder has error and no blocking conditions', () => {
       mockActiveOrder = { error: 'order failed' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'parsed error message',
       });
 
       const { result } = renderHook(() => usePredictBuyError(defaultParams));
 
-      expect(mockCheckPlaceOrderError).toHaveBeenCalledWith({
+      expect(mockGetPlaceOrderErrorOutcome).toHaveBeenCalledWith({
         error: 'order failed',
         orderParams: { preview: defaultParams.preview },
       });
@@ -215,7 +216,7 @@ describe('usePredictBuyError', () => {
 
       const { result } = renderHook(() => usePredictBuyError(defaultParams));
 
-      expect(mockCheckPlaceOrderError).not.toHaveBeenCalled();
+      expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
       expect(result.current.errorMessage).toBe(
         'Insufficient payment token balance',
       );
@@ -226,7 +227,7 @@ describe('usePredictBuyError', () => {
 
       const { result } = renderHook(() => usePredictBuyError(defaultParams));
 
-      expect(mockCheckPlaceOrderError).not.toHaveBeenCalled();
+      expect(mockGetPlaceOrderErrorOutcome).not.toHaveBeenCalled();
       expect(result.current.errorMessage).toBeUndefined();
     });
   });
@@ -245,7 +246,7 @@ describe('usePredictBuyError', () => {
 
     it('returns previewError even when other error conditions exist', () => {
       mockActiveOrder = { error: 'order error' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'parsed error',
       });
@@ -307,7 +308,7 @@ describe('usePredictBuyError', () => {
 
     it('returns undefined when errorResult status is order_not_filled', () => {
       mockActiveOrder = { error: 'order not filled' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'order_not_filled',
       });
 
@@ -318,7 +319,7 @@ describe('usePredictBuyError', () => {
 
     it('returns error string when errorResult status is error', () => {
       mockActiveOrder = { error: 'something broke' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'Order placement failed',
       });
@@ -332,7 +333,7 @@ describe('usePredictBuyError', () => {
   describe('isOrderNotFilled', () => {
     it('sets to true when errorResult status is order_not_filled', () => {
       mockActiveOrder = { error: 'not filled' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'order_not_filled',
       });
 
@@ -343,7 +344,7 @@ describe('usePredictBuyError', () => {
 
     it('remains false when errorResult status is error', () => {
       mockActiveOrder = { error: 'something broke' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'error',
         error: 'Order placement failed',
       });
@@ -363,7 +364,7 @@ describe('usePredictBuyError', () => {
   describe('resetOrderNotFilled', () => {
     it('calls clearOrderError and resets isOrderNotFilled to false', () => {
       mockActiveOrder = { error: 'not filled' };
-      mockCheckPlaceOrderError.mockReturnValue({
+      mockGetPlaceOrderErrorOutcome.mockReturnValue({
         status: 'order_not_filled',
       });
 

@@ -71,13 +71,38 @@ export function parseErrorMessage({
   return errorMessage;
 }
 
-export const checkPlaceOrderError = ({
-  error: placeOrderError,
-  orderParams,
-}: {
+interface PlaceOrderErrorParams {
   error: unknown;
   orderParams: PlaceOrderParams;
-}): PlaceOrderOutcome => {
+}
+
+export const getPlaceOrderErrorOutcome = ({
+  error: placeOrderError,
+}: PlaceOrderErrorParams): PlaceOrderOutcome => {
+  const parsedErrorMessage = parseErrorMessage({
+    error: placeOrderError,
+    defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+  });
+
+  const rawMessage =
+    placeOrderError instanceof Error
+      ? placeOrderError.message
+      : String(placeOrderError);
+  const isNotFilled =
+    rawMessage === PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED ||
+    rawMessage === PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
+
+  if (isNotFilled) {
+    return { status: 'order_not_filled' };
+  }
+
+  return { status: 'error', error: parsedErrorMessage };
+};
+
+export const logPlaceOrderError = ({
+  error: placeOrderError,
+  orderParams,
+}: PlaceOrderErrorParams): void => {
   const parsedErrorMessage = parseErrorMessage({
     error: placeOrderError,
     defaultCode: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
@@ -105,17 +130,11 @@ export const checkPlaceOrderError = ({
       },
     },
   });
+};
 
-  const rawMessage =
-    placeOrderError instanceof Error
-      ? placeOrderError.message
-      : String(placeOrderError);
-  const isNotFilled =
-    rawMessage === PREDICT_ERROR_CODES.BUY_ORDER_NOT_FULLY_FILLED ||
-    rawMessage === PREDICT_ERROR_CODES.SELL_ORDER_NOT_FULLY_FILLED;
-
-  if (isNotFilled) {
-    return { status: 'order_not_filled' };
-  }
-  return { status: 'error', error: parsedErrorMessage };
+export const checkPlaceOrderError = (
+  params: PlaceOrderErrorParams,
+): PlaceOrderOutcome => {
+  logPlaceOrderError(params);
+  return getPlaceOrderErrorOutcome(params);
 };
