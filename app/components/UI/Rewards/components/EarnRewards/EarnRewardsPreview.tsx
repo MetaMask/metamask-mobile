@@ -27,7 +27,6 @@ import {
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
 import {
-  selectCardIsLoaded,
   selectIsCardholder,
   selectIsAuthenticatedCard,
 } from '../../../../../core/redux/slices/card';
@@ -111,17 +110,12 @@ const EarnRewardsPreview: React.FC = () => {
     geoLocation !== undefined && geoLocation !== UK_COUNTRY_CODE;
 
   // Card check — isCardGeoLoaded flips true when loadCardholderAccounts settles
-  const isCardGeoLoaded = useSelector(selectCardIsLoaded);
   const isCardholder = useSelector(selectIsCardholder);
   const isAuthenticatedCard = useSelector(selectIsAuthenticatedCard);
-  const isCardGeoLoading = !isCardGeoLoaded;
-  const showCardCard = isCardGeoLoaded;
   const cardSubtitle =
     isCardholder || isAuthenticatedCard
       ? strings('rewards.earn_rewards.card_subtitle_cardholder')
       : strings('rewards.earn_rewards.card_subtitle');
-
-  const isAnyGeoLoading = isMusdGeoLoading || isCardGeoLoading;
 
   const handleMusdPress = useCallback(() => {
     navigation.navigate(Routes.REWARDS_MUSD_CALCULATOR_VIEW);
@@ -131,7 +125,7 @@ const EarnRewardsPreview: React.FC = () => {
     handleDeeplink({ uri: 'metamask://card-onboarding' });
   }, []);
 
-  if (!isAnyGeoLoading && !showMusdCard && !showCardCard) {
+  if (!isMusdGeoLoading && !showMusdCard) {
     return null;
   }
 
@@ -145,7 +139,7 @@ const EarnRewardsPreview: React.FC = () => {
         alignItems={BoxAlignItems.Center}
         twClassName="gap-2"
       >
-        {isAnyGeoLoading && (
+        {isMusdGeoLoading && (
           <ActivityIndicator size="small" color={colors.primary.default} />
         )}
         <Text variant={TextVariant.HeadingMd}>
@@ -166,19 +160,13 @@ const EarnRewardsPreview: React.FC = () => {
           />
         )
       )}
-      {isCardGeoLoading ? (
-        <Skeleton style={tw.style('h-28 rounded-xl')} />
-      ) : (
-        showCardCard && (
-          <EarnCard
-            testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
-            image={cardImage}
-            title={strings('rewards.earn_rewards.card_title')}
-            subtitle={cardSubtitle}
-            onPress={handleCardPress}
-          />
-        )
-      )}
+      <EarnCard
+        testID={REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD}
+        image={cardImage}
+        title={strings('rewards.earn_rewards.card_title')}
+        subtitle={cardSubtitle}
+        onPress={handleCardPress}
+      />
     </Box>
   );
 };

@@ -70,7 +70,6 @@ const SignUp = () => {
   const geoLocation = useSelector(selectGeolocationLocation);
   const {
     allRegions,
-    signUpRegions,
     getRegionByCode,
     isLoading: isLoadingRegistrationSettings,
   } = useRegions();
