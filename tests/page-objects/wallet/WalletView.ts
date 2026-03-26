@@ -10,6 +10,7 @@ import {
   PredictPositionSelectorsIDs,
   PredictClaimConfirmationSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
+import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
@@ -355,21 +356,40 @@ class WalletView {
     });
   }
 
+  tokenRow(token: string, index = 0): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(token, index),
+      appium: () =>
+        PlaywrightMatchers.getElementById(getAssetTestId(token), {
+          exact: true,
+        }),
+    });
+  }
+
   async tapOnToken(token: string, index = 0): Promise<void> {
     const tokenLabel = token || WalletViewSelectorsText.DEFAULT_TOKEN;
-    const elem = Matchers.getElementByText(tokenLabel, index);
-    await Assertions.expectElementToBeVisible(elem, {
-      description: `${tokenLabel} token in wallet list`,
-    });
-    // Wait for the token list to finish loading/reordering before tapping.
-    // New tokens appearing asynchronously can shift positions mid-tap.
-    await Utilities.waitForElementToStopMoving(elem, {
-      timeout: 10000,
-      interval: 500,
-      stableCount: 6,
-    });
-    await Gestures.waitAndTap(elem, {
-      elemDescription: 'Token',
+    await encapsulatedAction({
+      detox: async () => {
+        const elem = Matchers.getElementByText(tokenLabel, index);
+        await Assertions.expectElementToBeVisible(elem, {
+          description: `${tokenLabel} token in wallet list`,
+        });
+        // Wait for the token list to finish loading/reordering before tapping.
+        // New tokens appearing asynchronously can shift positions mid-tap.
+        await Utilities.waitForElementToStopMoving(elem, {
+          timeout: 10000,
+          interval: 500,
+          stableCount: 6,
+        });
+        await Gestures.waitAndTap(elem, {
+          elemDescription: 'Token',
+        });
+      },
+      appium: async () => {
+        await UnifiedGestures.waitAndTap(this.tokenRow(tokenLabel), {
+          description: 'Token',
+        });
+      },
     });
   }
 
@@ -702,8 +722,7 @@ class WalletView {
         });
       },
       appium: async () => {
-        const el = await asPlaywrightElement(this.tokensSection);
-        await el.click();
+        await UnifiedGestures.waitAndTap(this.tokensSection);
       },
     });
   }
