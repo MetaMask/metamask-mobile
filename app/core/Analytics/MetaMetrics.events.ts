@@ -626,6 +626,9 @@ enum EVENT_NAME {
   // Trending
   TRENDING_FEED_VIEWED = 'Trending Feed Viewed',
 
+  // Explore Search
+  EXPLORE_SEARCH_INTERACTED = 'Explore Search Interacted',
+
   // Market Insights
   MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW = 'Market Insights Card Scrolled to View',
   MARKET_INSIGHTS_OPENED = 'Market Insights Opened',
@@ -1668,6 +1671,8 @@ const events = {
   PREDICT_FEED_VIEWED: generateOpt(EVENT_NAME.PREDICT_FEED_VIEWED),
 
   TRENDING_FEED_VIEWED: generateOpt(EVENT_NAME.TRENDING_FEED_VIEWED),
+
+  EXPLORE_SEARCH_INTERACTED: generateOpt(EVENT_NAME.EXPLORE_SEARCH_INTERACTED),
 
   // Share
   SHARE_ACTION: generateOpt(EVENT_NAME.SHARE_ACTION),
