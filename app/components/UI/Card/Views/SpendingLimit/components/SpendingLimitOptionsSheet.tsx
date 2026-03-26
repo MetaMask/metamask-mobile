@@ -7,11 +7,7 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import {
-  useNavigation,
-  type NavigationProp,
-  type ParamListBase,
-} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -25,6 +21,7 @@ import { strings } from '../../../../../../../locales/i18n';
 import { LimitType } from '../../../hooks/useSpendingLimit';
 import { sanitizeCustomLimit } from '../../../util/sanitizeCustomLimit';
 import LimitOptionItem from './LimitOptionItem';
+import { AppNavigationProp } from '../../../../../../core/NavigationService/types';
 
 interface SpendingLimitOptionsNavigationDetails {
   currentLimitType: LimitType;
@@ -41,7 +38,7 @@ export const createSpendingLimitOptionsNavigationDetails =
 
 const SpendingLimitOptionsSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation<NavigationProp<ParamListBase>>();
+  const navigation = useNavigation<AppNavigationProp>();
   const { currentLimitType, currentCustomLimit, callerRoute, callerParams } =
     useParams<SpendingLimitOptionsNavigationDetails>();
 

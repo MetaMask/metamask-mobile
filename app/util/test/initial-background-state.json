@@ -299,7 +299,6 @@
     "smartAccountOptIn": true,
     "showIncomingTransactions": {
       "0x1": true,
-      "0x3e7": true,
       "0x5": true,
       "0x38": true,
       "0x61": true,
@@ -446,7 +445,7 @@
     "lastWithdrawResult": null,
     "lastError": null,
     "lastUpdateTimestamp": 0,
-    "isEligible": true,
+    "isEligible": false,
     "isFirstTimeUser": {
       "testnet": true,
       "mainnet": true
