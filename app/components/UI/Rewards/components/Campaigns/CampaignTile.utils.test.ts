@@ -42,7 +42,6 @@ function buildCampaignDto(overrides: Partial<CampaignDto> = {}): CampaignDto {
     endDate: '2025-12-31T23:59:59.999Z',
     termsAndConditions: null,
     excludedRegions: [],
-    statusLabel: 'Active',
     details: null,
     featured: true,
     ...overrides,
@@ -194,7 +193,7 @@ describe('CampaignTile.utils', () => {
   });
 
   describe('getCampaignPillLabel', () => {
-    it('returns pill_up_next for upcoming status', () => {
+    it('returns pill_up_next (Coming soon) for upcoming status', () => {
       const result = getCampaignPillLabel('upcoming');
 
       expect(strings).toHaveBeenCalledWith('rewards.campaign.pill_up_next');

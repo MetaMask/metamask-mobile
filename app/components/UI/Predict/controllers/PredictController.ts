@@ -1661,6 +1661,9 @@ export class PredictController extends BaseController<
         state.pendingClaims[signer.address] = 'pending';
       });
 
+      // Invalidate query cache (to avoid nonce issues)
+      await this.invalidateQueryCache(provider.chainId);
+
       // Prepare claim transaction - can fail if safe address not found, signing fails, etc.
       const prepareClaimResult = await provider.prepareClaim({
         positions: claimablePositions,
@@ -2715,6 +2718,9 @@ export class PredictController extends BaseController<
       'NetworkController:findNetworkClientIdByChainId',
       numberToHex(chainId),
     );
+
+    // Invalidate query cache (to avoid nonce issues)
+    await this.invalidateQueryCache(chainId);
 
     const { callData, amount } = await provider.signWithdraw({
       callData: withdrawTransaction?.data as Hex,

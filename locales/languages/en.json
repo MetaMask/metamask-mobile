@@ -20,6 +20,12 @@
       "update": "Update"
     }
   },
+  "access_restricted": {
+    "title": "Access restricted",
+    "description_line1": "This wallet address has been flagged during compliance screening. As a result, some MetaMask services are unavailable.",
+    "description_line2": "If you believe this is an error, contact support to request a review.",
+    "contact_support": "Contact support"
+  },
   "alert_system": {
     "alert_modal": {
       "title": "Alert",
@@ -6804,7 +6810,13 @@
     "oauth_error_button": "Try again",
     "no_internet_connection_title": "Unable to connect",
     "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
-    "no_internet_connection_button": "Try again"
+    "no_internet_connection_button": "Try again",
+    "ios_need_update_title": "iOS update required",
+    "ios_need_update_description": "MetaMask Google Sign-In will soon require ",
+    "ios_need_update_description_version": "iOS 17.4 or later",
+    "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
+    "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We strongly recommend backing up your Secret Recovery Phrase to ensure uninterrupted access.",
+    "ios_need_update_button": "Continue"
   },
   "password_hint": {
     "title": "Password hint",
@@ -7424,7 +7436,9 @@
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
-      "on_linea": "on Linea"
+      "on_linea": "on Linea",
+      "account_label": "Account",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Cashback",
@@ -7866,6 +7880,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD bonus calculator",
       "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
@@ -7874,6 +7889,7 @@
       "daily_bonus": "Daily claimable bonus",
       "annualized_bonus": "Annualized bonus",
       "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "disclaimer_brief": "The bonus is an estimate and may change.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
     },
@@ -7913,7 +7929,7 @@
       "starts_date": "Starts {{date}}",
       "ends_date": "Ends {{date}}",
       "ended_date": "Ended {{date}}",
-      "pill_up_next": "Up next",
+      "pill_up_next": "Coming soon",
       "pill_active": "Live",
       "pill_complete": "Complete",
       "enter_now": "Enter now",
@@ -7941,6 +7957,53 @@
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
+    },
+    "ondo_campaign_leaderboard_position": {
+      "title": "Your Position",
+      "rank": "My Rank",
+      "tier": "My Tier",
+      "rate_of_return": "Return",
+      "total_deposited": "Total Deposited",
+      "current_value": "Current Value",
+      "not_found": "Not on the leaderboard yet. Please check back later.",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load your position",
+      "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
+      "retry": "Retry"
+    },
+    "ondo_campaign_portfolio": {
+      "title": "Positions",
+      "total_value": "Total value",
+      "portfolio_pnl": "P&L",
+      "portfolio_pnl_percent": "P&L (%)",
+      "summary_cost_basis": "Cost basis",
+      "summary_net_deposit": "Net deposit",
+      "positions_heading": "Positions",
+      "position_current_value": "Value",
+      "position_unrealized_pnl": "P&L",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load positions.",
+      "error_loading_description": "There was an error loading your positions. Please try again.",
+      "retry": "Retry",
+      "loading": "Loading positions...",
+      "empty": "No positions found yet.",
+      "empty_description": "Start earning rewards by opening a position in tokenized real-world assets.",
+      "empty_cta": "Open a position",
+      "position_units": "{{units}} shares"
+    },
+    "ondo_campaign_leaderboard": {
+      "title": "Leaderboard",
+      "your_position": "Your position",
+      "of_total": "of {{total}} participants",
+      "total_participants": "{{count}} participants",
+      "updated_at": "Last updated: {{time}}",
+      "error_loading": "Failed to load leaderboard",
+      "error_loading_description": "Something went wrong while loading the leaderboard. Please try again.",
+      "error_loading_position": "Failed to load your position",
+      "retry": "Retry",
+      "no_data": "No leaderboard data available",
+      "no_entries_in_tier": "No participants in this tier yet",
+      "not_yet_computed": "The leaderboard hasn't been computed yet. Check back soon."
     },
     "campaigns_preview": {
       "title": "Campaigns",
@@ -8075,6 +8138,7 @@
     "sites": "Sites",
     "popular_sites": "Popular sites",
     "search_sites": "Search sites",
+    "view_all": "View all",
     "enable_basic_functionality": "Enable basic functionality",
     "basic_functionality_disabled_title": "Explore is not available",
     "basic_functionality_disabled_description": "We can't fetch the required metadata when basic functionality is disabled.",
