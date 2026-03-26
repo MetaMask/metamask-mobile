@@ -4,6 +4,7 @@ import { PersistGate } from 'redux-persist/lib/integration/react';
 import { store, persistor } from '../../../store';
 import App from '../../Nav/App';
 import SecureKeychain from '../../../core/SecureKeychain';
+import { setRuntimeFoxCode } from '../../../util/foxCodeDisplay';
 import EntryScriptWeb3 from '../../../core/EntryScriptWeb3';
 import Logger from '../../../util/Logger';
 import ErrorBoundary from '../ErrorBoundary';
@@ -51,6 +52,7 @@ const Root = ({ foxCode }: RootProps) => {
       const foxCodeError = new Error('WARN - foxCode is an empty string');
       Logger.error(foxCodeError);
     }
+    setRuntimeFoxCode(foxCode);
     SecureKeychain.init(foxCode);
     // Init EntryScriptWeb3 asynchronously on the background
     EntryScriptWeb3.init();

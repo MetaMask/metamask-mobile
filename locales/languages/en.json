@@ -3388,6 +3388,7 @@
   },
   "app_information": {
     "title": "Information",
+    "mm_fox_code_fingerprint": "MM_FOX_CODE fingerprint: {{fingerprint}}",
     "links": "Links",
     "privacy_policy": "Privacy Policy",
     "terms_of_use": "Terms of use",

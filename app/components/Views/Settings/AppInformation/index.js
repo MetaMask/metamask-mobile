@@ -38,6 +38,7 @@ import {
   getFeatureFlagAppEnvironment,
 } from '../../../../core/Engine/controllers/remote-feature-flag-controller/utils';
 import { getPreinstalledSnapsMetadata } from '../../../../selectors/snaps';
+import { getFoxCodeFingerprint } from '../../../../util/foxCodeDisplay';
 
 const createStyles = (colors) =>
   StyleSheet.create({
@@ -235,6 +236,11 @@ class AppInformation extends PureComponent {
 
             {this.state.showEnvironmentInfo && (
               <>
+                <Text style={styles.versionInfo}>
+                  {strings('app_information.mm_fox_code_fingerprint', {
+                    fingerprint: getFoxCodeFingerprint(),
+                  })}
+                </Text>
                 <Text style={styles.branchInfo}>
                   {`Environment: ${process.env.METAMASK_ENVIRONMENT}`}
                 </Text>
