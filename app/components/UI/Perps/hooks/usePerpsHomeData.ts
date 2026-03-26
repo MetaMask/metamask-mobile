@@ -136,9 +136,20 @@ export const usePerpsHomeData = ({
     }
 
     // Add live fills (overwrites duplicates from REST - live data is fresher)
+    // Preserve detailedOrderType from REST fills since WS fills lack it
     for (const fill of liveFills) {
       const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
-      fillsMap.set(key, fill);
+      const existing = fillsMap.get(key);
+      if (existing?.detailedOrderType && !fill.detailedOrderType) {
+        fillsMap.set(key, {
+          ...fill,
+          detailedOrderType: existing.detailedOrderType,
+          ...(existing.liquidation &&
+            !fill.liquidation && { liquidation: existing.liquidation }),
+        });
+      } else {
+        fillsMap.set(key, fill);
+      }
     }
 
     // Convert back to array and sort by timestamp descending (newest first)

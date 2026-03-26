@@ -3,11 +3,11 @@ import { Image, View } from 'react-native';
 import { useStyles } from '../../../../../hooks/useStyles';
 import { useParams } from '../../../../../../util/navigation/navUtils';
 import { strings } from '../../../../../../../locales/i18n';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { useIsTransactionPayLoading } from '../../../hooks/pay/useTransactionPayData';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
@@ -103,14 +103,15 @@ export const MusdMaxConversionInfo = () => {
       <BlockingAlertMessage />
       <View style={styles.buttonContainer}>
         <Button
-          onPress={onConfirm}
-          label={buttonLabel}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
+          onPress={() => onConfirm()}
+          variant={ButtonVariant.Primary}
+          isFullWidth
           size={ButtonSize.Lg}
           isDisabled={isConfirmDisabled}
           testID={MusdMaxConversionInfoTestIds.CONFIRM_BUTTON}
-        />
+        >
+          {buttonLabel}
+        </Button>
       </View>
     </View>
   );
