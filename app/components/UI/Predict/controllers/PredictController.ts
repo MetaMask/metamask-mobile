@@ -2174,7 +2174,7 @@ export class PredictController extends BaseController<
    * `PredictPayWithAnyTokenInfo`.
    *
    */
-  public async initiPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
+  public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
 
     if (!this.state.activeOrder) {
@@ -2450,7 +2450,7 @@ export class PredictController extends BaseController<
           delete state.activeOrder.batchId;
         }
       });
-      this.initiPayWithAnyToken();
+      this.initPayWithAnyToken();
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {

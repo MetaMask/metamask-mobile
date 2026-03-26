@@ -239,7 +239,7 @@ describe('usePredictTrading', () => {
       };
 
       (
-        Engine.context.PredictController.initiPayWithAnyToken as jest.Mock
+        Engine.context.PredictController.initPayWithAnyToken as jest.Mock
       ).mockResolvedValue(mockResult);
 
       const { result } = renderHook(() => usePredictTrading());
@@ -247,7 +247,7 @@ describe('usePredictTrading', () => {
       const response = await result.current.initiPayWithAnyToken();
 
       expect(
-        Engine.context.PredictController.initiPayWithAnyToken,
+        Engine.context.PredictController.initPayWithAnyToken,
       ).toHaveBeenCalled();
       expect(response).toEqual(mockResult);
     });
@@ -255,7 +255,7 @@ describe('usePredictTrading', () => {
     it('throws error when PredictController.initiPayWithAnyToken fails', async () => {
       const mockError = new Error('Failed to initialize pay with any token');
       (
-        Engine.context.PredictController.initiPayWithAnyToken as jest.Mock
+        Engine.context.PredictController.initPayWithAnyToken as jest.Mock
       ).mockRejectedValue(mockError);
       const { result } = renderHook(() => usePredictTrading());
 

@@ -46,7 +46,7 @@ export function usePredictTrading() {
 
   const initiPayWithAnyToken = useCallback(async () => {
     const controller = Engine.context.PredictController;
-    return controller.initiPayWithAnyToken();
+    return controller.initPayWithAnyToken();
   }, []);
 
   return {

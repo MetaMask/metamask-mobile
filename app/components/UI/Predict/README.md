@@ -144,7 +144,7 @@ The buy/order flow lives in `views/PredictBuyWithAnyToken/`. This is the primary
 
 ### Single-Route Architecture
 
-All order states (preview, token selection, deposit, order placement) are managed by `PredictController` and rendered inline within `PredictBuyWithAnyToken`. The confirmation transaction (`PredictPayWithAnyTokenInfo`) is mounted as a headless component that syncs deposit amounts and payment tokens via effects, rather than living on a separate navigation screen. When an external payment token is selected, `initiPayWithAnyToken()` fires on the initial `transitionEnd` event to prepare the deposit-and-order batch in the background.
+All order states (preview, token selection, deposit, order placement) are managed by `PredictController` and rendered inline within `PredictBuyWithAnyToken`. The confirmation transaction (`PredictPayWithAnyTokenInfo`) is mounted as a headless component that syncs deposit amounts and payment tokens via effects, rather than living on a separate navigation screen. When an external payment token is selected, `initPayWithAnyToken()` fires on the initial `transitionEnd` event to prepare the deposit-and-order batch in the background.
 
 Flow logic (deposit → order chaining, error handling, state transitions) lives in `PredictController` — hooks react to `activeOrder.state` changes via effects rather than driving transitions themselves.
 
@@ -165,7 +165,7 @@ Flow logic (deposit → order chaining, error handling, state transitions) lives
 
 | Hook                            | Description                                                                                                                                                                                                                                                                                                    |
 | ------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `usePredictBuyActions`          | Orchestrates buy flow lifecycle: analytics tracking on mount, `transitionEnd` initialization for `initiPayWithAnyToken()`, back-navigation cleanup, confirm/deposit/order logic, and SUCCESS → dismiss. Returns `handleConfirm` and `placeOrder`                                                               |
+| `usePredictBuyActions`          | Orchestrates buy flow lifecycle: analytics tracking on mount, `transitionEnd` initialization for `initPayWithAnyToken()`, back-navigation cleanup, confirm/deposit/order logic, and SUCCESS → dismiss. Returns `handleConfirm` and `placeOrder`                                                                |
 | `usePredictBuyConditions`       | Derives boolean flags (`canPlaceBet`, `isBelowMinimum`, `isInsufficientBalance`, `isInsufficientPayTokenBalance`, `isRateLimited`, `maxBetAmount`, `isPayFeesLoading`, `isBalancePulsing`, etc.) from order and preview state. Includes stale-quote detection to bridge `TransactionPayController` timing gaps |
 | `usePredictBuyError`            | Derives error messages from active order state, preview errors, minimum bet violations, insufficient balance, and insufficient pay token balance. Detects order-not-filled errors for the retry flow                                                                                                           |
 | `usePredictBuyInfo`             | Computes display values (`toWin`, `metamaskFee`, `providerFee`, `depositFee`, `depositAmount`, `total`, `rewardsFeeAmount`) from preview, `TransactionPayController` totals, and Predict balance                                                                                                               |
@@ -203,7 +203,7 @@ enum ActiveOrderState {
 
 ```mermaid
 stateDiagram-v2
-    [*] --> PREVIEW: initiPayWithAnyToken()
+    [*] --> PREVIEW: initPayWithAnyToken()
 
     PREVIEW --> PAY_WITH_ANY_TOKEN: selectPaymentToken(external token)
     PAY_WITH_ANY_TOKEN --> PREVIEW: selectPaymentToken(balance token)
@@ -212,7 +212,7 @@ stateDiagram-v2
     PAY_WITH_ANY_TOKEN --> DEPOSITING: placeOrder() [external token selected]
 
     DEPOSITING --> PLACING_ORDER: handleTransactionSideEffects(depositAndOrder confirmed) → placeOrder()
-    DEPOSITING --> PREVIEW: handleTransactionSideEffects(depositAndOrder failed) [sets error, retries initiPayWithAnyToken]
+    DEPOSITING --> PREVIEW: handleTransactionSideEffects(depositAndOrder failed) [sets error, retries initPayWithAnyToken]
 
     PLACING_ORDER --> SUCCESS: placeOrder() succeeds
     PLACING_ORDER --> PREVIEW: placeOrder() fails [sets error, clears payment token]
@@ -223,8 +223,8 @@ stateDiagram-v2
 Notes:
 
 - Back navigation or approval rejection triggers `onPlaceOrderEnd()`, which clears the active order, payment token, and deposit preview.
-- Deposit failure resets to `PREVIEW`, stores the error on `activeOrder.error`, deletes `batchId`, and automatically retries `initiPayWithAnyToken()`.
-- The `transitionEnd` listener in `usePredictBuyActions` triggers `initiPayWithAnyToken()` once on initial mount to prepare the deposit-and-order batch when an external token is selected.
+- Deposit failure resets to `PREVIEW`, stores the error on `activeOrder.error`, deletes `batchId`, and automatically retries `initPayWithAnyToken()`.
+- The `transitionEnd` listener in `usePredictBuyActions` triggers `initPayWithAnyToken()` once on initial mount to prepare the deposit-and-order batch when an external token is selected.
 - Transaction status events (`TransactionController:transactionStatusUpdated`) for `predictDepositAndOrder` are handled by `handleTransactionSideEffects()` in the controller, which chains deposit confirmation into `placeOrder()` automatically.
 - When `placeOrder()` is called while the active order state is `PAY_WITH_ANY_TOKEN`, it transitions to `DEPOSITING` and stores the preview for later use after deposit confirmation. The actual order placement happens when the deposit transaction confirms.
 
@@ -232,7 +232,7 @@ Notes:
 
 | Method                      | Transition                         | Notes                                                                                                                        |
 | --------------------------- | ---------------------------------- | ---------------------------------------------------------------------------------------------------------------------------- |
-| `initiPayWithAnyToken()`    | Sets `batchId` on active order     | Prepares deposit-and-order batch via provider; initializes to `PREVIEW` if no active order exists; guards against duplicates |
+| `initPayWithAnyToken()`     | Sets `batchId` on active order     | Prepares deposit-and-order batch via provider; initializes to `PREVIEW` if no active order exists; guards against duplicates |
 | `selectPaymentToken()`      | `PREVIEW ↔ PAY_WITH_ANY_TOKEN`    | Toggles between balance and external token; sets/clears `selectedPaymentToken` and clears error                              |
 | `placeOrder()`              | `PAY_WITH_ANY_TOKEN -> DEPOSITING` | When external token selected: stores preview, transitions to `DEPOSITING`, returns early                                     |
 | `placeOrder()`              | `PREVIEW -> PLACING_ORDER`         | When balance selected: submits order directly to provider                                                                    |

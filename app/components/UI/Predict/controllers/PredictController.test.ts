@@ -3847,7 +3847,7 @@ describe('PredictController', () => {
           symbol: 'USDC',
         });
 
-        const result = await controller.initiPayWithAnyToken();
+        const result = await controller.initPayWithAnyToken();
 
         expect(result).toEqual({
           success: true,
@@ -3871,7 +3871,7 @@ describe('PredictController', () => {
           batchId: 'batch-in-progress',
         });
 
-        await expect(controller.initiPayWithAnyToken()).rejects.toThrow(
+        await expect(controller.initPayWithAnyToken()).rejects.toThrow(
           'Pay-with-any-token confirmation is already in progress',
         );
 
@@ -3911,7 +3911,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PREVIEW,
         });
 
-        const result = await controller.initiPayWithAnyToken();
+        const result = await controller.initPayWithAnyToken();
 
         expect(result).toEqual({
           success: true,
@@ -3956,7 +3956,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PREVIEW,
         });
 
-        const result = await controller.initiPayWithAnyToken();
+        const result = await controller.initPayWithAnyToken();
 
         expect(result).toEqual({
           success: true,
@@ -7086,7 +7086,7 @@ describe('PredictController', () => {
         });
 
         jest
-          .spyOn(controller, 'initiPayWithAnyToken')
+          .spyOn(controller, 'initPayWithAnyToken')
           .mockResolvedValue(undefined as never);
 
         const transactionMeta = createPredictTransactionMeta({
@@ -7123,7 +7123,7 @@ describe('PredictController', () => {
         });
 
         const retrySpy = jest
-          .spyOn(controller, 'initiPayWithAnyToken')
+          .spyOn(controller, 'initPayWithAnyToken')
           .mockResolvedValue({
             success: false,
             error: 'User rejected the request.',
@@ -7162,7 +7162,7 @@ describe('PredictController', () => {
         });
 
         jest
-          .spyOn(controller, 'initiPayWithAnyToken')
+          .spyOn(controller, 'initPayWithAnyToken')
           .mockResolvedValue(undefined as never);
 
         const transactionMeta = createPredictTransactionMeta({
@@ -7185,7 +7185,7 @@ describe('PredictController', () => {
     });
   });
 
-  describe('initiPayWithAnyToken error branches', () => {
+  describe('initPayWithAnyToken error branches', () => {
     it('returns a failed result when deposit preparation returns undefined', async () => {
       await withController(async ({ controller }) => {
         controller.setActiveOrder({
@@ -7196,7 +7196,7 @@ describe('PredictController', () => {
           undefined as never,
         );
 
-        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+        await expect(controller.initPayWithAnyToken()).resolves.toEqual({
           success: false,
           error: 'Deposit preparation returned undefined',
         });
@@ -7214,7 +7214,7 @@ describe('PredictController', () => {
           chainId: '0x89',
         });
 
-        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+        await expect(controller.initPayWithAnyToken()).resolves.toEqual({
           success: false,
           error: 'No transactions returned from deposit preparation',
         });
@@ -7239,7 +7239,7 @@ describe('PredictController', () => {
           ],
         } as never);
 
-        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+        await expect(controller.initPayWithAnyToken()).resolves.toEqual({
           success: false,
           error: 'Chain ID not provided by deposit preparation',
         });
@@ -7253,7 +7253,7 @@ describe('PredictController', () => {
             state: ActiveOrderState.PREVIEW,
           });
 
-          await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+          await expect(controller.initPayWithAnyToken()).resolves.toEqual({
             success: false,
             error: 'Network client not found for chain ID: 0x89',
           });
@@ -7274,7 +7274,7 @@ describe('PredictController', () => {
 
         (addTransactionBatch as jest.Mock).mockResolvedValue({});
 
-        await expect(controller.initiPayWithAnyToken()).resolves.toEqual({
+        await expect(controller.initPayWithAnyToken()).resolves.toEqual({
           success: false,
           error: 'Failed to get batch ID from transaction submission',
         });
