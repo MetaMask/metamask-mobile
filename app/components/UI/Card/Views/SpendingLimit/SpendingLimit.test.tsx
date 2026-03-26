@@ -184,6 +184,49 @@ jest.mock('../../components/AssetSelectionBottomSheet', () => ({
   ]),
 }));
 
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  const ReactActual = jest.requireActual('react');
+  const {
+    View,
+    Text,
+    TouchableOpacity,
+    ActivityIndicator: RNActivityIndicator,
+  } = jest.requireActual('react-native');
+
+  return {
+    ...actual,
+    Box: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      ReactActual.createElement(View, { testID, ...props }, children),
+    Text: ({
+      children,
+      testID,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      ReactActual.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      isLoading,
+      ...props
+    }: React.PropsWithChildren<Record<string, unknown>>) =>
+      ReactActual.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: isDisabled || isLoading, ...props },
+        isLoading
+          ? ReactActual.createElement(RNActivityIndicator, {})
+          : ReactActual.createElement(Text, {}, children || label),
+      ),
+  };
+});
+
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
 import { fireEvent, screen, waitFor } from '@testing-library/react-native';

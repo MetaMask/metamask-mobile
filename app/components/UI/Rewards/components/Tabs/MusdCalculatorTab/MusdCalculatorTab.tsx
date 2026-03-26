@@ -2,10 +2,8 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { ScrollView } from 'react-native';
 import {
   Box,
-  Icon,
-  IconName,
-  IconSize,
   Text,
+  TextColor,
   TextVariant,
   Button,
   ButtonVariant,
@@ -18,16 +16,39 @@ import { KeyValueRowStubs } from '../../../../../../component-library/components
 import { handleDeeplink } from '../../../../../../core/DeeplinkManager';
 import useFiatFormatter from '../../../../SimulationDetails/FiatDisplay/useFiatFormatter';
 import { BigNumber } from 'bignumber.js';
+import { EthScope } from '@metamask/keyring-api';
+import Routes from '../../../../../../constants/navigation/Routes';
+import {
+  SwapBridgeNavigationLocation,
+  useSwapBridgeNavigation,
+} from '../../../../Bridge/hooks/useSwapBridgeNavigation';
+import { BridgeToken } from '../../../../Bridge/types';
+import {
+  MUSD_TOKEN,
+  MUSD_TOKEN_ADDRESS,
+} from '../../../../Earn/constants/musd';
+import { getNativeSourceToken } from '../../../../Bridge/utils/tokenUtils';
 
 const ANNUAL_BONUS_RATE = 0.03;
 const BUY_MUSD_URL =
   'https://link.metamask.io/buy?address=0xaca92e438df0b2401ff60da7e4337b687a2435da&amount=100&chainid=1&sig_params=address%2Camount%2Cchainid%2Cutm_source&utm_source=rewards&sig=SdHOoh_QvT1bs8B6g-qCyLH5mUEczYzeOfAv9SNRm4CKjR6uBnUp4e1-Vcojb39fWWScBrui2GLftNlJKQlrAQ';
-const SWAP_MUSD_URL =
-  'https://link.metamask.io/swap?from=eip155%3A1%2Fslip44%3A60&sig_params=from%2Cto%2Cutm_source&to=eip155%3A1%2Ferc20%3A0xacA92E438df0B2401fF60dA7E4337B687a2435DA&utm_source=rewards&sig=mCsMuZB-omwEg9WvGOwA8nuc8NvXj7uFfC_Pn-6Nmwlce2GF356tbZbHIgzYHWhmLb4kvUKMTpj4eb0yUrle1Q';
+
+const MUSD_DEST_TOKEN: BridgeToken = {
+  address: MUSD_TOKEN_ADDRESS,
+  symbol: MUSD_TOKEN.symbol,
+  name: MUSD_TOKEN.name,
+  decimals: MUSD_TOKEN.decimals,
+  chainId: '0x1',
+};
 
 const MusdCalculatorTab: React.FC = () => {
   const tw = useTailwind();
   const [musdAmount, setMusdAmount] = useState('1000');
+
+  const ethSourceToken = useMemo(
+    () => getNativeSourceToken(EthScope.Mainnet),
+    [],
+  );
 
   const musdCalculations = useMemo(() => {
     const amount = parseFloat(musdAmount) || 0;
@@ -59,9 +80,16 @@ const MusdCalculatorTab: React.FC = () => {
     handleDeeplink({ uri: BUY_MUSD_URL });
   }, []);
 
+  const { goToSwaps } = useSwapBridgeNavigation({
+    location: SwapBridgeNavigationLocation.Rewards,
+    sourcePage: Routes.REWARDS_DASHBOARD,
+    sourceToken: ethSourceToken,
+    destToken: MUSD_DEST_TOKEN,
+  });
+
   const handleSwapMusd = useCallback(() => {
-    handleDeeplink({ uri: SWAP_MUSD_URL });
-  }, []);
+    goToSwaps();
+  }, [goToSwaps]);
 
   return (
     <ScrollView
@@ -132,14 +160,6 @@ const MusdCalculatorTab: React.FC = () => {
         </Box>
       </Box>
 
-      {/* Disclaimer */}
-      <Box twClassName="flex-row gap-2 items-center">
-        <Icon name={IconName.Info} size={IconSize.Sm} />
-        <Text variant={TextVariant.BodySm} twClassName="flex-1">
-          {strings('rewards.musd.disclaimer')}
-        </Text>
-      </Box>
-
       {/* Action Buttons */}
       <Box twClassName="gap-3">
         <Button
@@ -159,6 +179,15 @@ const MusdCalculatorTab: React.FC = () => {
           {strings('rewards.musd.swap_button')}
         </Button>
       </Box>
+
+      {/* Disclaimer */}
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
+        twClassName="text-center"
+      >
+        {strings('rewards.musd.disclaimer')}
+      </Text>
     </ScrollView>
   );
 };
