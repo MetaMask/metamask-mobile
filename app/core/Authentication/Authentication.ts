@@ -845,11 +845,11 @@ class AuthenticationService {
     } catch (error) {
       // Error while submitting password.
 
+      const errorToHandle = ensureError(error, 'Unlock wallet failed');
       let shouldResetOnLock = false;
       // check for specific error
       if (
-        error instanceof Error &&
-        error.message.includes(
+        errorToHandle.message.includes(
           UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
         )
       ) {
