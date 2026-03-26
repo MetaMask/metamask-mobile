@@ -183,7 +183,7 @@ describe('EnterAddress Component', () => {
   it('disables the continue button when loading is true', () => {
     render(EnterAddress);
     const button = screen.getByTestId('address-continue-button');
-    expect(button.props.disabled).toBe(false);
+    expect(button).toBeEnabled();
 
     fillFormAndSubmit();
 
@@ -193,7 +193,7 @@ describe('EnterAddress Component', () => {
 
     fireEvent.press(button);
 
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
   });
 
   it('shows text input for state when region is not US', () => {
