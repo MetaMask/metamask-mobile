@@ -109,8 +109,10 @@ describe('CampaignJoinCTA', () => {
       />,
     );
 
-    expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeTruthy();
-    expect(getByText('Join Campaign')).toBeTruthy();
+    expect(
+      getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON),
+    ).toBeOnTheScreen();
+    expect(getByText('Join Campaign')).toBeOnTheScreen();
     expect(mockShowToast).not.toHaveBeenCalled();
   });
 
@@ -230,6 +232,6 @@ describe('CampaignJoinCTA', () => {
 
     expect(queryByTestId('campaign-opt-in-sheet')).toBeNull();
     fireEvent.press(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON));
-    expect(getByTestId('campaign-opt-in-sheet')).toBeTruthy();
+    expect(getByTestId('campaign-opt-in-sheet')).toBeOnTheScreen();
   });
 });

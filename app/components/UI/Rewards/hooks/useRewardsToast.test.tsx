@@ -196,7 +196,6 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Icon,
         iconName: IconName.Lock,
         iconColor: mockTheme.colors.icon.default,
-        backgroundColor: 'muted',
         hapticsType: NotificationFeedbackType.Warning,
         hasNoTimeout: true,
       });
@@ -221,7 +220,6 @@ describe('useRewardsToast', () => {
         variant: ToastVariants.Icon,
         iconName: IconName.Lock,
         iconColor: mockTheme.colors.icon.default,
-        backgroundColor: 'muted',
         hapticsType: NotificationFeedbackType.Warning,
         hasNoTimeout: true,
       });
