@@ -7518,6 +7518,34 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask-previews/design-system-shared@npm:0.4.0-preview.23cc337":
+  version: 0.4.0-preview.23cc337
+  resolution: "@metamask-previews/design-system-shared@npm:0.4.0-preview.23cc337"
+  dependencies:
+    "@metamask/utils": "npm:^11.10.0"
+  checksum: 10/da679a8b0888d9987e3834c9138ce6c2612a52ca0183158c6dfdf21cc9357f0ee97da61f3e8d6c6311e9af4e153fc59140620bb628b1c125ebdec506f1c74c54
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-system-twrnc-preset@npm:0.3.0-preview.23cc337, @metamask/design-system-twrnc-preset@npm:@metamask-previews/design-system-twrnc-preset@0.3.0-preview.23cc337":
+  version: 0.3.0-preview.23cc337
+  resolution: "@metamask-previews/design-system-twrnc-preset@npm:0.3.0-preview.23cc337"
+  dependencies:
+    twrnc: "npm:^4.5.1"
+  peerDependencies:
+    "@metamask/design-tokens": ^8.0.0
+    react: ^18.2.0
+  checksum: 10/0791f7afd7ca453150a5502ff6456b271f4706aba9ccbdcfe3642a5978488f6cb98385714800b22b553dae5e4a388efab1729f2960454e90c80d9a0920e6cd18
+  languageName: node
+  linkType: hard
+
+"@metamask-previews/design-tokens@npm:@metamask-previews/design-tokens@8.2.2-preview.23cc337, @metamask/design-tokens@npm:@metamask-previews/design-tokens@8.2.2-preview.23cc337":
+  version: 8.2.2-preview.23cc337
+  resolution: "@metamask-previews/design-tokens@npm:8.2.2-preview.23cc337"
+  checksum: 10/41ab72ce34096930cb3f96623af0c4755da143dc93e5476d448b65c07f56a113a1a230c9a8bf1c65d8144f448202173871c1dc99c0d3d4dc7225c7edced27d4c
+  languageName: node
+  linkType: hard
+
 "@metamask/7715-permission-types@npm:^0.3.0":
   version: 0.3.0
   resolution: "@metamask/7715-permission-types@npm:0.3.0"
@@ -8135,11 +8163,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "@metamask/design-system-react-native@npm:0.10.0"
+"@metamask/design-system-react-native@npm:@metamask-previews/design-system-react-native@0.11.0-preview.23cc337":
+  version: 0.11.0-preview.23cc337
+  resolution: "@metamask-previews/design-system-react-native@npm:0.11.0-preview.23cc337"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.3.0"
+    "@metamask-previews/design-system-shared": "npm:0.4.0-preview.23cc337"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8150,37 +8178,11 @@ __metadata:
     react: ">=18.2.0"
     react-native: ">=0.72.0"
     react-native-gesture-handler: ">=1.10.3"
+    react-native-nitro-haptics: ">=0.3.0"
+    react-native-nitro-modules: ">=0.25.0"
     react-native-reanimated: ">=3.3.0"
     react-native-safe-area-context: ">=4.0.0"
-  checksum: 10/4b105db890392d9f363ad5a573249980a621a3edb6e6d371cef8e78f8ade378d98c24a1f4d814c815a4f8e30e2978a8c69571f61e9b0983289d1c08e28f02da2
-  languageName: node
-  linkType: hard
-
-"@metamask/design-system-shared@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/design-system-shared@npm:0.3.0"
-  dependencies:
-    "@metamask/utils": "npm:^11.10.0"
-  checksum: 10/2be032b91b10d03ca4e02ba9ff5afc9db763fb865161add83a7e28ef83f165cc3c3edba03f5d600ec95e3014afd0077abcadd75e613792e77c709760813ff749
-  languageName: node
-  linkType: hard
-
-"@metamask/design-system-twrnc-preset@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/design-system-twrnc-preset@npm:0.3.0"
-  dependencies:
-    twrnc: "npm:^4.5.1"
-  peerDependencies:
-    "@metamask/design-tokens": ^8.0.0
-    react: ^18.2.0
-  checksum: 10/85b972aaca81e6e021c07dc7a790f4de89b42125893ceca1e89fde814c17d214446e28383895a47411b72d09ecf8abff03eec538e7927030f9110ed2e518b90a
-  languageName: node
-  linkType: hard
-
-"@metamask/design-tokens@npm:^8.2.2":
-  version: 8.2.2
-  resolution: "@metamask/design-tokens@npm:8.2.2"
-  checksum: 10/2ab9e2c148f55874819c550a2e038c050d906709c33315edd200ddaeb7677b5f121f50fa2f43c06ce94b5fc66b59450c81b8927088721d8ad6ee559cf864f442
+  checksum: 10/4ce185b9bd9c3d1d9dd94352e9a6db6365731f2e7db029b9ed360c845a38c35c283717c88dd81c4293b7a7fc991ebd23f349b3aa25b78a4742c3efdc1615abfb
   languageName: node
   linkType: hard
 
@@ -35510,6 +35512,7 @@ __metadata:
     "@lavamoat/react-native-lockdown": "npm:^0.0.2"
     "@ledgerhq/hw-app-eth": "npm:^6.42.0"
     "@ledgerhq/react-native-hw-transport-ble": "npm:^6.37.0"
+    "@metamask-previews/design-tokens": "npm:@metamask-previews/design-tokens@8.2.2-preview.23cc337"
     "@metamask/abi-utils": "npm:^3.0.0"
     "@metamask/account-api": "npm:^1.0.0"
     "@metamask/account-tree-controller": "npm:^5.0.0"
@@ -35536,9 +35539,9 @@ __metadata:
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^0.15.0"
-    "@metamask/design-system-react-native": "npm:^0.10.0"
-    "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
-    "@metamask/design-tokens": "npm:^8.2.2"
+    "@metamask/design-system-react-native": "npm:@metamask-previews/design-system-react-native@0.11.0-preview.23cc337"
+    "@metamask/design-system-twrnc-preset": "npm:@metamask-previews/design-system-twrnc-preset@0.3.0-preview.23cc337"
+    "@metamask/design-tokens": "npm:@metamask-previews/design-tokens@8.2.2-preview.23cc337"
     "@metamask/earn-controller": "npm:^10.0.0"
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
@@ -35884,7 +35887,8 @@ __metadata:
     react-native-material-textfield: "npm:0.16.1"
     react-native-mmkv: "npm:^3.2.0"
     react-native-modal: "npm:^14.0.0-rc.1"
-    react-native-nitro-modules: "npm:^0.29.6"
+    react-native-nitro-haptics: "npm:^0.2.3"
+    react-native-nitro-modules: "npm:^0.35.2"
     react-native-os: "npm:^1.2.6"
     react-native-pager-view: "npm:^6.7.0"
     react-native-performance: "npm:^5.1.2"
@@ -40596,13 +40600,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"react-native-nitro-modules@npm:^0.29.6":
-  version: 0.29.6
-  resolution: "react-native-nitro-modules@npm:0.29.6"
+"react-native-nitro-haptics@npm:^0.2.3":
+  version: 0.2.3
+  resolution: "react-native-nitro-haptics@npm:0.2.3"
   peerDependencies:
     react: "*"
     react-native: "*"
-  checksum: 10/7118ea18679b5910d01d0b1dbef75f22117e3b61d91a0b97556badf36fe923d1b8780e0fee114d13c3d9e3188ad7f8d26b6c41d3ad18675461ab8897560ee369
+    react-native-nitro-modules: "*"
+  checksum: 10/7f17b002cd2d28a7b6669a454cb4943b18331fd3b2fd4b10ea3daf6cd051a4fb90c69e80d637968d6b96e7c1ec2adb3e28ccf114b9f0d143c30d5a514eb53d6b
+  languageName: node
+  linkType: hard
+
+"react-native-nitro-modules@npm:^0.35.2":
+  version: 0.35.2
+  resolution: "react-native-nitro-modules@npm:0.35.2"
+  peerDependencies:
+    react: "*"
+    react-native: "*"
+  checksum: 10/22977e5e22c63fb91526c90fa59fcfe5c7f97978c583400f433a1d3ef8ee32fbceb0ad1b009b5bf0d1794e94a11716ad752fd7702c2d67fc808a0256c6e35488
   languageName: node
   linkType: hard
 

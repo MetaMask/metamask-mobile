@@ -472,7 +472,7 @@ PODS:
     - ReactCommon/turbomodule/bridging
     - ReactCommon/turbomodule/core
     - Yoga
-  - NitroModules (0.29.6):
+  - NitroModules (0.35.2):
     - DoubleConversion
     - glog
     - hermes-engine
@@ -3538,7 +3538,7 @@ SPEC CHECKSUMS:
   MultiplatformBleAdapter: b1fddd0d499b96b607e00f0faa8e60648343dc1d
   nanopb: 438bc412db1928dac798aa6fd75726007be04262
   NativeUtils: e1d5591114bd87ba0b91348477f77b029cd361b8
-  NitroModules: 54cf4604a7e458d788aeecb3ba1ff7db43ed17f2
+  NitroModules: 5fdba95f1de271e5574fe4a557aaf0a5def945e0
   OpenSSL-Universal: 6082b0bf950e5636fe0d78def171184e2b3899c2
   Permission-BluetoothPeripheral: 34ab829f159c6cf400c57bac05f5ba1b0af7a86e
   PromisesObjC: f5707f49cb48b9636751c5b2e7d227e43fba9f47

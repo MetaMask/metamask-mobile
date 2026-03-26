@@ -11,6 +11,13 @@
 
 // Build dependencies config
 const dependencies = {
+  // Bundled via Metro shim (`app/shims/react-native-nitro-haptics.ts`); skip Nitro native.
+  'react-native-nitro-haptics': {
+    platforms: {
+      android: null,
+      ios: null,
+    },
+  },
   'react-native-aes-crypto-forked': {
     platforms: {
       ios: null, // disable Android platform, other platforms will still autolink if provided

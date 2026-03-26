@@ -62,6 +62,8 @@ const config = {
   coverageDirectory: '<rootDir>/tests/coverage',
   maxWorkers: process.env.NODE_ENV === 'production' ? '50%' : '20%',
   moduleNameMapper: {
+    '^react-native-nitro-haptics$':
+      '<rootDir>/app/shims/react-native-nitro-haptics.ts',
     '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
     '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',

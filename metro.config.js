@@ -98,6 +98,16 @@ module.exports = function (baseConfig) {
           'node:buffer': '@craftzdog/react-native-buffer',
         },
         resolveRequest: (context, moduleName, platform) => {
+          // Nitro Haptics native hybrid throws at runtime; use Expo Haptics instead.
+          if (moduleName === 'react-native-nitro-haptics') {
+            return {
+              filePath: path.resolve(
+                __dirname,
+                'app/shims/react-native-nitro-haptics.ts',
+              ),
+              type: 'sourceFile',
+            };
+          }
           // @ecies/ciphers uses package.json "exports" subpaths that Metro
           // can't resolve without unstable_enablePackageExports. Map them to
           // the react-native condition targets manually.
