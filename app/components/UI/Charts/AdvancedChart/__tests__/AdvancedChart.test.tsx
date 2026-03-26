@@ -41,11 +41,18 @@ describe('AdvancedChart', () => {
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
   });
 
-  it('shows loading overlay when isLoading is true', () => {
-    const { getByTestId } = render(
+  it('shows loading overlay until WebView onLoadEnd (not until CHART_READY)', () => {
+    const { getByTestId, queryByTestId } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} isLoading />,
     );
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
   });
 
   it('sends OHLCV data on WebView load end', () => {
