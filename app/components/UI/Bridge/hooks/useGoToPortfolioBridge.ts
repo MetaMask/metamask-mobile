@@ -9,7 +9,7 @@ import { selectEvmChainId } from '../../../../selectors/networkController';
 import type { BrowserTab } from '../../Tokens/types';
 import type { BrowserParams } from '../../../Views/Browser/Browser.types';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../hooks/useMetrics';
 import { isBridgeUrl } from '../../../../util/url';
 import { useBuildPortfolioUrl } from '../../../hooks/useBuildPortfolioUrl';
 
@@ -24,7 +24,7 @@ export default function useGoToPortfolioBridge(location: string) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const browserTabs = useSelector((state: any) => state.browser.tabs);
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const buildPortfolioUrlWithMetrics = useBuildPortfolioUrl();
   return (address?: string) => {
     const existingBridgeTab = browserTabs.find((tab: BrowserTab) =>

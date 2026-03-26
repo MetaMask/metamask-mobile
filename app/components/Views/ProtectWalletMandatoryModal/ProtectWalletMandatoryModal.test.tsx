@@ -29,9 +29,13 @@ jest.mock('@react-navigation/native', () => {
   };
 });
 
-// Mock the analytics hook
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+// Mock the metrics hook
+jest.mock('../../hooks/useMetrics', () => ({
+  MetaMetricsEvents: {
+    WALLET_SECURITY_PROTECT_VIEWED: 'WALLET_SECURITY_PROTECT_VIEWED',
+    WALLET_SECURITY_PROTECT_ENGAGED: 'WALLET_SECURITY_PROTECT_ENGAGED',
+  },
+  useMetrics: () => ({
     trackEvent: jest.fn(),
     createEventBuilder: jest.fn().mockReturnValue({
       addProperties: jest.fn().mockReturnValue({

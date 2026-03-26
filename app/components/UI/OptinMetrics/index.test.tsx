@@ -28,32 +28,6 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Override global useAnalytics mock so calls proxy through to the mocked analytics module above
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
-  const { AnalyticsEventBuilder } = jest.requireActual(
-    '../../../util/analytics/AnalyticsEventBuilder',
-  );
-  const { analytics: a } = jest.requireMock(
-    '../../../util/analytics/analytics',
-  );
-  return {
-    useAnalytics: () => ({
-      trackEvent: (event: unknown) => a.trackEvent(event),
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      enable: async (enable: boolean) => {
-        if (enable === false) {
-          await a.optOut();
-        } else {
-          await a.optIn();
-        }
-      },
-      identify: (traits: unknown) => a.identify(traits),
-      isEnabled: () => a.isEnabled(),
-      getAnalyticsId: () => a.getAnalyticsId(),
-    }),
-  };
-});
-
 // Mock MetaMetrics for events and getInstance
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
   MetaMetricsEvents: jest.requireActual('../../../core/Analytics/MetaMetrics')

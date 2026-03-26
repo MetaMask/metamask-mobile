@@ -6,8 +6,7 @@ import { useTheme } from '../../../util/theme';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import createStyles from './ProtectWalletMandatoryModal.styles';
-import { MetaMetricsEvents } from '../../../core/Analytics';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
 import {
   selectPasswordSet,
   selectSeedphraseBackedUp,
@@ -30,7 +29,7 @@ const ProtectWalletMandatoryModal = () => {
 
   const styles = useMemo(() => createStyles(theme), [theme]);
 
-  const metrics = useAnalytics();
+  const metrics = useMetrics();
 
   const hasAnyTokenBalance = useSelector(selectHasAnyBalance);
   const allTokens = useSelector(selectAllTokens);

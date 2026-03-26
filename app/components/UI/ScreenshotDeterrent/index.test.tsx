@@ -51,9 +51,14 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => mockNavigation,
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => mockUseMetrics,
-}));
+jest.mock('../../hooks/useMetrics', () => {
+  const actual = jest.requireActual('../../hooks/useMetrics');
+  return {
+    ...actual,
+    // useMetrics: () => ({ ...actual.useMetrics(), ...mockUseMetrics }),
+    useMetrics: () => mockUseMetrics,
+  };
+});
 
 // mock InteractionManager.runAfterInteractions
 const mockRunAfterInteractions = jest.fn().mockImplementation((cb) => {
