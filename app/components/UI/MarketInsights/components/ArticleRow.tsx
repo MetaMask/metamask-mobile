@@ -18,7 +18,7 @@ import type { Article } from '@metamask/ai-controllers';
 import {
   formatRelativeTime,
   getFaviconUrl,
-} from '../../../UI/MarketInsights/utils/marketInsightsFormatting';
+} from '../utils/marketInsightsFormatting';
 
 interface ArticleRowProps {
   article: Article;
@@ -27,9 +27,10 @@ interface ArticleRowProps {
 }
 
 /**
- * A single article row for the What's Happening sources bottom sheet.
- * Displays the article title, favicon, source domain, relative date, and an
- * export icon. Tapping the row calls onPress with the article URL.
+ * A single article row used in sources bottom sheets (What's Happening and
+ * Market Insights). Displays the article title, favicon, source domain,
+ * relative date, and an export icon. Tapping the row calls onPress with the
+ * article URL.
  */
 const ArticleRow: React.FC<ArticleRowProps> = ({
   article,

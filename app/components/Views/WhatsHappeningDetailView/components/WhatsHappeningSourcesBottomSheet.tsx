@@ -12,7 +12,7 @@ import BottomSheet, {
 } from '../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import { strings } from '../../../../../locales/i18n';
-import ArticleRow from './ArticleRow';
+import ArticleRow from '../../../UI/MarketInsights/components/ArticleRow';
 
 interface WhatsHappeningSourcesBottomSheetProps {
   isVisible: boolean;
