@@ -96,10 +96,10 @@ export const processPostRequestBody = (
     : _.isEqual(requestToCheck, expectedRequest);
 
   if (!matches) {
-    logger.warn('Request body validation failed:');
-    logger.info('Expected:', JSON.stringify(expectedRequestBody, null, 2));
-    logger.info('Received:', JSON.stringify(requestBodyJson, null, 2));
-    logger.info(
+    logger.debug('Request body validation failed:');
+    logger.debug('Expected:', JSON.stringify(expectedRequestBody, null, 2));
+    logger.debug('Received:', JSON.stringify(requestBodyJson, null, 2));
+    logger.debug(
       'Differences:',
       JSON.stringify(
         _.differenceWith([requestBodyJson], [expectedRequestBody], _.isEqual),
@@ -309,7 +309,7 @@ export const setupMockPostRequest = async (
       });
 
       if (!result.matches) {
-        logger.warn('❌ Request body validation failed for', decodedUrl);
+        logger.debug('Request body validation failed for', decodedUrl);
         logger.debug('Expected:', requestBody);
         logger.debug('Received:', result.requestBodyJson);
         logger.debug('Ignored fields:', ignoreFields);
