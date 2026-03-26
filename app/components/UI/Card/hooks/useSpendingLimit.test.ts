@@ -1077,10 +1077,10 @@ describe('useSpendingLimit', () => {
 
       renderHook(() => useSpendingLimit(createDefaultParams()));
 
-      // 0x1 → eip155:1, not in caipChainIdToNetwork → falls back to 'eip155:1'
+      // 0x1 → eip155:1, not in caipChainIdToNetwork → strips namespace → '1:eth'
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          top_wallet_chain_asset: 'eip155:1:eth',
+          top_wallet_chain_asset: '1:eth',
           top_wallet_asset_balance: 9000,
         }),
       );

@@ -188,7 +188,9 @@ const useSpendingLimit = ({
   const allWalletTokens = useTokensWithBalance({ chainIds: allWalletChainIds });
 
   // Returns 'network:symbol' (e.g. 'linea:musd', 'base:usdc') for analytics.
-  // Falls back to the CAIP chain ID for chains not in cardNetworkInfos.
+  // For card chains, uses the friendly network name from caipChainIdToNetwork.
+  // For unknown chains, strips the CAIP namespace prefix so the output is
+  // always a clean two-part 'chainId:symbol' string (e.g. '1:eth', '137:usdc').
   const toNetworkAsset = (token: {
     chainId: string;
     symbol?: string | null;
@@ -196,7 +198,9 @@ const useSpendingLimit = ({
     const caipId = token.chainId.startsWith('0x')
       ? `eip155:${parseInt(token.chainId, 16)}`
       : token.chainId;
-    const network = caipChainIdToNetwork[caipId as CaipChainId] ?? caipId;
+    const network =
+      caipChainIdToNetwork[caipId as CaipChainId] ??
+      caipId.replace(/^[^:]+:/, '');
     return `${network}:${token.symbol?.toLowerCase() ?? ''}`;
   };
 
