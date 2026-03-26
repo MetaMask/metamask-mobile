@@ -335,6 +335,7 @@ const RevealPrivateCredential = ({
         ) : (
           <Box twClassName="p-5 pb-0">
             <PasswordEntry
+              password={password}
               onPasswordChange={setPassword}
               onSubmit={tryUnlock}
               warningMessage={warningIncorrectPassword}

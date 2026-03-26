@@ -131,14 +131,14 @@ export const usePerpsHomeData = ({
 
     // Add REST fills first
     for (const fill of restFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
+      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
       fillsMap.set(key, fill);
     }
 
     // Add live fills (overwrites duplicates from REST - live data is fresher)
     // Preserve detailedOrderType from REST fills since WS fills lack it
     for (const fill of liveFills) {
-      const key = `${fill.orderId}-${fill.timestamp}`;
+      const key = `${fill.orderId}-${fill.timestamp}-${fill.size}-${fill.price}`;
       const existing = fillsMap.get(key);
       if (existing?.detailedOrderType && !fill.detailedOrderType) {
         fillsMap.set(key, {
