@@ -66,6 +66,7 @@ import {
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { SuccessErrorSheetParams } from '../SuccessErrorSheet/interface';
+import { navigateToSuccessErrorSheet } from '../SuccessErrorSheet/utils';
 import { usePromptSeedlessRelogin } from '../../hooks/SeedlessHooks';
 import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { useStyles } from '../../../component-library/hooks/useStyles';
@@ -289,10 +290,7 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           closeOnPrimaryButtonPress: true,
           type: 'error',
         };
-        navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-          params,
-        });
+        navigateToSuccessErrorSheet(navigation, params);
         return;
       }
 

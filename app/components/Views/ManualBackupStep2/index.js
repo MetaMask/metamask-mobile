@@ -38,6 +38,7 @@ import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder
 import Routes from '../../../constants/navigation/Routes';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { CommonActions } from '@react-navigation/native';
+import { navigateToSuccessErrorSheet } from '../SuccessErrorSheet/utils';
 import {
   AccountType,
   ONBOARDING_SUCCESS_FLOW,
@@ -420,30 +421,24 @@ const ManualBackupStep2 = ({
         ).build(),
         saveOnboardingEvent,
       );
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('manual_backup_step_2.success-title'),
-          description: strings('manual_backup_step_2.success-description'),
-          primaryButtonLabel: strings('manual_backup_step_2.success-button'),
-          type: 'success',
-          onClose: () => goNext(),
-          onPrimaryButtonPress: () => goNext(),
-          closeOnPrimaryButtonPress: true,
-        },
+      navigateToSuccessErrorSheet(navigation, {
+        title: strings('manual_backup_step_2.success-title'),
+        description: strings('manual_backup_step_2.success-description'),
+        primaryButtonLabel: strings('manual_backup_step_2.success-button'),
+        type: 'success',
+        onClose: () => goNext(),
+        onPrimaryButtonPress: () => goNext(),
+        closeOnPrimaryButtonPress: true,
       });
     } else {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('manual_backup_step_2.error-title'),
-          description: strings('manual_backup_step_2.error-description'),
-          primaryButtonLabel: strings('manual_backup_step_2.error-button'),
-          type: 'error',
-          onClose: () => generateMissingWords(),
-          onPrimaryButtonPress: () => generateMissingWords(),
-          closeOnPrimaryButtonPress: true,
-        },
+      navigateToSuccessErrorSheet(navigation, {
+        title: strings('manual_backup_step_2.error-title'),
+        description: strings('manual_backup_step_2.error-description'),
+        primaryButtonLabel: strings('manual_backup_step_2.error-button'),
+        type: 'error',
+        onClose: () => generateMissingWords(),
+        onPrimaryButtonPress: () => generateMissingWords(),
+        closeOnPrimaryButtonPress: true,
       });
     }
   };
