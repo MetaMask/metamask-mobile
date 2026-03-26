@@ -39,8 +39,8 @@ export const useUserRegistrationStatus =
         return sdk.getRegistrationStatus(onboardingId);
       },
       enabled: isPolling && !!sdk && !!onboardingId,
-      refetchInterval: (query) => {
-        const state = query.state.data?.verificationState;
+      refetchInterval: (data) => {
+        const state = data?.verificationState;
         if (state && state !== 'PENDING') return false;
         return POLLING_INTERVAL;
       },
