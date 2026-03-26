@@ -9,7 +9,23 @@ import {
   stakingDepositConfirmationState,
 } from '../../../../../util/test/confirm-data-helpers';
 // eslint-disable-next-line import-x/no-namespace
-import * as QRHardwareHook from '../../context/qr-hardware-context/qr-hardware-context';
+import * as QRSigningHook from '../../../../../core/HardwareWallet/contexts/QRSigningContext';
+
+jest.mock(
+  '../../../../../core/HardwareWallet/contexts/QRSigningContext',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../core/HardwareWallet/contexts/QRSigningContext',
+    ),
+    useQRSigning: jest.fn(() => ({
+      isSigningQRObject: false,
+      isRequestCompleted: false,
+      pendingScanRequest: undefined,
+      setRequestCompleted: jest.fn(),
+      cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+    })),
+  }),
+);
 import { Footer } from './footer';
 import { useAlerts } from '../../context/alert-system-context';
 import { useConfirmationContext } from '../../context/confirmation-context';
@@ -100,6 +116,14 @@ describe('Footer', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
+    jest.mocked(QRSigningHook.useQRSigning).mockReturnValue({
+      isSigningQRObject: false,
+      isRequestCompleted: false,
+      pendingScanRequest: undefined,
+      setRequestCompleted: jest.fn(),
+      cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+    });
+
     mockUseConfirmationContext.mockReturnValue({
       isFooterVisible: true,
       isTransactionDataUpdating: false,
@@ -148,28 +172,6 @@ describe('Footer', () => {
     await waitFor(() => {
       expect(mockRejectSpy).toHaveBeenCalledTimes(1);
     });
-  });
-
-  it('renders confirm button text "Get signature" if QR signing is in progress', () => {
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      isSigningQRObject: true,
-    } as QRHardwareHook.QRHardwareContextType);
-    const { getByText } = renderWithProvider(<Footer />, {
-      state: personalSignatureConfirmationState,
-    });
-    expect(getByText('Get signature')).toBeTruthy();
-  });
-
-  it('confirm button is disabled if `needsCameraPermission` is true', () => {
-    jest.spyOn(QRHardwareHook, 'useQRHardwareContext').mockReturnValue({
-      needsCameraPermission: true,
-    } as unknown as QRHardwareHook.QRHardwareContextType);
-    const { getByTestId } = renderWithProvider(<Footer />, {
-      state: personalSignatureConfirmationState,
-    });
-    expect(
-      getByTestId(ConfirmationFooterSelectorIDs.CONFIRM_BUTTON).props.disabled,
-    ).toBe(true);
   });
 
   it('should open Terms of Use URL when terms link is pressed', () => {

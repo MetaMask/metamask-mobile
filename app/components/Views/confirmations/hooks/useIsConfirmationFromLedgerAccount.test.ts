@@ -48,6 +48,24 @@ describe('useIsConfirmationFromLedgerAccount', () => {
     expect(result.current).toBe(true);
   });
 
+  it('returns true when from address belongs to a QR keyring', () => {
+    jest.requireMock(
+      '../../../../core/Engine',
+    ).context.KeyringController.state.keyrings = [
+      {
+        type: 'QR Hardware Wallet Device',
+        accounts: ['0x935e73edb9ff52e23bac7f7e043a1ecd06d05477'],
+      },
+    ];
+
+    const { result } = renderHookWithProvider(
+      () => useIsConfirmationFromLedgerAccount(),
+      { state: personalSignatureConfirmationState },
+    );
+
+    expect(result.current).toBe(true);
+  });
+
   it('returns false when there is no from address', () => {
     const stateWithNoFrom = {
       ...stakingDepositConfirmationState,

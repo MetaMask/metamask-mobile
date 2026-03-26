@@ -1,6 +1,7 @@
 import React, { ReactNode, useCallback, useMemo, useRef } from 'react';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
+import QRSigningContext from './contexts/QRSigningContext';
 import { HardwareWalletBottomSheet } from './components';
 import {
   useHardwareWalletStateManager,
@@ -9,6 +10,7 @@ import {
   useTransportMonitoring,
   useDeviceDiscovery,
   useDeviceConnectionFlow,
+  useQRSigningState,
 } from './hooks';
 import { ConnectionStatus } from '@metamask/hw-wallet-sdk';
 import DevLogger from '../SDKConnect/utils/DevLogger';
@@ -153,21 +155,25 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     ],
   );
 
+  const qrSigningValue = useQRSigningState();
+
   return (
     <HardwareWalletContext.Provider value={contextValue}>
-      {children}
-      <HardwareWalletBottomSheet
-        connectionState={connectionState}
-        deviceSelection={deviceSelection}
-        walletType={effectiveWalletType}
-        retryEnsureDeviceReady={retryEnsureDeviceReady}
-        selectDevice={selectDevice}
-        rescan={rescan}
-        connect={connect}
-        onClose={closeFlow}
-        onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
-        onConnectionSuccess={handleConnectionSuccess}
-      />
+      <QRSigningContext.Provider value={qrSigningValue}>
+        {children}
+        <HardwareWalletBottomSheet
+          connectionState={connectionState}
+          deviceSelection={deviceSelection}
+          walletType={effectiveWalletType}
+          retryEnsureDeviceReady={retryEnsureDeviceReady}
+          selectDevice={selectDevice}
+          rescan={rescan}
+          connect={connect}
+          onClose={closeFlow}
+          onAwaitingConfirmationCancel={handleAwaitingConfirmationCancel}
+          onConnectionSuccess={handleConnectionSuccess}
+        />
+      </QRSigningContext.Provider>
     </HardwareWalletContext.Provider>
   );
 };
