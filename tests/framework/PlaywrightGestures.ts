@@ -1,3 +1,4 @@
+import { CurrentDeviceDetails } from './fixture';
 import { PlatformDetector } from './PlatformLocator';
 import { PlaywrightElement } from './PlaywrightAdapter';
 import { boxedStep, getDriver } from './PlaywrightUtilities';
@@ -133,28 +134,23 @@ export default class PlaywrightGestures {
   }
 
   /**
-   * Double tap an element using native touch actions.
+   * Double tap an element using WebdriverIO click semantics.
    *
-   * Using explicit touchAction avoids relying on desktop-oriented click
-   * semantics and keeps both taps within a mobile-appropriate interval.
+   * Avoid `touchAction` here because some WDIO/Appium combinations still route
+   * that call through the legacy `touch/perform` endpoint, which can fail for
+   * native mobile sessions. Two fast clicks are more reliable in this layer.
    */
   @boxedStep
   static async dblTap(elem: PlaywrightElement, intervalMs = 60): Promise<void> {
-    const location = await elem.unwrap().getLocation();
-    const size = await elem.unwrap().getSize();
+    const wrapped = elem.unwrap();
 
-    const x = location.x + size.width / 2;
-    const y = location.y + size.height / 2;
+    await wrapped.click();
 
-    await elem
-      .unwrap()
-      .touchAction([
-        { action: 'press', x, y },
-        'release',
-        { action: 'wait', ms: intervalMs },
-        { action: 'press', x, y },
-        'release',
-      ]);
+    if (intervalMs > 0) {
+      await new Promise((resolve) => setTimeout(resolve, intervalMs));
+    }
+
+    await wrapped.click();
   }
 
   /**
@@ -167,20 +163,21 @@ export default class PlaywrightGestures {
 
   /**
    * Terminate the app
-   * @param packageName - The package name of the app to terminate (Android only)
-   * @param appId - The app id of the app to terminate (iOS only)
+   * @param currentDeviceDetails - The current device details
    */
   @boxedStep
   static async terminateApp(
-    packageName?: string,
-    appId?: string,
+    currentDeviceDetails: CurrentDeviceDetails,
   ): Promise<void> {
-    const driver = getDriver();
-    if (!driver) throw new Error('Driver is not available');
-    if ((await PlatformDetector.isAndroid()) && packageName) {
-      await driver.terminateApp(packageName);
-    } else if ((await PlatformDetector.isIOS()) && appId) {
-      await driver.terminateApp(appId);
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+    if (
+      (await PlatformDetector.isAndroid()) &&
+      currentDeviceDetails.packageName
+    ) {
+      await drv.terminateApp(currentDeviceDetails.packageName);
+    } else if ((await PlatformDetector.isIOS()) && currentDeviceDetails.appId) {
+      await drv.terminateApp(currentDeviceDetails.appId);
     } else {
       throw new Error('Package name or app id is not available');
     }

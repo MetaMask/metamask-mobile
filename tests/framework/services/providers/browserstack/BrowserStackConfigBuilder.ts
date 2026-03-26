@@ -106,6 +106,14 @@ export class BrowserStackConfigBuilder {
             ? { otherApps: [process.env.BROWSERSTACK_RN_PLAYGROUND_URL] }
             : {}),
         },
+        ...(platformName === 'android'
+          ? {
+              'appium:appPackage': this.project.use.app?.packageName,
+              'appium:appActivity': this.project.use.app?.launchableActivity,
+            }
+          : {
+              'appium:bundleId': this.project.use.app?.appId,
+            }),
         'appium:autoGrantPermissions': true,
         'appium:app': appBsUrl,
         'appium:autoAcceptAlerts': true,
