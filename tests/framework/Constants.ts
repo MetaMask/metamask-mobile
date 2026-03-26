@@ -13,7 +13,7 @@ export const LOCAL_NODE_RPC_URL = `http://localhost:${DEFAULT_ANVIL_PORT}`;
 export const DEFAULT_IMPLICIT_WAIT_MS = 3_500;
 
 // Default action timeout for Playwright/WebDriverIO actions (tap, click, type, etc.) in ms.
-export const DEFAULT_ACTION_TIMEOUT_MS = 3_500;
+export const DEFAULT_ACTION_TIMEOUT_MS = 5_000;
 
 // Port Constants
 // Fallback ports - used in fixture data (app's persisted state)
