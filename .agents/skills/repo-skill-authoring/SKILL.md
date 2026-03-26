@@ -97,8 +97,7 @@ Required agent response sections:
 
 ### Canonical Repo Skill
 
-<!-- prettier-ignore -->
-````md
+```md
 ---
 name: topic
 description: Create and update the repo-local topic workflow. Use for new skill content or harness shims in this repository.
@@ -136,4 +135,3 @@ interface:
   short_description: 'Create and validate the repo-local topic workflow.'
   default_prompt: 'Use $topic to create or update the canonical repo-local topic workflow.'
 ```
-
