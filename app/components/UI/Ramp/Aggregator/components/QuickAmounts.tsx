@@ -1,10 +1,10 @@
 import React, { useCallback } from 'react';
 import { ScrollView, StyleSheet, View } from 'react-native';
-import { IconName } from '../../../../../component-library/components/Icons/Icon';
 import {
   Button,
   ButtonVariant,
   ButtonSize,
+  IconName as DesignSystemIconName,
 } from '@metamask/design-system-react-native';
 import { useTheme } from '../../../../../util/theme';
 import { Colors } from '../../../../../util/theme/models';
@@ -48,7 +48,7 @@ const Amount = ({ amount, onPress, isBuy, disabled }: AmountProps) => {
       size={ButtonSize.Sm}
       onPress={handlePress}
       style={styles.amount}
-      startIconName={showSparkleIcon ? IconName.Sparkle : undefined}
+      startIconName={showSparkleIcon ? DesignSystemIconName.Sparkle : undefined}
       isDisabled={disabled}
     >
       {label}

@@ -633,42 +633,90 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                   <View
                                     style={
@@ -1203,46 +1251,92 @@ exports[`Settings Activation Keys renders correctly when is loading 1`] = `
                                         ]
                                       }
                                     >
-                                      <TouchableOpacity
+                                      <View
+                                        accessibilityLabel="Add activation key"
                                         accessibilityRole="button"
-                                        accessible={true}
-                                        activeOpacity={1}
-                                        disabled={true}
-                                        onPress={[Function]}
-                                        onPressIn={[Function]}
-                                        onPressOut={[Function]}
-                                        style={
+                                        accessibilityState={
                                           {
-                                            "alignItems": "center",
-                                            "alignSelf": "stretch",
-                                            "backgroundColor": "#b4b4b528",
-                                            "borderColor": "transparent",
-                                            "borderRadius": 12,
-                                            "borderWidth": 1,
-                                            "flexDirection": "row",
-                                            "height": 48,
-                                            "justifyContent": "center",
-                                            "opacity": 0.5,
-                                            "overflow": "hidden",
-                                            "paddingHorizontal": 16,
+                                            "busy": undefined,
+                                            "checked": undefined,
+                                            "disabled": true,
+                                            "expanded": undefined,
+                                            "selected": undefined,
                                           }
+                                        }
+                                        accessibilityValue={
+                                          {
+                                            "max": undefined,
+                                            "min": undefined,
+                                            "now": undefined,
+                                            "text": undefined,
+                                          }
+                                        }
+                                        accessible={true}
+                                        collapsable={false}
+                                        focusable={true}
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onResponderGrant={[Function]}
+                                        onResponderMove={[Function]}
+                                        onResponderRelease={[Function]}
+                                        onResponderTerminate={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#b4b4b528",
+                                              "borderColor": "transparent",
+                                              "borderRadius": 12,
+                                              "borderWidth": 1,
+                                              "columnGap": 8,
+                                              "flexDirection": "row",
+                                              "height": 48,
+                                              "justifyContent": "center",
+                                              "minWidth": 80,
+                                              "opacity": 0.5,
+                                              "overflow": "hidden",
+                                              "paddingLeft": 16,
+                                              "paddingRight": 16,
+                                              "width": "100%",
+                                            },
+                                            {
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                            },
+                                          ]
                                         }
                                       >
                                         <Text
                                           accessibilityRole="text"
+                                          ellipsizeMode="clip"
+                                          numberOfLines={1}
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "flexGrow": 0,
+                                                "flexShrink": 1,
+                                                "flexWrap": "wrap",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Add activation key
                                         </Text>
-                                      </TouchableOpacity>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -1897,42 +1991,90 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                   <View
                                     style={
@@ -2026,45 +2168,92 @@ exports[`Settings Activation Keys renders correctly when there are no keys 1`] =
                                         ]
                                       }
                                     >
-                                      <TouchableOpacity
+                                      <View
+                                        accessibilityLabel="Add activation key"
                                         accessibilityRole="button"
-                                        accessible={true}
-                                        activeOpacity={1}
-                                        disabled={false}
-                                        onPress={[Function]}
-                                        onPressIn={[Function]}
-                                        onPressOut={[Function]}
-                                        style={
+                                        accessibilityState={
                                           {
-                                            "alignItems": "center",
-                                            "alignSelf": "stretch",
-                                            "backgroundColor": "#b4b4b528",
-                                            "borderColor": "transparent",
-                                            "borderRadius": 12,
-                                            "borderWidth": 1,
-                                            "flexDirection": "row",
-                                            "height": 48,
-                                            "justifyContent": "center",
-                                            "overflow": "hidden",
-                                            "paddingHorizontal": 16,
+                                            "busy": undefined,
+                                            "checked": undefined,
+                                            "disabled": false,
+                                            "expanded": undefined,
+                                            "selected": undefined,
                                           }
+                                        }
+                                        accessibilityValue={
+                                          {
+                                            "max": undefined,
+                                            "min": undefined,
+                                            "now": undefined,
+                                            "text": undefined,
+                                          }
+                                        }
+                                        accessible={true}
+                                        collapsable={false}
+                                        focusable={true}
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onResponderGrant={[Function]}
+                                        onResponderMove={[Function]}
+                                        onResponderRelease={[Function]}
+                                        onResponderTerminate={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#b4b4b528",
+                                              "borderColor": "transparent",
+                                              "borderRadius": 12,
+                                              "borderWidth": 1,
+                                              "columnGap": 8,
+                                              "flexDirection": "row",
+                                              "height": 48,
+                                              "justifyContent": "center",
+                                              "minWidth": 80,
+                                              "opacity": 1,
+                                              "overflow": "hidden",
+                                              "paddingLeft": 16,
+                                              "paddingRight": 16,
+                                              "width": "100%",
+                                            },
+                                            {
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                            },
+                                          ]
                                         }
                                       >
                                         <Text
                                           accessibilityRole="text"
+                                          ellipsizeMode="clip"
+                                          numberOfLines={1}
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "flexGrow": 0,
+                                                "flexShrink": 1,
+                                                "flexWrap": "wrap",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Add activation key
                                         </Text>
-                                      </TouchableOpacity>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>
@@ -3372,44 +3561,92 @@ exports[`Settings Region V2 disabled (Original) renders correctly when region is
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Reset region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#b4b4b528",
-                                          "borderColor": "transparent",
-                                          "borderRadius": 12,
-                                          "borderWidth": 1,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#b4b4b528",
+                                            "borderColor": "transparent",
+                                            "borderRadius": 12,
+                                            "borderWidth": 1,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#131416",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#131416",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Reset region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -4063,42 +4300,90 @@ exports[`Settings Region V2 enabled renders correctly when region has state 1`] 
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -4752,42 +5037,90 @@ exports[`Settings Region V2 enabled renders correctly when region is country onl
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -5441,42 +5774,90 @@ exports[`Settings Region V2 enabled renders correctly when region is not set 1`]
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -6130,42 +6511,90 @@ exports[`Settings Region V2 enabled renders correctly when region is set 1`] = `
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -6819,42 +7248,90 @@ exports[`Settings renders correctly 1`] = `
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                 </View>
                               </View>
@@ -7508,42 +7985,90 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         </View>
                                       </View>
                                     </View>
-                                    <TouchableOpacity
+                                    <View
+                                      accessibilityLabel="Change region"
                                       accessibilityRole="button"
-                                      accessible={true}
-                                      activeOpacity={1}
-                                      onPress={[Function]}
-                                      onPressIn={[Function]}
-                                      onPressOut={[Function]}
-                                      style={
+                                      accessibilityState={
                                         {
-                                          "alignItems": "center",
-                                          "alignSelf": "stretch",
-                                          "backgroundColor": "#131416",
-                                          "borderRadius": 12,
-                                          "flexDirection": "row",
-                                          "height": 48,
-                                          "justifyContent": "center",
-                                          "overflow": "hidden",
-                                          "paddingHorizontal": 16,
+                                          "busy": undefined,
+                                          "checked": undefined,
+                                          "disabled": false,
+                                          "expanded": undefined,
+                                          "selected": undefined,
                                         }
+                                      }
+                                      accessibilityValue={
+                                        {
+                                          "max": undefined,
+                                          "min": undefined,
+                                          "now": undefined,
+                                          "text": undefined,
+                                        }
+                                      }
+                                      accessible={true}
+                                      collapsable={false}
+                                      focusable={true}
+                                      onBlur={[Function]}
+                                      onClick={[Function]}
+                                      onFocus={[Function]}
+                                      onResponderGrant={[Function]}
+                                      onResponderMove={[Function]}
+                                      onResponderRelease={[Function]}
+                                      onResponderTerminate={[Function]}
+                                      onResponderTerminationRequest={[Function]}
+                                      onStartShouldSetResponder={[Function]}
+                                      style={
+                                        [
+                                          {
+                                            "alignItems": "center",
+                                            "backgroundColor": "#131416",
+                                            "borderRadius": 12,
+                                            "columnGap": 8,
+                                            "flexDirection": "row",
+                                            "height": 48,
+                                            "justifyContent": "center",
+                                            "minWidth": 80,
+                                            "opacity": 1,
+                                            "overflow": "hidden",
+                                            "paddingLeft": 16,
+                                            "paddingRight": 16,
+                                            "width": "100%",
+                                          },
+                                          {
+                                            "transform": [
+                                              {
+                                                "scale": 1,
+                                              },
+                                            ],
+                                          },
+                                        ]
                                       }
                                     >
                                       <Text
                                         accessibilityRole="text"
+                                        ellipsizeMode="clip"
+                                        numberOfLines={1}
                                         style={
-                                          {
-                                            "color": "#ffffff",
-                                            "fontFamily": "Geist-Medium",
-                                            "fontSize": 16,
-                                            "letterSpacing": 0,
-                                            "lineHeight": 24,
-                                          }
+                                          [
+                                            {
+                                              "color": "#ffffff",
+                                              "flexGrow": 0,
+                                              "flexShrink": 1,
+                                              "flexWrap": "wrap",
+                                              "fontFamily": "Geist-Medium",
+                                              "fontSize": 16,
+                                              "fontWeight": 400,
+                                              "letterSpacing": 0,
+                                              "lineHeight": 24,
+                                              "textAlign": "center",
+                                            },
+                                            undefined,
+                                          ]
                                         }
                                       >
                                         Change region
                                       </Text>
-                                    </TouchableOpacity>
+                                    </View>
                                   </View>
                                   <View
                                     style={
@@ -8075,45 +8600,92 @@ exports[`Settings renders correctly for internal builds 1`] = `
                                         ]
                                       }
                                     >
-                                      <TouchableOpacity
+                                      <View
+                                        accessibilityLabel="Add activation key"
                                         accessibilityRole="button"
-                                        accessible={true}
-                                        activeOpacity={1}
-                                        disabled={false}
-                                        onPress={[Function]}
-                                        onPressIn={[Function]}
-                                        onPressOut={[Function]}
-                                        style={
+                                        accessibilityState={
                                           {
-                                            "alignItems": "center",
-                                            "alignSelf": "stretch",
-                                            "backgroundColor": "#b4b4b528",
-                                            "borderColor": "transparent",
-                                            "borderRadius": 12,
-                                            "borderWidth": 1,
-                                            "flexDirection": "row",
-                                            "height": 48,
-                                            "justifyContent": "center",
-                                            "overflow": "hidden",
-                                            "paddingHorizontal": 16,
+                                            "busy": undefined,
+                                            "checked": undefined,
+                                            "disabled": false,
+                                            "expanded": undefined,
+                                            "selected": undefined,
                                           }
+                                        }
+                                        accessibilityValue={
+                                          {
+                                            "max": undefined,
+                                            "min": undefined,
+                                            "now": undefined,
+                                            "text": undefined,
+                                          }
+                                        }
+                                        accessible={true}
+                                        collapsable={false}
+                                        focusable={true}
+                                        onBlur={[Function]}
+                                        onClick={[Function]}
+                                        onFocus={[Function]}
+                                        onResponderGrant={[Function]}
+                                        onResponderMove={[Function]}
+                                        onResponderRelease={[Function]}
+                                        onResponderTerminate={[Function]}
+                                        onResponderTerminationRequest={[Function]}
+                                        onStartShouldSetResponder={[Function]}
+                                        style={
+                                          [
+                                            {
+                                              "alignItems": "center",
+                                              "backgroundColor": "#b4b4b528",
+                                              "borderColor": "transparent",
+                                              "borderRadius": 12,
+                                              "borderWidth": 1,
+                                              "columnGap": 8,
+                                              "flexDirection": "row",
+                                              "height": 48,
+                                              "justifyContent": "center",
+                                              "minWidth": 80,
+                                              "opacity": 1,
+                                              "overflow": "hidden",
+                                              "paddingLeft": 16,
+                                              "paddingRight": 16,
+                                              "width": "100%",
+                                            },
+                                            {
+                                              "transform": [
+                                                {
+                                                  "scale": 1,
+                                                },
+                                              ],
+                                            },
+                                          ]
                                         }
                                       >
                                         <Text
                                           accessibilityRole="text"
+                                          ellipsizeMode="clip"
+                                          numberOfLines={1}
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "flexGrow": 0,
+                                                "flexShrink": 1,
+                                                "flexWrap": "wrap",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                                "textAlign": "center",
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Add activation key
                                         </Text>
-                                      </TouchableOpacity>
+                                      </View>
                                     </View>
                                   </View>
                                 </View>

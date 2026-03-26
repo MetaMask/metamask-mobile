@@ -11,6 +11,7 @@ import BottomSheet, {
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import OldButton, {
+  ButtonSize as OldButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
@@ -119,7 +120,7 @@ function UnsupportedStateModal() {
 
       <View style={styles.footer}>
         <OldButton
-          size={ButtonSize.Lg}
+          size={OldButtonSize.Lg}
           onPress={handleSelectDifferentState}
           label={strings('deposit.unsupported_state_modal.change_state')}
           variant={ButtonVariants.Link}

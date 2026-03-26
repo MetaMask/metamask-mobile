@@ -8,6 +8,7 @@ import styleSheet from './NetworksFilterSelector.styles';
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import OldButton, {
+  ButtonSize as OldButtonSize,
   ButtonVariants,
 } from '../../../../../../component-library/components/Buttons/Button';
 import {
@@ -63,7 +64,7 @@ function NetworksFilterSelector({
     <>
       <OldButton
         variant={ButtonVariants.Link}
-        size={ButtonSize.Sm}
+        size={OldButtonSize.Sm}
         label={
           networks.length === networkFilter?.length
             ? strings('deposit.networks_filter_selector.deselect_all')

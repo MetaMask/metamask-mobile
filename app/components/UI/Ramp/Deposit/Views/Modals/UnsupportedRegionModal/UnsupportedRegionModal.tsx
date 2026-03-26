@@ -12,6 +12,7 @@ import BottomSheet, {
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import OldButton, {
+  ButtonSize as OldButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
@@ -112,7 +113,7 @@ function UnsupportedRegionModal() {
 
       <View style={styles.footer}>
         <OldButton
-          size={ButtonSize.Lg}
+          size={OldButtonSize.Lg}
           onPress={handleSelectDifferentRegion}
           label={strings('deposit.unsupported_region_modal.change_region')}
           variant={ButtonVariants.Link}
