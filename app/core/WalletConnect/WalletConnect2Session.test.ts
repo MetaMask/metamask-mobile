@@ -1471,4 +1471,31 @@ describe('WalletConnect2Session', () => {
       );
     });
   });
+
+  describe('WalletConnectPort chainChanged forwarding', () => {
+    it('does not call updateSession when chainChanged notification arrives', () => {
+      // Use jest.requireActual to test the real WalletConnectPort, not the mock
+      // We need to temporarily get the actual module
+      const WalletConnectPort = jest.requireActual(
+        '../BackgroundBridge/WalletConnectPort',
+      ).default;
+
+      const mockUpdateSession = jest.fn();
+      const port = new WalletConnectPort({
+        updateSession: mockUpdateSession,
+        approveRequest: jest.fn(),
+        rejectRequest: jest.fn(),
+        emitEvent: jest.fn(),
+      });
+
+      port.postMessage({
+        data: {
+          method: 'metamask_chainChanged', // NOTIFICATION_NAMES.chainChanged
+          params: { chainId: '0x1' },
+        },
+      });
+
+      expect(mockUpdateSession).not.toHaveBeenCalled();
+    });
+  });
 });
