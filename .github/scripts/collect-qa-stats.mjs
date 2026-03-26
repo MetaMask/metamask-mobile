@@ -982,6 +982,138 @@ async function collectPerformanceTestCounts() {
 }
 
 // ---------------------------------------------------------------------------
+// Feature flag E2E coverage (static scan)
+// ---------------------------------------------------------------------------
+
+const SCAN_FF_REGISTRY = 'tests/feature-flags/feature-flag-registry.ts';
+const SCAN_FF_TEST_DIRS = ['tests/smoke', 'tests/regression'];
+
+function parseRegistryFlags(source) {
+  const flags = [];
+  const entryRe = /^  (\w+):\s*\{/gm;
+  const positions = [];
+  let m;
+  while ((m = entryRe.exec(source)) !== null) {
+    positions.push({ name: m[1], start: m.index + m[0].length });
+  }
+  for (let i = 0; i < positions.length; i++) {
+    const { name, start } = positions[i];
+    const end = i + 1 < positions.length ? positions[i + 1].start : source.length;
+    const block = source.slice(start, end);
+
+    const statusMatch = block.match(/status:\s*FeatureFlagStatus\.(\w+)/);
+    const inProdMatch = block.match(/inProd:\s*(true|false)/);
+    const defaultMatch = block.match(/productionDefault:\s*([^,\n]+)/);
+
+    if (statusMatch) {
+      flags.push({
+        name,
+        status: statusMatch[1].toLowerCase(),
+        inProd: inProdMatch ? inProdMatch[1] === 'true' : false,
+        productionDefault: defaultMatch ? defaultMatch[1].trim() : 'unknown',
+      });
+    }
+  }
+  return flags;
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
+function flagHasExplicitOverride(testContents, flagName) {
+  const re = new RegExp(`\\b${escapeRegex(flagName)}\\b`, 'u');
+  for (const content of testContents) {
+    if (re.test(content)) return true;
+  }
+  return false;
+}
+
+function detectTestedStates(testContents, flagName, productionDefault) {
+  const states = { true: false, false: false };
+
+  if (productionDefault === 'true') states.true = true;
+  else if (productionDefault === 'false') states.false = true;
+
+  const escaped = escapeRegex(flagName);
+  const valueRe = new RegExp(`\\b${escaped}\\b\\s*[:=]\\s*([^,\\n}]+)`, 'gu');
+
+  for (const content of testContents) {
+    let vm;
+    while ((vm = valueRe.exec(content)) !== null) {
+      const val = vm[1].trim();
+      if (/\btrue\b/.test(val) || /enabled:\s*true/.test(val)) states.true = true;
+      if (/\bfalse\b/.test(val) || /enabled:\s*false/.test(val)) states.false = true;
+    }
+  }
+  return states;
+}
+
+async function collectFeatureFlagCoverage() {
+  console.log('[feature_flags] scanning registry and E2E tests for flag coverage...');
+
+  let registrySource;
+  try {
+    registrySource = await readFile(SCAN_FF_REGISTRY, 'utf8');
+  } catch {
+    console.warn(`[feature_flags] registry not found at ${SCAN_FF_REGISTRY}, skipping`);
+    return {};
+  }
+
+  const flags = parseRegistryFlags(registrySource);
+  console.log(`[feature_flags] parsed ${flags.length} flags from registry`);
+
+  const isTestFile = (name) => /\.(ts|js)$/.test(name);
+  const testContents = [];
+  for (const dir of SCAN_FF_TEST_DIRS) {
+    try {
+      const files = await walkFiles(dir, isTestFile);
+      for (const f of files) {
+        testContents.push(await readFile(f, 'utf8'));
+      }
+    } catch {
+      // directory may not exist in sparse checkout
+    }
+  }
+  console.log(`[feature_flags] loaded ${testContents.length} test files`);
+
+  let fullCount = 0, partialCount = 0, defaultOnlyCount = 0;
+  let activeCount = 0, deprecatedCount = 0, inProdCount = 0;
+
+  for (const flag of flags) {
+    if (flag.status === 'active') activeCount++;
+    if (flag.status === 'deprecated') deprecatedCount++;
+    if (flag.inProd) inProdCount++;
+
+    const hasOverride = flagHasExplicitOverride(testContents, flag.name);
+    if (!hasOverride) {
+      defaultOnlyCount++;
+      continue;
+    }
+
+    const states = detectTestedStates(testContents, flag.name, flag.productionDefault);
+    if (states.true && states.false) fullCount++;
+    else partialCount++;
+  }
+
+  const total = flags.length;
+  const coveragePct = total > 0 ? Math.round(((fullCount + partialCount) / total) * 100) : 0;
+
+  console.log(`[feature_flags] total: ${total}, active: ${activeCount}, coverage: ${coveragePct}%`);
+
+  return {
+    total_flags: total,
+    active_flags: activeCount,
+    deprecated_flags: deprecatedCount,
+    in_prod_flags: inProdCount,
+    full_coverage_flags: fullCount,
+    partial_coverage_flags: partialCount,
+    default_only_flags: defaultOnlyCount,
+    coverage_percentage: coveragePct,
+  };
+}
+
+// ---------------------------------------------------------------------------
 // Main
 // ---------------------------------------------------------------------------
 
@@ -994,6 +1126,7 @@ async function main() {
     { namespace: 'e2e', collect: collectE2ECounts },
     { namespace: 'metametrics', collect: collectMetametricsQaStats },
     { namespace: 'performance', collect: collectPerformanceTestCounts },
+    { namespace: 'feature_flags', collect: collectFeatureFlagCoverage },
   ];
 
   for (const { namespace, collect } of collectors) {
