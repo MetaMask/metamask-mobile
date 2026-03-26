@@ -48,7 +48,7 @@ describe('getRelatedAssetImageSource', () => {
         symbol: 'ETH',
         caip19: ['eip155:1/slip44:60'],
         sourceAssetId: 'ethereum',
-        hlPerpsMarket: 'ETH', // present but must NOT trigger Perps SVG path
+        hlPerpsMarket: ['ETH'], // present but must NOT trigger Perps SVG path
       });
 
       expect(result).toBe(123);
@@ -62,7 +62,7 @@ describe('getRelatedAssetImageSource', () => {
         symbol: 'BTC',
         caip19: ['bip122:000000000019d6689c085ae165831e93/slip44:0'],
         sourceAssetId: 'bitcoin',
-        hlPerpsMarket: 'BTC',
+        hlPerpsMarket: ['BTC'],
       });
 
       // Bundled BTC icon, not a Perps SVG URI
@@ -92,7 +92,7 @@ describe('getRelatedAssetImageSource', () => {
         symbol: 'BTC',
         caip19: [],
         sourceAssetId: 'bitcoin',
-        hlPerpsMarket: 'BTC',
+        hlPerpsMarket: ['BTC'],
       });
 
       expect(result).toEqual({ uri: `${PERPS_ICONS_BASE}BTC.svg` });
@@ -104,7 +104,7 @@ describe('getRelatedAssetImageSource', () => {
         symbol: 'TSLA',
         caip19: [],
         sourceAssetId: 'tsla',
-        hlPerpsMarket: 'xyz:TSLA',
+        hlPerpsMarket: ['xyz:TSLA'],
       });
 
       expect(result).toEqual({
@@ -118,7 +118,7 @@ describe('getRelatedAssetImageSource', () => {
         symbol: 'ETH',
         caip19: ['eip155:1/slip44:60'],
         sourceAssetId: 'ethereum',
-        hlPerpsMarket: 'ETH',
+        hlPerpsMarket: ['ETH'],
       });
 
       // Must be bundled PNG, not SVG URI

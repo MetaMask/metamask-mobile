@@ -36,8 +36,9 @@ export const getRelatedAssetImageSource = (
   }
 
   // 2. Perps SVG for assets with no CAIP-19 (e.g. xyz:TSLA via hlPerpsMarket)
-  if (asset.hlPerpsMarket && asset.caip19.length === 0) {
-    const urls = getAssetIconUrls(asset.hlPerpsMarket, K_PREFIX_ASSETS);
+  const firstHlPerpsMarket = asset.hlPerpsMarket?.[0];
+  if (firstHlPerpsMarket && asset.caip19.length === 0) {
+    const urls = getAssetIconUrls(firstHlPerpsMarket, K_PREFIX_ASSETS);
     if (urls) {
       return { uri: urls.primary };
     }
