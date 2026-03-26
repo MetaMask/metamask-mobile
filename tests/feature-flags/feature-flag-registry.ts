@@ -62,7 +62,7 @@ export interface FeatureFlagRegistryEntry {
  * Remote flag values are stored in the exact format returned by the production
  * client-config API, so they can be served directly by the E2E mock server.
  *
- * Production defaults last synced: 2026-03-02
+ * Production defaults last synced: 2026-03-25
  * Source: https://client-config.api.cx.metamask.io/v1/flags?client=mobile&distribution=main&environment=prod
  */
 export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
@@ -2829,6 +2829,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  legacyIosGoogleConfigEnabled: {
+    name: 'legacyIosGoogleConfigEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: true,
+    status: FeatureFlagStatus.Active,
+  },
+
   metalCardCheckoutEnabled: {
     name: 'metalCardCheckoutEnabled',
     type: FeatureFlagType.Remote,
@@ -3240,7 +3248,7 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     type: FeatureFlagType.Remote,
     inProd: true,
     productionDefault: {
-      active: false,
+      enabled: false,
       minimumVersion: '7.61.0',
     },
     status: FeatureFlagStatus.Active,
@@ -3607,6 +3615,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
       minimumVersion: '7.61.6',
       enabled: true,
     },
+    status: FeatureFlagStatus.Active,
+  },
+
+  tronClaimUnstakedTrxButtonEnabled: {
+    name: 'tronClaimUnstakedTrxButtonEnabled',
+    type: FeatureFlagType.Remote,
+    inProd: true,
+    productionDefault: false,
     status: FeatureFlagStatus.Active,
   },
 
