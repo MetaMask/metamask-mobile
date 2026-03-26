@@ -3,7 +3,6 @@ import { useSelector } from 'react-redux';
 import { useOptInToCampaign } from './useOptInToCampaign';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -17,10 +16,6 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectCampaignsRewardsEnabledFlag: jest.fn(),
-}));
-
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
   typeof Engine.controllerMessenger.call
 >;
@@ -30,13 +25,9 @@ const SUB_ID = 'sub-123';
 const CAMPAIGN_ID = 'camp-456';
 const STATUS = { optedIn: true, participantCount: 42 };
 
-function setupSelectors(
-  subscriptionId: string | null,
-  campaignsEnabled: boolean,
-) {
+function setupSelectors(subscriptionId: string | null) {
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return subscriptionId;
-    if (selector === selectCampaignsRewardsEnabledFlag) return campaignsEnabled;
     return undefined;
   });
 }
@@ -46,19 +37,8 @@ describe('useOptInToCampaign', () => {
     jest.clearAllMocks();
   });
 
-  it('returns null when feature flag is disabled', async () => {
-    setupSelectors(SUB_ID, false);
-    const { result } = renderHook(() => useOptInToCampaign());
-    let returnValue;
-    await act(async () => {
-      returnValue = await result.current.optInToCampaign(CAMPAIGN_ID);
-    });
-    expect(returnValue).toBeNull();
-    expect(mockCall).not.toHaveBeenCalled();
-  });
-
   it('returns null when subscriptionId is missing', async () => {
-    setupSelectors(null, true);
+    setupSelectors(null);
     const { result } = renderHook(() => useOptInToCampaign());
     let returnValue;
     await act(async () => {
@@ -69,7 +49,7 @@ describe('useOptInToCampaign', () => {
   });
 
   it('calls the controller and returns status on success', async () => {
-    setupSelectors(SUB_ID, true);
+    setupSelectors(SUB_ID);
     mockCall.mockResolvedValueOnce(STATUS as never);
 
     const { result } = renderHook(() => useOptInToCampaign());
@@ -89,7 +69,7 @@ describe('useOptInToCampaign', () => {
   });
 
   it('sets optInError and rethrows on failure', async () => {
-    setupSelectors(SUB_ID, true);
+    setupSelectors(SUB_ID);
     mockCall.mockRejectedValueOnce(new Error('Network error') as never);
 
     const { result } = renderHook(() => useOptInToCampaign());
@@ -104,7 +84,7 @@ describe('useOptInToCampaign', () => {
   });
 
   it('clears optInError when clearOptInError is called', async () => {
-    setupSelectors(SUB_ID, true);
+    setupSelectors(SUB_ID);
     mockCall.mockRejectedValueOnce(new Error('err') as never);
 
     const { result } = renderHook(() => useOptInToCampaign());
