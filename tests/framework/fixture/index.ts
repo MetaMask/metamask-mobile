@@ -1,5 +1,6 @@
 import { test as base, type FullProject } from '@playwright/test';
 import { WebDriverConfig } from '../types.ts';
+import { DEFAULT_IMPLICIT_WAIT_MS } from '../Constants.ts';
 import { createServiceProvider, type ServiceProvider } from '../services';
 import {
   MetricsOutput,
@@ -60,9 +61,14 @@ export const test = base.extend<TestLevelFixtures>({
     const platform = project.use.platform;
     const deviceName = project.use.device?.name;
 
-    if (!platform || !deviceName) {
+    const missingFields = [
+      ...(!platform ? ['"use.platform"'] : []),
+      ...(!deviceName ? ['"use.device.name"'] : []),
+    ];
+
+    if (missingFields.length > 0) {
       throw new Error(
-        `Missing "use.platform" for project "${project.name}" in tests/playwright.config.ts.`,
+        `Missing ${missingFields.join(' and ')} for project "${project.name}" in tests/playwright.config.ts.`,
       );
     }
 
@@ -90,7 +96,7 @@ export const test = base.extend<TestLevelFixtures>({
 
       // Set the implicit timeout for the driver
       await driver.setTimeout({
-        implicit: project.use.expectTimeout ?? 30_000,
+        implicit: project.use.expectTimeout ?? DEFAULT_IMPLICIT_WAIT_MS,
       });
 
       // Make driver globally accessible for utilities

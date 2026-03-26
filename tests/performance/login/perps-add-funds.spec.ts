@@ -6,6 +6,8 @@ import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
 import PerpsDepositView from '../../page-objects/Perps/PerpsDepositView';
 import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 
 /* Scenario 5: Perps add funds */
 test.describe(PerformancePreps, () => {
@@ -36,7 +38,9 @@ test.describe(PerformancePreps, () => {
       await WalletActionsBottomSheet.tapPerpsButton(); // may need to change for catchAll trade perps contracts
       // Open Perps Main Screen
       await selectPerpsMainScreenTimer.measure(async () => {
-        await PerpsOnboarding.isPerpsOnboardingTitleDisplayed();
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+        );
       });
 
       // Skip tutorial
@@ -45,7 +49,9 @@ test.describe(PerformancePreps, () => {
       await PerpsOnboarding.tapAddFunds();
       // Open Add Funds flow
       await openAddFundsTimer.measure(async () => {
-        await PerpsDepositView.isAmountInputVisible();
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsDepositView.amountInput),
+        );
       });
 
       await PerpsDepositView.typeUSD('2');
@@ -53,8 +59,12 @@ test.describe(PerformancePreps, () => {
 
       // Get quote
       await getQuoteTimer.measure(async () => {
-        await PerpsDepositView.isAddFundsVisible();
-        await PerpsDepositView.isTotalVisible();
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsDepositView.addFundsButton),
+        );
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsDepositView.totalText),
+        );
       });
 
       performanceTracker.addTimers(

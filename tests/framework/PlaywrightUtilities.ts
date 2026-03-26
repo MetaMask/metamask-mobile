@@ -1,6 +1,7 @@
 import test from '@playwright/test';
-import type { DeviceMatrix } from './types.ts';
-import { PlaywrightElement } from './PlaywrightAdapter.ts';
+import type { DeviceMatrix } from './types';
+import { PlaywrightElement } from './PlaywrightAdapter';
+import { DEFAULT_IMPLICIT_WAIT_MS } from './Constants';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
 const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
@@ -13,6 +14,27 @@ export function getDriver(): WebdriverIO.Browser {
   const drv = globalThis.driver;
   if (!drv) throw new Error('driver is not available');
   return drv;
+}
+
+/**
+ * Runs a callback with a temporarily increased implicit wait timeout.
+ * Restores the default timeout afterward, even if the callback throws.
+ * Use this for operations that legitimately need a longer wait (e.g. waitForDisplayed with 30s).
+ * @param timeoutMs - The timeout in milliseconds.
+ * @param fn - The callback to run.
+ * @returns The result of the callback.
+ */
+export async function withImplicitWait<T>(
+  timeoutMs: number,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const drv = getDriver();
+  await drv.setTimeout({ implicit: timeoutMs });
+  try {
+    return await fn();
+  } finally {
+    await drv.setTimeout({ implicit: DEFAULT_IMPLICIT_WAIT_MS });
+  }
 }
 
 /**

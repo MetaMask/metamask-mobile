@@ -1,17 +1,24 @@
 import { test } from '../../framework/fixture';
 
-import TimerHelper from '../../framework/TimerHelper.js';
+import TimerHelper from '../../framework/TimerHelper';
 import { PerformancePreps } from '../../tags.performance.js';
 import {
   loginToAppPlaywright,
   selectAccountByDevice,
-} from '../../flows/wallet.flow.js';
-import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
-import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
-import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding.js';
-import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView.js';
-import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
-import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
+} from '../../flows/wallet.flow';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet';
+import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView';
+import {
+  isPositionOpen,
+  waitForOrderScreenVisible,
+  waitForPositionOpen,
+} from '../../flows/perps.flow';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
+import { asPlaywrightElement } from '../../framework/EncapsulatedElement';
 
 /* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
 test.describe(PerformancePreps, () => {
@@ -57,12 +64,16 @@ test.describe(PerformancePreps, () => {
       await TabBarComponent.tapActions();
       await WalletActionsBottomSheet.tapPerpsButton();
       await selectPerpsMainScreenTimer.measure(async () => {
-        await PerpsOnboarding.isPerpsOnboardingTitleDisplayed();
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsOnboarding.tutorialTitle),
+        );
       });
 
       await PerpsOnboarding.tapSkipButton();
       await selectMarketTimer.measure(async () => {
-        await PerpsMarketListView.isHeaderVisible();
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PerpsMarketListView.header),
+        );
       });
 
       await PerpsMarketListView.selectMarket('BTC');
@@ -71,7 +82,7 @@ test.describe(PerformancePreps, () => {
         async () => await PerpsMarketDetailsView.isContainerDisplayed(),
       );
       // Check if there's an existing position and close it before continuing
-      if (await PerpsMarketDetailsView.isPositionOpen()) {
+      if (await isPositionOpen()) {
         console.log(
           '⚠️ Position already open, closing it before continuing with the test...',
         );
@@ -86,14 +97,14 @@ test.describe(PerformancePreps, () => {
       await PerpsMarketDetailsView.tapLongButton();
       // Open Position
       await openOrderScreenTimer.measure(
-        async () => await PerpsOrderView.waitForOrderScreenVisible(),
+        async () => await waitForOrderScreenVisible(),
       );
 
       await PerpsOrderView.setLeverageAppium(40);
       await PerpsOrderView.tapPlaceOrder();
 
       await openPositionTimer.measure(
-        async () => await PerpsMarketDetailsView.waitForPositionOpen(20000),
+        async () => await waitForPositionOpen(20000),
       );
 
       try {

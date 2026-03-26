@@ -19,6 +19,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import { PlaywrightGestures } from '../../framework';
+import { isPositionOpen } from '../../flows/perps.flow';
 
 class PerpsMarketDetailsView {
   // Container elements
@@ -354,31 +355,6 @@ class PerpsMarketDetailsView {
     });
   }
 
-  async isPositionOpen(): Promise<boolean> {
-    let isPositionOpen = false;
-    await encapsulatedAction({
-      appium: async () => {
-        try {
-          const closeEl = await asPlaywrightElement(this.closeButton);
-          isPositionOpen = await closeEl.isVisible();
-        } catch {
-          // Element lookup timed out — position is not open
-          isPositionOpen = false;
-        }
-      },
-    });
-    return isPositionOpen;
-  }
-
-  async waitForPositionOpen(timeout = 20000, interval = 1000): Promise<void> {
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-      if (await this.isPositionOpen()) return;
-      await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-    throw new Error(`Position not open after ${timeout}ms`);
-  }
-
   async tapClosePositionButton(): Promise<void> {
     await UnifiedGestures.waitAndTap(this.closeButton, {
       description: 'Close position button',
@@ -390,10 +366,22 @@ class PerpsMarketDetailsView {
 
   async closePositionWithRetry(): Promise<void> {
     await encapsulatedAction({
+      detox: async () => {
+        if (await isPositionOpen()) {
+          await this.tapClosePositionButton();
+          await Assertions.expectElementToNotBeVisible(
+            asDetoxElement(this.closeButton),
+            {
+              timeout: 5000,
+              description: 'Close button disappears after confirm',
+            },
+          );
+        }
+      },
       appium: async () => {
         await Utilities.executeWithRetry(
           async () => {
-            if (await this.isPositionOpen()) {
+            if (await isPositionOpen()) {
               await this.tapClosePositionButton();
               const closeEl = await asPlaywrightElement(this.closeButton);
               await closeEl.waitForDisplayed({ reverse: true, timeout: 5000 });

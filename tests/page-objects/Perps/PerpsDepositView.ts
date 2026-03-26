@@ -76,12 +76,6 @@ class PerpsDepositView {
     return Matchers.getElementByText('USDC');
   }
 
-  async isAmountInputVisible(): Promise<void> {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(this.amountInput),
-    );
-  }
-
   async expectLoaded(): Promise<void> {
     await Assertions.expectElementToBeVisible(this.keypad, {
       description: 'Deposit keyboard is visible',
@@ -173,18 +167,6 @@ class PerpsDepositView {
     await Gestures.waitAndTap(this.confirmButton, {
       elemDescription: 'Add funds (confirm)',
     });
-  }
-
-  async isAddFundsVisible(): Promise<void> {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(this.addFundsButton),
-    );
-  }
-
-  async isTotalVisible(): Promise<void> {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      asPlaywrightElement(this.totalText),
-    );
   }
 }
 

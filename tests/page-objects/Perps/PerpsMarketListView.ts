@@ -1,21 +1,17 @@
 import {
   PerpsMarketListViewSelectorsIDs,
+  PerpsMarketRowItemSelectorsIDs,
   PerpsTokenSelectorSelectorsIDs,
   getPerpsMarketRowItemSelector,
 } from '../../../app/components/UI/Perps/Perps.testIds';
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import {
-  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
-import {
-  encapsulatedAction,
-  PlaywrightAssertions,
-  PlaywrightGestures,
-} from '../../framework';
+import { encapsulatedAction, PlaywrightGestures } from '../../framework';
 
 class PerpsMarketListView {
   // Main container
@@ -146,7 +142,7 @@ class PerpsMarketListView {
       },
       appium: async () => {
         // TODO: Create a testIds.ts const with this selector
-        const marketSelector = `perps-market-row-item-${marketName}`;
+        const marketSelector = `${PerpsMarketRowItemSelectorsIDs.ROW_ITEM}-${marketName}`;
         const marketElement = await PlaywrightMatchers.getElementById(
           marketSelector,
           { exact: true },
@@ -154,18 +150,6 @@ class PerpsMarketListView {
         await PlaywrightGestures.waitAndTap(marketElement);
       },
     });
-  }
-
-  async isListHeaderVisible(): Promise<void> {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(this.listHeader),
-    );
-  }
-
-  async isHeaderVisible(): Promise<void> {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(this.header),
-    );
   }
 }
 

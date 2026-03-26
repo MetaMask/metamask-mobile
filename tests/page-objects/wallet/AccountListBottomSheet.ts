@@ -10,7 +10,6 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
-  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
@@ -19,7 +18,6 @@ import {
   createLogger,
   encapsulatedAction,
   LogLevel,
-  PlaywrightAssertions,
   PlaywrightGestures,
 } from '../../framework';
 
@@ -306,13 +304,12 @@ class AccountListBottomSheet {
     await this.swipeToDismissAccountsModal();
   }
 
-  async isAccountListBottomSheetDisplayed(): Promise<void> {
-    await PlaywrightAssertions.expectElementToBeVisible(
-      await asPlaywrightElement(this.accountList),
-    );
-  }
-
-  async waitForAccountSyncToComplete(timeout = 60000) {
+  /**
+   * Waits for the account sync to complete.
+   * @param timeout - The timeout in milliseconds.
+   * @returns {Promise<void>} Resolves when the account sync is complete.
+   */
+  async waitForAccountSyncToComplete(timeout = 60000): Promise<void> {
     logger.debug('⏳ waitForSyncingToComplete: Starting...');
     const startTime = Date.now();
     const pollInterval = 500;

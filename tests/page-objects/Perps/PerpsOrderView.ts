@@ -207,34 +207,6 @@ class PerpsOrderView {
     });
   }
 
-  async isPlaceOrderButtonVisible(): Promise<boolean> {
-    let isPlaceOrderButtonVisible = false;
-    await encapsulatedAction({
-      appium: async () => {
-        const placeOrderButtonEl = await asPlaywrightElement(
-          this.placeOrderButton,
-        );
-        isPlaceOrderButtonVisible = await placeOrderButtonEl.isVisible();
-      },
-    });
-    return isPlaceOrderButtonVisible;
-  }
-
-  /**
-   * Polls until the place order button is visible (used inside timer measures).
-   */
-  async waitForOrderScreenVisible(
-    timeout = 20000,
-    interval = 1000,
-  ): Promise<void> {
-    const start = Date.now();
-    while (Date.now() - start < timeout) {
-      if (await this.isPlaceOrderButtonVisible()) return;
-      await new Promise((resolve) => setTimeout(resolve, interval));
-    }
-    throw new Error(`Order screen not visible after ${timeout}ms`);
-  }
-
   /**
    * Set leverage for appium context — opens modal, selects option, confirms.
    */
