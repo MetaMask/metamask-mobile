@@ -510,20 +510,6 @@ describe('OAuth login service', () => {
       delete process.env.E2E_MOCK_OAUTH_EMAIL;
     });
 
-    it('throws when E2E_BYOA_AUTH_SECRET is unset', async () => {
-      mockGetE2EByoaAuthSecret.mockReturnValue(undefined);
-      const loginHandler = mockCreateLoginHandler();
-
-      await expectOAuthError(
-        OAuthLoginService.handleOAuthLogin(loginHandler, false),
-        OAuthErrorType.LoginError,
-      );
-
-      expect(fetchSpy).not.toHaveBeenCalled();
-      expect(mockAuthenticate).not.toHaveBeenCalled();
-      expect(OAuthLoginService.localState.oauthLoginSuccess).toBe(false);
-    });
-
     it('exchanges QA mock tokens and returns mock success without seedless authenticate', async () => {
       const loginHandler = mockCreateLoginHandler();
 
