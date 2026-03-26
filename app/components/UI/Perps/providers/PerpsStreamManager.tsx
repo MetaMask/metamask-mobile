@@ -1669,8 +1669,9 @@ export class PerpsStreamManager {
     const orders = this.orders.getSnapshot();
     const account = this.account.getSnapshot();
 
-    // Only persist if we have at least some data
-    if (!positions && !orders && !account) return;
+    // Only persist when all channels have delivered to avoid writing
+    // incomplete snapshots that consume the throttle window
+    if (!positions || !orders || !account) return;
 
     const controller = Engine.context.PerpsController;
     const providerNetworkKey = getProviderNetworkKey(controller.state);
