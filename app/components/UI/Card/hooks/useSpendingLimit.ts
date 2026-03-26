@@ -1,11 +1,21 @@
-import { useState, useCallback, useMemo, useEffect, useContext } from 'react';
+import {
+  useState,
+  useCallback,
+  useMemo,
+  useEffect,
+  useContext,
+  useRef,
+} from 'react';
 import {
   useFocusEffect,
   useNavigation,
   StackActions,
 } from '@react-navigation/native';
+import { useSelector } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../../../util/theme';
+import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
 import {
@@ -28,6 +38,7 @@ import { isSolanaChainId } from '@metamask/bridge-controller';
 import { safeFormatChainIdToHex } from '../util/safeFormatChainIdToHex';
 import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
+import { createSpendingLimitOptionsNavigationDetails } from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import Logger from '../../../../util/Logger';
 import { strings } from '../../../../../locales/i18n';
@@ -72,7 +83,9 @@ export interface UseSpendingLimitReturn {
 
   // Handlers
   setSelectedToken: (token: CardTokenAllowance | null) => void;
+  handleAccountSelect: () => void;
   handleOtherSelect: () => void;
+  handleLimitSelect: () => void;
   setLimitType: (type: LimitType) => void;
   setCustomLimit: (value: string) => void;
 
@@ -124,6 +137,18 @@ const useSpendingLimit = ({
   const [hasInitialized, setHasInitialized] = useState(false);
 
   const isOnboardingFlow = flow === 'onboarding';
+
+  // Track account changes to reset token selection when user switches account
+  const selectedAccount = useSelector(selectSelectedInternalAccount);
+  const accountIdRef = useRef(selectedAccount?.id);
+
+  useEffect(() => {
+    if (selectedAccount?.id && selectedAccount.id !== accountIdRef.current) {
+      accountIdRef.current = selectedAccount.id;
+      setHasInitialized(false);
+      setSelectedToken(null);
+    }
+  }, [selectedAccount?.id]);
 
   // Delegation hook (includes faucet check)
   const {
@@ -233,18 +258,34 @@ const useSpendingLimit = ({
     sdk,
   ]);
 
-  // Handle returned token from AssetSelectionBottomSheet
+  // Handle returned values from modal sheets
   useFocusEffect(
     useCallback(() => {
       const params = routeParams as
-        | { returnedSelectedToken?: CardTokenAllowance }
+        | {
+            returnedSelectedToken?: CardTokenAllowance;
+            returnedLimitType?: LimitType;
+            returnedCustomLimit?: string;
+          }
         | undefined;
+
       if (params?.returnedSelectedToken) {
         setSelectedToken(params.returnedSelectedToken);
         setHasInitialized(true);
         navigation.setParams({
           returnedSelectedToken: undefined,
           selectedToken: undefined,
+        } as Record<string, unknown>);
+      }
+
+      if (params?.returnedLimitType !== undefined) {
+        setLimitType(params.returnedLimitType);
+        if (params.returnedCustomLimit !== undefined) {
+          setCustomLimitState(params.returnedCustomLimit);
+        }
+        navigation.setParams({
+          returnedLimitType: undefined,
+          returnedCustomLimit: undefined,
         } as Record<string, unknown>);
       }
     }, [routeParams, navigation]),
@@ -267,6 +308,12 @@ const useSpendingLimit = ({
   }, [isOnboardingFlow, selectedToken, limitType, customLimit]);
 
   // Handlers
+  const handleAccountSelect = useCallback(() => {
+    navigation.navigate(
+      ...createAccountSelectorNavDetails({ disableAddAccountButton: true }),
+    );
+  }, [navigation]);
+
   const handleOtherSelect = useCallback(() => {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
@@ -300,6 +347,17 @@ const useSpendingLimit = ({
     createEventBuilder,
     routeParams,
   ]);
+
+  const handleLimitSelect = useCallback(() => {
+    navigation.navigate(
+      ...createSpendingLimitOptionsNavigationDetails({
+        currentLimitType: limitType,
+        currentCustomLimit: customLimit,
+        callerRoute: Routes.CARD.SPENDING_LIMIT,
+        callerParams: routeParams as Record<string, unknown> | undefined,
+      }),
+    );
+  }, [navigation, limitType, customLimit, routeParams]);
 
   const setCustomLimit = useCallback((value: string) => {
     // Sanitize: only numbers and single decimal point
@@ -470,7 +528,9 @@ const useSpendingLimit = ({
 
     // Handlers
     setSelectedToken,
+    handleAccountSelect,
     handleOtherSelect,
+    handleLimitSelect,
     setLimitType,
     setCustomLimit,
 

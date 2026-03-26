@@ -19,6 +19,9 @@ import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
 import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
+import { createSpendingLimitOptionsNavigationDetails } from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import { useSelector } from 'react-redux';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -77,6 +80,21 @@ jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
   useTokensWithBalance: jest.fn(),
 }));
 
+jest.mock('../../../Views/AccountSelector', () => ({
+  createAccountSelectorNavDetails: jest.fn(),
+}));
+
+jest.mock(
+  '../Views/SpendingLimit/components/SpendingLimitOptionsSheet',
+  () => ({
+    createSpendingLimitOptionsNavigationDetails: jest.fn(),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -94,6 +112,15 @@ const mockCreateAssetSelectionModalNavigationDetails =
   createAssetSelectionModalNavigationDetails as jest.MockedFunction<
     typeof createAssetSelectionModalNavigationDetails
   >;
+const mockCreateAccountSelectorNavDetails =
+  createAccountSelectorNavDetails as jest.MockedFunction<
+    typeof createAccountSelectorNavDetails
+  >;
+const mockCreateSpendingLimitOptionsNavigationDetails =
+  createSpendingLimitOptionsNavigationDetails as jest.MockedFunction<
+    typeof createSpendingLimitOptionsNavigationDetails
+  >;
+const mockUseSelector = useSelector as jest.Mock;
 
 // Helper functions
 const createMockToken = (
@@ -229,6 +256,25 @@ describe('useSpendingLimit', () => {
 
     // Default: no balances (triggers fallback to mUSD + USDC)
     (useTokensWithBalance as jest.Mock).mockReturnValue([]);
+
+    // Setup account selector navigation details mock
+    mockCreateAccountSelectorNavDetails.mockReturnValue([
+      'AccountSelectorRoute',
+      {},
+    ] as never);
+
+    // Setup spending limit options navigation details mock
+    mockCreateSpendingLimitOptionsNavigationDetails.mockReturnValue([
+      'SpendingLimitOptionsRoute',
+      {},
+    ] as never);
+
+    // Default selected account
+    mockUseSelector.mockReturnValue({
+      id: 'account-1',
+      address: '0xaccount1',
+      metadata: { name: 'Account 1' },
+    });
   });
 
   afterEach(() => {
@@ -1002,6 +1048,245 @@ describe('useSpendingLimit', () => {
 
       // User's selection should NOT be overwritten by mUSD fallback
       expect(result.current.selectedToken).toEqual(userSelectedToken);
+    });
+  });
+
+  describe('handleAccountSelect', () => {
+    it('navigates to account selector', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleAccountSelect();
+      });
+
+      expect(mockCreateAccountSelectorNavDetails).toHaveBeenCalledWith({
+        disableAddAccountButton: true,
+      });
+      expect(mockNavigation.navigate).toHaveBeenCalled();
+    });
+  });
+
+  describe('handleLimitSelect', () => {
+    it('navigates to spending limit options sheet', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleLimitSelect();
+      });
+
+      expect(
+        mockCreateSpendingLimitOptionsNavigationDetails,
+      ).toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalled();
+    });
+
+    it('passes current limitType and customLimit to options sheet', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.setLimitType('restricted');
+        result.current.setCustomLimit('250');
+      });
+
+      act(() => {
+        result.current.handleLimitSelect();
+      });
+
+      expect(
+        mockCreateSpendingLimitOptionsNavigationDetails,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentLimitType: 'restricted',
+          currentCustomLimit: '250',
+          callerRoute: Routes.CARD.SPENDING_LIMIT,
+        }),
+      );
+    });
+
+    it('passes full limitType when no custom limit has been set', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleLimitSelect();
+      });
+
+      expect(
+        mockCreateSpendingLimitOptionsNavigationDetails,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentLimitType: 'full',
+          currentCustomLimit: '',
+        }),
+      );
+    });
+  });
+
+  describe('Account change detection', () => {
+    it('resets selectedToken when account changes', () => {
+      const initialToken = createMockToken({ symbol: 'USDC' });
+      mockUseSelector.mockReturnValue({
+        id: 'account-1',
+        address: '0xaccount1',
+        metadata: { name: 'Account 1' },
+      });
+
+      const { result, rerender } = renderHook(
+        (props: UseSpendingLimitParams) => useSpendingLimit(props),
+        { initialProps: createDefaultParams({ initialToken }) },
+      );
+
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
+
+      // Simulate account switch; remove allTokens so no re-selection happens
+      mockUseSelector.mockReturnValue({
+        id: 'account-2',
+        address: '0xaccount2',
+        metadata: { name: 'Account 2' },
+      });
+
+      rerender(
+        createDefaultParams({ allTokens: [], delegationSettings: null }),
+      );
+
+      expect(result.current.selectedToken).toBeNull();
+    });
+
+    it('does not reset selectedToken when same account re-renders', () => {
+      const initialToken = createMockToken({ symbol: 'USDC' });
+      const mockAccount = {
+        id: 'account-1',
+        address: '0xaccount1',
+        metadata: { name: 'Account 1' },
+      };
+      mockUseSelector.mockReturnValue(mockAccount);
+
+      const { result, rerender } = renderHook(
+        (props: UseSpendingLimitParams) => useSpendingLimit(props),
+        { initialProps: createDefaultParams({ initialToken }) },
+      );
+
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
+
+      // Re-render with same account (e.g., other state update)
+      mockUseSelector.mockReturnValue(mockAccount);
+      rerender(createDefaultParams({ initialToken }));
+
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
+    });
+  });
+
+  describe('Returned limit type from SpendingLimitOptionsSheet', () => {
+    it('sets limitType from returnedLimitType route param', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedLimitType: 'restricted' },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        returnedLimitType: undefined,
+        returnedCustomLimit: undefined,
+      });
+    });
+
+    it('sets customLimit from returnedCustomLimit route param', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: {
+              returnedLimitType: 'restricted',
+              returnedCustomLimit: '750',
+            },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('750');
+    });
+
+    it('sets limitType to full when returnedLimitType is full', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedLimitType: 'full' },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      expect(result.current.limitType).toBe('full');
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        returnedLimitType: undefined,
+        returnedCustomLimit: undefined,
+      });
+    });
+
+    it('does not update limitType when returnedLimitType is absent', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedSelectedToken: createMockToken() },
+          }),
+        ),
+      );
+
+      act(() => {
+        result.current.setLimitType('restricted');
+      });
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      // limitType should remain 'restricted' (not overwritten)
+      expect(result.current.limitType).toBe('restricted');
+      // setParams should NOT have been called for limit params
+      expect(mockNavigation.setParams).not.toHaveBeenCalledWith(
+        expect.objectContaining({ returnedLimitType: undefined }),
+      );
     });
   });
 

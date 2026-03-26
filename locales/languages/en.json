@@ -7437,7 +7437,9 @@
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
       "on_linea": "on Linea",
-      "spending_with_label": "Spending with"
+      "spending_with_label": "Spending with",
+      "account_label": "Account",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Cashback",
