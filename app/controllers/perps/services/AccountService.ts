@@ -181,25 +181,36 @@ export class AccountService {
             state.lastError = null;
             state.lastUpdateTimestamp = Date.now();
 
-            // Update the withdrawal request by request ID
-            if (state.withdrawalRequests.length > 0) {
-              const requestToUpdate = state.withdrawalRequests.find(
-                (req) => req.id === currentWithdrawalId,
+            const withdrawalRequestIndex = state.withdrawalRequests.findIndex(
+              (req) => req.id === currentWithdrawalId,
+            );
+
+            if (result.txHash) {
+              // Direct completion: remove from queue and record the txHash
+              // so the polling hook won't re-match this completion.
+              // We do NOT update lastCompletedWithdrawalTimestamp here
+              // because Date.now() is local device time while the FIFO guard
+              // compares against API server timestamps — mixing domains can
+              // poison the guard.  The txHash exclusion alone prevents
+              // re-matching since the item is also spliced from the queue.
+              if (withdrawalRequestIndex !== -1) {
+                state.withdrawalRequests.splice(withdrawalRequestIndex, 1);
+              }
+
+              state.lastCompletedWithdrawalTxHashes.push(result.txHash);
+
+              const hasOtherPending = state.withdrawalRequests.some(
+                (req) => req.status === 'pending' || req.status === 'bridging',
               );
-              if (requestToUpdate) {
-                if (result.txHash) {
-                  // Withdrawal is fully completed (has txHash)
-                  requestToUpdate.status = 'completed' as TransactionStatus;
-                  requestToUpdate.success = true;
-                  requestToUpdate.txHash = result.txHash;
-                } else {
-                  // Withdrawal is bridging (no txHash yet)
-                  requestToUpdate.status = 'bridging' as TransactionStatus;
-                  requestToUpdate.success = true;
-                }
-                if (result.withdrawalId) {
-                  requestToUpdate.withdrawalId = result.withdrawalId;
-                }
+              state.withdrawInProgress = hasOtherPending;
+            } else if (withdrawalRequestIndex !== -1) {
+              const requestToUpdate =
+                state.withdrawalRequests[withdrawalRequestIndex];
+              // Withdrawal is bridging (no txHash yet)
+              requestToUpdate.status = 'bridging' as TransactionStatus;
+              requestToUpdate.success = true;
+              if (result.withdrawalId) {
+                requestToUpdate.withdrawalId = result.withdrawalId;
               }
             }
 
@@ -213,29 +224,6 @@ export class AccountService {
               timestamp: Date.now(),
               error: '',
             };
-
-            if (result.txHash) {
-              // Direct completion: remove from queue and record the txHash
-              // so the polling hook won't re-match this completion.
-              // We do NOT update lastCompletedWithdrawalTimestamp here
-              // because Date.now() is local device time while the FIFO guard
-              // compares against API server timestamps — mixing domains can
-              // poison the guard.  The txHash exclusion alone prevents
-              // re-matching since the item is also spliced from the queue.
-              const completedIndex = state.withdrawalRequests.findIndex(
-                (req) => req.id === currentWithdrawalId,
-              );
-              if (completedIndex !== -1) {
-                state.withdrawalRequests.splice(completedIndex, 1);
-              }
-
-              state.lastCompletedWithdrawalTxHashes.push(result.txHash);
-
-              const hasOtherPending = state.withdrawalRequests.some(
-                (req) => req.status === 'pending' || req.status === 'bridging',
-              );
-              state.withdrawInProgress = hasOtherPending;
-            }
           });
         }
 

@@ -236,7 +236,7 @@ describe('AccountService', () => {
       );
     });
 
-    it('updates state with completed status when tx hash provided', async () => {
+    it('removes withdrawal request from queue when provider returns tx hash', async () => {
       mockProvider.withdraw.mockResolvedValue({
         success: true,
         txHash: '0xTransactionHash',
