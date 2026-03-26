@@ -421,12 +421,32 @@ class TestSnaps {
     await Gestures.tap(this.getApproveSignRequestButton);
   }
 
+  /**
+   * Blurs the focused field inside the test-snaps WebView so iOS does not keep the
+   * keyboard input accessory (prev/next/done bar) over the native confirmation footer.
+   */
+  async blurActiveWebViewInput(): Promise<void> {
+    const nativeWebView = Matchers.getWebViewByID(
+      BrowserViewSelectorsIDs.BROWSER_WEBVIEW_ID,
+    );
+    const bodyElement = nativeWebView.element(by.web.tag('body'));
+    await bodyElement.runScript(
+      `(el) => {
+        var active = document.activeElement;
+        if (active && typeof active.blur === 'function') {
+          active.blur();
+        }
+      }`,
+    );
+  }
+
   async approveNativeConfirmation() {
     // Network-added toasts can sit above the confirmation footer and steal hit tests.
     await Assertions.expectElementToNotBeVisible(ToastModal.container, {
       description: 'network toast dismissed before confirming snap signature',
       timeout: 15_000,
     });
+    await this.blurActiveWebViewInput();
     await Gestures.tap(this.confirmSignatureButton, {
       elemDescription: 'confirm snap signature',
       checkStability: true,
