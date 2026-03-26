@@ -21,9 +21,12 @@ declare global {
   var driver: WebdriverIO.Browser | undefined;
 }
 
-interface CurrentDeviceDetails {
+export interface CurrentDeviceDetails {
   platform: 'android' | 'ios';
   deviceName: string;
+  packageName?: string;
+  appId?: string;
+  launchableActivity?: string;
 }
 
 interface TestLevelFixtures {
@@ -60,6 +63,9 @@ export const test = base.extend<TestLevelFixtures>({
     const project = testInfo.project as FullProject<WebDriverConfig>;
     const platform = project.use.platform;
     const deviceName = project.use.device?.name;
+    const packageName = project.use.app?.packageName;
+    const appId = project.use.app?.appId;
+    const launchableActivity = project.use.app?.launchableActivity;
 
     const missingFields = [
       ...(!platform ? ['"use.platform"'] : []),
@@ -75,6 +81,9 @@ export const test = base.extend<TestLevelFixtures>({
     const deviceDetails: CurrentDeviceDetails = {
       platform: platform as 'android' | 'ios',
       deviceName: deviceName as string,
+      packageName,
+      appId,
+      launchableActivity,
     };
 
     await use(deviceDetails);
