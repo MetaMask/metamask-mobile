@@ -22,6 +22,7 @@ import {
   MYX_MAX_LEVERAGE,
   MYX_MIN_ORDER_SIZE_BUFFER,
   MYX_MINIMUM_ORDER_SIZE_USD,
+  MYX_PROVIDER_ID,
 } from '../constants/myxConfig';
 import { DECIMAL_PRECISION_CONFIG } from '../constants/perpsConfig';
 import type {
@@ -118,7 +119,7 @@ export function adaptMarketFromMYX(
       Math.max(poolMinOrderSizeUsd ?? 0, MYX_MINIMUM_ORDER_SIZE_USD) *
         MYX_MIN_ORDER_SIZE_BUFFER,
     ),
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -188,7 +189,7 @@ export function adaptMarketDataFromMYX(
     change24h: formattedChange,
     change24hPercent: formattedChangePercent,
     volume: formattedVolume,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -381,7 +382,7 @@ export function adaptPositionFromMYX(
     stopLossPrice: undefined,
     takeProfitCount: 0,
     stopLossCount: 0,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -471,7 +472,7 @@ export function adaptOrderFromMYX(
     detailedOrderType,
     reduceOnly:
       historyOrder.operation === MYXOperationEnum.Decrease ? true : undefined,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -517,7 +518,7 @@ export function adaptPoolOpenOrderFromMYX(
     isTrigger,
     detailedOrderType,
     reduceOnly: true,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -585,7 +586,7 @@ export function adaptOrderItemFromMYX(
     triggerPrice: isTrigger ? priceNum.toString() : undefined,
     detailedOrderType,
     reduceOnly,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 
@@ -794,7 +795,7 @@ export function adaptOrderFillFromMYX(
     timestamp: order.txTime,
     success: order.orderStatus === MYXOrderStatusEnum.Successful,
     orderType,
-    providerId: 'myx',
+    providerId: MYX_PROVIDER_ID,
   };
 }
 

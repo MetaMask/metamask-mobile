@@ -52,7 +52,10 @@ import {
   toMYXContractPrice,
   fromMYXPrice,
 } from '../constants/myxConfig';
-import { PERPS_CONSTANTS } from '../constants/perpsConfig';
+import {
+  CLOSE_POSITION_CONFIG,
+  PERPS_CONSTANTS,
+} from '../constants/perpsConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
 import { MYXClientService } from '../services/MYXClientService';
@@ -801,7 +804,7 @@ export class MYXProvider implements PerpsProvider {
           price,
           timestamp: Date.now(),
           percentChange24h: change24h.toFixed(2),
-          providerId: 'myx',
+          providerId: this.protocolId,
         };
 
         if (includeMarketData) {
@@ -869,7 +872,9 @@ export class MYXProvider implements PerpsProvider {
           return undefined;
         })
         .catch(() => {
-          // Non-fatal: market detail refresh failed, keep stale cache
+          // Non-fatal: delete stale entry so next tick retries instead of
+          // serving indefinitely stale data.
+          this.#marketDetailCache.delete(poolId);
         })
         .finally(() => {
           this.#marketDetailInflight.delete(poolId);
@@ -977,7 +982,7 @@ export class MYXProvider implements PerpsProvider {
       if (usdAmount < minOrderSizeWithBuffer) {
         return {
           success: false,
-          error: `Order size $${usdAmount.toFixed(2)} is below minimum $${Math.ceil(minOrderSizeWithBuffer)}`,
+          error: `Order size $${usdAmount.toFixed(CLOSE_POSITION_CONFIG.UsdDecimalPlaces)} is below minimum $${Math.ceil(minOrderSizeWithBuffer)}`,
         };
       }
 
@@ -1098,7 +1103,7 @@ export class MYXProvider implements PerpsProvider {
       return {
         success: true,
         orderId: data?.transactionHash ?? data?.orderId,
-        providerId: 'myx',
+        providerId: this.protocolId,
       };
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.placeOrder');
@@ -1183,7 +1188,7 @@ export class MYXProvider implements PerpsProvider {
       return {
         success: true,
         orderId: String(params.orderId),
-        providerId: 'myx',
+        providerId: this.protocolId,
       };
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.editOrder');
@@ -1229,7 +1234,7 @@ export class MYXProvider implements PerpsProvider {
       return {
         success: true,
         orderId: params.orderId,
-        providerId: 'myx',
+        providerId: this.protocolId,
       };
     } catch (caughtError) {
       const wrappedError = ensureError(caughtError, 'MYXProvider.cancelOrder');
@@ -1435,7 +1440,7 @@ export class MYXProvider implements PerpsProvider {
       return {
         success: true,
         orderId: data?.transactionHash ?? data?.orderId,
-        providerId: 'myx',
+        providerId: this.protocolId,
       };
     } catch (caughtError) {
       const wrappedError = ensureError(
@@ -1477,11 +1482,12 @@ export class MYXProvider implements PerpsProvider {
       let successCount = 0;
       let failureCount = 0;
 
-      // Sequential close — each is an on-chain tx, parallel would flood the nonce
+      // Sequential close — each is an on-chain tx, parallel would flood the nonce.
+      // Omit size so closePosition uses the fresh position from #resolvePositionForSymbol,
+      // avoiding stale snapshot data after async gaps between closes.
       for (const position of toClose) {
         const result = await this.closePosition({
           symbol: position.symbol,
-          size: position.size,
         });
         if (result.success) {
           successCount += 1;
@@ -1603,7 +1609,7 @@ export class MYXProvider implements PerpsProvider {
       return {
         success: true,
         orderId: data?.transactionHash ?? data?.orderId,
-        providerId: 'myx',
+        providerId: this.protocolId,
       };
     } catch (caughtError) {
       const wrappedError = ensureError(

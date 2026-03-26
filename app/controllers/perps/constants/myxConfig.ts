@@ -374,6 +374,12 @@ export const MYX_MAX_RETRIES = 3;
 export const MYX_DEFAULT_SLIPPAGE_BPS = 100;
 
 /**
+ * Provider identifier for MYX — used as `providerId` in return types.
+ * Matches the `PerpsProviderType` union member.
+ */
+export const MYX_PROVIDER_ID = 'myx' as const;
+
+/**
  * Maximum leverage supported by MYX (most markets)
  */
 export const MYX_MAX_LEVERAGE = 100;
