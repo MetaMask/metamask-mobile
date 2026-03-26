@@ -205,10 +205,17 @@ describe('EnterAddress Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('validates address line 2 when provided', () => {
+  it('validates address line 2 when provided', async () => {
     render(EnterAddress);
 
     fillFormAndSubmit();
+
+    // Wait for the first submission to complete so the button is no longer loading/disabled
+    await waitFor(() => {
+      expect(screen.getByTestId('address-continue-button')).toBeEnabled();
+    });
+
+    mockRouteAfterAuthentication.mockClear();
 
     fireEvent.changeText(screen.getByTestId('address-line-2-input'), '12345');
 
