@@ -1,5 +1,5 @@
 import Braze from '@braze/react-native-sdk';
-import { syncBrazeProfileId, clearBrazeProfileId } from './index';
+import { setBrazeUser } from './index';
 
 const mockGetSessionProfile = jest.fn();
 
@@ -16,7 +16,7 @@ jest.mock('../Engine/Engine', () => ({
 jest.mock('@braze/react-native-sdk', () => ({
   __esModule: true,
   default: {
-    setCustomUserAttribute: jest.fn(),
+    changeUser: jest.fn(),
     addListener: jest.fn(() => ({ remove: jest.fn() })),
     Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
   },
@@ -27,20 +27,17 @@ describe('Braze service', () => {
     jest.clearAllMocks();
   });
 
-  describe('syncBrazeProfileId', () => {
-    it('sets custom attribute when session has valid profile', async () => {
+  describe('setBrazeUser', () => {
+    it('calls changeUser with profileId when session has valid profile', async () => {
       mockGetSessionProfile.mockResolvedValue({
         profileId: 'test-profile-id-123',
         identifierId: 'id',
         metaMetricsId: 'mm-id',
       });
 
-      await syncBrazeProfileId();
+      await setBrazeUser();
 
-      expect(Braze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'profile_id',
-        'test-profile-id-123',
-      );
+      expect(Braze.changeUser).toHaveBeenCalledWith('test-profile-id-123');
     });
 
     it('does nothing when session profile has no profileId', async () => {
@@ -50,27 +47,16 @@ describe('Braze service', () => {
         metaMetricsId: 'mm-id',
       });
 
-      await syncBrazeProfileId();
+      await setBrazeUser();
 
-      expect(Braze.setCustomUserAttribute).not.toHaveBeenCalled();
+      expect(Braze.changeUser).not.toHaveBeenCalled();
     });
 
     it('handles errors gracefully', async () => {
       mockGetSessionProfile.mockRejectedValue(new Error('Session error'));
 
-      await expect(syncBrazeProfileId()).resolves.toBeUndefined();
-      expect(Braze.setCustomUserAttribute).not.toHaveBeenCalled();
-    });
-  });
-
-  describe('clearBrazeProfileId', () => {
-    it('sets the attribute to null', () => {
-      clearBrazeProfileId();
-
-      expect(Braze.setCustomUserAttribute).toHaveBeenCalledWith(
-        'profile_id',
-        null,
-      );
+      await expect(setBrazeUser()).resolves.toBeUndefined();
+      expect(Braze.changeUser).not.toHaveBeenCalled();
     });
   });
 });

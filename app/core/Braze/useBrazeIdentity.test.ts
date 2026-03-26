@@ -1,48 +1,45 @@
 import { renderHookWithProvider } from '../../util/test/renderWithProvider';
 import { useBrazeIdentity } from './useBrazeIdentity';
-import { syncBrazeProfileId, clearBrazeProfileId } from './index';
-import { backgroundState } from '../../util/test/initial-root-state';
+import { setBrazeUser } from './index';
+import backgroundState from '../../util/test/initial-background-state.json';
 
 jest.mock('./index', () => ({
   ...jest.requireActual('./index'),
-  syncBrazeProfileId: jest.fn(),
-  clearBrazeProfileId: jest.fn(),
+  setBrazeUser: jest.fn(),
 }));
 
-const mockSyncBrazeProfileId = jest.mocked(syncBrazeProfileId);
-const mockClearBrazeProfileId = jest.mocked(clearBrazeProfileId);
+const mockSetBrazeUser = jest.mocked(setBrazeUser);
 
-const createState = (isSignedIn: boolean) => ({
-  engine: {
-    backgroundState: {
-      ...backgroundState,
-      AuthenticationController: {
-        isSignedIn,
+const createState = (isSignedIn: boolean) =>
+  ({
+    engine: {
+      backgroundState: {
+        ...backgroundState,
+        AuthenticationController: {
+          isSignedIn,
+        },
       },
     },
-  },
-});
+  }) as unknown as Record<string, unknown>;
 
 describe('useBrazeIdentity', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  it('syncs profile ID on mount when already signed in', () => {
+  it('calls setBrazeUser on mount when already signed in', () => {
     renderHookWithProvider(() => useBrazeIdentity(), {
       state: createState(true),
     });
 
-    expect(mockSyncBrazeProfileId).toHaveBeenCalledTimes(1);
-    expect(mockClearBrazeProfileId).not.toHaveBeenCalled();
+    expect(mockSetBrazeUser).toHaveBeenCalledTimes(1);
   });
 
-  it('does not sync profile ID on mount when not signed in', () => {
+  it('does not call setBrazeUser on mount when not signed in', () => {
     renderHookWithProvider(() => useBrazeIdentity(), {
       state: createState(false),
     });
 
-    expect(mockSyncBrazeProfileId).not.toHaveBeenCalled();
-    expect(mockClearBrazeProfileId).not.toHaveBeenCalled();
+    expect(mockSetBrazeUser).not.toHaveBeenCalled();
   });
 });

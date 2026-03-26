@@ -13203,16 +13203,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@segment/analytics-react-native-plugin-braze@npm:^0.9.0":
-  version: 0.9.0
-  resolution: "@segment/analytics-react-native-plugin-braze@npm:0.9.0"
-  peerDependencies:
-    "@braze/react-native-sdk": ^16.x
-    "@segment/analytics-react-native": ^2.18.0
-  checksum: 10/d94e5c118d356c09bf946ae0047123e40737f820c04a571e35d4d06b94fd8e5a91ebca59367c588fa3fbdd622749117dd0f32aecbccc47dcaf0a82ad2ec6d05f
-  languageName: node
-  linkType: hard
-
 "@segment/analytics-react-native@npm:^2.20.3":
   version: 2.20.3
   resolution: "@segment/analytics-react-native@npm:2.20.3"
@@ -35727,7 +35717,6 @@ __metadata:
     "@reduxjs/toolkit": "npm:^1.9.7"
     "@reown/walletkit": "npm:^1.4.1"
     "@segment/analytics-react-native": "npm:^2.20.3"
-    "@segment/analytics-react-native-plugin-braze": "npm:^0.9.0"
     "@segment/sovran-react-native": "npm:^1.0.4"
     "@sentry/browser": "npm:~8.54.0"
     "@sentry/core": "npm:~8.54.0"

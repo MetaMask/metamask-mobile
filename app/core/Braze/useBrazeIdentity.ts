@@ -1,42 +1,29 @@
-import Logger from '../../util/Logger';
 import { useEffect, useRef } from 'react';
 import { useSelector } from 'react-redux';
 import { selectIsSignedIn } from '../../selectors/identity';
-import { syncBrazeProfileId, clearBrazeProfileId } from './index';
+import { setBrazeUser } from './index';
 
 /**
- * Reacts to MetaMask profile sign-in/sign-out and syncs the profile ID
- * to Braze as a custom user attribute (`profile_id`).
+ * Reacts to MetaMask profile sign-in and sets the Braze external user ID
+ * to the profile ID via `Braze.changeUser()`.
  *
- * On sign-in: fetches the profileId from AuthenticationController and
- * sets it on the Braze user profile.
- * On sign-out: clears the attribute so the Braze user no longer carries
- * a stale profile ID.
+ * This is the sole mechanism for creating/identifying Braze users —
+ * Braze is intentionally decoupled from the Segment analytics pipeline.
  */
 export function useBrazeIdentity(): void {
   const isSignedIn = useSelector(selectIsSignedIn);
-  const prevSignedIn = useRef(isSignedIn);
+  const hasRunInitialSync = useRef(false);
 
   useEffect(() => {
-    Logger.log(
-      '[Braze] useBrazeIdentity useEffect',
-      isSignedIn,
-      prevSignedIn.current,
-    );
-    if (isSignedIn && !prevSignedIn.current) {
-      syncBrazeProfileId();
-    } else if (!isSignedIn && prevSignedIn.current) {
-      clearBrazeProfileId();
+    if (isSignedIn && !hasRunInitialSync.current) {
+      hasRunInitialSync.current = true;
+      setBrazeUser();
+    } else if (isSignedIn && hasRunInitialSync.current) {
+      setBrazeUser();
     }
-    prevSignedIn.current = isSignedIn;
+
+    if (!isSignedIn) {
+      hasRunInitialSync.current = false;
+    }
   }, [isSignedIn]);
-
-  // On mount: if already signed in, sync immediately
-  useEffect(() => {
-    Logger.log('[Braze] useBrazeIdentity useEffect on mount', isSignedIn);
-    if (isSignedIn) {
-      syncBrazeProfileId();
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 }

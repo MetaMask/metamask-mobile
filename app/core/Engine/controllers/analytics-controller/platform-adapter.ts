@@ -12,7 +12,6 @@ import {
 } from '@segment/analytics-react-native';
 import { segmentPersistor } from '../../../../util/analytics/SegmentPersistor';
 import Logger from '../../../../util/Logger';
-import { BrazePlugin } from '@segment/analytics-react-native-plugin-braze';
 import MetaMetricsPrivacySegmentPlugin from '../../../../util/analytics/privacySegmentPlugin';
 
 const getSegmentClient = (): SegmentClient => {
@@ -38,14 +37,7 @@ const getSegmentClient = (): SegmentClient => {
     ],
   };
 
-  const client = createClient(config);
-
-  // Device-mode Braze destination: maps Segment identify/track calls to the
-  // native Braze SDK (changeUser, logCustomEvent, user attributes, etc.).
-  // The native SDK must be separately initialized (AppDelegate / braze.xml).
-  client.add({ plugin: new BrazePlugin() });
-
-  return client;
+  return createClient(config);
 };
 
 /**
