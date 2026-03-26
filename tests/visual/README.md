@@ -95,11 +95,25 @@ Always include these at the start of every flow:
 - `../shared/dismiss-dev-screens.yaml` — dismisses the dev menu (debug builds)
 - `../shared/unlock-app.yaml` — enters fixture password (`123123123`) and unlocks
 
-### Finding testIDs
+### Prefer testIDs over text or coordinates
 
-Use `testID` props from the app's component source to identify elements reliably. Test IDs are defined in `*.testIds.ts` files throughout the app. For example:
+Always use `id:` (testID) selectors when possible. They are stable across device sizes, OS versions, and locales. Avoid coordinate-based taps (`point: "x%,y%"`) — they break on different screen sizes.
 
-- `wallet-screen` — wallet home screen
+```yaml
+# Good — works on any device
+- tapOn:
+    id: 'fast-refresh'
+
+# Bad — breaks on different screen sizes
+- tapOn:
+    point: '93%,37%'
+```
+
+Test IDs are defined in `*.testIds.ts` files throughout the app. For example:
+
+- `wallet-screen` — wallet home screen container
+- `total-balance-text` — portfolio balance text
+- `token-list` — token list on wallet home
 - `wallet-send-button` — send button on wallet home
 - `recipient-address-input` — address input on send screen
 - `send_amount` — amount display on send screen
