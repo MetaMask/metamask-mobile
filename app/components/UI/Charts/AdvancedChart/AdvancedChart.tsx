@@ -395,15 +395,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {isLoading ||
-            (!isChartReady && (
-              <Skeleton
-                height={height}
-                width="100%"
-                style={styles.skeletonOverlay}
-                testID="advanced-chart-skeleton"
-              />
-            ))}
+          {(isLoading || !isChartReady) && (
+            <Skeleton
+              height={height}
+              width="100%"
+              style={styles.skeletonOverlay}
+              testID="advanced-chart-skeleton"
+            />
+          )}
         </View>
       </View>
     );

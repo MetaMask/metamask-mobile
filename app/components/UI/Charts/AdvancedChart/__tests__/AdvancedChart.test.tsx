@@ -41,8 +41,8 @@ describe('AdvancedChart', () => {
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
   });
 
-  it('shows loading overlay until WebView onLoadEnd (not until CHART_READY)', () => {
-    const { getByTestId, queryByTestId } = render(
+  it('keeps loading overlay while isLoading until parent clears it', () => {
+    const { getByTestId, queryByTestId, rerender } = render(
       <AdvancedChart ohlcvData={MOCK_BARS} isLoading />,
     );
     expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
@@ -51,6 +51,20 @@ describe('AdvancedChart', () => {
     act(() => {
       webView.props.onLoadEnd();
     });
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
+    rerender(<AdvancedChart ohlcvData={MOCK_BARS} isLoading={false} />);
 
     expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
   });
