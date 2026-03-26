@@ -45,7 +45,7 @@ export function trackWalletEvent(
   eventName: WalletConnectionEventName,
   properties: WalletEventProperties,
 ): void {
-  if (!analytics.isOptedIn()) return;
+  if (!analytics.isEnabled()) return;
 
   const payload: MobileSDKConnectV2Payload[] = [
     {
