@@ -20,7 +20,6 @@ jest.mock('../../../../redux', () => ({
 
 describe('handleTrendingUrl', () => {
   const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
-  const mockGetState = ReduxService.store.getState as jest.Mock;
 
   beforeEach(() => {
     jest.clearAllMocks();
@@ -31,29 +30,33 @@ describe('handleTrendingUrl', () => {
 
     expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
   });
+});
 
-  it('navigates to stocks full view when screen=stocks and user is not geo-blocked', () => {
-    mockGetState.mockReturnValue({
-      engine: {
-        backgroundState: {
-          GeolocationController: {
-            location: 'AR',
-          },
-        },
-      },
-    });
+describe('handleTrendingUrl - stocks deeplink (screen=stocks)', () => {
+  const mockNavigate = NavigationService.navigation.navigate as jest.Mock;
+  const mockGetState = ReduxService.store.getState as jest.Mock;
 
-    handleTrendingUrl({ actionPath: '?screen=stocks' });
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
+  beforeEach(() => {
+    jest.clearAllMocks();
   });
 
-  it('navigates to trending view when screen=stocks and user is geo-blocked', () => {
+  it.each([
+    {
+      description: 'navigates to stocks full view when user is not geo-blocked',
+      location: 'AR',
+      expectedRoute: Routes.WALLET.RWA_TOKENS_FULL_VIEW,
+    },
+    {
+      description: 'navigates to trending view when user is geo-blocked',
+      location: 'US',
+      expectedRoute: Routes.TRENDING_VIEW,
+    },
+  ])('$description', ({ location, expectedRoute }) => {
     mockGetState.mockReturnValue({
       engine: {
         backgroundState: {
           GeolocationController: {
-            location: 'US',
+            location,
           },
         },
       },
@@ -61,6 +64,6 @@ describe('handleTrendingUrl', () => {
 
     handleTrendingUrl({ actionPath: '?screen=stocks' });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRENDING_VIEW);
+    expect(mockNavigate).toHaveBeenCalledWith(expectedRoute);
   });
 });

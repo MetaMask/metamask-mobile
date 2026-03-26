@@ -17,7 +17,7 @@ const isGeoBlockedForStocks = (location: string | undefined): boolean => {
   return !countryCode || ONDO_RESTRICTED_COUNTRIES.has(countryCode);
 };
 
-const shouldOpenStocksScreen = (actionPath: string): boolean => {
+const isStocksPath = (actionPath: string): boolean => {
   const urlParams = new URLSearchParams(
     actionPath.includes('?') ? actionPath.split('?')[1] : '',
   );
@@ -25,19 +25,20 @@ const shouldOpenStocksScreen = (actionPath: string): boolean => {
   return urlParams.get('screen')?.toLowerCase() === 'stocks';
 };
 
-export function handleTrendingUrl({ actionPath }: HandleTrendingUrlParams) {
-  if (!shouldOpenStocksScreen(actionPath)) {
-    NavigationService.navigation.navigate(Routes.TRENDING_VIEW);
-    return;
-  }
-
+const shouldOpenStocksScreen = (): boolean => {
   const state = ReduxService.store.getState();
   const geolocation = getDetectedGeolocation(state);
 
-  if (isGeoBlockedForStocks(geolocation)) {
-    NavigationService.navigation.navigate(Routes.TRENDING_VIEW);
+  return !isGeoBlockedForStocks(geolocation);
+};
+
+export function handleTrendingUrl({ actionPath }: HandleTrendingUrlParams) {
+  // Explore -> Stocks Deeplink
+  if (isStocksPath(actionPath) && shouldOpenStocksScreen()) {
+    NavigationService.navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
     return;
   }
 
-  NavigationService.navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
+  // Explore Deeplink
+  NavigationService.navigation.navigate(Routes.TRENDING_VIEW);
 }
