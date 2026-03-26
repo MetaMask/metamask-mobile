@@ -104,7 +104,6 @@ import {
   useHasExistingPosition,
   useMinimumOrderAmount,
   usePerpsLiquidationPrice,
-  usePerpsMarketData,
   usePerpsMarkets,
   usePerpsOrderDepositTracking,
   usePerpsOrderExecution,
@@ -289,6 +288,9 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
     handleMaxAmount,
     maxPossibleAmount,
     balanceForValidation: availableBalance,
+    marketData,
+    isLoadingMarketData,
+    marketDataError,
     // existingPosition is available in context but not used in this component
   } = usePerpsOrderContext();
 
@@ -316,11 +318,8 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
    * updating leverage after positions load to prevent protocol violations.
    */
 
-  // Market data hook with automatic error toast handling (deferred)
-  const { marketData, isLoading: isLoadingMarketData } = usePerpsMarketData({
-    asset: isDataReady ? orderForm.asset : '', // Defer until UI renders
-    showErrorToast: true,
-  });
+  // Market data is provided by usePerpsOrderForm via context (fires immediately, no deferral).
+  // Error toast is handled below via a dedicated effect.
 
   // Check if user has an existing position for this market
   const { existingPosition: currentMarketPosition } = useHasExistingPosition({
@@ -344,6 +343,23 @@ const PerpsOrderViewContentBase: React.FC<PerpsOrderViewContentProps> = ({
   const { markets } = usePerpsMarkets();
 
   const { showToast, PerpsToastOptions } = usePerpsToasts();
+
+  // Show error toast when market data fetch fails
+  useEffect(() => {
+    if (marketDataError && !isLoadingMarketData) {
+      showToast(
+        PerpsToastOptions.dataFetching.market.error.marketDataUnavailable(
+          orderForm.asset,
+        ),
+      );
+    }
+  }, [
+    marketDataError,
+    isLoadingMarketData,
+    orderForm.asset,
+    showToast,
+    PerpsToastOptions,
+  ]);
 
   // Find formatted market data for navigation
   const navigationMarketData = useMemo(
