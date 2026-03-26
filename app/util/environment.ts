@@ -1,3 +1,5 @@
+/* eslint-disable import-x/prefer-default-export */
+
 // TODO: This should be consolidated into app/util/test/utils.js
 // This needs to be updated to check for the METAMASK_ENVIRONMENT environment variable instead of NODE_ENV
 // Once this is updated, verify that e2e smoke tests are working as expected

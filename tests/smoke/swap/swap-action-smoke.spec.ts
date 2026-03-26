@@ -11,6 +11,7 @@ import {
 import { loginToApp } from '../../flows/wallet.flow';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 import {
   EventPayload,
@@ -39,9 +40,7 @@ const expectedEventNames = [
   expectedEvents.UnifiedSwapBridgeCompleted,
 ];
 
-// Disabling as this test is flaky and needs to be reworked
-// https://github.com/MetaMask/metamask-mobile/actions/runs/23176367570/job/67340273878
-describe.skip(SmokeTrade('Swap from Actions'), (): void => {
+describe(SmokeTrade('Swap from Actions'), (): void => {
   beforeEach(async (): Promise<void> => {
     jest.setTimeout(180000);
   });
@@ -59,7 +58,6 @@ describe.skip(SmokeTrade('Swap from Actions'), (): void => {
             nickname: 'Localhost',
             ticker: 'ETH',
           })
-          .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
           .build(),
         localNodeOptions: [
@@ -73,7 +71,10 @@ describe.skip(SmokeTrade('Swap from Actions'), (): void => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
         skipReactNativeReload: true,
       },

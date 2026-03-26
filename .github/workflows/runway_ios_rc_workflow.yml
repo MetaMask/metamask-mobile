@@ -1,0 +1,235 @@
+##############################################################################################
+#
+# Runway iOS RC Workflow
+#
+# Triggered from Runway to either:
+# - Push an OTA update (when OTA_VERSION in app/constants/ota.ts line 9 is bumped), or
+# - Build the mobile app and upload the IPA to TestFlight (when there is no OTA version bump).
+#
+# When triggering workflow_dispatch, select the release branch (e.g. release/7.71.0).
+#
+##############################################################################################
+name: Runway iOS RC
+
+on:
+  workflow_dispatch:
+    inputs:
+      source_branch:
+        description: >-
+          Optional branch, tag, or SHA (Build workflow source_branch).
+          Empty uses the branch selected in the "Use workflow from" UI.
+        required: false
+        type: string
+
+permissions:
+  contents: write # required by build.yml (update-build-version job)
+  pull-requests: read
+  actions: write
+  id-token: write # required by build.yml
+
+jobs:
+  decide:
+    name: Check OTA version and resolve inputs
+    runs-on: ubuntu-latest
+    outputs:
+      ota_bump: ${{ steps.decide.outputs.ota_bump }}
+      base_ref: ${{ steps.decide.outputs.base_ref }}
+      ota_version: ${{ steps.decide.outputs.ota_version }}
+      pr_number: ${{ steps.resolve-pr.outputs.pr_number }}
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_branch || github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: '.nvmrc'
+
+      - name: Resolve PR number for current branch
+        id: resolve-pr
+        run: |
+          BRANCH="${{ inputs.source_branch || github.ref_name }}"
+          # Strip refs/heads/ if present
+          BRANCH="${BRANCH#refs/heads/}"
+          echo "Resolving PR for branch: $BRANCH (repo: $GITHUB_REPOSITORY)"
+
+          # Try same-repo head first, then owner:branch (required by API when listing pulls)
+          PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          if [[ -z "$PR_NUMBER" ]]; then
+            PR_NUMBER=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$GITHUB_REPOSITORY_OWNER:$BRANCH" --json number --jq '.[0].number' 2>/dev/null || echo "")
+          fi
+
+          echo "pr_number=${PR_NUMBER}" >> "$GITHUB_OUTPUT"
+          echo "Branch: $BRANCH, PR number: ${PR_NUMBER:-none}"
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Decide OTA vs build
+        id: decide
+        run: |
+          set -e
+          # Version from package.json (e.g. 7.70.0) → base ref for OTA workflow is always v{VERSION}
+          VERSION=$(node -p "require('./package.json').version")
+          RELEASE_TAG="v${VERSION}"
+          echo "base_ref=${RELEASE_TAG}" >> "$GITHUB_OUTPUT"
+
+          # Extract OTA_VERSION from line 9 (format: export const OTA_VERSION: string = 'vX.Y.Z';)
+          extract_ota() { sed -n '9p' "$1" | sed "s/.*'\\([^']*\\)'.*/\1/"; }
+
+          # OTA_VERSION from current ref
+          CURRENT_OTA=$(extract_ota app/constants/ota.ts)
+          echo "ota_version=${CURRENT_OTA}" >> "$GITHUB_OUTPUT"
+
+          # Ref to compare against for detecting bump: use release tag if it exists, else main
+          if git rev-parse "$RELEASE_TAG" >/dev/null 2>&1; then
+            COMPARE_REF="$RELEASE_TAG"
+            BASE_OTA=$(git show "${COMPARE_REF}:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
+          else
+            COMPARE_REF="main"
+            BASE_OTA=$(git show "origin/main:app/constants/ota.ts" 2>/dev/null | sed -n '9p' | sed "s/.*'\\([^']*\\)'.*/\1/" || echo "")
+            echo "Release tag ${RELEASE_TAG} not found; comparing OTA_VERSION to ${COMPARE_REF} to detect bump"
+          fi
+
+          if [[ -n "$BASE_OTA" && "$CURRENT_OTA" != "$BASE_OTA" ]]; then
+            echo "ota_bump=true" >> "$GITHUB_OUTPUT"
+            echo "OTA_VERSION changed: $BASE_OTA -> $CURRENT_OTA → will trigger OTA update"
+          else
+            echo "ota_bump=false" >> "$GITHUB_OUTPUT"
+            echo "No OTA version bump (base: $BASE_OTA, current: $CURRENT_OTA) → will trigger build"
+          fi
+
+  trigger-ota:
+    name: Trigger OTA update
+    needs: decide
+    if: needs.decide.outputs.ota_bump == 'true'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Validate PR number
+        run: |
+          if [[ -z "${{ needs.decide.outputs.pr_number }}" ]]; then
+            echo "::error::No PR found for this branch. OTA update requires a PR number."
+            echo "::error::If you ran the workflow manually (workflow_dispatch), select your release branch in the 'Use workflow from' dropdown (e.g. release/7.71.0), not main."
+            exit 1
+          fi
+          echo "Using PR #${{ needs.decide.outputs.pr_number }}"
+
+      - name: Trigger Push OTA Update workflow
+        uses: actions/github-script@v6
+        with:
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          script: |
+            const ref = '${{ inputs.source_branch || github.ref_name }}'.replace(/^refs\/heads\//, '');
+            await github.rest.actions.createWorkflowDispatch({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              workflow_id: 'push-eas-update.yml',
+              ref: ref,
+              inputs: {
+                pr_number: '${{ needs.decide.outputs.pr_number }}',
+                base_branch: '${{ needs.decide.outputs.base_ref }}',
+                message: '${{ needs.decide.outputs.ota_version }}',
+                channel: 'rc',
+                platform: 'ios'
+              }
+            });
+            core.notice(`Triggered Push OTA Update on ${ref} (PR #${{ needs.decide.outputs.pr_number }}, base: ${{ needs.decide.outputs.base_ref }}, message: ${{ needs.decide.outputs.ota_version }})`);
+
+  trigger-build:
+    name: Trigger build mobile app
+    needs: decide
+    if: needs.decide.outputs.ota_bump != 'true'
+    uses: ./.github/workflows/build.yml
+    with:
+      build_name: main-rc
+      platform: ios
+      skip_version_bump: false
+      source_branch: ${{ inputs.source_branch || github.ref_name }}
+      upload_to_sentry: true
+    secrets: inherit
+
+  testflight-upload-summary:
+    name: TestFlight upload summary
+    needs: [trigger-build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_branch || github.ref_name }}
+      - name: Display TestFlight upload summary
+        run: |
+          BUILD_VERSION=$(node -p "require('./package.json').version")
+          {
+            echo "### 📲 TestFlight Upload (Runway iOS RC)"
+            echo ""
+            echo "| Field | Value |"
+            echo "| --- | --- |"
+            echo "| **Ref** | ${{ inputs.source_branch || github.ref_name }} |"
+            echo "| **Build name** | main-rc |"
+            echo "| **Build version** | ${BUILD_VERSION} |"
+            echo "| **TestFlight group** | MetaMask BETA & Release Candidates |"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  upload-ios-testflight:
+    name: Upload iOS to TestFlight
+    needs: [trigger-build, testflight-upload-summary]
+    runs-on: ghcr.io/cirruslabs/macos-runner:sequoia-xl
+    environment: apple
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          ref: ${{ inputs.source_branch || github.ref_name }}
+
+      - name: Setup Ruby (iOS)
+        uses: ruby/setup-ruby@44511735964dcb71245e7e55f72539531f7bc0eb #v1
+        with:
+          ruby-version: '3.2.9'
+          working-directory: ios
+          bundler-cache: true
+
+      - name: Download iOS build artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: ios-ipa-main-rc
+
+      - name: Find IPA path
+        id: ipa
+        run: |
+          IPA=$(find . -name '*.ipa' -type f | head -1)
+          if [ -z "$IPA" ]; then
+            echo "::error::No .ipa file found in artifact"
+            exit 1
+          fi
+          case "$IPA" in /*) ABS="$IPA" ;; *) ABS="$PWD/$IPA" ;; esac
+          echo "path=$ABS" >> "$GITHUB_OUTPUT"
+
+      - name: Setup App Store Connect API Key
+        run: |
+          bash scripts/setup-app-store-connect-api-key.sh \
+            "$APP_STORE_CONNECT_API_KEY_ISSUER_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_ID" \
+            "$APP_STORE_CONNECT_API_KEY_KEY_CONTENT"
+        env:
+          APP_STORE_CONNECT_API_KEY_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_ID: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_ID }}
+          APP_STORE_CONNECT_API_KEY_KEY_CONTENT: ${{ secrets.APP_STORE_CONNECT_API_KEY_KEY_CONTENT }}
+
+      - name: Upload to TestFlight
+        run: |
+          bash scripts/upload-to-testflight.sh \
+            "github_actions_main-rc" \
+            "${{ inputs.source_branch || github.ref_name }}" \
+            "${{ steps.ipa.outputs.path }}" \
+            "" \
+            "false"
+
+      - name: Cleanup API Key
+        if: always()
+        run: |
+          rm -f ios/AuthKey.p8
+          echo "🧹 Cleaned up API key file"

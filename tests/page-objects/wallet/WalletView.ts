@@ -15,6 +15,7 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
+import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import Utilities from '../../framework/Utilities';
 import {
   encapsulated,
@@ -38,20 +39,40 @@ class WalletView {
     return Matchers.getIdentifier(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
   }
 
+  /** Wallet ScrollView as element (for gestures like swipe). */
+  get walletScrollView(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SCROLL_VIEW);
+  }
+
   /**
    * Progressive scroll for homepage sections:
    * try tap -> small scroll down -> retry, until the section is tappable.
+   * @param options.scrollAmount - Pixels to scroll per step.
+   * @param options.overshootSwipe - After scroll, perform a small swipe to move the section away
+   * from the tab bar (e.g. direction 'up' = one more scroll down = section moves higher on screen).
    */
   private async scrollAndTapSection(
     target: DetoxElement,
     description: string,
     direction: 'up' | 'down' = 'down',
+    options: {
+      scrollAmount?: number;
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
   ): Promise<void> {
+    const { scrollAmount = 200, overshootSwipe } = options;
     await Gestures.scrollToElement(target, this.walletScrollViewIdentifier, {
       direction,
-      scrollAmount: 200,
+      scrollAmount,
       elemDescription: `Scroll to ${description}`,
     });
+    if (overshootSwipe) {
+      await Gestures.swipe(this.walletScrollView, overshootSwipe.direction, {
+        percentage: overshootSwipe.percentage ?? 0.15,
+        speed: 'slow',
+        elemDescription: `Overshoot swipe for ${description}`,
+      });
+    }
     await Gestures.waitAndTap(target, {
       elemDescription: description,
     });
@@ -212,6 +233,80 @@ class WalletView {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.COLLECTIBLE_FALLBACK,
       1,
+    );
+  }
+  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  }
+
+  get walletSwapButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+          ),
+      },
+    });
+  }
+
+  get walletBridgeButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
+  }
+
+  get walletSendButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  }
+
+  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
+  get musdConversionCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
+    );
+  }
+
+  get getMusdButton(): DetoxElement {
+    return Matchers.getElementByText('Get mUSD');
+  }
+
+  get getStartedButton(): DetoxElement {
+    return Matchers.getElementByText('Get Started');
+  }
+
+  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
+  get tokenListItemConvertToMusdCta(): DetoxElement {
+    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
+  }
+
+  get assetOverviewMusdCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
+    );
+  }
+
+  get walletReceiveButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
+    );
+  }
+  // Balance Empty State - displayed when account group has zero balance across all networks
+  get balanceEmptyStateContainer(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
+    );
+  }
+
+  get balanceEmptyStateActionButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
     );
   }
   getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
@@ -685,13 +780,26 @@ class WalletView {
     );
   }
 
+  /**
+   * Scrolls to the Predictions section and taps it. After scroll, does a small overshoot swipe
+   * so the section sits higher on screen and the tap does not hit the main menu "+" button.
+   */
   async scrollAndTapPredictionsSection(
     direction: 'up' | 'down' = 'down',
+    options: {
+      overshootSwipe?: { direction: 'up' | 'down'; percentage?: number };
+    } = {},
   ): Promise<void> {
     await this.scrollAndTapSection(
       this.predictionsSectionHeader,
       'Predictions section',
       direction,
+      {
+        overshootSwipe: options.overshootSwipe ?? {
+          direction: 'up',
+          percentage: 0.15,
+        },
+      },
     );
   }
 
@@ -894,84 +1002,29 @@ class WalletView {
     }
   }
 
-  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
-  }
-
-  get walletSwapButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-          ),
-      },
-    });
-  }
-
-  get walletBridgeButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
-  }
-
-  get walletSendButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
-  }
-
-  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
-  get musdConversionCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
-    );
-  }
-
-  get getMusdButton(): DetoxElement {
-    return Matchers.getElementByText('Get mUSD');
-  }
-
-  get getStartedButton(): DetoxElement {
-    return Matchers.getElementByText('Get Started');
-  }
-
-  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
-  get tokenListItemConvertToMusdCta(): DetoxElement {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
-  }
-
-  get assetOverviewMusdCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
-    );
-  }
-
-  get walletReceiveButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
-    );
-  }
-  // Balance Empty State - displayed when account group has zero balance across all networks
-  get balanceEmptyStateContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
-    );
-  }
-
-  get balanceEmptyStateActionButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
-    );
-  }
-
   async tapWalletBuyButton(): Promise<void> {
     await Gestures.waitAndTap(this.walletBuyButton, {
       elemDescription: 'Wallet Buy Button',
+    });
+  }
+
+  async waitForScreenToDisplay(): Promise<void> {
+    await encapsulatedAction({
+      detox: async () => {
+        await Assertions.expectElementToBeVisible(this.container, {
+          timeout: 30000,
+          description: 'Wallet view should be visible',
+        });
+      },
+      appium: async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(this.walletSwapButton),
+          {
+            timeout: 30000,
+            description: 'Wallet swap button should be visible',
+          },
+        );
+      },
     });
   }
 

@@ -1,0 +1,17 @@
+{
+  "testnet-mode": {
+    "description": "Current testnet mode (isTestnet boolean)",
+    "expression": "Engine.context.PerpsController.state.isTestnet",
+    "async": false
+  },
+  "current-provider": {
+    "description": "Currently active provider",
+    "expression": "Engine.context.PerpsController.state.activeProvider",
+    "async": false
+  },
+  "account-balance": {
+    "description": "Perps account balance",
+    "expression": "Engine.context.PerpsController.getBalance().then(function(r){return JSON.stringify(r)})",
+    "async": true
+  }
+}
