@@ -136,16 +136,21 @@ describe('compareProductionFlagsToRegistry', () => {
     expect(result.hasDrift).toBe(true);
   });
 
-  it('skips excluded flags (e.g. mobileMinimumVersions)', () => {
+  it('does not skip any flags when EXCLUDED_FLAGS is empty', () => {
     const registryMap = { mobileMinimumVersions: { ios: '1.0.0' } };
     const prodResponse = [{ mobileMinimumVersions: { ios: '7.70.0' } }];
     const result = compareProductionFlagsToRegistry(prodResponse, registryMap);
 
-    expect(result.valueMismatches).toHaveLength(0);
+    expect(result.valueMismatches).toHaveLength(1);
+    expect(result.valueMismatches).toContainEqual({
+      name: 'mobileMinimumVersions',
+      productionValue: { ios: '7.70.0' },
+      registryValue: { ios: '1.0.0' },
+    });
     expect(result.newInProduction).toHaveLength(0);
     expect(result.removedFromProduction).toHaveLength(0);
     expect(result.inProdMismatches).toHaveLength(0);
-    expect(result.hasDrift).toBe(false);
+    expect(result.hasDrift).toBe(true);
   });
 
   it('parses production API format (array of single-key objects)', () => {
