@@ -100,7 +100,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     if (!queryEnabled) {
       return 'idle';
     }
-    if (paymentMethodsQuery.isPending) {
+    if (paymentMethodsQuery.isLoading) {
       return 'loading';
     }
     if (paymentMethodsQuery.isError) {
@@ -109,7 +109,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
     return 'success';
   }, [
     paymentMethodsQuery.isError,
-    paymentMethodsQuery.isPending,
+    paymentMethodsQuery.isLoading,
     queryEnabled,
   ]);
 
