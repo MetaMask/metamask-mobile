@@ -74,6 +74,7 @@ class WalletConnect2Session {
   } = {};
   private lastChainId: Hex;
   private isHandlingChainChange = false;
+  private lastEmittedChainId: number | null = null;
   private _isHandlingRequest = false;
   private storeUnsubscribe: (() => void) | null = null;
 
@@ -312,6 +313,7 @@ class WalletConnect2Session {
   /** Handle chain change by updating session namespaces and emitting event */
   private async handleChainChange(chainIdDecimal: number) {
     if (this.isHandlingChainChange) return;
+    if (this.lastEmittedChainId === chainIdDecimal) return;
     this.isHandlingChainChange = true;
 
     try {
@@ -363,6 +365,7 @@ class WalletConnect2Session {
 
       // Emit chainChanged event
       await this.emitEvent('chainChanged', chainIdDecimal);
+      this.lastEmittedChainId = chainIdDecimal;
     } catch (error) {
       DevLogger.log(
         `WC2::handleChainChange error while updating session`,

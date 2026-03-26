@@ -614,6 +614,53 @@ describe('WalletConnect2Session', () => {
     handleChainChangeSpy.mockRestore();
   });
 
+  it('does not send duplicate relay messages for the same chain change', async () => {
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: {
+        ...mockSession,
+        namespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged'],
+            accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+          },
+        },
+      } as unknown as SessionTypes.Struct,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    // Replace the web3Wallet on this instance with a fresh isolated mock to
+    // avoid call-count pollution from accumulated spies on the shared mockClient.
+    const freshUpdateSession = jest.fn().mockResolvedValue(undefined);
+    const freshEmitSessionEvent = jest.fn().mockResolvedValue(undefined);
+    (session as any).web3Wallet = {
+      ...mockClient,
+      updateSession: freshUpdateSession,
+      emitSessionEvent: freshEmitSessionEvent,
+    };
+
+    // Directly invoke handleChainChange for the first time (chain 2) — should proceed
+    await (session as any).handleChainChange(2);
+
+    // First call should go through
+    expect(freshUpdateSession).toHaveBeenCalledTimes(1);
+    expect(freshEmitSessionEvent).toHaveBeenCalledTimes(1);
+
+    // Reset call counts for the duplicate check
+    freshUpdateSession.mockClear();
+    freshEmitSessionEvent.mockClear();
+
+    // Call handleChainChange again with same decimal chainId (2) — should be skipped
+    await (session as any).handleChainChange(2);
+
+    expect(freshUpdateSession).not.toHaveBeenCalled();
+    expect(freshEmitSessionEvent).not.toHaveBeenCalled();
+  });
+
   it('logs warning on handleChainChange error', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
