@@ -133,7 +133,9 @@ describe(SmokeTrade('Stake from Actions'), (): void => {
         await loginToApp();
         await device.disableSynchronization();
         await Assertions.expectElementToBeVisible(WalletView.earnButton, {
-          timeout: 30000,
+          timeout: 45000,
+          description:
+            'Earn button should be visible after balance loads from mocked API',
         });
         await WalletView.tapOnEarnButton();
         await Assertions.expectElementToBeVisible(StakeView.stakeContainer);

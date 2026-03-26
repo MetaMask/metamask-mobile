@@ -2,16 +2,12 @@ import React from 'react';
 import { render, screen } from '@testing-library/react-native';
 import PopularTokensSkeleton from './PopularTokensSkeleton';
 
-jest.mock('../../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        section: '#f0f0f0',
-        subsection: '#ffffff',
-      },
-    },
-  }),
-}));
+jest.mock('../../../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
   useTailwind: () => ({

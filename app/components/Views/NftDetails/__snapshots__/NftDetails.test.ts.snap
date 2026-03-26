@@ -1315,60 +1315,93 @@ exports[`NftDetails renders correctly 1`] = `
                           }
                         }
                       >
-                        <TouchableOpacity
+                        <View
+                          accessibilityLabel="Send"
                           accessibilityRole="button"
+                          accessibilityState={
+                            {
+                              "busy": undefined,
+                              "checked": undefined,
+                              "disabled": false,
+                              "expanded": undefined,
+                              "selected": undefined,
+                            }
+                          }
+                          accessibilityValue={
+                            {
+                              "max": undefined,
+                              "min": undefined,
+                              "now": undefined,
+                              "text": undefined,
+                            }
+                          }
                           accessible={true}
-                          activeOpacity={0.2}
-                          disabled={false}
-                          onPress={[Function]}
+                          collapsable={false}
+                          focusable={true}
+                          onBlur={[Function]}
+                          onClick={[Function]}
+                          onFocus={[Function]}
+                          onResponderGrant={[Function]}
+                          onResponderMove={[Function]}
+                          onResponderRelease={[Function]}
+                          onResponderTerminate={[Function]}
+                          onResponderTerminationRequest={[Function]}
+                          onStartShouldSetResponder={[Function]}
                           style={
                             [
-                              [
-                                {
-                                  "borderRadius": 12,
-                                  "justifyContent": "center",
-                                  "padding": 15,
-                                },
-                                {
-                                  "backgroundColor": "#4459ff",
-                                  "minHeight": 50,
-                                },
-                                {
-                                  "flexGrow": 1,
-                                },
-                              ],
-                              null,
+                              {
+                                "alignItems": "center",
+                                "alignSelf": "flex-start",
+                                "backgroundColor": "#131416",
+                                "borderRadius": 12,
+                                "columnGap": 8,
+                                "flexBasis": "0%",
+                                "flexDirection": "row",
+                                "flexGrow": 1,
+                                "flexShrink": 1,
+                                "height": 48,
+                                "justifyContent": "center",
+                                "minWidth": 80,
+                                "opacity": 1,
+                                "overflow": "hidden",
+                                "paddingLeft": 16,
+                                "paddingRight": 16,
+                              },
+                              {
+                                "transform": [
+                                  {
+                                    "scale": 1,
+                                  },
+                                ],
+                              },
                             ]
                           }
                         >
                           <Text
+                            accessibilityRole="text"
+                            ellipsizeMode="clip"
+                            numberOfLines={1}
                             style={
                               [
                                 {
-                                  "color": "#007aff",
-                                  "fontSize": 17,
-                                  "fontWeight": "500",
+                                  "color": "#ffffff",
+                                  "flexGrow": 0,
+                                  "flexShrink": 1,
+                                  "flexWrap": "wrap",
+                                  "fontFamily": "Geist-Medium",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
                                   "textAlign": "center",
                                 },
-                                null,
-                                [
-                                  {
-                                    "fontFamily": "Geist-Bold",
-                                    "fontSize": 14,
-                                    "textAlign": "center",
-                                  },
-                                  {
-                                    "color": "#ffffff",
-                                  },
-                                  undefined,
-                                ],
-                                null,
+                                undefined,
                               ]
                             }
                           >
                             Send
                           </Text>
-                        </TouchableOpacity>
+                        </View>
                       </View>
                     </RCTSafeAreaView>
                   </View>

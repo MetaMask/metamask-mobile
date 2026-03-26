@@ -6,10 +6,11 @@ import { StackCardEmpty } from './StackCardEmpty';
 
 // Mock dependencies
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
-  useTailwind: () => ({
-    style: jest.fn(() => ({})),
-    color: jest.fn(() => '#000000'),
-  }),
+  useTailwind: () => {
+    const tw = () => ({});
+    tw.style = jest.fn(() => ({}));
+    return tw;
+  },
 }));
 
 // Mock design system components
