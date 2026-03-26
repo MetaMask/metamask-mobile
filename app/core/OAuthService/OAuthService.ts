@@ -2,7 +2,11 @@ import Engine from '../Engine';
 import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import { whenEngineReady } from '../../util/analytics/whenEngineReady';
-import { isE2EMockOAuth } from '../../util/environment';
+import {
+  getE2EByoaAuthSecret,
+  getE2EMockOAuthEmailForQaMock,
+  isE2EMockOAuth,
+} from '../../util/environment';
 
 import {
   HandleOAuthLoginResult,
@@ -19,6 +23,7 @@ import {
 import {
   AuthConnectionConfig,
   AuthServerUrl,
+  E2E_QA_MOCK_OAUTH_TOKEN_URL,
   web3AuthNetwork as currentWeb3AuthNetwork,
   SupportedPlatforms,
   AUTH_SERVER_MARKETING_OPT_IN_PATH,
@@ -174,22 +179,138 @@ export class OAuthService {
     }
   };
 
+  #parseQaMockE2EAuthResponse(raw: unknown): AuthResponse {
+    if (raw === null || typeof raw !== 'object') {
+      throw new OAuthError(
+        'E2E QA mock: invalid response',
+        OAuthErrorType.LoginError,
+      );
+    }
+    const root = raw as Record<string, unknown>;
+    const dataObj = root.data;
+    const tokenBag =
+      dataObj !== null &&
+      typeof dataObj === 'object' &&
+      typeof (dataObj as Record<string, unknown>).tokens === 'object' &&
+      (dataObj as Record<string, unknown>).tokens !== null
+        ? ((dataObj as Record<string, unknown>).tokens as Record<
+            string,
+            unknown
+          >)
+        : root;
+
+    const id_token =
+      (typeof tokenBag.jwt_token === 'string'
+        ? tokenBag.jwt_token
+        : undefined) ??
+      (typeof tokenBag.id_token === 'string' ? tokenBag.id_token : undefined);
+    const access_token =
+      typeof tokenBag.access_token === 'string'
+        ? tokenBag.access_token
+        : undefined;
+    const metadata_access_token =
+      typeof tokenBag.metadata_access_token === 'string'
+        ? tokenBag.metadata_access_token
+        : undefined;
+    const refresh_token =
+      typeof tokenBag.refresh_token === 'string'
+        ? tokenBag.refresh_token
+        : undefined;
+    const revoke_token =
+      typeof tokenBag.revoke_token === 'string'
+        ? tokenBag.revoke_token
+        : undefined;
+
+    if (!id_token || !access_token || !metadata_access_token) {
+      throw new OAuthError(
+        'E2E QA mock: missing id/access/metadata tokens',
+        OAuthErrorType.LoginError,
+      );
+    }
+
+    const parsed: AuthResponse = {
+      id_token,
+      access_token,
+      metadata_access_token,
+      indexes: Array.isArray(tokenBag.indexes)
+        ? (tokenBag.indexes as number[])
+        : [],
+      endpoints:
+        tokenBag.endpoints && typeof tokenBag.endpoints === 'object'
+          ? (tokenBag.endpoints as Record<string, string>)
+          : {},
+    };
+    if (refresh_token) {
+      parsed.refresh_token = refresh_token;
+    }
+    if (revoke_token) {
+      parsed.revoke_token = revoke_token;
+    }
+    return parsed;
+  }
+
   #handleMockOAuthLogin = async (
     loginHandler: BaseLoginHandler,
   ): Promise<HandleOAuthLoginResult> => {
-    Logger.log('[OAuthService] E2E_MOCK_OAUTH: bypassing real OAuth flow');
-    const mockEmail = `mock-perf-${loginHandler.authConnection}@web3auth.io`;
-    this.updateLocalState({
-      userId: `mock-user-${loginHandler.authConnection}`,
-      accountName: mockEmail,
+    Logger.log(
+      '[OAuthService] E2E_MOCK_OAUTH: bypassing native OAuth UI, using UAT QA mock tokens',
+    );
+
+    const byoaSecret = getE2EByoaAuthSecret() ?? '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
+    if (!byoaSecret) {
+      throw new OAuthError(
+        'E2E_MOCK_OAUTH requires E2E_BYOA_AUTH_SECRET for QA mock token exchange',
+        OAuthErrorType.LoginError,
+      );
+    }
+
+    const e2eEmail = `${loginHandler.authConnection}.newuser+e2e@web3auth.io`;
+    const emailForMock =
+      getE2EMockOAuthEmailForQaMock() ?? 'newuser+e2e@web3auth.io';
+
+    const response = await fetch(E2E_QA_MOCK_OAUTH_TOKEN_URL, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'byoa-auth-secret': byoaSecret,
+      },
+      body: JSON.stringify({
+        email_id: emailForMock,
+        client_id: loginHandler.options.clientId,
+        login_provider: loginHandler.authConnection,
+        access_type: 'offline',
+      }),
     });
-    const mockResult: HandleOAuthLoginResult = {
+
+    if (!response.ok) {
+      throw new OAuthError(
+        `QA mock token request failed: ${response.status}`,
+        OAuthErrorType.LoginError,
+      );
+    }
+
+    const rawResponse: unknown = await response.json();
+    const data = this.#parseQaMockE2EAuthResponse(rawResponse);
+
+    const jwtPayload = JSON.parse(
+      loginHandler.decodeIdToken(data.id_token),
+    ) as Partial<OAuthUserInfo>;
+    const userId = jwtPayload.sub ?? `e2e-user-${e2eEmail}`;
+    const accountName = jwtPayload.email ?? e2eEmail;
+
+    this.updateLocalState({ userId, accountName });
+
+    Logger.log(
+      '[OAuthService] E2E_MOCK_OAUTH: skipping SeedlessOnboardingController.authenticate',
+    );
+    const result: HandleOAuthLoginResult = {
       type: OAuthLoginResultType.SUCCESS,
       existingUser: false,
-      accountName: mockEmail,
+      accountName,
     };
-    this.#dispatchPostLogin(mockResult);
-    return mockResult;
+
+    this.#dispatchPostLogin(result);
+    return result;
   };
 
   #trackSocialLoginFailure = ({
@@ -304,7 +425,25 @@ export class OAuthService {
     this.#dispatchLogin();
 
     if (isE2EMockOAuth()) {
-      return this.#handleMockOAuthLogin(loginHandler);
+      try {
+        return await this.#handleMockOAuthLogin(loginHandler);
+      } catch (error) {
+        Logger.log(error as Error, {
+          message: 'handleOAuthLogin E2E_MOCK_OAUTH',
+        });
+        this.#dispatchPostLogin({
+          type: OAuthLoginResultType.ERROR,
+          existingUser: false,
+          error: error instanceof Error ? error.message : 'Unknown error',
+        });
+        if (error instanceof OAuthError) {
+          throw error;
+        }
+        throw new OAuthError(
+          error instanceof Error ? error : 'Unknown error',
+          OAuthErrorType.LoginError,
+        );
+      }
     }
 
     try {
