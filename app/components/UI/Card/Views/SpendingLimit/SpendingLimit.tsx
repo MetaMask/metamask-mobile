@@ -301,7 +301,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                     {accountGroupName ?? selectedAccount.metadata.name}
                   </Text>
                   <Icon
-                    name={IconName.ArrowRight}
+                    name={IconName.ArrowDown}
                     size={IconSize.Md}
                     color={IconColor.IconDefault}
                     style={tw.style('self-center shrink-0')}
@@ -355,7 +355,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                   {tokenLabel}
                 </Text>
                 <Icon
-                  name={IconName.ArrowRight}
+                  name={IconName.ArrowDown}
                   size={IconSize.Md}
                   color={IconColor.IconDefault}
                   style={tw.style('self-center shrink-0')}
@@ -386,7 +386,7 @@ const SpendingLimit: React.FC<SpendingLimitProps> = ({ route }) => {
                   {spendingLimitLabel}
                 </Text>
                 <Icon
-                  name={IconName.ArrowRight}
+                  name={IconName.ArrowDown}
                   size={IconSize.Md}
                   color={IconColor.IconDefault}
                   style={tw.style('self-center shrink-0')}

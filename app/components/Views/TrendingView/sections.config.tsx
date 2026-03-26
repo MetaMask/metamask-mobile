@@ -51,11 +51,13 @@ interface SectionData {
   isLoading: boolean;
 }
 
-interface SectionConfig {
+export interface SectionConfig {
   id: SectionId;
   title: string;
   icon: SectionIcon;
-  viewAllAction: (navigation: AppNavigationProp) => void;
+  viewAllAction: (navigation: NavigationProp<ParamListBase>) => void;
+  /** Returns a stable identifier for an item (e.g. assetId, symbol, url) used in analytics */
+  getItemIdentifier: (item: unknown) => string;
   RowItem: React.ComponentType<{
     item: unknown;
     index: number;
@@ -172,6 +174,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.TRENDING_TOKENS_FULL_VIEW);
     },
+    getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
     RowItem: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -220,6 +223,8 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         },
       });
     },
+    getItemIdentifier: (item) =>
+      (item as Partial<PerpsMarketData>).symbol ?? '',
     RowItem: ({ item, index: _index, navigation }) => (
       <PerpsMarketRowItem
         market={item as PerpsMarketData}
@@ -274,6 +279,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.WALLET.RWA_TOKENS_FULL_VIEW);
     },
+    getItemIdentifier: (item) => (item as Partial<TrendingAsset>).assetId ?? '',
     RowItem: ({ item, index }) => (
       <TrendingTokenRowItem
         token={item as TrendingAsset}
@@ -304,6 +310,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
         screen: Routes.PREDICT.MARKET_LIST,
       });
     },
+    getItemIdentifier: (item) => (item as Partial<PredictMarketType>).id ?? '',
     RowItem: ({ item, index: _index }) => (
       <PredictMarketRowItem market={item as PredictMarketType} />
     ),
@@ -336,6 +343,7 @@ export const SECTIONS_CONFIG: Record<SectionId, SectionConfig> = {
     viewAllAction: (navigation) => {
       navigation.navigate(Routes.SITES_FULL_VIEW);
     },
+    getItemIdentifier: (item) => (item as Partial<SiteData>).url ?? '',
     RowItem: ({ item, index: _index, navigation }) => (
       <SiteRowItemWrapper site={item as SiteData} navigation={navigation} />
     ),

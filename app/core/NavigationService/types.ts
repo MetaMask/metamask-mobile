@@ -213,6 +213,8 @@ export interface NestedNavigationParams {
   [key: string]: unknown;
 }
 
+import { SectionId } from '../../components/Views/TrendingView/sections.config';
+
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -316,6 +318,12 @@ export interface RootStackParamList extends ParamListBase {
     | undefined;
   SitesFullView: undefined;
   ExploreSearch: undefined;
+  ExploreSectionResultsFullView: {
+    sectionId: SectionId;
+    title: string;
+    searchQuery: string;
+    data: unknown[];
+  };
   RewardsOnboardingFlow: undefined;
   RewardsOnboardingIntro: undefined;
   RewardsOnboarding1: undefined;

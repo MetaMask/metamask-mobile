@@ -52,12 +52,7 @@ describe('OndoLeaderboard.utils', () => {
     });
 
     it('returns empty string for an unparseable value', () => {
-      // new Date('not-a-date').toLocaleTimeString() returns 'Invalid Date',
-      // but our function catches and returns '' only on thrown errors.
-      // For invalid dates, toLocaleTimeString may return 'Invalid Date' without throwing.
-      // We only assert it does not throw and returns a string.
-      const result = formatComputedAt('not-a-date');
-      expect(typeof result).toBe('string');
+      expect(formatComputedAt('not-a-date')).toBe('');
     });
   });
 });
