@@ -661,6 +661,54 @@ describe('WalletConnect2Session', () => {
     expect(freshEmitSessionEvent).not.toHaveBeenCalled();
   });
 
+  it('allows chain round-trip A→B→A — dedup guard only blocks consecutive duplicates', async () => {
+    session = new WalletConnect2Session({
+      web3Wallet: mockClient,
+      session: {
+        ...mockSession,
+        namespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: ['eth_sendTransaction'],
+            events: ['chainChanged'],
+            accounts: ['eip155:1:0x1234567890abcdef1234567890abcdef12345678'],
+          },
+        },
+      } as unknown as SessionTypes.Struct,
+      channelId: 'test-channel',
+      deeplink: true,
+      navigation: mockNavigation,
+    });
+
+    // Replace the web3Wallet on this instance with a fresh isolated mock to
+    // avoid call-count pollution from accumulated spies on the shared mockClient.
+    const freshUpdateSession = jest.fn().mockResolvedValue(undefined);
+    const freshEmitSessionEvent = jest.fn().mockResolvedValue(undefined);
+    (session as any).web3Wallet = {
+      ...mockClient,
+      updateSession: freshUpdateSession,
+      emitSessionEvent: freshEmitSessionEvent,
+    };
+
+    // Switch 1→2: first emit for chain 2
+    await (session as any).handleChainChange(2);
+    expect(freshEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect((session as any).lastEmittedChainId).toBe(2);
+    freshEmitSessionEvent.mockClear();
+    freshUpdateSession.mockClear();
+
+    // Duplicate call chain 2 again: should be skipped (dedup guard)
+    await (session as any).handleChainChange(2);
+    expect(freshEmitSessionEvent).not.toHaveBeenCalled();
+    freshEmitSessionEvent.mockClear();
+    freshUpdateSession.mockClear();
+
+    // Switch 2→1: guard check lastEmittedChainId(2) !== 1 → should proceed
+    await (session as any).handleChainChange(1);
+    expect(freshEmitSessionEvent).toHaveBeenCalledTimes(1);
+    expect((session as any).lastEmittedChainId).toBe(1);
+  });
+
   it('logs warning on handleChainChange error', async () => {
     // eslint-disable-next-line no-empty-function
     let subscriberCallback: () => void = () => {};
