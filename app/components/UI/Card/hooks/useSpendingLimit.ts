@@ -15,6 +15,7 @@ import { useSelector } from 'react-redux';
 import { useQueryClient } from '@tanstack/react-query';
 import { useTheme } from '../../../../util/theme';
 import { selectSelectedInternalAccount } from '../../../../selectors/accountsController';
+import { selectEvmNetworkConfigurationsByChainId } from '../../../../selectors/networkController';
 import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
 import { useCardDelegation, UserCancelledError } from './useCardDelegation';
 import { useCardSDK } from '../sdk';
@@ -28,6 +29,7 @@ import {
   BAANX_MAX_LIMIT,
   caipChainIdToNetwork,
   CARD_CHAIN_IDS,
+  cardNetworkInfos,
 } from '../constants';
 import {
   buildTokenListFromSettings,
@@ -48,6 +50,7 @@ import {
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { CaipChainId, Hex } from '@metamask/utils';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { CardActions, CardScreens } from '../util/metrics';
@@ -161,18 +164,6 @@ const useSpendingLimit = ({
 
   const isLoading = isDelegationLoading || isProcessing;
 
-  // Track screen view
-  useEffect(() => {
-    const screen =
-      flow === 'enable' ? CardScreens.ENABLE_TOKEN : CardScreens.SPENDING_LIMIT;
-
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
-        .addProperties({ screen, flow })
-        .build(),
-    );
-  }, [trackEvent, createEventBuilder, flow]);
-
   // Wallet-only token balances for the currently selected MetaMask account.
   // Using this (instead of useAssetBalances) ensures sorting reflects the active
   // account's real wallet balance — not the card's availableBalance or another
@@ -180,6 +171,95 @@ const useSpendingLimit = ({
   const walletTokens = useTokensWithBalance({
     chainIds: CARD_CHAIN_IDS,
   });
+
+  // All-wallet token balances across every EVM chain the user has configured
+  // plus Solana mainnet — used for the top_wallet_chain_asset metric.
+  const evmNetworkConfigs = useSelector(
+    selectEvmNetworkConfigurationsByChainId,
+  );
+  const allWalletChainIds = useMemo(
+    () =>
+      [
+        ...(Object.keys(evmNetworkConfigs) as Hex[]),
+        cardNetworkInfos.solana.caipChainId,
+      ] as (Hex | CaipChainId)[],
+    [evmNetworkConfigs],
+  );
+  const allWalletTokens = useTokensWithBalance({ chainIds: allWalletChainIds });
+
+  // Returns 'network:symbol' (e.g. 'linea:musd', 'base:usdc') for analytics.
+  // Falls back to the CAIP chain ID for chains not in cardNetworkInfos.
+  const toNetworkAsset = (token: {
+    chainId: string;
+    symbol?: string | null;
+  }): string => {
+    const caipId = token.chainId.startsWith('0x')
+      ? `eip155:${parseInt(token.chainId, 16)}`
+      : token.chainId;
+    const network = caipChainIdToNetwork[caipId as CaipChainId] ?? caipId;
+    return `${network}:${token.symbol?.toLowerCase() ?? ''}`;
+  };
+
+  // Track screen view
+  useEffect(() => {
+    const screen =
+      flow === 'enable' ? CardScreens.ENABLE_TOKEN : CardScreens.SPENDING_LIMIT;
+
+    // Balance context — snapshots Redux cache at mount time
+    const musdOnLinea = walletTokens.find(
+      (t) =>
+        t.symbol?.toUpperCase() === 'MUSD' &&
+        (t.chainId === LINEA_CAIP_CHAIN_ID ||
+          t.chainId === safeFormatChainIdToHex(LINEA_CAIP_CHAIN_ID)),
+    );
+    // Only consider tokens actually supported by the card (present in allTokens)
+    const cardSupportedKeys = new Set(
+      allTokens.map((t) => {
+        const chainId = isSolanaChainId(t.caipChainId)
+          ? t.caipChainId
+          : safeFormatChainIdToHex(t.caipChainId ?? '');
+        return `${chainId}:${t.address?.toLowerCase()}`;
+      }),
+    );
+    const topCardToken =
+      [...walletTokens]
+        .filter((t) => {
+          if (!t.address || (t.tokenFiatAmount ?? 0) <= 0) return false;
+          const wtChainId = isSolanaChainId(t.chainId)
+            ? t.chainId
+            : safeFormatChainIdToHex(t.chainId);
+          return cardSupportedKeys.has(
+            `${wtChainId}:${t.address.toLowerCase()}`,
+          );
+        })
+        .sort(
+          (a, b) => (b.tokenFiatAmount ?? 0) - (a.tokenFiatAmount ?? 0),
+        )[0] ?? null;
+    const topWalletToken =
+      [...allWalletTokens]
+        .filter((t) => t.address && (t.tokenFiatAmount ?? 0) > 0)
+        .sort(
+          (a, b) => (b.tokenFiatAmount ?? 0) - (a.tokenFiatAmount ?? 0),
+        )[0] ?? null;
+
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_VIEWED)
+        .addProperties({
+          screen,
+          flow,
+          musd_linea_balance: musdOnLinea?.tokenFiatAmount ?? 0,
+          top_card_chain_asset: topCardToken
+            ? toNetworkAsset(topCardToken)
+            : null,
+          top_wallet_chain_asset: topWalletToken
+            ? toNetworkAsset(topWalletToken)
+            : null,
+          top_wallet_asset_balance: topWalletToken?.tokenFiatAmount ?? 0,
+        })
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trackEvent, createEventBuilder, flow]);
 
   useEffect(() => {
     if (hasInitialized) return;
