@@ -39,11 +39,12 @@ const getRewardsToastLabels = (title: string): ToastLabelOptions => {
 const getRewardsToastDescription = (
   subtitle?: string,
 ): ToastDescriptionOptions | undefined => {
-  if (!subtitle) {
+  const trimmed = subtitle?.trim() ?? '';
+  if (trimmed === '') {
     return undefined;
   }
   return {
-    description: subtitle,
+    description: trimmed,
   };
 };
 
