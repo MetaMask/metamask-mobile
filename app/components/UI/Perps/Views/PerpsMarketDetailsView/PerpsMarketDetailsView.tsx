@@ -1040,8 +1040,9 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       assetSymbol: market.symbol,
       assetIdentifier: market.symbol,
       isPerps: true,
+      hasPerpsPosition: !!existingPosition,
     });
-  }, [market?.symbol, navigation, track]);
+  }, [market?.symbol, navigation, track, existingPosition]);
 
   // Handler for order selection - navigates to order details
   const handleOrderSelect = useCallback(
