@@ -30,7 +30,10 @@ import { MetaMetricsSwapsEventSource } from '@metamask/bridge-controller';
 import Routes from '../../../../../constants/navigation/Routes';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import { useNavigation } from '@react-navigation/native';
-import AppConstants from '../../../../../core/AppConstants';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
 import type { TokenWarningModalParams } from '../TokenWarningModal';
 import { TokenWarningModalMode } from '../TokenWarningModal/constants';
 
@@ -165,19 +168,19 @@ export const SwapsConfirmButton = ({
       return;
     }
 
-    const priceImpact = !activeQuote?.quote.priceData?.priceImpact
-      ? // Default to zero to bypass swap friction.
-        // This callback is always called when active quote exists,
-        // thus this check is not expected to be used, but we introduce
-        // it regardless as a defensive mechanism.
-        0
-      : Number.parseFloat(activeQuote.quote.priceData.priceImpact);
+    // Default to zero to bypass swap friction.
+    // This callback is always called when active quote exists,
+    // thus this check is not expected to be used, but we introduce
+    // it regardless as a defensive mechanism.
+    const priceImpact = parsePriceImpact(
+      activeQuote?.quote.priceData?.priceImpact,
+    );
 
     if (
-      Number.isFinite(priceImpact) &&
-      priceImpact >=
-        (bridgeFeatureFlags?.priceImpactThreshold?.error ??
-          AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
+      exceedsPriceImpactErrorThreshold(
+        priceImpact,
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      )
     ) {
       navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
         screen: Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL,

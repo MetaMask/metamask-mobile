@@ -21,7 +21,10 @@ import {
 } from '../../../../../core/redux/slices/bridge';
 import { PriceImpactModalType } from '../PriceImpactModal/constants';
 import Routes from '../../../../../constants/navigation/Routes';
-import AppConstants from '../../../../../core/AppConstants';
+import {
+  exceedsPriceImpactErrorThreshold,
+  parsePriceImpact,
+} from '../../utils/getPriceImpactViewData';
 import {
   BottomSheetFooter,
   BottomSheetHeader,
@@ -75,15 +78,15 @@ export const TokenWarningModal = () => {
   }, []);
 
   const handleProceed = useCallback(async () => {
-    const priceImpact = !activeQuote?.quote.priceData?.priceImpact
-      ? 0
-      : Number.parseFloat(activeQuote.quote.priceData.priceImpact);
+    const priceImpact = parsePriceImpact(
+      activeQuote?.quote.priceData?.priceImpact,
+    );
 
     if (
-      Number.isFinite(priceImpact) &&
-      priceImpact >=
-        (bridgeFeatureFlags?.priceImpactThreshold?.error ??
-          AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
+      exceedsPriceImpactErrorThreshold(
+        priceImpact,
+        bridgeFeatureFlags?.priceImpactThreshold?.error,
+      )
     ) {
       navigation.replace(Routes.BRIDGE.MODALS.PRICE_IMPACT_MODAL, {
         type: PriceImpactModalType.Execution,
