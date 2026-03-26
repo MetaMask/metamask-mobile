@@ -20,10 +20,9 @@ import Text, {
   TextColor,
 } from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Button, {
-  ButtonSize,
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
+  ButtonSize as OldButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import FadeOutOverlay from '../../UI/FadeOutOverlay';
@@ -82,6 +81,9 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import FOX_LOGO from '../../../images/branding/fox.png';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import {
+  Button,
+  ButtonSize,
+  ButtonVariant,
   Label,
   FontWeight,
   TextColor as DSTextColor,
@@ -790,28 +792,29 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
 
               <View style={styles.ctaWrapperRehydration}>
                 <Button
-                  variant={ButtonVariants.Primary}
-                  width={ButtonWidthTypes.Full}
+                  variant={ButtonVariant.Primary}
+                  isFullWidth
                   size={ButtonSize.Lg}
                   onPress={handleLogin}
-                  label={strings('login.unlock_button')}
                   isDisabled={
                     password.length === 0 || disabledInput || finalLoading
                   }
                   testID={LoginViewSelectors.LOGIN_BUTTON_ID}
-                  loading={finalLoading}
-                />
+                  isLoading={finalLoading}
+                >
+                  {strings('login.unlock_button')}
+                </Button>
               </View>
 
               {isSeedlessPasswordOutdated ? (
-                <Button
+                <OldButton
                   style={styles.goBack}
                   variant={ButtonVariants.Link}
                   onPress={toggleWarningModal}
                   testID={LoginViewSelectors.RESET_WALLET}
                   label={strings('login.forgot_password')}
                   isDisabled={loading}
-                  size={ButtonSize.Lg}
+                  size={OldButtonSize.Lg}
                 />
               ) : (
                 <View style={styles.footer}>

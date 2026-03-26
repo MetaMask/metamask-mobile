@@ -648,7 +648,7 @@ describe('OAuthRehydration', () => {
     it('disables login button when password is empty', () => {
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      expect(loginButton.props.disabled).toBe(true);
+      expect(loginButton).toBeDisabled();
     });
 
     it('enables login button when password is entered', () => {
@@ -657,14 +657,15 @@ describe('OAuthRehydration', () => {
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
 
       fireEvent.changeText(passwordInput, 'password123');
-      expect(loginButton.props.disabled).toBe(false);
+      expect(loginButton).toBeEnabled();
     });
 
     it('shows loading state when isDeletingInProgress is true', () => {
       mockIsDeletingInProgress.mockReturnValue(true);
       const { getByTestId } = renderWithProvider(<OAuthRehydration />);
       const loginButton = getByTestId(LoginViewSelectors.LOGIN_BUTTON_ID);
-      expect(loginButton.props.loading).toBe(true);
+      expect(loginButton).toBeDisabled();
+      expect(loginButton.props.accessibilityState.busy).toBe(true);
     });
 
     it('does not submit when already loading', async () => {

@@ -65,10 +65,9 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-// Mock useMetrics
-jest.mock('../../hooks/useMetrics/useMetrics', () => ({
+jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
   __esModule: true,
-  default: jest.fn(() => ({
+  useAnalytics: jest.fn(() => ({
     addTraitsToUser: jest.fn(),
   })),
 }));
