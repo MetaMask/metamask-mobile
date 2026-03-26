@@ -17,6 +17,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
+import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
 
 interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
@@ -35,8 +36,8 @@ export const usePredictBuyActions = ({
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
-  const { onReject: onApprovalReject, onConfirm: onApprovalConfirm } =
-    useApprovalRequest();
+  const { onConfirm: onApprovalConfirm } = useApprovalRequest();
+  const { onReject } = useConfirmActions();
   const { activeOrder } = usePredictActiveOrder();
   const { placeOrder, initiPayWithAnyToken } = usePredictTrading();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
@@ -46,8 +47,6 @@ export const usePredictBuyActions = ({
   );
   const queryClient = useQueryClient();
 
-  const onApprovalRejectRef = useRef(onApprovalReject);
-  onApprovalRejectRef.current = onApprovalReject;
   const hasInitializedPayWithAnyTokenRef = useRef(false);
 
   useEffect(() => {
@@ -83,10 +82,10 @@ export const usePredictBuyActions = ({
     }
 
     return navigation.addListener('beforeRemove', () => {
-      onApprovalRejectRef.current();
+      onReject(undefined, true);
       PredictController.onPlaceOrderEnd();
     });
-  }, [navigation, payWithAnyTokenEnabled, PredictController]);
+  }, [navigation, payWithAnyTokenEnabled, PredictController, onReject]);
 
   const handlePlaceOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
