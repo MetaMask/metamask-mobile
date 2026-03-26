@@ -888,7 +888,7 @@ const PerpsTPSLView: React.FC = () => {
                 decimals={
                   focusedInput === 'takeProfitPercentage' ||
                   focusedInput === 'stopLossPercentage'
-                    ? DECIMAL_PRECISION_CONFIG.MaxSignificantFigures
+                    ? TP_SL_VIEW_CONFIG.KeypadDecimals
                     : keypadDecimals
                 }
               />
