@@ -39,6 +39,8 @@ jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   })),
 }));
 
+const mockExecuteHardwareWalletOperation = jest.fn();
+
 jest.mock('../../../core/HardwareWallet', () => ({
   useHardwareWallet: () => ({
     ensureDeviceReady: jest.fn(),
@@ -50,8 +52,6 @@ jest.mock('../../../core/HardwareWallet', () => ({
   executeHardwareWalletOperation: (...args) =>
     mockExecuteHardwareWalletOperation(...args),
 }));
-
-const mockExecuteHardwareWalletOperation = jest.fn();
 
 const mockGetHardwareWalletTypeForAddress = jest.fn();
 jest.mock('../../../core/HardwareWallet/helpers', () => ({
@@ -154,7 +154,8 @@ describe('RootRPCMethodsUI', () => {
       await executeArg();
 
       expect(
-        require('../../../core/Engine').context.ApprovalController.acceptRequest,
+        require('../../../core/Engine').context.ApprovalController
+          .acceptRequest,
       ).toHaveBeenCalledWith('tx-ledger', undefined, {
         waitForResult: true,
       });
@@ -162,7 +163,9 @@ describe('RootRPCMethodsUI', () => {
     });
 
     it('still routes QR auto-sign through the QR signing modal', async () => {
-      mockGetHardwareWalletTypeForAddress.mockReturnValue(HardwareWalletType.Qr);
+      mockGetHardwareWalletTypeForAddress.mockReturnValue(
+        HardwareWalletType.Qr,
+      );
 
       const mockNavigate = jest.fn();
       render(<RootRPCMethodsUI navigation={{ navigate: mockNavigate }} />);

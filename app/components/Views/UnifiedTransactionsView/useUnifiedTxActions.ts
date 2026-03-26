@@ -128,7 +128,8 @@ export function useUnifiedTxActions() {
         transaction?.replacementParams?.eip1559GasFee?.maxPriorityFeePerGas
       ) {
         gasFeeParams = {
-          maxFeePerGas: transaction.replacementParams.eip1559GasFee.maxFeePerGas,
+          maxFeePerGas:
+            transaction.replacementParams.eip1559GasFee.maxFeePerGas,
           maxPriorityFeePerGas:
             transaction.replacementParams.eip1559GasFee.maxPriorityFeePerGas,
         };
@@ -143,12 +144,18 @@ export function useUnifiedTxActions() {
         hideAwaitingConfirmation,
         showHardwareWalletError,
         execute: async () => {
-          if (transaction?.replacementParams?.type === LedgerReplacementTxTypes.SPEED_UP) {
+          if (
+            transaction?.replacementParams?.type ===
+            LedgerReplacementTxTypes.SPEED_UP
+          ) {
             await speedUpTx(transaction.id, gasFeeParams);
             return;
           }
 
-          if (transaction?.replacementParams?.type === LedgerReplacementTxTypes.CANCEL) {
+          if (
+            transaction?.replacementParams?.type ===
+            LedgerReplacementTxTypes.CANCEL
+          ) {
             await Engine.context.TransactionController.stopTransaction(
               transaction.id,
               gasFeeParams,

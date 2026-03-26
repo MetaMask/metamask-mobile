@@ -2368,13 +2368,11 @@ describe('UnconnectedTransactions Component Direct Method Testing', () => {
       id: 'plain-ledger-sign',
     });
 
-    expect(Engine.context.ApprovalController.acceptRequest).toHaveBeenCalledWith(
-      'plain-ledger-sign',
-      undefined,
-      {
-        waitForResult: true,
-      },
-    );
+    expect(
+      Engine.context.ApprovalController.acceptRequest,
+    ).toHaveBeenCalledWith('plain-ledger-sign', undefined, {
+      waitForResult: true,
+    });
   });
 
   it('should test retry method with different scenarios', () => {

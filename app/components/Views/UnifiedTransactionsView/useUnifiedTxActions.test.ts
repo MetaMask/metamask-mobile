@@ -14,9 +14,7 @@ import {
   GasFeeEstimateLevel,
   type GasFeeEstimates,
 } from '@metamask/transaction-controller';
-import {
-  LedgerReplacementTxTypes,
-} from '../../UI/LedgerModals/LedgerTransactionModal';
+import { LedgerReplacementTxTypes } from '../../UI/LedgerModals/LedgerTransactionModal';
 import { createQRSigningTransactionModalNavDetails } from '../../UI/QRHardware/QRSigningTransactionModal';
 
 const mockNavigate = jest.fn();
@@ -524,14 +522,11 @@ describe('useUnifiedTxActions', () => {
         await executeArg();
       });
 
-      const acceptMock = engineContext.ApprovalController.acceptRequest as jest.Mock;
-      expect(acceptMock).toHaveBeenCalledWith(
-        'plain-ledger-sign',
-        undefined,
-        {
-          waitForResult: true,
-        },
-      );
+      const acceptMock = engineContext.ApprovalController
+        .acceptRequest as jest.Mock;
+      expect(acceptMock).toHaveBeenCalledWith('plain-ledger-sign', undefined, {
+        waitForResult: true,
+      });
     });
 
     describe('Ledger account transactions', () => {
