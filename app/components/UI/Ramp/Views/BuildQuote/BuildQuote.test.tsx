@@ -1029,6 +1029,55 @@ describe('BuildQuote', () => {
       );
     });
 
+    it('does not navigate when token is missing from supportedCryptoCurrencies (not explicitly false)', () => {
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/banxa',
+          name: 'Banxa',
+          supportedCryptoCurrencies: {
+            // TOKEN_ASSET is NOT in the map (undefined, not false)
+            'eip155:1/erc20:0xsomeother': true,
+          },
+          links: [],
+        },
+        paymentMethodsStatus: 'loading',
+        paymentMethodsFetching: true,
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
+    it('navigates when token is explicitly false in supportedCryptoCurrencies', () => {
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/banxa',
+          name: 'Banxa',
+          supportedCryptoCurrencies: {
+            [TOKEN_ASSET]: false,
+          },
+          links: [],
+        },
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
     it('re-navigates when provider id changes', () => {
       mockUnavailableController({
         selectedProvider: {
