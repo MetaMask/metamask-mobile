@@ -15,13 +15,13 @@ test.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
   test(
     'Aggregated Balance Loading Time, SRP 1 + SRP 2 + SRP 3',
     { tag: '@assets-dev-team' },
-    async ({ currentPlatform, driver, performanceTracker }, testInfo) => {
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
 
       const balanceStableTimer = new TimerHelper(
         'Time since the user navigates to wallet tab until the balance stabilizes',
         { ios: 25000, android: 40000 },
-        currentPlatform,
+        currentDeviceDetails.platform,
       );
       await balanceStableTimer.measure(async () => {
         await WalletView.waitForBalanceToStabilize();

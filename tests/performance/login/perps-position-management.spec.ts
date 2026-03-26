@@ -1,0 +1,116 @@
+import { test } from '../../framework/fixture';
+
+import TimerHelper from '../../framework/TimerHelper.js';
+import { PerformancePreps } from '../../tags.performance.js';
+import {
+  loginToAppPlaywright,
+  selectAccountByDevice,
+} from '../../flows/wallet.flow.js';
+import TabBarComponent from '../../page-objects/wallet/TabBarComponent.js';
+import WalletActionsBottomSheet from '../../page-objects/wallet/WalletActionsBottomSheet.js';
+import PerpsOnboarding from '../../page-objects/Perps/PerpsOnboarding.js';
+import PerpsMarketListView from '../../page-objects/Perps/PerpsMarketListView.js';
+import PerpsMarketDetailsView from '../../page-objects/Perps/PerpsMarketDetailsView.js';
+import PerpsOrderView from '../../page-objects/Perps/PerpsOrderView.js';
+
+/* Scenario 5: Perps onboarding + add funds 10 USD ARB.USDC + Open Position + Close Position */
+test.describe(PerformancePreps, () => {
+  test(
+    'Perps open position and close it',
+    { tag: '@mm-perps-engineering-team' },
+    async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
+      test.setTimeout(10 * 60 * 1000); // 10 minutes
+
+      const selectPerpsMainScreenTimer = new TimerHelper(
+        'Perps tutorial screen visible',
+        { ios: 2000, android: 2000 },
+        currentDeviceDetails.platform,
+      );
+
+      const selectMarketTimer = new TimerHelper(
+        'Market list screen visible',
+        { ios: 7500, android: 7500 },
+        currentDeviceDetails.platform,
+      );
+      const openOrderScreenTimer = new TimerHelper(
+        'Open Order Screen',
+        { ios: 1500, android: 1500 },
+        currentDeviceDetails.platform,
+      );
+      const openPositionTimer = new TimerHelper(
+        'Position opened',
+        { ios: 10500, android: 20000 },
+        currentDeviceDetails.platform,
+      );
+
+      const MarketDetailsScreenTimer = new TimerHelper(
+        'Market Details Screen',
+        { ios: 10000, android: 10000 },
+        currentDeviceDetails.platform,
+      );
+
+      await loginToAppPlaywright();
+
+      // Perps requires independent account for each device to avoid clashes when running tests in parallel
+      await selectAccountByDevice(currentDeviceDetails.deviceName);
+
+      await TabBarComponent.tapActions();
+      await WalletActionsBottomSheet.tapPerpsButton();
+      await selectPerpsMainScreenTimer.measure(async () => {
+        await PerpsOnboarding.isPerpsOnboardingTitleDisplayed();
+      });
+
+      await PerpsOnboarding.tapSkipButton();
+      await selectMarketTimer.measure(async () => {
+        await PerpsMarketListView.isHeaderVisible();
+      });
+
+      await PerpsMarketListView.selectMarket('BTC');
+
+      await MarketDetailsScreenTimer.measure(
+        async () => await PerpsMarketDetailsView.isContainerDisplayed(),
+      );
+      // Check if there's an existing position and close it before continuing
+      if (await PerpsMarketDetailsView.isPositionOpen()) {
+        console.log(
+          '⚠️ Position already open, closing it before continuing with the test...',
+        );
+        try {
+          await PerpsMarketDetailsView.closePositionWithRetry();
+          console.log('✅ Existing position closed successfully');
+        } catch (error) {
+          console.error('❌ Error closing existing position:', error);
+        }
+      }
+
+      await PerpsMarketDetailsView.tapLongButton();
+      // Open Position
+      await openOrderScreenTimer.measure(
+        async () => await PerpsOrderView.waitForOrderScreenVisible(),
+      );
+
+      await PerpsOrderView.setLeverageAppium(40);
+      await PerpsOrderView.tapPlaceOrder();
+
+      await openPositionTimer.measure(
+        async () => await PerpsMarketDetailsView.waitForPositionOpen(20000),
+      );
+
+      try {
+        await PerpsMarketDetailsView.closePositionWithRetry();
+        console.log('✅ Position closed successfully');
+      } catch (error) {
+        console.error('❌ Error closing position:', error);
+      }
+
+      performanceTracker.addTimers(
+        selectPerpsMainScreenTimer,
+        selectMarketTimer,
+        openOrderScreenTimer,
+        openPositionTimer,
+        MarketDetailsScreenTimer,
+      );
+      await performanceTracker.attachToTest(testInfo);
+    },
+  );
+});

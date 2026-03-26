@@ -34,6 +34,7 @@ import { waitForAppReady } from './general.flow';
 import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import PlaywrightUtilities from '../framework/PlaywrightUtilities';
+import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -427,6 +428,8 @@ export const loginToApp = async (password?: string): Promise<void> => {
   );
 };
 
+// Playwright (appium specific functions)
+// -----------------------------------------
 /**
  * Logs into the application using the provided password or a default password.
  *
@@ -444,4 +447,22 @@ export const loginToAppPlaywright = async (
   await LoginView.tapLoginButton();
 
   await PlaywrightUtilities.wait(5000);
+};
+
+export const selectAccountByDevice = async (
+  deviceName: string,
+): Promise<void> => {
+  const deviceAccountMapping = PlaywrightUtilities.buildDeviceAccountMapping();
+  const accountName = deviceAccountMapping[deviceName];
+
+  if (!accountName) {
+    throw new Error(`Account name not found for device: ${deviceName}`);
+  }
+
+  logger.info(`Selecting account: ${accountName} for device: ${deviceName}`);
+
+  await WalletView.tapIdenticon();
+  await AccountListBottomSheet.isAccountListBottomSheetDisplayed();
+  await AccountListBottomSheet.waitForAccountSyncToComplete();
+  await AccountListBottomSheet.tapAccountByNameV2(accountName);
 };

@@ -177,6 +177,8 @@ export default class PlaywrightMatchers {
   /**
    * Get element by Android UIAutomator selector
    * Only works on Android
+   * TODO: Add support for list reverse like Xpath does as a best effort with
+   * the possibility to override
    * @param selector - The Android UIAutomator selector to search for
    * @returns The wrapped element
    */

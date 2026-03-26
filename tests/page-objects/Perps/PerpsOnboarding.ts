@@ -1,11 +1,13 @@
 import Matchers from '../../framework/Matchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PerpsTutorialSelectorsIDs } from '../../../app/components/UI/Perps/Perps.testIds';
+import { PlaywrightAssertions } from '../../framework';
 
 class PerpsOnboarding {
   get continueButton(): EncapsulatedElementType {
@@ -46,6 +48,12 @@ class PerpsOnboarding {
       detox: () => Matchers.getElementByText('What are perps?'),
       appium: () => PlaywrightMatchers.getElementByText('What are perps?'),
     });
+  }
+
+  async isPerpsOnboardingTitleDisplayed(): Promise<void> {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(this.tutorialTitle),
+    );
   }
 
   async tapContinueButton(): Promise<void> {

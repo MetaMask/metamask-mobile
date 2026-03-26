@@ -10,10 +10,23 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import {
+  createLogger,
+  encapsulatedAction,
+  LogLevel,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+} from '../../framework';
+
+const logger = createLogger({
+  name: 'AccountListBottomSheet',
+  level: LogLevel.DEBUG,
+});
 
 class AccountListBottomSheet {
   /** Account list container - wdio uses getElementByText('Accounts') for Appium */
@@ -217,9 +230,19 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByNameV2(accountName: string): Promise<void> {
-    const accountEl = this.getAccountElementByAccountNameV2(accountName);
-    await Gestures.waitAndTap(accountEl, {
-      elemDescription: `Tap on account with name: ${accountName}`,
+    await encapsulatedAction({
+      detox: async () => {
+        const accountEl = this.getAccountElementByAccountNameV2(accountName);
+        await Gestures.waitAndTap(accountEl, {
+          elemDescription: `Tap on account with name: ${accountName}`,
+        });
+      },
+      appium: async () => {
+        const accountEl =
+          await PlaywrightMatchers.getElementByText(accountName);
+        await PlaywrightGestures.scrollIntoView(accountEl);
+        await PlaywrightGestures.waitAndTap(accountEl);
+      },
     });
   }
 
@@ -281,6 +304,88 @@ class AccountListBottomSheet {
 
     // Second swipe to dismiss the AccountListBottomSheet
     await this.swipeToDismissAccountsModal();
+  }
+
+  async isAccountListBottomSheetDisplayed(): Promise<void> {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(this.accountList),
+    );
+  }
+
+  async waitForAccountSyncToComplete(timeout = 60000) {
+    logger.debug('⏳ waitForSyncingToComplete: Starting...');
+    const startTime = Date.now();
+    const pollInterval = 500;
+    const initialWaitTimeout = 5000; // 5 seconds to wait for syncing/discovering to appear
+
+    const getElapsed = () => ((Date.now() - startTime) / 1000).toFixed(1);
+
+    /** Safely check if a text element is visible — returns false if not found. */
+    const isTextVisible = async (text: string): Promise<boolean> => {
+      try {
+        const el = await PlaywrightMatchers.getElementByCatchAll(text);
+        return await el.isVisible();
+      } catch {
+        return false;
+      }
+    };
+
+    // Step 1: Wait up to 5 seconds for "Syncing" or "Discovering" to appear
+    logger.debug(
+      '⏳ Step 1: Waiting up to 5s for "Syncing" or "Discovering" to appear...',
+    );
+    let syncingDetected = false;
+    while (Date.now() - startTime < initialWaitTimeout) {
+      const isSyncing = await isTextVisible('Syncing');
+      const isDiscovering = await isTextVisible('Discovering');
+
+      if (isSyncing || isDiscovering) {
+        syncingDetected = true;
+        logger.debug(
+          `✅ Step 1: Loading detected after ${getElapsed()}s (Syncing: ${isSyncing}, Discovering: ${isDiscovering})`,
+        );
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    // If nothing appeared after 5 seconds, we're done
+    if (!syncingDetected) {
+      logger.debug(
+        `✅ waitForSyncingToComplete: No syncing detected after 5s, finishing after ${getElapsed()}s`,
+      );
+      return;
+    }
+
+    // Step 2: Wait for "Syncing" to disappear
+    logger.debug('⏳ Step 2: Waiting for "Syncing" to disappear...');
+    while (Date.now() - startTime < timeout) {
+      if (!(await isTextVisible('Syncing'))) {
+        logger.debug(`✅ Step 2: "Syncing" disappeared after ${getElapsed()}s`);
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    // Step 3: Wait 1 second delay
+    logger.debug('⏳ Step 3: Waiting 1 second...');
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    // Step 4: Wait for "Discovering" to disappear
+    logger.debug('⏳ Step 4: Waiting for "Discovering" to disappear...');
+    while (Date.now() - startTime < timeout) {
+      if (!(await isTextVisible('Discovering'))) {
+        logger.debug(
+          `✅ Step 4: "Discovering" disappeared after ${getElapsed()}s`,
+        );
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, pollInterval));
+    }
+
+    logger.debug(
+      `✅ waitForSyncingToComplete: Completed after ${getElapsed()}s`,
+    );
   }
 }
 

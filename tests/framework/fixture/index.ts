@@ -20,12 +20,17 @@ declare global {
   var driver: WebdriverIO.Browser | undefined;
 }
 
+interface CurrentDeviceDetails {
+  platform: 'android' | 'ios';
+  deviceName: string;
+}
+
 interface TestLevelFixtures {
   /**
    * Platform detector to be used for the test.
    * This detects the platform of the device being tested.
    */
-  currentPlatform: 'android' | 'ios';
+  currentDeviceDetails: CurrentDeviceDetails;
 
   /**
    * Device provider to be used for the test.
@@ -50,17 +55,23 @@ interface TestLevelFixtures {
 
 export const test = base.extend<TestLevelFixtures>({
   // eslint-disable-next-line no-empty-pattern
-  currentPlatform: async ({}, use, testInfo) => {
+  currentDeviceDetails: async ({}, use, testInfo) => {
     const project = testInfo.project as FullProject<WebDriverConfig>;
     const platform = project.use.platform;
+    const deviceName = project.use.device?.name;
 
-    if (!platform) {
+    if (!platform || !deviceName) {
       throw new Error(
         `Missing "use.platform" for project "${project.name}" in tests/playwright.config.ts.`,
       );
     }
 
-    await use(platform);
+    const deviceDetails: CurrentDeviceDetails = {
+      platform: platform as 'android' | 'ios',
+      deviceName: deviceName as string,
+    };
+
+    await use(deviceDetails);
   },
 
   // eslint-disable-next-line no-empty-pattern

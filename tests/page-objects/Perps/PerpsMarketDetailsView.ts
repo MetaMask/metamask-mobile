@@ -18,6 +18,7 @@ import {
 import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import { PlaywrightGestures } from '../../framework';
 
 class PerpsMarketDetailsView {
   // Container elements
@@ -166,16 +167,30 @@ class PerpsMarketDetailsView {
   }
 
   // Trading action buttons
-  get longButton() {
-    return Matchers.getElementByID(
-      PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
-    );
+  get longButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.LONG_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
-  get shortButton() {
-    return Matchers.getElementByID(
-      PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
-    );
+  get shortButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketDetailsViewSelectorsIDs.SHORT_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   // Info icons
@@ -210,9 +225,19 @@ class PerpsMarketDetailsView {
   }
 
   async tapLongButton() {
-    // Ensure button is enabled before tapping to avoid flaky interactions
-    await Utilities.waitForElementToBeEnabled(this.longButton as DetoxElement);
-    await Gestures.waitAndTap(this.longButton);
+    await encapsulatedAction({
+      detox: async () => {
+        await Utilities.waitForElementToBeEnabled(
+          this.longButton as DetoxElement,
+        );
+        await Gestures.waitAndTap(this.longButton);
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.longButton),
+        );
+      },
+    });
   }
 
   async tapShortButton() {
@@ -329,20 +354,29 @@ class PerpsMarketDetailsView {
     });
   }
 
-  async isPositionOpen(timeout = 5000): Promise<void> {
+  async isPositionOpen(): Promise<boolean> {
+    let isPositionOpen = false;
     await encapsulatedAction({
-      detox: async () => {
-        const el = asDetoxElement(this.closeButton);
-        await Assertions.expectElementToBeVisible(el, {
-          timeout,
-          description: 'Close position button',
-        });
-      },
       appium: async () => {
-        const closeEl = await asPlaywrightElement(this.closeButton);
-        await closeEl.waitForDisplayed({ timeout });
+        try {
+          const closeEl = await asPlaywrightElement(this.closeButton);
+          isPositionOpen = await closeEl.isVisible();
+        } catch {
+          // Element lookup timed out — position is not open
+          isPositionOpen = false;
+        }
       },
     });
+    return isPositionOpen;
+  }
+
+  async waitForPositionOpen(timeout = 20000, interval = 1000): Promise<void> {
+    const start = Date.now();
+    while (Date.now() - start < timeout) {
+      if (await this.isPositionOpen()) return;
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+    throw new Error(`Position not open after ${timeout}ms`);
   }
 
   async tapClosePositionButton(): Promise<void> {
@@ -356,22 +390,20 @@ class PerpsMarketDetailsView {
 
   async closePositionWithRetry(): Promise<void> {
     await encapsulatedAction({
-      detox: async () => {
-        await this.isPositionOpen();
-        await this.tapClosePositionButton();
-        await Assertions.expectElementToNotBeVisible(
-          asDetoxElement(this.closeButton),
+      appium: async () => {
+        await Utilities.executeWithRetry(
+          async () => {
+            if (await this.isPositionOpen()) {
+              await this.tapClosePositionButton();
+              const closeEl = await asPlaywrightElement(this.closeButton);
+              await closeEl.waitForDisplayed({ reverse: true, timeout: 5000 });
+            }
+          },
           {
-            timeout: 5000,
-            description: 'Close button disappears after confirm',
+            description: 'close position',
+            elemDescription: 'Close position button',
           },
         );
-      },
-      appium: async () => {
-        await this.isPositionOpen();
-        await this.tapClosePositionButton();
-        const closeEl = await asPlaywrightElement(this.closeButton);
-        await closeEl.waitForDisplayed({ reverse: true, timeout: 5000 });
       },
     });
   }

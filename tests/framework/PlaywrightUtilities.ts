@@ -1,4 +1,9 @@
 import test from '@playwright/test';
+import type { DeviceMatrix } from './types.ts';
+import { PlaywrightElement } from './PlaywrightAdapter.ts';
+
+// eslint-disable-next-line @typescript-eslint/no-var-requires, import-x/no-commonjs, @typescript-eslint/no-require-imports
+const deviceMatrix: DeviceMatrix = require('../performance/device-matrix.json');
 
 /**
  * Get the driver instance.
@@ -103,6 +108,43 @@ class PlaywrightUtilities {
    */
   static async wait(ms: number): Promise<void> {
     await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  static buildDeviceAccountMapping(): Record<string, string | null> {
+    const mapping: Record<string, string | null> = {};
+
+    // Process Android devices
+    deviceMatrix.android_devices.forEach((device) => {
+      if (device.category === 'high') {
+        mapping[device.name] = 'Account 3';
+      } else if (device.category === 'low') {
+        // Low category Android devices use default Account 1
+        mapping[device.name] = null;
+      }
+    });
+
+    // Process iOS devices
+    deviceMatrix.ios_devices.forEach((device) => {
+      if (device.category === 'high') {
+        mapping[device.name] = 'Account 4';
+      } else if (device.category === 'low') {
+        mapping[device.name] = 'Account 5';
+      }
+    });
+
+    return mapping;
+  }
+
+  /**
+   * Wait for element to be not visible and throw on failure
+   * @param element - The element to wait for
+   * @param timeout - The timeout in milliseconds
+   */
+  static async waitForElementToDisappear(
+    element: PlaywrightElement,
+    timeout = 5000,
+  ): Promise<void> {
+    await element.waitForDisplayed({ reverse: true, timeout });
   }
 }
 

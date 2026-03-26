@@ -6,10 +6,16 @@ import {
 import Gestures from '../../framework/Gestures';
 import Matchers from '../../framework/Matchers';
 import {
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
+import {
+  encapsulatedAction,
+  PlaywrightAssertions,
+  PlaywrightGestures,
+} from '../../framework';
 
 class PerpsMarketListView {
   // Main container
@@ -43,6 +49,17 @@ class PerpsMarketListView {
       detox: () =>
         Matchers.getElementByID(PerpsMarketListViewSelectorsIDs.LIST_HEADER),
       appium: () =>
+        PlaywrightMatchers.getElementById(
+          PerpsMarketListViewSelectorsIDs.LIST_HEADER,
+          { exact: true },
+        ),
+    });
+  }
+
+  get header(): EncapsulatedElementType {
+    return encapsulated({
+      appium: () =>
+        // TODO: Create a testIds.ts const with this selector
         PlaywrightMatchers.getElementById('perps-home', { exact: true }),
     });
   }
@@ -122,8 +139,33 @@ class PerpsMarketListView {
 
   // Helper method to select a specific market by text
   async selectMarket(marketName: string) {
-    const marketElement = Matchers.getElementByText(marketName);
-    await Gestures.waitAndTap(marketElement);
+    await encapsulatedAction({
+      detox: async () => {
+        const marketElement = Matchers.getElementByText(marketName);
+        await Gestures.waitAndTap(marketElement);
+      },
+      appium: async () => {
+        // TODO: Create a testIds.ts const with this selector
+        const marketSelector = `perps-market-row-item-${marketName}`;
+        const marketElement = await PlaywrightMatchers.getElementById(
+          marketSelector,
+          { exact: true },
+        );
+        await PlaywrightGestures.waitAndTap(marketElement);
+      },
+    });
+  }
+
+  async isListHeaderVisible(): Promise<void> {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(this.listHeader),
+    );
+  }
+
+  async isHeaderVisible(): Promise<void> {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(this.header),
+    );
   }
 }
 
