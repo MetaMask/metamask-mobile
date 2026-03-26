@@ -27,7 +27,7 @@ export function usePredictPaymentToken(): UsePredictPaymentTokenResult {
         return;
       }
 
-      PredictController.onBuyPaymentTokenChange(token);
+      PredictController.selectPaymentToken(token);
     },
     [PredictController],
   );

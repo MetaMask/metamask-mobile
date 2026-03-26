@@ -1,64 +1,82 @@
-import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import { AccountTreeControllerGetAccountsFromSelectedAccountGroupAction } from '@metamask/account-tree-controller';
-import { isEvmAccountType } from '@metamask/keyring-api';
+import { AccountsControllerGetSelectedAccountAction } from '@metamask/accounts-controller';
 import {
   BaseController,
   ControllerGetStateAction,
   ControllerStateChangeEvent,
   StateMetadata,
 } from '@metamask/base-controller';
-import type { Messenger } from '@metamask/messenger';
 import { ORIGIN_METAMASK } from '@metamask/controller-utils';
+import { isEvmAccountType } from '@metamask/keyring-api';
 import {
+  KeyringControllerSignPersonalMessageAction,
+  KeyringControllerSignTypedMessageAction,
   PersonalMessageParams,
   SignTypedDataVersion,
   TypedMessageParams,
-  KeyringControllerSignTypedMessageAction,
-  KeyringControllerSignPersonalMessageAction,
 } from '@metamask/keyring-controller';
+import type { Messenger } from '@metamask/messenger';
 import {
-  NetworkControllerGetStateAction,
   NetworkControllerFindNetworkClientIdByChainIdAction,
   NetworkControllerGetNetworkClientByIdAction,
+  NetworkControllerGetStateAction,
 } from '@metamask/network-controller';
 import {
-  TransactionControllerTransactionStatusUpdatedEvent,
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
+import {
   TransactionControllerEstimateGasAction,
   TransactionControllerTransactionConfirmedEvent,
   TransactionControllerTransactionFailedEvent,
   TransactionControllerTransactionRejectedEvent,
+  TransactionControllerTransactionStatusUpdatedEvent,
   TransactionControllerTransactionSubmittedEvent,
   TransactionMeta,
   TransactionStatus,
   TransactionType,
 } from '@metamask/transaction-controller';
-import {
-  RemoteFeatureFlagControllerGetStateAction,
-  RemoteFeatureFlagControllerStateChangeEvent,
-} from '@metamask/remote-feature-flag-controller';
 import { Hex, hexToNumber, numberToHex } from '@metamask/utils';
 import performance from 'react-native-performance';
 import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { analytics } from '../../../../util/analytics/analytics';
 import DevLogger from '../../../../core/SDKConnect/utils/DevLogger';
 import Logger, { type LoggerErrorOptions } from '../../../../util/Logger';
+import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../../../util/analytics/analytics';
 import {
-  trace,
+  validatedVersionGatedFeatureFlag,
+  VersionGatedFeatureFlag,
+} from '../../../../util/remoteFeatureFlag';
+import {
   endTrace,
+  trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
 import { addTransactionBatch } from '../../../../util/transaction-controller';
+import { AssetType } from '../../../Views/confirmations/types/token';
+import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
 import {
   PredictEventProperties,
   PredictShareStatusValue,
   PredictTradeStatus,
   PredictTradeStatusValue,
 } from '../constants/eventNames';
-import { validateDepositTransactions } from '../utils/validateTransactions';
+import {
+  DEFAULT_FEE_COLLECTION_FLAG,
+  DEFAULT_LIVE_SPORTS_FLAG,
+  DEFAULT_MARKET_HIGHLIGHTS_FLAG,
+} from '../constants/flags';
+import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
+import { filterSupportedLeagues } from '../constants/sports';
+import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
 import { PolymarketProvider } from '../providers/polymarket/PolymarketProvider';
+import {
+  MATIC_CONTRACTS,
+  POLYMARKET_PROVIDER_ID,
+} from '../providers/polymarket/constants';
 import { Signer } from '../providers/types';
+import { parse, PredictFeeCollectionSchema } from '../schemas';
 import {
   AccountState,
   ActiveOrderState,
@@ -94,33 +112,14 @@ import {
   Side,
   UnrealizedPnL,
 } from '../types';
-import { ensureError } from '../utils/predictErrorHandler';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { GEO_BLOCKED_COUNTRIES } from '../constants/geoblock';
-import {
-  MATIC_CONTRACTS,
-  POLYMARKET_PROVIDER_ID,
-} from '../providers/polymarket/constants';
-import {
-  DEFAULT_FEE_COLLECTION_FLAG,
-  DEFAULT_LIVE_SPORTS_FLAG,
-  DEFAULT_MARKET_HIGHLIGHTS_FLAG,
-} from '../constants/flags';
-import { filterSupportedLeagues } from '../constants/sports';
 import {
   PredictFeatureFlags,
   PredictLiveSportsFlag,
   PredictMarketHighlightsFlag,
 } from '../types/flags';
-import {
-  VersionGatedFeatureFlag,
-  validatedVersionGatedFeatureFlag,
-} from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
-import { parse, PredictFeeCollectionSchema } from '../schemas';
-import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
-import { AssetType } from '../../../Views/confirmations/types/token';
-import { containsUserRejectedError } from '../../../../util/middlewares';
+import { ensureError } from '../utils/predictErrorHandler';
+import { validateDepositTransactions } from '../utils/validateTransactions';
 
 /**
  * State shape for PredictController
@@ -1961,19 +1960,6 @@ export class PredictController extends BaseController<
     this.update(updater);
   }
 
-  public initializeOrder(): void {
-    this.update((state) => {
-      if (!state.activeOrder) {
-        state.selectedPaymentToken = null;
-        state.activeOrder = {
-          state: ActiveOrderState.PREVIEW,
-        };
-      } else {
-        state.activeOrder.state = ActiveOrderState.PREVIEW;
-      }
-    });
-  }
-
   public clearOrderError(): void {
     this.update((state) => {
       if (state.activeOrder) {
@@ -1982,44 +1968,13 @@ export class PredictController extends BaseController<
     });
   }
 
-  public onDepositOrderSuccess(): void {
-    if (!this.depositPreview) {
-      this.update((state) => {
-        state.activeOrder = {
-          state: ActiveOrderState.PREVIEW,
-          error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
-        };
-      });
-      return;
-    }
-    this.placeOrder({
-      analyticsProperties: this.state.activeOrder?.analyticsProperties,
-      preview: this.depositPreview,
-    });
-  }
-
-  public onDepositOrderFailed(errorMessage?: string): void {
-    this.update((state) => {
-      if (state.activeOrder) {
-        state.activeOrder.state = ActiveOrderState.PREVIEW;
-        state.activeOrder.error = errorMessage;
-        delete state.activeOrder.batchId;
-      }
-    });
-    this.initiPayWithAnyToken();
-  }
-
-  public onOrderCancelled(): void {
-    this.clearActiveOrder();
-    this.setSelectedPaymentToken(null);
-  }
-
   public onPlaceOrderEnd(): void {
     this.clearActiveOrder();
     this.setSelectedPaymentToken(null);
+    this.depositPreview = undefined;
   }
 
-  public onBuyPaymentTokenChange(token: AssetType | null): void {
+  public selectPaymentToken(token: AssetType | null): void {
     if (!token) {
       return;
     }
@@ -2068,15 +2023,15 @@ export class PredictController extends BaseController<
     }
   }
 
-  public setActiveOrder(order: PredictControllerState['activeOrder']): void {
-    this.update((state) => {
-      state.activeOrder = order;
-    });
-  }
-
   public clearActiveOrder(): void {
     this.update((state) => {
       state.activeOrder = null;
+    });
+  }
+
+  public setActiveOrder(order: PredictControllerState['activeOrder']): void {
+    this.update((state) => {
+      state.activeOrder = order;
     });
   }
 
@@ -2223,7 +2178,12 @@ export class PredictController extends BaseController<
     const provider = this.provider;
 
     if (!this.state.activeOrder) {
-      this.initializeOrder();
+      this.update((state) => {
+        state.selectedPaymentToken = null;
+        state.activeOrder = {
+          state: ActiveOrderState.PREVIEW,
+        };
+      });
     }
 
     const activeOrder = this.state.activeOrder;
@@ -2464,18 +2424,37 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'depositAndOrder' && status === 'confirmed') {
-      this.onDepositOrderSuccess();
+      if (!this.depositPreview) {
+        this.update((state) => {
+          state.activeOrder = {
+            state: ActiveOrderState.PREVIEW,
+            error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
+          };
+        });
+        return;
+      }
+      this.placeOrder({
+        analyticsProperties: this.state.activeOrder?.analyticsProperties,
+        preview: this.depositPreview,
+      });
     }
 
     if (type === 'depositAndOrder' && status === 'failed') {
       const errorMessage =
         transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
-      this.onDepositOrderFailed(errorMessage);
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.state = ActiveOrderState.PREVIEW;
+          state.activeOrder.error = errorMessage;
+          delete state.activeOrder.batchId;
+        }
+      });
+      this.initiPayWithAnyToken();
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {
-      this.onOrderCancelled();
+      this.onPlaceOrderEnd();
     }
 
     if (type === 'claim' && isTerminal) {

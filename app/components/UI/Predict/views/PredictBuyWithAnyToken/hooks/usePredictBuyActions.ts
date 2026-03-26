@@ -24,6 +24,7 @@ interface UsePredictBuyActionsParams {
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   setIsConfirming: (value: boolean) => void;
   showOrderPlacedToast: () => void;
+  invalidateOrderQueries: () => void;
 }
 
 export const usePredictBuyActions = ({
@@ -31,6 +32,7 @@ export const usePredictBuyActions = ({
   analyticsProperties,
   setIsConfirming,
   showOrderPlacedToast,
+  invalidateOrderQueries,
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
@@ -83,7 +85,7 @@ export const usePredictBuyActions = ({
 
     return navigation.addListener('beforeRemove', () => {
       onApprovalRejectRef.current();
-      PredictController.onOrderCancelled();
+      PredictController.onPlaceOrderEnd();
     });
   }, [navigation, payWithAnyTokenEnabled, PredictController]);
 
@@ -149,21 +151,7 @@ export const usePredictBuyActions = ({
 
   useEffect(() => {
     if (currentState === ActiveOrderState.SUCCESS) {
-      queryClient.invalidateQueries({
-        queryKey: predictQueries.balance.keys.all(),
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: predictQueries.positions.keys.all(),
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: predictQueries.activity.keys.all(),
-      });
-
-      queryClient.invalidateQueries({
-        queryKey: predictQueries.unrealizedPnL.keys.all(),
-      });
+      invalidateOrderQueries();
       showOrderPlacedToast();
       PredictController.onPlaceOrderEnd();
       navigation.dispatch(StackActions.pop());
@@ -171,6 +159,7 @@ export const usePredictBuyActions = ({
   }, [
     PredictController,
     currentState,
+    invalidateOrderQueries,
     navigation,
     queryClient,
     setIsConfirming,

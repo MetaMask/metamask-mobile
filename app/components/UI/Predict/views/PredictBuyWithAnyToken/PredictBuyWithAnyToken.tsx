@@ -63,7 +63,8 @@ const PredictBuyWithAnyToken = () => {
 
   const { isPlacingOrder } = usePredictActiveOrder();
 
-  const { showOrderPlacedToast } = usePredictPlaceOrder();
+  const { showOrderPlacedToast, invalidateOrderQueries } =
+    usePredictPlaceOrder();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
@@ -149,13 +150,11 @@ const PredictBuyWithAnyToken = () => {
     maxBetAmount,
   } = usePredictBuyConditions({
     currentValue,
-    total,
     depositFee,
     preview,
     isPreviewCalculating,
     isUserInputChange,
     isConfirming,
-    depositAmount,
   });
 
   const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
@@ -167,7 +166,6 @@ const PredictBuyWithAnyToken = () => {
       isInsufficientBalance,
       maxBetAmount,
       isConfirming,
-      depositAmount,
     });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
@@ -175,6 +173,7 @@ const PredictBuyWithAnyToken = () => {
     preview,
     setIsConfirming,
     showOrderPlacedToast,
+    invalidateOrderQueries,
   });
 
   useEffect(() => {

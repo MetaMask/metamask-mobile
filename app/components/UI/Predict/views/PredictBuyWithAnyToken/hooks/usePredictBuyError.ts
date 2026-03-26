@@ -17,7 +17,6 @@ interface UsePredictBuyInfoParams {
   isBelowMinimum: boolean;
   isInsufficientBalance: boolean;
   maxBetAmount: number;
-  depositAmount: number;
 }
 
 export const usePredictBuyError = ({
@@ -28,7 +27,6 @@ export const usePredictBuyError = ({
   isBelowMinimum,
   isInsufficientBalance,
   maxBetAmount,
-  depositAmount,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();

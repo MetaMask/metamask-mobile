@@ -7,21 +7,12 @@ import { PredictMarket, PredictOutcome, PredictOutcomeToken } from '../types';
 
 const mockNavigate = jest.fn();
 const mockDispatch = jest.fn();
-const mockInitializeActiveOrder = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
     dispatch: mockDispatch,
-  }),
-}));
-
-jest.mock('./usePredictActiveOrder', () => ({
-  usePredictActiveOrder: () => ({
-    initializeActiveOrder: mockInitializeActiveOrder,
-    activeOrder: null,
-    clearActiveOrder: jest.fn(),
   }),
 }));
 
@@ -133,7 +124,7 @@ describe('usePredictNavigation', () => {
       expect(mockNavigate).not.toHaveBeenCalled();
     });
 
-    it('calls initializeActiveOrder on direct navigation', () => {
+    it('does not initialize active order on direct navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams();
 
@@ -141,14 +132,10 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params);
       });
 
-      expect(mockInitializeActiveOrder).toHaveBeenCalledWith({
-        market: params.market,
-        outcomeToken: params.outcomeToken,
-        entryPoint: params.entryPoint,
-      });
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('calls initializeActiveOrder on throughRoot navigation', () => {
+    it('does not dispatch a replace action on throughRoot navigation', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams();
 
@@ -156,14 +143,10 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params, { throughRoot: true });
       });
 
-      expect(mockInitializeActiveOrder).toHaveBeenCalledWith({
-        market: params.market,
-        outcomeToken: params.outcomeToken,
-        entryPoint: params.entryPoint,
-      });
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
-    it('does not call initializeActiveOrder on replace navigation', () => {
+    it('dispatches replace navigation when replace is true', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams();
 
@@ -171,7 +154,7 @@ describe('usePredictNavigation', () => {
         result.current.navigateToBuyPreview(params, { replace: true });
       });
 
-      expect(mockInitializeActiveOrder).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledTimes(1);
     });
   });
 });

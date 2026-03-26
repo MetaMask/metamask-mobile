@@ -2,7 +2,6 @@ import { StackActions, useNavigation } from '@react-navigation/native';
 import { useCallback } from 'react';
 import Routes from '../../../../constants/navigation/Routes';
 import { PredictBuyPreviewParams } from '../types/navigation';
-import { usePredictActiveOrder } from './usePredictActiveOrder';
 
 interface NavigateToBuyPreviewOptions {
   throughRoot?: boolean;

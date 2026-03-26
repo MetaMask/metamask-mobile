@@ -1,32 +1,27 @@
-import { useCallback, useContext, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
+import { useCallback, useContext, useState } from 'react';
+import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import {
   ToastContext,
   ToastVariants,
 } from '../../../../component-library/components/Toast';
 import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
-import Logger from '../../../../util/Logger';
 import {
-  trace,
   endTrace,
+  trace,
   TraceName,
   TraceOperation,
 } from '../../../../util/trace';
-import { PlaceOrderParams, Side, type Result } from '../types';
-import { usePredictTrading } from './usePredictTrading';
-import { strings } from '../../../../../locales/i18n';
-import { formatPrice } from '../utils/format';
-import {
-  checkPlaceOrderError,
-  ensureError,
-  parseErrorMessage,
-} from '../utils/predictErrorHandler';
-import { PREDICT_CONSTANTS, PREDICT_ERROR_CODES } from '../constants/errors';
-import { usePredictBalance } from './usePredictBalance';
-import { predictQueries } from '../queries';
-import { usePredictDeposit } from './usePredictDeposit';
+import { PREDICT_CONSTANTS } from '../constants/errors';
 import { PredictEventValues } from '../constants/eventNames';
+import { predictQueries } from '../queries';
+import { PlaceOrderParams, Side, type Result } from '../types';
+import { formatPrice } from '../utils/format';
+import { checkPlaceOrderError } from '../utils/predictErrorHandler';
+import { usePredictBalance } from './usePredictBalance';
+import { usePredictDeposit } from './usePredictDeposit';
+import { usePredictTrading } from './usePredictTrading';
 
 interface UsePredictPlaceOrderOptions {
   /**
@@ -47,10 +42,7 @@ interface UsePredictPlaceOrderReturn {
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
   showOrderPlacedToast: () => void;
-  checkPlaceOrderError: (params: {
-    error: unknown;
-    orderParams: PlaceOrderParams;
-  }) => PlaceOrderOutcome;
+  invalidateOrderQueries: () => void;
 }
 
 export type PlaceOrderOutcome =
@@ -160,6 +152,24 @@ export function usePredictPlaceOrder(
     });
   }, [toastRef]);
 
+  const invalidateOrderQueries = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.balance.keys.all(),
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.positions.keys.all(),
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.activity.keys.all(),
+    });
+
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.unrealizedPnL.keys.all(),
+    });
+  }, [queryClient]);
+
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
@@ -227,21 +237,7 @@ export function usePredictPlaceOrder(
 
         setResult(orderResult);
 
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.balance.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.positions.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.activity.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.unrealizedPnL.keys.all(),
-        });
+        invalidateOrderQueries();
 
         if (side === Side.BUY) {
           showOrderPlacedToast();
@@ -275,7 +271,7 @@ export function usePredictPlaceOrder(
       toastRef,
       controllerPlaceOrder,
       onComplete,
-      queryClient,
+      invalidateOrderQueries,
       showOrderPlacedToast,
       showCashedOutToast,
       onError,
@@ -295,6 +291,6 @@ export function usePredictPlaceOrder(
     isOrderNotFilled,
     resetOrderNotFilled,
     showOrderPlacedToast,
-    checkPlaceOrderError,
+    invalidateOrderQueries,
   };
 }

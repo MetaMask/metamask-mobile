@@ -18,13 +18,11 @@ import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
-  total: number;
   depositFee: number;
   preview?: OrderPreview | null;
   isPreviewCalculating: boolean;
   isUserInputChange: boolean;
   isConfirming: boolean;
-  depositAmount: number;
 }
 
 const normalizeQuoteComparableAddress = (
@@ -49,7 +47,6 @@ export const usePredictBuyConditions = ({
   isPreviewCalculating,
   isUserInputChange,
   isConfirming,
-  depositAmount,
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();

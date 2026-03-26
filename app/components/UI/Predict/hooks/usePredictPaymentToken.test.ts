@@ -31,7 +31,7 @@ jest.mock('react-redux', () => ({
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
-      onBuyPaymentTokenChange: jest.fn(),
+      selectPaymentToken: jest.fn(),
       setSelectedPaymentToken: jest.fn(),
     },
   },
@@ -46,7 +46,7 @@ describe('usePredictPaymentToken', () => {
       .mocked(Engine.context.PredictController.setSelectedPaymentToken)
       .mockClear();
     jest
-      .mocked(Engine.context.PredictController.onBuyPaymentTokenChange)
+      .mocked(Engine.context.PredictController.selectPaymentToken)
       .mockClear();
   });
 
@@ -63,11 +63,11 @@ describe('usePredictPaymentToken', () => {
       });
 
       expect(
-        jest.mocked(Engine.context.PredictController.onBuyPaymentTokenChange),
+        jest.mocked(Engine.context.PredictController.selectPaymentToken),
       ).not.toHaveBeenCalled();
     });
 
-    it('calls onBuyPaymentTokenChange with full token for balance placeholder', () => {
+    it('calls selectPaymentToken with full token for balance placeholder', () => {
       const { result } = renderHook(() => usePredictPaymentToken());
       const token = createMockAsset({
         address: PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
@@ -78,7 +78,7 @@ describe('usePredictPaymentToken', () => {
       });
 
       expect(
-        jest.mocked(Engine.context.PredictController.onBuyPaymentTokenChange),
+        jest.mocked(Engine.context.PredictController.selectPaymentToken),
       ).toHaveBeenCalledWith(
         expect.objectContaining({
           address: PREDICT_BALANCE_PLACEHOLDER_ADDRESS,
@@ -86,7 +86,7 @@ describe('usePredictPaymentToken', () => {
       );
     });
 
-    it('calls onBuyPaymentTokenChange with full token for valid token', () => {
+    it('calls selectPaymentToken with full token for valid token', () => {
       const { result } = renderHook(() => usePredictPaymentToken());
       const token = createMockAsset({
         address: '0xabcd',
@@ -99,7 +99,7 @@ describe('usePredictPaymentToken', () => {
       });
 
       expect(
-        jest.mocked(Engine.context.PredictController.onBuyPaymentTokenChange),
+        jest.mocked(Engine.context.PredictController.selectPaymentToken),
       ).toHaveBeenCalledWith(token);
     });
 
@@ -116,7 +116,7 @@ describe('usePredictPaymentToken', () => {
       });
 
       expect(
-        jest.mocked(Engine.context.PredictController.onBuyPaymentTokenChange),
+        jest.mocked(Engine.context.PredictController.selectPaymentToken),
       ).toHaveBeenCalledWith(token);
     });
   });
