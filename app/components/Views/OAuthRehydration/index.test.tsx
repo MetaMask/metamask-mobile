@@ -454,6 +454,17 @@ describe('OAuthRehydration', () => {
           Routes.MODAL.ROOT_MODAL_FLOW,
           expect.objectContaining({
             screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+            params: expect.objectContaining({
+              title: strings('error_sheet.no_internet_connection_title'),
+              description: strings(
+                'error_sheet.no_internet_connection_description',
+              ),
+              primaryButtonLabel: strings(
+                'error_sheet.no_internet_connection_button',
+              ),
+              closeOnPrimaryButtonPress: true,
+              type: 'error',
+            }),
           }),
         );
       });

@@ -686,6 +686,7 @@ const Onboarding = () => {
         description: strings(`error_sheet.${errorMessage}_description`),
         descriptionAlign: 'center',
         primaryButtonLabel: strings(`error_sheet.${errorMessage}_button`),
+        closeOnPrimaryButtonPress: true,
         type: 'error',
       });
     },

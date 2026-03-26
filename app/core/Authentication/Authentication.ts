@@ -1457,7 +1457,7 @@ class AuthenticationService {
       return;
     }
 
-    navigateToSuccessErrorSheet(NavigationService.navigation, {
+    navigateToSuccessErrorSheet(navigation, {
       title: strings('login.seedless_password_outdated_modal_title'),
       description: strings('login.seedless_password_outdated_modal_content'),
       primaryButtonLabel: strings(
