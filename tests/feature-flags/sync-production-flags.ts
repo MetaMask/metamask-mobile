@@ -47,7 +47,7 @@ const PRODUCTION_FLAGS_URL =
 /**
  * Flags excluded from drift comparison (e.g. frequently changing version values).
  */
-const EXCLUDED_FLAGS: ReadonlySet<string> = new Set(['mobileMinimumVersions']);
+const EXCLUDED_FLAGS: ReadonlySet<string> = new Set([]);
 
 // ============================================================================
 // Types
