@@ -6,12 +6,13 @@ import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import Assertions from '../../framework/Assertions';
 import TestSnaps from '../../page-objects/Browser/TestSnaps';
 import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
+import RequestTypes from '../../page-objects/Browser/Confirmations/RequestTypes';
 import { Mockttp } from 'mockttp';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { mockGenesisBlocks } from './mocks';
 
-jest.setTimeout(200_000);
+jest.setTimeout(150_000);
 
 describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
   it('can use the Multichain provider', async () => {
@@ -131,13 +132,8 @@ describe(FlaskBuildTests('Multichain Provider Snap Tests'), () => {
             );
             await TestSnaps.tapButton('signTypedDataMultichainButton');
 
-            // Wait for the confirmation footer (approval type testID can lag while loading).
             await Assertions.expectElementToBeVisible(
-              TestSnaps.confirmSignatureButton,
-              {
-                description:
-                  'typed data signature confirmation footer is visible',
-              },
+              RequestTypes.TypedSignRequest,
             );
             await TestSnaps.approveNativeConfirmation();
 
