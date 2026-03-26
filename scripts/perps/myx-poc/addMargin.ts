@@ -2,10 +2,10 @@
  * MYX PoC — Add/Remove Margin (Collateral) on an existing position
  *
  * Usage:
- *   npx tsx addMargin.ts --usd 10                        # Add $10 margin to first position
- *   npx tsx addMargin.ts --usd -5                        # Remove $5 margin from first position
- *   npx tsx addMargin.ts --positionId <id> --usd 10      # Add to specific position
- *   NETWORK=testnet npx tsx addMargin.ts --usd 10
+ *   yarn tsx addMargin.ts --usd 10                        # Add $10 margin to first position
+ *   yarn tsx addMargin.ts --usd -5                        # Remove $5 margin from first position
+ *   yarn tsx addMargin.ts --positionId <id> --usd 10      # Add to specific position
+ *   NETWORK=testnet yarn tsx addMargin.ts --usd 10
  *
  * This calls the same SDK path as MYXProvider.updateMargin / MYXClientService.adjustCollateral:
  *   client.position.adjustCollateral({ poolId, positionId, adjustAmount, quoteToken, chainId, address })
@@ -31,7 +31,7 @@ async function main() {
   const usdAmount = args.usd ? parseFloat(args.usd) : undefined;
 
   if (usdAmount === undefined || usdAmount === 0) {
-    console.error('Usage: npx tsx addMargin.ts --usd <amount>');
+    console.error('Usage: yarn tsx addMargin.ts --usd <amount>');
     console.error('  --positionId  Position to adjust (default: first open position)');
     console.error('  --usd         Amount in USD to add (positive) or remove (negative)');
     process.exit(1);

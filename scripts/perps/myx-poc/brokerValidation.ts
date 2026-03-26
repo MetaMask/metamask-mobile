@@ -9,8 +9,8 @@
  *   5. Broker address is passed through to SDK client config
  *
  * Usage:
- *   NETWORK=testnet npx tsx brokerValidation.ts
- *   NETWORK=testnet-arb npx tsx brokerValidation.ts
+ *   NETWORK=testnet yarn tsx brokerValidation.ts
+ *   NETWORK=testnet-arb yarn tsx brokerValidation.ts
  */
 
 import {

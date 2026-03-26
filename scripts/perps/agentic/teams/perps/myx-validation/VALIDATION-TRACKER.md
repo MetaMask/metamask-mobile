@@ -16,7 +16,7 @@ Each recipe is validated through 3 tiers, executed sequentially:
 
 ```bash
 # Tier 1 — PoC script
-cd scripts/perps/myx-poc && NETWORK=testnet npx tsx <script>.ts <args>
+cd scripts/perps/myx-poc && NETWORK=testnet yarn tsx <script>.ts <args>
 
 # Tier 2 — CDP recipe + video
 xcrun simctl io 41EBD318-9727-468C-ABCA-3174F0520624 recordVideo \

@@ -2,12 +2,12 @@
  * MYX PoC — Add TP/SL to an existing position
  *
  * Usage:
- *   npx tsx addTpSl.ts --tp 2500                          # Take profit at $2500 (full size)
- *   npx tsx addTpSl.ts --sl 2000                          # Stop loss at $2000 (full size)
- *   npx tsx addTpSl.ts --tp 2500 --sl 2000                # Both TP and SL
- *   npx tsx addTpSl.ts --tp 2500 --tp-size 0.01           # TP for partial size
- *   npx tsx addTpSl.ts --positionId <id> --tp 2500
- *   NETWORK=testnet npx tsx addTpSl.ts --tp 2500 --sl 2100
+ *   yarn tsx addTpSl.ts --tp 2500                          # Take profit at $2500 (full size)
+ *   yarn tsx addTpSl.ts --sl 2000                          # Stop loss at $2000 (full size)
+ *   yarn tsx addTpSl.ts --tp 2500 --sl 2000                # Both TP and SL
+ *   yarn tsx addTpSl.ts --tp 2500 --tp-size 0.01           # TP for partial size
+ *   yarn tsx addTpSl.ts --positionId <id> --tp 2500
+ *   NETWORK=testnet yarn tsx addTpSl.ts --tp 2500 --sl 2100
  *
  * If --positionId is omitted, uses the first open position.
  * Auth required.
@@ -36,7 +36,7 @@ async function main() {
   const slSizeArg = args['sl-size'];
 
   if (!tpPrice && !slPrice) {
-    console.error('Usage: npx tsx addTpSl.ts --tp <price> [--sl <price>]');
+    console.error('Usage: yarn tsx addTpSl.ts --tp <price> [--sl <price>]');
     console.error('  --positionId  Position to add TP/SL to (default: first open position)');
     console.error('  --tp          Take profit trigger price');
     console.error('  --sl          Stop loss trigger price');

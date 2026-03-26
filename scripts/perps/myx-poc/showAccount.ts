@@ -5,8 +5,8 @@
  *   Available Margin, Free Margin, Wallet Balance,
  *   Locked Realized PnL, Unrealized PnL
  *
- * Usage: npx tsx showAccount.ts
- *        NETWORK=testnet npx tsx showAccount.ts
+ * Usage: yarn tsx showAccount.ts
+ *        NETWORK=testnet yarn tsx showAccount.ts
  *
  * Auth required.
  */

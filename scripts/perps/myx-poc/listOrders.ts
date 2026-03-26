@@ -1,8 +1,8 @@
 /**
  * MYX PoC — List Orders
  *
- * Usage: npx tsx listOrders.ts
- *        NETWORK=testnet npx tsx listOrders.ts
+ * Usage: yarn tsx listOrders.ts
+ *        NETWORK=testnet yarn tsx listOrders.ts
  *
  * Auth required.
  */

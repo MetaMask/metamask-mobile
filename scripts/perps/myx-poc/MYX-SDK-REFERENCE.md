@@ -146,8 +146,8 @@ The SDK does not expose `minOrderSize` — it's enforced on-chain by the keeper.
 ## Opening a Position
 
 ```bash
-NETWORK=testnet npx tsx placeOrder.ts --symbol SGLT --side long --usd 120 --leverage 10 --type market
-npx tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market
+NETWORK=testnet yarn tsx placeOrder.ts --symbol SGLT --side long --usd 120 --leverage 10 --type market
+yarn tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market
 ```
 
 ### Internal flow
@@ -184,9 +184,9 @@ The SDK adds `tradingFee` to `collateralAmount` before sending to contract.
 ## Closing a Position
 
 ```bash
-npx tsx closeOrder.ts --close <positionId>              # market close
-npx tsx closeOrder.ts --close <positionId> --price 2500  # limit close
-npx tsx closeOrder.ts --cancel <orderId>                 # cancel pending order
+yarn tsx closeOrder.ts --close <positionId>              # market close
+yarn tsx closeOrder.ts --close <positionId> --price 2500  # limit close
+yarn tsx closeOrder.ts --cancel <orderId>                 # cancel pending order
 ```
 
 Flow: `listPositions(address)` → build decrease order with full size → `createDecreaseOrder(params)` → keeper fills → collateral + PnL returned to Free Margin.
@@ -204,11 +204,11 @@ Flow: `listPositions(address)` → build decrease order with full size → `crea
 ## Script Quick Reference
 
 ```bash
-npx tsx listMarkets.ts                    # list markets (no auth)
-npx tsx showAccount.ts                    # balances + positions
-npx tsx listOrders.ts                     # open orders + history
-npx tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market
-npx tsx closeOrder.ts --close <positionId>
-npx tsx closeOrder.ts --cancel <orderId>
+yarn tsx listMarkets.ts                    # list markets (no auth)
+yarn tsx showAccount.ts                    # balances + positions
+yarn tsx listOrders.ts                     # open orders + history
+yarn tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market
+yarn tsx closeOrder.ts --close <positionId>
+yarn tsx closeOrder.ts --cancel <orderId>
 # Prefix any command with NETWORK=testnet for testnet
 ```

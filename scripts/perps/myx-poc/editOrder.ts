@@ -2,10 +2,10 @@
  * MYX PoC — Edit an existing open order (change price)
  *
  * Usage:
- *   npx tsx editOrder.ts --price 50000                   # Edit first order's price
- *   npx tsx editOrder.ts --orderId <id> --price 50000    # Edit specific order
- *   npx tsx editOrder.ts --price-pct 1                   # Bump price by +1% (uses triggerPrice)
- *   NETWORK=testnet npx tsx editOrder.ts --price-pct 1
+ *   yarn tsx editOrder.ts --price 50000                   # Edit first order's price
+ *   yarn tsx editOrder.ts --orderId <id> --price 50000    # Edit specific order
+ *   yarn tsx editOrder.ts --price-pct 1                   # Bump price by +1% (uses triggerPrice)
+ *   NETWORK=testnet yarn tsx editOrder.ts --price-pct 1
  *
  * This calls the same SDK path as MYXProvider.editOrder / MYXClientService.updateOrderTpSl:
  *   client.order.updateOrderTpSl(params, quoteAddress, chainId, address, marketId)
@@ -33,8 +33,8 @@ async function main() {
   const pricePctArg = args['price-pct'] ? parseFloat(args['price-pct']) : undefined;
 
   if (priceArg === undefined && pricePctArg === undefined) {
-    console.error('Usage: npx tsx editOrder.ts --price <newPrice>');
-    console.error('       npx tsx editOrder.ts --price-pct <percent>  # e.g. 1 = +1%');
+    console.error('Usage: yarn tsx editOrder.ts --price <newPrice>');
+    console.error('       yarn tsx editOrder.ts --price-pct <percent>  # e.g. 1 = +1%');
     console.error('  --orderId    Order to edit (default: first open order)');
     console.error('  --price      New absolute price');
     console.error('  --price-pct  Price change percentage relative to triggerPrice');

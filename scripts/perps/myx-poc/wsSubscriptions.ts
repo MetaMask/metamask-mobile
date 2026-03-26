@@ -5,8 +5,8 @@
  * real-time push events after WebSocket authentication.
  *
  * Usage:
- *   NETWORK=testnet npx tsx scripts/perps/myx-poc/wsSubscriptions.ts
- *   NETWORK=testnet npx tsx scripts/perps/myx-poc/wsSubscriptions.ts --with-trade
+ *   NETWORK=testnet yarn tsx scripts/perps/myx-poc/wsSubscriptions.ts
+ *   NETWORK=testnet yarn tsx scripts/perps/myx-poc/wsSubscriptions.ts --with-trade
  *
  * --with-trade: also opens + closes a small position to trigger WS events.
  * Without it, just subscribes and waits (useful if you have existing positions).

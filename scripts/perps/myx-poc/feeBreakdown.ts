@@ -4,10 +4,10 @@
  * Comprehensive analysis of MYX fee structure and MetaMask revenue model.
  *
  * Usage:
- *   NETWORK=testnet npx tsx feeBreakdown.ts                 # default $1000 trade
- *   NETWORK=testnet npx tsx feeBreakdown.ts --amount 500    # custom trade size
- *   NETWORK=testnet npx tsx feeBreakdown.ts --pool META     # specific pool
- *   NETWORK=mainnet npx tsx feeBreakdown.ts                 # mainnet comparison
+ *   NETWORK=testnet yarn tsx feeBreakdown.ts                 # default $1000 trade
+ *   NETWORK=testnet yarn tsx feeBreakdown.ts --amount 500    # custom trade size
+ *   NETWORK=testnet yarn tsx feeBreakdown.ts --pool META     # specific pool
+ *   NETWORK=mainnet yarn tsx feeBreakdown.ts                 # mainnet comparison
  */
 
 import {

@@ -2,9 +2,9 @@
  * MYX PoC — Close Position / Cancel Order
  *
  * Usage:
- *   npx tsx closeOrder.ts --cancel <orderId>
- *   npx tsx closeOrder.ts --close <positionId> [--price 65000]
- *   NETWORK=testnet npx tsx closeOrder.ts --cancel <orderId>
+ *   yarn tsx closeOrder.ts --cancel <orderId>
+ *   yarn tsx closeOrder.ts --close <positionId> [--price 65000]
+ *   NETWORK=testnet yarn tsx closeOrder.ts --cancel <orderId>
  *
  * Auth required.
  */
@@ -116,8 +116,8 @@ async function main() {
   }
 
   console.error('Usage:');
-  console.error('  npx tsx closeOrder.ts --cancel <orderId>');
-  console.error('  npx tsx closeOrder.ts --close <positionId> [--price 65000]');
+  console.error('  yarn tsx closeOrder.ts --cancel <orderId>');
+  console.error('  yarn tsx closeOrder.ts --close <positionId> [--price 65000]');
   process.exit(1);
 }
 

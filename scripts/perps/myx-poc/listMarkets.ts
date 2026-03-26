@@ -1,8 +1,8 @@
 /**
  * MYX PoC — List Markets
  *
- * Usage: npx tsx listMarkets.ts
- *        NETWORK=testnet npx tsx listMarkets.ts
+ * Usage: yarn tsx listMarkets.ts
+ *        NETWORK=testnet yarn tsx listMarkets.ts
  *
  * No auth required.
  */

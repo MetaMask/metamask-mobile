@@ -3,7 +3,7 @@
  *
  * Validates that each pool returns a minOrderSizeInUsd from getPoolLevelConfig.
  *
- * Usage: npx tsx scripts/perps/myx-poc/checkPoolMinOrder.ts
+ * Usage: yarn tsx scripts/perps/myx-poc/checkPoolMinOrder.ts
  */
 
 import { getNetworkConfig, createMyxClient, authenticateClient, printTable } from './common';

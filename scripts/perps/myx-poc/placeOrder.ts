@@ -2,9 +2,9 @@
  * MYX PoC — Place Order
  *
  * Usage:
- *   npx tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market
- *   npx tsx placeOrder.ts --symbol ETH --side short --size 0.1 --type limit --price 3500 --leverage 5
- *   NETWORK=testnet npx tsx placeOrder.ts --symbol SGLT --side long --usd 120 --leverage 10 --type market
+ *   yarn tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market
+ *   yarn tsx placeOrder.ts --symbol ETH --side short --size 0.1 --type limit --price 3500 --leverage 5
+ *   NETWORK=testnet yarn tsx placeOrder.ts --symbol SGLT --side long --usd 120 --leverage 10 --type market
  *
  * Auth required. Uses real funds on mainnet!
  */
@@ -40,7 +40,7 @@ async function main() {
   const priceArg = args.price ? parseFloat(args.price) : undefined;
 
   if (!symbol) {
-    console.error('Usage: npx tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market');
+    console.error('Usage: yarn tsx placeOrder.ts --symbol BTC --side long --usd 100 --leverage 10 --type market');
     console.error('       --symbol   Required. e.g. BTC, ETH, SGLT');
     console.error('       --side     long|short (default: long)');
     console.error('       --type     market|limit (default: market)');

@@ -7,9 +7,9 @@
  * This is the critical step for MetaMask revenue from MYX trades.
  *
  * Usage:
- *   NETWORK=testnet npx tsx activateBrokerRebate.ts
- *   NETWORK=testnet npx tsx activateBrokerRebate.ts --rebate-pct 50 --referrer-pct 50
- *   NETWORK=testnet npx tsx activateBrokerRebate.ts --dry-run
+ *   NETWORK=testnet yarn tsx activateBrokerRebate.ts
+ *   NETWORK=testnet yarn tsx activateBrokerRebate.ts --rebate-pct 50 --referrer-pct 50
+ *   NETWORK=testnet yarn tsx activateBrokerRebate.ts --dry-run
  *
  * Parameters:
  *   --rebate-pct N     Total % of protocol fee rebated (default: 50)

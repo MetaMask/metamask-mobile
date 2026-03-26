@@ -2,9 +2,9 @@
  * MYX PoC — Increase (add to) an existing position
  *
  * Usage:
- *   npx tsx increasePosition.ts --positionId <id> --usd 50
- *   npx tsx increasePosition.ts --positionId <id> --size 0.05
- *   NETWORK=testnet npx tsx increasePosition.ts --positionId <id> --usd 120
+ *   yarn tsx increasePosition.ts --positionId <id> --usd 50
+ *   yarn tsx increasePosition.ts --positionId <id> --size 0.05
+ *   NETWORK=testnet yarn tsx increasePosition.ts --positionId <id> --usd 120
  *
  * If --positionId is omitted, uses the first open position.
  * Auth required.
@@ -33,8 +33,8 @@ async function main() {
   const leverage = args.leverage ? parseInt(args.leverage, 10) : undefined; // inherit from position if not specified
 
   if (!usdAmount && !sizeArg) {
-    console.error('Usage: npx tsx increasePosition.ts --positionId <id> --usd 50');
-    console.error('       npx tsx increasePosition.ts --positionId <id> --size 0.05');
+    console.error('Usage: yarn tsx increasePosition.ts --positionId <id> --usd 50');
+    console.error('       yarn tsx increasePosition.ts --positionId <id> --size 0.05');
     console.error('  --positionId  Position to increase (default: first open position)');
     console.error('  --usd         USD collateral to add');
     console.error('  --size        Size in base asset to add');
