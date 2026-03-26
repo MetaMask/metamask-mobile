@@ -14,11 +14,7 @@
  */
 
 import { SignTypedDataVersion } from '@metamask/keyring-controller';
-import type {
-  KeyringControllerState,
-  TypedMessageParams,
-} from '@metamask/keyring-controller';
-import type { InternalAccount } from '@metamask/keyring-internal-api';
+import type { TypedMessageParams } from '@metamask/keyring-controller';
 import { parseCaipAccountId, isValidHexAddress } from '@metamask/utils';
 import type { CaipAccountId, Hex } from '@metamask/utils';
 
@@ -29,11 +25,8 @@ import {
 } from '../constants/myxConfig';
 import type { PerpsControllerMessenger } from '../PerpsController';
 import { PERPS_ERROR_CODES } from '../perpsErrorCodes';
-import type { PerpsPlatformDependencies, PerpsInternalAccount } from '../types';
+import type { PerpsPlatformDependencies } from '../types';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
-
-/** Type alias for account array from AccountTreeController */
-type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 
 export class MYXWalletService {
   #isTestnet: boolean;
@@ -58,22 +51,18 @@ export class MYXWalletService {
    * @returns True if the keyring is unlocked and available for signing.
    */
   public isKeyringUnlocked(): boolean {
-    return (
-      this.#messenger.call(
-        'KeyringController:getState',
-      ) as KeyringControllerState
-    ).isUnlocked;
+    return this.#messenger.call('KeyringController:getState').isUnlocked;
   }
 
   async #signTypedMessage(msgParams: TypedMessageParams): Promise<string> {
     if (!this.isKeyringUnlocked()) {
       throw new Error(PERPS_ERROR_CODES.KEYRING_LOCKED);
     }
-    return (await this.#messenger.call(
+    return this.#messenger.call(
       'KeyringController:signTypedMessage',
       msgParams,
       SignTypedDataVersion.V4,
-    )) as string;
+    );
   }
 
   /**
@@ -97,7 +86,7 @@ export class MYXWalletService {
     const evmAccount = getSelectedEvmAccount(
       this.#messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ) as AccountGroupAccounts,
+      ),
     );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -108,7 +97,7 @@ export class MYXWalletService {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(
             'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) as AccountGroupAccounts,
+          ),
         );
         if (!currentAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -123,7 +112,7 @@ export class MYXWalletService {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(
             'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) as AccountGroupAccounts,
+          ),
         );
         if (!currentAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -174,7 +163,7 @@ export class MYXWalletService {
     const evmAccount = getSelectedEvmAccount(
       this.#messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ) as AccountGroupAccounts,
+      ),
     );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -188,7 +177,7 @@ export class MYXWalletService {
         const currentAccount = getSelectedEvmAccount(
           this.#messenger.call(
             'AccountTreeController:getAccountsFromSelectedAccountGroup',
-          ) as AccountGroupAccounts,
+          ),
         );
         if (!currentAccount?.address) {
           throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -221,7 +210,7 @@ export class MYXWalletService {
     const evmAccount = getSelectedEvmAccount(
       this.#messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ) as AccountGroupAccounts,
+      ),
     );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);
@@ -237,7 +226,7 @@ export class MYXWalletService {
     const evmAccount = getSelectedEvmAccount(
       this.#messenger.call(
         'AccountTreeController:getAccountsFromSelectedAccountGroup',
-      ) as AccountGroupAccounts,
+      ),
     );
     if (!evmAccount?.address) {
       throw new Error(PERPS_ERROR_CODES.NO_ACCOUNT_SELECTED);

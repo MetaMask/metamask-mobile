@@ -1,4 +1,3 @@
-import type { InternalAccount } from '@metamask/keyring-internal-api';
 import { v4 as uuidv4 } from 'uuid';
 
 import type { ServiceContext } from './ServiceContext';
@@ -22,15 +21,11 @@ import type {
   WithdrawParams,
   WithdrawResult,
   PerpsPlatformDependencies,
-  PerpsInternalAccount,
 } from '../types';
 import type { PerpsControllerMessengerBase } from '../types/messenger';
 import type { TransactionStatus } from '../types/transactionTypes';
 import { getSelectedEvmAccount } from '../utils/accountUtils';
 import { ensureError } from '../utils/errorUtils';
-
-/** Type alias for account array from AccountTreeController */
-type AccountGroupAccounts = (InternalAccount | PerpsInternalAccount)[];
 
 /**
  * AccountService
@@ -132,7 +127,7 @@ export class AccountService {
           const evmAccount = getSelectedEvmAccount(
             this.#messenger.call(
               'AccountTreeController:getAccountsFromSelectedAccountGroup',
-            ) as AccountGroupAccounts,
+            ),
           );
           const accountAddress = evmAccount?.address ?? 'unknown';
 
