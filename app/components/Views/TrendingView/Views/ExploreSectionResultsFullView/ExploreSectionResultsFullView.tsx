@@ -58,8 +58,9 @@ const SectionContent: React.FC<SectionContentProps> = ({
   );
 
   const keyExtractor = useCallback(
-    (_item: unknown, index: number) => `${sectionId}-${index}`,
-    [sectionId],
+    (item: unknown, index: number) =>
+      `${sectionId}-${section.getItemIdentifier(item) || index}`,
+    [sectionId, section],
   );
 
   return (

@@ -86,7 +86,6 @@ jest.mock('fuse.js', () =>
   })),
 );
 
-import React from 'react';
 import { SECTIONS_CONFIG } from './sections.config';
 
 describe('SECTIONS_CONFIG getItemIdentifier', () => {

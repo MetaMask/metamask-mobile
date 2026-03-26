@@ -114,29 +114,29 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             hitSlop={8}
             accessibilityRole="button"
             accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
+            style={({ pressed }) =>
+              tw.style(
+                'flex-row items-center gap-1 rounded px-1',
+                pressed && 'opacity-50',
+              )
+            }
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-              gap={1}
+            <Text
+              variant={TextVariant.BodyMd}
+              color={TextColor.TextAlternative}
             >
-              <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.TextAlternative}
-              >
-                {strings('trending.view_all')}
-              </Text>
-              <Icon
-                name={IconName.ArrowRight}
-                size={IconSize.Sm}
-                color={IconColor.IconAlternative}
-              />
-            </Box>
+              {strings('trending.view_all')}
+            </Text>
+            <Icon
+              name={IconName.ArrowRight}
+              size={IconSize.Sm}
+              color={IconColor.IconAlternative}
+            />
           </Pressable>
         )}
       </Box>
     ),
-    [handleViewMore],
+    [handleViewMore, tw],
   );
 
   const flatData = useMemo(() => {
@@ -153,7 +153,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
 
       if ((items && items.length > 0) || sectionIsLoading) {
         const hasMore =
-          !sectionIsLoading && items.length > MAX_ITEMS_PER_SECTION;
+          !sectionIsLoading && (items?.length ?? 0) > MAX_ITEMS_PER_SECTION;
 
         result.push({
           type: 'header',

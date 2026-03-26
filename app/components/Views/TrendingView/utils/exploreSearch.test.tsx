@@ -5,7 +5,6 @@ import { TapView, trackExploreEvent } from './exploreSearch';
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 
-const mockTrackEvent = jest.fn();
 const mockBuild = jest.fn().mockReturnValue({});
 const mockAddProperties = jest.fn().mockReturnThis();
 const mockBuilderInstance = {
@@ -156,7 +155,6 @@ describe('trackExploreEvent', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockCreateEventBuilderFn.mockReturnValue(mockBuilderInstance);
-    mockAnalyticsTrackEvent.mockImplementation(mockTrackEvent);
   });
 
   it('calls analytics.trackEvent with a built event', () => {

@@ -391,7 +391,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       const { getByText } = render(<ExploreSearchResults searchQuery="test" />);
@@ -418,7 +418,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       const { queryByText } = render(
@@ -449,7 +449,7 @@ describe('ExploreSearchResults', () => {
           stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       const { getByText } = render(
