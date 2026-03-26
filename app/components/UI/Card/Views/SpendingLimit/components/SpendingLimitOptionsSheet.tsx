@@ -7,7 +7,11 @@ import {
   ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
-import { useNavigation } from '@react-navigation/native';
+import {
+  useNavigation,
+  type NavigationProp,
+  type ParamListBase,
+} from '@react-navigation/native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -37,7 +41,7 @@ export const createSpendingLimitOptionsNavigationDetails =
 
 const SpendingLimitOptionsSheet: React.FC = () => {
   const sheetRef = useRef<BottomSheetRef>(null);
-  const navigation = useNavigation();
+  const navigation = useNavigation<NavigationProp<ParamListBase>>();
   const { currentLimitType, currentCustomLimit, callerRoute, callerParams } =
     useParams<SpendingLimitOptionsNavigationDetails>();
 
@@ -54,14 +58,11 @@ const SpendingLimitOptionsSheet: React.FC = () => {
 
   const handleConfirm = useCallback(() => {
     sheetRef.current?.onCloseBottomSheet(() => {
-      navigation.navigate(
-        callerRoute as never,
-        {
-          ...callerParams,
-          returnedLimitType: limitType,
-          returnedCustomLimit: customLimit,
-        } as never,
-      );
+      navigation.navigate(callerRoute, {
+        ...callerParams,
+        returnedLimitType: limitType,
+        returnedCustomLimit: customLimit,
+      });
     });
   }, [navigation, callerRoute, callerParams, limitType, customLimit]);
 
