@@ -8,7 +8,6 @@ import {
 import { analytics } from '../../../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
-import type { IMetaMetricsEvent } from '../../../../core/Analytics/MetaMetrics.types';
 import type { SectionConfig } from '../sections.config';
 
 /**
@@ -55,7 +54,7 @@ export const TapView: React.FC<{
  * Reduces the 5-line boilerplate at every call site to a single line.
  */
 export const trackExploreEvent = (
-  event: IMetaMetricsEvent,
+  event: Parameters<typeof AnalyticsEventBuilder.createEventBuilder>[0],
   properties: Record<string, string>,
 ): void => {
   analytics.trackEvent(

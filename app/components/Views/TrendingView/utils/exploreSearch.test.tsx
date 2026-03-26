@@ -16,11 +16,12 @@ const mockBuilderInstance = {
   build: mockBuild,
 };
 
-jest.mock('../../../../util/analytics/analytics', () => ({
-  analytics: {
-    trackEvent: jest.fn(),
-  },
-}));
+jest.mock('../../../../util/analytics/analytics', () => {
+  const { createAnalyticsMockModule } = jest.requireActual(
+    '../../../../util/test/analyticsMock',
+  );
+  return createAnalyticsMockModule();
+});
 
 jest.mock('../../../../util/analytics/AnalyticsEventBuilder', () => ({
   AnalyticsEventBuilder: {
