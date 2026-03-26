@@ -68,7 +68,8 @@ function atLeastOnePlaywrightMatcherWasCalled(): void {
     (PlaywrightMatchers.getElementById as jest.Mock).mock.calls.length +
     (PlaywrightMatchers.getElementByText as jest.Mock).mock.calls.length +
     (PlaywrightMatchers.getElementByAccessibilityId as jest.Mock).mock.calls
-      .length;
+      .length +
+    (PlaywrightMatchers.getElementByCatchAll as jest.Mock).mock.calls.length;
   expect(playwrightCallCount).toBeGreaterThan(0);
 }
 
@@ -76,6 +77,7 @@ function noPlaywrightMatcherWasCalled(): void {
   expect(PlaywrightMatchers.getElementById).not.toHaveBeenCalled();
   expect(PlaywrightMatchers.getElementByText).not.toHaveBeenCalled();
   expect(PlaywrightMatchers.getElementByAccessibilityId).not.toHaveBeenCalled();
+  expect(PlaywrightMatchers.getElementByCatchAll).not.toHaveBeenCalled();
 }
 
 function noDetoxMatcherWasCalled(): void {
