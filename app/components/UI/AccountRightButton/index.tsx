@@ -29,7 +29,7 @@ import {
 import Routes from '../../../constants/navigation/Routes';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountOverviewSelectorsIDs } from './AccountOverview.testIds';
-import { useMetrics } from '../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import { useNetworkInfo } from '../../../selectors/selectedNetworkController';
 import UrlParser from 'url-parse';
 import { selectEvmChainId } from '../../../selectors/networkController';
@@ -67,7 +67,7 @@ const AccountRightButton = ({
   // Placeholder ref for dismissing keyboard. Works when the focused input is within a Webview.
   const placeholderInputRef = useRef<TextInput>(null);
   const { navigate } = useNavigation();
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [isKeyboardVisible, setIsKeyboardVisible] = useState<boolean>(false);
 
   // TODO: Replace "any" with type

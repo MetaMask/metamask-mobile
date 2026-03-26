@@ -133,6 +133,7 @@ describe.each([
           state: undefined,
           assertUserOptedIn: expect.any(Function),
           getMetaMetricsId: expect.any(Function),
+          initialDelayDuration: 60_000,
         });
         expect(controllerMock.mock.calls[0][0].assertUserOptedIn()).toBe(
           analyticsEnabled && remoteFeatureFlag && pna25Acknowledged,

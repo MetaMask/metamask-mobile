@@ -37,6 +37,9 @@ import { setLockTime } from '../../actions/settings';
 import AccountTreeInitService from '../../multichain-accounts/AccountTreeInitService';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import SecureKeychain from '../SecureKeychain';
+import AUTHENTICATION_TYPE from '../../constants/userProperties';
+import DevLogger from '../SDKConnect/utils/DevLogger';
 
 // ─── Fiber tree types ──────────────────────────────────────────────────────
 
@@ -130,6 +133,9 @@ interface AgenticBridge {
     error?: string;
     accounts?: { address: string; name: string }[];
   }>;
+  showStep: (step: { id: string; description: string }) => void;
+  hideStep: () => void;
+  findFiberByTestId: (testId: string) => boolean;
 }
 
 declare global {
@@ -239,6 +245,17 @@ function tryScroll(
     current = walkSiblings ? current.sibling : null;
   }
   return false;
+}
+
+// ─── Step HUD callback registry ─────────────────────────────────────────────
+
+type StepHudCallback =
+  | ((step: { id: string; description: string } | null) => void)
+  | null;
+let _stepHudCallback: StepHudCallback = null;
+
+export function registerStepHudCallback(fn: StepHudCallback) {
+  _stepHudCallback = fn;
 }
 
 // ─── AgenticService ─────────────────────────────────────────────────────────
@@ -380,6 +397,23 @@ const AgenticService = {
         Engine.setSelectedAddress(target.address);
         return { switched: true, ...toAccountSummary(target) };
       },
+      showStep: (step: { id: string; description: string }) => {
+        _stepHudCallback?.(step);
+      },
+      hideStep: () => {
+        _stepHudCallback?.(null);
+      },
+      findFiberByTestId: (testId: string): boolean => {
+        let found = false;
+        walkFiberRoots((rootFiber) => {
+          if (findFiberByTestId(rootFiber, testId)) {
+            found = true;
+            return true;
+          }
+          return false;
+        });
+        return found;
+      },
       setupWallet: async (fixture) => {
         try {
           const {
@@ -458,6 +492,21 @@ const AgenticService = {
           // 8. Enable device authentication (biometrics/passcode bypass)
           if (settings.deviceAuthEnabled === true) {
             ReduxService.store.dispatch(setOsAuthEnabled(true));
+          }
+
+          // 8b. Store password in SecureKeychain for device-auth auto-unlock on reload (Android only — iOS already handles this)
+          if (
+            settings.deviceAuthEnabled === true &&
+            Platform.OS === 'android'
+          ) {
+            DevLogger.log('[AUTO-UNLOCK] Storing password in SecureKeychain', {
+              authType: AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+            });
+            await SecureKeychain.setGenericPassword(
+              fixture.password,
+              AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION,
+            );
+            DevLogger.log('[AUTO-UNLOCK] SecureKeychain password stored');
           }
 
           // 9. Configure MetaMetrics if specified

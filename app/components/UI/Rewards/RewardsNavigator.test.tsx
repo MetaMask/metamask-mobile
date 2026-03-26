@@ -69,11 +69,47 @@ jest.mock('./Views/RewardsSettingsView', () => {
   };
 });
 
+jest.mock('./Views/OndoCampaignDetailsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockOndoCampaignDetailsView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'campaign-details-view' },
+      ReactActual.createElement(Text, null, 'Campaign Details View'),
+    );
+  };
+});
+
+jest.mock('./Views/SeasonOneCampaignDetailsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockSeasonOneCampaignDetailsView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'season-one-campaign-details-view' },
+      ReactActual.createElement(Text, null, 'Season One Campaign Details View'),
+    );
+  };
+});
+
+jest.mock('./Views/CampaignMechanicsView', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return function MockCampaignMechanicsView() {
+    return ReactActual.createElement(
+      View,
+      { testID: 'campaign-mechanics-view' },
+      ReactActual.createElement(Text, null, 'Campaign Mechanics View'),
+    );
+  };
+});
+
 // Mock Skeleton component
 jest.mock(
   '../../../component-library/components-temp/Skeleton/Skeleton',
   () => {
-    const React = jest.requireActual('react');
+    const ReactActual = jest.requireActual('react');
     const { View } = jest.requireActual('react-native');
     return function MockSkeleton({
       width,
@@ -82,7 +118,7 @@ jest.mock(
       width: string;
       height: string;
     }) {
-      return React.createElement(View, {
+      return ReactActual.createElement(View, {
         testID: 'skeleton-loader',
         style: { width, height },
       });
@@ -132,6 +168,10 @@ jest.mock('../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
+jest.mock('../../../reducers/rewards/selectors', () => ({
+  selectIsRewardsVersionBlocked: jest.fn(),
+}));
+
 // Mock react-navigation/native hooks
 const mockNavigate = jest.fn();
 const mockSetOptions = jest.fn();
@@ -154,6 +194,11 @@ jest.mock('./hooks/useCandidateSubscriptionId', () => ({
   useCandidateSubscriptionId: jest.fn(),
 }));
 
+// Mock useRewardCampaigns hook
+jest.mock('./hooks/useRewardCampaigns', () => ({
+  useRewardCampaigns: jest.fn(),
+}));
+
 // Mock useSeasonStatus hook
 jest.mock('./hooks/useSeasonStatus', () => ({
   useSeasonStatus: jest.fn(),
@@ -164,14 +209,42 @@ jest.mock('./hooks/useGeoRewardsMetadata', () => ({
   useGeoRewardsMetadata: jest.fn(),
 }));
 
+// Mock useRewardsVersionGuard hook
+jest.mock('./hooks/useRewardsVersionGuard', () => ({
+  __esModule: true,
+  default: jest.fn().mockReturnValue({ fetchVersionRequirements: jest.fn() }),
+}));
+
+// Mock RewardsUpdateRequired component
+jest.mock('./components/RewardsUpdateRequired/RewardsUpdateRequired', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: function MockRewardsUpdateRequired() {
+      return ReactActual.createElement(
+        View,
+        { testID: 'rewards-update-required' },
+        ReactActual.createElement(Text, null, 'Update Required'),
+      );
+    },
+  };
+});
+
 // Import mocked selectors and hooks for setup
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
+import { selectIsRewardsVersionBlocked } from '../../../reducers/rewards/selectors';
 import { useSeasonStatus } from './hooks/useSeasonStatus';
 import { useGeoRewardsMetadata } from './hooks/useGeoRewardsMetadata';
 
 const mockSelectRewardsSubscriptionId =
   selectRewardsSubscriptionId as jest.MockedFunction<
     typeof selectRewardsSubscriptionId
+  >;
+
+const mockSelectIsRewardsVersionBlocked =
+  selectIsRewardsVersionBlocked as jest.MockedFunction<
+    typeof selectIsRewardsVersionBlocked
   >;
 
 const mockUseSeasonStatus = useSeasonStatus as jest.MockedFunction<
@@ -196,6 +269,7 @@ describe('RewardsNavigator', () => {
     mockUseGeoRewardsMetadata.mockReturnValue({
       fetchGeoRewardsMetadata: jest.fn(),
     });
+    mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
 
     // Create a mock store
     store = configureStore({
@@ -400,6 +474,19 @@ describe('RewardsNavigator', () => {
         expect(queryByTestId('rewards-dashboard-view')).toBeNull();
       });
     });
+
+    it('registers ONDO_CAMPAIGN_DETAILS_VIEW and CAMPAIGN_MECHANICS routes when subscription exists', async () => {
+      // Both views are registered inside the subscriptionId-guarded block,
+      // so they are present in the navigator only when the user is enrolled.
+      mockSelectRewardsSubscriptionId.mockReturnValue('test-subscription-id');
+
+      // Rendering should not throw even with the new screens registered
+      const { getByTestId } = renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(getByTestId('rewards-dashboard-view')).toBeOnTheScreen();
+      });
+    });
   });
 
   // Note: Removed AuthErrorView tests as they don't match the actual implementation
@@ -466,6 +553,44 @@ describe('RewardsNavigator', () => {
       expect(mockUseSeasonStatus).toHaveBeenCalledTimes(1);
       expect(mockUseSeasonStatus).toHaveBeenCalledWith({
         onlyForExplicitFetch: false,
+      });
+    });
+  });
+
+  describe('Version guard', () => {
+    it('renders RewardsUpdateRequired when version is blocked', () => {
+      mockSelectIsRewardsVersionBlocked.mockReturnValue(true);
+
+      const { getByTestId, queryByTestId } = renderWithNavigation(
+        <RewardsNavigator />,
+      );
+
+      expect(getByTestId('rewards-update-required')).toBeOnTheScreen();
+      expect(queryByTestId('rewards-onboarding-navigator')).toBeNull();
+      expect(queryByTestId('rewards-dashboard-view')).toBeNull();
+    });
+
+    it('does not navigate when version is blocked', async () => {
+      mockSelectIsRewardsVersionBlocked.mockReturnValue(true);
+      mockNavigate.mockClear();
+
+      renderWithNavigation(<RewardsNavigator />);
+
+      await waitFor(() => {
+        expect(mockNavigate).not.toHaveBeenCalled();
+      });
+    });
+
+    it('renders normal navigator when version is not blocked', async () => {
+      mockSelectIsRewardsVersionBlocked.mockReturnValue(false);
+
+      const { queryByTestId, getByTestId } = renderWithNavigation(
+        <RewardsNavigator />,
+      );
+
+      await waitFor(() => {
+        expect(queryByTestId('rewards-update-required')).toBeNull();
+        expect(getByTestId('rewards-onboarding-navigator')).toBeOnTheScreen();
       });
     });
   });

@@ -301,7 +301,6 @@
       "0x1": true,
       "0x5": true,
       "0x38": true,
-      "0x3e7": true,
       "0x61": true,
       "0xa": true,
       "0xa869": true,
@@ -320,7 +319,8 @@
       "0x507": true,
       "0x505": true,
       "0x64": true,
-      "0x531": true
+      "0x531": true,
+      "0x3e7": true
     },
     "isIpfsGatewayEnabled": true,
     "smartTransactionsOptInStatus": true,
@@ -394,58 +394,6 @@
   },
   "SubjectMetadataController": {
     "subjectMetadata": {}
-  },
-  "SwapsController": {
-    "quotes": {},
-    "quoteValues": {},
-    "fetchParams": {
-      "slippage": 0,
-      "sourceToken": "",
-      "sourceAmount": 0,
-      "destinationToken": "",
-      "walletAddress": ""
-    },
-    "fetchParamsMetaData": {
-      "sourceTokenInfo": {
-        "decimals": 0,
-        "address": "",
-        "symbol": ""
-      },
-      "destinationTokenInfo": {
-        "decimals": 0,
-        "address": "",
-        "symbol": ""
-      },
-      "networkClientId": "mainnet"
-    },
-    "topAggSavings": null,
-    "aggregatorMetadata": null,
-    "tokens": null,
-    "topAssets": null,
-    "approvalTransaction": null,
-    "aggregatorMetadataLastFetched": 0,
-    "quotesLastFetched": 0,
-    "error": {
-      "key": null,
-      "description": null
-    },
-    "topAggId": null,
-    "tokensLastFetched": 0,
-    "isInPolling": false,
-    "pollingCyclesLeft": 3,
-    "quoteRefreshSeconds": null,
-    "usedGasEstimate": null,
-    "usedCustomGas": null,
-    "chainCache": {
-      "0x1": {
-        "aggregatorMetadata": null,
-        "tokens": null,
-        "topAssets": null,
-        "aggregatorMetadataLastFetched": 0,
-        "topAssetsLastFetched": 0,
-        "tokensLastFetched": 0
-      }
-    }
   },
   "GeolocationController": {
     "location": "UNKNOWN",
@@ -681,11 +629,12 @@
   },
   "CardController": {
     "selectedCountry": null,
-    "activeProviderId": null,
+    "activeProviderId": "baanx",
     "isAuthenticated": false,
     "cardholderAccounts": [],
     "providerData": {}
   },
+  "ComplianceController": {},
   "ConnectivityController": {
     "connectivityStatus": "online"
   },
@@ -758,8 +707,9 @@
     "offDeviceSubscriptionAccounts": {},
     "pointsEstimateHistory": [],
     "pointsEvents": {},
-    "snapshots": {},
     "campaigns": {},
+    "ondoCampaignLeaderboardPositions": {},
+    "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},

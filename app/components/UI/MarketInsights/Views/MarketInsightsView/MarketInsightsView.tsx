@@ -11,13 +11,18 @@ import {
   Linking,
   Pressable,
   Animated,
+  Image,
   useColorScheme,
 } from 'react-native';
 import Video from 'react-native-video';
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundVideoLight = require('../../animations/market-insights-background-light.mp4');
-// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import/no-commonjs
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
 const MarketInsightsBackgroundVideoDark = require('../../animations/market-insights-background-dark.mp4');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const MarketInsightsBackgroundLastFrameLight = require('../../animations/market-insights-background-light-last-frame.png');
+// eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires, import-x/no-commonjs
+const MarketInsightsBackgroundLastFrameDark = require('../../animations/market-insights-background-dark-last-frame.png');
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -148,6 +153,8 @@ interface MarketInsightsRouteParams {
   tokenChainId?: string;
   /** When true, indicates the view was opened from the Perps market details view */
   isPerps?: boolean;
+  /** When true, the user has an existing perps position for this asset */
+  hasPerpsPosition?: boolean;
 }
 
 /**
@@ -177,6 +184,7 @@ const MarketInsightsView: React.FC = () => {
     tokenName,
     tokenChainId,
     isPerps = false,
+    hasPerpsPosition = false,
   } = route.params;
 
   const isMarketInsightsEnabled = isPerps
@@ -200,6 +208,27 @@ const MarketInsightsView: React.FC = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
   const { toastRef } = useContext(ToastContext);
   const theme = useAppThemeFromContext();
+  const [videoEnded, setVideoEnded] = useState(false);
+  const [showLastFrame, setShowLastFrame] = useState(false);
+  const lastFrameImage = useMemo(
+    () =>
+      isDarkMode
+        ? MarketInsightsBackgroundLastFrameDark
+        : MarketInsightsBackgroundLastFrameLight,
+    [isDarkMode],
+  );
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setShowLastFrame(true);
+    }, 100);
+    return () => clearTimeout(timeout);
+  }, []);
+
+  const handleVideoEnd = useCallback(() => {
+    setVideoEnded(true);
+  }, []);
+
   const hasTrackedViewRef = useRef(false);
   const [selectedTrend, setSelectedTrend] =
     useState<MarketInsightsTrend | null>(null);
@@ -507,16 +536,26 @@ const MarketInsightsView: React.FC = () => {
         showsVerticalScrollIndicator={false}
       >
         <Box twClassName="w-full" style={{ aspectRatio: 786 / 340 }}>
-          <Video
-            source={backgroundVideo}
-            style={tw.style('w-full h-full')}
-            resizeMode="cover"
-            muted
-            paused={false}
-            controls={false}
-            disableFocus
-            testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
-          />
+          {showLastFrame && (
+            <Image
+              source={lastFrameImage}
+              style={tw.style('absolute w-full h-full')}
+              resizeMode="cover"
+            />
+          )}
+          {!videoEnded && (
+            <Video
+              source={backgroundVideo}
+              style={tw.style('w-full h-full')}
+              resizeMode="cover"
+              muted
+              paused={false}
+              controls={false}
+              disableFocus
+              onEnd={handleVideoEnd}
+              testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
+            />
+          )}
         </Box>
         <AnimatedSection delay={SECTION_ANIMATION_DELAYS_MS.topArticle}>
           <Box twClassName="px-4 pt-4 pb-3">
@@ -624,65 +663,79 @@ const MarketInsightsView: React.FC = () => {
           >
             {strings('market_insights.helpful_prompt')}
           </Text>
+          {isPerps && hasPerpsPosition && (
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+              twClassName="pt-3"
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
+          )}
         </Box>
       </ScrollView>
 
-      <Box
-        twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
-      >
-        {isPerps ? (
-          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              twClassName="flex-1"
-              onPress={() => handlePerpsDirectionPress('long')}
-              testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
-            >
-              {strings('perps.market.long')}
-            </Button>
-            <Button
-              variant={ButtonVariant.Primary}
-              size={ButtonSize.Lg}
-              twClassName="flex-1"
-              onPress={() => handlePerpsDirectionPress('short')}
-              testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
-            >
-              {strings('perps.market.short')}
-            </Button>
-          </Box>
-        ) : (
-          <Box flexDirection={BoxFlexDirection.Row} gap={3}>
-            <Box twClassName="flex-1">
+      {!(isPerps && hasPerpsPosition) && (
+        <Box
+          twClassName={`border-t border-muted bg-default px-4 pt-4 pb-[${insets.bottom + 8}px]`}
+        >
+          {isPerps ? (
+            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handleSwapPress}
-                testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+                twClassName="flex-1"
+                onPress={() => handlePerpsDirectionPress('long')}
+                testID={MarketInsightsSelectorsIDs.LONG_BUTTON}
               >
-                {strings('market_insights.swap_button')}
+                {strings('perps.market.long')}
               </Button>
-            </Box>
-            <Box twClassName="flex-1">
               <Button
                 variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
-                isFullWidth
-                onPress={handleBuyPress}
-                testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+                twClassName="flex-1"
+                onPress={() => handlePerpsDirectionPress('short')}
+                testID={MarketInsightsSelectorsIDs.SHORT_BUTTON}
               >
-                {strings('market_insights.buy_button')}
+                {strings('perps.market.short')}
               </Button>
             </Box>
+          ) : (
+            <Box flexDirection={BoxFlexDirection.Row} gap={3}>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleSwapPress}
+                  testID={MarketInsightsSelectorsIDs.SWAP_BUTTON}
+                >
+                  {strings('market_insights.swap_button')}
+                </Button>
+              </Box>
+              <Box twClassName="flex-1">
+                <Button
+                  variant={ButtonVariant.Primary}
+                  size={ButtonSize.Lg}
+                  isFullWidth
+                  onPress={handleBuyPress}
+                  testID={MarketInsightsSelectorsIDs.BUY_BUTTON}
+                >
+                  {strings('market_insights.buy_button')}
+                </Button>
+              </Box>
+            </Box>
+          )}
+          <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.footer_disclaimer')}
+            </Text>
           </Box>
-        )}
-        <Box twClassName="pt-3" alignItems={BoxAlignItems.Center}>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('market_insights.footer_disclaimer')}
-          </Text>
         </Box>
-      </Box>
+      )}
 
       {selectedTrend ? (
         <MarketInsightsTrendSourcesBottomSheet
