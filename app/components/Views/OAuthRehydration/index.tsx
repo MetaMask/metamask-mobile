@@ -527,11 +527,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
-
-      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
@@ -590,11 +592,13 @@ const OAuthRehydration: React.FC<OAuthRehydrationProps> = ({
           op: TraceOperation.Login,
         },
         async () => {
-          await unlockWallet({ password, authPreference: authData });
+          await unlockWallet({
+            password,
+            authPreference: authData,
+            onBeforeNavigate: upgradeKeychainAuthAfterSuccessfulUnlock,
+          });
         },
       );
-
-      await upgradeKeychainAuthAfterSuccessfulUnlock();
 
       // Best-effort post-unlock UX: show biometric cancelled alert if needed.
       // Failure here must not be treated as a login error — unlock already succeeded.
