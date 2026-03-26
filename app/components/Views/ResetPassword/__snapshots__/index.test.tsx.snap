@@ -251,7 +251,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                     "paddingLeft": 16,
                     "paddingRight": 16,
                     "paddingTop": 16,
-                    "rowGap": 32,
+                    "rowGap": 16,
                   },
                   undefined,
                 ]
@@ -331,7 +331,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                         "borderRadius": 8,
                         "borderWidth": 1,
                         "flexDirection": "row",
-                        "height": 40,
+                        "height": 48,
                         "paddingLeft": 16,
                         "paddingRight": 16,
                       },
@@ -446,6 +446,7 @@ exports[`ResetPassword render matches snapshot 1`] = `
                         "overflow": "hidden",
                         "paddingLeft": 16,
                         "paddingRight": 16,
+                        "width": "100%",
                       },
                       {
                         "transform": [

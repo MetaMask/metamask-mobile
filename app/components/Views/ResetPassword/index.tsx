@@ -29,6 +29,10 @@ import {
   BoxJustifyContent,
   BoxBackgroundColor,
   IconColor,
+  Checkbox,
+  TextFieldSize,
+  TextButton,
+  TextButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import StorageWrapper from '../../../store/storage-wrapper';
@@ -63,7 +67,6 @@ import NavigationService from '../../../core/NavigationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
-import Checkbox from '../../../component-library/components/Checkbox';
 import LottieView, { AnimationObject } from 'lottie-react-native';
 import {
   selectSeedlessOnboardingLoginFlow,
@@ -78,14 +81,15 @@ import Device from '../../../util/device';
 import SearchingFox from '../../../animations/Searching_Fox.json';
 
 const PASSCODE_NOT_SET_ERROR = 'Error: Passcode not set.';
-const RESET_PASSWORD = 'reset_password';
-const CONFIRM_PASSWORD = 'confirm_password';
-
-type ViewType = typeof RESET_PASSWORD | typeof CONFIRM_PASSWORD;
+enum ViewState {
+  ResetForm = 'reset_form',
+  ConfirmCurrent = 'confirm_current',
+}
 
 const getCommonButtonProps = () => ({
   variant: ButtonVariant.Primary,
   size: ButtonSize.Lg,
+  twClassName: 'w-full',
 });
 
 interface ResetPasswordNavigation {
@@ -128,7 +132,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   const [biometryChoice, setBiometryChoice] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [view, setView] = useState<ViewType>(CONFIRM_PASSWORD);
+  const [view, setView] = useState(ViewState.ConfirmCurrent);
   const [originalPassword, setOriginalPassword] = useState<string | null>(null);
   const [ready, setReady] = useState(true);
   const [showPasswordIndex, setShowPasswordIndex] = useState<number[]>([0, 1]);
@@ -157,7 +161,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       setPassword('');
       setOriginalPassword(verifiedPassword);
       setReady(true);
-      setView(RESET_PASSWORD);
+      setView(ViewState.ResetForm);
     } catch (e) {
       const err = e as Error;
       if (
@@ -184,7 +188,9 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       const passcodePreviouslyDisabled =
         await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-      if (authData.currentAuthType === AUTHENTICATION_TYPE.PASSCODE) {
+      if (
+        authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+      ) {
         setBiometryType(passcodeType(authData.currentAuthType));
         setBiometryChoice(
           !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
@@ -195,7 +201,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         reauthenticate();
       }
 
-      setView(CONFIRM_PASSWORD);
+      setView(ViewState.ConfirmCurrent);
     };
 
     initAuth();
@@ -544,7 +550,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
           flexDirection={BoxFlexDirection.Column}
           justifyContent={BoxJustifyContent.Between}
           padding={4}
-          twClassName="flex-1 gap-y-8 h-full"
+          twClassName="flex-1 gap-y-4 h-full"
         >
           <Box alignItems={BoxAlignItems.Start} twClassName="flex-1 h-full">
             <Label
@@ -563,6 +569,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
               testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
               keyboardAppearance={themeAppearance}
               autoComplete="password"
+              size={TextFieldSize.Lg}
             />
             {renderWarningText(warningIncorrectPassword)}
           </Box>
@@ -643,6 +650,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
                     isError={isPasswordTooShort()}
+                    size={TextFieldSize.Lg}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(0)}>
                         <Icon
@@ -687,6 +695,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     autoComplete="password-new"
                     autoCapitalize="none"
                     keyboardAppearance={themeAppearance}
+                    size={TextFieldSize.Lg}
                     endAccessory={
                       <TouchableOpacity onPress={() => toggleShowPassword(1)}>
                         <Icon
@@ -708,46 +717,39 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                 </Box>
 
                 {/* I understand checkbox */}
-                <Box
-                  flexDirection={BoxFlexDirection.Row}
-                  alignItems={BoxAlignItems.Start}
-                  marginTop={2}
-                  marginBottom={4}
-                  twClassName="gap-x-2"
+                <TouchableOpacity
+                  onPress={toggleSelection}
+                  style={tw.style(
+                    'flex-row items-start justify-start gap-x-2 mt-2 mb-4',
+                  )}
                 >
                   <Checkbox
-                    onPress={toggleSelection}
-                    isChecked={isSelected}
+                    onChange={toggleSelection}
+                    isSelected={isSelected}
                     testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                     accessibilityLabel={
                       ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID
                     }
-                    style={tw.style('items-start')}
+                    style={tw.style('flex items-start')}
                   />
-                  <Button
-                    variant={ButtonVariant.Tertiary}
-                    onPress={toggleSelection}
-                    style={tw.style('flex-row items-start flex-wrap w-[90%]')}
+                  <Text
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextDefault}
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                   >
+                    {isSrp
+                      ? strings('reset_password.i_understand')
+                      : strings('reset_password.checkbox_forgot_password')}
                     <Text
+                      onPress={learnMore}
+                      testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
                       variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
+                      color={TextColor.PrimaryDefault}
                     >
-                      {isSrp
-                        ? strings('reset_password.i_understand')
-                        : strings('reset_password.checkbox_forgot_password')}
-                      <Text
-                        variant={TextVariant.BodyMd}
-                        color={TextColor.PrimaryDefault}
-                        onPress={learnMore}
-                        testID={ChoosePasswordSelectorsIDs.LEARN_MORE_LINK_ID}
-                      >
-                        {' ' + strings('reset_password.learn_more')}
-                      </Text>
+                      {' ' + strings('reset_password.learn_more')}
                     </Text>
-                  </Button>
-                </Box>
+                  </Text>
+                </TouchableOpacity>
 
                 <Box
                   flexDirection={BoxFlexDirection.Column}
@@ -798,7 +800,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         style={tw.style('flex-1 bg-default')}
         testID={'account-backup-step-4-screen'}
       >
-        {view === RESET_PASSWORD
+        {view === ViewState.ResetForm
           ? renderResetPassword()
           : renderConfirmPassword()}
       </ScrollView>
