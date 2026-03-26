@@ -113,6 +113,12 @@ const OnboardingNavigator: React.FC = () => {
   const onboardingId = useSelector(selectOnboardingId);
   const { user, isLoading, fetchUserData, isReturningSession } = useCardSDK();
   const [isMounted, setIsMounted] = useState(false);
+  // Track user data fetch separately from SDK's isLoading to guard against
+  // the SDK init effect resetting isLoading mid-fetch (e.g. when fetchUserData
+  // dispatches setUserCardLocation and triggers SDK re-initialization).
+  const [isFetchingUserData, setIsFetchingUserData] = useState(
+    () => !!onboardingId && !user,
+  );
   const navigation = useNavigation();
   const route =
     useRoute<
@@ -132,7 +138,9 @@ const OnboardingNavigator: React.FC = () => {
   // when the navigator is accessed
   useEffect(() => {
     if (!isMounted && onboardingId && !user) {
-      fetchUserData();
+      fetchUserData().finally(() => setIsFetchingUserData(false));
+    } else {
+      setIsFetchingUserData(false);
     }
     setIsMounted(true);
     // eslint-disable-next-line react-compiler/react-compiler
@@ -228,7 +236,7 @@ const OnboardingNavigator: React.FC = () => {
   // Skip when deeplink navigates directly to Complete screen (e.g., KYC notification)
   useEffect(() => {
     if (
-      isReturningSession &&
+      (isReturningSession || cardUserPhase) &&
       initialRouteName !== Routes.CARD.ONBOARDING.SIGN_UP &&
       initialRouteName !== Routes.CARD.ONBOARDING.COMPLETE &&
       !hasShownKeepGoingModal.current &&
@@ -254,12 +262,13 @@ const OnboardingNavigator: React.FC = () => {
   }, [
     isReturningSession,
     initialRouteName,
+    cardUserPhase,
     navigation,
     user?.verificationState,
     isDeeplinkToComplete,
   ]);
 
-  if (isLoading && !user) {
+  if ((isLoading || isFetchingUserData) && !user) {
     return (
       <Box twClassName="flex-1 items-center justify-center">
         <ActivityIndicator testID="activity-indicator" size="large" />

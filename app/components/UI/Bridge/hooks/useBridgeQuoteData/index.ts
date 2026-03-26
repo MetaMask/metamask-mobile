@@ -260,7 +260,6 @@ export const useBridgeQuoteData = ({
     activeQuote?.quote.priceData?.priceImpact !== undefined &&
       bridgeFeatureFlags?.priceImpactThreshold &&
       Number(activeQuote?.quote.priceData?.priceImpact) >=
-        // @ts-expect-error TODO: remove comment after changes to core are published.
         (bridgeFeatureFlags.priceImpactThreshold.warning ??
           AppConstants.BRIDGE.PRICE_IMPACT_WARNING_THRESHOLD),
   );

@@ -49,6 +49,8 @@ const config = {
     '<rootDir>/app/util/testUtils/',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
     '<rootDir>/app/features/SampleFeature/e2e/',
+    '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsEntryCardOriginal.tsx',
+    '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/AnimatedGradientBorder.tsx',
   ],
   testPathIgnorePatterns: [
     '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
@@ -91,5 +93,5 @@ const config = {
   cache: false,
 };
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 module.exports = config;

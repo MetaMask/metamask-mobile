@@ -21,9 +21,10 @@ import {
   type PointsBoostDto,
   type PointsEventDto,
   type RewardDto,
-  type SnapshotDto,
   type CampaignDto,
   type CampaignParticipantStatusDto,
+  type CampaignLeaderboardDto,
+  type CampaignLeaderboardPositionDto,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -34,7 +35,11 @@ import {
   type SeasonStateDto,
   type LineaTokenRewardDto,
   type OffDeviceSubscriptionAccountsState,
+  type ClientVersionRequirementDto,
+  type CampaignState,
+  type CampaignDtoState,
   BASE32_REGEX,
+  CampaignType,
 } from './types';
 import type { RewardsControllerMessenger } from '../../messengers/rewards-controller-messenger';
 import {
@@ -94,17 +99,21 @@ const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 // Unlocked rewards cache threshold
 const UNLOCKED_REWARDS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
-// Snapshots cache threshold
-const SNAPSHOTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
-
 // Off-device subscription accounts cache threshold
 const OFF_DEVICE_SUBSCRIPTION_ACCOUNTS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Campaigns cache threshold
 const CAMPAIGNS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+const CAMPAIGNS_CACHE_KEY = 'CAMPAIGNS_CACHE_KEY';
 
 // Campaign participant status cache threshold
 const CAMPAIGN_PARTICIPANT_STATUS_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign leaderboard cache threshold (hourly job updates, but we cache for 5 min)
+const ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign leaderboard position cache threshold
+const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -173,12 +182,6 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
-  snapshots: {
-    includeInStateLogs: true,
-    persist: true,
-    includeInDebugSnapshot: false,
-    usedInUi: true,
-  },
   offDeviceSubscriptionAccounts: {
     includeInStateLogs: true,
     persist: true,
@@ -192,6 +195,18 @@ const metadata: StateMetadata<RewardsControllerState> = {
     usedInUi: true,
   },
   campaignParticipantStatus: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  ondoCampaignLeaderboard: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
+  ondoCampaignLeaderboardPositions: {
     includeInStateLogs: true,
     persist: true,
     includeInDebugSnapshot: false,
@@ -224,10 +239,11 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   activeBoosts: {},
   unlockedRewards: {},
   pointsEvents: {},
-  snapshots: {},
   offDeviceSubscriptionAccounts: {},
   campaigns: {},
   campaignParticipantStatus: {},
+  ondoCampaignLeaderboard: {},
+  ondoCampaignLeaderboardPositions: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -321,11 +337,10 @@ export class RewardsController extends BaseController<
   RewardsControllerMessenger
 > {
   #geoLocation: GeoRewardsMetadata | null = null;
+  #clientVersionRequirements: ClientVersionRequirementDto | null = null;
   #isDisabled: () => boolean;
   #isBitcoinOptinEnabled: () => boolean;
   #isTronOptinEnabled: () => boolean;
-  #isSnapshotsEnabled: () => boolean;
-  #isCampaignsEnabled: () => boolean;
   #reauthPromises: Map<string, Promise<void>> = new Map();
 
   /**
@@ -478,16 +493,12 @@ export class RewardsController extends BaseController<
     isDisabled,
     isBitcoinOptinEnabled,
     isTronOptinEnabled,
-    isSnapshotsEnabled,
-    isCampaignsEnabled,
   }: {
     messenger: RewardsControllerMessenger;
     state?: Partial<RewardsControllerState>;
     isDisabled?: () => boolean;
     isBitcoinOptinEnabled?: () => boolean;
     isTronOptinEnabled?: () => boolean;
-    isSnapshotsEnabled?: () => boolean;
-    isCampaignsEnabled?: () => boolean;
   }) {
     super({
       name: controllerName,
@@ -502,8 +513,6 @@ export class RewardsController extends BaseController<
     this.#isDisabled = isDisabled ?? (() => false);
     this.#isBitcoinOptinEnabled = isBitcoinOptinEnabled ?? (() => false);
     this.#isTronOptinEnabled = isTronOptinEnabled ?? (() => false);
-    this.#isSnapshotsEnabled = isSnapshotsEnabled ?? (() => false);
-    this.#isCampaignsEnabled = isCampaignsEnabled ?? (() => false);
 
     this.#registerActionHandlers();
     this.#initializeEventSubscriptions();
@@ -598,10 +607,6 @@ export class RewardsController extends BaseController<
       this.getUnlockedRewards.bind(this),
     );
     this.messenger.registerActionHandler(
-      'RewardsController:getSnapshots',
-      this.getSnapshots.bind(this),
-    );
-    this.messenger.registerActionHandler(
       'RewardsController:getOffDeviceSubscriptionAccounts',
       this.getOffDeviceSubscriptionAccounts.bind(this),
     );
@@ -616,6 +621,14 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getCampaignParticipantStatus',
       this.getCampaignParticipantStatus.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignLeaderboard',
+      this.getOndoCampaignLeaderboard.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getOndoCampaignLeaderboardPosition',
+      this.getOndoCampaignLeaderboardPosition.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -664,6 +677,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:applyBonusCode',
       this.applyBonusCode.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getClientVersionRequirements',
+      this.getClientVersionRequirements.bind(this),
     );
   }
 
@@ -727,7 +744,7 @@ export class RewardsController extends BaseController<
     if (!this.canChangeRewardsEnvUrl()) {
       return;
     }
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       state.rewardsEnvUrl = url;
     });
     this.messenger.call('RewardsDataService:setRewardsEnvUrl', url);
@@ -872,7 +889,7 @@ export class RewardsController extends BaseController<
     const accountState = this.#getAccountState(caipAccount);
     if (!accountState) return;
 
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       state.activeAccount = accountState;
     });
   }
@@ -1158,7 +1175,7 @@ export class RewardsController extends BaseController<
   ): Promise<string | null> {
     if (!internalAccount) {
       if (shouldBecomeActiveAccount) {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.activeAccount = null;
         });
       }
@@ -1177,7 +1194,7 @@ export class RewardsController extends BaseController<
       let accountState = this.#getAccountState(account as CaipAccountId);
       if (accountState) {
         // Update last authenticated account
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           if (shouldBecomeActiveAccount) {
             state.activeAccount = accountState;
           }
@@ -1191,7 +1208,7 @@ export class RewardsController extends BaseController<
           perpsFeeDiscount: null, // Default value, will be updated when fetched
           lastPerpsDiscountRateFetched: null,
         };
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.accounts[account as CaipAccountId] =
             accountState as RewardsAccountState;
           if (shouldBecomeActiveAccount) {
@@ -1221,7 +1238,7 @@ export class RewardsController extends BaseController<
           // Account hasn't opted in, don't proceed with login
           subscription = null;
           // Update state to reflect not opted in
-          this.update((state: RewardsControllerState) => {
+          this.update((state) => {
             if (!account) {
               return;
             }
@@ -1342,7 +1359,7 @@ export class RewardsController extends BaseController<
       }
     } finally {
       // Update state
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         if (!account) {
           return;
         }
@@ -1414,7 +1431,7 @@ export class RewardsController extends BaseController<
         coercedAccount = account;
       }
 
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         // Create account state if it doesn't exist
         if (!state.accounts[coercedAccount]) {
           state.accounts[coercedAccount] = {
@@ -1600,7 +1617,7 @@ export class RewardsController extends BaseController<
               this.convertInternalAccountToCaipAccountId(internalAccount);
             if (caipAccount) {
               const lastFreshOptInStatusCheck = Date.now();
-              this.update((state: RewardsControllerState) => {
+              this.update((state) => {
                 // Update or create account state with fresh opt-in status and subscription ID
                 if (!state.accounts[caipAccount]) {
                   state.accounts[caipAccount] = {
@@ -1805,7 +1822,7 @@ export class RewardsController extends BaseController<
           return pointsEvents;
         }, params.subscriptionId),
       writeCache: (key, pointsEventsDto) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.pointsEvents[key] =
             this.#convertPointsEventsToState(pointsEventsDto);
         });
@@ -2024,7 +2041,7 @@ export class RewardsController extends BaseController<
       responseBonusBips: response.bonusBips,
     };
 
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       // Add new entry at the beginning (most recent first)
       state.pointsEstimateHistory.unshift(entry);
 
@@ -2156,7 +2173,7 @@ export class RewardsController extends BaseController<
           return seasonStateWithTimestamp;
         }
 
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           delete state.seasons[type];
         });
 
@@ -2165,7 +2182,7 @@ export class RewardsController extends BaseController<
         );
       },
       writeCache: (key, value) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.seasons[key] = value;
           state.seasons[value.id] = value;
         });
@@ -2227,7 +2244,7 @@ export class RewardsController extends BaseController<
             return this.#convertSeasonStatusToSubscriptionState(seasonStatus);
           } catch (error) {
             if (error instanceof SeasonNotFoundError) {
-              this.update((state: RewardsControllerState) => {
+              this.update((state) => {
                 state.seasons = {};
               });
               throw error;
@@ -2240,7 +2257,7 @@ export class RewardsController extends BaseController<
           }
         }, subscriptionId),
       writeCache: (key, subscriptionSeasonStatus) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           // Update season status with composite key
           state.seasonStatuses[key] = subscriptionSeasonStatus;
         });
@@ -2259,7 +2276,7 @@ export class RewardsController extends BaseController<
   async invalidateSubscriptionAndAccounts(
     subscriptionId: string,
   ): Promise<void> {
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       // Remove the failing subscription
       delete state.subscriptions[subscriptionId];
 
@@ -2344,7 +2361,7 @@ export class RewardsController extends BaseController<
           };
         }, subscriptionId),
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.subscriptionReferralDetails[key] = payload;
         });
       },
@@ -2592,7 +2609,7 @@ export class RewardsController extends BaseController<
     try {
       const currentActiveAccount = this.state.activeAccount?.account;
       this.resetState();
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         if (currentActiveAccount) {
           state.activeAccount = {
             account: currentActiveAccount,
@@ -2652,6 +2669,17 @@ export class RewardsController extends BaseController<
           delete state.accounts[state.activeAccount.account];
           state.activeAccount = null;
         }
+        // Clear all cached data keyed by this subscription ID
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
       });
 
       Logger.log('RewardsController: Logout completed successfully');
@@ -3034,7 +3062,7 @@ export class RewardsController extends BaseController<
       );
 
       // Update store with accounts and subscriptions (but not activeAccount)
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         // Update accounts state
         state.accounts[caipAccount] = {
           account: caipAccount,
@@ -3236,7 +3264,7 @@ export class RewardsController extends BaseController<
           return response.boosts;
         }, subscriptionId),
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.activeBoosts[key] = {
             boosts: payload,
             lastFetched: Date.now(),
@@ -3289,63 +3317,9 @@ export class RewardsController extends BaseController<
           return response || [];
         }, subscriptionId),
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.unlockedRewards[key] = {
             rewards: payload,
-            lastFetched: Date.now(),
-          };
-        });
-      },
-    });
-
-    return result;
-  }
-
-  /**
-   * Get snapshots for a season with caching
-   * @param seasonId - The season ID
-   * @param subscriptionId - The subscription ID for authentication
-   * @returns Promise<SnapshotDto[]> - The snapshots data
-   */
-  async getSnapshots(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
-    const rewardsEnabled = this.isRewardsFeatureEnabled();
-    if (!rewardsEnabled) {
-      return [];
-    }
-    if (!this.#isSnapshotsEnabled()) {
-      throw new Error('Snapshots feature is not enabled');
-    }
-    const result = await wrapWithCache<SnapshotDto[]>({
-      key: seasonId,
-      ttl: SNAPSHOTS_CACHE_THRESHOLD_MS,
-      readCache: (key) => {
-        const cachedSnapshots = this.state.snapshots[key] || undefined;
-        if (!cachedSnapshots) return;
-        return {
-          payload: cachedSnapshots.snapshots,
-          lastFetched: cachedSnapshots.lastFetched,
-        };
-      },
-      fetchFresh: async () =>
-        this.#withAuthRetry(async () => {
-          Logger.log(
-            'RewardsController: Fetching fresh snapshots data via API call for seasonId',
-            seasonId,
-          );
-          const response = (await this.messenger.call(
-            'RewardsDataService:getSnapshots',
-            seasonId,
-            subscriptionId,
-          )) as SnapshotDto[];
-          return response || [];
-        }, subscriptionId),
-      writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
-          state.snapshots[key] = {
-            snapshots: payload,
             lastFetched: Date.now(),
           };
         });
@@ -3430,7 +3404,7 @@ export class RewardsController extends BaseController<
         }
       },
       writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           (
             state.offDeviceSubscriptionAccounts as Record<
               string,
@@ -3457,21 +3431,20 @@ export class RewardsController extends BaseController<
     if (!rewardsEnabled) {
       return [];
     }
-    if (!this.#isCampaignsEnabled()) {
-      return [];
-    }
-    const result = await wrapWithCache<CampaignDto[]>({
-      key: subscriptionId,
+
+    return wrapWithCache<CampaignDto[]>({
+      key: CAMPAIGNS_CACHE_KEY,
       ttl: CAMPAIGNS_CACHE_THRESHOLD_MS,
       readCache: (key) => {
-        const cachedCampaigns = this.state.campaigns[key] || undefined;
-        if (!cachedCampaigns) return;
-        return {
-          payload: cachedCampaigns.campaigns,
-          lastFetched: cachedCampaigns.lastFetched,
-        };
+        const cached = this.state.campaigns[key];
+        return cached
+          ? {
+              payload: cached.campaigns as CampaignDto[],
+              lastFetched: cached.lastFetched,
+            }
+          : undefined;
       },
-      fetchFresh: async () =>
+      fetchFresh: () =>
         this.#withAuthRetry(async () => {
           Logger.log(
             'RewardsController: Fetching fresh campaigns data via API call',
@@ -3482,17 +3455,15 @@ export class RewardsController extends BaseController<
           )) as CampaignDto[];
           return response || [];
         }, subscriptionId),
-      writeCache: (key, payload) => {
-        this.update((state: RewardsControllerState) => {
-          state.campaigns[key] = {
-            campaigns: payload,
+      writeCache: (key, campaigns) => {
+        this.update((state) => {
+          (state.campaigns as Record<string, unknown>)[key] = {
+            campaigns: campaigns as CampaignDtoState[],
             lastFetched: Date.now(),
-          };
+          } as CampaignState;
         });
       },
     });
-
-    return result;
   }
 
   /**
@@ -3505,9 +3476,12 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
-      return { optedIn: false };
+    if (!this.isRewardsFeatureEnabled()) {
+      return { optedIn: false, participantCount: 0 };
     }
+    const key = `${subscriptionId}:${campaignId}`;
+    const wasAlreadyOptedIn =
+      this.state.campaignParticipantStatus[key]?.optedIn === true;
     const result = await this.#withAuthRetry(async () => {
       Logger.log('RewardsController: Opting into campaign', campaignId);
       return (await this.messenger.call(
@@ -3516,15 +3490,25 @@ export class RewardsController extends BaseController<
         campaignId,
       )) as CampaignParticipantStatusDto;
     }, subscriptionId);
-    // Invalidate the participant status cache so the next fetch gets fresh data
-    const key = `${subscriptionId}:${campaignId}`;
-    this.update((state: RewardsControllerState) => {
+    // Invalidate the participant status cache and leaderboard position cache
+    this.update((state) => {
       delete state.campaignParticipantStatus[key];
+      delete state.ondoCampaignLeaderboardPositions[key];
     });
-    this.messenger.publish('RewardsController:campaignOptedIn', {
-      campaignId,
-      subscriptionId,
-    });
+    // Only emit if the user wasn't already opted in, to avoid redundant refetches
+    if (!wasAlreadyOptedIn) {
+      this.messenger.publish('RewardsController:campaignOptedIn', {
+        campaignId,
+        subscriptionId,
+      });
+      this.messenger.publish(
+        'RewardsController:leaderboardPositionInvalidated',
+        {
+          campaignId,
+          subscriptionId,
+        },
+      );
+    }
     return result;
   }
 
@@ -3538,8 +3522,8 @@ export class RewardsController extends BaseController<
     campaignId: string,
     subscriptionId: string,
   ): Promise<CampaignParticipantStatusDto> {
-    if (!this.isRewardsFeatureEnabled() || !this.#isCampaignsEnabled()) {
-      return { optedIn: false };
+    if (!this.isRewardsFeatureEnabled()) {
+      return { optedIn: false, participantCount: 0 };
     }
     const key = `${subscriptionId}:${campaignId}`;
     const result = await wrapWithCache<CampaignParticipantStatusDto>({
@@ -3549,7 +3533,10 @@ export class RewardsController extends BaseController<
         const cached = this.state.campaignParticipantStatus[k];
         if (!cached) return undefined;
         return {
-          payload: { optedIn: cached.optedIn },
+          payload: {
+            optedIn: cached.optedIn,
+            participantCount: cached.participantCount,
+          },
           lastFetched: cached.lastFetched,
         };
       },
@@ -3565,12 +3552,144 @@ export class RewardsController extends BaseController<
           )) as CampaignParticipantStatusDto;
         }, subscriptionId),
       writeCache: (k, payload) => {
-        this.update((state: RewardsControllerState) => {
+        this.update((state) => {
           state.campaignParticipantStatus[k] = {
             optedIn: payload.optedIn,
+            participantCount: payload.participantCount,
             lastFetched: Date.now(),
           };
         });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the campaign leaderboard showing top 20 participants per tier.
+   * This is a public endpoint - no authentication required.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get leaderboard for.
+   * @returns The leaderboard data grouped by tier.
+   */
+  async getOndoCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { campaign_id: campaignId, computed_at: '', tiers: {} };
+    }
+
+    const result = await wrapWithCache<CampaignLeaderboardDto>({
+      key: campaignId,
+      ttl: ONDO_CAMPAIGN_LEADERBOARD_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignLeaderboard[k];
+        if (!cached) return undefined;
+        return {
+          payload: {
+            campaign_id: cached.campaign_id,
+            computed_at: cached.computed_at,
+            tiers: cached.tiers,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        Logger.log(
+          'RewardsController: Fetching fresh campaign leaderboard via API call',
+        );
+        return (await this.messenger.call(
+          'RewardsDataService:getOndoCampaignLeaderboard',
+          campaignId,
+        )) as CampaignLeaderboardDto;
+      },
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.ondoCampaignLeaderboard[k] = {
+            campaign_id: payload.campaign_id,
+            computed_at: payload.computed_at,
+            tiers: payload.tiers,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the current user's position on the campaign leaderboard.
+   * This is an authenticated endpoint.
+   * Results are cached for 5 minutes.
+   * @param campaignId - The campaign ID to get position for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's leaderboard position, or null if not found.
+   */
+  async getOndoCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardPositionDto | null> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return null;
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<CampaignLeaderboardPositionDto | null>({
+      key,
+      ttl: ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignLeaderboardPositions[k];
+        if (!cached) return undefined;
+        if ('notFound' in cached) {
+          return { payload: null, lastFetched: cached.lastFetched };
+        }
+        return {
+          payload: {
+            projected_tier: cached.projected_tier,
+            rank: cached.rank,
+            total_in_tier: cached.total_in_tier,
+            rate_of_return: cached.rate_of_return,
+            current_usd_value: cached.current_usd_value,
+            total_usd_deposited: cached.total_usd_deposited,
+            net_deposit: cached.net_deposit,
+            computed_at: cached.computed_at,
+          },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh campaign leaderboard position via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getOndoCampaignLeaderboardPosition',
+            campaignId,
+            subscriptionId,
+          )) as CampaignLeaderboardPositionDto | null;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        if (payload === null) {
+          this.update((state) => {
+            state.ondoCampaignLeaderboardPositions[k] = {
+              notFound: true,
+              lastFetched: Date.now(),
+            };
+          });
+        } else {
+          this.update((state) => {
+            state.ondoCampaignLeaderboardPositions[k] = {
+              projected_tier: payload.projected_tier,
+              rank: payload.rank,
+              total_in_tier: payload.total_in_tier,
+              rate_of_return: payload.rate_of_return,
+              current_usd_value: payload.current_usd_value,
+              total_usd_deposited: payload.total_usd_deposited,
+              net_deposit: payload.net_deposit,
+              computed_at: payload.computed_at,
+              lastFetched: Date.now(),
+            };
+          });
+        }
       },
     });
     return result;
@@ -3744,11 +3863,30 @@ export class RewardsController extends BaseController<
   }
 
   /**
+   * Fetch the minimum client version requirements from the public API.
+   * Cached in memory for the controller's lifetime (one fetch per app session).
+   * This is a public (unauthenticated) endpoint that does not require
+   * the rewards feature to be enabled.
+   */
+  async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
+    if (this.#clientVersionRequirements) {
+      return this.#clientVersionRequirements;
+    }
+
+    const result = (await this.messenger.call(
+      'RewardsDataService:getClientVersionRequirements',
+    )) as ClientVersionRequirementDto;
+
+    this.#clientVersionRequirements = result;
+    return result;
+  }
+
+  /**
    * Invalidate referral details cache for a subscription
    * @param subscriptionId - The subscription ID to invalidate cache for
    */
   invalidateReferralDetailsCache(subscriptionId: string): void {
-    this.update((state: RewardsControllerState) => {
+    this.update((state) => {
       Object.keys(state.subscriptionReferralDetails).forEach((key) => {
         if (key.includes(subscriptionId)) {
           delete state.subscriptionReferralDetails[key];
@@ -3774,16 +3912,26 @@ export class RewardsController extends BaseController<
         seasonId,
         subscriptionId,
       );
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         delete state.seasonStatuses[compositeKey];
         delete state.unlockedRewards[compositeKey];
         delete state.activeBoosts[compositeKey];
         delete state.pointsEvents[compositeKey];
         delete state.subscriptionReferralDetails[compositeKey];
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
       });
     } else {
       // Invalidate all seasons for this subscription
-      this.update((state: RewardsControllerState) => {
+      this.update((state) => {
         Object.keys(state.seasonStatuses).forEach((key) => {
           if (key.includes(subscriptionId)) {
             delete state.seasonStatuses[key];
@@ -3816,6 +3964,16 @@ export class RewardsController extends BaseController<
             OffDeviceSubscriptionAccountsState
           >
         )[subscriptionId];
+        Object.keys(state.campaignParticipantStatus).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.campaignParticipantStatus[key];
+          }
+        });
+        Object.keys(state.ondoCampaignLeaderboardPositions).forEach((key) => {
+          if (key.startsWith(`${subscriptionId}:`)) {
+            delete state.ondoCampaignLeaderboardPositions[key];
+          }
+        });
       });
     }
 

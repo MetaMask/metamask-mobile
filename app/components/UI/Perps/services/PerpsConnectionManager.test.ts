@@ -123,6 +123,7 @@ const resetManager = (manager: unknown) => {
     initPromise: Promise<void> | null;
     disconnectPromise: Promise<void> | null;
     pendingReconnectPromise: Promise<void> | null;
+    ensureConnectedPromise: Promise<void> | null;
     unsubscribeFromStore: (() => void) | null;
     previousAddress: string | undefined;
     previousPerpsNetwork: 'mainnet' | 'testnet' | undefined;
@@ -157,6 +158,7 @@ const resetManager = (manager: unknown) => {
   m.initPromise = null;
   m.disconnectPromise = null;
   m.pendingReconnectPromise = null;
+  m.ensureConnectedPromise = null;
   m.unsubscribeFromStore = null;
   m.previousAddress = undefined;
   m.previousPerpsNetwork = undefined;
@@ -1272,6 +1274,116 @@ describe('PerpsConnectionManager', () => {
 
       // Assert
       expect(m.wasOffline).toBe(true);
+    });
+  });
+
+  describe('ensureConnected', () => {
+    it('cancels grace period, disconnects, and reconnects when connected', async () => {
+      // Establish connection first
+      await PerpsConnectionManager.connect();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+
+      // Simulate the state after AlwaysOnProvider calls disconnect() which
+      // decrements refCount to 0 and starts grace period
+      const m = PerpsConnectionManager as unknown as {
+        isInGracePeriod: boolean;
+        gracePeriodTimer: number | null;
+        connectionRefCount: number;
+      };
+      m.connectionRefCount = 0;
+      m.isInGracePeriod = true;
+      m.gracePeriodTimer = 123;
+
+      // Clear mocks to track ensureConnected calls
+      (Engine.context.PerpsController.disconnect as jest.Mock).mockClear();
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.ensureConnected();
+
+      // Grace period should be cancelled
+      expect(m.isInGracePeriod).toBe(false);
+
+      // Should have disconnected then reconnected
+      expect(Engine.context.PerpsController.disconnect).toHaveBeenCalled();
+      expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('reconnects after long background when grace period already fired', async () => {
+      // Establish connection, then simulate grace period already fired
+      await PerpsConnectionManager.connect();
+
+      // Simulate performActualDisconnection already ran (grace period fired)
+      const m = PerpsConnectionManager as unknown as {
+        isConnected: boolean;
+        isInitialized: boolean;
+        hasPreloaded: boolean;
+        isPreloading: boolean;
+        connectionRefCount: number;
+      };
+      m.isConnected = false;
+      m.isInitialized = false;
+      m.hasPreloaded = false;
+      m.isPreloading = false;
+      // Grace period fired → refCount was already 0 when disconnect ran
+      m.connectionRefCount = 0;
+
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.ensureConnected();
+
+      // Should have reconnected (connect() runs full init path since isConnected=false)
+      expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('connects when not previously connected', async () => {
+      // Manager starts in disconnected state (from resetManager in beforeEach)
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      await PerpsConnectionManager.ensureConnected();
+
+      expect(Engine.context.PerpsController.init).toHaveBeenCalled();
+      expect(PerpsConnectionManager.getConnectionState().isConnected).toBe(
+        true,
+      );
+    });
+
+    it('resets connectionRefCount to 1 after ensureConnected', async () => {
+      // Simulate refCount drift: connect() twice so refCount = 2
+      await PerpsConnectionManager.connect();
+      await PerpsConnectionManager.connect();
+
+      const m = PerpsConnectionManager as unknown as {
+        connectionRefCount: number;
+      };
+      expect(m.connectionRefCount).toBe(2);
+
+      await PerpsConnectionManager.ensureConnected();
+
+      // ensureConnected resets to 0 then connect() brings it to 1
+      expect(m.connectionRefCount).toBe(1);
+    });
+
+    it('deduplicates concurrent ensureConnected calls', async () => {
+      (Engine.context.PerpsController.init as jest.Mock).mockClear();
+
+      // Fire two calls concurrently
+      const [result1, result2] = await Promise.all([
+        PerpsConnectionManager.ensureConnected(),
+        PerpsConnectionManager.ensureConnected(),
+      ]);
+
+      expect(result1).toBeUndefined();
+      expect(result2).toBeUndefined();
+      // init should only be called once since second call reuses the promise
+      expect(Engine.context.PerpsController.init).toHaveBeenCalledTimes(1);
     });
   });
 

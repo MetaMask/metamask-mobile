@@ -7,9 +7,7 @@ import KeypadComponent, {
 } from '../../../../Base/Keypad';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './edit-amount-keyboard.styles';
-import Button, {
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import { Box } from '../../../../UI/Box/Box';
 import { FlexDirection, JustifyContent } from '../../../../UI/Box/box.types';
 import { strings } from '../../../../../../locales/i18n';
@@ -72,19 +70,21 @@ export function EditAmountKeyboard({
             <Button
               key={`${val}-${label}`}
               testID={`percentage-button-${val}`}
-              label={label}
               style={styles.percentageButton}
               onPress={() => onPercentagePress(val)}
-              variant={ButtonVariants.Secondary}
-            />
+              variant={ButtonVariant.Secondary}
+            >
+              {label}
+            </Button>
           ))}
           {!hideDoneButton && onDonePress && (
             <Button
-              label={strings('confirm.edit_amount_done')}
               style={styles.percentageButton}
               onPress={onDonePress}
-              variant={ButtonVariants.Secondary}
-            />
+              variant={ButtonVariant.Secondary}
+            >
+              {strings('confirm.edit_amount_done')}
+            </Button>
           )}
         </Box>
       )}

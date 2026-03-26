@@ -40,6 +40,7 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import { QUOTE_TEST_IDS } from './Quote.testIds';
 
 interface Props {
   quote: QuoteResponse | SellQuoteResponse;
@@ -118,7 +119,10 @@ const Quote: React.FC<Props> = ({
   }));
 
   return (
-    <Animated.View style={animatedOpacity} testID="animated-view-opacity">
+    <Animated.View
+      style={animatedOpacity}
+      testID={QUOTE_TEST_IDS.ANIMATED_VIEW_OPACITY}
+    >
       <Box
         onPress={highlighted ? undefined : onPress}
         highlighted={highlighted}
@@ -182,7 +186,7 @@ const Quote: React.FC<Props> = ({
             <Animated.View
               onLayout={handleOnLayout}
               style={[styles.data, animatedStyle]}
-              testID="animated-view-height"
+              testID={QUOTE_TEST_IDS.ANIMATED_VIEW_HEIGHT}
             >
               <View style={styles.buyButton}>
                 {isBuyQuote(quote, rampType) && quote.isNativeApplePay ? (

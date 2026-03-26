@@ -92,6 +92,7 @@ export interface ApplyBonusCodeDto {
  */
 export enum CampaignType {
   ONDO_HOLDING = 'ONDO_HOLDING',
+  SEASON_1 = 'SEASON_1',
 }
 
 /**
@@ -140,24 +141,95 @@ export interface CampaignDto {
   excludedRegions: string[];
 
   /**
-   * Status label for the campaign
-   * @example 'Active'
+   * Theme-aware background image for the campaign tile
    */
-  statusLabel: string;
+  image?: ThemeImage;
+
+  /**
+   * The details of the campaign
+   * @example { howItWorks: { title: 'How it works', description: 'How it works', phases: [{ name: 'Phase 1', daysLabel: 'Days', sortOrder: 1, steps: [{ title: 'Step 1', description: 'Step 1', iconName: 'icon-name' }] }] } }
+   */
+  details: CampaignDetails | null;
+
+  /**
+   * Whether this campaign is featured (shown prominently in the UI)
+   * @example true
+   */
+  featured: boolean;
 }
 
+/**
+ * Serializable version of OndoCampaignStep for state storage.
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type CampaignsState = {
-  campaigns: {
-    id: string;
-    type: CampaignType;
-    name: string;
-    startDate: string;
-    endDate: string;
-    termsAndConditions: Json | null;
-    excludedRegions: string[];
-    statusLabel: string;
-  }[];
+export type OndoCampaignStepState = {
+  title: string;
+  description: string;
+  iconName: string;
+};
+
+/**
+ * Serializable version of OndoCampaignPhase for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignPhaseState = {
+  name: string;
+  daysLabel: string;
+  sortOrder: number;
+  steps: OndoCampaignStepState[];
+  days?: number | null;
+};
+
+/**
+ * Serializable version of OndoCampaignHowItWorks for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignHowItWorksState = {
+  title: string;
+  description: string;
+  phases: OndoCampaignPhaseState[];
+  notes?: Json | null;
+};
+
+/**
+ * Serializable version of ThemeImage for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type ThemeImageState = {
+  lightModeUrl: string;
+  darkModeUrl: string;
+};
+
+/**
+ * Serializable version of CampaignDetails for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignDetailsState = {
+  image: ThemeImageState;
+  howItWorks: OndoCampaignHowItWorksState;
+};
+
+/**
+ * Serializable version of CampaignDto for state storage.
+ * Uses plain string for type instead of CampaignType enum to satisfy StateConstraint.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignDtoState = {
+  id: string;
+  type: string;
+  name: string;
+  startDate: string;
+  endDate: string;
+  termsAndConditions: Json | null;
+  excludedRegions: string[];
+  statusLabel: string;
+  details: CampaignDetailsState | null;
+  featured: boolean;
+};
+
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignState = {
+  campaigns: CampaignDtoState[];
   lastFetched: number;
 };
 
@@ -167,116 +239,223 @@ export type CampaignsState = {
 export interface CampaignParticipantStatusDto {
   /** Whether the subscription has opted into the campaign */
   optedIn: boolean;
+
+  /**
+   * The number of participants in the campaign
+   * @example 100
+   */
+  participantCount: number;
 }
 
+/**
+ * A single entry in the campaign leaderboard
+ */
+export interface CampaignLeaderboardEntry {
+  /**
+   * The rank of the participant within their tier
+   * @example 1
+   */
+  rank: number;
+
+  /**
+   * The participant's referral code (used as identifier)
+   * @example 'ABC123'
+   */
+  referral_code: string;
+
+  /**
+   * The rate of return as a decimal ratio (0.15 = 15%, -0.05 = -5%)
+   * @example 0.15
+   */
+  rate_of_return: number;
+}
+
+/**
+ * Leaderboard data for a single tier
+ */
+export interface CampaignLeaderboardTier {
+  /**
+   * Top entries in the tier (up to 20)
+   */
+  entries: CampaignLeaderboardEntry[];
+
+  /**
+   * Total number of participants in this tier
+   * @example 150
+   */
+  total_participants: number;
+}
+
+/**
+ * Response DTO for GET /ondo-gm/:campaignId/leaderboard
+ * Public endpoint returning top 20 per tier
+ */
+export interface CampaignLeaderboardDto {
+  /**
+   * The campaign ID
+   * @example '123e4567-e89b-12d3-a456-426614174000'
+   */
+  campaign_id: string;
+
+  /**
+   * When the leaderboard was last computed (ISO timestamp)
+   * @example '2024-03-20T12:00:00.000Z'
+   */
+  computed_at: string;
+
+  /**
+   * Leaderboard data by tier name (e.g. STARTER, MID, UPPER)
+   * Keys are dynamic based on campaign config
+   */
+  tiers: Record<string, CampaignLeaderboardTier>;
+}
+
+/**
+ * Response DTO for GET /ondo-gm/:campaignId/leaderboard/me
+ * Authenticated endpoint returning the current user's position
+ */
+export interface CampaignLeaderboardPositionDto {
+  /**
+   * The user's projected tier based on net deposit
+   * @example 'MID'
+   */
+  projected_tier: string;
+
+  /**
+   * The user's rank within their tier
+   * @example 5
+   */
+  rank: number;
+
+  /**
+   * Total number of participants in the user's tier
+   * @example 150
+   */
+  total_in_tier: number;
+
+  /**
+   * The user's rate of return as a decimal ratio
+   * @example 0.15
+   */
+  rate_of_return: number;
+
+  /**
+   * Current USD value of the user's positions
+   * @example 12500.50
+   */
+  current_usd_value: number;
+
+  /**
+   * Total USD deposited by the user
+   * @example 10000.00
+   */
+  total_usd_deposited: number;
+
+  /**
+   * Net deposit amount (deposits - withdrawals at cost basis)
+   * @example 8500.00
+   */
+  net_deposit: number;
+
+  /**
+   * When the leaderboard was last computed (ISO timestamp)
+   * @example '2024-03-20T12:00:00.000Z'
+   */
+  computed_at: string;
+}
+
+/**
+ * State for cached leaderboard data in the controller
+ */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type CampaignParticipantStatusState = {
-  optedIn: boolean;
+export type CampaignLeaderboardState = {
+  campaign_id: string;
+  computed_at: string;
+  tiers: Record<
+    string,
+    {
+      entries: {
+        rank: number;
+        referral_code: string;
+        rate_of_return: number;
+      }[];
+      total_participants: number;
+    }
+  >;
   lastFetched: number;
 };
 
 /**
- * DTO for snapshot data from the backend
+ * State for cached leaderboard position in the controller
  */
-export interface SnapshotDto {
-  /**
-   * The unique identifier of the snapshot
-   * @example '01974010-377f-7553-a365-0c33c8130980'
-   */
-  id: string;
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignLeaderboardPositionFoundState = {
+  projected_tier: string;
+  rank: number;
+  total_in_tier: number;
+  rate_of_return: number;
+  current_usd_value: number;
+  total_usd_deposited: number;
+  net_deposit: number;
+  computed_at: string;
+  lastFetched: number;
+};
 
-  /**
-   * The season ID this snapshot belongs to
-   * @example '7444682d-9050-43b8-9038-28a6a62d6264'
-   */
-  seasonId: string;
+/** Sentinel stored when the API returns null (user not on leaderboard), so the TTL is respected. */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignLeaderboardPositionNotFoundState = {
+  notFound: true;
+  lastFetched: number;
+};
 
-  /**
-   * The name of the snapshot/airdrop
-   * @example 'Monad Airdrop'
-   */
-  name: string;
+export type CampaignLeaderboardPositionState =
+  | CampaignLeaderboardPositionFoundState
+  | CampaignLeaderboardPositionNotFoundState;
 
-  /**
-   * Optional description of the snapshot
-   * @example 'Earn Monad tokens by participating in the airdrop'
-   */
-  description?: string;
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type CampaignParticipantStatusState = {
+  optedIn: boolean;
+  participantCount: number;
+  lastFetched: number;
+};
 
-  /**
-   * The token symbol being distributed
-   * @example 'MONAD'
-   */
-  tokenSymbol: string;
-
-  /**
-   * The token amount as a serialized bigint string
-   * @example '50000000000000000000000'
-   */
-  tokenAmount: string;
-
-  /**
-   * The chain ID as a serialized bigint string
-   * @example '1'
-   */
-  tokenChainId: string;
-
-  /**
-   * Optional token contract address
-   * @example '0x1234567890abcdef1234567890abcdef12345678'
-   */
-  tokenAddress?: string;
-
-  /**
-   * The blockchain where tokens will be distributed
-   * @example 'Ethereum'
-   */
-  receivingBlockchain: string;
-
-  /**
-   * When the snapshot opens (ISO date string)
-   * @example '2025-03-01T00:00:00.000Z'
-   */
-  opensAt: string;
-
-  /**
-   * When the snapshot closes (ISO date string)
-   * @example '2025-03-15T00:00:00.000Z'
-   */
-  closesAt: string;
-
-  /**
-   * When results were calculated (ISO date string)
-   * @example '2025-03-16T00:00:00.000Z'
-   */
-  calculatedAt?: string;
-
-  /**
-   * When tokens were distributed (ISO date string)
-   * @example '2025-03-20T00:00:00.000Z'
-   */
-  distributedAt?: string;
-
-  /**
-   * Background image for the snapshot tile
-   */
-  backgroundImage: ThemeImage;
+export interface OndoCampaignStep {
+  title: string;
+  description: string;
+  iconName: string;
 }
 
+export interface OndoCampaignPhase {
+  name: string;
+  daysLabel: string;
+  sortOrder: number;
+  steps: OndoCampaignStep[];
+  /**
+   * Number of days in the phase, used to calculate phase cut-off dates
+   */
+  days?: number | null;
+}
+
+export interface OndoCampaignHowItWorks {
+  title: string;
+  description: string;
+  phases: OndoCampaignPhase[];
+  notes?: Json | null;
+}
+
+export interface OndoHoldingDetails {
+  howItWorks: OndoCampaignHowItWorks;
+}
+
+export type CampaignDetails = OndoHoldingDetails;
+
 /**
- * Snapshot status derived from dates
- * - upcoming: now < opensAt
- * - live: opensAt <= now < closesAt
- * - calculating: closesAt <= now && !calculatedAt
- * - distributing: calculatedAt && !distributedAt
- * - complete: distributedAt is set
+ * Campaign status derived from dates
+ * - upcoming: now < startDate
+ * - active: startDate <= now < endDate
+ * - complete: now >= endDate
  */
-export type SnapshotStatus =
-  | 'upcoming'
-  | 'live'
-  | 'calculating'
-  | 'distributing'
-  | 'complete';
+export type CampaignStatus = 'upcoming' | 'active' | 'complete';
 
 export interface EstimateAssetDto {
   /**
@@ -931,30 +1110,6 @@ export type OffDeviceSubscriptionAccountsState = {
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
-export type SnapshotsState = {
-  snapshots: {
-    id: string;
-    seasonId: string;
-    name: string;
-    description?: string;
-    tokenSymbol: string;
-    tokenAmount: string;
-    tokenChainId: string;
-    tokenAddress?: string;
-    receivingBlockchain: string;
-    opensAt: string;
-    closesAt: string;
-    calculatedAt?: string;
-    distributedAt?: string;
-    backgroundImage: {
-      lightModeUrl: string;
-      darkModeUrl: string;
-    };
-  }[];
-  lastFetched: number;
-};
-
-// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type PointsEventsDtoState = {
   results: {
     id: string;
@@ -1286,13 +1441,19 @@ export type RewardsControllerState = {
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
   unlockedRewards: { [compositeId: string]: UnlockedRewardsState };
   pointsEvents: { [compositeId: string]: PointsEventsDtoState };
-  snapshots: { [seasonId: string]: SnapshotsState };
   offDeviceSubscriptionAccounts: {
     [subscriptionId: string]: OffDeviceSubscriptionAccountsState;
   };
-  campaigns: { [subscriptionId: string]: CampaignsState };
+  /** Campaign data keyed by 'REWARDS_CAMPAIGNS' */
+  campaigns: { [key: string]: CampaignState };
   campaignParticipantStatus: {
     [compositeId: string]: CampaignParticipantStatusState;
+  };
+  /** Ondo campaign leaderboard data keyed by campaignId */
+  ondoCampaignLeaderboard: { [campaignId: string]: CampaignLeaderboardState };
+  /** Ondo campaign leaderboard position keyed by compositeId (subscriptionId:campaignId) */
+  ondoCampaignLeaderboardPositions: {
+    [compositeId: string]: CampaignLeaderboardPositionState;
   };
   /**
    * History of points estimates for Customer Support diagnostics.
@@ -1372,6 +1533,20 @@ export interface RewardsControllerCampaignOptedInEvent {
 }
 
 /**
+ * Event emitted when a user opts into a campaign, invalidating the cached
+ * leaderboard position so hooks can refetch fresh data.
+ */
+export interface RewardsControllerLeaderboardPositionInvalidatedEvent {
+  type: 'RewardsController:leaderboardPositionInvalidated';
+  payload: [
+    {
+      campaignId: string;
+      subscriptionId: string;
+    },
+  ];
+}
+
+/**
  * Events that can be emitted by the RewardsController
  */
 export type RewardsControllerEvents =
@@ -1380,7 +1555,8 @@ export type RewardsControllerEvents =
   | RewardsControllerRewardClaimedEvent
   | RewardsControllerBalanceUpdatedEvent
   | RewardsControllerPointsEventsUpdatedEvent
-  | RewardsControllerCampaignOptedInEvent;
+  | RewardsControllerCampaignOptedInEvent
+  | RewardsControllerLeaderboardPositionInvalidatedEvent;
 
 /**
  * Patch type for state changes
@@ -1671,11 +1847,22 @@ export interface RewardsControllerGetCampaignParticipantStatusAction {
 }
 
 /**
- * Action for getting snapshots for a season
+ * Action for getting the campaign leaderboard (public, top 20 per tier)
  */
-export interface RewardsControllerGetSnapshotsAction {
-  type: 'RewardsController:getSnapshots';
-  handler: (seasonId: string, subscriptionId: string) => Promise<SnapshotDto[]>;
+export interface RewardsControllerGetOndoCampaignLeaderboardAction {
+  type: 'RewardsController:getOndoCampaignLeaderboard';
+  handler: (campaignId: string) => Promise<CampaignLeaderboardDto>;
+}
+
+/**
+ * Action for getting the current user's leaderboard position (authenticated)
+ */
+export interface RewardsControllerGetOndoCampaignLeaderboardPositionAction {
+  type: 'RewardsController:getOndoCampaignLeaderboardPosition';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<CampaignLeaderboardPositionDto | null>;
 }
 
 /**
@@ -1751,6 +1938,22 @@ export interface RewardsControllerApplyBonusCodeAction {
 }
 
 /**
+ * Response DTO for the client version requirements endpoint.
+ */
+export interface ClientVersionRequirementDto {
+  minimumMobileVersion?: string;
+  minimumExtensionVersion?: string;
+}
+
+/**
+ * Action for fetching client version requirements
+ */
+export interface RewardsControllerGetClientVersionRequirementsAction {
+  type: 'RewardsController:getClientVersionRequirements';
+  handler: () => Promise<ClientVersionRequirementDto>;
+}
+
+/**
  * Actions that can be performed by the RewardsController
  */
 export type RewardsControllerActions =
@@ -1782,7 +1985,8 @@ export type RewardsControllerActions =
   | RewardsControllerGetCampaignsAction
   | RewardsControllerOptInToCampaignAction
   | RewardsControllerGetCampaignParticipantStatusAction
-  | RewardsControllerGetSnapshotsAction
+  | RewardsControllerGetOndoCampaignLeaderboardAction
+  | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction
@@ -1792,7 +1996,8 @@ export type RewardsControllerActions =
   | RewardsControllerCanChangeRewardsEnvUrlAction
   | RewardsControllerSetRewardsEnvUrlAction
   | RewardsControllerGetDefaultRewardsEnvUrlAction
-  | RewardsControllerApplyBonusCodeAction;
+  | RewardsControllerApplyBonusCodeAction
+  | RewardsControllerGetClientVersionRequirementsAction;
 
 /**
  * Input DTO for getting opt-in status of multiple addresses

@@ -191,43 +191,6 @@ const extractPerpsProperties = (
 };
 
 /**
- * Extract properties specific to DEPOSIT route
- * @param urlParams - URL parameters
- * @param sensitiveProps - Object to add properties to
- */
-const extractDepositProperties = (
-  urlParams: UrlParamValues,
-  sensitiveProps: Record<string, string>,
-): void => {
-  extractCommonProperties(urlParams, sensitiveProps);
-  addPropertyIfExists(
-    sensitiveProps,
-    'provider',
-    getStringValue(urlParams, 'provider'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'payment_method',
-    getStringValue(urlParams, 'payment_method'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'sub_payment_method',
-    getStringValue(urlParams, 'sub_payment_method'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'fiat_currency',
-    getStringValue(urlParams, 'fiat_currency'),
-  );
-  addPropertyIfExists(
-    sensitiveProps,
-    'fiat_quantity',
-    getStringValue(urlParams, 'fiat_quantity'),
-  );
-};
-
-/**
  * Extract properties specific to TRANSACTION route
  * @param urlParams - URL parameters
  * @param sensitiveProps - Object to add properties to
@@ -491,7 +454,6 @@ const routeExtractors: Record<
 > = {
   [DeepLinkRoute.SWAP]: extractSwapProperties,
   [DeepLinkRoute.PERPS]: extractPerpsProperties,
-  [DeepLinkRoute.DEPOSIT]: extractDepositProperties,
   [DeepLinkRoute.TRANSACTION]: extractTransactionProperties,
   [DeepLinkRoute.BUY]: extractBuyProperties,
   [DeepLinkRoute.SELL]: extractSellProperties,
@@ -607,8 +569,6 @@ export const mapSupportedActionToRoute = (
     case ACTIONS.PERPS_MARKETS:
     case ACTIONS.PERPS_ASSET:
       return DeepLinkRoute.PERPS;
-    case ACTIONS.DEPOSIT:
-      return DeepLinkRoute.DEPOSIT;
     case ACTIONS.SEND:
       return DeepLinkRoute.TRANSACTION;
     case ACTIONS.BUY:
@@ -666,7 +626,7 @@ export const extractRouteFromUrl = (url: string): DeepLinkRoute => {
       case 'perps':
         return DeepLinkRoute.PERPS;
       case 'deposit':
-        return DeepLinkRoute.DEPOSIT;
+        return DeepLinkRoute.INVALID;
       case 'transaction':
         return DeepLinkRoute.TRANSACTION;
       case 'buy':

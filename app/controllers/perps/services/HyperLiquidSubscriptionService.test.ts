@@ -751,6 +751,62 @@ describe('HyperLiquidSubscriptionService', () => {
       unsubscribe();
     });
 
+    it('enriches WS fills with detailedOrderType from cached orders', async () => {
+      // Arrange — subscribe to orders first so #cachedOrders gets populated
+      const orderCallback = jest.fn();
+      service.subscribeToOrders({ callback: orderCallback });
+      await jest.runAllTimersAsync();
+
+      // Now subscribe to fills — the callback should enrich with cached order types
+      const fillCallback = jest.fn();
+      mockSubscriptionClient.userFills.mockImplementation(
+        (_params: any, callback: any) => {
+          setTimeout(() => {
+            callback({
+              fills: [
+                {
+                  oid: BigInt(12345),
+                  coin: 'BTC',
+                  side: 'B',
+                  sz: '0.1',
+                  px: '50000',
+                  fee: '5',
+                  time: Date.now(),
+                  closedPnl: '0',
+                  dir: 'Open Long',
+                  feeToken: 'USDC',
+                  startPosition: '0',
+                },
+              ],
+            });
+          }, 0);
+          return Promise.resolve({
+            unsubscribe: jest.fn().mockResolvedValue(undefined),
+          });
+        },
+      );
+
+      // Act
+      const unsubscribe = service.subscribeToOrderFills({
+        callback: fillCallback,
+      });
+      await jest.runAllTimersAsync();
+
+      // Assert — fill received with orderId mapped and detailedOrderType enriched
+      expect(fillCallback).toHaveBeenCalledWith(
+        [
+          expect.objectContaining({
+            orderId: '12345',
+            symbol: 'BTC',
+            detailedOrderType: 'Limit',
+          }),
+        ],
+        undefined,
+      );
+
+      unsubscribe();
+    });
+
     it('should pass isSnapshot flag to callback', async () => {
       const mockCallback = jest.fn();
 
@@ -3275,8 +3331,8 @@ describe('HyperLiquidSubscriptionService', () => {
 
       await jest.runAllTimersAsync();
 
-      // Should not call meta/metaAndAssetCtxs when market data not requested
-      expect(mockInfoClient.meta).not.toHaveBeenCalled();
+      // assetCtxs subscription is always established (lightweight, 1 per DEX)
+      // so meta may be called for the assetCtxs mapping, but metaAndAssetCtxs should not
       expect(mockInfoClient.metaAndAssetCtxs).not.toHaveBeenCalled();
 
       unsubscribe();

@@ -153,13 +153,12 @@ jest.mock('expo-haptics', () => ({
 }));
 
 // Mock useTheme
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#037DD6' },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 // Mock useAnalytics
 const mockTrackEvent = jest.fn();

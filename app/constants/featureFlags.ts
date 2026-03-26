@@ -14,6 +14,9 @@ export enum FeatureFlagNames {
   assetsDefiPositionsEnabled = 'assetsDefiPositionsEnabled',
   tokenDetailsV2Buttons = 'tokenDetailsV2Buttons',
   tokenDetailsV2ButtonLayout = 'tokenDetailsV2ButtonLayout',
+  complianceEnabled = 'complianceEnabled',
+  legacyIosGoogleConfigEnabled = 'legacyIosGoogleConfigEnabled',
+  tronClaimUnstakedTrxButtonEnabled = 'tronClaimUnstakedTrxButtonEnabled',
 }
 
 export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
@@ -22,4 +25,5 @@ export const DEFAULT_FEATURE_FLAG_VALUES: Partial<
   [FeatureFlagNames.assetsDefiPositionsEnabled]: true,
   [FeatureFlagNames.tokenDetailsV2Buttons]: false,
   [FeatureFlagNames.tokenDetailsV2ButtonLayout]: false,
+  [FeatureFlagNames.tronClaimUnstakedTrxButtonEnabled]: false,
 };
