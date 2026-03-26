@@ -128,7 +128,11 @@ export class MYXClientService {
       );
     }
 
-    // Initialize MyxClient with broker address
+    // Initialize MyxClient with broker address.
+    // The SDK has built-in WS re-auth on reconnect (onBeforeReSubscribe)
+    // that calls subscription.auth(isReconnect=true) if clientAuth is set.
+    // Do NOT override socketConfig.onBeforeReSubscribe — it would replace
+    // the SDK's built-in re-auth logic.
     this.#myxClient = new MyxClient({
       chainId: this.#chainId,
       brokerAddress,
@@ -138,6 +142,11 @@ export class MYXClientService {
     // Connect WS at construction time (always-on, like HyperLiquid).
     // Individual subscriptions (kline, tickers) subscribe/unsubscribe on
     // this already-open socket.
+    this.#myxClient.subscription.on('open', () => {
+      this.#deps.debugLogger.log(
+        '[MYXClientService] WS open (connect or reconnect)',
+      );
+    });
     this.#myxClient.subscription.connect();
 
     this.#deps.debugLogger.log('[MYXClientService] Initialized with SDK', {

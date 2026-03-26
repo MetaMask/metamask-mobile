@@ -2287,7 +2287,11 @@ export class MYXProvider implements PerpsProvider {
   }
 
   // ============================================================================
-  // Subscriptions (WS for instant updates + REST polling for continuous refresh)
+  // Subscriptions (REST polling + WS for instant trade events)
+  // MYX WS does not send initial snapshot on subscribe, and does not push
+  // continuous position updates (mark price / PnL). REST polling handles
+  // those. WS fires instantly on state changes (trade placed, filled, closed)
+  // so the UI updates without waiting for the next poll cycle.
   // ============================================================================
 
   subscribeToPositions(params: SubscribePositionsParams): () => void {
@@ -2295,7 +2299,7 @@ export class MYXProvider implements PerpsProvider {
     let wsCallback: ((data: unknown) => void) | null = null;
     let pollTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const fetchAndNotify = async (): Promise<void> => {
+    const pollPositions = async (): Promise<void> => {
       if (cancelled) {
         return;
       }
@@ -2308,7 +2312,7 @@ export class MYXProvider implements PerpsProvider {
         // Non-fatal: keep polling
       }
       if (!cancelled) {
-        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
+        pollTimeout = setTimeout(pollPositions, MYX_PRICE_POLLING_INTERVAL_MS);
       }
     };
 
@@ -2316,33 +2320,50 @@ export class MYXProvider implements PerpsProvider {
       try {
         await this.#ensureAuthenticated();
 
+        // WS subscription for instant trade notifications
         try {
-          wsCallback = (): void => {
-            fetchAndNotify().catch((callbackError: unknown) => {
+          wsCallback = (rawData: unknown): void => {
+            if (cancelled) {
+              return;
+            }
+            const posData = rawData as Record<string, unknown>;
+            this.#deps.debugLogger.log('[MYXProvider] WS:position event', {
+              symbol:
+                this.#poolSymbolMap.get(posData.poolId as string) ??
+                posData.poolId,
+              size: posData.size,
+              direction: posData.direction,
+            });
+            // WS event = state changed, fetch fresh data immediately
+            pollPositions().catch((wsErr: unknown) => {
               this.#deps.debugLogger.log(
-                '[MYXProvider] WS position callback error',
-                { error: String(callbackError) },
+                '[MYXProvider] WS:position fetch error',
+                {
+                  error: String(wsErr),
+                },
               );
             });
           };
 
           await this.#clientService.subscribeToPositions(wsCallback);
           this.#deps.debugLogger.log(
-            '[MYXProvider] Position WS subscription active',
+            '[MYXProvider] Position WS + polling active',
           );
         } catch (wsError) {
           wsCallback = null;
           this.#deps.debugLogger.log(
-            '[MYXProvider] Position WS subscription failed, REST-only mode',
-            { error: String(wsError) },
+            '[MYXProvider] Position WS failed, polling only',
+            {
+              error: String(wsError),
+            },
           );
         }
       } catch {
         // Auth failed — polling still works
       }
 
-      // Start polling (also serves as initial fetch)
-      fetchAndNotify().catch(() => {
+      // Start polling (first call also serves as initial data load)
+      pollPositions().catch(() => {
         // Error handled inside
       });
     };
@@ -2405,7 +2426,7 @@ export class MYXProvider implements PerpsProvider {
     let wsCallback: ((data: unknown) => void) | null = null;
     let pollTimeout: ReturnType<typeof setTimeout> | undefined;
 
-    const fetchAndNotify = async (): Promise<void> => {
+    const pollOrders = async (): Promise<void> => {
       if (cancelled) {
         return;
       }
@@ -2418,7 +2439,7 @@ export class MYXProvider implements PerpsProvider {
         // Non-fatal: keep polling
       }
       if (!cancelled) {
-        pollTimeout = setTimeout(fetchAndNotify, MYX_PRICE_POLLING_INTERVAL_MS);
+        pollTimeout = setTimeout(pollOrders, MYX_PRICE_POLLING_INTERVAL_MS);
       }
     };
 
@@ -2427,31 +2448,39 @@ export class MYXProvider implements PerpsProvider {
         await this.#ensureAuthenticated();
 
         try {
-          wsCallback = (): void => {
-            fetchAndNotify().catch((callbackError: unknown) => {
-              this.#deps.debugLogger.log(
-                '[MYXProvider] WS order callback error',
-                { error: String(callbackError) },
-              );
+          wsCallback = (rawData: unknown): void => {
+            if (cancelled) {
+              return;
+            }
+            const orderData = rawData as Record<string, unknown>;
+            this.#deps.debugLogger.log('[MYXProvider] WS:order event', {
+              orderId: orderData.orderId,
+              status: orderData.status,
+              orderType: orderData.orderType,
+            });
+            pollOrders().catch((wsErr: unknown) => {
+              this.#deps.debugLogger.log('[MYXProvider] WS:order fetch error', {
+                error: String(wsErr),
+              });
             });
           };
 
           await this.#clientService.subscribeToOrders(wsCallback);
-          this.#deps.debugLogger.log(
-            '[MYXProvider] Order WS subscription active',
-          );
+          this.#deps.debugLogger.log('[MYXProvider] Order WS + polling active');
         } catch (wsError) {
           wsCallback = null;
           this.#deps.debugLogger.log(
-            '[MYXProvider] Order WS subscription failed, REST-only mode',
-            { error: String(wsError) },
+            '[MYXProvider] Order WS failed, polling only',
+            {
+              error: String(wsError),
+            },
           );
         }
       } catch {
         // Auth failed — polling still works
       }
 
-      fetchAndNotify().catch(() => {
+      pollOrders().catch(() => {
         // Error handled inside
       });
     };

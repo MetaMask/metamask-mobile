@@ -76,6 +76,8 @@ jest.mock('@myx-trade/sdk', () => ({
       subscribeOrder: mockSubscribeOrder,
       unsubscribeOrder: mockUnsubscribeOrder,
       auth: mockWsAuth,
+      on: jest.fn(),
+      off: jest.fn(),
     },
     position: {
       listPositions: mockListPositions,
