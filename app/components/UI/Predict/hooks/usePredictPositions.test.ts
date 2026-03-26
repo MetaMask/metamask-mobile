@@ -219,7 +219,7 @@ describe('usePredictPositions', () => {
 
     expect(mockGetPositions).not.toHaveBeenCalled();
     expect(result.current.data).toBeUndefined();
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isFetching).toBe(false);
   });
 
   it('returns query error message when query fails', async () => {

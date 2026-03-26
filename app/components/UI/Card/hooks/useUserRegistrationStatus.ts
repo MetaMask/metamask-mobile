@@ -29,7 +29,7 @@ export const useUserRegistrationStatus =
     const onboardingId = useSelector(selectOnboardingId);
     const [isPolling, setIsPolling] = useState(false);
 
-    const { data, isLoading, error } = useQuery({
+    const { data, isLoading, isFetching, error } = useQuery({
       queryKey: cardQueries.dashboard.keys.registrationStatus(
         onboardingId ?? '',
       ),
@@ -66,7 +66,7 @@ export const useUserRegistrationStatus =
 
     return {
       verificationState,
-      isLoading,
+      isLoading: isLoading && isFetching,
       isError: !!error,
       error: error ? getErrorMessage(error) : null,
       startPolling,
