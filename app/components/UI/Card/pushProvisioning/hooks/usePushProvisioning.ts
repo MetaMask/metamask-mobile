@@ -342,8 +342,10 @@ export function usePushProvisioning(
   /**
    * Initiate provisioning
    *
-   * Note: Success events are handled by the activation listener (onCardActivated).
-   * Cancel and error events are handled here since they come directly from the SDK.
+   * Handles all terminal results (success, cancel, error) from the service directly.
+   * The activation listener is a secondary mechanism for SDKs that also emit async
+   * activation events (e.g. Google Wallet); it ignores events once statusRef is no
+   * longer 'provisioning', so there is no double-handling.
    */
   const initiateProvisioning =
     useCallback(async (): Promise<ProvisioningResult> => {
@@ -381,8 +383,13 @@ export function usePushProvisioning(
         setStatus('provisioning');
         const result = await service.initiateProvisioning(provisioningOptions);
 
-        // Handle cancel and error - success is handled by the activation listener
-        if (result.status === 'canceled') {
+        if (result.status === 'success') {
+          setStatus('success');
+          onSuccessRef.current?.({
+            status: 'success',
+            tokenId: result.tokenId,
+          });
+        } else if (result.status === 'canceled') {
           setStatus('idle');
           trackAnalyticsEvent(
             MetaMetricsEvents.CARD_PUSH_PROVISIONING_CANCELED,

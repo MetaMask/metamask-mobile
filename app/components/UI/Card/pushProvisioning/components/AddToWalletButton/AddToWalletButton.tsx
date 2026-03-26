@@ -172,6 +172,12 @@ export const GOOGLE_WALLET_BUTTON_BY_LANGUAGE: Record<string, SvgComponent> = {
   zh: GoogleWalletButtonZhTW,
 };
 
+/* eslint-disable @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports */
+const NativeAddToWalletButton: React.ComponentType<AddToWalletButtonProps> | null =
+  Platform.OS === 'ios'
+    ? require('@expensify/react-native-wallet').AddToWalletButton
+    : null;
+
 const ANDROID_BUTTON_WIDTH = 300;
 const ANDROID_BUTTON_HEIGHT = 48;
 
@@ -216,11 +222,7 @@ const AddToWalletButton: React.FC<AddToWalletButtonProps> = ({
     [locale],
   );
 
-  if (Platform.OS === 'ios') {
-    const {
-      AddToWalletButton: NativeAddToWalletButton,
-      // eslint-disable-next-line @typescript-eslint/no-var-requires, @typescript-eslint/no-require-imports
-    } = require('@expensify/react-native-wallet');
+  if (Platform.OS === 'ios' && NativeAddToWalletButton) {
     return (
       <NativeAddToWalletButton
         onPress={onPress}
