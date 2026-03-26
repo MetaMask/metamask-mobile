@@ -140,7 +140,6 @@ const createTestCampaign = (
   endDate: '2027-12-31T23:59:59.999Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
   featured: true,
   ...overrides,
@@ -185,10 +184,6 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
@@ -246,10 +241,6 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
@@ -272,10 +263,6 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
@@ -298,10 +285,6 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
@@ -323,10 +306,6 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',
@@ -349,10 +328,6 @@ describe('CampaignMechanicsView', () => {
         campaigns: [
           createTestCampaign({
             details: {
-              image: {
-                lightModeUrl: 'https://example.com/light.png',
-                darkModeUrl: 'https://example.com/dark.png',
-              },
               howItWorks: {
                 title: 'How it works',
                 description: 'Earn rewards',

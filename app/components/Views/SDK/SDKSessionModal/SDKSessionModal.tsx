@@ -8,9 +8,7 @@ import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { AvatarVariant } from '../../../../component-library/components/Avatars/Avatar';
-import Button, {
-  ButtonVariants,
-} from '../../../../component-library/components/Buttons/Button';
+import { Button, ButtonVariant } from '@metamask/design-system-react-native';
 import Cell, {
   CellVariant,
 } from '../../../../component-library/components/Cells/Cell';
@@ -169,7 +167,7 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
         >
           <View style={styles.btnAction}>
             <Button
-              variant={ButtonVariants.Link}
+              variant={ButtonVariant.Tertiary}
               onPress={() => {
                 DevLogger.log(`Disconnect account: ${account}`, accounts);
                 if (channelId && account) {
@@ -186,15 +184,15 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
                   });
                 }
               }}
-              label={strings('sdk.disconnect')}
-            />
+            >
+              {strings('sdk.disconnect')}
+            </Button>
           </View>
         </Cell>
       ))}
       <View style={styles.actionsContainer}>
         <Button
-          label={strings('sdk.disconnect_all_accounts')}
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={styles.disconnectBtn}
           onPress={() => {
             DevLogger.log(`Disconnect all accounts channelId=${channelId}`);
@@ -209,7 +207,9 @@ const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
               },
             });
           }}
-        />
+        >
+          {strings('sdk.disconnect_all_accounts')}
+        </Button>
       </View>
     </BottomSheet>
   );
