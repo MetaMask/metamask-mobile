@@ -13,7 +13,6 @@ import {
   Platform,
   Image,
   StatusBar,
-  TextInput,
 } from 'react-native';
 import METAMASK_NAME from '../../../images/branding/metamask-name.png';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -24,13 +23,14 @@ import {
   BoxJustifyContent,
   TextVariant,
   FontWeight,
+  TextField,
+  TextFieldSize,
   Button,
   ButtonSize,
   ButtonVariant,
   Text,
   TextColor,
 } from '@metamask/design-system-react-native';
-import TextField from '../../../component-library/components/Form/TextField';
 import { ThemeContext } from '../../../util/theme';
 import { TextVariant as DSTextVariant } from '../../../component-library/components/Texts/Text';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
@@ -107,7 +107,7 @@ interface LoginProps {
  * View where returning users can authenticate
  */
 const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
-  const fieldRef = useRef<TextInput | null>(null);
+  const fieldRef = useRef<React.ElementRef<typeof TextField> | null>(null);
 
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
@@ -441,9 +441,8 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 placeholder={strings('login.password_placeholder')}
                 testID={LoginViewSelectors.PASSWORD_INPUT}
                 accessibilityLabel={LoginViewSelectors.PASSWORD_INPUT}
-                returnKeyType="done"
+                returnKeyType={'done'}
                 autoCapitalize="none"
-                autoFocus={false}
                 secureTextEntry
                 ref={fieldRef}
                 onChangeText={handlePasswordChange}
@@ -462,7 +461,7 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
                 keyboardAppearance={themeAppearance}
                 isError={!!error}
                 isDisabled={loading}
-                style={tw.style('w-full')}
+                size={TextFieldSize.Lg}
               />
             </Box>
 
