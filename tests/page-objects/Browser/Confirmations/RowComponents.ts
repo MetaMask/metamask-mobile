@@ -1,5 +1,3 @@
-import { by as detoxBy, element as detoxElement } from 'detox';
-
 import {
   ConfirmationRowComponentIDs,
   GasFeeTokenSelectorIDs,
@@ -19,21 +17,6 @@ class RowComponents {
 
   get FromTo(): DetoxElement {
     return Matchers.getElementByID(ConfirmationRowComponentIDs.FROM_TO);
-  }
-
-  /**
-   * Resolved recipient name in the From/To row on the confirmation sheet.
-   * Use this instead of bare `by.text(domain)` so Android does not match the
-   * send-screen recipient field still present under the modal (visibility flake).
-   */
-  recipientDisplayNameInFromToRow(domain: string): DetoxElement {
-    return Promise.resolve(
-      detoxElement(
-        detoxBy
-          .text(domain)
-          .withAncestor(detoxBy.id(ConfirmationRowComponentIDs.FROM_TO)),
-      ) as Detox.IndexableNativeElement,
-    );
   }
 
   get GasFeesDetails(): DetoxElement {

@@ -3,6 +3,10 @@
  */
 export interface SolanaTestDappWebIDs {
   WALLET_BUTTON: string;
+  CONFIRM_TRANSACTION_BUTTON: string;
+  CANCEL_TRANSACTION_BUTTON: string;
+  CONFIRM_SIGN_MESSAGE_BUTTON: string;
+  CANCEL_SIGN_MESSAGE_BUTTON: string;
 }
 
 /**
@@ -10,33 +14,14 @@ export interface SolanaTestDappWebIDs {
  */
 export const SolanaTestDappSelectorsWebIDs: SolanaTestDappWebIDs = {
   WALLET_BUTTON: '.wallet-adapter-modal-list .wallet-adapter-button', // Important space between classes to indicate a parent-child relationship
+  CONFIRM_TRANSACTION_BUTTON:
+    'confirm-sign-and-send-transaction-confirm-snap-footer-button',
+  CANCEL_TRANSACTION_BUTTON:
+    'confirm-sign-and-send-transaction-cancel-snap-footer-button',
+  CONFIRM_SIGN_MESSAGE_BUTTON:
+    'confirm-sign-message-confirm-snap-footer-button',
+  CANCEL_SIGN_MESSAGE_BUTTON: 'confirm-sign-message-cancel-snap-footer-button',
 };
-
-/**
- * Second-slot default testID from BottomSheetFooter (primary action). Duplicated here
- * instead of importing `BottomSheetFooter.constants` in E2E — that file pulls in
- * component-library Button → `react-native`, which Jest cannot parse in Detox runs.
- *
- * @see app/component-library/components/BottomSheets/BottomSheetFooter/BottomSheetFooter.constants.ts
- */
-export const BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID =
-  'bottomsheetfooter-button-subsequent';
-
-/**
- * Snap UI footer confirm for Solana sign message (`name` + `-snap-footer-button` in SnapUIFooterButton).
- *
- * @see @metamask/solana-wallet-snap (confirm-sign-message-confirm)
- */
-export const SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID =
-  'confirm-sign-message-confirm-snap-footer-button';
-
-/**
- * Snap UI footer confirm for Solana transaction review (send / sign-and-send).
- *
- * @see tests/selectors/SendFlow/SendActionView.selectors.ts (SEND_TRANSACTION_BUTTON)
- */
-export const SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID =
-  'transaction-confirmation-submit-button-snap-footer-button';
 
 /**
  * Timeout constants for solana tests

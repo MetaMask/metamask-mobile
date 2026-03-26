@@ -4,15 +4,8 @@ import Matchers from '../../framework/Matchers';
 import { BrowserViewSelectorsIDs } from '../../../app/components/Views/BrowserTab/BrowserView.testIds';
 import Browser from './BrowserView';
 import Gestures from '../../framework/Gestures';
-import Utilities from '../../framework/Utilities';
 import { waitFor } from 'detox';
-import {
-  BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
-  SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
-  SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
-  SolanaTestDappSelectorsWebIDs,
-} from '../../selectors/Browser/SolanaTestDapp.selectors';
-import { ConfirmationFooterSelectorIDs } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { SolanaTestDappSelectorsWebIDs } from '../../selectors/Browser/SolanaTestDapp.selectors';
 
 /**
  * Get a test element by data-testid
@@ -65,22 +58,14 @@ class SolanaTestDApp {
 
   get confirmTransactionButtonSelector(): WebElement {
     return Matchers.getElementByID(
-      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+      SolanaTestDappSelectorsWebIDs.CONFIRM_TRANSACTION_BUTTON,
     );
   }
 
   get confirmSignMessageButtonSelector(): WebElement {
     return Matchers.getElementByID(
-      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
+      SolanaTestDappSelectorsWebIDs.CONFIRM_SIGN_MESSAGE_BUTTON,
     );
-  }
-
-  /**
-   * Cancel on the Solana sign-and-send confirmation (redesigned confirmations footer
-   * testID `cancel-button`, not the legacy snap-only cancel footer id).
-   */
-  get cancelSignAndSendTransactionButtonSelector(): DetoxElement {
-    return Matchers.getElementByID(ConfirmationFooterSelectorIDs.CANCEL_BUTTON);
   }
 
   get cancelButtonSelector() {
@@ -156,7 +141,6 @@ class SolanaTestDApp {
 
   getSendSolTest() {
     return {
-      /** Taps **Sign transaction** (sign-only) on the non-versioned Transfer SOL card. */
       signTransaction: async () => {
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.signTransaction, {
@@ -164,7 +148,6 @@ class SolanaTestDApp {
           }),
         );
       },
-      /** Taps **Sign and send transaction** on the non-versioned Transfer SOL card. */
       sendTransaction: async () => {
         await this.tapButton(
           getTestElement(dataTestIds.testPage.sendSol.sendTransaction, {
@@ -188,105 +171,15 @@ class SolanaTestDApp {
   }
 
   async confirmTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.confirmTransactionButtonSelector, {
-      elemDescription: 'Solana transaction confirmation Confirm button',
-    });
+    await Gestures.waitAndTap(this.confirmTransactionButtonSelector);
   }
 
   async confirmSignMessage(): Promise<void> {
-    // SnapDialogApproval: dialog type `default` → snap Footer in JSX →
-    // `confirm-sign-message-confirm-snap-footer-button`.
-    // Dialog type `confirmation` → useFooter is false; BottomSheetFooter maps index 1 (Approve) to
-    // `bottomsheetfooter-button-subsequent`, not `confirm-button`.
-    // Wait until any known confirm control exists (toExist; avoids flaky title visibility).
-    //
-    // ApprovalModal animates in over ~600ms; a 100ms per-ID timeout can cycle all candidates before
-    // the footer mounts, causing false failures. Allow several seconds per candidate.
-    const confirmSelectors = [
-      SOLANA_SNAP_SIGN_MESSAGE_CONFIRM_TEST_ID,
-      BOTTOM_SHEET_FOOTER_SUBSEQUENT_BUTTON_TEST_ID,
-      ConfirmationFooterSelectorIDs.CONFIRM_BUTTON,
-      SOLANA_SNAP_TRANSACTION_CONFIRM_TEST_ID,
-    ] as const;
-
-    const presenceWaitMsPerSelector = 2500;
-
-    await Utilities.executeWithRetry(
-      async () => {
-        let lastError: unknown;
-        for (const testId of confirmSelectors) {
-          try {
-            const el = await Matchers.getElementByID(testId);
-            await waitFor(el).toExist().withTimeout(presenceWaitMsPerSelector);
-            return;
-          } catch (error) {
-            lastError = error;
-          }
-        }
-        throw lastError;
-      },
-      {
-        timeout: 50000,
-        description:
-          'Solana sign message confirmation (confirm-button or snap footer) should be present',
-      },
-    );
-
-    const relaxModalFooterChecks = true;
-
-    let lastError: unknown;
-    for (let i = 0; i < confirmSelectors.length; i += 1) {
-      const testId = confirmSelectors[i];
-      try {
-        await Gestures.waitAndTap(Matchers.getElementByID(testId), {
-          elemDescription: `Solana sign message confirmation (${testId})`,
-          delay: i === 0 ? 2000 : 0,
-          timeout: i === 0 ? 25000 : 12000,
-          checkVisibility: !relaxModalFooterChecks,
-          checkEnabled: !relaxModalFooterChecks,
-        });
-        return;
-      } catch (error) {
-        lastError = error;
-      }
-    }
-
-    try {
-      await Gestures.waitAndTap(Matchers.getElementByText('Confirm'), {
-        elemDescription: 'Solana sign message confirmation (Confirm label)',
-        timeout: 15000,
-        checkVisibility: !relaxModalFooterChecks,
-        checkEnabled: !relaxModalFooterChecks,
-      });
-    } catch {
-      try {
-        await Gestures.waitAndTap(Matchers.getElementByText('Approve'), {
-          elemDescription:
-            'Solana sign message confirmation (Approve — SnapDialog confirmation)',
-          timeout: 15000,
-          checkVisibility: !relaxModalFooterChecks,
-          checkEnabled: !relaxModalFooterChecks,
-        });
-      } catch {
-        throw lastError;
-      }
-    }
+    await Gestures.waitAndTap(this.confirmSignMessageButtonSelector);
   }
 
   async tapCancelButton(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelButtonSelector, {
-      elemDescription: 'Cancel button',
-    });
-  }
-
-  /**
-   * Dismisses the Solana sign-and-send transaction confirmation (e.g. transfer SOL test).
-   */
-  async tapCancelSignAndSendTransaction(): Promise<void> {
-    await Gestures.waitAndTap(this.cancelSignAndSendTransactionButtonSelector, {
-      elemDescription: 'Solana sign-and-send confirmation Cancel button',
-      delay: 1800,
-    });
+    await Gestures.waitAndTap(this.cancelButtonSelector);
   }
 }
 

@@ -17,7 +17,7 @@ describe(
       jest.setTimeout(150000);
     });
 
-    it('Opens sign-and-send transaction confirmation then dismisses', async () => {
+    it('Should sign a transaction', async () => {
       await withFixtures(
         {
           fixture: new FixtureBuilder().build(),
@@ -36,12 +36,10 @@ describe(
           await device.disableSynchronization(); // Synchronization is preventing from reading the MetaMask bottom sheet
 
           const sendSolTest = SolanaTestDApp.getSendSolTest();
-          // "Sign transaction" is sign-only; we need "Sign and send transaction" (sendTransaction)
-          // so MetaMask shows the same confirmation flow cancel targets below.
-          await sendSolTest.sendTransaction();
+          await sendSolTest.signTransaction();
 
           // TODO: Actually sign the transaction (blocked by https://consensyssoftware.atlassian.net/browse/MMQA-586)
-          await SolanaTestDApp.tapCancelSignAndSendTransaction();
+          await SolanaTestDApp.tapCancelButton();
         },
       );
     });
@@ -70,7 +68,7 @@ describe(
 
           await Assertions.expectTextDisplayed('Transaction request');
 
-          await SolanaTestDApp.tapCancelSignAndSendTransaction();
+          await SolanaTestDApp.tapCancelButton();
         },
       );
     });

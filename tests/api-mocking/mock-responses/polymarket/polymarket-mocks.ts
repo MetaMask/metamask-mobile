@@ -1930,15 +1930,11 @@ export const POLYMARKET_ADD_CLAIMED_POSITIONS_TO_ACTIVITY_MOCKS = async (
       const userMatch = url?.match(/user=(0x[a-fA-F0-9]{40})/);
       const userAddress = userMatch ? userMatch[1] : USER_WALLET_ADDRESS;
 
-      // Use "now" timestamps so rows land under Today and stay in the first
-      // virtualized window — fixed 2025 dates end up in past sections and can
-      // be unmounted, breaking Detox by.text taps.
-      const nowSec = Math.floor(Date.now() / 1000);
+      // Map claimed positions to use the actual user address
       const claimedPositionsWithUserAddress =
-        POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE.map((activity, i) => ({
+        POLYMARKET_CLAIMED_POSITIONS_ACTIVITY_RESPONSE.map((activity) => ({
           ...activity,
           proxyWallet: userAddress,
-          timestamp: nowSec - i,
         }));
 
       // Map existing activity to use the actual user address
