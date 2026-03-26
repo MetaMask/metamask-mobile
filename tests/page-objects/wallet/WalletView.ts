@@ -174,10 +174,36 @@ class WalletView {
     });
   }
 
+  get accountNameLabelText(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
+          { exact: true },
+        ),
+    });
+  }
+
   get accountName(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
+  }
+
+  get accountNameLabelInput(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT,
+          { exact: true },
+        ),
+    });
   }
 
   get hideTokensLabel(): DetoxElement {
@@ -343,6 +369,18 @@ class WalletView {
   async tapCurrentMainWalletAccountActions(): Promise<void> {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions, {
       elemDescription: 'Current Main Wallet Account Actions',
+    });
+  }
+
+  async longPressAccountNameLabel(): Promise<void> {
+    await UnifiedGestures.longPress(this.accountNameLabelText, {
+      description: 'Account name label',
+    });
+  }
+
+  async editAccountNameLabel(text: string): Promise<void> {
+    await UnifiedGestures.typeText(this.accountNameLabelInput, text, {
+      description: 'Account name label input',
     });
   }
 
