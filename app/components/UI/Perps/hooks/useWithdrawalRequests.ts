@@ -74,16 +74,8 @@ export const useWithdrawalRequests = (
     (state) => state?.lastCompletedWithdrawalTxHashes ?? [],
   );
 
-  const prevWithdrawalStatesRef = useRef<Map<string, string>>(new Map());
   const initialFetchDoneRef = useRef(false);
   const isFetchingRef = useRef(false);
-
-  useEffect(() => {
-    const currentStates = new Map<string, string>();
-    allWithdrawals.forEach((w) => currentStates.set(w.id, w.status));
-
-    prevWithdrawalStatesRef.current = currentStates;
-  }, [allWithdrawals]);
 
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [error, setError] = useState<string | null>(null);
