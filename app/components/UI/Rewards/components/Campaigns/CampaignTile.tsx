@@ -64,8 +64,8 @@ const CampaignTile: React.FC<CampaignTileProps> = ({ campaign, onPress }) => {
   const {
     status: campaignStatus,
     statusLabel,
-    dateLabel,
-    dateLabelIcon,
+    /* dateLabel,
+    dateLabelIcon, */
   } = useMemo(() => getCampaignStatusInfo(campaign), [campaign]);
 
   const isInteractive =
