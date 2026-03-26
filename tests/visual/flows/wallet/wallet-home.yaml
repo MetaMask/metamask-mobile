@@ -30,16 +30,6 @@ tags:
       id: "token-list"
     timeout: 15000
 
-# Dismiss any promo overlays (e.g. "Perps are here") that may appear
-- runFlow:
-    when:
-      visible: "Not now"
-    commands:
-      - tapOn: "Not now"
-      - extendedWaitUntil:
-          notVisible: "Not now"
-          timeout: 5000
-
 # Capture wallet home — tokens tab (default view)
 - assertScreenshot:
     path: ios/wallet/home-default.png
