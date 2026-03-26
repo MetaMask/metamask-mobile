@@ -94,8 +94,10 @@ import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/
 import TronUnstakedBanner from '../../Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner';
 import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/TronStakingButtons';
 import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
-import TronStakingRewardsRows from '../../Earn/components/Tron/TronStakingRewardsRows/TronStakingRewardsRows';
-import useTronStakeApy from '../../Earn/hooks/useTronStakeApy';
+import TronClaimableRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronClaimableRewardsRow';
+import TronEstimatedAnnualRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsRow';
+import TronEstimatedAnnualRewardsUnavailableBanner from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsUnavailableBanner';
+import useTronRewardsRowsViewModel from './useTronRewardsRowsViewModel';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -523,10 +525,10 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
-    apyPercent: tronApyPercent,
-    apyDecimal: tronApyDecimal,
-    isLoading: tronApyLoading,
-  } = useTronStakeApy();
+    claimableRewardsRowProps,
+    estimatedAnnualRewardsRowProps,
+    estimatedAnnualRewardsUnavailableBannerProps,
+  } = useTronRewardsRowsViewModel({ token });
   ///: END:ONLY_INCLUDE_IF
 
   const goToBrowserUrl = (url: string) => {
@@ -873,11 +875,20 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && stakedTrxAsset && (
               <Box paddingHorizontal={4}>
-                <TronStakingRewardsRows
-                  token={token}
-                  apyDecimal={tronApyDecimal}
-                  isApyLoading={tronApyLoading}
-                />
+                <TronClaimableRewardsRow {...claimableRewardsRowProps} />
+                {estimatedAnnualRewardsRowProps ? (
+                  <TronEstimatedAnnualRewardsRow
+                    {...estimatedAnnualRewardsRowProps}
+                  />
+                ) : (
+                  <TronEstimatedAnnualRewardsUnavailableBanner
+                    {...(estimatedAnnualRewardsUnavailableBannerProps ?? {
+                      message: strings(
+                        'stake.tron.estimated_rewards_api_unavailable',
+                      ),
+                    })}
+                  />
+                )}
               </Box>
             )
             ///: END:ONLY_INCLUDE_IF

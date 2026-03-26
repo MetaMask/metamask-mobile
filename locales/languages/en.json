@@ -6214,6 +6214,8 @@
       "bandwidth": "Bandwidth",
       "energy": "Energy",
       "total_rewards": "Total rewards",
+      "total_claimable_rewards": "Total claimable rewards",
+      "estimated_rewards_api_unavailable": "We couldn’t load estimated annual rewards. Try again later.",
       "estimated_annual_reward": "Est. annual reward",
       "trx_locked_for": "TRX locked for",
       "trx_locked_for_minimum_time": "~3 days",

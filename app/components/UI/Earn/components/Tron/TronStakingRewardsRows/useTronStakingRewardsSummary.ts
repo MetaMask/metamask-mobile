@@ -5,22 +5,23 @@ import { selectTronSpecialAssetsBySelectedAccountGroup } from '../../../../../..
 import { selectCurrentCurrency } from '../../../../../../selectors/currencyRateController';
 import { selectMultichainAssetsRates } from '../../../../../../selectors/multichain';
 import type { TokenI } from '../../../../Tokens/types';
-import {
-  buildTronStakingRewardsSummary,
-  type TronStakingRewardsSummaryResult,
-} from './tronStakingRewardsSummary';
 
 export interface UseTronStakingRewardsSummaryArgs {
   token: TokenI;
-  apyDecimal: string | null;
-  isApyLoading: boolean;
+}
+
+export interface TronStakingRewardsSummaryData {
+  claimableRewardsTrxAmount: number;
+  claimableRewardsFiatAmount: number | undefined;
+  claimableRewardsCurrency: string | undefined;
+  totalStakedTrx: number;
+  nonEvmFiatRate: number | undefined;
+  currentCurrency: string;
 }
 
 const useTronStakingRewardsSummary = ({
   token,
-  apyDecimal,
-  isApyLoading,
-}: UseTronStakingRewardsSummaryArgs): TronStakingRewardsSummaryResult => {
+}: UseTronStakingRewardsSummaryArgs): TronStakingRewardsSummaryData => {
   const { trxStakingRewards, totalStakedTrx } = useSelector(
     selectTronSpecialAssetsBySelectedAccountGroup,
   );
@@ -35,27 +36,32 @@ const useTronStakingRewardsSummary = ({
     return rate?.rate ? Number(rate.rate) : undefined;
   }, [multichainAssetsRates, token.address]);
 
-  return useMemo(
-    () =>
-      buildTronStakingRewardsSummary({
-        trxStakingRewards,
-        totalStakedTrx,
-        apyDecimal,
-        isApyLoading,
-        nonEvmFiatRate,
-        currentCurrency,
-        chainId: String(token.chainId ?? ''),
-      }),
-    [
-      trxStakingRewards,
+  return useMemo(() => {
+    const claimableRewardsTrxAmount = trxStakingRewards
+      ? parseFloat(trxStakingRewards.balance || '0')
+      : 0;
+
+    const fiatBalanceRaw = trxStakingRewards?.fiat?.balance;
+    const fiatCurrency = trxStakingRewards?.fiat?.currency;
+
+    let claimableRewardsFiatAmount: number | undefined;
+    if (fiatBalanceRaw != null && fiatCurrency) {
+      const fiatNum =
+        typeof fiatBalanceRaw === 'number'
+          ? fiatBalanceRaw
+          : parseFloat(String(fiatBalanceRaw));
+      claimableRewardsFiatAmount = Number.isNaN(fiatNum) ? 0 : fiatNum;
+    }
+
+    return {
+      claimableRewardsTrxAmount,
+      claimableRewardsFiatAmount,
+      claimableRewardsCurrency: fiatCurrency,
       totalStakedTrx,
-      apyDecimal,
-      isApyLoading,
       nonEvmFiatRate,
-      currentCurrency,
-      token.chainId,
-    ],
-  );
+      currentCurrency: (currentCurrency ?? 'USD').toUpperCase(),
+    };
+  }, [trxStakingRewards, totalStakedTrx, nonEvmFiatRate, currentCurrency]);
 };
 
 export default useTronStakingRewardsSummary;
