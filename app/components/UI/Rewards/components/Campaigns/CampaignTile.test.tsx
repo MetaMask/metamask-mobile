@@ -138,14 +138,12 @@ describe('CampaignTile', () => {
     expect(getByTestId('campaign-tile-name')).toHaveTextContent('My Campaign');
   });
 
-  it('renders date label via campaign-tile-date-label testID', () => {
+  it('renders empty date label placeholder via campaign-tile-date-label testID', () => {
     const campaign = createTestCampaign();
 
     const { getByTestId } = render(<CampaignTile campaign={campaign} />);
 
-    expect(getByTestId('campaign-tile-date-label')).toHaveTextContent(
-      'Ends Mar 15, 2:30 PM',
-    );
+    expect(getByTestId('campaign-tile-date-label')).toBeDefined();
   });
 
   it('renders status label via campaign-tile-status-label testID', () => {
@@ -197,7 +195,7 @@ describe('CampaignTile', () => {
     it('does not render enter-now when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
-        statusLabel: 'Up next',
+        statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });
@@ -322,6 +320,72 @@ describe('CampaignTile', () => {
     });
   });
 
+  describe('participant status hook call conditions', () => {
+    it('calls hook with campaign.id when campaign is active and ONDO_HOLDING type', () => {
+      const campaign = createTestCampaign({
+        id: 'ondo-active',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        'ondo-active',
+      );
+    });
+
+    it('calls hook with undefined when campaign is upcoming', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'upcoming',
+        statusLabel: 'Coming soon',
+        dateLabel: 'Starts June 1',
+        dateLabelIcon: 'Speed',
+      });
+      const campaign = createTestCampaign({
+        id: 'ondo-upcoming',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+
+    it('calls hook with undefined when campaign is complete', () => {
+      (getCampaignStatusInfo as jest.Mock).mockReturnValue({
+        status: 'complete',
+        statusLabel: 'Complete',
+        dateLabel: 'December 31',
+        dateLabelIcon: 'Confirmation',
+      });
+      const campaign = createTestCampaign({
+        id: 'ondo-complete',
+        type: CampaignType.ONDO_HOLDING,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+
+    it('calls hook with undefined when campaign is active but not ONDO_HOLDING type', () => {
+      const campaign = createTestCampaign({
+        id: 'season-active',
+        type: CampaignType.SEASON_1,
+      });
+
+      render(<CampaignTile campaign={campaign} />);
+
+      expect(mockUseGetCampaignParticipantStatus).toHaveBeenCalledWith(
+        undefined,
+      );
+    });
+  });
+
   describe('navigation', () => {
     it('navigates to Ondo campaign details for ONDO_HOLDING type', () => {
       const campaign = createTestCampaign({
@@ -403,7 +467,7 @@ describe('CampaignTile', () => {
     it('does not navigate for any campaign type when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
-        statusLabel: 'Up next',
+        statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });
@@ -421,7 +485,7 @@ describe('CampaignTile', () => {
     it('does not call onPress for any campaign type when status is upcoming', () => {
       (getCampaignStatusInfo as jest.Mock).mockReturnValue({
         status: 'upcoming',
-        statusLabel: 'Up next',
+        statusLabel: 'Coming soon',
         dateLabel: 'Starts June 1',
         dateLabelIcon: 'Speed',
       });

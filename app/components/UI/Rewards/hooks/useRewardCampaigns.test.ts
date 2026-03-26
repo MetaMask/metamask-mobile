@@ -262,6 +262,32 @@ describe('useRewardCampaigns', () => {
       expect(mockDispatch).toHaveBeenCalledWith(mockSetCampaignsLoading(false));
     });
 
+    it('dispatches setCampaignsLoading(true) when campaigns have not been loaded before', async () => {
+      setupSelectorMocks({ hasLoaded: false });
+      mockEngineCall.mockResolvedValueOnce([]);
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      await act(async () => {
+        await result.current.fetchCampaigns();
+      });
+
+      expect(mockSetCampaignsLoading).toHaveBeenCalledWith(true);
+    });
+
+    it('does not dispatch setCampaignsLoading(true) when campaigns were already loaded', async () => {
+      setupSelectorMocks({ hasLoaded: true });
+      mockEngineCall.mockResolvedValueOnce([]);
+
+      const { result } = renderHook(() => useRewardCampaigns());
+
+      await act(async () => {
+        await result.current.fetchCampaigns();
+      });
+
+      expect(mockSetCampaignsLoading).not.toHaveBeenCalledWith(true);
+    });
+
     it('does not fetch when subscriptionId is null', async () => {
       setupSelectorMocks({ subscriptionId: null });
 
