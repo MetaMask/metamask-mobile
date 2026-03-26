@@ -417,6 +417,15 @@ export const PerpsTransactionSelectorsIDs = {
   FUNDING_TRANSACTION_VIEW: 'perps-funding-transaction-view',
   ORDER_TRANSACTION_VIEW: 'perps-order-transaction-view',
 
+  // FlashList
+  FLASH_LIST: 'perps-transactions-flash-list',
+
+  // Fill tags
+  FILL_TAG_TAKE_PROFIT: 'perps-fill-tag-take-profit',
+  FILL_TAG_STOP_LOSS: 'perps-fill-tag-stop-loss',
+  FILL_TAG_LIQUIDATED: 'perps-fill-tag-liquidated',
+  FILL_TAG_ADL: 'perps-fill-tag-adl',
+
   // Common buttons
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
 };
