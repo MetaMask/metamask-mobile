@@ -195,7 +195,7 @@ class TransactionPayConfirmation {
     });
   }
 
-  private getTokenOptionAt(
+  getTokenOptionAt(
     tokenSymbol: string,
     index: number,
   ): EncapsulatedElementType {
@@ -219,21 +219,21 @@ class TransactionPayConfirmation {
     });
   }
 
-  private getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
+  getFirstTokenOption(tokenSymbol: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(tokenSymbol, 0),
       appium: () => PlaywrightMatchers.getElementByCatchAll(tokenSymbol),
     });
   }
 
-  private getNetworkFilter(networkName: string): EncapsulatedElementType {
+  getNetworkFilter(networkName: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(networkName),
       appium: () => PlaywrightMatchers.getElementByCatchAll(networkName),
     });
   }
 
-  private getKeypadButton(key: string): EncapsulatedElementType {
+  getKeypadButton(key: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(key),
       appium: () =>
@@ -243,7 +243,7 @@ class TransactionPayConfirmation {
     });
   }
 
-  private async expectText(
+  async expectText(
     elem: EncapsulatedElementType,
     text: string,
     description: string,
@@ -403,6 +403,29 @@ class TransactionPayConfirmation {
       time,
       'Bridge time should be correct',
     );
+  }
+
+  async verifyAmount(amount: string): Promise<void> {
+    await this.expectText(this.amount, amount, 'Amount should be correct');
+  }
+
+  async verifyTotal(total: string): Promise<void> {
+    await this.expectText(this.total, total, 'Total should be correct');
+  }
+
+  async verifyTransactionFee(fee: string): Promise<void> {
+    await this.expectText(
+      this.transactionFee,
+      fee,
+      'Transaction fee should be correct',
+    );
+  }
+
+  async verifyTransactionFeeVisible(): Promise<void> {
+    await Assertions.expectElementToBeVisible(this.transactionFee, {
+      description: 'Transaction fee row should be visible',
+      timeout: 15000,
+    });
   }
 }
 
