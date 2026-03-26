@@ -1450,12 +1450,14 @@ class AuthenticationService {
     );
 
     // show seedless password outdated modal and force user to lock app
-    const navigation = NavigationService.navigation;
-    if (!navigation) {
+    let navigation;
+    try {
+      navigation = NavigationService.navigation;
+    } catch {
       return;
     }
 
-    navigateToSuccessErrorSheet(navigation, {
+    navigateToSuccessErrorSheet(NavigationService.navigation, {
       title: strings('login.seedless_password_outdated_modal_title'),
       description: strings('login.seedless_password_outdated_modal_content'),
       primaryButtonLabel: strings(

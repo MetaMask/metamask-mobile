@@ -826,8 +826,10 @@ class ResetPassword extends PureComponent {
   };
 
   handleConfirmAction = () => {
-    const navigation = NavigationService.navigation;
-    if (!navigation) {
+    let navigation;
+    try {
+      navigation = NavigationService.navigation;
+    } catch {
       return;
     }
 
