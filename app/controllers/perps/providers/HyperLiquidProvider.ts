@@ -375,6 +375,10 @@ export class HyperLiquidProvider implements PerpsProvider {
 
   readonly #messenger: PerpsControllerMessengerBase;
 
+  readonly #builderAddressTestnet?: string;
+
+  readonly #builderAddressMainnet?: string;
+
   constructor(options: {
     isTestnet?: boolean;
     hip3Enabled?: boolean;
@@ -384,9 +388,13 @@ export class HyperLiquidProvider implements PerpsProvider {
     platformDependencies: PerpsPlatformDependencies;
     messenger: PerpsControllerMessengerBase;
     initialAssetMapping?: [string, number][];
+    builderAddressTestnet?: string;
+    builderAddressMainnet?: string;
   }) {
     this.#deps = options.platformDependencies;
     this.#messenger = options.messenger;
+    this.#builderAddressTestnet = options.builderAddressTestnet;
+    this.#builderAddressMainnet = options.builderAddressMainnet;
     const isTestnet = options.isTestnet ?? false;
 
     // Dev-friendly defaults: Enable all markets by default for easier testing (discovery mode)
@@ -2119,16 +2127,13 @@ export class HyperLiquidProvider implements PerpsProvider {
         '[buildAssetMapping] getValidatedDexs failed, falling back to main DEX',
         { error: String(dexError) },
       );
-      this.#cachedAllPerpDexs = this.#cachedAllPerpDexs ?? [null];
       dexsToMap = [null];
     }
 
-    // Use cached perpDexs array (populated by getValidatedDexs)
-    // Defensive: ensure non-null even if getValidatedDexs had an unexpected issue
-    if (!this.#cachedAllPerpDexs) {
-      this.#cachedAllPerpDexs = [null];
-    }
-    const allPerpDexs = this.#cachedAllPerpDexs;
+    // Local fallback only — never write [null] into #cachedAllPerpDexs here.
+    // That cache is owned exclusively by #fetchValidatedDexsInternal; writing a
+    // fallback here would prevent subsequent callers from retrying perpDexs().
+    const allPerpDexs = this.#cachedAllPerpDexs ?? [null];
 
     this.#deps.debugLogger.log(
       'HyperLiquidProvider: Starting asset mapping rebuild',
@@ -4772,6 +4777,12 @@ export class HyperLiquidProvider implements PerpsProvider {
       return [null];
     }
 
+    // Populate #cachedAllPerpDexs so buildAssetMapping can compute perpDexIndex.
+    // Without this, getValidatedDexs returns from #cachedValidatedDexs (string names)
+    // but #cachedAllPerpDexs (raw objects for index computation) stays null,
+    // causing "Could not find perpDexIndex for DEX xyz" failures.
+    this.#cachedAllPerpDexs = allDexs;
+
     // Extract HIP-3 DEX names (filter out null which represents main DEX)
     const availableHip3Dexs: string[] = [];
     allDexs.forEach((dex) => {
@@ -5083,6 +5094,20 @@ export class HyperLiquidProvider implements PerpsProvider {
         count: rawFills?.length ?? 0,
       });
 
+      // Start fetching historical orders in parallel with fill transformation.
+      // The fills API does not return order type, so we cross-reference
+      // with historical orders to enable TP/SL pill rendering in activity.
+      const historicalOrdersPromise = (
+        infoClient.historicalOrders?.({ user: userAddress }) ??
+        Promise.resolve(null)
+      ).catch((enrichError: unknown) => {
+        this.#deps.debugLogger.log(
+          'Warning: failed to enrich fills with order types:',
+          enrichError,
+        );
+        return null;
+      });
+
       // Transform HyperLiquid fills to abstract OrderFill type
       const fills = (rawFills || []).reduce((acc: OrderFill[], fill) => {
         // Perps only, no Spots
@@ -5112,6 +5137,32 @@ export class HyperLiquidProvider implements PerpsProvider {
 
         return acc;
       }, []);
+
+      // Enrich fills with detailedOrderType from historical orders
+      // Wrapped in its own try/catch so a malformed order never discards fetched fills
+      try {
+        const rawOrders = await historicalOrdersPromise;
+        if (rawOrders) {
+          const orderTypeByOid = new Map<string, string>();
+          for (const rawOrder of rawOrders) {
+            const oid = rawOrder.order?.oid?.toString();
+            if (oid && rawOrder.order?.orderType && !orderTypeByOid.has(oid)) {
+              orderTypeByOid.set(oid, rawOrder.order.orderType);
+            }
+          }
+          for (const fill of fills) {
+            const orderType = orderTypeByOid.get(fill.orderId);
+            if (orderType) {
+              fill.detailedOrderType = orderType;
+            }
+          }
+        }
+      } catch (enrichError) {
+        this.#deps.debugLogger.log(
+          'Error enriching fills with order types:',
+          enrichError,
+        );
+      }
 
       return fills;
     } catch (error) {
@@ -8032,9 +8083,13 @@ export class HyperLiquidProvider implements PerpsProvider {
   }
 
   #getBuilderAddress(isTestnet: boolean): string {
-    return isTestnet
-      ? BUILDER_FEE_CONFIG.TestnetBuilder
-      : BUILDER_FEE_CONFIG.MainnetBuilder;
+    // || intentional: env vars default to '' which must fall through to the hardcoded default
+    if (isTestnet) {
+      // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+      return this.#builderAddressTestnet || BUILDER_FEE_CONFIG.TestnetBuilder;
+    }
+    // eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+    return this.#builderAddressMainnet || BUILDER_FEE_CONFIG.MainnetBuilder;
   }
 
   #getReferralCode(isTestnet: boolean): string {

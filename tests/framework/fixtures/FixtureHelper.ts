@@ -1,5 +1,5 @@
 /* eslint-disable no-unsafe-finally */
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import FixtureServer from './FixtureServer';
 import {
   AnvilManager,
@@ -46,12 +46,22 @@ import ContractAddressRegistry from '../../../app/util/test/contract-address-reg
 import FixtureBuilder from './FixtureBuilder';
 import { createLogger } from '../logger';
 import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
+import {
+  runAnalyticsExpectations,
+  shouldRunAnalyticsExpectations,
+} from '../../helpers/analytics/runAnalyticsExpectations';
 import PortManager, { ResourceType } from '../PortManager';
 import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import type { Fixture } from './types';
 import CommandQueueServer from './CommandQueueServer';
 import DappServer from '../DappServer';
 import { PlatformDetector } from '../PlatformLocator';
+import LocalWebSocketServer from '../../websocket/server';
+import { ACCOUNT_ACTIVITY_WS } from '../../websocket/constants';
+import {
+  setupAccountActivityMocks,
+  resetAccountActivityMockState,
+} from '../../websocket/account-activity-mocks';
 
 const logger = createLogger({
   name: 'FixtureHelper',
@@ -514,6 +524,7 @@ export async function withFixtures(
     endTestfn,
     skipReactNativeReload = false,
     useCommandQueueServer = false,
+    analyticsExpectations,
   } = options;
 
   // Clean up any stale port forwarding from previous failed tests
@@ -547,6 +558,7 @@ export async function withFixtures(
   let mockServerPort;
   const fixtureServer = new FixtureServer();
   const commandQueueServer = new CommandQueueServer();
+  const accountActivityWsServer = new LocalWebSocketServer('accountActivity');
   let testError: Error | null = null;
 
   try {
@@ -581,6 +593,13 @@ export async function withFixtures(
     const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
+
+    // Step 4.5: Start WebSocket mock servers
+    await startResourceWithRetry(
+      ResourceType.ACCOUNT_ACTIVITY_WS,
+      accountActivityWsServer,
+    );
+    await setupAccountActivityMocks(accountActivityWsServer);
     // Resolve fixture after local nodes are started so dynamic ports are known
     let resolvedFixture: FixtureBuilder | Fixture;
     if (typeof fixtureOption === 'function') {
@@ -624,6 +643,9 @@ export async function withFixtures(
           mockServerPort: isAndroid
             ? `${FALLBACK_MOCKSERVER_PORT}`
             : `${mockServerPort}`,
+          [ACCOUNT_ACTIVITY_WS.launchArgKey]: isAndroid
+            ? `${ACCOUNT_ACTIVITY_WS.fallbackPort}`
+            : `${accountActivityWsServer.getServerPort()}`,
           ...(launchArgs || {}),
         },
         languageAndLocale,
@@ -663,7 +685,22 @@ export async function withFixtures(
       }
     }
 
-    // Enter drain mode AFTER endTestfn so analytics events are still captured,
+    if (
+      mockServerInstance &&
+      shouldRunAnalyticsExpectations(analyticsExpectations)
+    ) {
+      try {
+        await runAnalyticsExpectations(
+          mockServerInstance.server,
+          analyticsExpectations,
+        );
+      } catch (analyticsError) {
+        logger.error('Error in analyticsExpectations:', analyticsError);
+        cleanupErrors.push(analyticsError as Error);
+      }
+    }
+
+    // Enter drain mode AFTER endTestfn / analyticsExpectations so analytics events are still captured,
     // but BEFORE stopping backends — prevents forwarding to dead Anvil/Ganache.
     if (mockServerInstance) {
       mockServerInstance.startDraining();
@@ -717,6 +754,15 @@ export async function withFixtures(
       }
     }
 
+    // Clean up WebSocket servers
+    try {
+      resetAccountActivityMockState();
+      await accountActivityWsServer.stop();
+    } catch (cleanupError) {
+      logger.error('Error during WebSocket cleanup:', cleanupError);
+      cleanupErrors.push(cleanupError as Error);
+    }
+
     // Clean up the mock server
     if (mockServerInstance?.isStarted()) {
       try {
@@ -754,9 +800,12 @@ export async function withFixtures(
 
     // Remove the abort filter AFTER all cleanup is complete so late async
     // "Aborted" rejections from destroyed sockets are still caught.
+    // removeAbortFilter() is async — it holds the filter active for an extra
+    // 500ms before restoring Jest's handlers to cover abort events that fire
+    // after all cleanup has completed (observed up to ~200ms on loaded CI).
     if (mockServerInstance) {
       logger.info('Removing abort filter after full cleanup');
-      mockServerInstance.removeAbortFilter();
+      await mockServerInstance.removeAbortFilter();
     }
 
     // Handle error reporting: prioritize test error over cleanup errors

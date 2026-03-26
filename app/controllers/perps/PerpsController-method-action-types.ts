@@ -170,6 +170,16 @@ export type PerpsControllerResetSelectedPaymentTokenAction = {
   handler: PerpsController['resetSelectedPaymentToken'];
 };
 
+export type PerpsControllerStartEligibilityMonitoringAction = {
+  type: 'PerpsController:startEligibilityMonitoring';
+  handler: PerpsController['startEligibilityMonitoring'];
+};
+
+export type PerpsControllerStopEligibilityMonitoringAction = {
+  type: 'PerpsController:stopEligibilityMonitoring';
+  handler: PerpsController['stopEligibilityMonitoring'];
+};
+
 export type PerpsControllerMethodActions =
   | PerpsControllerPlaceOrderAction
   | PerpsControllerEditOrderAction
@@ -204,4 +214,6 @@ export type PerpsControllerMethodActions =
   | PerpsControllerGetOrderBookGroupingAction
   | PerpsControllerSaveOrderBookGroupingAction
   | PerpsControllerSetSelectedPaymentTokenAction
-  | PerpsControllerResetSelectedPaymentTokenAction;
+  | PerpsControllerResetSelectedPaymentTokenAction
+  | PerpsControllerStartEligibilityMonitoringAction
+  | PerpsControllerStopEligibilityMonitoringAction;

@@ -28,7 +28,7 @@ import Tag from '../../../../../component-library/components/Tags/Tag/Tag';
 import { CellComponentSelectorsIDs } from '../../../../../component-library/components/Cells/Cell/CellComponent.testIds';
 import { RpcEndpointType } from '@metamask/network-controller';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
-import RpcUrlInput from './RpcUrlInput';
+import RpcFormFields from './RpcFormFields';
 import SelectField from './SelectField';
 import { NetworkDetailsViewSelectorsIDs } from '../NetworkDetailsView.testIds';
 import { formatNetworkRpcUrl } from '../NetworkDetailsView.utils';
@@ -73,6 +73,7 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
     onRpcUrlAdd,
     onRpcNameAdd,
     onRpcUrlFocused,
+    onRpcUrlBlur,
     jumpToChainId,
     focus: { isRpcUrlFieldFocused },
   } = formHook;
@@ -86,53 +87,26 @@ const RpcEndpointSection: React.FC<RpcEndpointSectionProps> = ({
 
   if (addMode) {
     return (
-      <>
-        <Box twClassName="gap-1">
-          <Label>{strings('app_settings.network_rpc_url_label')}</Label>
-          <RpcUrlInput
-            ref={inputRpcURL}
-            style={[
-              styles.input,
-              warningRpcUrl
-                ? isRpcUrlFieldFocused
-                  ? styles.inputWithFocus
-                  : styles.inputWithError
-                : undefined,
-            ]}
-            autoCapitalize="none"
-            autoCorrect={false}
-            value={rpcUrlForm}
-            editable
-            onChangeText={onRpcUrlAdd}
-            onFocus={onRpcUrlFocused}
-            placeholder={strings('app_settings.network_rpc_placeholder')}
-            placeholderTextColor={placeholderTextColor}
-            onSubmitEditing={jumpToChainId}
-            testID={NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT}
-            keyboardAppearance={themeAppearance}
-            checkIfNetworkExists={checkIfNetworkExists}
-            checkIfRpcUrlExists={checkIfRpcUrlExists}
-            onValidationSuccess={onValidationSuccess}
-            onValidationChange={onRpcUrlValidationChange}
-            warningStyle={styles.warningText}
-          />
-        </Box>
-        <Box twClassName="gap-1">
-          <Label>{strings('app_settings.network_rpc_name_label')}</Label>
-          <TextField
-            ref={inputNameRpcURL}
-            autoCapitalize="none"
-            value={rpcNameForm}
-            autoCorrect={false}
-            onChangeText={onRpcNameAdd}
-            placeholder={strings('app_settings.network_rpc_placeholder')}
-            placeholderTextColor={placeholderTextColor}
-            onSubmitEditing={jumpToChainId}
-            testID={NetworkDetailsViewSelectorsIDs.RPC_NAME_INPUT}
-            keyboardAppearance={themeAppearance}
-          />
-        </Box>
-      </>
+      <RpcFormFields
+        inputRpcURL={inputRpcURL}
+        inputNameRpcURL={inputNameRpcURL}
+        rpcUrlForm={rpcUrlForm}
+        rpcNameForm={rpcNameForm}
+        isRpcUrlFieldFocused={isRpcUrlFieldFocused}
+        warningRpcUrl={warningRpcUrl}
+        onRpcUrlAdd={onRpcUrlAdd}
+        onRpcNameAdd={onRpcNameAdd}
+        onRpcUrlFocused={onRpcUrlFocused}
+        onRpcUrlBlur={onRpcUrlBlur}
+        jumpToChainId={jumpToChainId}
+        checkIfNetworkExists={checkIfNetworkExists}
+        checkIfRpcUrlExists={checkIfRpcUrlExists}
+        onValidationSuccess={onValidationSuccess}
+        onRpcUrlValidationChange={onRpcUrlValidationChange}
+        styles={styles}
+        themeAppearance={themeAppearance}
+        placeholderTextColor={placeholderTextColor}
+      />
     );
   }
 
@@ -290,6 +264,7 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
     onRpcUrlChangeWithName,
     onRpcUrlDelete,
     onRpcUrlFocused,
+    onRpcUrlBlur,
     jumpToChainId,
     modals: { showMultiRpcAddModal, rpcModalShowForm: showForm },
     setRpcModalShowForm: setShowForm,
@@ -384,51 +359,26 @@ const RpcEndpointModals: React.FC<RpcEndpointSectionProps> = ({
             pointerEvents={showForm ? 'auto' : 'none'}
           >
             <Box twClassName="mx-4 mt-4 p-4 gap-4 rounded-xl bg-background-muted">
-              <Box twClassName="gap-1">
-                <Label>{strings('app_settings.network_rpc_url_label')}</Label>
-                <RpcUrlInput
-                  ref={inputRpcURL}
-                  style={[
-                    styles.input,
-                    warningRpcUrl
-                      ? isRpcUrlFieldFocused
-                        ? styles.inputWithFocus
-                        : styles.inputWithError
-                      : undefined,
-                  ]}
-                  autoCapitalize="none"
-                  autoCorrect={false}
-                  value={rpcUrlForm}
-                  editable
-                  onChangeText={onRpcUrlAdd}
-                  onFocus={onRpcUrlFocused}
-                  placeholder={strings('app_settings.network_rpc_placeholder')}
-                  placeholderTextColor={placeholderTextColor}
-                  onSubmitEditing={jumpToChainId}
-                  testID={NetworkDetailsViewSelectorsIDs.RPC_URL_INPUT}
-                  keyboardAppearance={themeAppearance}
-                  checkIfNetworkExists={checkIfNetworkExists}
-                  checkIfRpcUrlExists={checkIfRpcUrlExists}
-                  onValidationSuccess={onValidationSuccess}
-                  onValidationChange={onRpcUrlValidationChange}
-                  warningStyle={styles.warningText}
-                />
-              </Box>
-              <Box twClassName="gap-1">
-                <Label>{strings('app_settings.network_rpc_name_label')}</Label>
-                <TextField
-                  ref={inputNameRpcURL}
-                  autoCapitalize="none"
-                  value={rpcNameForm}
-                  autoCorrect={false}
-                  onChangeText={onRpcNameAdd}
-                  placeholder={strings('app_settings.network_rpc_placeholder')}
-                  placeholderTextColor={placeholderTextColor}
-                  onSubmitEditing={jumpToChainId}
-                  testID={NetworkDetailsViewSelectorsIDs.RPC_NAME_INPUT}
-                  keyboardAppearance={themeAppearance}
-                />
-              </Box>
+              <RpcFormFields
+                inputRpcURL={inputRpcURL}
+                inputNameRpcURL={inputNameRpcURL}
+                rpcUrlForm={rpcUrlForm}
+                rpcNameForm={rpcNameForm}
+                isRpcUrlFieldFocused={isRpcUrlFieldFocused}
+                warningRpcUrl={warningRpcUrl}
+                onRpcUrlAdd={onRpcUrlAdd}
+                onRpcNameAdd={onRpcNameAdd}
+                onRpcUrlFocused={onRpcUrlFocused}
+                onRpcUrlBlur={onRpcUrlBlur}
+                jumpToChainId={jumpToChainId}
+                checkIfNetworkExists={checkIfNetworkExists}
+                checkIfRpcUrlExists={checkIfRpcUrlExists}
+                onValidationSuccess={onValidationSuccess}
+                onRpcUrlValidationChange={onRpcUrlValidationChange}
+                styles={styles}
+                themeAppearance={themeAppearance}
+                placeholderTextColor={placeholderTextColor}
+              />
               <ButtonPrimary
                 label={strings('app_settings.add_rpc_url')}
                 size={ButtonSize.Lg}

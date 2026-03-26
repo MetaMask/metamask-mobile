@@ -9,7 +9,7 @@ import type { CaipAccountId } from '@metamask/utils';
 import { areAddressesEqual } from '../../../../util/address';
 import { selectNonReplacedTransactions } from '../../../../selectors/transactionController';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../selectors/accountsController';
-import { PerpsTransaction } from '../types/transactionHistory';
+import { FillType, PerpsTransaction } from '../types/transactionHistory';
 import { useUserHistory } from './useUserHistory';
 import { usePerpsLiveFills } from './stream/usePerpsLiveFills';
 import {
@@ -288,10 +288,30 @@ export const usePerpsTransactionHistory = ({
     }
 
     // Add live fills (overwrites REST duplicates - live data is fresher)
+    // Preserve fillType from REST when WS fill lacks enrichment (TP/SL pills)
     for (const tx of liveTransactions) {
       const timestampSeconds = Math.floor(tx.timestamp / 1000);
       const dedupKey = `${tx.asset}-${timestampSeconds}`;
-      tradeMap.set(dedupKey, tx);
+      const existing = tradeMap.get(dedupKey);
+      if (
+        existing?.fill?.fillType &&
+        existing.fill.fillType !== FillType.Standard &&
+        tx.fill?.fillType === FillType.Standard
+      ) {
+        tradeMap.set(dedupKey, {
+          ...tx,
+          fill: {
+            ...tx.fill,
+            fillType: existing.fill.fillType,
+            ...(existing.fill.liquidation &&
+              !tx.fill.liquidation && {
+                liquidation: existing.fill.liquidation,
+              }),
+          },
+        });
+      } else {
+        tradeMap.set(dedupKey, tx);
+      }
     }
 
     // Combine deduplicated trades with non-trade transactions (including wallet deposits)

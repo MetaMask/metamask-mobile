@@ -1,13 +1,16 @@
 import { renderHook, act } from '@testing-library/react-hooks';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { useGetCampaignParticipantStatus } from './useGetCampaignParticipantStatus';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
-import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
+import { selectCampaignParticipantStatusById } from '../../../../reducers/rewards/selectors';
+import { setCampaignParticipantStatus } from '../../../../reducers/rewards';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
+import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
+  useDispatch: jest.fn(),
 }));
 
 jest.mock('../../../../core/Engine', () => ({
@@ -22,8 +25,12 @@ jest.mock('../../../../selectors/rewards', () => ({
   selectRewardsSubscriptionId: jest.fn(),
 }));
 
-jest.mock('../../../../selectors/featureFlagController/rewards', () => ({
-  selectCampaignsRewardsEnabledFlag: jest.fn(),
+jest.mock('../../../../reducers/rewards/selectors', () => ({
+  selectCampaignParticipantStatusById: jest.fn(),
+}));
+
+jest.mock('../../../../reducers/rewards', () => ({
+  setCampaignParticipantStatus: jest.fn(),
 }));
 
 const mockCall = Engine.controllerMessenger.call as jest.MockedFunction<
@@ -34,18 +41,50 @@ const mockUseInvalidateByRewardEvents =
     typeof useInvalidateByRewardEvents
   >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
+const mockUseDispatch = useDispatch as jest.MockedFunction<typeof useDispatch>;
+const mockSetCampaignParticipantStatus =
+  setCampaignParticipantStatus as unknown as jest.MockedFunction<
+    (payload: { campaignId: string; status: CampaignParticipantStatusDto }) => {
+      type: string;
+      payload: { campaignId: string; status: CampaignParticipantStatusDto };
+    }
+  >;
+const mockSelectCampaignParticipantStatusById =
+  selectCampaignParticipantStatusById as jest.MockedFunction<
+    typeof selectCampaignParticipantStatusById
+  >;
 
 const SUB_ID = 'sub-123';
 const CAMPAIGN_ID = 'camp-456';
-const STATUS = { optedIn: true };
+const STATUS = { optedIn: true, participantCount: 42 };
+
+const mockDispatch = jest.fn();
+const mockParticipantStatusSelector = jest.fn();
 
 function setupSelectors(
   subscriptionId: string | null,
-  campaignsEnabled: boolean,
+  participantStatus: CampaignParticipantStatusDto | null = null,
 ) {
+  mockParticipantStatusSelector.mockReturnValue(participantStatus);
+  mockSelectCampaignParticipantStatusById.mockReturnValue(
+    mockParticipantStatusSelector,
+  );
+
+  let currentStatus = participantStatus;
+
+  mockDispatch.mockImplementation((action) => {
+    if (
+      action?.type === 'rewards/setCampaignParticipantStatus' &&
+      action.payload?.status
+    ) {
+      currentStatus = action.payload.status;
+      mockParticipantStatusSelector.mockReturnValue(currentStatus);
+    }
+  });
+
   mockUseSelector.mockImplementation((selector) => {
     if (selector === selectRewardsSubscriptionId) return subscriptionId;
-    if (selector === selectCampaignsRewardsEnabledFlag) return campaignsEnabled;
+    if (selector === mockParticipantStatusSelector) return currentStatus;
     return undefined;
   });
 }
@@ -53,22 +92,15 @@ function setupSelectors(
 describe('useGetCampaignParticipantStatus', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockUseDispatch.mockReturnValue(mockDispatch);
+    mockSetCampaignParticipantStatus.mockImplementation((payload) => ({
+      type: 'rewards/setCampaignParticipantStatus',
+      payload,
+    }));
   });
 
-  it('skips fetch and returns null status when feature flag is disabled', async () => {
-    setupSelectors(SUB_ID, false);
-    const { result } = renderHook(() =>
-      useGetCampaignParticipantStatus(CAMPAIGN_ID),
-    );
-    await act(async () => {
-      await Promise.resolve();
-    });
-    expect(mockCall).not.toHaveBeenCalled();
-    expect(result.current.status).toBeNull();
-  });
-
-  it('fetches and returns status on mount', async () => {
-    setupSelectors(SUB_ID, true);
+  it('fetches and dispatches status on mount', async () => {
+    setupSelectors(SUB_ID);
     mockCall.mockResolvedValueOnce(STATUS as never);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -83,13 +115,19 @@ describe('useGetCampaignParticipantStatus', () => {
       CAMPAIGN_ID,
       SUB_ID,
     );
+    expect(mockDispatch).toHaveBeenCalledWith(
+      mockSetCampaignParticipantStatus({
+        campaignId: CAMPAIGN_ID,
+        status: STATUS,
+      }),
+    );
     expect(result.current.status).toEqual(STATUS);
     expect(result.current.isLoading).toBe(false);
     expect(result.current.hasError).toBe(false);
   });
 
   it('sets hasError on failure', async () => {
-    setupSelectors(SUB_ID, true);
+    setupSelectors(SUB_ID);
     mockCall.mockRejectedValueOnce(new Error('fail') as never);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -104,8 +142,11 @@ describe('useGetCampaignParticipantStatus', () => {
   });
 
   it('subscribes to RewardsController:campaignOptedIn to auto-refetch', () => {
-    setupSelectors(SUB_ID, true);
-    mockCall.mockResolvedValue({ optedIn: false } as never);
+    setupSelectors(SUB_ID);
+    mockCall.mockResolvedValue({
+      optedIn: false,
+      participantCount: 0,
+    } as never);
 
     renderHook(() => useGetCampaignParticipantStatus(CAMPAIGN_ID));
 
@@ -116,9 +157,10 @@ describe('useGetCampaignParticipantStatus', () => {
   });
 
   it('allows manual refetch', async () => {
-    setupSelectors(SUB_ID, true);
+    const INITIAL_STATUS = { optedIn: false, participantCount: 0 };
+    setupSelectors(SUB_ID);
     mockCall
-      .mockResolvedValueOnce({ optedIn: false } as never)
+      .mockResolvedValueOnce(INITIAL_STATUS as never)
       .mockResolvedValueOnce(STATUS as never);
 
     const { result, waitForNextUpdate } = renderHook(() =>
@@ -127,12 +169,24 @@ describe('useGetCampaignParticipantStatus', () => {
     await act(async () => {
       await waitForNextUpdate();
     });
-    expect(result.current.status).toEqual({ optedIn: false });
+    expect(result.current.status).toEqual(INITIAL_STATUS);
 
     await act(async () => {
       result.current.refetch();
       await waitForNextUpdate();
     });
     expect(result.current.status).toEqual(STATUS);
+  });
+
+  it('skips fetch when subscriptionId is missing', async () => {
+    setupSelectors(null);
+    const { result } = renderHook(() =>
+      useGetCampaignParticipantStatus(CAMPAIGN_ID),
+    );
+    await act(async () => {
+      await Promise.resolve();
+    });
+    expect(mockCall).not.toHaveBeenCalled();
+    expect(result.current.status).toBeNull();
   });
 });
