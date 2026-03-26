@@ -2,6 +2,7 @@ import React, {
   useCallback,
   useContext,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -82,6 +83,12 @@ import MarketInsightsFeedbackBottomSheet, {
 import { useRampNavigation } from '../../../Ramp/hooks/useRampNavigation';
 import parseRampIntent from '../../../Ramp/utils/parseRampIntent';
 import { getDecimalChainId } from '../../../../../util/networks';
+
+const feedbackByDigest = new Map<string, 'up' | 'down'>();
+
+export function resetFeedbackCache() {
+  feedbackByDigest.clear();
+}
 
 const LOADING_SKELETON_DELAY_MS = 150;
 const SECTION_ANIMATION_DURATION_MS = 300;
@@ -191,7 +198,7 @@ const MarketInsightsView: React.FC = () => {
     ? isPerpsInsightsEnabled
     : isTokenInsightsEnabled;
 
-  const { report, isLoading, error } = useMarketInsights(
+  const { report, reportAssetId, isLoading, error } = useMarketInsights(
     assetIdentifier,
     isMarketInsightsEnabled,
   );
@@ -237,6 +244,9 @@ const MarketInsightsView: React.FC = () => {
     typeof setTimeout
   > | null>(null);
   const [isFeedbackSheetVisible, setIsFeedbackSheetVisible] = useState(false);
+  const [feedbackGiven, setFeedbackGiven] = useState<'up' | 'down' | null>(
+    null,
+  );
 
   // Build BridgeToken from route params for swap navigation
   const sourceToken = useMemo(() => {
@@ -267,10 +277,19 @@ const MarketInsightsView: React.FC = () => {
   // Sends the identifier under the right analytics property name.
   // Token flow uses caip19 (a real CAIP-19 ID); perps flow uses perps_market
   // (a plain market symbol like "ETH") to keep the two dimensions clean.
+  // digest_id is the UUID from the API envelope, available once the report loads.
   const assetIdProperty = useMemo(
-    () =>
-      isPerps ? { perps_market: assetIdentifier } : { caip19: assetIdentifier },
-    [isPerps, assetIdentifier],
+    () => ({
+      ...(isPerps
+        ? { perps_market: assetIdentifier }
+        : { caip19: assetIdentifier }),
+      ...(report ? { digest_id: report.digestId } : {}),
+    }),
+    [isPerps, assetIdentifier, report],
+  );
+  const assetSymbolProperty = useMemo(
+    () => (report?.asset ? { asset_symbol: report.asset } : {}),
+    [report?.asset],
   );
   const { goToBuy } = useRampNavigation();
 
@@ -295,12 +314,19 @@ const MarketInsightsView: React.FC = () => {
     )
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: 'swap',
       })
       .build();
     trackEvent(event);
     goToSwaps();
-  }, [goToSwaps, trackEvent, createEventBuilder, assetIdProperty]);
+  }, [
+    goToSwaps,
+    trackEvent,
+    createEventBuilder,
+    assetIdProperty,
+    assetSymbolProperty,
+  ]);
 
   const handlePerpsDirectionPress = useCallback(
     (direction: 'long' | 'short') => {
@@ -309,6 +335,7 @@ const MarketInsightsView: React.FC = () => {
       )
         .addProperties({
           ...assetIdProperty,
+          ...assetSymbolProperty,
           interaction_type: direction,
         })
         .build();
@@ -319,7 +346,14 @@ const MarketInsightsView: React.FC = () => {
         params: { direction, asset: assetSymbol },
       });
     },
-    [navigation, trackEvent, createEventBuilder, assetIdProperty, assetSymbol],
+    [
+      navigation,
+      trackEvent,
+      createEventBuilder,
+      assetIdProperty,
+      assetSymbolProperty,
+      assetSymbol,
+    ],
   );
 
   const handleBuyPress = useCallback(() => {
@@ -328,6 +362,7 @@ const MarketInsightsView: React.FC = () => {
     )
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: 'buy',
       })
       .build();
@@ -353,6 +388,7 @@ const MarketInsightsView: React.FC = () => {
     trackEvent,
     createEventBuilder,
     assetIdProperty,
+    assetSymbolProperty,
     tokenAddress,
     tokenChainId,
   ]);
@@ -405,6 +441,7 @@ const MarketInsightsView: React.FC = () => {
     ) => {
       const properties = {
         ...assetIdProperty,
+        ...assetSymbolProperty,
         interaction_type: interactionType,
         ...(options?.source ? { source: options.source } : {}),
         ...(options?.feedbackReason
@@ -421,7 +458,7 @@ const MarketInsightsView: React.FC = () => {
         .build();
       trackEvent(event);
     },
-    [trackEvent, createEventBuilder, assetIdProperty],
+    [trackEvent, createEventBuilder, assetIdProperty, assetSymbolProperty],
   );
 
   const showFeedbackSubmittedToast = useCallback(() => {
@@ -439,10 +476,26 @@ const MarketInsightsView: React.FC = () => {
     hasTrackedViewRef.current = false;
   }, [assetIdentifier]);
 
+  useLayoutEffect(() => {
+    setFeedbackGiven(
+      report?.generatedAt
+        ? (feedbackByDigest.get(report.generatedAt) ?? null)
+        : null,
+    );
+  }, [report?.generatedAt]);
+
   const handleThumbsUpPress = useCallback(() => {
+    setFeedbackGiven('up');
+    if (report?.generatedAt) {
+      feedbackByDigest.set(report.generatedAt, 'up');
+    }
     trackMarketInsightsInteraction('thumbs_up');
     showFeedbackSubmittedToast();
-  }, [trackMarketInsightsInteraction, showFeedbackSubmittedToast]);
+  }, [
+    trackMarketInsightsInteraction,
+    showFeedbackSubmittedToast,
+    report?.generatedAt,
+  ]);
 
   const handleThumbsDownPress = useCallback(() => {
     setIsFeedbackSheetVisible(true);
@@ -460,6 +513,10 @@ const MarketInsightsView: React.FC = () => {
       reason: MarketInsightsFeedbackReason;
       feedbackText?: string;
     }) => {
+      setFeedbackGiven('down');
+      if (report?.generatedAt) {
+        feedbackByDigest.set(report.generatedAt, 'down');
+      }
       trackMarketInsightsInteraction('thumbs_down', {
         feedbackReason: reason,
         ...(feedbackText ? { feedbackText } : {}),
@@ -467,7 +524,11 @@ const MarketInsightsView: React.FC = () => {
       setIsFeedbackSheetVisible(false);
       showFeedbackSubmittedToast();
     },
-    [trackMarketInsightsInteraction, showFeedbackSubmittedToast],
+    [
+      trackMarketInsightsInteraction,
+      showFeedbackSubmittedToast,
+      report?.generatedAt,
+    ],
   );
 
   const handleSourcePress = useCallback(
@@ -493,7 +554,11 @@ const MarketInsightsView: React.FC = () => {
   );
 
   useEffect(() => {
-    if (!report || hasTrackedViewRef.current) {
+    if (
+      !report ||
+      hasTrackedViewRef.current ||
+      reportAssetId !== assetIdentifier
+    ) {
       return;
     }
 
@@ -502,11 +567,20 @@ const MarketInsightsView: React.FC = () => {
     const event = createEventBuilder(MetaMetricsEvents.MARKET_INSIGHTS_VIEWED)
       .addProperties({
         ...assetIdProperty,
+        ...assetSymbolProperty,
       })
       .build();
     trackEvent(event);
     hasTrackedViewRef.current = true;
-  }, [report, assetIdProperty, trackEvent, createEventBuilder]);
+  }, [
+    report,
+    reportAssetId,
+    assetIdProperty,
+    assetSymbolProperty,
+    assetIdentifier,
+    trackEvent,
+    createEventBuilder,
+  ]);
 
   if (showLoadingSkeleton && !report && !error) {
     return (
@@ -634,9 +708,17 @@ const MarketInsightsView: React.FC = () => {
               testID={MarketInsightsSelectorsIDs.THUMBS_UP_BUTTON}
             >
               <Icon
-                name={IconName.ThumbUp}
+                name={
+                  feedbackGiven === 'up'
+                    ? IconName.ThumbUpFilled
+                    : IconName.ThumbUp
+                }
                 size={IconSize.Lg}
-                color={IconColor.IconAlternative}
+                color={
+                  feedbackGiven === 'up'
+                    ? IconColor.IconDefault
+                    : IconColor.IconAlternative
+                }
               />
             </Pressable>
             <Pressable
@@ -650,9 +732,17 @@ const MarketInsightsView: React.FC = () => {
               testID={MarketInsightsSelectorsIDs.THUMBS_DOWN_BUTTON}
             >
               <Icon
-                name={IconName.ThumbDown}
+                name={
+                  feedbackGiven === 'down'
+                    ? IconName.ThumbDownFilled
+                    : IconName.ThumbDown
+                }
                 size={IconSize.Lg}
-                color={IconColor.IconAlternative}
+                color={
+                  feedbackGiven === 'down'
+                    ? IconColor.IconDefault
+                    : IconColor.IconAlternative
+                }
               />
             </Pressable>
           </Box>

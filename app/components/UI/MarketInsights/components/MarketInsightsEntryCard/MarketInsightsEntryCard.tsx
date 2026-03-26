@@ -14,9 +14,14 @@ import AiSVG from '../../../../../component-library/components/Icons/Icon/assets
 import { strings } from '../../../../../../locales/i18n';
 import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import { endTrace, TraceName } from '../../../../../util/trace';
+import { useViewportTracking } from '../../hooks/useViewportTracking';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import {
+  EVENT_NAME,
+  generateOpt,
+} from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
-import { useViewportTracking } from '../../hooks/useViewportTracking';
 
 const SPARKLE_SIZE = 20;
 
@@ -45,14 +50,36 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   testID,
 }) => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
+
   const [cardDimensions, setCardDimensions] = useState<{
     width: number;
     height: number;
   } | null>(null);
 
   const [shouldAnimate, setShouldAnimate] = useState(false);
+
+  const handleVisible = useCallback(() => {
+    setShouldAnimate(true);
+
+    if (!caip19Id) {
+      return;
+    }
+
+    const event = createEventBuilder(
+      generateOpt(EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW),
+    )
+      .addProperties({
+        caip19: caip19Id,
+        asset_symbol: report.asset,
+        digest_id: report.digestId,
+      })
+      .build();
+    trackEvent(event);
+  }, [trackEvent, createEventBuilder, caip19Id, report]);
+
   const { ref: cardRef, onLayout: onVisibilityLayout } = useViewportTracking(
-    () => setShouldAnimate(true),
+    handleVisible,
     VISIBILITY_THRESHOLD,
   );
 
@@ -80,6 +107,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
 
   return (
     <Pressable
+      collapsable={false}
       ref={cardRef}
       onPress={onPress}
       onLayout={onVisibilityLayout}
