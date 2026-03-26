@@ -66,6 +66,13 @@ const styles = StyleSheet.create({
   qrErrorText: {
     textAlign: 'center',
   },
+  qrDescriptionContainer: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  qrDescriptionText: {
+    textAlign: 'center',
+  },
 });
 
 export interface AwaitingConfirmationContentProps {
@@ -179,10 +186,10 @@ export const AwaitingConfirmationContent: React.FC<
           testID={AWAITING_CONFIRMATION_CONTENT_TEST_ID}
           title={
             isSigningQRObject
-              ? strings('confirm.qr_scan_text')
-              : strings('hardware_wallet.awaiting_confirmation.title_message', {
-                  device: deviceName,
-                })
+              ? `${strings('transactions.sign_title_scan')}${strings(
+                  'transactions.sign_title_device',
+                )}`
+              : strings('confirm.qr_scan_text')
           }
           body={
             isSigningQRObject && pendingScanRequest?.request ? (
@@ -208,6 +215,22 @@ export const AwaitingConfirmationContent: React.FC<
                     shouldPause={scannerVisible || shouldPause}
                   />
                 </View>
+                <View style={styles.qrDescriptionContainer}>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Default}
+                    style={styles.qrDescriptionText}
+                  >
+                    {strings('transactions.sign_description_1')}
+                  </Text>
+                  <Text
+                    variant={TextVariant.BodyMD}
+                    color={TextColor.Default}
+                    style={styles.qrDescriptionText}
+                  >
+                    {strings('transactions.sign_description_2')}
+                  </Text>
+                </View>
               </View>
             ) : (
               <>
@@ -216,9 +239,14 @@ export const AwaitingConfirmationContent: React.FC<
                   color={TextColor.Default}
                   style={styles.messageText}
                 >
-                  {strings('hardware_wallet.awaiting_confirmation.message', {
-                    device: deviceName,
-                  })}
+                  {strings('transactions.sign_description_1')}
+                </Text>
+                <Text
+                  variant={TextVariant.BodyMD}
+                  color={TextColor.Default}
+                  style={styles.messageText}
+                >
+                  {strings('transactions.sign_description_2')}
                 </Text>
                 <View style={styles.spinnerContainer}>
                   <ActivityIndicator
