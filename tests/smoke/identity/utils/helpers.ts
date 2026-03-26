@@ -1,5 +1,6 @@
 import { MOCK_SRP_E2E_IDENTIFIER_BASE_KEY } from './mocks';
 import { USER_STORAGE_FEATURE_NAMES } from '@metamask/profile-sync-controller/sdk';
+import { AuthenticationController } from '@metamask/profile-sync-controller';
 import {
   UserStorageMockttpController,
   UserStorageMockttpControllerEvents,
@@ -7,19 +8,7 @@ import {
 } from './user-storage/userStorageMockttpController';
 import { USER_STORAGE_GROUPS_FEATURE_KEY } from '@metamask/account-tree-controller';
 
-/**
- * Extracts the subject (identifier) from a JWT token.
- * @param jwt - The JWT token string
- * @returns The 'sub' claim from the JWT payload
- */
-const getE2EIdentifierFromJwt = (jwt: string): string => {
-  const parts = jwt.split('.');
-  if (parts.length !== 3) {
-    return jwt;
-  }
-  const payload = JSON.parse(Buffer.from(parts[1], 'base64').toString('utf8'));
-  return payload.sub as string;
-};
+const { getE2EIdentifierFromJwt } = AuthenticationController.Mocks;
 
 export interface UserStorageAccount {
   /**

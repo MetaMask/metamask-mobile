@@ -69,22 +69,6 @@ class QuoteView {
     });
   }
 
-  /**
-   * Gets the destination token input element (not the token selector button).
-   * Tapping this input will close the keypad without triggering token selection.
-   */
-  get destinationTokenInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          QuoteViewSelectorIDs.DESTINATION_TOKEN_INPUT,
-          { exact: true },
-        ),
-    });
-  }
-
   get searchToken(): Promise<Detox.IndexableNativeElement> {
     return Matchers.getElementByID(
       QuoteViewSelectorIDs.TOKEN_SEARCH_INPUT,
@@ -230,28 +214,9 @@ class QuoteView {
     });
   }
 
-  /**
-   * Dismisses the keypad BottomSheet by tapping on the destination token input.
-   * Tapping the destination token input triggers `keypadRef.current?.close()` in BridgeView.
-   * This is more reliable than tapping the Rate label, which can be obscured by the keypad.
-   * Note: We tap on the input (dest-token-area-input), not the token selector button,
-   * to avoid triggering navigation to the token selector.
-   */
   async dismissKeypad(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        // Android reports the read-only destination field as disabled while the keypad is open;
-        // the tap still dismisses the sheet.
-        await Gestures.waitAndTap(asDetoxElement(this.destinationTokenInput), {
-          checkEnabled: false,
-          elemDescription: 'Tap destination token input to dismiss keypad',
-        });
-      },
-      appium: async () => {
-        await UnifiedGestures.waitAndTap(this.destinationTokenInput, {
-          description: 'Tap destination token input to dismiss keypad',
-        });
-      },
+    await Gestures.waitAndTap(this.rateLabel, {
+      elemDescription: 'Tap rate label to dismiss keypad',
     });
   }
 
