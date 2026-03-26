@@ -276,7 +276,6 @@ export class AccountService {
         context.stateManager.update((state) => {
           state.lastError = result.error ?? PERPS_ERROR_CODES.WITHDRAW_FAILED;
           state.lastUpdateTimestamp = Date.now();
-          state.withdrawInProgress = false;
           state.lastWithdrawResult = {
             success: false,
             error: result.error ?? PERPS_ERROR_CODES.WITHDRAW_FAILED,
@@ -286,16 +285,15 @@ export class AccountService {
             txHash: '',
           };
 
-          // Update the withdrawal request by request ID
-          if (state.withdrawalRequests.length > 0) {
-            const requestToUpdate = state.withdrawalRequests.find(
-              (req) => req.id === currentWithdrawalId,
-            );
-            if (requestToUpdate) {
-              requestToUpdate.status = 'failed' as TransactionStatus;
-              requestToUpdate.success = false;
-            }
+          const withdrawalRequestIndex = state.withdrawalRequests.findIndex(
+            (req) => req.id === currentWithdrawalId,
+          );
+          if (withdrawalRequestIndex !== -1) {
+            state.withdrawalRequests.splice(withdrawalRequestIndex, 1);
           }
+          state.withdrawInProgress = state.withdrawalRequests.some(
+            (req) => req.status === 'pending' || req.status === 'bridging',
+          );
         });
       }
 
@@ -340,7 +338,6 @@ export class AccountService {
         context.stateManager.update((state) => {
           state.lastError = errorMessage;
           state.lastUpdateTimestamp = Date.now();
-          state.withdrawInProgress = false;
           state.lastWithdrawResult = {
             success: false,
             error: errorMessage,
@@ -350,16 +347,15 @@ export class AccountService {
             txHash: '',
           };
 
-          // Update the withdrawal request by request ID
-          if (state.withdrawalRequests.length > 0) {
-            const requestToUpdate = state.withdrawalRequests.find(
-              (req) => req.id === currentWithdrawalId,
-            );
-            if (requestToUpdate) {
-              requestToUpdate.status = 'failed' as TransactionStatus;
-              requestToUpdate.success = false;
-            }
+          const withdrawalRequestIndex = state.withdrawalRequests.findIndex(
+            (req) => req.id === currentWithdrawalId,
+          );
+          if (withdrawalRequestIndex !== -1) {
+            state.withdrawalRequests.splice(withdrawalRequestIndex, 1);
           }
+          state.withdrawInProgress = state.withdrawalRequests.some(
+            (req) => req.status === 'pending' || req.status === 'bridging',
+          );
         });
       }
 

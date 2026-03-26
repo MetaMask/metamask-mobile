@@ -1279,13 +1279,14 @@ export class PerpsController extends BaseController<
   /**
    * Clean up old withdrawal/deposit requests that don't have accountAddress
    * These are from before the accountAddress field was added and can't be displayed
-   * in the UI (which filters by account), so we discard them
+   * in the UI (which filters by account), so we discard them.
+   * Also drop persisted failed withdrawals — failures are surfaced via lastWithdrawResult only.
    */
   #migrateRequestsIfNeeded(): void {
     this.update((state) => {
       // Remove withdrawal requests without accountAddress - they can't be attributed to any account
-      state.withdrawalRequests = state.withdrawalRequests.filter((req) =>
-        Boolean(req.accountAddress),
+      state.withdrawalRequests = state.withdrawalRequests.filter(
+        (req) => Boolean(req.accountAddress) && req.status !== 'failed',
       );
 
       // Remove deposit requests without accountAddress - they can't be attributed to any account
@@ -2406,8 +2407,9 @@ export class PerpsController extends BaseController<
   }
 
   /**
-   * Update withdrawal request status when it completes
-   * This is called when a withdrawal is matched with a completed withdrawal from the API
+   * Update withdrawal request status when it completes, or remove it on failure.
+   * This is called when a withdrawal is matched with a completed withdrawal from the API.
+   * When status is `failed`, the request is removed from the queue (not retained).
    *
    * @param withdrawalId - The withdrawal transaction ID.
    * @param status - The current status.
@@ -2433,14 +2435,25 @@ export class PerpsController extends BaseController<
         withdrawalAmount = request.amount;
         shouldTrack =
           withdrawalAmount !== undefined && request.status !== status;
-        request.status = status;
-        request.success = status === 'completed';
-        if (txHash) {
-          request.txHash = txHash;
-        }
 
-        // Clear withdrawal progress when withdrawal completes
-        if (status === 'completed' || status === 'failed') {
+        if (status === 'failed') {
+          state.withdrawalRequests.splice(withdrawalIndex, 1);
+          state.withdrawInProgress = state.withdrawalRequests.some(
+            (req) => req.status === 'pending' || req.status === 'bridging',
+          );
+          state.withdrawalProgress = {
+            progress: 0,
+            lastUpdated: Date.now(),
+            activeWithdrawalId: null,
+          };
+        } else {
+          request.status = status;
+          request.success = status === 'completed';
+          if (txHash) {
+            request.txHash = txHash;
+          }
+
+          // Clear withdrawal progress when withdrawal completes
           state.withdrawalProgress = {
             progress: 0,
             lastUpdated: Date.now(),
@@ -4313,7 +4326,7 @@ export class PerpsController extends BaseController<
     });
 
     this.update((state) => {
-      // Filter out pending/bridging withdrawals, keep completed/failed for history
+      // Filter out pending/bridging withdrawals, keep completed for history
       state.withdrawalRequests = state.withdrawalRequests.filter(
         (req) => req.status !== 'pending' && req.status !== 'bridging',
       );

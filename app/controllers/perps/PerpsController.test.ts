@@ -3314,12 +3314,14 @@ describe('PerpsController', () => {
       expect(withdrawal.success).toBe(true);
     });
 
-    it('updates withdrawal status to failed', () => {
+    it('removes withdrawal request when status is failed', () => {
       controller.updateWithdrawalStatus(mockWithdrawalId, 'failed');
 
-      const withdrawal = controller.state.withdrawalRequests[0];
-      expect(withdrawal.status).toBe('failed');
-      expect(withdrawal.success).toBe(false);
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('clears withdrawal progress when status completed', () => {
@@ -3354,6 +3356,11 @@ describe('PerpsController', () => {
 
       expect(controller.state.withdrawalProgress.progress).toBe(0);
       expect(controller.state.withdrawalProgress.activeWithdrawalId).toBeNull();
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('finds withdrawal by ID', () => {
