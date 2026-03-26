@@ -7872,6 +7872,7 @@
     "active_boosts_title": "적용 중인 부스트",
     "season_1": "시즌 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD 보너스 계산기",
       "description": "스테이블코인을 mUSD로 전환하면 얼마나 적립할 수 있는지 확인해 보세요.",
       "amount_label": "전환 금액",

@@ -6810,7 +6810,13 @@
     "oauth_error_button": "Try again",
     "no_internet_connection_title": "Unable to connect",
     "no_internet_connection_description": "Your internet connection is unstable. Check your connection and try again.",
-    "no_internet_connection_button": "Try again"
+    "no_internet_connection_button": "Try again",
+    "ios_need_update_title": "iOS update required",
+    "ios_need_update_description": "MetaMask Google Sign-In will soon require ",
+    "ios_need_update_description_version": "iOS 17.4 or later",
+    "ios_need_update_description_end": ". You can continue using Google Sign-In on this device for now, but it will no longer be supported in an upcoming update.",
+    "ios_need_update_description2": "You can still access your wallet using the same Google account on a supported device or the MetaMask extension. We strongly recommend backing up your Secret Recovery Phrase to ensure uninterrupted access.",
+    "ios_need_update_button": "Continue"
   },
   "password_hint": {
     "title": "Password hint",
@@ -7430,7 +7436,9 @@
       "loading": "Loading available tokens...",
       "load_error": "Unable to load tokens. Please try again.",
       "retry": "Try again",
-      "on_linea": "on Linea"
+      "on_linea": "on Linea",
+      "account_label": "Account",
+      "token_label": "Token"
     },
     "cashback_screen": {
       "title": "Cashback",
@@ -7872,6 +7880,7 @@
     "active_boosts_title": "Active boosts",
     "season_1": "Season 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD bonus calculator",
       "description": "See how much you could earn by converting your stablecoins to mUSD.",
       "amount_label": "Amount converted",
@@ -7880,6 +7889,7 @@
       "daily_bonus": "Daily claimable bonus",
       "annualized_bonus": "Annualized bonus",
       "disclaimer": "This is only an estimate. The bonus is subject to change.",
+      "disclaimer_brief": "The bonus is an estimate and may change.",
       "buy_button": "Buy mUSD",
       "swap_button": "Swap to mUSD"
     },
