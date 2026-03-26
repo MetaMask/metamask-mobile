@@ -14,7 +14,6 @@ import { useSelector } from 'react-redux';
 import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/featureFlags';
 import { PredictTradeStatus } from '../../../constants/eventNames';
 import { useQueryClient } from '@tanstack/react-query';
-import { predictQueries } from '../../../queries';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
@@ -39,7 +38,7 @@ export const usePredictBuyActions = ({
   const { onReject: onApprovalReject, onConfirm: onApprovalConfirm } =
     useApprovalRequest();
   const { activeOrder } = usePredictActiveOrder();
-  const { placeOrder } = usePredictTrading();
+  const { placeOrder, initiPayWithAnyToken } = usePredictTrading();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(
@@ -71,12 +70,12 @@ export const usePredictBuyActions = ({
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
-        PredictController.initiPayWithAnyToken();
+        initiPayWithAnyToken();
       }
     });
 
     return unsubscribe;
-  }, [navigation, PredictController, payWithAnyTokenEnabled]);
+  }, [navigation, initiPayWithAnyToken, payWithAnyTokenEnabled]);
 
   useEffect(() => {
     if (!payWithAnyTokenEnabled) {

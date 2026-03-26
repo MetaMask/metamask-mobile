@@ -22,6 +22,7 @@ const mockInitiPayWithAnyToken = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockTransitionEndUnsubscribe = jest.fn();
 const mockBeforeRemoveUnsubscribe = jest.fn();
+const mockInvalidateOrderQueries = jest.fn();
 
 let mockActiveOrder: {
   batchId?: string | null;
@@ -81,6 +82,7 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
 jest.mock('../../../hooks/usePredictTrading', () => ({
   usePredictTrading: () => ({
     placeOrder: mockPlaceOrder,
+    initiPayWithAnyToken: mockInitiPayWithAnyToken,
   }),
 }));
 
@@ -103,15 +105,6 @@ jest.mock('@tanstack/react-query', () => ({
   }),
 }));
 
-jest.mock('../../../queries', () => ({
-  predictQueries: {
-    balance: { keys: { all: () => ['balance'] } },
-    positions: { keys: { all: () => ['positions'] } },
-    activity: { keys: { all: () => ['activity'] } },
-    unrealizedPnL: { keys: { all: () => ['unrealized-pnl'] } },
-  },
-}));
-
 const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
   preview: {
     marketId: 'market-1',
@@ -131,6 +124,7 @@ const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
   analyticsProperties: { marketId: 'market-1' },
   setIsConfirming: mockSetIsConfirming,
   showOrderPlacedToast: mockShowOrderPlacedToast,
+  invalidateOrderQueries: mockInvalidateOrderQueries,
 });
 
 describe('usePredictBuyActions', () => {
@@ -139,6 +133,7 @@ describe('usePredictBuyActions', () => {
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
     mockInitiPayWithAnyToken.mockResolvedValue(undefined);
+    mockInvalidateOrderQueries.mockReset();
     mockAddListener.mockImplementation(createAddListenerMock());
   });
 
@@ -177,7 +172,6 @@ describe('usePredictBuyActions', () => {
       expect(mockTransitionEndUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockBeforeRemoveUnsubscribe).toHaveBeenCalledTimes(1);
       expect(mockOnApprovalReject).toHaveBeenCalledTimes(1);
-      expect(mockOnOrderCancelled).toHaveBeenCalledTimes(1);
     });
 
     it('only calls initiPayWithAnyToken once even if transitionEnd fires again', () => {
@@ -309,21 +303,9 @@ describe('usePredictBuyActions', () => {
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
       await waitFor(() => {
-        expect(mockInvalidateQueries).toHaveBeenCalledTimes(4);
+        expect(mockInvalidateOrderQueries).toHaveBeenCalledTimes(1);
       });
 
-      expect(mockInvalidateQueries).toHaveBeenNthCalledWith(1, {
-        queryKey: ['balance'],
-      });
-      expect(mockInvalidateQueries).toHaveBeenNthCalledWith(2, {
-        queryKey: ['positions'],
-      });
-      expect(mockInvalidateQueries).toHaveBeenNthCalledWith(3, {
-        queryKey: ['activity'],
-      });
-      expect(mockInvalidateQueries).toHaveBeenNthCalledWith(4, {
-        queryKey: ['unrealized-pnl'],
-      });
       expect(mockShowOrderPlacedToast).toHaveBeenCalledTimes(1);
       expect(mockOnPlaceOrderEnd).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());

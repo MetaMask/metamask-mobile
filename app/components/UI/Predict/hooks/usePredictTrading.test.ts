@@ -231,8 +231,8 @@ describe('usePredictTrading', () => {
     });
   });
 
-  describe('payWithAnyTokenConfirmation', () => {
-    it('calls PredictController.payWithAnyTokenConfirmation and returns result', async () => {
+  describe('initiPayWithAnyToken', () => {
+    it('calls PredictController.initiPayWithAnyToken and returns result', async () => {
       const mockResult = {
         success: true,
         response: { batchId: 'batch-123' },
@@ -244,7 +244,7 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.payWithAnyTokenConfirmation();
+      const response = await result.current.initiPayWithAnyToken();
 
       expect(
         Engine.context.PredictController.initiPayWithAnyToken,
@@ -252,16 +252,16 @@ describe('usePredictTrading', () => {
       expect(response).toEqual(mockResult);
     });
 
-    it('throws error when PredictController.payWithAnyTokenConfirmation fails', async () => {
-      const mockError = new Error('Failed to pay with any token');
+    it('throws error when PredictController.initiPayWithAnyToken fails', async () => {
+      const mockError = new Error('Failed to initialize pay with any token');
       (
         Engine.context.PredictController.initiPayWithAnyToken as jest.Mock
       ).mockRejectedValue(mockError);
       const { result } = renderHook(() => usePredictTrading());
 
-      await expect(
-        result.current.payWithAnyTokenConfirmation(),
-      ).rejects.toThrow('Failed to pay with any token');
+      await expect(result.current.initiPayWithAnyToken()).rejects.toThrow(
+        'Failed to initialize pay with any token',
+      );
     });
   });
 
@@ -416,8 +416,7 @@ describe('usePredictTrading', () => {
       const initialPreviewOrder = result.current.previewOrder;
       const initialPrepareWithdraw = result.current.prepareWithdraw;
       const initialDeposit = result.current.deposit;
-      const initialPayWithAnyTokenConfirmation =
-        result.current.payWithAnyTokenConfirmation;
+      const initialInitiPayWithAnyToken = result.current.initiPayWithAnyToken;
 
       rerender({});
 
@@ -427,8 +426,8 @@ describe('usePredictTrading', () => {
       expect(result.current.previewOrder).toBe(initialPreviewOrder);
       expect(result.current.prepareWithdraw).toBe(initialPrepareWithdraw);
       expect(result.current.deposit).toBe(initialDeposit);
-      expect(result.current.payWithAnyTokenConfirmation).toBe(
-        initialPayWithAnyTokenConfirmation,
+      expect(result.current.initiPayWithAnyToken).toBe(
+        initialInitiPayWithAnyToken,
       );
     });
   });
