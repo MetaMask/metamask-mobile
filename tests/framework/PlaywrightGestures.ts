@@ -243,7 +243,7 @@ export default class PlaywrightGestures {
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
 
-    await drv.background(seconds);
+    await drv.execute('mobile: backgroundApp', { seconds });
   }
 
   /**
