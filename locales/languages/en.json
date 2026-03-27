@@ -6525,9 +6525,6 @@
       "predict_withdraw": {
         "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
       },
-      "money_account_deposit": {
-        "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Money Account. Swap providers may charge a fee, but MetaMask won't."
-      },
       "musd_conversion": {
         "transaction_fee": "mUSD conversion fees include network costs and may include provider fees. No MetaMask fee applies when you convert to mUSD."
       },
