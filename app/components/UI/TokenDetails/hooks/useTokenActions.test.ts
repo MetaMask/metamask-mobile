@@ -663,6 +663,7 @@ describe('useTokenActions', () => {
           symbol: defaultToken.symbol,
         }),
         'Buy',
+        true,
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -701,6 +702,7 @@ describe('useTokenActions', () => {
           address: defaultToken.address,
         }),
         'Buy',
+        true,
       );
     });
 
@@ -753,6 +755,7 @@ describe('useTokenActions', () => {
           symbol: 'ETH',
         }),
         'Buy',
+        true,
       );
       expect(mockGoToBuy).not.toHaveBeenCalled();
     });
@@ -778,6 +781,7 @@ describe('useTokenActions', () => {
         }),
         undefined,
         'Sell',
+        true,
       );
     });
   });
