@@ -430,6 +430,29 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId('campaign-how-it-works')).toBeDefined();
     });
 
+    it('does not render CampaignHowItWorks when campaign is active and entries are still open', () => {
+      // Any real-world date is "future" relative to the mocked Date.now() of 123ms
+      const nextWeek = new Date();
+      nextWeek.setDate(nextWeek.getDate() + 7);
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              howItWorks: {
+                title: 'How it works',
+                description: 'Description',
+                steps: [],
+              },
+              depositCutoffDate: nextWeek.toISOString(),
+            },
+          }),
+        ],
+      });
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('campaign-how-it-works')).toBeNull();
+    });
+
     it('does not render CampaignHowItWorks when campaign has no details', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
@@ -718,6 +741,27 @@ describe('OndoCampaignDetailsView', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-leaderboard')).toBeDefined();
+    });
+
+    it('does not show OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
+      // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            details: {
+              howItWorks: {
+                title: 'How it works',
+                description: 'Description',
+                steps: [],
+              },
+              depositCutoffDate: new Date(0).toISOString(),
+            },
+          }),
+        ],
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
       expect(queryByTestId('ondo-leaderboard')).toBeNull();

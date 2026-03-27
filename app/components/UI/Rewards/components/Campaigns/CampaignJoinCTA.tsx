@@ -1,5 +1,4 @@
-import React, { useCallback, useRef, useState } from 'react';
-import { useFocusEffect } from '@react-navigation/native';
+import React, { useState } from 'react';
 import {
   Box,
   Button,
@@ -11,7 +10,6 @@ import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCa
 import CampaignOptInSheet from './CampaignOptInSheet';
 import { getCampaignStatus, isOptinAllowed } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
-import useRewardsToast from '../../hooks/useRewardsToast';
 
 export const CAMPAIGN_JOIN_CTA_TEST_IDS = {
   CTA_BUTTON: 'campaign-details-cta-button',
@@ -35,52 +33,12 @@ const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
   participantStatus,
 }) => {
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
-  const { showToast, RewardsToastOptions } = useRewardsToast();
-
-  const hasShownEntriesClosedToastRef = useRef(false);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (participantStatus.status?.optedIn === true) {
-        return;
-      }
-      if (participantStatus.isLoading) {
-        return;
-      }
-      if (getCampaignStatus(campaign) !== 'active') {
-        return;
-      }
-      if (isOptinAllowed(campaign)) {
-        return;
-      }
-      if (hasShownEntriesClosedToastRef.current) {
-        return;
-      }
-      hasShownEntriesClosedToastRef.current = true;
-      showToast(
-        RewardsToastOptions.entriesClosed(
-          strings('rewards.campaign_details.entries_closed_title'),
-          strings('rewards.campaign_details.entries_closed_description'),
-        ),
-      );
-    }, [
-      campaign,
-      participantStatus.isLoading,
-      participantStatus.status?.optedIn,
-      showToast,
-      RewardsToastOptions,
-    ]),
-  );
 
   if (
     participantStatus.status?.optedIn === true ||
     getCampaignStatus(campaign) !== 'active' ||
     !isOptinAllowed(campaign)
   ) {
-    return null;
-  }
-
-  if (!isOptinAllowed(campaign)) {
     return null;
   }
 
