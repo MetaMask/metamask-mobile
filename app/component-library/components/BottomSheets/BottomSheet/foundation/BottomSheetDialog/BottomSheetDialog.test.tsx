@@ -56,7 +56,7 @@ describe('BottomSheetDialog', () => {
         <Text>Test Child</Text>
       </BottomSheetDialog>,
     );
-    expect(getByText('Test Child')).toBeTruthy();
+    expect(getByText('Test Child')).toBeOnTheScreen();
   });
   it('should call onOpen when onOpenDialog ref is called', () => {
     const onOpenMock = jest.fn();
@@ -114,23 +114,23 @@ describe('BottomSheetDialog', () => {
   describe('simultaneousHandlers', () => {
     it('accepts a single ref as simultaneousHandlers without error', () => {
       const handler = React.createRef<unknown>();
-      const wrapper = render(
+      const { getByText } = render(
         <BottomSheetDialog simultaneousHandlers={handler}>
           <Text>Test Child</Text>
         </BottomSheetDialog>,
       );
-      expect(wrapper).toMatchSnapshot();
+      expect(getByText('Test Child')).toBeOnTheScreen();
     });
 
     it('accepts an array of refs as simultaneousHandlers without error', () => {
       const handler1 = React.createRef<unknown>();
       const handler2 = React.createRef<unknown>();
-      const wrapper = render(
+      const { getByText } = render(
         <BottomSheetDialog simultaneousHandlers={[handler1, handler2]}>
           <Text>Test Child</Text>
         </BottomSheetDialog>,
       );
-      expect(wrapper).toMatchSnapshot();
+      expect(getByText('Test Child')).toBeOnTheScreen();
     });
 
     it('renders children correctly when simultaneousHandlers is provided', () => {
@@ -140,7 +140,7 @@ describe('BottomSheetDialog', () => {
           <Text>Scrollable Content</Text>
         </BottomSheetDialog>,
       );
-      expect(getByText('Scrollable Content')).toBeTruthy();
+      expect(getByText('Scrollable Content')).toBeOnTheScreen();
     });
 
     it('renders normally when simultaneousHandlers is undefined', () => {
@@ -149,7 +149,7 @@ describe('BottomSheetDialog', () => {
           <Text>No Handler</Text>
         </BottomSheetDialog>,
       );
-      expect(getByText('No Handler')).toBeTruthy();
+      expect(getByText('No Handler')).toBeOnTheScreen();
     });
   });
 });
