@@ -5,6 +5,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Icon,
   IconName,
   IconSize,
@@ -20,6 +21,7 @@ import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
+import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import { getCampaignStatus } from '../components/Campaigns/CampaignTile.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
@@ -82,6 +84,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     setSelectedTier,
     isLoading: isLeaderboardLoading,
     hasError: hasLeaderboardError,
+    isLeaderboardNotYetComputed,
     refetch: refetchLeaderboard,
   } = useGetOndoLeaderboard(leaderboardCampaignId);
 
@@ -160,45 +163,71 @@ const OndoCampaignDetailsView: React.FC = () => {
               {(isOptedIn || Boolean(leaderboardCampaignId)) && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
-                  <Box twClassName="px-4 pt-4">
-                    {isOptedIn && (
-                      <Pressable
-                        onPress={() =>
-                          navigation.navigate(
-                            Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
-                            { campaignId },
-                          )
-                        }
-                      >
-                        <Box
-                          flexDirection={BoxFlexDirection.Row}
-                          alignItems={BoxAlignItems.Center}
-                          twClassName="gap-2 mb-4"
-                        >
-                          <Text variant={TextVariant.HeadingMd}>
-                            {strings('rewards.ondo_campaign_leaderboard.title')}
-                          </Text>
-                          <Icon name={IconName.ArrowRight} size={IconSize.Md} />
-                        </Box>
-                      </Pressable>
-                    )}
+                  <Box twClassName="p-4">
                     {isOptedIn ? (
-                      <OndoLeaderboardPosition campaignId={campaignId} />
+                      <>
+                        <Pressable
+                          onPress={() =>
+                            navigation.navigate(
+                              Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD as never,
+                              { campaignId },
+                            )
+                          }
+                        >
+                          <Box
+                            flexDirection={BoxFlexDirection.Row}
+                            alignItems={BoxAlignItems.Center}
+                            justifyContent={BoxJustifyContent.Between}
+                            twClassName="mb-4"
+                          >
+                            <Box
+                              flexDirection={BoxFlexDirection.Row}
+                              alignItems={BoxAlignItems.Center}
+                              twClassName="gap-2"
+                            >
+                              <Text variant={TextVariant.HeadingMd}>
+                                {strings(
+                                  'rewards.ondo_campaign_leaderboard.title',
+                                )}
+                              </Text>
+                              <Icon
+                                name={IconName.ArrowRight}
+                                size={IconSize.Md}
+                              />
+                            </Box>
+                          </Box>
+                        </Pressable>
+                        <OndoLeaderboardPosition campaignId={campaignId} />
+                      </>
                     ) : (
-                      <OndoLeaderboard
-                        tierNames={tierNames}
-                        selectedTier={selectedTier}
-                        onTierChange={setSelectedTier}
-                        entries={selectedTierData?.entries ?? []}
-                        totalParticipants={
-                          selectedTierData?.total_participants ?? 0
-                        }
-                        computedAt={computedAt}
-                        isLoading={isLeaderboardLoading}
-                        hasError={hasLeaderboardError}
-                        onRetry={refetchLeaderboard}
-                      />
+                      <>
+                        <OndoLeaderboard
+                          tierNames={tierNames}
+                          selectedTier={selectedTier}
+                          onTierChange={setSelectedTier}
+                          entries={selectedTierData?.entries ?? []}
+                          totalParticipants={
+                            selectedTierData?.totalParticipants ?? 0
+                          }
+                          computedAt={computedAt}
+                          isLoading={isLeaderboardLoading}
+                          hasError={hasLeaderboardError}
+                          isLeaderboardNotYetComputed={
+                            isLeaderboardNotYetComputed
+                          }
+                          onRetry={refetchLeaderboard}
+                        />
+                      </>
                     )}
+                  </Box>
+                </>
+              )}
+
+              {isOptedIn && (
+                <>
+                  <Box twClassName="border-b border-border-muted" />
+                  <Box twClassName="p-4">
+                    <OndoPortfolio campaignId={campaignId} />
                   </Box>
                 </>
               )}
