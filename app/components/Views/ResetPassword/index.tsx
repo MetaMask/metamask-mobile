@@ -4,7 +4,6 @@ import {
   KeyboardAvoidingView,
   ActivityIndicator,
   Alert,
-  ScrollView,
   InteractionManager,
   TouchableOpacity,
 } from 'react-native';
@@ -103,7 +102,7 @@ interface ResetPasswordRoute {
 }
 
 interface ResetPasswordProps {
-  navigation?: ResetPasswordNavigation;
+  navigation: ResetPasswordNavigation;
   route: ResetPasswordRoute;
 }
 
@@ -179,27 +178,35 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
 
   useEffect(() => {
     const initAuth = async () => {
-      const authData = await Authentication.getType();
-      const previouslyDisabled = await StorageWrapper.getItem(
-        BIOMETRY_CHOICE_DISABLED,
-      );
-      const passcodePreviouslyDisabled =
-        await StorageWrapper.getItem(PASSCODE_DISABLED);
-
-      if (
-        authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
-      ) {
-        setBiometryType(passcodeType(authData.currentAuthType));
-        setBiometryChoice(
-          !(passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE),
+      try {
+        const authData = await Authentication.getType();
+        const previouslyDisabled = await StorageWrapper.getItem(
+          BIOMETRY_CHOICE_DISABLED,
         );
-      } else if (authData.availableBiometryType) {
-        setBiometryType(authData.availableBiometryType);
-        setBiometryChoice(!(previouslyDisabled && previouslyDisabled === TRUE));
-        reauthenticate();
-      }
+        const passcodePreviouslyDisabled =
+          await StorageWrapper.getItem(PASSCODE_DISABLED);
 
-      setView(ViewState.ConfirmCurrent);
+        if (
+          authData.currentAuthType === AUTHENTICATION_TYPE.DEVICE_AUTHENTICATION
+        ) {
+          setBiometryType(passcodeType(authData.currentAuthType));
+          setBiometryChoice(
+            !(
+              passcodePreviouslyDisabled && passcodePreviouslyDisabled === TRUE
+            ),
+          );
+        } else if (authData.availableBiometryType) {
+          setBiometryType(authData.availableBiometryType);
+          setBiometryChoice(
+            !(previouslyDisabled && previouslyDisabled === TRUE),
+          );
+          reauthenticate();
+        }
+      } catch (e) {
+        Logger.error(e as Error);
+      } finally {
+        setView(ViewState.ConfirmCurrent);
+      }
     };
 
     initAuth();
@@ -210,7 +217,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, []);
 
   const handleSeedlessChangePasswordError = useCallback(() => {
-    navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings(
@@ -226,7 +233,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
         icon: IconName.Danger,
         isInteractable: false,
         onPrimaryButtonPress: async () => {
-          navigation?.replace(Routes.SETTINGS.SECURITY_SETTINGS);
+          navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
         },
         closeOnPrimaryButtonPress: true,
       },
@@ -234,7 +241,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [navigation]);
 
   const handleSeedlessPasswordOutdated = useCallback(() => {
-    navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
+    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
       screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
       params: {
         title: strings('login.seedless_password_outdated_modal_title'),
@@ -313,7 +320,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       analytics.trackEvent(eventBuilder.build());
 
       setLoading(false);
-      navigation?.navigate('SecuritySettings');
+      navigation.navigate(Routes.SETTINGS.SECURITY_SETTINGS);
       InteractionManager.runAfterInteractions(() => {
         NotificationManager.showSimpleNotification({
           status: 'success',
@@ -375,7 +382,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, []);
 
   const learnMore = useCallback(() => {
-    navigation?.navigate('Webview', {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: isSeedlessOnboardingLoginFlow
@@ -387,7 +394,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
   }, [navigation, isSeedlessOnboardingLoginFlow]);
 
   const learnMoreSocialLogin = useCallback(() => {
-    navigation?.navigate('Webview', {
+    navigation.navigate('Webview', {
       screen: 'SimpleWebview',
       params: {
         url: 'https://support.metamask.io/configure/wallet/how-can-i-reset-my-password/',
@@ -559,7 +566,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
               {strings('manual_backup_step_1.enter_current_password')}
             </Label>
             <TextField
-              placeholder={'Password'}
+              placeholder={strings('password_reset.password_title')}
               onChangeText={onPasswordChange}
               secureTextEntry
               value={password}
@@ -715,11 +722,13 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                 </Box>
 
                 {/* I understand checkbox */}
-                <TouchableOpacity
-                  onPress={toggleSelection}
-                  style={tw.style(
-                    'flex-row items-start justify-start gap-x-2 mt-2 mb-4',
-                  )}
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Start}
+                  justifyContent={BoxJustifyContent.Start}
+                  marginBottom={4}
+                  marginTop={2}
+                  gap={2}
                 >
                   <Checkbox
                     onChange={toggleSelection}
@@ -734,6 +743,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     variant={TextVariant.BodyMd}
                     color={TextColor.TextDefault}
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
+                    onPress={toggleSelection}
                   >
                     {isSrp
                       ? strings('reset_password.i_understand')
@@ -747,7 +757,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       {' ' + strings('reset_password.learn_more')}
                     </Text>
                   </Text>
-                </TouchableOpacity>
+                </Box>
 
                 <Box
                   flexDirection={BoxFlexDirection.Column}
@@ -766,7 +776,6 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                       }
                     }}
                     testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                    disabled={!canSubmit}
                     isDisabled={!canSubmit}
                   >
                     {strings('reset_password.confirm_btn')}
@@ -789,19 +798,15 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
     >
       <HeaderCompactStandard
         title={strings('password_reset.change_password')}
-        onBack={() => navigation?.goBack()}
+        onBack={() => navigation.goBack()}
         backButtonProps={{ isDisabled: loading }}
         includesTopInset
       />
-      <ScrollView
-        contentContainerStyle={tw.style('flex-grow')}
-        style={tw.style('flex-1 bg-default')}
-        testID={'account-backup-step-4-screen'}
-      >
+      <Box twClassName="flex-1" testID={'account-backup-step-4-screen'}>
         {view === ViewState.ResetForm
           ? renderResetPassword()
           : renderConfirmPassword()}
-      </ScrollView>
+      </Box>
     </SafeAreaView>
   );
 };

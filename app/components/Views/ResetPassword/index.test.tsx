@@ -175,7 +175,7 @@ interface ResetPasswordProps {
       [PREVIOUS_SCREEN]?: string;
     };
   };
-  navigation?: {
+  navigation: {
     setOptions: jest.Mock;
     goBack: jest.Mock;
     navigate: jest.Mock;
