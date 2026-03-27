@@ -372,6 +372,9 @@ exports[`ResetPassword render matches snapshot 1`] = `
                           "lineHeight": 24,
                         },
                         {
+                          "lineHeight": 0,
+                        },
+                        {
                           "textAlignVertical": "center",
                         },
                       ]
