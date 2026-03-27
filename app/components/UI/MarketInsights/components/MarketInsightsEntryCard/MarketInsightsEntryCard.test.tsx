@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, act, render } from '@testing-library/react-native';
+import type { ReactTestInstance } from 'react-test-renderer';
 import type { CaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
@@ -48,6 +49,32 @@ jest.mock('./AnimatedGradientBorder', () => ({
   AnimatedGradientBorder: (props: Record<string, unknown>) =>
     MockAnimatedGradientBorder(props),
 }));
+
+/**
+ * Finds the first node whose `onLayout` is not a Jest mock (skips
+ * `useViewportTracking`'s mocked `onLayout`) so card `handleLayout` can be fired.
+ */
+function findFirstNonMockOnLayoutNode(
+  node: ReactTestInstance,
+): ReactTestInstance {
+  const onLayout = node.props?.onLayout as ((e: unknown) => void) | undefined;
+  if (onLayout && !jest.isMockFunction(onLayout)) {
+    return node;
+  }
+  const { children } = node;
+  if (children == null) {
+    throw new Error('No non-mock onLayout handler found under card root');
+  }
+  const list = Array.isArray(children) ? children : [children];
+  for (const child of list) {
+    try {
+      return findFirstNonMockOnLayoutNode(child as ReactTestInstance);
+    } catch {
+      // try next sibling
+    }
+  }
+  throw new Error('No non-mock onLayout handler found under card root');
+}
 
 const mockReport = {
   headline: 'ETH rallies on ETF optimism',
@@ -204,13 +231,9 @@ describe('MarketInsightsEntryCard', () => {
     );
 
     const pressable = getByTestId('market-insights-entry-card');
-    // TouchableOpacity → View (viewport ref + onVisibilityLayout) → Box (handleLayout)
-    const viewportWrapper = pressable.children[0] as unknown as {
-      children: React.ReactNode[];
-    };
-    const innerBox = viewportWrapper.children[0] as unknown as {
-      props: { onLayout?: (e: unknown) => void };
-    };
+    const layoutTarget = findFirstNonMockOnLayoutNode(
+      pressable as unknown as ReactTestInstance,
+    );
 
     const getDimensions = () => {
       const calls = MockAnimatedGradientBorder.mock.calls;
@@ -223,7 +246,7 @@ describe('MarketInsightsEntryCard', () => {
 
     // First layout sets dimensions
     await act(() => {
-      innerBox.props.onLayout?.({
+      layoutTarget.props.onLayout?.({
         nativeEvent: { layout: { width: 350, height: 200 } },
       });
     });
@@ -232,7 +255,7 @@ describe('MarketInsightsEntryCard', () => {
     // Same dimensions should not trigger a re-render
     const renderCountAfterFirst = MockAnimatedGradientBorder.mock.calls.length;
     await act(() => {
-      innerBox.props.onLayout?.({
+      layoutTarget.props.onLayout?.({
         nativeEvent: { layout: { width: 350, height: 200 } },
       });
     });
@@ -242,7 +265,7 @@ describe('MarketInsightsEntryCard', () => {
 
     // Different dimensions should update
     await act(() => {
-      innerBox.props.onLayout?.({
+      layoutTarget.props.onLayout?.({
         nativeEvent: { layout: { width: 400, height: 250 } },
       });
     });
