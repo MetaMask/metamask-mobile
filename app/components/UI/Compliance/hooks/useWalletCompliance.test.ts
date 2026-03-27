@@ -268,5 +268,61 @@ describe('useComplianceGate', () => {
       expect(mockShowAccessRestrictedModal).toHaveBeenCalledTimes(1);
       expect(value).toBeUndefined();
     });
+
+    it('executes action and returns its result when compliance check passes', async () => {
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false) // selectIsWalletBlocked
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      mockCheckWalletCompliance.mockResolvedValue({
+        address: SAFE_ADDRESS,
+        blocked: false,
+        checkedAt: '2025-01-01T00:00:00Z',
+      });
+
+      const action = jest.fn().mockResolvedValue('action-result');
+      const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
+
+      const value = await result.current.gate(action);
+
+      expect(action).toHaveBeenCalledTimes(1);
+      expect(value).toBe('action-result');
+    });
+
+    it('executes action when checkCompliance throws (fail-open)', async () => {
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(false) // selectIsWalletBlocked
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      mockCheckWalletCompliance.mockRejectedValue(new Error('API error'));
+
+      const action = jest.fn().mockResolvedValue('result');
+      const { result } = renderHook(() => useComplianceGate(SAFE_ADDRESS));
+
+      const value = await result.current.gate(action);
+
+      expect(action).toHaveBeenCalledTimes(1);
+      expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
+      expect(value).toBe('result');
+    });
+
+    it('does not show modal when checkCompliance throws', async () => {
+      mockUseSelector
+        .mockReturnValueOnce(true) // selectComplianceEnabled
+        .mockReturnValueOnce(true) // selectIsWalletBlocked
+        .mockReturnValueOnce(false); // selectAreAnyWalletsBlocked
+
+      mockCheckWalletCompliance.mockRejectedValue(new Error('Network timeout'));
+
+      const action = jest.fn().mockResolvedValue(undefined);
+      const { result } = renderHook(() => useComplianceGate(BLOCKED_ADDRESS));
+
+      await result.current.gate(action);
+
+      expect(mockShowAccessRestrictedModal).not.toHaveBeenCalled();
+      expect(action).toHaveBeenCalledTimes(1);
+    });
   });
 });

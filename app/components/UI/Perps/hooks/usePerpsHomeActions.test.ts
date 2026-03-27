@@ -56,6 +56,19 @@ jest.mock('./usePerpsWithdrawConfirmation', () => ({
   })),
 }));
 
+const mockComplianceGate = jest.fn((action: () => Promise<unknown>) =>
+  action(),
+);
+
+jest.mock('../../Compliance', () => ({
+  useComplianceGate: () => ({
+    gate: mockComplianceGate,
+    isBlocked: false,
+    isComplianceEnabled: false,
+    checkCompliance: jest.fn(),
+  }),
+}));
+
 describe('usePerpsHomeActions', () => {
   const mockNavigation = {
     navigate: jest.fn(),
@@ -70,6 +83,9 @@ describe('usePerpsHomeActions', () => {
     jest.clearAllMocks();
     mockTrack.mockClear();
     mockWithdrawWithConfirmation.mockResolvedValue(undefined);
+    mockComplianceGate.mockImplementation((action: () => Promise<unknown>) =>
+      action(),
+    );
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
     (useSelector as jest.Mock).mockReturnValue(true);
     (usePerpsTrading as jest.Mock).mockReturnValue({
@@ -209,6 +225,35 @@ describe('usePerpsHomeActions', () => {
             PERPS_EVENT_VALUE.SOURCE.DEPOSIT_BUTTON,
         },
       );
+    });
+  });
+
+  describe('handleAddFunds - compliance blocked', () => {
+    it('does not call deposit functions when compliance gate blocks the action', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(mockEnsureArbitrumNetworkExists).not.toHaveBeenCalled();
+      expect(mockDepositWithConfirmation).not.toHaveBeenCalled();
+      expect(mockComplianceGate).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not set processing state when compliance gate blocks', async () => {
+      mockComplianceGate.mockResolvedValue(undefined);
+
+      const { result } = renderHook(() => usePerpsHomeActions());
+
+      await act(async () => {
+        await result.current.handleAddFunds();
+      });
+
+      expect(result.current.isProcessing).toBe(false);
+      expect(result.current.error).toBeNull();
     });
   });
 
