@@ -2,6 +2,7 @@ import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
+import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../component-library/components/BottomSheets/BottomSheet';
@@ -146,6 +147,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         variant: ButtonVariants.Secondary,
         size: ButtonSize.Lg,
         disabled: isFlipping,
+        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.CANCEL_BUTTON,
       },
       {
         label: isFlipping
@@ -156,6 +158,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
         size: ButtonSize.Lg,
         disabled: isFlipping || !hasValidAmount,
         danger: true,
+        testID: PerpsFlipPositionConfirmSheetSelectorsIDs.FLIP_BUTTON,
       },
     ],
     [handleCloseInternal, handleReverse, isFlipping, hasValidAmount],
@@ -166,6 +169,7 @@ const PerpsFlipPositionConfirmSheet: React.FC<
       ref={sheetRef}
       shouldNavigateBack={!externalSheetRef}
       onClose={externalSheetRef ? onClose : undefined}
+      testID={PerpsFlipPositionConfirmSheetSelectorsIDs.SHEET}
     >
       <BottomSheetHeader onClose={handleCloseInternal}>
         <Text variant={TextVariant.HeadingMD}>
