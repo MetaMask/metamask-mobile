@@ -3652,6 +3652,14 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     productionDefault: true,
     status: FeatureFlagStatus.Active,
   },
+
+  moneyAccount: {
+    name: 'moneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: { enabled: false },
+    status: FeatureFlagStatus.Active,
+  },
 };
 
 // ============================================================================
