@@ -1,6 +1,6 @@
 import React from 'react';
 import { ActivityIndicator } from 'react-native';
-import { render, waitFor } from '@testing-library/react-native';
+import { fireEvent, render, waitFor } from '@testing-library/react-native';
 import { TokenDetails } from './TokenDetails';
 import { selectNetworkConfigurationByChainId } from '../../../../selectors/networkController';
 import { selectPerpsEnabledFlag } from '../../Perps';
@@ -284,6 +284,19 @@ describe('TokenDetails', () => {
 
       expect(getByText('Swap')).toBeOnTheScreen();
       expect(getByText('Buy')).toBeOnTheScreen();
+    });
+
+    it('passes scrollToTopOnNav when sticky Swap is pressed', () => {
+      const { getByText } = render(<TokenDetails />);
+
+      fireEvent.press(getByText('Swap'));
+
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+        undefined,
+        true,
+      );
     });
 
     it('shows only Swap when user has eligible tokens but token is not buyable', () => {
