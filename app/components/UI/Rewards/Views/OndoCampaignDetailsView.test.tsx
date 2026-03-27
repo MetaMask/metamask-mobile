@@ -430,8 +430,9 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId('campaign-how-it-works')).toBeDefined();
     });
 
-    it('does not render CampaignHowItWorks when campaign is active and entries are still open', () => {
-      // Any real-world date is "future" relative to the mocked Date.now() of 123ms
+    it('renders CampaignHowItWorks when campaign is active and entries are still open', () => {
+      // Any real-world date is "future" relative to the mocked Date.now() of 123ms,
+      // so opt-in is still allowed and HowItWorks should be visible.
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 7);
       mockUseRewardCampaigns.mockReturnValue({
@@ -449,8 +450,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('campaign-how-it-works')).toBeNull();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('campaign-how-it-works')).toBeDefined();
     });
 
     it('does not render CampaignHowItWorks when campaign has no details', () => {
