@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useRef } from 'react';
 import { View, ActivityIndicator } from 'react-native';
 import { strings } from '../../../../../../locales/i18n';
-import { DevLogger } from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsFlipPositionConfirmSheetSelectorsIDs } from '../../Perps.testIds';
 import BottomSheet, {
   BottomSheetRef,
@@ -73,11 +72,6 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const usdAmount = useMemo(
     () => (positionSize * (markPrice || price)).toString(),
     [positionSize, markPrice, price],
-  );
-  // BUG_MARKER PR-28013: usdAmount uses 1x notional but flip order is 2x
-  DevLogger.log(
-    '[PR-28013] BUG_MARKER: flip fee usdAmount (1x, should be 2x)',
-    usdAmount,
   );
 
   // Get top of book for maker/taker fee determination
