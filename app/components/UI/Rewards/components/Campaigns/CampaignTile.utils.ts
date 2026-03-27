@@ -52,6 +52,34 @@ export function getCampaignStatus(campaign: CampaignDto): CampaignStatus {
   return 'complete';
 }
 
+/**
+ * Whether the user may still opt in to the campaign.
+ * Opt-in is only possible while {@link getCampaignStatus} returns `'active'` (between
+ * `startDate` and `endDate`). For {@link CampaignType.ONDO_HOLDING}, opt-in also closes after
+ * `details.depositCutoffDate` (ISO 8601) when that date is present and valid.
+ *
+ * @param campaign - Campaign data from the API
+ * @returns `true` if opt-in is allowed; `false` if the campaign is not active or the deposit cutoff has passed
+ */
+export function isOptinAllowed(campaign: CampaignDto): boolean {
+  if (getCampaignStatus(campaign) !== 'active') {
+    return false;
+  }
+
+  if (campaign.type !== CampaignType.ONDO_HOLDING) {
+    return true;
+  }
+
+  const cutoff = campaign.details?.depositCutoffDate;
+  if (!cutoff) {
+    return true;
+  }
+
+  const cutoffMs = new Date(cutoff).getTime();
+
+  return Date.now() <= cutoffMs;
+}
+
 const MONTHS = [
   'January',
   'February',
