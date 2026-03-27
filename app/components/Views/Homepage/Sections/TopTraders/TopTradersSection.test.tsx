@@ -56,7 +56,9 @@ describe('TopTradersSection', () => {
 
   it('renders the carousel when the feature flag is enabled', () => {
     renderWithProvider(<TopTradersSection {...defaultProps} />);
-    expect(screen.getByTestId('homepage-top-traders-carousel')).toBeTruthy();
+    expect(
+      screen.getByTestId('homepage-top-traders-carousel'),
+    ).toBeOnTheScreen();
   });
 
   it('navigates to the Top Traders view when the section header is pressed', () => {

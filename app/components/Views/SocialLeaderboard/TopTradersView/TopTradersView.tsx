@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
-import { SafeAreaView } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
@@ -28,7 +27,6 @@ import { TopTradersViewSelectorsIDs } from './TopTradersView.testIds';
 const TopTradersView = () => {
   const navigation = useNavigation();
   const tw = useTailwind();
-  const { top } = useSafeAreaInsets();
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -43,7 +41,6 @@ const TopTradersView = () => {
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Between}
-        style={{ paddingTop: top }}
         twClassName="px-2 py-2"
       >
         <ButtonIcon
