@@ -1624,12 +1624,7 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                             </View>
                             <TouchableOpacity
                               accessibilityRole="button"
-                              accessible={true}
-                              activeOpacity={1}
-                              onPress={[Function]}
-                              onPressIn={[Function]}
-                              onPressOut={[Function]}
-                              style={
+                              accessibilityState={
                                 {
                                   "alignItems": "center",
                                   "alignSelf": "flex-start",
@@ -1642,9 +1637,57 @@ exports[`TokenSelectorModal Component displays network filter selector when pres
                                   "paddingHorizontal": 16,
                                 }
                               }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
+                              }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   {
                                     "color": "#4459ff",

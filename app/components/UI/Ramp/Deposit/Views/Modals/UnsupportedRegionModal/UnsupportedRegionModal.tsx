@@ -11,11 +11,16 @@ import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
 import BottomSheetHeader from '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
-import Button, {
-  ButtonSize,
+import OldButton, {
+  ButtonSize as OldButtonSize,
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 
 import styleSheet from './UnsupportedRegionModal.styles';
 import { useStyles } from '../../../../../../hooks/useStyles';
@@ -107,8 +112,8 @@ function UnsupportedRegionModal() {
       </View>
 
       <View style={styles.footer}>
-        <Button
-          size={ButtonSize.Lg}
+        <OldButton
+          size={OldButtonSize.Lg}
           onPress={handleSelectDifferentRegion}
           label={strings('deposit.unsupported_region_modal.change_region')}
           variant={ButtonVariants.Link}
@@ -117,10 +122,11 @@ function UnsupportedRegionModal() {
         <Button
           size={ButtonSize.Lg}
           onPress={handleNavigateToBuy}
-          label={strings('deposit.unsupported_region_modal.buy_crypto')}
-          variant={ButtonVariants.Primary}
-          width={ButtonWidthTypes.Full}
-        />
+          variant={ButtonVariant.Primary}
+          isFullWidth
+        >
+          {strings('deposit.unsupported_region_modal.buy_crypto')}
+        </Button>
       </View>
     </BottomSheet>
   );

@@ -183,7 +183,7 @@ describe('EnterAddress Component', () => {
   it('disables the continue button when loading is true', () => {
     render(EnterAddress);
     const button = screen.getByTestId('address-continue-button');
-    expect(button.props.disabled).toBe(false);
+    expect(button).toBeEnabled();
 
     fillFormAndSubmit();
 
@@ -193,7 +193,7 @@ describe('EnterAddress Component', () => {
 
     fireEvent.press(button);
 
-    expect(button.props.disabled).toBe(true);
+    expect(button).toBeDisabled();
   });
 
   it('shows text input for state when region is not US', () => {
@@ -205,10 +205,17 @@ describe('EnterAddress Component', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('validates address line 2 when provided', () => {
+  it('validates address line 2 when provided', async () => {
     render(EnterAddress);
 
     fillFormAndSubmit();
+
+    // Wait for the first submission to complete so the button is no longer loading/disabled
+    await waitFor(() => {
+      expect(screen.getByTestId('address-continue-button')).toBeEnabled();
+    });
+
+    mockRouteAfterAuthentication.mockClear();
 
     fireEvent.changeText(screen.getByTestId('address-line-2-input'), '12345');
 

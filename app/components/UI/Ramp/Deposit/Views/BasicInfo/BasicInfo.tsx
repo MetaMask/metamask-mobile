@@ -30,11 +30,14 @@ import { BuyQuote } from '@consensys/native-ramps-sdk';
 import { useDepositSDK } from '../../sdk';
 import { VALIDATION_REGEX } from '../../constants/constants';
 import { endTrace, TraceName } from '../../../../../../util/trace';
-import Button, {
-  ButtonSize,
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
 } from '../../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import Icon, {
   IconColor,
   IconName,
@@ -487,13 +490,14 @@ const BasicInfo = (): JSX.Element => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleOnPressContinue}
-            label={strings('deposit.basic_info.continue')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             isDisabled={loading || !!error}
-            loading={loading}
+            isLoading={loading}
             testID={BASIC_INFO_TEST_IDS.CONTINUE_BUTTON}
-          />
+          >
+            {strings('deposit.basic_info.continue')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

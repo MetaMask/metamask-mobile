@@ -405,6 +405,8 @@ exports[`ErrorView Component renders with all props and matches snapshot 1`] = `
                             </View>
                             <Text
                               accessibilityRole="text"
+                              ellipsizeMode="clip"
+                              numberOfLines={1}
                               style={
                                 {
                                   "color": "#ca3542",

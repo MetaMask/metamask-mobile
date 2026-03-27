@@ -68,6 +68,42 @@ const mockUseDepositSDK = jest.fn();
 const mockUseDepositTokenExchange = jest.fn();
 const mockUseRoute = jest.fn().mockReturnValue({ params: {} });
 
+// The design-system Button uses AnimatedPressable which blocks press
+// events when disabled. Override the Button to use TouchableOpacity so
+// that fireEvent.press works regardless of disabled state, matching
+// the previous component-library Button behavior in tests.
+jest.mock('@metamask/design-system-react-native', () => {
+  // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-shadow
+  const React = require('react');
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const { TouchableOpacity, Text } = require('react-native');
+  const actual = jest.requireActual('@metamask/design-system-react-native');
+  return {
+    ...actual,
+    Button: ({
+      children,
+      onPress,
+      isDisabled,
+      isLoading,
+      isFullWidth,
+      variant,
+      size,
+      startIconName,
+      ...rest
+    }: Record<string, unknown>) =>
+      React.createElement(
+        TouchableOpacity,
+        {
+          ...rest,
+          onPress,
+          disabled: isDisabled || isLoading,
+          accessibilityRole: 'button',
+        },
+        React.createElement(Text, null, children),
+      ),
+  };
+});
+
 jest.mock('@react-navigation/native', () => {
   const actualReactNavigation = jest.requireActual('@react-navigation/native');
   return {
@@ -772,8 +808,8 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      const continueButton = screen.getByText('Continue');
       await act(async () => {
+        const continueButton = screen.getByText('Continue');
         fireEvent.press(continueButton);
       });
 
@@ -788,8 +824,8 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      const continueButton = screen.getByText('Continue');
       await act(async () => {
+        const continueButton = screen.getByText('Continue');
         fireEvent.press(continueButton);
       });
 
@@ -817,8 +853,8 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      const continueButton = screen.getByText('Continue');
       await act(async () => {
+        const continueButton = screen.getByText('Continue');
         fireEvent.press(continueButton);
       });
 
@@ -833,8 +869,8 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      const continueButton = screen.getByText('Continue');
       await act(async () => {
+        const continueButton = screen.getByText('Continue');
         fireEvent.press(continueButton);
       });
 
@@ -869,8 +905,8 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      const continueButton = screen.getByText('Continue');
       await act(async () => {
+        const continueButton = screen.getByText('Continue');
         fireEvent.press(continueButton);
       });
 
@@ -898,8 +934,8 @@ describe('BuildQuote Component', () => {
 
       render(BuildQuote);
 
-      const continueButton = screen.getByText('Continue');
       await act(async () => {
+        const continueButton = screen.getByText('Continue');
         fireEvent.press(continueButton);
       });
 

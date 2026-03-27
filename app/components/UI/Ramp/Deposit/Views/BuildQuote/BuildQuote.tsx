@@ -8,11 +8,11 @@ import styleSheet from './BuildQuote.styles';
 
 import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import Keypad from '../../../../../Base/Keypad';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextVariant,
   TextColor,
@@ -727,9 +727,8 @@ const BuildQuote = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleOnPressContinue}
-            label={'Continue'}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
+            variant={ButtonVariant.Primary}
+            isFullWidth
             isDisabled={
               amountAsNumber <= 0 ||
               isLoading ||
@@ -741,8 +740,10 @@ const BuildQuote = () => {
               !selectedCryptoCurrency ||
               !selectedPaymentMethod
             }
-            loading={isLoading}
-          />
+            isLoading={isLoading}
+          >
+            {'Continue'}
+          </Button>
         </ScreenLayout.Content>
       </ScreenLayout.Footer>
     </ScreenLayout>

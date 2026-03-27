@@ -1397,6 +1397,8 @@ exports[`BasicInfo Component navigates to address page when form is valid and co
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -2847,6 +2849,8 @@ exports[`BasicInfo Component passes regions to DepositPhoneField component 1`] =
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -4297,6 +4301,8 @@ exports[`BasicInfo Component prefills form data when previousFormData is provide
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -5750,6 +5756,8 @@ exports[`BasicInfo Component render matches snapshot 1`] = `
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -7263,6 +7271,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -8758,6 +8768,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -10086,6 +10098,8 @@ exports[`BasicInfo Component snapshot matches validation errors when continue is
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {

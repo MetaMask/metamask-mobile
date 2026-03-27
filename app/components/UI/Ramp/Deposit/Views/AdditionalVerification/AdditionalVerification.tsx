@@ -7,11 +7,11 @@ import ScreenLayout from '../../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../../Navbar';
 import { useNavigation } from '@react-navigation/native';
 import PoweredByTransak from '../../components/PoweredByTransak';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import additionalVerificationImage from '../../assets/additional-verification.png';
 import { strings } from '../../../../../../../locales/i18n';
 import { TextVariant } from '../../../../../../component-library/components/Texts/Text/Text.types';
@@ -85,10 +85,11 @@ const AdditionalVerification = () => {
           <Button
             size={ButtonSize.Lg}
             onPress={handleContinuePress}
-            label={strings('deposit.additional_verification.button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-          />
+            variant={ButtonVariant.Primary}
+            isFullWidth
+          >
+            {strings('deposit.additional_verification.button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

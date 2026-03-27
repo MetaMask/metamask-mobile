@@ -1201,9 +1201,57 @@ exports[`KycProcessing Component renders approved state snapshot 1`] = `
                                   undefined,
                                 ]
                               }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
+                              }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -1844,9 +1892,57 @@ exports[`KycProcessing Component renders error state snapshot 1`] = `
                                   undefined,
                                 ]
                               }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
+                              }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -3086,9 +3182,57 @@ exports[`KycProcessing Component renders pending forms state snapshot 1`] = `
                                   undefined,
                                 ]
                               }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
+                              }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {
@@ -3729,9 +3873,57 @@ exports[`KycProcessing Component renders rejected state snapshot 1`] = `
                                   undefined,
                                 ]
                               }
+                              accessibilityValue={
+                                {
+                                  "max": undefined,
+                                  "min": undefined,
+                                  "now": undefined,
+                                  "text": undefined,
+                                }
+                              }
+                              accessible={true}
+                              collapsable={false}
+                              focusable={true}
+                              onBlur={[Function]}
+                              onClick={[Function]}
+                              onFocus={[Function]}
+                              onResponderGrant={[Function]}
+                              onResponderMove={[Function]}
+                              onResponderRelease={[Function]}
+                              onResponderTerminate={[Function]}
+                              onResponderTerminationRequest={[Function]}
+                              onStartShouldSetResponder={[Function]}
+                              style={
+                                [
+                                  {
+                                    "alignItems": "center",
+                                    "backgroundColor": "#131416",
+                                    "borderRadius": 12,
+                                    "columnGap": 8,
+                                    "flexDirection": "row",
+                                    "height": 48,
+                                    "justifyContent": "center",
+                                    "minWidth": 80,
+                                    "opacity": 1,
+                                    "overflow": "hidden",
+                                    "paddingLeft": 16,
+                                    "paddingRight": 16,
+                                    "width": "100%",
+                                  },
+                                  {
+                                    "transform": [
+                                      {
+                                        "scale": 1,
+                                      },
+                                    ],
+                                  },
+                                ]
+                              }
                             >
                               <Text
                                 accessibilityRole="text"
+                                ellipsizeMode="clip"
+                                numberOfLines={1}
                                 style={
                                   [
                                     {

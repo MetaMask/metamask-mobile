@@ -6,10 +6,11 @@ import { AvatarSize } from '../../../../../../component-library/components/Avata
 import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { Box } from '../../../../Box/Box';
 import { AlignItems, FlexDirection } from '../../../../Box/box.types';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import Text, {
   TextColor,
   TextVariant,
@@ -76,24 +77,23 @@ function NetworksFilterBar({
       {networkFilter && networkFilter.length !== networks.length ? (
         <>
           <Button
-            variant={ButtonVariants.Secondary}
+            variant={ButtonVariant.Secondary}
             size={ButtonSize.Sm}
-            label={
-              <Box
-                flexDirection={FlexDirection.Row}
-                alignItems={AlignItems.center}
-                gap={8}
-              >
-                <Text variant={TextVariant.BodyMD}>See all</Text>
-                <Icon
-                  name={IconName.ArrowDown}
-                  size={IconSize.Xs}
-                  color={colors.icon.default}
-                />
-              </Box>
-            }
             onPress={() => setIsEditingNetworkFilter(true)}
-          />
+          >
+            <Box
+              flexDirection={FlexDirection.Row}
+              alignItems={AlignItems.center}
+              gap={8}
+            >
+              <Text variant={TextVariant.BodyMD}>See all</Text>
+              <Icon
+                name={IconName.ArrowDown}
+                size={IconSize.Xs}
+                color={colors.icon.default}
+              />
+            </Box>
+          </Button>
           {networks.map((chainId) => {
             const isSelected = networkFilter.includes(chainId);
             const { depositNetworkName, networkName, networkImageSource } =
@@ -103,27 +103,9 @@ function NetworksFilterBar({
               <Button
                 key={chainId}
                 variant={
-                  isSelected ? ButtonVariants.Primary : ButtonVariants.Secondary
+                  isSelected ? ButtonVariant.Primary : ButtonVariant.Secondary
                 }
                 size={ButtonSize.Sm}
-                label={
-                  <>
-                    {isSelected && (
-                      <AvatarNetwork
-                        key={chainId}
-                        imageSource={networkImageSource}
-                        name={displayName}
-                        size={AvatarSize.Xs}
-                        style={styles.selectedNetworkIcon}
-                      />
-                    )}
-                    <Text
-                      color={isSelected ? TextColor.Inverse : TextColor.Default}
-                    >
-                      {displayName}
-                    </Text>
-                  </>
-                }
                 onPress={() => {
                   if (isSelected && networkFilter.length > 1) {
                     setNetworkFilter((prev) =>
@@ -133,36 +115,52 @@ function NetworksFilterBar({
                     setNetworkFilter([chainId]);
                   }
                 }}
-              />
+              >
+                <>
+                  {isSelected && (
+                    <AvatarNetwork
+                      key={chainId}
+                      imageSource={networkImageSource}
+                      name={displayName}
+                      size={AvatarSize.Xs}
+                      style={styles.selectedNetworkIcon}
+                    />
+                  )}
+                  <Text
+                    color={isSelected ? TextColor.Inverse : TextColor.Default}
+                  >
+                    {displayName}
+                  </Text>
+                </>
+              </Button>
             );
           })}
         </>
       ) : (
         <Button
-          variant={ButtonVariants.Secondary}
+          variant={ButtonVariant.Secondary}
           size={ButtonSize.Sm}
-          label={
-            <Box
-              flexDirection={FlexDirection.Row}
-              alignItems={AlignItems.center}
-              gap={8}
-            >
-              {allNetworksIcons}
-              <Text variant={TextVariant.BodyMD}>
-                {strings('deposit.networks_filter_bar.all_networks')}
-              </Text>
-              <Icon
-                name={IconName.ArrowDown}
-                size={IconSize.Xs}
-                color={colors.icon.default}
-              />
-            </Box>
-          }
           onPress={() => {
             setNetworkFilter(networks);
             setIsEditingNetworkFilter(true);
           }}
-        />
+        >
+          <Box
+            flexDirection={FlexDirection.Row}
+            alignItems={AlignItems.center}
+            gap={8}
+          >
+            {allNetworksIcons}
+            <Text variant={TextVariant.BodyMD}>
+              {strings('deposit.networks_filter_bar.all_networks')}
+            </Text>
+            <Icon
+              name={IconName.ArrowDown}
+              size={IconSize.Xs}
+              color={colors.icon.default}
+            />
+          </Box>
+        </Button>
       )}
     </ScrollView>
   );

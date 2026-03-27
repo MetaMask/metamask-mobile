@@ -616,6 +616,57 @@ exports[`BankDetails Component render matches snapshot 1`] = `
                                       "paddingVertical": 8,
                                     }
                                   }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "flex": 1,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
+                                  }
                                 >
                                   <View
                                     style={
@@ -1789,6 +1840,57 @@ exports[`BankDetails Component render matches snapshot with bank info shown 1`] 
                                       "padding": 16,
                                       "paddingVertical": 8,
                                     }
+                                  }
+                                  accessibilityValue={
+                                    {
+                                      "max": undefined,
+                                      "min": undefined,
+                                      "now": undefined,
+                                      "text": undefined,
+                                    }
+                                  }
+                                  accessible={true}
+                                  collapsable={false}
+                                  focusable={true}
+                                  onBlur={[Function]}
+                                  onClick={[Function]}
+                                  onFocus={[Function]}
+                                  onResponderGrant={[Function]}
+                                  onResponderMove={[Function]}
+                                  onResponderRelease={[Function]}
+                                  onResponderTerminate={[Function]}
+                                  onResponderTerminationRequest={[Function]}
+                                  onStartShouldSetResponder={[Function]}
+                                  style={
+                                    [
+                                      {
+                                        "alignItems": "center",
+                                        "alignSelf": "flex-start",
+                                        "backgroundColor": "#b4b4b528",
+                                        "borderColor": "transparent",
+                                        "borderRadius": 12,
+                                        "borderWidth": 1,
+                                        "columnGap": 8,
+                                        "flexDirection": "row",
+                                        "height": 48,
+                                        "justifyContent": "center",
+                                        "minWidth": 80,
+                                        "opacity": 1,
+                                        "overflow": "hidden",
+                                        "paddingLeft": 16,
+                                        "paddingRight": 16,
+                                      },
+                                      {
+                                        "flex": 1,
+                                      },
+                                      {
+                                        "transform": [
+                                          {
+                                            "scale": 1,
+                                          },
+                                        ],
+                                      },
+                                    ]
                                   }
                                 >
                                   <View
