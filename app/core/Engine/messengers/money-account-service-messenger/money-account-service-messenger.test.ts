@@ -5,8 +5,8 @@ import {
   MOCK_ANY_NAMESPACE,
   type MockAnyNamespace,
 } from '@metamask/messenger';
-import type { MoneyAccountServiceMessenger } from '@metamask-previews/money-account-service';
 import { getMoneyAccountServiceMessenger } from './money-account-service-messenger';
+import { MoneyAccountServiceMessenger } from '../../controllers/money-account-service';
 
 type RootMessenger = Messenger<
   MockAnyNamespace,

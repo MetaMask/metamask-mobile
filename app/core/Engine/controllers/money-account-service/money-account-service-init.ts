@@ -1,7 +1,5 @@
-import {
-  MoneyAccountService,
-  MoneyAccountServiceMessenger,
-} from '@metamask-previews/money-account-service';
+import { MoneyAccountService } from './money-account-service';
+import { MoneyAccountServiceMessenger } from './types';
 import { ControllerInitFunction } from '../../types';
 import { MoneyAccountServiceInitMessenger } from '../../messengers/money-account-service-messenger/money-account-service-messenger';
 import { isMoneyAccountsFeatureEnabled } from '../../../../money-account/remote-feature-flag';

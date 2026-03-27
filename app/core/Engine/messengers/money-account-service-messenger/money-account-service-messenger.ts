@@ -3,12 +3,12 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import { MoneyAccountServiceMessenger } from '@metamask-previews/money-account-service';
 import {
   RemoteFeatureFlagControllerGetStateAction,
   RemoteFeatureFlagControllerStateChangeEvent,
 } from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
+import { MoneyAccountServiceMessenger } from '../../controllers/money-account-service';
 
 /**
  * Get a messenger for the money account service. This is scoped to the

@@ -1,4 +1,7 @@
-import { MoneyAccountService , MoneyAccountServiceMessenger } from '@metamask-previews/money-account-service';
+import {
+  MoneyAccountService,
+  MoneyAccountServiceMessenger,
+} from './money-account-service';
 import { buildControllerInitRequestMock } from '../../utils/test-utils';
 import { ControllerInitRequest } from '../../types';
 import { moneyAccountServiceInit } from './money-account-service-init';
@@ -17,7 +20,7 @@ import {
 import { ExtendedMessenger } from '../../../ExtendedMessenger';
 import { FeatureFlags } from '@metamask/remote-feature-flag-controller';
 
-jest.mock('@metamask-previews/money-account-service');
+jest.mock('./money-account-service');
 
 const mockRemoteFeatureFlagControllerGetState = jest.fn();
 
