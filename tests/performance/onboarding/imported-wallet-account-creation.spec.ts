@@ -35,7 +35,9 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
 
       await AccountListBottomSheet.tapAddAccountButton();
       await screen3Timer.measure(async () => {
-        await WalletView.tokenRow('SOL');
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(WalletView.tokenRow('SOL')),
+        );
       });
 
       performanceTracker.addTimers(screen1Timer, screen3Timer);
