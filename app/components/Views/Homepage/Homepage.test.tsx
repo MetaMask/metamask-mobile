@@ -66,6 +66,10 @@ jest.mock('../../UI/Perps/hooks', () => ({
     orders: [],
     isInitialLoading: false,
   })),
+  usePerpsLiveAccount: jest.fn(() => ({
+    account: null,
+    isInitialLoading: false,
+  })),
   usePerpsMarkets: jest.fn(() => ({
     markets: [],
     isLoading: false,
@@ -113,6 +117,24 @@ jest.mock('react-native-skeleton-placeholder', () => {
 
 jest.mock('../../UI/Predict/selectors/featureFlags', () => ({
   selectPredictEnabledFlag: jest.fn(() => true),
+}));
+
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: jest.fn(() => ({
+      invalidateQueries: jest.fn(() => Promise.resolve()),
+    })),
+  };
+});
+
+jest.mock('../../UI/Predict/hooks/useUnrealizedPnL', () => ({
+  useUnrealizedPnL: jest.fn(() => ({
+    data: null,
+    isLoading: false,
+    error: null,
+  })),
 }));
 
 jest.mock('../../UI/Predict/hooks/usePredictPositions', () => ({

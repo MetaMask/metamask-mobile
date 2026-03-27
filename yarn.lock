@@ -7883,6 +7883,19 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/base-data-service@npm:^0.1.0":
+  version: 0.1.1
+  resolution: "@metamask/base-data-service@npm:0.1.1"
+  dependencies:
+    "@metamask/controller-utils": "npm:^11.19.0"
+    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/utils": "npm:^11.9.0"
+    "@tanstack/query-core": "npm:^4.43.0"
+    fast-deep-equal: "npm:^3.1.3"
+  checksum: 10/b746cfaad6625d61e0d5e3202488d1f3139ef1e4b8f04c7b07a3e0fbe474c1307c73bacb1cf5d9288e946719137c52f1bc1fd40e9e44800f65b8729bbed7311d
+  languageName: node
+  linkType: hard
+
 "@metamask/bitcoin-wallet-snap@npm:^1.10.0":
   version: 1.10.0
   resolution: "@metamask/bitcoin-wallet-snap@npm:1.10.0"
@@ -8135,11 +8148,11 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/design-system-react-native@npm:^0.10.0":
-  version: 0.10.0
-  resolution: "@metamask/design-system-react-native@npm:0.10.0"
+"@metamask/design-system-react-native@npm:^0.11.0":
+  version: 0.11.0
+  resolution: "@metamask/design-system-react-native@npm:0.11.0"
   dependencies:
-    "@metamask/design-system-shared": "npm:^0.3.0"
+    "@metamask/design-system-shared": "npm:^0.4.0"
     fast-text-encoding: "npm:^1.0.6"
     react-native-jazzicon: "npm:^0.1.2"
   peerDependencies:
@@ -8152,16 +8165,16 @@ __metadata:
     react-native-gesture-handler: ">=1.10.3"
     react-native-reanimated: ">=3.3.0"
     react-native-safe-area-context: ">=4.0.0"
-  checksum: 10/4b105db890392d9f363ad5a573249980a621a3edb6e6d371cef8e78f8ade378d98c24a1f4d814c815a4f8e30e2978a8c69571f61e9b0983289d1c08e28f02da2
+  checksum: 10/d30aa86379138b689a821af25f7c56a8a4dbaaa3378ce4daf668122babfd0c254b8ea319a9b2e9202f2c58d86caca2eb6b888f13e063e83100da4136bad0b378
   languageName: node
   linkType: hard
 
-"@metamask/design-system-shared@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/design-system-shared@npm:0.3.0"
+"@metamask/design-system-shared@npm:^0.4.0":
+  version: 0.4.0
+  resolution: "@metamask/design-system-shared@npm:0.4.0"
   dependencies:
     "@metamask/utils": "npm:^11.10.0"
-  checksum: 10/2be032b91b10d03ca4e02ba9ff5afc9db763fb865161add83a7e28ef83f165cc3c3edba03f5d600ec95e3014afd0077abcadd75e613792e77c709760813ff749
+  checksum: 10/e7799c011360295b6ae1cb458cd069e2df2ce27e836a6c604c3f2488ef7b76d00709afadc5c9462e47cb81a379751fd9da8684dcc704244e180870aa293cdd2b
   languageName: node
   linkType: hard
 
@@ -8890,6 +8903,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/messenger@npm:^1.0.0":
+  version: 1.0.0
+  resolution: "@metamask/messenger@npm:1.0.0"
+  checksum: 10/ab1219a922d5acc86f2b1b557d79c75ca0c5f42572f50da8a2337bc5c8feb1ae95c0aaa2d2ee55b677acd4401fb2cc9c2dbacca7513edcddf20d88fb73fa7bea
+  languageName: node
+  linkType: hard
+
 "@metamask/metamask-eth-abis@npm:3.1.1, @metamask/metamask-eth-abis@npm:^3.1.1":
   version: 3.1.1
   resolution: "@metamask/metamask-eth-abis@npm:3.1.1"
@@ -9430,6 +9450,22 @@ __metadata:
     "@metamask/controller-utils": "npm:^11.19.0"
     "@metamask/messenger": "npm:^0.3.0"
   checksum: 10/a7f9428cb824bd0175ee1cc603d77c650fa7a23c7183e2cc0a0f21ee9b6378d80bbd1e496654e40d2edcfc840e60dd4a09d80feacb1746087a67b66761e1e6c7
+  languageName: node
+  linkType: hard
+
+"@metamask/react-data-query@npm:^0.2.0":
+  version: 0.2.0
+  resolution: "@metamask/react-data-query@npm:0.2.0"
+  dependencies:
+    "@metamask/base-data-service": "npm:^0.1.0"
+    "@metamask/utils": "npm:^11.9.0"
+    "@tanstack/query-core": "npm:^4.43.0"
+    "@tanstack/react-query": "npm:^4.43.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-native: "*"
+  checksum: 10/c54a9943bb68ad46ad9964864d4ee81604e61216ebed00026a1a4681a1e1091b6e413b9812d25e38d028493f3c75e91c8102b9d1c0232f409cd6f1dd4d22b211
   languageName: node
   linkType: hard
 
@@ -10091,9 +10127,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^63.0.0, @metamask/transaction-controller@npm:^63.1.0":
-  version: 63.1.0
-  resolution: "@metamask/transaction-controller@npm:63.1.0"
+"@metamask/transaction-controller@npm:^63.0.0, @metamask/transaction-controller@npm:^63.3.0":
+  version: 63.3.0
+  resolution: "@metamask/transaction-controller@npm:63.3.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10126,7 +10162,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/02aaf926d003c01f6844bc9c0f4cb18f34884e3badc393103beed3755ebcae52e522a52b2a16f40c0965be98c2f4125cf8ae60e3766b0f960ecc65c62f8a161f
+  checksum: 10/e9616ee54fad77bc5df47f4dd41aad3f423174b505c8a743f0097fdd87d5a6d5d5a3223fca16a940f306d0c4d918c76e345e00a7e76a646a44e00d12f88e15fb
   languageName: node
   linkType: hard
 
@@ -17427,21 +17463,36 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@tanstack/query-core@npm:5.90.20, @tanstack/query-core@npm:^5.62.16":
+"@tanstack/query-core@npm:4.43.0, @tanstack/query-core@npm:^4.43.0":
+  version: 4.43.0
+  resolution: "@tanstack/query-core@npm:4.43.0"
+  checksum: 10/c2a5a151c7adaea8311e01a643255f31946ae3164a71567ba80048242821ae14043f13f5516b695baebe5ea7e4b2cf717fd60908a929d18a5c5125fee925ff67
+  languageName: node
+  linkType: hard
+
+"@tanstack/query-core@npm:^5.62.16":
   version: 5.90.20
   resolution: "@tanstack/query-core@npm:5.90.20"
   checksum: 10/25e38f4382442bc15e0f6cce8d787e9df8d8822c61d3f3e9427e89e01b1e2506f848292e086dae29aeb55f8ce71b097c34221f3c5eda37fb4a688b5ceca5d1b3
   languageName: node
   linkType: hard
 
-"@tanstack/react-query@npm:^5.90.20":
-  version: 5.90.20
-  resolution: "@tanstack/react-query@npm:5.90.20"
+"@tanstack/react-query@npm:^4.43.0":
+  version: 4.43.0
+  resolution: "@tanstack/react-query@npm:4.43.0"
   dependencies:
-    "@tanstack/query-core": "npm:5.90.20"
+    "@tanstack/query-core": "npm:4.43.0"
+    use-sync-external-store: "npm:^1.6.0"
   peerDependencies:
-    react: ^18 || ^19
-  checksum: 10/ac98af011078717f4ee754f687b434a9396d05dc17a6b0dd80048c56a1081da921adf81aa48ccb92eaca80f06db6d28497ce4adfaebd5e01b16effd1e5f4ff85
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-dom: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+    react-native: "*"
+  peerDependenciesMeta:
+    react-dom:
+      optional: true
+    react-native:
+      optional: true
+  checksum: 10/23f9d18d130fa2a1238d8fba8bc914c67e33753b7fc3a3c7856354a9873c4cbc5d18ce24dbf6364ecf86b8ea787575e1e60998ea75baa2b9e9647ad4b9127e10
   languageName: node
   linkType: hard
 
@@ -35536,7 +35587,7 @@ __metadata:
     "@metamask/core-backend": "npm:^6.2.0"
     "@metamask/delegation-controller": "npm:^2.0.2"
     "@metamask/delegation-deployments": "npm:^0.15.0"
-    "@metamask/design-system-react-native": "npm:^0.10.0"
+    "@metamask/design-system-react-native": "npm:^0.11.0"
     "@metamask/design-system-twrnc-preset": "npm:^0.3.0"
     "@metamask/design-tokens": "npm:^8.2.2"
     "@metamask/earn-controller": "npm:^10.0.0"
@@ -35597,6 +35648,7 @@ __metadata:
     "@metamask/profile-sync-controller": "npm:^28.0.0"
     "@metamask/providers": "npm:^18.3.1"
     "@metamask/ramps-controller": "npm:^12.0.1"
+    "@metamask/react-data-query": "npm:^0.2.0"
     "@metamask/react-native-acm": "npm:1.2.0"
     "@metamask/react-native-actionsheet": "npm:2.4.2"
     "@metamask/react-native-button": "npm:^3.0.0"
@@ -35628,7 +35680,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^63.1.0"
+    "@metamask/transaction-controller": "npm:^63.3.0"
     "@metamask/transaction-pay-controller": "npm:^17.1.0"
     "@metamask/tron-wallet-snap": "npm:1.24.0"
     "@metamask/utils": "npm:^11.8.1"
@@ -35679,7 +35731,7 @@ __metadata:
     "@storybook/addon-ondevice-controls": "npm:^6.5.6"
     "@storybook/builder-webpack5": "npm:^7.5.1"
     "@storybook/react-native": "npm:^6.5.6"
-    "@tanstack/react-query": "npm:^5.90.20"
+    "@tanstack/react-query": "npm:^4.43.0"
     "@testing-library/react": "npm:14.0.0"
     "@testing-library/react-hooks": "npm:^8.0.1"
     "@testing-library/react-native": "npm:^13.2.0"
@@ -46432,12 +46484,21 @@ __metadata:
   languageName: node
   linkType: hard
 
-"use-sync-external-store@npm:1.2.0, use-sync-external-store@npm:^1.0.0":
+"use-sync-external-store@npm:1.2.0":
   version: 1.2.0
   resolution: "use-sync-external-store@npm:1.2.0"
   peerDependencies:
     react: ^16.8.0 || ^17.0.0 || ^18.0.0
   checksum: 10/a676216affc203876bd47981103f201f28c2731361bb186367e12d287a7566763213a8816910c6eb88265eccd4c230426eb783d64c373c4a180905be8820ed8e
+  languageName: node
+  linkType: hard
+
+"use-sync-external-store@npm:^1.0.0, use-sync-external-store@npm:^1.6.0":
+  version: 1.6.0
+  resolution: "use-sync-external-store@npm:1.6.0"
+  peerDependencies:
+    react: ^16.8.0 || ^17.0.0 || ^18.0.0 || ^19.0.0
+  checksum: 10/b40ad2847ba220695bff2d4ba4f4d60391c0fb4fb012faa7a4c18eb38b69181936f5edc55a522c4d20a788d1a879b73c3810952c9d0fd128d01cb3f22042c09e
   languageName: node
   linkType: hard
 
