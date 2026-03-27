@@ -300,11 +300,7 @@ const PredictionsSection = forwardRef<
             queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
           })
         : Promise.resolve();
-      await Promise.all([
-        refetchPositions(),
-        refetchMarkets(),
-        invalidatePnl,
-      ]);
+      await Promise.all([refetchPositions(), refetchMarkets(), invalidatePnl]);
     }, [queryClient, refetchPositions, refetchMarkets]);
 
     useImperativeHandle(ref, () => ({ refresh }), [refresh]);
