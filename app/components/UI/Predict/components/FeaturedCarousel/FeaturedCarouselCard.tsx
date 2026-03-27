@@ -191,6 +191,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                         variant={TextVariant.BodySm}
                         style={tw.style('font-medium')}
                         color={TextColor.SuccessDefault}
+                        numberOfLines={1}
                       >
                         {`${strings('predict.buy')} ${outcome.groupItemTitle || outcome.title}`}
                       </Text>
