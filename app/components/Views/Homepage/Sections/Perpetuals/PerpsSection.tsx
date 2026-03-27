@@ -345,28 +345,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       itemCount,
     });
 
-    if (connectionError) {
-      return (
-        <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box gap={3}>
-            <SectionHeader title={title} onPress={handleViewAllPerps} />
-            <ErrorState
-              title={strings('homepage.error.unable_to_load', {
-                section: title.toLowerCase(),
-              })}
-              onRetry={() => reconnectWithNewContext({ force: true })}
-            />
-          </Box>
-        </View>
-      );
-    }
-
-    // positions-only: hide when no positions/orders after loading
+    // positions-only: hide when empty before connection error UI (WS failure must not show error for empty section)
     if (isPositionsOnly && !hasItems && !showSkeleton) {
       return null;
     }
 
-    // trending-only: carousel + header only when there is content (or loading)
+    // trending-only: carousel uses REST markets; ignore WebSocket connectionError
     if (isTrendingOnly) {
       if (!marketsLoading && allCarouselMarkets.length === 0) {
         return null;
@@ -383,6 +367,22 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
             ) : (
               trendingCarousel
             )}
+          </Box>
+        </View>
+      );
+    }
+
+    if (connectionError) {
+      return (
+        <View ref={sectionViewRef} onLayout={onLayout}>
+          <Box gap={3}>
+            <SectionHeader title={title} onPress={handleViewAllPerps} />
+            <ErrorState
+              title={strings('homepage.error.unable_to_load', {
+                section: title.toLowerCase(),
+              })}
+              onRetry={() => reconnectWithNewContext({ force: true })}
+            />
           </Box>
         </View>
       );

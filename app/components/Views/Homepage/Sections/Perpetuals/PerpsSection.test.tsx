@@ -252,6 +252,17 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
 describe('PerpsSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    usePerpsConnection.mockReset();
+    usePerpsConnection.mockImplementation(() => ({
+      isConnected: true,
+      isConnecting: false,
+      isInitialized: true,
+      error: null,
+      connect: jest.fn(),
+      disconnect: jest.fn(),
+      resetError: jest.fn(),
+      reconnectWithNewContext: mockReconnectWithNewContext,
+    }));
     (
       selectIsFirstTimePerpsUser as jest.MockedFunction<
         typeof selectIsFirstTimePerpsUser
@@ -1437,6 +1448,42 @@ describe('PerpsSection', () => {
 
       expect(toJSON()).toBeNull();
     });
+
+    it('returns null when empty even if WebSocket connection errors', () => {
+      usePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'NETWORK_ERROR',
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+        reconnectWithNewContext: mockReconnectWithNewContext,
+      });
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsLivePositions.mockReturnValue({
+          positions: [],
+          isInitialLoading: false,
+        });
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsLiveOrders.mockReturnValue({
+          orders: [],
+          isInitialLoading: false,
+        });
+
+      const { toJSON } = renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+      expect(screen.queryByText('Retry')).toBeNull();
+    });
   });
 
   describe('mode="trending-only"', () => {
@@ -1462,6 +1509,42 @@ describe('PerpsSection', () => {
       expect(
         screen.getByTestId('homepage-trending-perps-carousel'),
       ).toBeOnTheScreen();
+    });
+
+    it('renders carousel when WebSocket errors but REST markets load', () => {
+      usePerpsConnection.mockReturnValue({
+        isConnected: false,
+        isConnecting: false,
+        isInitialized: false,
+        error: 'CONNECTION_TIMEOUT',
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+        reconnectWithNewContext: mockReconnectWithNewContext,
+      });
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [makeTrendingMarket()],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+          titleOverride="Trending perpetuals"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('homepage-trending-perps-carousel'),
+      ).toBeOnTheScreen();
+      expect(screen.queryByText('Retry')).toBeNull();
     });
 
     it('uses titleOverride when provided', () => {
