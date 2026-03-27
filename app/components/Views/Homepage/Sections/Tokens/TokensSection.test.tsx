@@ -911,6 +911,26 @@ describe('TokensSection', () => {
       expect(screen.getAllByTestId('trending-token-skeleton')).toHaveLength(3);
     });
 
+    it('returns null when trending list is empty after loading', () => {
+      mockUseTrendingRequest.mockReturnValue({
+        results: [],
+        isLoading: false,
+        error: null,
+        fetch: mockFetchTrendingTokens,
+      });
+
+      const { toJSON } = renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="trending-only"
+          titleOverride="Trending tokens"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+
     it('uses titleOverride when provided', () => {
       mockUseTrendingRequest.mockReturnValue({
         results: mockTrendingTokenData,

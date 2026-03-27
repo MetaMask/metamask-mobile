@@ -314,7 +314,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const isLoadingSection = isTrendingOnly
       ? marketsLoading
       : hookLoading || deferredLoading || pendingTrending;
-    const willRender = !isLoadingSection;
+    const willRender = isTrendingOnly
+      ? !marketsLoading && allCarouselMarkets.length > 0
+      : !isLoadingSection;
 
     let isEmpty: boolean;
     if (isTrendingOnly) {
@@ -364,8 +366,12 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       return null;
     }
 
-    // trending-only: always show the trending carousel
+    // trending-only: carousel + header only when there is content (or loading)
     if (isTrendingOnly) {
+      if (!marketsLoading && allCarouselMarkets.length === 0) {
+        return null;
+      }
+
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>

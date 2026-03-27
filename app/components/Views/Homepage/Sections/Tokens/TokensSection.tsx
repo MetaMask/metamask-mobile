@@ -225,9 +225,20 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       ? !isTrendingLoading && trendingTokensToDisplay.length === 0
       : isZeroBalanceAccount || showTokensError;
 
+    const trendingSectionWillRender =
+      isTrendingOnly &&
+      !isTrendingLoading &&
+      trendingTokensToDisplay.length > 0;
+
     const { onLayout } = useHomeViewedEvent({
       sectionRef:
-        isPositionsOnly && isZeroBalanceAccount ? null : sectionViewRef,
+        isPositionsOnly && isZeroBalanceAccount
+          ? null
+          : isTrendingOnly
+            ? trendingSectionWillRender
+              ? sectionViewRef
+              : null
+            : sectionViewRef,
       isLoading: isTrendingOnly ? isTrendingLoading : false,
       sectionName: analyticsName,
       sectionIndex,
@@ -256,6 +267,10 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
 
     // trending-only: show trending tokens with market cap & volume
     if (isTrendingOnly) {
+      if (!isTrendingLoading && trendingTokensToDisplay.length === 0) {
+        return null;
+      }
+
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
           <Box gap={3}>

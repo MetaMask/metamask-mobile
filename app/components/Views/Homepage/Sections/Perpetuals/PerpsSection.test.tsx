@@ -1509,6 +1509,29 @@ describe('PerpsSection', () => {
       expect(screen.getByTestId('skeleton-placeholder')).toBeOnTheScreen();
     });
 
+    it('returns null when no markets after loading in trending-only mode', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      const { toJSON } = renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+          titleOverride="Trending perpetuals"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+
     it('passes itemCount from carousel market count in trending-only mode', () => {
       jest
         .requireMock('../../../../UI/Perps/hooks')
