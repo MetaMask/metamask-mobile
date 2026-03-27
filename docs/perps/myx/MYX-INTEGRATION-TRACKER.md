@@ -3,7 +3,7 @@
 Single source of truth for the MYX perps provider integration.
 
 Branch: `feat/perps/myx-write-integration`
-Last updated: 2026-03-25
+Last updated: 2026-03-27
 
 ---
 
@@ -119,51 +119,51 @@ All 14 recipes validated through the 3-tier process (PoC -> CDP -> Human review)
 
 ## 4. WebSocket Status
 
-MYX WebSocket supports prices and candles but **not** account-level data. We REST-poll every 5 seconds for positions, orders, account state, and fills.
+MYX WebSocket supports prices, candles, and **event-driven** position/order notifications. Account/balance data has no WS channel — polling required.
 
 ### Working WebSocket Channels
 
-| Channel          | SDK Method         | Status  |
-| ---------------- | ------------------ | ------- |
-| Tickers (prices) | `subscribeTickers` | Working |
-| Klines (candles) | `subscribeKline`   | Working |
+| Channel          | SDK Method          | Status                                       |
+| ---------------- | ------------------- | -------------------------------------------- |
+| Tickers (prices) | `subscribeTickers`  | Working — continuous streaming               |
+| Klines (candles) | `subscribeKline`    | Working — continuous streaming               |
+| Positions        | `subscribePosition` | Working — event-driven (no initial snapshot) |
+| Orders           | `subscribeOrder`    | Working — event-driven (no initial snapshot) |
 
-### Non-Functional WebSocket Channels
+### No WebSocket Support
 
-| Channel   | SDK Method          | Status                            |
-| --------- | ------------------- | --------------------------------- |
-| Positions | `subscribePosition` | Registers OK, server doesn't push |
-| Orders    | `subscribeOrder`    | Registers OK, server doesn't push |
-| Account   | (none)              | No SDK method exists              |
-| Fills     | (none)              | No SDK method exists              |
+| Channel | SDK Method | Status                                            |
+| ------- | ---------- | ------------------------------------------------- |
+| Account | (none)     | No SDK method exists. MYX confirmed: polling only |
+| Fills   | (none)     | No SDK method exists                              |
 
 ### Implementation Status
 
-We have fully wired WS subscriptions for positions and orders using the MYX SDK (`@myx-trade/sdk` v1.0.6). Authentication, subscription, and callback handling are all implemented in `MYXClientService`. However, the MYX WebSocket server does not push data through `subscribePosition()` or `subscribeOrder()` channels.
+WS subscriptions for positions and orders are **confirmed working** (verified 2026-03-26). Authentication uses `walletClient` only — no signer, no `getAccessToken`, no `sdk.` prefix. After auth, `subscription.auth()` upgrades the WS connection.
+
+**Behavior**: WS fires on state changes only (trade fill, position close, order trigger). There is **no initial snapshot** — REST is required to load existing positions/orders on subscribe. Continuous PnL and mark price updates also require REST polling.
 
 **PoC evidence** (`scripts/perps/myx-poc/wsSubscriptions.ts`):
 
 ```bash
-cd scripts/perps/myx-poc && NETWORK=testnet npx tsx wsSubscriptions.ts
+cd scripts/perps/myx-poc && NETWORK=testnet-arb npx tsx wsSubscriptions.ts --with-trade
 ```
 
-Tested on both testnet (Linea Sepolia) and mainnet (BNB Chain) — 0 events received after 60s of listening, including during active position open/close. For comparison, `subscribeKline()` and `subscribeTickers()` on the same connection deliver real-time data.
+Verified on Arb Sepolia: 3 events received (1 POSITION, 2 ORDER) during position open/close cycle.
 
 **Architecture**:
 
 ```
 MYXClientService.#doAuthenticate()
-  |-- myxClient.auth({ signer, walletClient, getAccessToken })   <- REST auth
-  +-- myxClient.subscription.auth()                               <- WS auth (works)
+  |-- myxClient.auth({ walletClient })              <- REST auth (walletClient only)
+  +-- myxClient.subscription.auth()                  <- WS auth (upgrades connection)
 
 MYXProvider.subscribeToPositions()
-  |-- clientService.subscribeToPositions(wsCallback)               <- WS (registered, no push)
-  +-- REST poll every 5s via getPositions()                        <- Fallback (works)
+  |-- clientService.subscribeToPositions(wsCallback)  <- WS (event-driven, no initial snapshot)
+  +-- REST poll every 5s via getPositions()           <- Initial data + continuous PnL updates
 ```
 
-**Impact**: ~5s latency after position changes before UI updates, higher API load vs incremental WS updates.
-
-**Questions for MYX team**: Are `subscribePosition`/`subscribeOrder` intended to push real-time updates? Is there a server-side flag needed? Timeline for enabling these channels?
+**Impact**: REST polling still needed alongside WS for initial data load and continuous PnL/mark price updates. WS provides faster notification of state changes (trade fills, closes, order triggers) vs waiting for next poll cycle.
 
 ---
 
@@ -178,14 +178,14 @@ MYXProvider.subscribeToPositions()
 | Oracle fee   | ~$0.01 per trade                  | $0.01                    |
 | Gas          | Paid in native token (ETH/BNB)    | Varies                   |
 
-Fee rates are returned from the SDK at 1e8 precision. For example, `takerFeeRate = 55000` means `55000 / 100,000,000 = 0.055%`.
+Fee rates are returned from the SDK at 1e8 precision. For example, `takerFeeRate = 55000` means `55000 / 100,000,000 = 0.055%`. MYX team confirmed this precision is stable and will not change.
 
 ### MetaMask Revenue: Broker Referral Rebate
 
 Unlike HyperLiquid's direct 0.1% builder fee ($1.00 per $1000 trade), MYX uses a referral rebate model:
 
 1. **Broker tagging** (done) -- Every trade is tagged with the MetaMask broker address via `MyxClient({ brokerAddress })`.
-2. **Referral link** (pending) -- `setUserFeeData()` links a user to the MetaMask broker with a configurable rebate split. Requires an EIP-712 signature from the broker contract. We have the owner private key but need the exact EIP-712 domain spec from MYX team.
+2. **Referral link** (pending) -- `setUserFeeData()` links a user to the MetaMask broker with a configurable rebate split. Requires an EIP-712 signature from the broker owner. EIP-712 domain spec now known (see below). Testing in progress.
 3. **Rebate claiming** (pending) -- `referrals.claimRebate(tokenAddress)` lets MetaMask claim accumulated rebates from the contract.
 
 **Revenue projections** (once referral rebate is activated):
@@ -202,39 +202,39 @@ Unlike HyperLiquid's direct 0.1% builder fee ($1.00 per $1000 trade), MYX uses a
 
 ### Architecture Differences
 
-| Aspect             | HyperLiquid                                                | MYX                                                    |
-| ------------------ | ---------------------------------------------------------- | ------------------------------------------------------ |
-| **SDK**            | No SDK -- direct REST + WS                                 | `@myx-trade/sdk` v1.0.6                                |
-| **Execution**      | Off-chain matching engine                                  | On-chain transactions (BNB/Linea)                      |
-| **Collateral**     | USDC on Arbitrum                                           | USDT on BNB (mainnet), USDC on Linea Sepolia (testnet) |
-| **Signing**        | EIP-712 typed data (off-chain)                             | On-chain tx via `TransactionController`                |
-| **Confirmation**   | Instant (off-chain match)                                  | Block confirmation required (10-15s testnet)           |
-| **Data streaming** | Full WebSocket (prices, positions, orders, fills, account) | REST polling (5s) + WS for klines only                 |
+| Aspect             | HyperLiquid                                                | MYX                                                                              |
+| ------------------ | ---------------------------------------------------------- | -------------------------------------------------------------------------------- |
+| **SDK**            | No SDK -- direct REST + WS                                 | `@myx-trade/sdk` v1.0.6                                                          |
+| **Execution**      | Off-chain matching engine                                  | On-chain transactions (BNB/Linea)                                                |
+| **Collateral**     | USDC on Arbitrum                                           | USDT on BNB (mainnet), USDC on Linea Sepolia (testnet)                           |
+| **Signing**        | EIP-712 typed data (off-chain)                             | On-chain tx via `TransactionController`                                          |
+| **Confirmation**   | Instant (off-chain match)                                  | Block confirmation required (10-15s testnet)                                     |
+| **Data streaming** | Full WebSocket (prices, positions, orders, fills, account) | REST polling (5s) + WS for klines/tickers + event-driven WS for positions/orders |
 
 ### Feature Parity
 
-| Feature                       | HyperLiquid    | MYX                       | Gap Type                |
-| ----------------------------- | -------------- | ------------------------- | ----------------------- |
-| Market orders                 | Yes            | Yes                       | -                       |
-| Limit orders                  | Yes            | Yes                       | -                       |
-| TP/SL orders                  | Yes            | Yes                       | -                       |
-| Close position (full/partial) | Yes            | Yes                       | -                       |
-| Cancel order (single/batch)   | Yes            | Yes                       | -                       |
-| Update margin (add/remove)    | Yes            | Yes                       | -                       |
-| Edit order                    | Yes            | Yes                       | -                       |
-| Batch close positions         | Yes            | Yes                       | -                       |
-| Order book depth              | Yes (L2 WS)    | **No**                    | Protocol limitation     |
-| Deposit flow (UI)             | Yes            | **Partial** (routes only) | Deferred                |
-| Withdrawal flow               | Yes            | **No**                    | Deferred                |
-| Pay with any token            | Yes            | **No**                    | Requires deposit flow   |
-| Spot market                   | Yes            | **No**                    | Protocol limitation     |
-| Historical portfolio          | Yes            | **No**                    | Deferred                |
-| Fee discounts (referral)      | Yes (HIP-3)    | **No**                    | Protocol limitation     |
-| Multi-DEX routing             | Yes (HIP-3)    | **No**                    | Protocol limitation     |
-| Real-time WS streaming        | Yes (all data) | **Klines only**           | Protocol/SDK limitation |
-| Funding rate (real-time)      | Yes (WS)       | REST (60s cache)          | SDK limitation          |
-| OI caps                       | Yes            | **No**                    | Protocol limitation     |
-| Testnet + mainnet             | Yes            | **Testnet only**          | Deferred                |
+| Feature                       | HyperLiquid    | MYX                                                                                 | Gap Type              |
+| ----------------------------- | -------------- | ----------------------------------------------------------------------------------- | --------------------- |
+| Market orders                 | Yes            | Yes                                                                                 | -                     |
+| Limit orders                  | Yes            | Yes                                                                                 | -                     |
+| TP/SL orders                  | Yes            | Yes                                                                                 | -                     |
+| Close position (full/partial) | Yes            | Yes                                                                                 | -                     |
+| Cancel order (single/batch)   | Yes            | Yes                                                                                 | -                     |
+| Update margin (add/remove)    | Yes            | Yes                                                                                 | -                     |
+| Edit order                    | Yes            | Yes                                                                                 | -                     |
+| Batch close positions         | Yes            | Yes                                                                                 | -                     |
+| Order book depth              | Yes (L2 WS)    | **No**                                                                              | Protocol limitation   |
+| Deposit flow (UI)             | Yes            | **Partial** (routes only)                                                           | Deferred              |
+| Withdrawal flow               | Yes            | **No**                                                                              | Deferred              |
+| Pay with any token            | Yes            | **No**                                                                              | Requires deposit flow |
+| Spot market                   | Yes            | **No**                                                                              | Protocol limitation   |
+| Historical portfolio          | Yes            | **No**                                                                              | Deferred              |
+| Fee discounts (referral)      | Yes (HIP-3)    | **No**                                                                              | Protocol limitation   |
+| Multi-DEX routing             | Yes (HIP-3)    | **No**                                                                              | Protocol limitation   |
+| Real-time WS streaming        | Yes (all data) | Klines + event-driven positions/orders (no initial snapshot, no continuous updates) | Partial gap           |
+| Funding rate (real-time)      | Yes (WS)       | REST (60s cache)                                                                    | SDK limitation        |
+| OI caps                       | Yes            | **No**                                                                              | Protocol limitation   |
+| Testnet + mainnet             | Yes            | **Testnet only**                                                                    | Deferred              |
 
 ### MYX Protocol Limitations (Cannot Implement)
 
@@ -242,11 +242,51 @@ Unlike HyperLiquid's direct 0.1% builder fee ($1.00 per $1000 trade), MYX uses a
 2. **No spot market** -- MYX is perpetuals-only.
 3. **No multi-DEX routing** -- MYX is a single exchange (no HIP-3 equivalent).
 4. **No referral/staking fee discounts** -- Not part of the MYX protocol.
-5. **No real-time WebSocket for positions/orders/account** -- SDK only supports kline/ticker WS.
+5. **No WebSocket initial snapshot or continuous position updates** -- WS fires on state changes only (trade fills, closes, order triggers). REST polling required alongside WS for initial data load and continuous PnL/mark price updates. No `subscribeAccount` exists — balance polling is the only option (MYX confirmed, may add later).
 
 ---
 
-## 7. Known Issues
+## 7. Broker EIP-712 Domain Spec
+
+MYX team provided the EIP-712 domain specification for `setUserFeeData()` (2026-03-27):
+
+```
+EIP712Domain(string name, string version, uint256 chainId, address verifyingContract)
+```
+
+**Domain values**:
+
+| Field               | Value                                                          | Notes                                   |
+| ------------------- | -------------------------------------------------------------- | --------------------------------------- |
+| `name`              | `"Broker"`                                                     | NOT the broker name ("Metamask Broker") |
+| `version`           | `"1.0"`                                                        | Stable                                  |
+| `chainId`           | Chain-specific (e.g., `56` for BNB, `59141` for Linea Sepolia) | Must match deployment chain             |
+| `verifyingContract` | Broker contract address                                        | e.g., `0x30b1bc...` on Linea Sepolia    |
+
+**MYX example** (BNB mainnet): `['Broker', '1.0', 56n, '0xB4d04AB1F870F3865F6cE1336cEdff56d0f937a3']`
+
+**Previous PoC failure cause**: Our `activateBrokerRebate.ts` used `name: 'Metamask Broker'` (the broker's display name, not the EIP-712 domain name) and omitted the `version` field. This caused the EIP-712 hash to mismatch, resulting in `ECDSAInvalidSignature` / `NotBrokerSigner` reverts.
+
+**Corrected domain** (viem format):
+
+```typescript
+const domain = {
+  name: 'Broker',
+  version: '1.0',
+  chainId: config.chainId,
+  verifyingContract: config.brokerAddress as `0x${string}`,
+};
+```
+
+**Validation status** (2026-03-27): PoC script `scripts/perps/myx-poc/setUserFeeData.ts` tested on Linea Sepolia testnet. Still reverts with `NotBrokerSigner` — recovered address `0x315BC4...` does not match owner `0xAdA1c1...`. The domain change DID shift the recovered address (different from previous "Metamask Broker" attempt), confirming the domain affects the hash. Remaining unknowns:
+
+- The struct types may differ from what the testnet contract expects (flat vs nested `FeeData`)
+- The `verifyingContract` on testnet might be a factory/registry contract, not the broker address itself
+- Need MYX team to provide a working example on testnet, or confirm testnet-specific domain values
+
+---
+
+## 8. Known Issues
 
 ### SDK Missing Exports
 
@@ -278,21 +318,21 @@ The SDK does not export three types we need, requiring local duplicates:
 
 ---
 
-## 8. Pending Items
+## 9. Pending Items
 
-| Item                     | Dependency               | Notes                                                    |
-| ------------------------ | ------------------------ | -------------------------------------------------------- |
-| Broker rebate activation | MYX team EIP-712 backend | Required for MetaMask revenue. Need EIP-712 domain spec. |
-| Mainnet deployment       | Feature flag + QA        | `MM_PERPS_MYX_PROVIDER_ENABLED` controls access          |
-| Protocol feature map     | TAT-2476                 | Hides unsupported features (orderbook) in MYX mode       |
-| Collateral gating        | TAT-2459                 | Only show MYX when user has BNB-chain assets             |
-| Deposit flow UI          | UI integration           | `getDepositRoutes()` returns routes; UI not connected    |
-| Withdrawal flow          | SDK + UI                 | Needs MYX SDK withdrawal call + route definition         |
-| Historical portfolio     | Data source              | Could aggregate from trade history                       |
+| Item                     | Dependency                 | Notes                                                                                      |
+| ------------------------ | -------------------------- | ------------------------------------------------------------------------------------------ |
+| Broker rebate activation | EIP-712 testnet validation | EIP-712 domain spec now known (`Broker`, `1.0`). Testing with corrected domain on testnet. |
+| Mainnet deployment       | Feature flag + QA          | `MM_PERPS_MYX_PROVIDER_ENABLED` controls access                                            |
+| Protocol feature map     | TAT-2476                   | Hides unsupported features (orderbook) in MYX mode                                         |
+| Collateral gating        | TAT-2459                   | Only show MYX when user has BNB-chain assets                                               |
+| Deposit flow UI          | UI integration             | `getDepositRoutes()` returns routes; UI not connected                                      |
+| Withdrawal flow          | SDK + UI                   | Needs MYX SDK withdrawal call + route definition                                           |
+| Historical portfolio     | Data source                | Could aggregate from trade history                                                         |
 
 ---
 
-## 9. Testnet Environment
+## 10. Testnet Environment
 
 | Config         | Value                                        |
 | -------------- | -------------------------------------------- |
