@@ -4,7 +4,6 @@ import {
 } from '@metamask/transaction-controller';
 import { TransactionMetricsBuilder } from '../types';
 import { JsonMap } from '../../../../../util/analytics/analytics.types';
-import { orderBy } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { hasTransactionType } from '../../../../../components/Views/confirmations/utils/transaction';
 import {
@@ -43,12 +42,11 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
 }) => {
   const properties: JsonMap = {};
   const sensitiveProperties: JsonMap = {};
-  const { batchId, id: transactionId, type } = transactionMeta;
+  const { id: transactionId, type } = transactionMeta;
+  const isPayType = hasTransactionType(transactionMeta, PAY_TYPES);
 
-  const parentTransaction = allTransactions.find(
-    (tx) =>
-      tx.requiredTransactionIds?.includes(transactionId) ||
-      (batchId && hasTransactionType(tx, PAY_TYPES) && tx.batchId === batchId),
+  const parentTransaction = allTransactions.find((tx) =>
+    tx.requiredTransactionIds?.includes(transactionId),
   );
 
   if (hasTransactionType(transactionMeta, [TransactionType.predictDeposit])) {
@@ -57,11 +55,16 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     ).some((t) => t.data?.startsWith(FOUR_BYTE_SAFE_PROXY_CREATE));
   }
 
-  if (hasTransactionType(transactionMeta, PAY_TYPES) || !parentTransaction) {
+  if (isPayType || !parentTransaction) {
     addFallbackProperties(properties, transactionMeta, getState());
 
-    if (hasTransactionType(transactionMeta, PAY_TYPES) || properties.mm_pay) {
-      addTimeToComplete(properties, eventType, transactionMeta.submittedTime);
+    if (isPayType || properties.mm_pay) {
+      addTimeToComplete(
+        properties,
+        eventType,
+        transactionMeta,
+        allTransactions,
+      );
     }
 
     return {
@@ -78,18 +81,7 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     }
   }
 
-  const batchTransactionIds = parentTransaction.batchId
-    ? orderBy(
-        allTransactions.filter(
-          (tx) => tx.batchId === parentTransaction.batchId,
-        ),
-        (t) => parseInt(t.txParams.nonce ?? '0x0', 16),
-        'asc',
-      ).map((t) => t.id)
-    : undefined;
-
-  const relatedTransactionIds =
-    parentTransaction.requiredTransactionIds ?? batchTransactionIds ?? [];
+  const relatedTransactionIds = parentTransaction.requiredTransactionIds ?? [];
 
   properties.mm_pay_transaction_step =
     relatedTransactionIds.indexOf(transactionId) + 1;
@@ -133,23 +125,42 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     }
   }
 
-  addTimeToComplete(properties, eventType, parentTransaction.submittedTime);
-
   return {
     properties,
     sensitiveProperties,
   };
 };
 
+function getLatestChildSubmittedTime(
+  transactionMeta: TransactionMeta,
+  allTransactions: TransactionMeta[],
+): number | undefined {
+  const { requiredTransactionIds } = transactionMeta;
+
+  const submittedTimes = allTransactions
+    .filter((tx) => requiredTransactionIds?.includes(tx.id))
+    .map((tx) => tx.submittedTime)
+    .filter((t): t is number => typeof t === 'number');
+
+  return submittedTimes.length > 0 ? Math.max(...submittedTimes) : undefined;
+}
+
 function addTimeToComplete(
   properties: JsonMap,
   eventType: Parameters<TransactionMetricsBuilder>[0]['eventType'],
-  submittedTime: number | undefined,
+  transactionMeta: TransactionMeta,
+  allTransactions: TransactionMeta[],
 ) {
-  if (
-    eventType !== TRANSACTION_EVENTS.TRANSACTION_FINALIZED ||
-    typeof submittedTime !== 'number'
-  ) {
+  if (eventType !== TRANSACTION_EVENTS.TRANSACTION_FINALIZED) {
+    return;
+  }
+
+  const submittedTime = getLatestChildSubmittedTime(
+    transactionMeta,
+    allTransactions,
+  );
+
+  if (typeof submittedTime !== 'number') {
     return;
   }
 

@@ -32,6 +32,7 @@ export { DappVariants, TestDapps } from './Constants.ts';
 export { PlaywrightElement, wrapElement, $, $$ } from './PlaywrightAdapter.ts';
 export { default as PlaywrightMatchers } from './PlaywrightMatchers.ts';
 export { default as PlaywrightGestures } from './PlaywrightGestures.ts';
+export { default as PlaywrightAssertions } from './PlaywrightAssertions.ts';
 
 // Export unified framework (Detox + WebdriverIO compatibility)
 export {

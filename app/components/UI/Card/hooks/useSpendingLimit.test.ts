@@ -18,6 +18,10 @@ import Logger from '../../../../util/Logger';
 import { cardQueries } from '../queries';
 import { createAssetSelectionModalNavigationDetails } from '../components/AssetSelectionBottomSheet';
 import Routes from '../../../../constants/navigation/Routes';
+import { useTokensWithBalance } from '../../Bridge/hooks/useTokensWithBalance';
+import { createAccountSelectorNavDetails } from '../../../Views/AccountSelector';
+import { createSpendingLimitOptionsNavigationDetails } from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
+import { useSelector } from 'react-redux';
 
 // Mock dependencies
 jest.mock('@react-navigation/native', () => ({
@@ -72,6 +76,25 @@ jest.mock('../components/AssetSelectionBottomSheet', () => ({
   createAssetSelectionModalNavigationDetails: jest.fn(),
 }));
 
+jest.mock('../../Bridge/hooks/useTokensWithBalance', () => ({
+  useTokensWithBalance: jest.fn(),
+}));
+
+jest.mock('../../../Views/AccountSelector', () => ({
+  createAccountSelectorNavDetails: jest.fn(),
+}));
+
+jest.mock(
+  '../Views/SpendingLimit/components/SpendingLimitOptionsSheet',
+  () => ({
+    createSpendingLimitOptionsNavigationDetails: jest.fn(),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  useSelector: jest.fn(),
+}));
+
 const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
@@ -89,6 +112,15 @@ const mockCreateAssetSelectionModalNavigationDetails =
   createAssetSelectionModalNavigationDetails as jest.MockedFunction<
     typeof createAssetSelectionModalNavigationDetails
   >;
+const mockCreateAccountSelectorNavDetails =
+  createAccountSelectorNavDetails as jest.MockedFunction<
+    typeof createAccountSelectorNavDetails
+  >;
+const mockCreateSpendingLimitOptionsNavigationDetails =
+  createSpendingLimitOptionsNavigationDetails as jest.MockedFunction<
+    typeof createSpendingLimitOptionsNavigationDetails
+  >;
+const mockUseSelector = useSelector as jest.Mock;
 
 // Helper functions
 const createMockToken = (
@@ -185,9 +217,11 @@ describe('useSpendingLimit', () => {
       refetchFaucetCheck: jest.fn(),
     });
 
-    // Setup SDK mock
+    // Setup SDK mock (getSupportedTokensByChainId used when building default token list)
     mockUseCardSDK.mockReturnValue({
-      sdk: {},
+      sdk: {
+        getSupportedTokensByChainId: jest.fn().mockReturnValue([]),
+      },
     } as never);
 
     // Setup metrics mock
@@ -219,6 +253,30 @@ describe('useSpendingLimit', () => {
       'AssetSelectionModal',
       { screen: 'AssetSelection' },
     ] as never);
+
+    // Default: no balances (triggers fallback to mUSD + USDC)
+    (useTokensWithBalance as jest.Mock).mockReturnValue([]);
+
+    // Setup account selector navigation details mock
+    mockCreateAccountSelectorNavDetails.mockReturnValue([
+      'AccountSelectorRoute',
+      {},
+    ] as never);
+
+    // Setup spending limit options navigation details mock
+    mockCreateSpendingLimitOptionsNavigationDetails.mockReturnValue([
+      'SpendingLimitOptionsRoute',
+      {},
+    ] as never);
+
+    // Default selected account (all useSelector calls use this by default;
+    // selectEvmNetworkConfigurationsByChainId call gets an object whose keys
+    // are not real chain IDs, but useTokensWithBalance is mocked so it doesn't matter)
+    mockUseSelector.mockReturnValue({
+      id: 'account-1',
+      address: '0xaccount1',
+      metadata: { name: 'Account 1' },
+    });
   });
 
   afterEach(() => {
@@ -227,16 +285,13 @@ describe('useSpendingLimit', () => {
   });
 
   describe('Initial State', () => {
-    it('initializes with default values and pre-selects mUSD', () => {
+    it('initializes with default values', () => {
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams()),
       );
 
-      // mUSD is pre-selected as fallback when no initialToken or priorityToken
-      expect(result.current.selectedToken?.symbol).toBe('mUSD');
       expect(result.current.limitType).toBe('full');
       expect(result.current.customLimit).toBe('');
-      expect(result.current.isOtherSelected).toBe(false);
       expect(result.current.isLoading).toBe(false);
     });
 
@@ -271,91 +326,118 @@ describe('useSpendingLimit', () => {
     });
   });
 
-  describe('Quick Select Tokens', () => {
-    it('builds quick select tokens from allTokens and delegationSettings', () => {
-      const allTokens = [
-        createMockToken({ symbol: 'mUSD' }),
-        createMockToken({ symbol: 'USDC' }),
-      ];
+  describe('Default token selection', () => {
+    it('defaults to the NotEnabled token with highest fiat balance', () => {
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const musdToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const enabledToken = createMockToken({
+        symbol: 'DAI',
+        address: '0xdai',
+        allowanceState: AllowanceState.Enabled,
+      });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 500 },
+        { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 100 },
+        { address: '0xdai', chainId: '0xe708', tokenFiatAmount: 9999 }, // Enabled — excluded
+      ]);
+
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ allTokens })),
+        useSpendingLimit(
+          createDefaultParams({
+            allTokens: [usdcToken, musdToken, enabledToken],
+          }),
+        ),
       );
 
-      expect(result.current.quickSelectTokens).toHaveLength(2);
-      expect(result.current.quickSelectTokens[0].symbol).toBe('mUSD');
-      expect(result.current.quickSelectTokens[1].symbol).toBe('USDC');
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
     });
 
-    it('handleQuickSelectToken selects token from quick select list', () => {
-      const allTokens = [
-        createMockToken({ symbol: 'mUSD' }),
-        createMockToken({ symbol: 'USDC' }),
-      ];
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ allTokens })),
-      );
-
-      act(() => {
-        result.current.handleQuickSelectToken('mUSD');
+    it('ignores Enabled tokens when picking the default', () => {
+      const enabledToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.Enabled,
       });
+      const notEnabledToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 9999 },
+        { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 10 },
+      ]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ allTokens: [enabledToken, notEnabledToken] }),
+        ),
+      );
 
       expect(result.current.selectedToken?.symbol).toBe('mUSD');
     });
 
-    it('handleQuickSelectToken is case-insensitive', () => {
-      const allTokens = [createMockToken({ symbol: 'USDC' })];
+    it('defaults to mUSD on Linea when all tokens have zero fiat balance', () => {
+      const musdToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        caipChainId: LINEA_CAIP_CHAIN_ID,
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([]);
+
       const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ allTokens })),
+        useSpendingLimit(
+          createDefaultParams({ allTokens: [usdcToken, musdToken] }),
+        ),
       );
 
-      act(() => {
-        result.current.handleQuickSelectToken('usdc');
+      expect(result.current.selectedToken?.symbol).toBe('mUSD');
+    });
+
+    it('falls back to first sorted token when mUSD on Linea is not present', () => {
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
       });
+
+      (useTokensWithBalance as jest.Mock).mockReturnValue([]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams({ allTokens: [usdcToken] })),
+      );
 
       expect(result.current.selectedToken?.symbol).toBe('USDC');
     });
-  });
 
-  describe('isOtherSelected', () => {
-    it('returns false when no token is selected', () => {
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams()),
-      );
-
-      expect(result.current.isOtherSelected).toBe(false);
-    });
-
-    it('returns false when selected token is in quick select list', () => {
-      const initialToken = createMockToken({ symbol: 'USDC' });
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ initialToken })),
-      );
-
-      expect(result.current.isOtherSelected).toBe(false);
-    });
-
-    it('returns true when selected token is not in quick select list', () => {
-      const initialToken = createMockToken({
-        symbol: 'ETH',
-        caipChainId: LINEA_CAIP_CHAIN_ID,
-      });
-      const { result } = renderHook(() =>
-        useSpendingLimit(createDefaultParams({ initialToken })),
-      );
-
-      expect(result.current.isOtherSelected).toBe(true);
-    });
-
-    it('returns true when token is on different chain', () => {
+    it('uses initialToken when provided, bypassing balance logic', () => {
       const initialToken = createMockToken({
         symbol: 'USDC',
-        caipChainId: 'eip155:8453', // Base chain
+        allowanceState: AllowanceState.Enabled,
       });
+
       const { result } = renderHook(() =>
         useSpendingLimit(createDefaultParams({ initialToken })),
       );
 
-      expect(result.current.isOtherSelected).toBe(true);
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
     });
   });
 
@@ -518,6 +600,40 @@ describe('useSpendingLimit', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalled();
+    });
+
+    it('excludes the currently selected token from the bottomsheet', () => {
+      const usdcToken = createMockToken({
+        symbol: 'USDC',
+        address: '0xusdc',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+      const musdToken = createMockToken({
+        symbol: 'mUSD',
+        address: '0xmusd',
+        allowanceState: AllowanceState.NotEnabled,
+      });
+
+      // USDC has highest balance → becomes selectedToken by default
+      (useTokensWithBalance as jest.Mock).mockReturnValue([
+        { address: '0xusdc', chainId: '0xe708', tokenFiatAmount: 200 },
+        { address: '0xmusd', chainId: '0xe708', tokenFiatAmount: 50 },
+      ]);
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({ allTokens: [usdcToken, musdToken] }),
+        ),
+      );
+
+      act(() => {
+        result.current.handleOtherSelect();
+      });
+
+      const call =
+        mockCreateAssetSelectionModalNavigationDetails.mock.calls[0][0];
+      expect(call?.excludedTokens).toHaveLength(1);
+      expect(call?.excludedTokens?.[0]?.symbol).toBe('USDC');
     });
   });
 
@@ -847,6 +963,128 @@ describe('useSpendingLimit', () => {
         expect.objectContaining({ flow: 'onboarding' }),
       );
     });
+
+    it('includes musd_linea_balance from walletTokens', () => {
+      const musdToken = {
+        address: '0xmusd',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 450,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([musdToken]) // walletTokens (card)
+        .mockReturnValueOnce([]); // allWalletTokens
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ musd_linea_balance: 450 }),
+      );
+    });
+
+    it('emits musd_linea_balance of 0 when mUSD not in wallet', () => {
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([]) // walletTokens — no mUSD
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ musd_linea_balance: 0 }),
+      );
+    });
+
+    it('includes top_card_chain_asset for highest-balance card token', () => {
+      const lowToken = {
+        address: '0xlow',
+        symbol: 'USDC',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 50,
+      };
+      const highToken = {
+        address: '0xhigh',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 500,
+      };
+      // allTokens must include the same addresses so cardSupportedKeys accepts them
+      const allTokens = [
+        createMockToken({ address: '0xlow', symbol: 'USDC' }),
+        createMockToken({ address: '0xhigh', symbol: 'mUSD' }),
+      ];
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([lowToken, highToken]) // walletTokens (card)
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams({ allTokens })));
+
+      // LINEA_CAIP_CHAIN_ID maps to 'linea' in caipChainIdToNetwork
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: 'linea:musd' }),
+      );
+    });
+
+    it('emits null for top_card_chain_asset when no card tokens have balance', () => {
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([]) // walletTokens — empty
+        .mockReturnValueOnce([]);
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: null }),
+      );
+    });
+
+    it('emits null for top_card_chain_asset when wallet token is not in card-supported allTokens', () => {
+      // Native SOL has an address but is not in allTokens (card does not support it).
+      // allTokens contains only an unrelated USDC token so allTokens.length > 0,
+      // which lets the effect fire while still excluding nativeSol from the result.
+      const nativeSol = {
+        address: 'So11111111111111111111111111111111111111112',
+        symbol: 'SOL',
+        chainId: 'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+        tokenFiatAmount: 1200,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([nativeSol]) // walletTokens
+        .mockReturnValueOnce([nativeSol]);
+
+      // allTokens has a card-supported token (USDC on Linea) but NOT nativeSol
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({ top_card_chain_asset: null }),
+      );
+    });
+
+    it('includes top_wallet_chain_asset from all-wallet tokens', () => {
+      const cardToken = {
+        address: '0xcard',
+        symbol: 'mUSD',
+        chainId: LINEA_CAIP_CHAIN_ID,
+        tokenFiatAmount: 100,
+      };
+      const walletToken = {
+        address: '0xwallet',
+        symbol: 'ETH',
+        chainId: '0x1', // Ethereum mainnet — not a card chain
+        tokenFiatAmount: 9000,
+      };
+      (useTokensWithBalance as jest.Mock)
+        .mockReturnValueOnce([cardToken]) // walletTokens (card)
+        .mockReturnValueOnce([walletToken]); // allWalletTokens
+
+      renderHook(() => useSpendingLimit(createDefaultParams()));
+
+      // 0x1 → eip155:1, not in caipChainIdToNetwork → strips namespace → '1:eth'
+      expect(mockAddProperties).toHaveBeenCalledWith(
+        expect.objectContaining({
+          top_wallet_chain_asset: '1:eth',
+          top_wallet_asset_balance: 9000,
+        }),
+      );
+    });
   });
 
   describe('Returned Token from AssetSelectionBottomSheet', () => {
@@ -884,7 +1122,7 @@ describe('useSpendingLimit', () => {
       });
     });
 
-    it('does not overwrite user selection when quickSelectTokens loads after returning from bottom sheet', () => {
+    it('does not overwrite user selection when allTokens loads after returning from bottom sheet', () => {
       const userSelectedToken = createMockToken({
         symbol: 'ETH',
         caipChainId: LINEA_CAIP_CHAIN_ID,
@@ -918,7 +1156,7 @@ describe('useSpendingLimit', () => {
       // Verify user's selection is set
       expect(result.current.selectedToken).toEqual(userSelectedToken);
 
-      // Now simulate quickSelectTokens loading with mUSD available
+      // Now simulate allTokens loading
       const loadedTokens = [
         createMockToken({ symbol: 'mUSD' }),
         createMockToken({ symbol: 'USDC' }),
@@ -934,6 +1172,245 @@ describe('useSpendingLimit', () => {
 
       // User's selection should NOT be overwritten by mUSD fallback
       expect(result.current.selectedToken).toEqual(userSelectedToken);
+    });
+  });
+
+  describe('handleAccountSelect', () => {
+    it('navigates to account selector', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleAccountSelect();
+      });
+
+      expect(mockCreateAccountSelectorNavDetails).toHaveBeenCalledWith({
+        disableAddAccountButton: true,
+      });
+      expect(mockNavigation.navigate).toHaveBeenCalled();
+    });
+  });
+
+  describe('handleLimitSelect', () => {
+    it('navigates to spending limit options sheet', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleLimitSelect();
+      });
+
+      expect(
+        mockCreateSpendingLimitOptionsNavigationDetails,
+      ).toHaveBeenCalled();
+      expect(mockNavigation.navigate).toHaveBeenCalled();
+    });
+
+    it('passes current limitType and customLimit to options sheet', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.setLimitType('restricted');
+        result.current.setCustomLimit('250');
+      });
+
+      act(() => {
+        result.current.handleLimitSelect();
+      });
+
+      expect(
+        mockCreateSpendingLimitOptionsNavigationDetails,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentLimitType: 'restricted',
+          currentCustomLimit: '250',
+          callerRoute: Routes.CARD.SPENDING_LIMIT,
+        }),
+      );
+    });
+
+    it('passes full limitType when no custom limit has been set', () => {
+      const { result } = renderHook(() =>
+        useSpendingLimit(createDefaultParams()),
+      );
+
+      act(() => {
+        result.current.handleLimitSelect();
+      });
+
+      expect(
+        mockCreateSpendingLimitOptionsNavigationDetails,
+      ).toHaveBeenCalledWith(
+        expect.objectContaining({
+          currentLimitType: 'full',
+          currentCustomLimit: '',
+        }),
+      );
+    });
+  });
+
+  describe('Account change detection', () => {
+    it('resets selectedToken when account changes', () => {
+      const initialToken = createMockToken({ symbol: 'USDC' });
+      mockUseSelector.mockReturnValue({
+        id: 'account-1',
+        address: '0xaccount1',
+        metadata: { name: 'Account 1' },
+      });
+
+      const { result, rerender } = renderHook(
+        (props: UseSpendingLimitParams) => useSpendingLimit(props),
+        { initialProps: createDefaultParams({ initialToken }) },
+      );
+
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
+
+      // Simulate account switch; remove allTokens so no re-selection happens
+      mockUseSelector.mockReturnValue({
+        id: 'account-2',
+        address: '0xaccount2',
+        metadata: { name: 'Account 2' },
+      });
+
+      rerender(
+        createDefaultParams({ allTokens: [], delegationSettings: null }),
+      );
+
+      expect(result.current.selectedToken).toBeNull();
+    });
+
+    it('does not reset selectedToken when same account re-renders', () => {
+      const initialToken = createMockToken({ symbol: 'USDC' });
+      const mockAccount = {
+        id: 'account-1',
+        address: '0xaccount1',
+        metadata: { name: 'Account 1' },
+      };
+      mockUseSelector.mockReturnValue(mockAccount);
+
+      const { result, rerender } = renderHook(
+        (props: UseSpendingLimitParams) => useSpendingLimit(props),
+        { initialProps: createDefaultParams({ initialToken }) },
+      );
+
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
+
+      // Re-render with same account (e.g., other state update)
+      mockUseSelector.mockReturnValue(mockAccount);
+      rerender(createDefaultParams({ initialToken }));
+
+      expect(result.current.selectedToken?.symbol).toBe('USDC');
+    });
+  });
+
+  describe('Returned limit type from SpendingLimitOptionsSheet', () => {
+    it('sets limitType from returnedLimitType route param', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedLimitType: 'restricted' },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        returnedLimitType: undefined,
+        returnedCustomLimit: undefined,
+      });
+    });
+
+    it('sets customLimit from returnedCustomLimit route param', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: {
+              returnedLimitType: 'restricted',
+              returnedCustomLimit: '750',
+            },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      expect(result.current.limitType).toBe('restricted');
+      expect(result.current.customLimit).toBe('750');
+    });
+
+    it('sets limitType to full when returnedLimitType is full', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedLimitType: 'full' },
+          }),
+        ),
+      );
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      expect(result.current.limitType).toBe('full');
+      expect(mockNavigation.setParams).toHaveBeenCalledWith({
+        returnedLimitType: undefined,
+        returnedCustomLimit: undefined,
+      });
+    });
+
+    it('does not update limitType when returnedLimitType is absent', () => {
+      let focusCallback: (() => void) | null = null;
+      mockUseFocusEffect.mockImplementation((callback) => {
+        focusCallback = callback;
+      });
+
+      const { result } = renderHook(() =>
+        useSpendingLimit(
+          createDefaultParams({
+            routeParams: { returnedSelectedToken: createMockToken() },
+          }),
+        ),
+      );
+
+      act(() => {
+        result.current.setLimitType('restricted');
+      });
+
+      act(() => {
+        if (focusCallback) focusCallback();
+      });
+
+      // limitType should remain 'restricted' (not overwritten)
+      expect(result.current.limitType).toBe('restricted');
+      // setParams should NOT have been called for limit params
+      expect(mockNavigation.setParams).not.toHaveBeenCalledWith(
+        expect.objectContaining({ returnedLimitType: undefined }),
+      );
     });
   });
 
