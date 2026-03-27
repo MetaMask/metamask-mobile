@@ -203,7 +203,7 @@ const OndoCampaignDetailsView: React.FC = () => {
                           <Pressable
                             onPress={() =>
                               navigation.navigate(
-                                Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD as never,
+                                Routes.REWARDS_ONDO_CAMPAIGN_LEADERBOARD,
                                 { campaignId },
                               )
                             }
