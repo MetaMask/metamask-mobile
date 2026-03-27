@@ -32,7 +32,27 @@ export const BORDER_DASH_START_SHIFT_FRACTION = 0.4;
 export const BORDER_SWEEP_PATH_START_FRACTION = 0;
 
 /** Normalized sweep position when the animation completes (`p === 1`). */
-export const BORDER_SWEEP_PATH_END_FRACTION = 0.9;
+export const BORDER_SWEEP_PATH_END_FRACTION = 0.8;
+
+/**
+ * Opacity fade-in completes at this animation progress (`p`). Lower = trail
+ * reaches full opacity sooner (quicker fade-in). Must stay below
+ * `BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION`.
+ */
+export const BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION = 0.5;
+
+/** Opacity fade-out begins at this `p` (second segment uses cubic ease-out). */
+export const BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION = 0.7;
+
+/**
+ * Arc length (px) trimmed from each end of the visible dash for the bright
+ * “core” layer. A softer, lower-opacity underlay uses the full dash length so
+ * tips dissolve instead of hard caps.
+ */
+export const BORDER_TRAIL_TIP_FADE_ARC_PX = 12;
+
+/** Opacity of the full-length underlay dash (core uses the full envelope). */
+export const BORDER_TRAIL_TIP_SOFT_UNDERLAY_OPACITY = 0.45;
 
 /** Trail tail (follows the sweep from behind). */
 export const BORDER_GRADIENT_TAIL = '#D86FCF';
