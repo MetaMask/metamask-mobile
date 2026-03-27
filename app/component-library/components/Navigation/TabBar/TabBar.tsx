@@ -18,7 +18,7 @@ import { IconName } from '../../Icons/Icon';
 
 import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { getDecimalChainId } from '../../../../util/networks';
-import { useMetrics } from '../../../../components/hooks/useMetrics';
+import { useAnalytics } from '../../../../components/hooks/useAnalytics/useAnalytics';
 import { strings } from '../../../../../locales/i18n';
 
 // Internal dependencies.
@@ -38,7 +38,7 @@ const FILLED_ICONS: Partial<Record<TabBarIconKey, IconName>> = {
 };
 
 const TabBar = ({ state, descriptors, navigation }: TabBarProps) => {
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const { bottom: bottomInset } = useSafeAreaInsets();
   const chainId = useSelector(selectChainId);
   const isAccountMenuEnabled = useAccountMenuEnabled();
