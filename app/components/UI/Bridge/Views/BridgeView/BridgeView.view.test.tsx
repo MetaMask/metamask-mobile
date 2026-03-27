@@ -199,6 +199,7 @@ describeForPlatforms('BridgeView', () => {
 
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24744" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('displays gas included label and enables confirm when quote has gas included (#24744)', async () => {
       const now = Date.now();
       const quoteWithGasIncluded = {
@@ -238,6 +239,7 @@ describeForPlatforms('BridgeView', () => {
     });
 
     // Regression for #25256: two USDT tokens on Linea must both appear in search results.
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#25256" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows two USDT when search API returns two USDT on Linea (#25256)', async () => {
       jest
         .spyOn(Engine.context.AuthenticationController, 'getBearerToken')
@@ -407,6 +409,7 @@ describeForPlatforms('BridgeView', () => {
       fetchSpy.mockRestore();
     }, 25000);
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24865" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('shows native token in source area when source is native token from token details (#24865)', () => {
       const bnbChainId = '0x38';
       const nativeBnbAddress = '0x0000000000000000000000000000000000000000';
@@ -434,6 +437,7 @@ describeForPlatforms('BridgeView', () => {
       expect(within(sourceArea).getByText('BNB')).toBeOnTheScreen();
     });
 
+    // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24802" style references are GitHub issue IDs (e.g. "#2342"), not color literals
     it('renders USDC to BNB swap setup without crash and hides confirm when no quote (#24802)', () => {
       const bnbChainIdHex = '0x38';
 

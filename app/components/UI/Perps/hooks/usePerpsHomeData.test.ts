@@ -976,6 +976,122 @@ describe('usePerpsHomeData', () => {
       });
     });
 
+    it('preserves multi-fill trades with same orderId and timestamp but different size/price', async () => {
+      // Simulate a SL execution split across multiple fills (same orderId + timestamp)
+      const multiFill1 = createMockOrderFill({
+        orderId: 'sl-order-1',
+        symbol: 'ETH',
+        timestamp: 1234567890,
+        size: '0.3',
+        price: '49000',
+        pnl: '-15.00',
+        direction: 'Close Long',
+      });
+      const multiFill2 = createMockOrderFill({
+        orderId: 'sl-order-1',
+        symbol: 'ETH',
+        timestamp: 1234567890,
+        size: '0.2',
+        price: '49000',
+        pnl: '-10.00',
+        direction: 'Close Long',
+      });
+
+      // REST fills return both fills
+      const mockGetOrderFills = jest
+        .fn()
+        .mockResolvedValue([multiFill1, multiFill2]);
+      (
+        Engine.context.PerpsController.getActiveProviderOrNull as jest.Mock
+      ).mockReturnValue({
+        getOrderFills: mockGetOrderFills,
+      });
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+
+      // WebSocket returns same fills
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [multiFill1, multiFill2],
+        isInitialLoading: false,
+      });
+
+      const { result } = renderHook(() =>
+        usePerpsHomeData({ activityLimit: 10 }),
+      );
+
+      await act(async () => {
+        // Wait for REST fills useEffect to run
+      });
+
+      // Both fills are preserved in mergedFills, then aggregated by
+      // transformFillsToTransactions into 1 transaction with combined size.
+      // With the old dedup key (orderId-timestamp), one fill was lost,
+      // resulting in wrong PnL and size.
+      const activity = result.current.recentActivity;
+      expect(activity.length).toBeGreaterThan(0);
+      // The aggregated transaction should reflect the combined 0.5 total size
+      expect(activity[0].fill?.size).toBe('0.5');
+    });
+
+    it('preserves detailedOrderType from REST fill when WS fill lacks it', async () => {
+      // Arrange — REST fill has enriched detailedOrderType
+      const restFill = createMockOrderFill({
+        orderId: 'fill-tp-1',
+        symbol: 'BTC',
+        timestamp: 1234567800,
+        detailedOrderType: 'Take Profit Limit',
+      });
+      const mockGetOrderFills = jest.fn().mockResolvedValue([restFill]);
+      (
+        Engine.context.PerpsController.getActiveProviderOrNull as jest.Mock
+      ).mockReturnValue({
+        getOrderFills: mockGetOrderFills,
+      });
+
+      // WS fill with same key but no detailedOrderType
+      const wsFill = createMockOrderFill({
+        orderId: 'fill-tp-1',
+        symbol: 'BTC',
+        timestamp: 1234567800,
+      });
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [wsFill],
+        isInitialLoading: false,
+      });
+
+      mockUsePerpsConnection.mockReturnValue({
+        isConnected: true,
+        isInitialized: true,
+        isConnecting: false,
+        error: null,
+        connect: jest.fn(),
+        disconnect: jest.fn(),
+        resetError: jest.fn(),
+      } as never);
+
+      // Act
+      const { result } = renderHook(() => usePerpsHomeData());
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert — recentActivity contains the merged fill with preserved detailedOrderType
+      // The detailedOrderType from REST is preserved during merge, then
+      // transformFillsToTransactions converts it to FillType.TakeProfit
+      expect(result.current.recentActivity).toHaveLength(1);
+      expect(result.current.recentActivity[0].fill?.fillType).toBe(
+        FillType.TakeProfit,
+      );
+    });
+
     it('handles special characters in search query', () => {
       const { result } = renderHook(() =>
         usePerpsHomeData({ searchQuery: '$BTC*' }),

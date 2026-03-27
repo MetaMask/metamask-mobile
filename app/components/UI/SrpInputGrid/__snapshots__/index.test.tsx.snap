@@ -58,20 +58,26 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "flexDirection": "row",
-              "height": 0,
-              "left": 0,
-              "opacity": 0,
-              "paddingHorizontal": 16,
-              "position": "absolute",
-              "top": 0,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#b4b4b528",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 0,
+                "left": 0,
+                "opacity": 0,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "absolute",
+                "top": 0,
+              },
+            ]
           }
           testID="textfield"
         >
@@ -79,12 +85,13 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -156,19 +163,25 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "transparent",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 12,
-              "borderWidth": 0,
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "row",
-              "height": 48,
-              "opacity": 1,
-              "paddingHorizontal": 0,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 12,
+                "borderWidth": 0,
+                "display": "flex",
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "paddingHorizontal": 0,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+              },
+            ]
           }
           testID="textfield"
         >
@@ -176,12 +189,13 @@ exports[`SrpInputGrid renders with custom uniqueId 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -317,20 +331,26 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "flexDirection": "row",
-              "height": 0,
-              "left": 0,
-              "opacity": 0,
-              "paddingHorizontal": 16,
-              "position": "absolute",
-              "top": 0,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#b4b4b528",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 0,
+                "left": 0,
+                "opacity": 0,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "absolute",
+                "top": 0,
+              },
+            ]
           }
           testID="textfield"
         >
@@ -338,12 +358,13 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -415,19 +436,26 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "transparent",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 12,
-              "borderWidth": 0,
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "row",
-              "height": 48,
-              "opacity": 0.5,
-              "paddingHorizontal": 0,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 12,
+                "borderWidth": 0,
+                "display": "flex",
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "opacity": 0.5,
+                "paddingHorizontal": 0,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+              },
+            ]
           }
           testID="textfield"
         >
@@ -435,12 +463,13 @@ exports[`SrpInputGrid renders with disabled state 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -576,20 +605,26 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "flexDirection": "row",
-              "height": 0,
-              "left": 0,
-              "opacity": 0,
-              "paddingHorizontal": 16,
-              "position": "absolute",
-              "top": 0,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#b4b4b528",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 0,
+                "left": 0,
+                "opacity": 0,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "absolute",
+                "top": 0,
+              },
+            ]
           }
           testID="textfield"
         >
@@ -597,12 +632,13 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -674,19 +710,25 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "transparent",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 12,
-              "borderWidth": 0,
-              "display": "flex",
-              "flex": 1,
-              "flexDirection": "row",
-              "height": 48,
-              "opacity": 1,
-              "paddingHorizontal": 0,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "transparent",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 12,
+                "borderWidth": 0,
+                "display": "flex",
+                "flex": 1,
+                "flexDirection": "row",
+                "height": 48,
+                "paddingHorizontal": 0,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+              },
+            ]
           }
           testID="textfield"
         >
@@ -694,12 +736,13 @@ exports[`SrpInputGrid renders with empty seed phrase 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -835,38 +878,46 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#ffffff",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "color": "#131416",
-              "flex": 0,
-              "flexDirection": "row",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "height": 40,
-              "justifyContent": "flex-start",
-              "marginBottom": 8,
-              "marginRight": "3%",
-              "minWidth": 0,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "paddingLeft": 8,
-              "paddingVertical": 4,
-              "textAlignVertical": "center",
-              "width": "31.33%",
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "color": "#131416",
+                "flex": 0,
+                "flexDirection": "row",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "height": 40,
+                "justifyContent": "flex-start",
+                "marginBottom": 8,
+                "marginRight": "3%",
+                "minWidth": 0,
+                "overflow": "hidden",
+                "paddingLeft": 8,
+                "paddingRight": 16,
+                "paddingVertical": 4,
+                "textAlignVertical": "center",
+                "width": "31.33%",
+              },
+            ]
           }
           testID="textfield"
         >
           <View
             style={
-              {
-                "marginRight": 12,
-              }
+              [
+                {
+                  "display": "flex",
+                  "marginRight": 12,
+                },
+                undefined,
+              ]
             }
             testID="textfield-startacccessory"
           >
@@ -891,12 +942,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -968,38 +1020,46 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#ffffff",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "color": "#131416",
-              "flex": 0,
-              "flexDirection": "row",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "height": 40,
-              "justifyContent": "flex-start",
-              "marginBottom": 8,
-              "marginRight": "3%",
-              "minWidth": 0,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "paddingLeft": 8,
-              "paddingVertical": 4,
-              "textAlignVertical": "center",
-              "width": "31.33%",
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "color": "#131416",
+                "flex": 0,
+                "flexDirection": "row",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "height": 40,
+                "justifyContent": "flex-start",
+                "marginBottom": 8,
+                "marginRight": "3%",
+                "minWidth": 0,
+                "overflow": "hidden",
+                "paddingLeft": 8,
+                "paddingRight": 16,
+                "paddingVertical": 4,
+                "textAlignVertical": "center",
+                "width": "31.33%",
+              },
+            ]
           }
           testID="textfield"
         >
           <View
             style={
-              {
-                "marginRight": 12,
-              }
+              [
+                {
+                  "display": "flex",
+                  "marginRight": 12,
+                },
+                undefined,
+              ]
             }
             testID="textfield-startacccessory"
           >
@@ -1024,12 +1084,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -1101,38 +1162,46 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#ffffff",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 8,
-              "borderWidth": 1,
-              "color": "#131416",
-              "flex": 0,
-              "flexDirection": "row",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 16,
-              "height": 40,
-              "justifyContent": "flex-start",
-              "marginBottom": 8,
-              "marginRight": 0,
-              "minWidth": 0,
-              "opacity": 1,
-              "overflow": "hidden",
-              "paddingHorizontal": 16,
-              "paddingLeft": 8,
-              "paddingVertical": 4,
-              "textAlignVertical": "center",
-              "width": "31.33%",
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#ffffff",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "color": "#131416",
+                "flex": 0,
+                "flexDirection": "row",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 16,
+                "height": 40,
+                "justifyContent": "flex-start",
+                "marginBottom": 8,
+                "marginRight": 0,
+                "minWidth": 0,
+                "overflow": "hidden",
+                "paddingLeft": 8,
+                "paddingRight": 16,
+                "paddingVertical": 4,
+                "textAlignVertical": "center",
+                "width": "31.33%",
+              },
+            ]
           }
           testID="textfield"
         >
           <View
             style={
-              {
-                "marginRight": 12,
-              }
+              [
+                {
+                  "display": "flex",
+                  "marginRight": 12,
+                },
+                undefined,
+              ]
             }
             testID="textfield-startacccessory"
           >
@@ -1157,12 +1226,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
@@ -1234,20 +1304,26 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
           onResponderTerminationRequest={[Function]}
           onStartShouldSetResponder={[Function]}
           style={
-            {
-              "alignItems": "center",
-              "backgroundColor": "#b4b4b528",
-              "borderColor": "#b4b4b566",
-              "borderRadius": 12,
-              "borderWidth": 1,
-              "flexDirection": "row",
-              "height": 0,
-              "left": 0,
-              "opacity": 0,
-              "paddingHorizontal": 16,
-              "position": "absolute",
-              "top": 0,
-            }
+            [
+              {
+                "display": "flex",
+              },
+              {
+                "alignItems": "center",
+                "backgroundColor": "#b4b4b528",
+                "borderColor": "#b4b4b566",
+                "borderRadius": 12,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "height": 0,
+                "left": 0,
+                "opacity": 0,
+                "paddingLeft": 16,
+                "paddingRight": 16,
+                "position": "absolute",
+                "top": 0,
+              },
+            ]
           }
           testID="textfield"
         >
@@ -1255,12 +1331,13 @@ exports[`SrpInputGrid renders with multiple words 1`] = `
             style={
               [
                 {
-                  "backgroundColor": "inherit",
+                  "display": "flex",
+                  "flexBasis": "0%",
+                  "flexGrow": 1,
+                  "flexShrink": 1,
                   "height": 46,
                 },
-                {
-                  "flex": 1,
-                },
+                undefined,
               ]
             }
           >
