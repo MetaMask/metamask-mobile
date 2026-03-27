@@ -2,6 +2,7 @@ import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
 } from '../../../app/components/Views/confirmations/ConfirmationView.testIds';
+import { getNetworkFilterTestId } from '../../../app/components/Views/confirmations/components/network-filter/network-filter.testIds';
 import { TEXTFIELDSEARCH_TEST_ID } from '../../../app/component-library/components/Form/TextFieldSearch/TextFieldSearch.constants';
 import enContent from '../../../locales/languages/en.json';
 import {
@@ -22,6 +23,7 @@ import {
 } from '../../framework';
 
 const TOKEN_SEARCH_PLACEHOLDER = enContent.send.search_tokens;
+const ETHEREUM_NETWORK_FILTER_TEST_ID = getNetworkFilterTestId('0x1');
 
 export function getKeypadKeyTestId(key: string): string {
   return key === '.' ? 'keypad-key-dot' : `keypad-key-${key}`;
@@ -229,7 +231,10 @@ class TransactionPayConfirmation {
   getNetworkFilter(networkName: string): EncapsulatedElementType {
     return encapsulated({
       detox: () => Matchers.getElementByText(networkName),
-      appium: () => PlaywrightMatchers.getElementByCatchAll(networkName),
+      appium: () =>
+        PlaywrightMatchers.getElementById(ETHEREUM_NETWORK_FILTER_TEST_ID, {
+          exact: true,
+        }),
     });
   }
 
