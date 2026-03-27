@@ -255,8 +255,14 @@ const PredictionsSection = forwardRef<
     const isEmpty =
       !isLoading && !hasPositions && markets.length === 0 && !hasError;
 
-    const itemCount =
-      !isTrendingOnly && hasPositions ? positions.length : markets.length;
+    let itemCount: number;
+    if (isTrendingOnly) {
+      itemCount = markets.length;
+    } else if (isPositionsOnly) {
+      itemCount = hasPositions ? positions.length : 0;
+    } else {
+      itemCount = hasPositions ? positions.length : markets.length;
+    }
 
     // Determine whether the section will actually render visible content.
     // Pass null when the section returns null so the event fires immediately.

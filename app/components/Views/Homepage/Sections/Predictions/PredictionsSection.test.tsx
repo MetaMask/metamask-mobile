@@ -87,6 +87,9 @@ const mockUsePredictPositionsForHomepage =
 const mockSelectPrivacyMode = jest.requireMock(
   '../../../../../selectors/preferencesController',
 ).selectPrivacyMode as jest.Mock;
+const mockUseHomeViewedEvent = jest.requireMock(
+  '../../hooks/useHomeViewedEvent',
+).default as jest.Mock;
 
 const mockActivePositions = [
   {
@@ -659,6 +662,33 @@ describe('PredictionsSection', () => {
       );
 
       expect(toJSON()).toBeNull();
+    });
+
+    it('passes itemCount 0 when positions-only has no positions even if markets load', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ itemCount: 0, isEmpty: true }),
+      );
     });
   });
 
