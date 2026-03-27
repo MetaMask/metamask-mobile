@@ -1,6 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { strings } from '../../../../../locales/i18n';
-import useTronRewardsRowsViewModel from './useTronRewardsRowsViewModel';
+import useTronAssetOverviewSection from './useTronAssetOverviewSection';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -46,7 +46,7 @@ const mockSelectPrivacyMode = selectPrivacyMode as jest.MockedFunction<
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
-describe('useTronRewardsRowsViewModel', () => {
+describe('useTronAssetOverviewSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockSelectPrivacyMode.mockReturnValue(false);
@@ -61,7 +61,33 @@ describe('useTronRewardsRowsViewModel', () => {
     });
   });
 
-  it('returns display-ready props for the CTA and both reward rows when APY data is available', () => {
+  it('short-circuits Tron work when disabled', () => {
+    mockUseTronStakeApy.mockReturnValue({
+      fetchStatus: FetchStatus.Initial,
+      errorMessage: null,
+      apyDecimal: null,
+      apyPercent: null,
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      useTronAssetOverviewSection({
+        enabled: false,
+        tokenAddress: 'tron:foo',
+        tokenChainId: 'tron:0x2b6653dc',
+      }),
+    );
+
+    expect(mockUseTronStakeApy).toHaveBeenCalledWith({
+      fetchOnMount: false,
+    });
+    expect(mockUseTronStakingRewardsSummary).toHaveBeenCalledWith({
+      token: { address: 'tron:foo' },
+    });
+    expect(result.current).toEqual({});
+  });
+
+  it('returns APR text and both reward row props when APY data is available', () => {
     mockUseTronStakeApy.mockReturnValue({
       fetchStatus: FetchStatus.Fetched,
       errorMessage: null,
@@ -71,17 +97,18 @@ describe('useTronRewardsRowsViewModel', () => {
     });
 
     const { result } = renderHook(() =>
-      useTronRewardsRowsViewModel({
-        token: { chainId: 'tron:0x2b6653dc', address: 'tron:foo' },
+      useTronAssetOverviewSection({
+        enabled: true,
+        tokenAddress: 'tron:foo',
+        tokenChainId: 'tron:0x2b6653dc',
       }),
     );
 
+    expect(mockUseTronStakeApy).toHaveBeenCalledWith({
+      fetchOnMount: true,
+    });
     expect(result.current).toEqual(
-      expect.objectContaining({
-        stakingCtaProps: expect.objectContaining({
-          aprText: '4.5%',
-        }),
-      }),
+      expect.objectContaining({ aprText: '4.5%' }),
     );
     expect(result.current.claimableRewardsRowProps).toEqual(
       expect.objectContaining({
@@ -97,7 +124,7 @@ describe('useTronRewardsRowsViewModel', () => {
     );
     expect(
       result.current.estimatedAnnualRewardsUnavailableBannerProps,
-    ).toBeNull();
+    ).toBeUndefined();
   });
 
   it.each([FetchStatus.Initial, FetchStatus.Fetching])(
@@ -112,15 +139,18 @@ describe('useTronRewardsRowsViewModel', () => {
       });
 
       const { result } = renderHook(() =>
-        useTronRewardsRowsViewModel({
-          token: { chainId: 'tron:0x2b6653dc', address: 'tron:foo' },
+        useTronAssetOverviewSection({
+          enabled: true,
+          tokenAddress: 'tron:foo',
+          tokenChainId: 'tron:0x2b6653dc',
         }),
       );
 
-      expect(result.current.estimatedAnnualRewardsRowProps).toBeNull();
+      expect(result.current.aprText).toBeUndefined();
+      expect(result.current.estimatedAnnualRewardsRowProps).toBeUndefined();
       expect(
         result.current.estimatedAnnualRewardsUnavailableBannerProps,
-      ).toBeNull();
+      ).toBeUndefined();
     },
   );
 
@@ -134,15 +164,43 @@ describe('useTronRewardsRowsViewModel', () => {
     });
 
     const { result } = renderHook(() =>
-      useTronRewardsRowsViewModel({
-        token: { chainId: 'tron:0x2b6653dc', address: 'tron:foo' },
+      useTronAssetOverviewSection({
+        enabled: true,
+        tokenAddress: 'tron:foo',
+        tokenChainId: 'tron:0x2b6653dc',
       }),
     );
 
-    expect(result.current.estimatedAnnualRewardsRowProps).toBeNull();
+    expect(result.current.aprText).toBeUndefined();
+    expect(result.current.estimatedAnnualRewardsRowProps).toBeUndefined();
     expect(result.current.estimatedAnnualRewardsUnavailableBannerProps).toEqual(
       {
         message: 'APR endpoint down',
+      },
+    );
+  });
+
+  it('uses fallback copy when APY fetch succeeds without an APY decimal', () => {
+    mockUseTronStakeApy.mockReturnValue({
+      fetchStatus: FetchStatus.Fetched,
+      errorMessage: null,
+      apyDecimal: null,
+      apyPercent: null,
+      refetch: jest.fn(),
+    });
+
+    const { result } = renderHook(() =>
+      useTronAssetOverviewSection({
+        enabled: true,
+        tokenAddress: 'tron:foo',
+        tokenChainId: 'tron:0x2b6653dc',
+      }),
+    );
+
+    expect(result.current.estimatedAnnualRewardsRowProps).toBeUndefined();
+    expect(result.current.estimatedAnnualRewardsUnavailableBannerProps).toEqual(
+      {
+        message: strings('stake.tron.estimated_rewards_api_unavailable'),
       },
     );
   });
