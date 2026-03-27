@@ -4,6 +4,8 @@ import ProtectWalletMandatoryModal from './ProtectWalletMandatoryModal';
 import { backgroundState } from '../../../util/test/initial-root-state';
 import { InteractionManager } from 'react-native';
 import { fireEvent } from '@testing-library/react-native';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 // Mock Device utility
 const mockIsIphoneX = jest.fn();
@@ -30,16 +32,7 @@ jest.mock('@react-navigation/native', () => {
 });
 
 // Mock the analytics hook
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: jest.fn(),
-    createEventBuilder: jest.fn().mockReturnValue({
-      addProperties: jest.fn().mockReturnValue({
-        build: jest.fn(),
-      }),
-    }),
-  }),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock Engine
 jest.mock('../../../core/Engine', () => ({
@@ -74,10 +67,11 @@ const initialState = {
 
 describe('ProtectWalletMandatoryModal', () => {
   beforeEach(() => {
+    jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(createMockUseAnalyticsHook());
     mockDangerouslyGetState.mockReturnValue({
       routes: [{ name: 'Home' }],
     });
-    jest.clearAllMocks();
   });
 
   it('renders correctly', () => {
@@ -96,7 +90,7 @@ describe('ProtectWalletMandatoryModal', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
-  it('tracks metrics event after interactions when securing wallet', () => {
+  it('tracks analytics event after interactions when securing wallet', () => {
     const { getByText } = renderWithProvider(<ProtectWalletMandatoryModal />, {
       state: initialState,
     });

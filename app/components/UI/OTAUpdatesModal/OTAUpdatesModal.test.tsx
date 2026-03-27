@@ -5,6 +5,8 @@ import { reloadAsync } from 'expo-updates';
 import Logger from '../../../util/Logger';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import renderWithProvider from '../../../util/test/renderWithProvider';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 
 // Mock theme utility
 jest.mock('../../../util/theme', () => ({
@@ -126,12 +128,7 @@ const mockCreateEventBuilder = jest.fn((event: string): MockEventBuilder => {
 
 const mockTrackEvent = jest.fn();
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-  }),
-}));
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Import component AFTER all mocks are defined
 import OTAUpdatesModal from './OTAUpdatesModal';
@@ -139,6 +136,12 @@ import OTAUpdatesModal from './OTAUpdatesModal';
 describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
     (Platform as unknown as { OS: string }).OS = 'ios';
     mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
       if (callback) callback();
