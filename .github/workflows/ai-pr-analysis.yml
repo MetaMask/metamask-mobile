@@ -54,7 +54,7 @@ jobs:
         uses: actions/checkout@v4
         with:
           repository: MetaMask/ai-analyzer
-          ref: main
+          ref: fix/install-all-deps
           path: .ai-analyzer-action
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
