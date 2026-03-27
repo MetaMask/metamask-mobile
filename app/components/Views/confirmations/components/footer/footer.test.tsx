@@ -249,6 +249,15 @@ describe('Footer', () => {
   });
 
   it('hides footer by default for moneyAccountDeposit transaction type', () => {
+    mockUseConfirmationContext.mockReturnValue({
+      isFooterVisible: undefined,
+      isTransactionDataUpdating: false,
+      isTransactionValueUpdating: false,
+      setIsFooterVisible: jest.fn(),
+      setIsTransactionDataUpdating: jest.fn(),
+      setIsTransactionValueUpdating: jest.fn(),
+    });
+
     const moneyAccountDepositConfirmation = {
       chainId: '0x89',
       id: 'money-account-deposit-id',
