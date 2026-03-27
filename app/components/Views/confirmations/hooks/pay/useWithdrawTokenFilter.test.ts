@@ -187,7 +187,7 @@ describe('useWithdrawTokenFilter', () => {
       includeNoBalance: true,
       tokenFilter: expect.any(Function),
       enrichTokenRequests: expect.arrayContaining([
-        expect.objectContaining({ value: '0xaaa', variation: '0x1' }),
+        expect.objectContaining({ address: '0xaaa', chainId: '0x1' }),
       ]),
     });
   });
@@ -279,6 +279,6 @@ describe('useWithdrawTokenFilter', () => {
     const args = mockUseSendTokens.mock.calls[0]?.[0] ?? {};
     const requests = args.enrichTokenRequests ?? [];
     expect(requests).toHaveLength(1);
-    expect(requests[0].value).toBe('0xaaa');
+    expect(requests[0].address).toBe('0xaaa');
   });
 });

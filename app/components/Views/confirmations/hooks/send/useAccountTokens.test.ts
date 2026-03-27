@@ -8,8 +8,9 @@ import { TokenStandard } from '../../types/token';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { isTestNet } from '../../../../../util/networks';
-import { useERC20Tokens } from '../../../../hooks/DisplayName/useERC20Tokens';
-import { NameType } from '../../../../UI/Name/Name.types';
+import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
+import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
+import { Hex } from '@metamask/utils';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -40,7 +41,8 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
-jest.mock('../../../../hooks/DisplayName/useERC20Tokens');
+jest.mock('../../../../hooks/useTokensData/useTokensData');
+jest.mock('../../../../../util/multichain/buildEvmCaip19AssetId');
 
 const mockUseSelector = jest.mocked(useSelector);
 const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
@@ -50,7 +52,8 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockSelectCurrentCurrency = jest.mocked(selectCurrentCurrency);
 const mockIsTestNet = jest.mocked(isTestNet);
-const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
+const mockUseTokensData = jest.mocked(useTokensData);
+const mockBuildEvmCaip19AssetId = jest.mocked(buildEvmCaip19AssetId);
 
 const mockAssets = {
   '0x1': [
@@ -107,7 +110,11 @@ describe('useAccountTokens', () => {
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
     mockFormatter.format.mockReturnValue('$100.50');
     mockIsTestNet.mockReturnValue(false);
-    mockUseERC20Tokens.mockReturnValue([]);
+    mockUseTokensData.mockReturnValue({});
+    mockBuildEvmCaip19AssetId.mockImplementation(
+      (address: string, chainId: Hex) =>
+        `eip155:${chainId}/erc20:${address.toLowerCase()}`,
+    );
   });
 
   it('returns all assets with balance', () => {
@@ -647,22 +654,17 @@ describe('useAccountTokens', () => {
         return undefined;
       });
 
-      const requests = [
-        {
-          type: NameType.EthereumAddress,
-          value: '0xusdc',
-          variation: '0x1',
-        },
-      ];
+      const requests = [{ chainId: '0x1' as Hex, address: '0xusdc' }];
 
-      mockUseERC20Tokens.mockReturnValue([
-        {
+      mockUseTokensData.mockReturnValue({
+        'eip155:0x1/erc20:0xusdc': {
+          assetId: 'eip155:0x1/erc20:0xusdc',
           name: 'USD Coin',
           symbol: 'USDC',
           decimals: 6,
-          image: 'https://example.com/usdc.png',
+          iconUrl: 'https://example.com/usdc.png',
         },
-      ]);
+      });
 
       const { result } = renderHook(() =>
         useAccountTokens({ enrichTokenRequests: requests }),
@@ -703,22 +705,17 @@ describe('useAccountTokens', () => {
         return undefined;
       });
 
-      const requests = [
-        {
-          type: NameType.EthereumAddress,
-          value: '0xusdc',
-          variation: '0x1',
-        },
-      ];
+      const requests = [{ chainId: '0x1' as Hex, address: '0xusdc' }];
 
-      mockUseERC20Tokens.mockReturnValue([
-        {
+      mockUseTokensData.mockReturnValue({
+        'eip155:0x1/erc20:0xusdc': {
+          assetId: 'eip155:0x1/erc20:0xusdc',
           name: 'USD Coin',
           symbol: 'USDC',
           decimals: 6,
-          image: 'https://example.com/usdc.png',
+          iconUrl: 'https://example.com/usdc.png',
         },
-      ]);
+      });
 
       const { result } = renderHook(() =>
         useAccountTokens({ enrichTokenRequests: requests }),
@@ -741,22 +738,9 @@ describe('useAccountTokens', () => {
         return undefined;
       });
 
-      const requests = [
-        {
-          type: NameType.EthereumAddress,
-          value: '0xunknown',
-          variation: '0x1',
-        },
-      ];
+      const requests = [{ chainId: '0x1' as Hex, address: '0xunknown' }];
 
-      mockUseERC20Tokens.mockReturnValue([
-        {
-          name: undefined,
-          symbol: undefined,
-          image: undefined,
-          decimals: undefined,
-        } as unknown as ReturnType<typeof useERC20Tokens>[number],
-      ]);
+      mockUseTokensData.mockReturnValue({});
 
       const { result } = renderHook(() =>
         useAccountTokens({ enrichTokenRequests: requests }),

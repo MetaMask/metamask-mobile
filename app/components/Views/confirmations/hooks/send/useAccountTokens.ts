@@ -11,10 +11,15 @@ import I18n from '../../../../../../locales/i18n';
 import { getIntlNumberFormatter } from '../../../../../util/intl';
 import { getNetworkBadgeSource } from '../../utils/network';
 import { AssetType, TokenStandard } from '../../types/token';
-import { useERC20Tokens } from '../../../../hooks/DisplayName/useERC20Tokens';
-import { UseDisplayNameRequest } from '../../../../hooks/DisplayName/useDisplayName';
+import { useTokensData } from '../../../../hooks/useTokensData/useTokensData';
+import { buildEvmCaip19AssetId } from '../../../../../util/multichain/buildEvmCaip19AssetId';
 
-const EMPTY_REQUESTS: UseDisplayNameRequest[] = [];
+export interface EnrichTokenRequest {
+  chainId: Hex;
+  address: string;
+}
+
+const EMPTY_REQUESTS: EnrichTokenRequest[] = [];
 
 export function useAccountTokens({
   includeNoBalance = false,
@@ -23,11 +28,20 @@ export function useAccountTokens({
 }: {
   includeNoBalance?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
-  enrichTokenRequests?: UseDisplayNameRequest[];
+  enrichTokenRequests?: EnrichTokenRequest[];
 } = {}): AssetType[] {
   const assets = useSelector(selectAssetsBySelectedAccountGroup);
   const fiatCurrency = useSelector(selectCurrentCurrency);
-  const apiTokenResults = useERC20Tokens(enrichTokenRequests);
+
+  const assetIds = useMemo(
+    () =>
+      enrichTokenRequests.map((req) =>
+        buildEvmCaip19AssetId(req.address, req.chainId),
+      ),
+    [enrichTokenRequests],
+  );
+
+  const tokensByAssetId = useTokensData(assetIds);
 
   return useMemo(() => {
     const flatAssets = Object.values(assets).flat();
@@ -106,27 +120,27 @@ export function useAccountTokens({
 
       for (let i = 0; i < enrichTokenRequests.length; i++) {
         const req = enrichTokenRequests[i];
-        const key = `${(req.variation as string).toLowerCase()}:${req.value.toLowerCase()}`;
+        const key = `${req.chainId.toLowerCase()}:${req.address.toLowerCase()}`;
         if (existingKeys.has(key)) continue;
 
-        const data = apiTokenResults[i];
+        const caipId = assetIds[i];
+        const data = tokensByAssetId[caipId];
         if (!data?.name && !data?.symbol) continue;
 
-        const chainId = req.variation as Hex;
         processedAssets.push({
-          address: req.value.toLowerCase(),
-          chainId,
+          address: req.address.toLowerCase(),
+          chainId: req.chainId,
           accountType: EthAccountType.Eoa,
           name: data.name ?? '',
           symbol: data.symbol ?? '',
           decimals: data.decimals ?? 18,
-          image: data.image ?? '',
-          logo: data.image ?? undefined,
+          image: data.iconUrl ?? '',
+          logo: data.iconUrl ?? undefined,
           balance: '0',
           balanceInSelectedCurrency: zeroFiat,
           isETH: false,
           isNative: false,
-          networkBadgeSource: getNetworkBadgeSource(chainId),
+          networkBadgeSource: getNetworkBadgeSource(req.chainId),
           standard: TokenStandard.ERC20,
         } as AssetType);
       }
@@ -144,6 +158,7 @@ export function useAccountTokens({
     fiatCurrency,
     tokenFilter,
     enrichTokenRequests,
-    apiTokenResults,
+    assetIds,
+    tokensByAssetId,
   ]) as unknown as AssetType[];
 }

@@ -12,7 +12,6 @@ import { selectPayQuoteConfig } from '../../../../../selectors/featureFlagContro
 import { useSendTokens } from '../send/useSendTokens';
 import { AssetType } from '../../types/token';
 import { RootState } from '../../../../../reducers';
-import { NameType } from '../../../../UI/Name/Name.types';
 
 /**
  * Returns a token filter for withdraw transactions, following the same pattern
@@ -48,9 +47,8 @@ export function useWithdrawTokenFilter(): (tokens: AssetType[]) => AssetType[] {
       addresses
         .filter((addr) => !isNativeAddress(addr.toLowerCase()))
         .map((addr) => ({
-          type: NameType.EthereumAddress,
-          value: addr,
-          variation: chainId,
+          chainId: chainId as Hex,
+          address: addr,
         })),
     );
   }, [shouldEnrich, allowlist]);

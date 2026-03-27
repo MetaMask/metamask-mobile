@@ -6,7 +6,6 @@ import { renderHookWithProvider } from '../../../util/test/renderWithProvider';
 const TOKEN_NAME_MOCK = 'Test Token';
 const TOKEN_SYMBOL_MOCK = 'TT';
 const TOKEN_ICON_URL_MOCK = 'https://example.com/icon.png';
-const TOKEN_DECIMALS_MOCK = 6;
 const TOKEN_ADDRESS_MOCK = '0x0439e60f02a8900a951603950d8d4527f400c3f1';
 const CHAIN_ID_MOCK = CHAIN_IDS.MAINNET;
 const ASSET_ID_MOCK = `eip155:1/erc20:${TOKEN_ADDRESS_MOCK}`;
@@ -32,7 +31,6 @@ describe('useERC20Tokens', () => {
         name: TOKEN_NAME_MOCK,
         symbol: TOKEN_SYMBOL_MOCK,
         iconUrl: TOKEN_ICON_URL_MOCK,
-        decimals: TOKEN_DECIMALS_MOCK,
       },
     });
   });
@@ -86,19 +84,6 @@ describe('useERC20Tokens', () => {
     expect(result.current[0]?.image).toBe(TOKEN_ICON_URL_MOCK);
   });
 
-  it('returns symbol and decimals when token is found', () => {
-    const { result } = renderHook([
-      {
-        type: NameType.EthereumAddress,
-        value: TOKEN_ADDRESS_MOCK,
-        variation: CHAIN_ID_MOCK,
-      },
-    ]);
-
-    expect(result.current[0]?.symbol).toBe(TOKEN_SYMBOL_MOCK);
-    expect(result.current[0]?.decimals).toBe(TOKEN_DECIMALS_MOCK);
-  });
-
   it('returns name and image as undefined when token is not found', () => {
     mockUseTokensData.mockReturnValue({});
 
@@ -110,12 +95,7 @@ describe('useERC20Tokens', () => {
       },
     ]);
 
-    expect(result.current[0]).toEqual({
-      name: undefined,
-      image: undefined,
-      symbol: undefined,
-      decimals: undefined,
-    });
+    expect(result.current[0]).toEqual({ name: undefined, image: undefined });
   });
 
   it('normalizes addresses to lowercase when building the asset ID', () => {

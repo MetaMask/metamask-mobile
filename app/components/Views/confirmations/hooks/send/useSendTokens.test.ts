@@ -268,13 +268,11 @@ describe('useSendTokens', () => {
 
   it('forwards enrichTokenRequests to useAccountTokens', () => {
     mockUseAccountTokens.mockReturnValue([mockEvmToken]);
-    const requests = [
-      { type: 'ethereumAddress' as const, value: '0xabc', variation: '0x1' },
-    ];
+    const requests = [{ chainId: '0x1' as const, address: '0xabc' }];
 
     renderHook(() =>
       useSendTokens({
-        enrichTokenRequests: requests as never,
+        enrichTokenRequests: requests,
       }),
     );
 
