@@ -55,15 +55,15 @@ jest.mock('../../UI/Perps/hooks', () => ({
     positions: [],
     isInitialLoading: false,
   })),
+  usePerpsLiveOrders: jest.fn(() => ({
+    orders: [],
+    isInitialLoading: false,
+  })),
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
       unrealizedPnl: '0',
       returnOnEquity: '0',
     },
-    isInitialLoading: false,
-  })),
-  usePerpsLiveOrders: jest.fn(() => ({
-    orders: [],
     isInitialLoading: false,
   })),
   usePerpsMarkets: jest.fn(() => ({
