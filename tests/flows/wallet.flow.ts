@@ -528,8 +528,6 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
 
   await ImportWalletView.typeSecretRecoveryPhrase(srp, true);
-  // await ImportWalletView.tapImportScreenTitleToDismissKeyboard();
-  await PlaywrightGestures.hideKeyboard();
 
   await ImportWalletView.tapContinueButton();
   await PlaywrightAssertions.expectElementToBeVisible(

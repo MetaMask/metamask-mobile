@@ -13,6 +13,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import UnifiedGestures from '../../framework/UnifiedGestures';
+import PlaywrightGestures from '../../framework/PlaywrightGestures';
 
 class ImportWalletView {
   get container(): DetoxElement {
@@ -165,6 +166,7 @@ class ImportWalletView {
             },
           );
         }
+        await PlaywrightGestures.hideKeyboard();
       },
     });
   }
