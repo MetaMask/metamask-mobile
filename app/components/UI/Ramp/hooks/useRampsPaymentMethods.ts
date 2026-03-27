@@ -67,7 +67,7 @@ export function useRampsPaymentMethods(): UseRampsPaymentMethodsResult {
   const tokenSupportedByProvider = selectedProvider?.supportedCryptoCurrencies
     ? selectedProvider.supportedCryptoCurrencies[
         selectedToken?.assetId ?? ''
-      ] !== false
+      ] === true
     : true;
 
   const queryEnabled = Boolean(

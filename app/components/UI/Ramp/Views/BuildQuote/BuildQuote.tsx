@@ -207,9 +207,7 @@ function BuildQuote() {
       return false;
     }
 
-    if (
-      selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId] === false
-    ) {
+    if (!selectedProvider.supportedCryptoCurrencies?.[effectiveAssetId]) {
       return true;
     }
 
