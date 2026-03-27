@@ -20,7 +20,7 @@ class RevealSecretRecoveryPhrase {
   }
 
   get passwordInputToRevealCredential(): DetoxElement {
-    return Matchers.getElementByLabel(
+    return Matchers.getElementByID(
       RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID,
     );
   }

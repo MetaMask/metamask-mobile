@@ -15,9 +15,6 @@ import {
 import BigNumber from 'bignumber.js';
 
 import Engine from '../../../../../core/Engine';
-import Logger from '../../../../../util/Logger';
-
-jest.mock('../../../../../util/Logger');
 import { selectSelectedAccountGroup } from '../../../../../selectors/multichainAccounts/accountTreeController';
 import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
 import { selectAllNfts } from '../../../../../selectors/nftController';
@@ -261,7 +258,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toEqual([]);
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -281,7 +278,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toEqual([]);
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -299,7 +296,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toEqual([]);
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -323,8 +320,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toHaveLength(1);
-      expect(result.current.nfts[0]).toEqual({
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0]).toEqual({
         address: mockNft.address,
         standard: 'ERC721',
         name: mockNft.name,
@@ -364,9 +361,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toHaveLength(1);
-      expect(result.current.nfts[0].standard).toBe('ERC1155');
-      expect(result.current.nfts[0].balance).toBe('1');
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].standard).toBe('ERC1155');
+      expect(result.current[0].balance).toBe('1');
     });
   });
 
@@ -399,8 +396,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toHaveLength(1);
-      expect(result.current.nfts[0].name).toBe('Test NFT');
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].name).toBe('Test NFT');
     });
   });
 
@@ -430,9 +427,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].image).toBe(
-        'https://example.com/fallback.png',
-      );
+      expect(result.current[0].image).toBe('https://example.com/fallback.png');
     });
   });
 
@@ -462,9 +457,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].image).toBe(
-        'https://example.com/valid.png',
-      );
+      expect(result.current[0].image).toBe('https://example.com/valid.png');
     });
   });
 
@@ -478,7 +471,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toEqual([]);
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -496,7 +489,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toEqual([]);
+      expect(result.current).toEqual([]);
     });
   });
 
@@ -529,8 +522,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toHaveLength(1);
-      expect(result.current.nfts[0].accountId).toBe(mockAccount.id);
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].accountId).toBe(mockAccount.id);
     });
   });
 
@@ -558,9 +551,9 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toHaveLength(2);
-      expect(result.current.nfts[0].chainId).toBe('0x1');
-      expect(result.current.nfts[1].chainId).toBe('0x89');
+      expect(result.current).toHaveLength(2);
+      expect(result.current[0].chainId).toBe('0x1');
+      expect(result.current[1].chainId).toBe('0x89');
     });
   });
 
@@ -590,8 +583,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts).toHaveLength(1);
-      expect(result.current.nfts[0].name).toBe('Test NFT');
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].name).toBe('Test NFT');
     });
   });
 
@@ -629,9 +622,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].image).toBe(
-        'https://example.com/sample1.png',
-      );
+      expect(result.current[0].image).toBe('https://example.com/sample1.png');
     });
   });
 
@@ -666,7 +657,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].image).toBeUndefined();
+      expect(result.current[0].image).toBeUndefined();
     });
   });
 
@@ -697,7 +688,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].image).toBe(
+      expect(result.current[0].image).toBe(
         'https://example.com/valid-fallback.png',
       );
     });
@@ -734,7 +725,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].image).toBe(
+      expect(result.current[0].image).toBe(
         'https://example.com/collection-fallback.png',
       );
     });
@@ -765,8 +756,8 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].name).toBeUndefined();
-      expect(result.current.nfts[0].collectionName).toBe('Test Collection');
+      expect(result.current[0].name).toBeUndefined();
+      expect(result.current[0].collectionName).toBe('Test Collection');
     });
   });
 
@@ -798,90 +789,7 @@ describe('useEVMNfts', () => {
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
-      expect(result.current.nfts[0].collectionName).toBeUndefined();
-    });
-  });
-
-  describe('isLoading', () => {
-    it('does not update state when the effect is cancelled before processNfts completes', async () => {
-      // Simulate a slow async transform so the effect cleanup fires mid-flight.
-      let resolveTransform: () => void;
-      const transformStarted = new Promise<void>((res) => {
-        resolveTransform = res;
-      });
-      let resolveSlowTransform: ((value: string) => void) | undefined;
-      const slowTransformPromise = new Promise<string>((res) => {
-        resolveSlowTransform = res;
-      });
-
-      mockGetFormattedIpfsUrl.mockImplementation(async () => {
-        resolveTransform();
-        return slowTransformPromise;
-      });
-
-      const ipfsNft = {
-        ...mockNft,
-        image: 'ipfs://QmTest/image.png',
-      };
-
-      mockSelectSelectedAccountGroup.mockReturnValue(
-        createMockAccountGroup(['account-1']),
-      );
-      mockSelectInternalAccountsById.mockReturnValue(
-        createMockInternalAccountsById({ 'account-1': mockAccount }),
-      );
-      mockSelectAllNfts.mockReturnValue(
-        createMockAllNfts({
-          [mockAccount.address]: { '0x1': [ipfsNft] },
-        }),
-      );
-
-      const { unmount, result } = renderHookWithStore(() => useEVMNfts());
-
-      // Wait until processNfts has started the async transform, then unmount
-      // (simulates a dependency change that re-fires the effect).
-      await transformStarted;
-      unmount();
-
-      // Unblock the slow transform after the cleanup has run.
-      resolveSlowTransform?.('https://gateway/QmTest/image.png');
-
-      // State must not have been updated — isLoading stays true (initial value)
-      // and nfts stays empty because the cancelled run's setters were skipped.
-      expect(result.current.isLoading).toBe(true);
-      expect(result.current.nfts).toEqual([]);
-    });
-
-    it('settles to false and logs error when processNfts throws', async () => {
-      mockSelectSelectedAccountGroup.mockReturnValue(
-        createMockAccountGroup(['account-1']),
-      );
-      mockSelectInternalAccountsById.mockReturnValue(
-        createMockInternalAccountsById({
-          'account-1': mockAccount,
-        }),
-      );
-      mockSelectAllNfts.mockReturnValue(
-        createMockAllNfts({
-          [mockAccount.address]: { '0x1': [mockNft] },
-        }),
-      );
-      const processingError = new Error('transform failed');
-      // getNetworkBadgeSource is called inside transformNft without a try-catch,
-      // so throwing here propagates out of processNfts to the .catch() handler.
-      mockGetNetworkBadgeSource.mockImplementation(() => {
-        throw processingError;
-      });
-
-      const { result } = renderHookWithStore(() => useEVMNfts());
-
-      await waitFor(() => {
-        expect(result.current.isLoading).toBe(false);
-      });
-      expect(Logger.error).toHaveBeenCalledWith(
-        processingError,
-        'useEVMNfts: processNfts failed',
-      );
+      expect(result.current[0].collectionName).toBeUndefined();
     });
   });
 });

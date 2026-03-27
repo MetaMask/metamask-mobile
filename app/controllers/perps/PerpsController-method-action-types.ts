@@ -175,11 +175,6 @@ export type PerpsControllerStartEligibilityMonitoringAction = {
   handler: PerpsController['startEligibilityMonitoring'];
 };
 
-export type PerpsControllerStopEligibilityMonitoringAction = {
-  type: 'PerpsController:stopEligibilityMonitoring';
-  handler: PerpsController['stopEligibilityMonitoring'];
-};
-
 export type PerpsControllerMethodActions =
   | PerpsControllerPlaceOrderAction
   | PerpsControllerEditOrderAction
@@ -215,5 +210,4 @@ export type PerpsControllerMethodActions =
   | PerpsControllerSaveOrderBookGroupingAction
   | PerpsControllerSetSelectedPaymentTokenAction
   | PerpsControllerResetSelectedPaymentTokenAction
-  | PerpsControllerStartEligibilityMonitoringAction
-  | PerpsControllerStopEligibilityMonitoringAction;
+  | PerpsControllerStartEligibilityMonitoringAction;

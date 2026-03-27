@@ -3,12 +3,16 @@ import { render } from '@testing-library/react-native';
 import NftGridSkeleton from './NftGridSkeleton';
 
 // Mock the theme hook
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: () => mockTheme,
-  };
-});
+jest.mock('../../../util/theme', () => ({
+  useTheme: () => ({
+    colors: {
+      background: {
+        section: '#f3f5f9',
+        subsection: '#ffffff',
+      },
+    },
+  }),
+}));
 
 // Mock the tailwind hook
 jest.mock('@metamask/design-system-twrnc-preset', () => ({

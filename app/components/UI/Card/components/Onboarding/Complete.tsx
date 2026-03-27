@@ -8,6 +8,11 @@ import {
 } from '@react-navigation/native';
 import OnboardingStep from './OnboardingStep';
 import { strings } from '../../../../../../locales/i18n';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../../constants/navigation/Routes';
 import { resetOnboardingState } from '../../../../../core/redux/slices/card';
 import { useDispatch } from 'react-redux';
@@ -23,9 +28,6 @@ import {
   FontWeight,
   Text,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -138,16 +140,15 @@ const Complete = () => {
 
   const renderActions = () => (
     <Button
-      variant={ButtonVariant.Primary}
+      variant={ButtonVariants.Primary}
+      label={strings('card.card_onboarding.complete.confirm_button')}
       size={ButtonSize.Lg}
       onPress={handleContinue}
-      isDisabled={isLoading}
-      isLoading={isLoading}
-      isFullWidth
+      disabled={isLoading}
+      loading={isLoading}
+      width={ButtonWidthTypes.Full}
       testID="complete-confirm-button"
-    >
-      {strings('card.card_onboarding.complete.confirm_button')}
-    </Button>
+    />
   );
 
   return (

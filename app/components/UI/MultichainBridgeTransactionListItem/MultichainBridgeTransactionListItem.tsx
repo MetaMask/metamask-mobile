@@ -42,14 +42,12 @@ const MultichainBridgeTransactionListItem = ({
   navigation,
   index,
   location,
-  showDestinationPerspective,
 }: {
   transaction: Transaction;
   bridgeHistoryItem: BridgeHistoryItem;
   navigation: NavigationProp<ParamListBase>;
   index?: number;
   location?: TransactionDetailLocation;
-  showDestinationPerspective?: boolean;
 }) => {
   const { colors, typography } = useTheme();
   const osColorScheme = useColorScheme();
@@ -92,10 +90,9 @@ const MultichainBridgeTransactionListItem = ({
       appTheme,
       osColorScheme,
     );
-    const assetForBadge = showDestinationPerspective
-      ? bridgeHistoryItem.quote.destAsset
-      : bridgeHistoryItem.quote.srcAsset;
-    const chainId = parseCaipAssetType(assetForBadge.assetId).chainId;
+    const chainId = parseCaipAssetType(
+      bridgeHistoryItem.quote.srcAsset.assetId,
+    ).chainId;
     if (!chainId)
       return <Image source={icon} style={style.icon} resizeMode="stretch" />;
 
@@ -120,18 +117,11 @@ const MultichainBridgeTransactionListItem = ({
       bridgeHistoryItem.status.destChain?.txHash,
   );
 
-  const tokenAmount = showDestinationPerspective
-    ? bridgeHistoryItem.quote.destTokenAmount
-    : bridgeHistoryItem.quote.srcTokenAmount;
-  const tokenDecimals = showDestinationPerspective
-    ? bridgeHistoryItem.quote.destAsset.decimals
-    : bridgeHistoryItem.quote.srcAsset.decimals;
-  const tokenSymbol = showDestinationPerspective
-    ? bridgeHistoryItem.quote.destAsset.symbol
-    : bridgeHistoryItem.quote.srcAsset.symbol;
-
   const rawAmount = parseFloat(
-    ethers.utils.formatUnits(tokenAmount, tokenDecimals),
+    ethers.utils.formatUnits(
+      bridgeHistoryItem.quote.srcTokenAmount,
+      bridgeHistoryItem.quote.srcAsset.decimals,
+    ),
   );
 
   const displayAmount = formatAmountWithThreshold(rawAmount, 5);
@@ -178,8 +168,7 @@ const MultichainBridgeTransactionListItem = ({
               )}
             </ListItem.Body>
             <ListItem.Amount style={style.listItemAmount as TextStyle}>
-              {showDestinationPerspective ? '+' : ''}
-              {displayAmount} {tokenSymbol}
+              {displayAmount} {bridgeHistoryItem.quote.srcAsset.symbol}
             </ListItem.Amount>
           </ListItem.Content>
         </ListItem>

@@ -247,21 +247,17 @@ function renameIos() {
     console.log(`✅ Sourcemap path: ${sourcemapPath}`);
   }
 
-  // Zip xcarchive into a single file (only for device builds)
-  // .xcarchive is a directory; zipping it produces a clean single-file artifact
-  // that Runway and other tools can match by extension.
+  // Rename xcarchive (only for device builds)
   if (!isSimBuild) {
     const oldArchive = path.join(__dirname, `../ios/build/${appName}.xcarchive`);
     if (fs.existsSync(oldArchive)) {
-      const archiveZip = path.join(
+      const newArchive = path.join(
         __dirname,
-        `../ios/build/${newBaseName}.xcarchive.zip`,
+        `../ios/build/${newBaseName}.xcarchive`,
       );
-      execSync(
-        `ditto -c -k --sequesterRsrc --keepParent "${oldArchive}" "${archiveZip}"`,
-      );
-      console.log(`✅ Zipped archive: ${archiveZip}`);
-      setGithubOutput('ios_archive_path', archiveZip);
+      execSync(`cp -r "${oldArchive}" "${newArchive}"`);
+      console.log(`✅ Renamed archive: ${newArchive}`);
+      setGithubOutput('ios_archive_path', newArchive);
     } else {
       console.log(`⚠️  Archive not found: ${oldArchive}`);
     }

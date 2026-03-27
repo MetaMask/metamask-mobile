@@ -208,30 +208,16 @@ describe('useTransactionConfirm', () => {
     expect(tryEnableEvmNetworkMock).toHaveBeenCalledWith(CHAIN_ID_MOCK);
   });
 
-  it('calls onError callback on approval failure', async () => {
-    const testError = new Error('Test error');
-    onApprovalConfirm.mockRejectedValueOnce(testError);
-    const onError = jest.fn();
-
-    const { result } = renderHook();
-
-    await act(async () => {
-      await result.current.onConfirm({ onError });
-    });
-
-    expect(onError).toHaveBeenCalledWith(testError);
-  });
-
-  it('still navigates on error when onError is not provided', async () => {
+  it('navigates to Transactions view after approval error', async () => {
     onApprovalConfirm.mockRejectedValueOnce(new Error('Test error'));
 
     const { result } = renderHook();
 
     await act(async () => {
-      await expect(result.current.onConfirm()).resolves.toBeUndefined();
+      await result.current.onConfirm();
     });
 
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW);
+    expect(mockNavigate).toHaveBeenCalled();
   });
 
   it('does nothing when transactionMetadata is missing', async () => {

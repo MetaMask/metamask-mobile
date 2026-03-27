@@ -106,7 +106,7 @@ const MusdAggregatedRow = () => {
       'Asset' as never,
       {
         ...MUSD_MAINNET_ASSET_FOR_DETAILS,
-        source: TokenDetailsSource.HomeSection,
+        source: TokenDetailsSource.MobileTokenListPage,
       } as never,
     );
   }, [hasMusdBalanceOnAnyChain]);
@@ -127,19 +127,18 @@ const MusdAggregatedRow = () => {
       <Box
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
-        twClassName="flex-1"
+        twClassName="flex-1 gap-5"
       >
         <AvatarToken
           name={MUSD_TOKEN.symbol}
           src={MUSD_TOKEN.imageSource as number}
           size={AvatarTokenSize.Lg}
         />
-        {/* Same two-line layout / typography as TokenListItemV2 (flex-1 ml-5, BodyMDMedium fiat). */}
-        <Box twClassName="flex-1 ml-5">
+        <Box twClassName="flex-1 gap-0.5">
           <Box
             flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
           >
             <Text
               variant={TextVariant.BodyMd}
@@ -149,7 +148,7 @@ const MusdAggregatedRow = () => {
               {MUSD_TOKEN.name}
             </Text>
             <SensitiveText
-              variant={CLTextVariant.BodyMDMedium}
+              variant={CLTextVariant.BodyMDBold}
               isHidden={privacyMode}
               length={SensitiveTextLength.Medium}
             >
@@ -158,40 +157,35 @@ const MusdAggregatedRow = () => {
           </Box>
           <Box
             flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
             justifyContent={BoxJustifyContent.Between}
-            twClassName="gap-2.5"
           >
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              alignItems={BoxAlignItems.Center}
-            >
-              {isClaiming ? (
-                <AnimatedSpinner size={SpinnerSize.SM} />
-              ) : hasClaimableBonus ? (
-                <Pressable
-                  onPress={handleClaimBonus}
-                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                >
-                  <Text
-                    variant={TextVariant.BodySm}
-                    fontWeight={FontWeight.Medium}
-                    color={TextColor.PrimaryDefault}
-                  >
-                    {strings('earn.claim_bonus')}
-                  </Text>
-                </Pressable>
-              ) : (
+            {isClaiming ? (
+              <AnimatedSpinner size={SpinnerSize.SM} />
+            ) : hasClaimableBonus ? (
+              <Pressable
+                onPress={handleClaimBonus}
+                hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+              >
                 <Text
                   variant={TextVariant.BodySm}
                   fontWeight={FontWeight.Medium}
-                  color={TextColor.SuccessDefault}
+                  color={TextColor.PrimaryDefault}
                 >
-                  {strings('earn.musd_conversion.percentage_bonus', {
-                    percentage: MUSD_CONVERSION_APY,
-                  })}
+                  {strings('earn.claim_bonus')}
                 </Text>
-              )}
-            </Box>
+              </Pressable>
+            ) : (
+              <Text
+                variant={TextVariant.BodySm}
+                fontWeight={FontWeight.Medium}
+                color={TextColor.SuccessDefault}
+              >
+                {strings('earn.musd_conversion.percentage_bonus', {
+                  percentage: MUSD_CONVERSION_APY,
+                })}
+              </Text>
+            )}
             <SensitiveText
               variant={CLTextVariant.BodySMMedium}
               color={CLTextColor.Alternative}

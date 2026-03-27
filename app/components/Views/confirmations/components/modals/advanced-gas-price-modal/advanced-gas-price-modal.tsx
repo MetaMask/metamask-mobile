@@ -5,11 +5,10 @@ import { pickBy } from 'lodash';
 import { TransactionMeta } from '@metamask/transaction-controller';
 
 import { useStyles } from '../../../../../../component-library/hooks';
-import {
-  Button,
+import Button, {
+  ButtonVariants,
   ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../../locales/i18n';
 import { updateTransactionGasFees } from '../../../../../../util/transaction-controller';
 import { GasModalHeader } from '../../../components/gas/gas-modal-header';
@@ -107,14 +106,13 @@ export const AdvancedGasPriceModal = ({
         </View>
         <Button
           isDisabled={hasError}
+          label={strings('transactions.gas_modal.save')}
           onPress={handleSaveClick}
           size={ButtonSize.Lg}
           style={styles.button}
           testID="save-gas-price-button"
-          variant={ButtonVariant.Primary}
-        >
-          {strings('transactions.gas_modal.save')}
-        </Button>
+          variant={ButtonVariants.Primary}
+        />
       </View>
     </BottomModal>
   );

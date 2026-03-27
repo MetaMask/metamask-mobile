@@ -35,8 +35,8 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('../../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
+jest.mock('../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
     trackEvent: mockTrackEvent,
     createEventBuilder: mockCreateEventBuilder,
   }),
@@ -193,8 +193,8 @@ describe('SelectHardwareWallet', () => {
     });
   });
 
-  describe('useAnalytics integration', () => {
-    it('uses the useAnalytics hook', () => {
+  describe('useMetrics integration', () => {
+    it('uses the useMetrics hook', () => {
       renderWithProvider(<SelectHardwareWallet />, { state: initialState });
 
       expect(mockCreateEventBuilder).toBeDefined();

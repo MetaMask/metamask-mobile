@@ -21,6 +21,9 @@ const createStyles = (colors: Colors) =>
       paddingHorizontal: 32,
       alignItems: 'center',
     },
+    selectorContainer: {
+      flexDirection: 'column',
+    },
     mainTitle: {
       fontSize: 24,
       marginBottom: 10,
@@ -68,13 +71,6 @@ const createStyles = (colors: Colors) =>
       color: colors.text.default,
       fontSize: 14,
       ...fontStyles.normal,
-    },
-    loadingContainer: {
-      justifyContent: 'center',
-      alignItems: 'center',
-    },
-    loadingText: {
-      marginTop: 16,
     },
   });
 

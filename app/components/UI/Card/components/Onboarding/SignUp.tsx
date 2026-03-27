@@ -15,10 +15,12 @@ import {
   IconSize,
   IconName,
   Label,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -28,6 +30,7 @@ import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
 import useRegions from '../../hooks/useRegions';
 import {
+  selectCardGeoLocation,
   setContactVerificationId,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
@@ -45,7 +48,6 @@ import {
 import SelectField from './SelectField';
 import { mapCountryToLocation } from '../../util/mapCountryToLocation';
 import type { Region } from '../../types';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -59,7 +61,7 @@ const SignUp = () => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
   const hasAutoSelectedCountry = useRef(false);
-  const geoLocation = useSelector(selectGeolocationLocation);
+  const geoLocation = useSelector(selectCardGeoLocation);
   const {
     signUpRegions,
     getRegionByCode,
@@ -348,16 +350,15 @@ const SignUp = () => {
   const renderActions = () => (
     <>
       <Button
-        variant={ButtonVariant.Primary}
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        isFullWidth
+        width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
-        isLoading={emailVerificationIsLoading}
+        loading={emailVerificationIsLoading}
         testID="signup-continue-button"
-      >
-        {strings('card.card_onboarding.continue_button')}
-      </Button>
+      />
       <TouchableOpacity
         onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
       >

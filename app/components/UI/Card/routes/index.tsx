@@ -28,7 +28,6 @@ import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
 import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
-import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -236,10 +235,6 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.VIEW_PIN}
       component={ViewPinBottomSheet}
-    />
-    <ModalsStack.Screen
-      name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
-      component={SpendingLimitOptionsSheet}
     />
   </ModalsStack.Navigator>
 );

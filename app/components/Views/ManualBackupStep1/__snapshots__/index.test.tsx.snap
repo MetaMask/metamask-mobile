@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`ManualBackupStep1 matches snapshot 1`] = `
+exports[`ManualBackupStep1 Theme appearance renders dark SRP design image by default (dark theme) 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -11,205 +11,78 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
     }
   }
   style={
-    [
-      "bg-default flex-1",
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
   }
 >
   <View
     style={
       [
-        [
-          "flex",
-          undefined,
-          undefined,
-          false,
-          undefined,
-          undefined,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          undefined,
-          undefined,
-          "flex-1 px-4",
-        ],
-        undefined,
+        {
+          "flex": 1,
+          "paddingHorizontal": 16,
+        },
       ]
     }
   >
     <View
       style={
-        [
-          [
-            "flex",
-            undefined,
-            undefined,
-            false,
-            undefined,
-            undefined,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            undefined,
-            undefined,
-            "flex-1 justify-between",
-          ],
-          undefined,
-        ]
+        {
+          "flex": 1,
+          "justifyContent": "space-between",
+        }
       }
     >
       <View
         style={
-          [
-            [
-              "flex",
-              undefined,
-              undefined,
-              false,
-              undefined,
-              undefined,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              undefined,
-              undefined,
-              "flex-1",
-            ],
-            undefined,
-          ]
+          {
+            "flex": 1,
+          }
         }
       >
         <View
           style={
-            [
-              [
-                "flex",
-                undefined,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                undefined,
-                undefined,
-                "flex-1 flex-col gap-4",
-              ],
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "gap": 16,
+            }
           }
           testID="manual_backup_step_1-screen"
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                [
-                  "text-display-md",
-                  "font-default-bold",
-                  "text-default",
-                  undefined,
-                ],
-                undefined,
-              ]
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+              }
             }
           >
             Save your Secret Recovery Phrase
           </Text>
           <View
             style={
-              [
-                [
-                  "flex",
-                  undefined,
-                  undefined,
-                  false,
-                  undefined,
-                  "justify-start",
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  undefined,
-                  undefined,
-                  undefined,
-                ],
-                undefined,
-              ]
+              {
+                "justifyContent": "flex-start",
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  [
-                    "text-body-md",
-                    "font-default-regular",
-                    "text-alternative",
-                    undefined,
-                  ],
-                  undefined,
-                ]
+                {
+                  "color": "#66676a",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Your
@@ -218,15 +91,13 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    [
-                      "text-body-md",
-                      "font-default-regular",
-                      "text-primary-default",
-                      undefined,
-                    ],
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Secret Recovery Phrase
@@ -237,15 +108,13 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    [
-                      "text-body-md",
-                      "font-default-medium",
-                      "text-alternative",
-                      undefined,
-                    ],
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Write it down with the correct order and numbers. Keep it safe and never share it.
@@ -254,86 +123,54 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
           </View>
           <View
             style={
-              [
-                [
-                  "flex",
-                  undefined,
-                  undefined,
-                  false,
-                  undefined,
-                  undefined,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  undefined,
-                  undefined,
-                  "bg-default rounded-lg flex-row border border-default min-h-[230px]",
-                ],
-                undefined,
-              ]
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#949596",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "minHeight": 230,
+              }
             }
           >
             <View
               style={
-                [
-                  [
-                    "flex",
-                    undefined,
-                    undefined,
-                    false,
-                    undefined,
-                    undefined,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    undefined,
-                    undefined,
-                    "flex-1 rounded-lg",
-                  ],
-                  undefined,
-                ]
+                {
+                  "borderRadius": 8,
+                  "flex": 1,
+                }
               }
             >
               <TouchableOpacity
                 onPress={[Function]}
                 style={
-                  [
-                    "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                  ]
+                  {
+                    "borderRadius": 8,
+                    "bottom": 0,
+                    "flex": 1,
+                    "height": "100%",
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
                 }
                 testID="blur-button"
               >
                 <View
                   accessibilityIgnoresInvertColors={true}
                   style={
-                    [
-                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                      "opacity-50",
-                    ]
+                    {
+                      "borderRadius": 8,
+                      "bottom": 0,
+                      "flex": 1,
+                      "height": "100%",
+                      "left": 0,
+                      "opacity": 0.5,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
                   }
                 >
                   <Image
@@ -349,7 +186,7 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                           "top": 0,
                         },
                         {
-                          "height": undefined,
+                          "height": "100%",
                           "width": undefined,
                         },
                         undefined,
@@ -359,64 +196,42 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                 </View>
                 <View
                   style={
-                    [
-                      [
-                        "flex",
-                        undefined,
-                        undefined,
-                        false,
-                        undefined,
-                        undefined,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        undefined,
-                        undefined,
-                        "items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1",
-                      ],
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "height": "100%",
+                      "justifyContent": "center",
+                      "paddingHorizontal": 24,
+                      "paddingVertical": 45,
+                      "rowGap": 16,
+                    }
                   }
                 >
                   <SvgMock
+                    color="#131416"
                     fill="currentColor"
+                    height={32}
                     name="EyeSlash"
                     style={
-                      [
-                        [
-                          "text-icon-default",
-                          "w-[32px]",
-                          "h-[32px]",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
                     }
+                    width={32}
                   />
                   <Text
                     accessibilityRole="text"
                     style={
-                      [
-                        [
-                          "text-body-md",
-                          "font-default-medium",
-                          "text-default",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
                     }
                   >
                     Tap to reveal
@@ -424,15 +239,13 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      [
-                        [
-                          "text-body-sm",
-                          "font-default-regular",
-                          "text-default",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
                     }
                   >
                     Make sure no one is watching your screen.
@@ -445,109 +258,52 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
       </View>
       <View
         style={
-          [
-            [
-              "flex",
-              undefined,
-              undefined,
-              false,
-              undefined,
-              undefined,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              undefined,
-              undefined,
-              "px-0 gap-4 flex justify-center items-center mb-0",
-            ],
-            undefined,
-          ]
+          {
+            "gap": 16,
+            "marginBottom": 0,
+            "paddingHorizontal": 0,
+          }
         }
       >
-        <View
-          accessibilityLabel="Continue"
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": true,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
-            [
-              [
-                "flex-row items-center justify-center gap-x-2",
-                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
-                "h-12",
-                "opacity-50",
-                "w-full",
-                "bg-icon-default ",
-              ],
-              {
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-              },
-            ]
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
           }
           testID="manual-backup-step-continue-button"
         >
           <Text
             accessibilityRole="text"
-            ellipsizeMode="clip"
-            numberOfLines={1}
             style={
-              [
-                [
-                  "text-body-md",
-                  "font-default-medium",
-                  "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
-                ],
-                undefined,
-              ]
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
             }
           >
             Continue
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -555,7 +311,7 @@ exports[`ManualBackupStep1 matches snapshot 1`] = `
 </RNCSafeAreaView>
 `;
 
-exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
+exports[`ManualBackupStep1 Theme appearance renders light SRP design image for light theme 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -566,205 +322,78 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
     }
   }
   style={
-    [
-      "bg-default flex-1",
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
   }
 >
   <View
     style={
       [
-        [
-          "flex",
-          undefined,
-          undefined,
-          false,
-          undefined,
-          undefined,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          undefined,
-          undefined,
-          "flex-1 px-4",
-        ],
-        undefined,
+        {
+          "flex": 1,
+          "paddingHorizontal": 16,
+        },
       ]
     }
   >
     <View
       style={
-        [
-          [
-            "flex",
-            undefined,
-            undefined,
-            false,
-            undefined,
-            undefined,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            undefined,
-            undefined,
-            "flex-1 justify-between",
-          ],
-          undefined,
-        ]
+        {
+          "flex": 1,
+          "justifyContent": "space-between",
+        }
       }
     >
       <View
         style={
-          [
-            [
-              "flex",
-              undefined,
-              undefined,
-              false,
-              undefined,
-              undefined,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              undefined,
-              undefined,
-              "flex-1",
-            ],
-            undefined,
-          ]
+          {
+            "flex": 1,
+          }
         }
       >
         <View
           style={
-            [
-              [
-                "flex",
-                undefined,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                undefined,
-                undefined,
-                "flex-1 flex-col gap-4",
-              ],
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "gap": 16,
+            }
           }
           testID="manual_backup_step_1-screen"
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                [
-                  "text-display-md",
-                  "font-default-bold",
-                  "text-default",
-                  undefined,
-                ],
-                undefined,
-              ]
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+              }
             }
           >
             Save your Secret Recovery Phrase
           </Text>
           <View
             style={
-              [
-                [
-                  "flex",
-                  undefined,
-                  undefined,
-                  false,
-                  undefined,
-                  "justify-start",
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  undefined,
-                  undefined,
-                  undefined,
-                ],
-                undefined,
-              ]
+              {
+                "justifyContent": "flex-start",
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  [
-                    "text-body-md",
-                    "font-default-regular",
-                    "text-alternative",
-                    undefined,
-                  ],
-                  undefined,
-                ]
+                {
+                  "color": "#66676a",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Your
@@ -773,15 +402,13 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    [
-                      "text-body-md",
-                      "font-default-regular",
-                      "text-primary-default",
-                      undefined,
-                    ],
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Secret Recovery Phrase
@@ -792,15 +419,13 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    [
-                      "text-body-md",
-                      "font-default-medium",
-                      "text-alternative",
-                      undefined,
-                    ],
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Write it down with the correct order and numbers. Keep it safe and never share it.
@@ -809,86 +434,54 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
           </View>
           <View
             style={
-              [
-                [
-                  "flex",
-                  undefined,
-                  undefined,
-                  false,
-                  undefined,
-                  undefined,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  undefined,
-                  undefined,
-                  "bg-default rounded-lg flex-row border border-default min-h-[230px]",
-                ],
-                undefined,
-              ]
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#949596",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "minHeight": 230,
+              }
             }
           >
             <View
               style={
-                [
-                  [
-                    "flex",
-                    undefined,
-                    undefined,
-                    false,
-                    undefined,
-                    undefined,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    undefined,
-                    undefined,
-                    "flex-1 rounded-lg",
-                  ],
-                  undefined,
-                ]
+                {
+                  "borderRadius": 8,
+                  "flex": 1,
+                }
               }
             >
               <TouchableOpacity
                 onPress={[Function]}
                 style={
-                  [
-                    "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                  ]
+                  {
+                    "borderRadius": 8,
+                    "bottom": 0,
+                    "flex": 1,
+                    "height": "100%",
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
                 }
                 testID="blur-button"
               >
                 <View
                   accessibilityIgnoresInvertColors={true}
                   style={
-                    [
-                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                      "opacity-50",
-                    ]
+                    {
+                      "borderRadius": 8,
+                      "bottom": 0,
+                      "flex": 1,
+                      "height": "100%",
+                      "left": 0,
+                      "opacity": 0.5,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
                   }
                 >
                   <Image
@@ -904,7 +497,7 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                           "top": 0,
                         },
                         {
-                          "height": undefined,
+                          "height": "100%",
                           "width": undefined,
                         },
                         undefined,
@@ -914,64 +507,42 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                 </View>
                 <View
                   style={
-                    [
-                      [
-                        "flex",
-                        undefined,
-                        undefined,
-                        false,
-                        undefined,
-                        undefined,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        undefined,
-                        undefined,
-                        "items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1",
-                      ],
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "height": "100%",
+                      "justifyContent": "center",
+                      "paddingHorizontal": 24,
+                      "paddingVertical": 45,
+                      "rowGap": 16,
+                    }
                   }
                 >
                   <SvgMock
+                    color="#131416"
                     fill="currentColor"
+                    height={32}
                     name="EyeSlash"
                     style={
-                      [
-                        [
-                          "text-icon-default",
-                          "w-[32px]",
-                          "h-[32px]",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
                     }
+                    width={32}
                   />
                   <Text
                     accessibilityRole="text"
                     style={
-                      [
-                        [
-                          "text-body-md",
-                          "font-default-medium",
-                          "text-default",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
                     }
                   >
                     Tap to reveal
@@ -979,15 +550,13 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
                   <Text
                     accessibilityRole="text"
                     style={
-                      [
-                        [
-                          "text-body-sm",
-                          "font-default-regular",
-                          "text-default",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
                     }
                   >
                     Make sure no one is watching your screen.
@@ -1000,109 +569,52 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
       </View>
       <View
         style={
-          [
-            [
-              "flex",
-              undefined,
-              undefined,
-              false,
-              undefined,
-              undefined,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              undefined,
-              undefined,
-              "px-0 gap-4 flex justify-center items-center mb-0",
-            ],
-            undefined,
-          ]
+          {
+            "gap": 16,
+            "marginBottom": 16,
+            "paddingHorizontal": 0,
+          }
         }
       >
-        <View
-          accessibilityLabel="Continue"
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": true,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
-            [
-              [
-                "flex-row items-center justify-center gap-x-2",
-                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
-                "h-12",
-                "opacity-50",
-                "w-full",
-                "bg-icon-default ",
-              ],
-              {
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-              },
-            ]
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
           }
           testID="manual-backup-step-continue-button"
         >
           <Text
             accessibilityRole="text"
-            ellipsizeMode="clip"
-            numberOfLines={1}
             style={
-              [
-                [
-                  "text-body-md",
-                  "font-default-medium",
-                  "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
-                ],
-                undefined,
-              ]
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
             }
           >
             Continue
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   </View>
@@ -1110,7 +622,7 @@ exports[`ManualBackupStep1 theme appearance renders with dark theme 1`] = `
 </RNCSafeAreaView>
 `;
 
-exports[`ManualBackupStep1 theme appearance renders with light theme on Android 1`] = `
+exports[`ManualBackupStep1 render matches snapshot 1`] = `
 <RNCSafeAreaView
   edges={
     {
@@ -1121,205 +633,78 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
     }
   }
   style={
-    [
-      "bg-default flex-1",
-    ]
+    {
+      "backgroundColor": "#ffffff",
+      "flex": 1,
+    }
   }
 >
   <View
     style={
       [
-        [
-          "flex",
-          undefined,
-          undefined,
-          false,
-          undefined,
-          undefined,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          false,
-          undefined,
-          undefined,
-          "flex-1 px-4",
-        ],
-        undefined,
+        {
+          "flex": 1,
+          "paddingHorizontal": 16,
+        },
       ]
     }
   >
     <View
       style={
-        [
-          [
-            "flex",
-            undefined,
-            undefined,
-            false,
-            undefined,
-            undefined,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            false,
-            undefined,
-            undefined,
-            "flex-1 justify-between",
-          ],
-          undefined,
-        ]
+        {
+          "flex": 1,
+          "justifyContent": "space-between",
+        }
       }
     >
       <View
         style={
-          [
-            [
-              "flex",
-              undefined,
-              undefined,
-              false,
-              undefined,
-              undefined,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              undefined,
-              undefined,
-              "flex-1",
-            ],
-            undefined,
-          ]
+          {
+            "flex": 1,
+          }
         }
       >
         <View
           style={
-            [
-              [
-                "flex",
-                undefined,
-                undefined,
-                false,
-                undefined,
-                undefined,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                false,
-                undefined,
-                undefined,
-                "flex-1 flex-col gap-4",
-              ],
-              undefined,
-            ]
+            {
+              "flex": 1,
+              "flexDirection": "column",
+              "gap": 16,
+            }
           }
           testID="manual_backup_step_1-screen"
         >
           <Text
             accessibilityRole="text"
             style={
-              [
-                [
-                  "text-display-md",
-                  "font-default-bold",
-                  "text-default",
-                  undefined,
-                ],
-                undefined,
-              ]
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Bold",
+                "fontSize": 32,
+                "letterSpacing": 0,
+                "lineHeight": 40,
+              }
             }
           >
             Save your Secret Recovery Phrase
           </Text>
           <View
             style={
-              [
-                [
-                  "flex",
-                  undefined,
-                  undefined,
-                  false,
-                  undefined,
-                  "justify-start",
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  undefined,
-                  undefined,
-                  undefined,
-                ],
-                undefined,
-              ]
+              {
+                "justifyContent": "flex-start",
+              }
             }
           >
             <Text
               accessibilityRole="text"
               style={
-                [
-                  [
-                    "text-body-md",
-                    "font-default-regular",
-                    "text-alternative",
-                    undefined,
-                  ],
-                  undefined,
-                ]
+                {
+                  "color": "#66676a",
+                  "fontFamily": "Geist-Regular",
+                  "fontSize": 16,
+                  "letterSpacing": 0,
+                  "lineHeight": 24,
+                }
               }
             >
               Your
@@ -1328,15 +713,13 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                 accessibilityRole="text"
                 onPress={[Function]}
                 style={
-                  [
-                    [
-                      "text-body-md",
-                      "font-default-regular",
-                      "text-primary-default",
-                      undefined,
-                    ],
-                    undefined,
-                  ]
+                  {
+                    "color": "#4459ff",
+                    "fontFamily": "Geist-Regular",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Secret Recovery Phrase
@@ -1347,15 +730,13 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
               <Text
                 accessibilityRole="text"
                 style={
-                  [
-                    [
-                      "text-body-md",
-                      "font-default-medium",
-                      "text-alternative",
-                      undefined,
-                    ],
-                    undefined,
-                  ]
+                  {
+                    "color": "#66676a",
+                    "fontFamily": "Geist-Medium",
+                    "fontSize": 16,
+                    "letterSpacing": 0,
+                    "lineHeight": 24,
+                  }
                 }
               >
                 Write it down with the correct order and numbers. Keep it safe and never share it.
@@ -1364,86 +745,54 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
           </View>
           <View
             style={
-              [
-                [
-                  "flex",
-                  undefined,
-                  undefined,
-                  false,
-                  undefined,
-                  undefined,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  false,
-                  undefined,
-                  undefined,
-                  "bg-default rounded-lg flex-row border border-default min-h-[230px]",
-                ],
-                undefined,
-              ]
+              {
+                "backgroundColor": "#ffffff",
+                "borderColor": "#949596",
+                "borderRadius": 8,
+                "borderWidth": 1,
+                "flexDirection": "row",
+                "minHeight": 230,
+              }
             }
           >
             <View
               style={
-                [
-                  [
-                    "flex",
-                    undefined,
-                    undefined,
-                    false,
-                    undefined,
-                    undefined,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    false,
-                    undefined,
-                    undefined,
-                    "flex-1 rounded-lg",
-                  ],
-                  undefined,
-                ]
+                {
+                  "borderRadius": 8,
+                  "flex": 1,
+                }
               }
             >
               <TouchableOpacity
                 onPress={[Function]}
                 style={
-                  [
-                    "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                  ]
+                  {
+                    "borderRadius": 8,
+                    "bottom": 0,
+                    "flex": 1,
+                    "height": "100%",
+                    "left": 0,
+                    "position": "absolute",
+                    "right": 0,
+                    "top": 0,
+                  }
                 }
                 testID="blur-button"
               >
                 <View
                   accessibilityIgnoresInvertColors={true}
                   style={
-                    [
-                      "absolute top-0 left-0 bottom-0 right-0 h-full rounded-lg flex-1",
-                      "opacity-50",
-                    ]
+                    {
+                      "borderRadius": 8,
+                      "bottom": 0,
+                      "flex": 1,
+                      "height": "100%",
+                      "left": 0,
+                      "opacity": 0.5,
+                      "position": "absolute",
+                      "right": 0,
+                      "top": 0,
+                    }
                   }
                 >
                   <Image
@@ -1459,7 +808,7 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                           "top": 0,
                         },
                         {
-                          "height": undefined,
+                          "height": "100%",
                           "width": undefined,
                         },
                         undefined,
@@ -1469,64 +818,42 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                 </View>
                 <View
                   style={
-                    [
-                      [
-                        "flex",
-                        undefined,
-                        undefined,
-                        false,
-                        undefined,
-                        undefined,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        false,
-                        undefined,
-                        undefined,
-                        "items-center justify-center rounded-lg px-6 py-[45px] gap-y-4 h-full flex-1",
-                      ],
-                      undefined,
-                    ]
+                    {
+                      "alignItems": "center",
+                      "borderRadius": 8,
+                      "flex": 1,
+                      "flexDirection": "column",
+                      "height": "100%",
+                      "justifyContent": "center",
+                      "paddingHorizontal": 24,
+                      "paddingVertical": 45,
+                      "rowGap": 16,
+                    }
                   }
                 >
                   <SvgMock
+                    color="#131416"
                     fill="currentColor"
+                    height={32}
                     name="EyeSlash"
                     style={
-                      [
-                        [
-                          "text-icon-default",
-                          "w-[32px]",
-                          "h-[32px]",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "height": 32,
+                        "width": 32,
+                      }
                     }
+                    width={32}
                   />
                   <Text
                     accessibilityRole="text"
                     style={
-                      [
-                        [
-                          "text-body-md",
-                          "font-default-medium",
-                          "text-default",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      }
                     }
                   >
                     Tap to reveal
@@ -1534,15 +861,13 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
                   <Text
                     accessibilityRole="text"
                     style={
-                      [
-                        [
-                          "text-body-sm",
-                          "font-default-regular",
-                          "text-default",
-                          undefined,
-                        ],
-                        undefined,
-                      ]
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Regular",
+                        "fontSize": 14,
+                        "letterSpacing": 0,
+                        "lineHeight": 22,
+                      }
                     }
                   >
                     Make sure no one is watching your screen.
@@ -1555,109 +880,52 @@ exports[`ManualBackupStep1 theme appearance renders with light theme on Android 
       </View>
       <View
         style={
-          [
-            [
-              "flex",
-              undefined,
-              undefined,
-              false,
-              undefined,
-              undefined,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              false,
-              undefined,
-              undefined,
-              "px-0 gap-4 flex justify-center items-center mb-4",
-            ],
-            undefined,
-          ]
+          {
+            "gap": 16,
+            "marginBottom": 0,
+            "paddingHorizontal": 0,
+          }
         }
       >
-        <View
-          accessibilityLabel="Continue"
+        <TouchableOpacity
           accessibilityRole="button"
-          accessibilityState={
-            {
-              "busy": undefined,
-              "checked": undefined,
-              "disabled": true,
-              "expanded": undefined,
-              "selected": undefined,
-            }
-          }
-          accessibilityValue={
-            {
-              "max": undefined,
-              "min": undefined,
-              "now": undefined,
-              "text": undefined,
-            }
-          }
           accessible={true}
-          collapsable={false}
-          focusable={true}
-          onBlur={[Function]}
-          onClick={[Function]}
-          onFocus={[Function]}
-          onResponderGrant={[Function]}
-          onResponderMove={[Function]}
-          onResponderRelease={[Function]}
-          onResponderTerminate={[Function]}
-          onResponderTerminationRequest={[Function]}
-          onStartShouldSetResponder={[Function]}
+          activeOpacity={1}
+          disabled={true}
+          onPress={[Function]}
+          onPressIn={[Function]}
+          onPressOut={[Function]}
           style={
-            [
-              [
-                "flex-row items-center justify-center gap-x-2",
-                "rounded-xl bg-muted px-4 min-w-[80px] overflow-hidden",
-                "h-12",
-                "opacity-50",
-                "w-full",
-                "bg-icon-default ",
-              ],
-              {
-                "transform": [
-                  {
-                    "scale": 1,
-                  },
-                ],
-              },
-            ]
+            {
+              "alignItems": "center",
+              "alignSelf": "stretch",
+              "backgroundColor": "#131416",
+              "borderRadius": 12,
+              "flexDirection": "row",
+              "height": 48,
+              "justifyContent": "center",
+              "opacity": 0.5,
+              "overflow": "hidden",
+              "paddingHorizontal": 16,
+            }
           }
           testID="manual-backup-step-continue-button"
         >
           <Text
             accessibilityRole="text"
-            ellipsizeMode="clip"
-            numberOfLines={1}
             style={
-              [
-                [
-                  "text-body-md",
-                  "font-default-medium",
-                  "text-default",
-                  "shrink grow-0 flex-wrap text-center  text-primary-inverse ",
-                ],
-                undefined,
-              ]
+              {
+                "color": "#ffffff",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              }
             }
           >
             Continue
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   </View>

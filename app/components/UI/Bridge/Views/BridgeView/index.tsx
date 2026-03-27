@@ -74,7 +74,7 @@ import { Hex } from '@metamask/utils';
 import { useBridgeQuoteEvents } from '../../hooks/useBridgeQuoteEvents/index.ts';
 import { SwapsKeypad } from '../../components/SwapsKeypad/index.tsx';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../../../selectors/featureFlagController/gasFeesSponsored';
-import { normalizeSourceAmountToMaxLength } from '../../utils/normalizeSourceAmountToMaxLength.ts';
+import { trimTrailingZeros } from '../../utils/trimTrailingZeros.ts';
 import { FLipQuoteButton } from '../../components/FlipQuoteButton/index.tsx';
 import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncludedSTXSendBundleSupported/index.ts';
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
@@ -89,11 +89,9 @@ import { type BridgeRouteParams } from '../../hooks/useSwapBridgeNavigation/inde
 import BridgeTrendingTokensSection from '../../components/BridgeTrendingTokensSection/BridgeTrendingTokensSection';
 import { selectRemoteFeatureFlags } from '../../../../../selectors/featureFlagController';
 import type { RootState } from '../../../../../reducers';
-import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
-import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
-import { BridgeViewFooter } from './BridgeViewFooter.tsx';
-
 const SCROLL_NEAR_BOTTOM_PX = 160;
+import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
+import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 
 const BridgeView = () => {
   const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
@@ -139,23 +137,6 @@ const BridgeView = () => {
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
-  const handleSourceAmountChange = useCallback(
-    (value: string | undefined) => {
-      dispatch(setSourceAmount(value));
-    },
-    [dispatch],
-  );
-  const {
-    sourceSelection,
-    handleSourceSelectionChange,
-    handleKeypadChange,
-    resetSourceAmountCursorPosition,
-  } = useSourceAmountCursor({
-    sourceAmount,
-    sourceTokenDecimals: sourceToken?.decimals,
-    maxInputLength: MAX_INPUT_LENGTH,
-    onSourceAmountChange: handleSourceAmountChange,
-  });
 
   /** The entry point location for analytics (e.g. Main View, Token View, Trending Explore) */
   const location = route.params?.location;
@@ -318,42 +299,32 @@ const BridgeView = () => {
     }
   }, [isError]);
 
+  // Keypad already handles max token decimals, so we don't need to check here
+  const handleKeypadChange = ({
+    value,
+  }: {
+    value: string;
+    valueAsNumber: number;
+    pressedKey: string;
+  }) => {
+    if (value.length >= MAX_INPUT_LENGTH) {
+      return;
+    }
+    dispatch(setSourceAmount(value || undefined));
+  };
+
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
       const balance = latestSourceBalance.displayBalance;
-      const cleaned = normalizeSourceAmountToMaxLength(
-        balance,
-        MAX_INPUT_LENGTH,
-      );
-      resetSourceAmountCursorPosition();
+      const cleaned = trimTrailingZeros(balance);
       dispatch(setSourceAmountAsMax(cleaned));
     }
   };
-
-  const handleSourcePresetAmountSelect = useCallback(
-    (value: string) => {
-      // Quick-pick presets replace the full amount rather than editing at the
-      // current cursor position, so clear the cursor state before updating.
-      resetSourceAmountCursorPosition();
-      dispatch(
-        setSourceAmount(
-          normalizeSourceAmountToMaxLength(value, MAX_INPUT_LENGTH) ||
-            undefined,
-        ),
-      );
-    },
-    [dispatch, resetSourceAmountCursorPosition],
-  );
 
   const handleSourceTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
       type: 'source',
     });
-
-  const handleFlipTokensPress = useCallback(() => {
-    resetSourceAmountCursorPosition();
-    void handleSwitchTokens(destTokenAmount)();
-  }, [destTokenAmount, handleSwitchTokens, resetSourceAmountCursorPosition]);
 
   const handleDestTokenPress = () =>
     navigation.navigate(Routes.BRIDGE.TOKEN_SELECTOR, {
@@ -414,7 +385,6 @@ const BridgeView = () => {
             <TokenInputArea
               ref={inputRef}
               amount={sourceAmount}
-              selection={sourceSelection}
               token={sourceToken}
               tokenBalance={latestSourceBalance?.displayBalance}
               networkImageSource={
@@ -427,7 +397,6 @@ const BridgeView = () => {
               testID={BridgeViewSelectorsIDs.SOURCE_TOKEN_AREA}
               tokenType={TokenInputAreaType.Source}
               onInputPress={() => keypadRef.current?.open()}
-              onSelectionChange={handleSourceSelectionChange}
               onTokenPress={handleSourceTokenPress}
               onMaxPress={handleSourceMaxPress}
               latestAtomicBalance={latestSourceBalance?.atomicBalance}
@@ -435,7 +404,7 @@ const BridgeView = () => {
               isQuoteSponsored={isQuoteSponsored}
             />
             <FLipQuoteButton
-              onPress={handleFlipTokensPress}
+              onPress={handleSwitchTokens(destTokenAmount)}
               disabled={
                 !destChainId ||
                 !destToken ||
@@ -515,10 +484,9 @@ const BridgeView = () => {
           ) : (
             <GaslessQuickPickOptions
               token={sourceToken}
-              tokenBalance={latestSourceBalance?.displayBalance}
               onMaxPress={handleSourceMaxPress}
               isQuoteSponsored={isQuoteSponsored}
-              onAmountSelect={handleSourcePresetAmountSelect}
+              onChange={handleKeypadChange}
             />
           )}
         </SwapsKeypad>

@@ -7,8 +7,6 @@ import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { PREDICT_GTM_MODAL_SHOWN } from '../../../../../constants/storage';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import { useAnalytics } from '../../../../../components/hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
 
 jest.mock('../../../../../util/theme', () => {
   const { mockTheme } = jest.requireActual('../../../../../util/theme');
@@ -43,7 +41,12 @@ const mockCreateEventBuilder = jest.fn().mockReturnValue({
   addProperties: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 });
-jest.mock('../../../../../components/hooks/useAnalytics/useAnalytics');
+jest.mock('../../../../../components/hooks/useMetrics', () => ({
+  useMetrics: () => ({
+    trackEvent: mockTrackEvent,
+    createEventBuilder: mockCreateEventBuilder,
+  }),
+}));
 
 jest.mock('../../../../../util/metrics', () => ({
   __esModule: true,
@@ -62,13 +65,7 @@ const initialState = {
 describe('PredictGTMModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
-    jest.mocked(StorageWrapper.getItem).mockResolvedValue('false');
+    (StorageWrapper.getItem as jest.Mock).mockResolvedValue('false');
   });
 
   it('renders correctly with all main elements', async () => {

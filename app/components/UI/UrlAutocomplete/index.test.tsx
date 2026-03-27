@@ -577,10 +577,10 @@ describe('UrlAutocomplete', () => {
 
       // Assert
       expect(
-        await screen.findByTestId('trending-search-footer-search-link', {
+        await screen.findByTestId('trending-search-footer-google-link', {
           includeHiddenElements: true,
         }),
-      ).toHaveTextContent('Search for "MetaMask Test Dapp" on Brave');
+      ).toHaveTextContent('Search for "MetaMask Test Dapp" on Google');
     });
 
     it('transforms and displays token search results', async () => {

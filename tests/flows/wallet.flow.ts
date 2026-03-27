@@ -406,7 +406,7 @@ export const loginToApp = async (password?: string): Promise<void> => {
 
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should be visible after login',
-        timeout: 15000,
+        timeout: 10000,
       });
 
       // SUCCESS: Verify wallet is stable (not flickering back to login)
@@ -417,8 +417,8 @@ export const loginToApp = async (password?: string): Promise<void> => {
       });
     },
     {
-      timeout: 45000,
-      interval: 3000,
+      timeout: 30000,
+      interval: 2000,
       description: 'login to app after rehydration',
     },
   );

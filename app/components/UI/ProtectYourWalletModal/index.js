@@ -1,42 +1,102 @@
 import React, { PureComponent } from 'react';
 import PropTypes from 'prop-types';
-import { Image } from 'react-native';
-import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-  IconName,
-  IconSize,
-  IconColor,
-  Button,
-  ButtonVariant,
-  ButtonIcon,
-  ButtonIconSize,
-} from '@metamask/design-system-react-native';
+import { StyleSheet, View, Text, Image, TouchableOpacity } from 'react-native';
 import ActionModal from '../ActionModal';
+import { fontStyles } from '../../../styles/common';
 import { connect } from 'react-redux';
 import { protectWalletModalNotVisible } from '../../../actions/user';
+import Icon from 'react-native-vector-icons/FontAwesome';
 import { strings } from '../../../../locales/i18n';
 import scaling from '../../../util/scaling';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+
+import { ThemeContext, mockTheme } from '../../../util/theme';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
 import { withAnalyticsAwareness } from '../../../components/hooks/useAnalytics/withAnalyticsAwareness';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
-import protectWalletImage from '../../../images/explain-backup-seedphrase.png';
+const protectWalletImage = require('../../../images/explain-backup-seedphrase.png'); // eslint-disable-line
 
+const createStyles = (colors) =>
+  StyleSheet.create({
+    wrapper: {
+      marginTop: 24,
+      marginHorizontal: 24,
+      flex: 1,
+    },
+    title: {
+      ...fontStyles.bold,
+      color: colors.text.default,
+      textAlign: 'center',
+      fontSize: 20,
+      flex: 1,
+    },
+    imageWrapper: {
+      flexDirection: 'column',
+      alignItems: 'center',
+      marginBottom: 12,
+      marginTop: 30,
+    },
+    image: {
+      width: scaling.scale(135, { baseModel: 1 }),
+      height: scaling.scale(160, { baseModel: 1 }),
+    },
+    text: {
+      ...fontStyles.normal,
+      color: colors.text.default,
+      textAlign: 'center',
+      fontSize: 14,
+      marginBottom: 24,
+    },
+    closeIcon: {
+      padding: 5,
+    },
+    learnMoreText: {
+      textAlign: 'center',
+      ...fontStyles.normal,
+      color: colors.primary.default,
+      marginBottom: 14,
+      fontSize: 14,
+    },
+    modalXIcon: {
+      fontSize: 16,
+      color: colors.text.default,
+    },
+    titleWrapper: {
+      flexDirection: 'row',
+      justifyContent: 'center',
+      alignItems: 'center',
+    },
+    auxCenter: {
+      width: 26,
+    },
+  });
+
+/**
+ * View that renders an action modal
+ */
 class ProtectYourWalletModal extends PureComponent {
   static propTypes = {
     navigation: PropTypes.object,
+    /**
+     * Hide this modal
+     */
     protectWalletModalNotVisible: PropTypes.func,
+    /**
+     * Whether this modal is visible
+     */
     protectWalletModalVisible: PropTypes.bool,
+    /**
+     * Boolean that determines if the user has set a password before
+     */
     passwordSet: PropTypes.bool,
+    /**
+     * Analytics injected by withAnalyticsAwareness HOC
+     */
     analytics: PropTypes.object,
+    /**
+     * A boolean representing if the user is in the seedless onboarding login flow
+     */
     isSeedlessOnboardingLoginFlow: PropTypes.bool,
   };
 
@@ -82,6 +142,10 @@ class ProtectYourWalletModal extends PureComponent {
   };
 
   render() {
+    const colors = this.context.colors || mockTheme.colors;
+    const styles = createStyles(colors);
+
+    // will not render if the user is in the seedless onboarding login flow
     if (this.props.isSeedlessOnboardingLoginFlow) {
       return null;
     }
@@ -100,62 +164,43 @@ class ProtectYourWalletModal extends PureComponent {
         cancelTestID={ProtectWalletModalSelectorsIDs.CANCEL_BUTTON}
         confirmTestID={ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON}
       >
-        <Box
-          twClassName="mt-6 mx-6 flex-1"
+        <View
+          style={styles.wrapper}
           testID={ProtectWalletModalSelectorsIDs.CONTAINER}
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            justifyContent={BoxJustifyContent.Center}
-            alignItems={BoxAlignItems.Center}
-          >
-            <Box twClassName="w-6" />
-            <Text
-              variant={TextVariant.HeadingMd}
-              fontWeight={FontWeight.Bold}
-              color={TextColor.TextDefault}
-              twClassName="text-center flex-1"
-            >
+          <View style={styles.titleWrapper}>
+            <View style={styles.auxCenter} />
+            <Text style={styles.title}>
               {strings('protect_wallet_modal.title')}
             </Text>
-            <ButtonIcon
-              iconName={IconName.Close}
-              size={ButtonIconSize.Sm}
-              iconProps={{ color: IconColor.IconDefault, size: IconSize.Sm }}
+            <TouchableOpacity
               onPress={this.onDismiss}
-            />
-          </Box>
+              style={styles.closeIcon}
+              hitSlop={{ top: 10, left: 10, bottom: 10, right: 10 }}
+            >
+              <Icon name="times" style={styles.modalXIcon} />
+            </TouchableOpacity>
+          </View>
+          <View style={styles.imageWrapper}>
+            <Image source={protectWalletImage} style={styles.image} />
+          </View>
 
-          <Box alignItems={BoxAlignItems.Center} twClassName="mb-3 mt-8">
-            <Image
-              source={protectWalletImage}
-              style={{
-                width: scaling.scale(135, { baseModel: 1 }),
-                height: scaling.scale(160, { baseModel: 1 }),
-              }}
-            />
-          </Box>
-
-          <Text
-            variant={TextVariant.BodySm}
-            color={TextColor.TextDefault}
-            twClassName="text-center mb-6"
-          >
+          <Text style={styles.text}>
             {strings('protect_wallet_modal.text')}
-            <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Bold}>
+            <Text style={{ ...fontStyles.bold }}>
               {' ' + strings('protect_wallet_modal.text_bold')}
             </Text>
           </Text>
 
-          <Button
-            variant={ButtonVariant.Tertiary}
+          <TouchableOpacity
             onPress={this.onLearnMore}
             testID={ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON}
-            twClassName="w-full mb-3.5"
           >
-            {strings('protect_wallet_modal.action')}
-          </Button>
-        </Box>
+            <Text style={styles.learnMoreText}>
+              {strings('protect_wallet_modal.action')}
+            </Text>
+          </TouchableOpacity>
+        </View>
       </ActionModal>
     );
   }
@@ -168,8 +213,11 @@ const mapStateToProps = (state) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  protectWalletModalNotVisible: () => dispatch(protectWalletModalNotVisible()),
+  protectWalletModalNotVisible: (enable) =>
+    dispatch(protectWalletModalNotVisible()),
 });
+
+ProtectYourWalletModal.contextType = ThemeContext;
 
 export default connect(
   mapStateToProps,

@@ -6,40 +6,28 @@ import React, {
   useRef,
 } from 'react';
 import {
+  View,
   ActivityIndicator,
   KeyboardAvoidingView,
   FlatList,
   TouchableOpacity,
-  Platform,
+  ImageBackground,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useDispatch } from 'react-redux';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import {
-  Box,
-  Label,
-  TextColor,
-  Text,
-  TextVariant,
-  FontWeight,
-  Icon,
+import Icon, {
   IconName,
   IconSize,
-  IconColor,
-  TextField,
-  TextFieldSize,
-  Button,
-  ButtonVariant,
-  ButtonSize,
-  TextButton,
-  TextButtonSize,
-  BoxAlignItems,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
+} from '../../../component-library/components/Icons/Icon';
 import { wordlist } from '@metamask/scure-bip39/dist/wordlists/english';
 import Logger from '../../../util/Logger';
+import { baseStyles } from '../../../styles/common';
+import Text, {
+  TextVariant,
+  TextColor,
+} from '../../../component-library/components/Texts/Text';
 import { strings } from '../../../../locales/i18n';
 import Engine from '../../../core/Engine';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
@@ -52,12 +40,23 @@ import {
 } from '../../../constants/onboarding';
 import { useTheme } from '../../../util/theme';
 import { uint8ArrayToMnemonic } from '../../../util/mnemonic';
+import { createStyles } from './styles';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import type { ITrackingEvent } from '../../../core/Analytics/MetaMetrics.types';
 import { Authentication } from '../../../core';
 import { ManualBackUpStepsSelectorsIDs } from './ManualBackUpSteps.testIds';
-import SeedPhraseConcealer from '../RevealPrivateCredential/components/SeedPhraseConcealer';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+  ButtonSize,
+} from '../../../component-library/components/Buttons/Button';
+import {
+  Label,
+  TextColor as DSTextColor,
+} from '@metamask/design-system-react-native';
+import TextField from '../../../component-library/components/Form/TextField/TextField';
 import { saveOnboardingEvent as saveEvent } from '../../../actions/onboarding';
+import { AppThemeKey } from '../../../util/theme/models';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   createTrackFunction,
@@ -65,6 +64,10 @@ import {
   showSeedphraseDefinition,
 } from '../../../util/onboarding/backupUtils';
 import type { ManualBackupStep1RouteProp } from './ManualBackupStep1.types';
+
+import darkBlurImage from '../../../images/dark-blur.png';
+import lightBlurImage from '../../../images/blur.png';
+
 /**
  * View that's shown during the second step of
  * the backup seed phrase flow
@@ -73,7 +76,6 @@ const ManualBackupStep1 = () => {
   const navigation = useNavigation();
   const route = useRoute<ManualBackupStep1RouteProp>();
   const dispatch = useDispatch();
-  const tw = useTailwind();
 
   const saveOnboardingEvent = useCallback(
     (event: ITrackingEvent) => {
@@ -83,7 +85,7 @@ const ManualBackupStep1 = () => {
   );
 
   const [seedPhraseHidden, setSeedPhraseHidden] = useState(true);
-  const [password, setPassword] = useState('');
+  const [password, setPassword] = useState<string | undefined>(undefined);
   const [warningIncorrectPassword, setWarningIncorrectPassword] = useState<
     string | undefined
   >(undefined);
@@ -92,6 +94,7 @@ const ManualBackupStep1 = () => {
   const [words, setWords] = useState<string[]>([]);
   const [hasFunds, setHasFunds] = useState(false);
   const { colors, themeAppearance } = useTheme();
+  const styles = useMemo(() => createStyles(colors), [colors]);
   const { isEnabled: isMetricsEnabled } = useAnalytics();
 
   const backupFlow = route?.params?.backupFlow || false;
@@ -107,12 +110,12 @@ const ManualBackupStep1 = () => {
         <Icon
           name={IconName.ArrowLeft}
           size={IconSize.Lg}
-          color={IconColor.IconDefault}
-          style={tw.style('ml-4')}
+          color={colors.text.default}
+          style={styles.headerLeft}
         />
       </TouchableOpacity>
     ),
-    [navigation, tw],
+    [colors, navigation, styles.headerLeft],
   );
 
   const track = useMemo(
@@ -293,34 +296,52 @@ const ManualBackupStep1 = () => {
   };
 
   const renderSeedPhraseConcealer = () => (
-    <SeedPhraseConcealer
-      onReveal={revealSeedPhrase}
-      testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
-    />
+    <View style={styles.seedPhraseConcealerContainer}>
+      <TouchableOpacity
+        onPress={revealSeedPhrase}
+        style={styles.blurContainer}
+        testID={ManualBackUpStepsSelectorsIDs.BLUR_BUTTON}
+      >
+        <ImageBackground
+          source={
+            themeAppearance === AppThemeKey.dark
+              ? darkBlurImage
+              : lightBlurImage
+          }
+          style={styles.blurView}
+          resizeMode="cover"
+        />
+        <View style={styles.seedPhraseConcealer}>
+          <Icon
+            name={IconName.EyeSlash}
+            size={IconSize.Xl}
+            color={colors.icon.default}
+          />
+          <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+            {strings('manual_backup_step_1.reveal')}
+          </Text>
+          <Text variant={TextVariant.BodySM} color={TextColor.Default}>
+            {strings('manual_backup_step_1.watching')}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    </View>
   );
 
   const renderConfirmPassword = () => (
     <KeyboardAvoidingView
-      style={tw.style('flex-1 flex-row self-center mb-[30px]')}
+      style={styles.keyboardAvoidingView}
       behavior={'padding'}
     >
-      <KeyboardAwareScrollView style={tw.style('flex-grow')} enableOnAndroid>
-        <Box twClassName="flex-1">
-          <Box
-            alignItems={BoxAlignItems.Start}
-            marginBottom={5}
-            twClassName="flex-1"
-          >
-            <Box
-              marginBottom={2}
-              justifyContent={BoxJustifyContent.Center}
-              twClassName="flex-1"
-            >
-              <Label color={TextColor.TextDefault}>
+      <KeyboardAwareScrollView style={baseStyles.flexGrow} enableOnAndroid>
+        <View style={styles.confirmPasswordWrapper}>
+          <View style={[styles.content, styles.passwordRequiredContent]}>
+            <View style={styles.text}>
+              <Label color={DSTextColor.TextDefault}>
                 {strings('manual_backup_step_1.before_continiuing')}
               </Label>
-            </Box>
-            <Box twClassName="relative flex-col gap-0.5 w-full">
+            </View>
+            <View style={styles.field}>
               <TextField
                 placeholder={strings('manual_backup_step_1.password')}
                 value={password}
@@ -328,140 +349,122 @@ const ManualBackupStep1 = () => {
                 secureTextEntry
                 onSubmitEditing={tryUnlock}
                 testID={ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT}
-                accessibilityLabel={
-                  ManualBackUpStepsSelectorsIDs.CONFIRM_PASSWORD_INPUT
-                }
                 keyboardAppearance={themeAppearance}
                 autoCapitalize="none"
                 autoFocus
-                size={TextFieldSize.Lg}
               />
               {warningIncorrectPassword && (
-                <Text
-                  variant={TextVariant.BodyMd}
-                  color={TextColor.ErrorDefault}
-                >
+                <Text style={styles.warningMessageText}>
                   {warningIncorrectPassword}
                 </Text>
               )}
-            </Box>
-          </Box>
-          <Box
-            marginTop={0}
-            justifyContent={BoxJustifyContent.End}
-            twClassName="flex-1"
-          >
+            </View>
+          </View>
+          <View style={styles.buttonWrapper}>
             <Button
-              variant={ButtonVariant.Primary}
+              variant={ButtonVariants.Primary}
               onPress={tryUnlock}
+              label={strings('manual_backup_step_1.confirm')}
               testID={ManualBackUpStepsSelectorsIDs.SUBMIT_BUTTON}
-              isFullWidth
+              width={ButtonWidthTypes.Full}
               size={ButtonSize.Lg}
               isDisabled={!password}
-            >
-              {strings('manual_backup_step_1.confirm')}
-            </Button>
-          </Box>
-        </Box>
+            />
+          </View>
+        </View>
       </KeyboardAwareScrollView>
     </KeyboardAvoidingView>
   );
 
   const renderSeedphraseView = () => (
-    <Box twClassName="flex-1 justify-between">
-      <Box twClassName="flex-1">
-        <Box
-          twClassName="flex-1 flex-col gap-4"
+    <View style={styles.actionViewContainer}>
+      <View style={styles.actionView}>
+        <View
+          style={styles.wrapper}
           testID={ManualBackUpStepsSelectorsIDs.STEP_1_CONTAINER}
         >
-          <Text variant={TextVariant.DisplayMd} color={TextColor.TextDefault}>
+          <Text variant={TextVariant.DisplayMD} color={TextColor.Default}>
             {strings('manual_backup_step_1.action')}
           </Text>
-          <Box justifyContent={BoxJustifyContent.Start}>
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
+          <View style={styles.infoWrapper}>
+            <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
               {strings('manual_backup_step_1.info-1')}{' '}
               <Text
-                variant={TextVariant.BodyMd}
-                color={TextColor.PrimaryDefault}
+                variant={TextVariant.BodyMD}
+                color={TextColor.Primary}
                 onPress={showWhatIsSeedphrase}
               >
                 {strings('manual_backup_step_1.info-2')}{' '}
               </Text>
               {strings('manual_backup_step_1.info-3')}{' '}
               <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.TextAlternative}
+                variant={TextVariant.BodyMDMedium}
+                color={TextColor.Alternative}
               >
                 {strings('manual_backup_step_1.info-4')}
               </Text>
             </Text>
-          </Box>
+          </View>
           {seedPhraseHidden ? (
-            <Box twClassName="bg-default rounded-lg flex-row border border-default min-h-[230px]">
+            <View style={styles.seedPhraseWrapper}>
               {renderSeedPhraseConcealer()}
-            </Box>
+            </View>
           ) : (
-            <Box twClassName="p-4 bg-muted rounded-[10px] min-h-[232px]">
+            <View style={styles.seedPhraseContainer}>
               <FlatList
                 data={words}
                 numColumns={3}
                 keyExtractor={(_, index) => index.toString()}
                 renderItem={({ item, index }) => (
-                  <Box twClassName="flex-row items-center h-10 border border-muted rounded-lg px-2 py-1 bg-default flex-1 m-1 gap-x-1.5">
+                  <View style={[styles.inputContainer]}>
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextAlternative}
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Alternative}
                       maxFontSizeMultiplier={1}
                     >
                       {index + 1}.
                     </Text>
                     <Text
-                      variant={TextVariant.BodyMd}
-                      color={TextColor.TextDefault}
+                      variant={TextVariant.BodyMD}
+                      color={TextColor.Default}
                       key={index}
                       ellipsizeMode="tail"
                       numberOfLines={1}
-                      style={tw.style('flex-1')}
+                      style={styles.word}
                       testID={`${ManualBackUpStepsSelectorsIDs.WORD_ITEM}-${index}`}
                       maxFontSizeMultiplier={1}
                     >
                       {item}
                     </Text>
-                  </Box>
+                  </View>
                 )}
               />
-            </Box>
+            </View>
           )}
-        </Box>
-      </Box>
-      <Box
-        twClassName={`px-0 gap-4 flex justify-center items-center ${Platform.OS === 'android' ? 'mb-4' : 'mb-0'}`}
-      >
+        </View>
+      </View>
+      <View style={styles.buttonContainer}>
         <Button
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariants.Primary}
           onPress={goNext}
-          isFullWidth
+          label={strings('manual_backup_step_1.continue')}
+          width={ButtonWidthTypes.Full}
           size={ButtonSize.Lg}
           isDisabled={seedPhraseHidden}
           testID={ManualBackUpStepsSelectorsIDs.CONTINUE_BUTTON}
-        >
-          {strings('manual_backup_step_1.continue')}
-        </Button>
+        />
         {!hasFunds && !backupFlow && !settingsBackup && (
-          <TextButton
+          <Button
+            variant={ButtonVariants.Link}
             onPress={showRemindLater}
-            size={TextButtonSize.BodyMd}
+            label={strings('account_backup_step_1.remind_me_later')}
+            width={ButtonWidthTypes.Full}
+            size={ButtonSize.Lg}
             testID={ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON}
-          >
-            {strings('account_backup_step_1.remind_me_later')}
-          </TextButton>
+          />
         )}
-      </Box>
-    </Box>
+      </View>
+    </View>
   );
 
   return ready ? (
@@ -471,19 +474,19 @@ const ManualBackupStep1 = () => {
           ? { bottom: 'additive' }
           : ['top', 'bottom']
       }
-      style={tw.style('bg-default flex-1')}
+      style={styles.mainWrapper}
     >
-      <Box twClassName="flex-1 px-4">
+      <View style={[styles.container]}>
         {view === SEED_PHRASE
           ? renderSeedphraseView()
           : renderConfirmPassword()}
-      </Box>
+      </View>
       <ScreenshotDeterrent hasNavigation enabled isSRP />
     </SafeAreaView>
   ) : (
-    <Box twClassName="bg-default flex-1 min-h-[300px] justify-center items-center">
+    <View style={styles.loader}>
       <ActivityIndicator size="small" />
-    </Box>
+    </View>
   );
 };
 

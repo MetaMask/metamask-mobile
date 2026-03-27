@@ -1,12 +1,11 @@
 import React, { useMemo } from 'react';
 import { View } from 'react-native';
-import {
-  FontWeight,
+import Button, {
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
+import Text, {
   TextVariant,
-  Text,
-  Button,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
@@ -92,10 +91,8 @@ const CardMessageBox = ({
       />
       <View style={styles.contentContainer}>
         <View style={styles.textsContainer}>
-          <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Bold}>
-            {config.title}
-          </Text>
-          <Text variant={TextVariant.BodyMd}>{config.description}</Text>
+          <Text variant={TextVariant.BodyMDBold}>{config.title}</Text>
+          <Text variant={TextVariant.BodyMD}>{config.description}</Text>
         </View>
 
         <View
@@ -106,22 +103,20 @@ const CardMessageBox = ({
         >
           {onDismiss && (
             <Button
-              variant={ButtonVariant.Secondary}
+              variant={ButtonVariants.Secondary}
               onPress={onDismiss}
+              label={strings('card.card_spending_limit.dismiss')}
               testID="dismiss-button"
-            >
-              {strings('card.card_spending_limit.dismiss')}
-            </Button>
+            />
           )}
           {config.confirmButtonLabel && onConfirm ? (
             <Button
-              variant={ButtonVariant.Primary}
+              variant={ButtonVariants.Primary}
               onPress={onConfirm}
-              isLoading={onConfirmLoading}
+              loading={onConfirmLoading}
+              label={config.confirmButtonLabel}
               testID="confirm-button"
-            >
-              {config.confirmButtonLabel}
-            </Button>
+            />
           ) : null}
         </View>
       </View>

@@ -4,8 +4,7 @@ import { cloneDeep } from 'lodash';
 import Engine from '../../core/Engine';
 import { selectSelectedInternalAccountFormattedAddress } from '../../selectors/accountsController';
 import { endTrace, trace, TraceName } from '../../util/trace';
-import { MetaMetricsEvents } from '../../core/Analytics';
-import { useAnalytics } from './useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from './useMetrics';
 import { useNftDetectionChainIds } from './useNftDetectionChainIds';
 import { prepareNftDetectionEvents } from '../../util/assets';
 import { getDecimalChainId } from '../../util/networks';
@@ -22,7 +21,7 @@ import {
  */
 export const useNftDetection = () => {
   const dispatch = useDispatch();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const abortControllerRef = useRef<AbortController | null>(null);
 
   const selectedAddress = useSelector(

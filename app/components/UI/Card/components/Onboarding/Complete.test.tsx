@@ -115,30 +115,6 @@ jest.mock('@metamask/design-system-react-native', () => {
       Medium: '500',
       Bold: '700',
     },
-    Button: ({
-      children,
-      testID,
-      onPress,
-      isDisabled,
-      ...props
-    }: React.PropsWithChildren<Record<string, unknown>>) => {
-      const { TouchableOpacity } = jest.requireActual('react-native');
-      return React.createElement(
-        TouchableOpacity,
-        { testID, onPress, disabled: isDisabled, ...props },
-        React.createElement(Text, {}, children),
-      );
-    },
-    ButtonVariant: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-      Link: 'Link',
-    },
-    ButtonSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
-    },
   };
 });
 
@@ -310,8 +286,9 @@ describe('Complete Component', () => {
     });
 
     it('displays the correct button text', () => {
-      const { getByText } = render(<Complete />);
-      expect(getByText('Continue')).toBeTruthy();
+      const { getByTestId } = render(<Complete />);
+      const buttonLabel = getByTestId('button-label');
+      expect(buttonLabel.props.children).toBe('Continue');
     });
 
     it('is not disabled', () => {
@@ -470,9 +447,10 @@ describe('Complete Component', () => {
     });
 
     it('renders translated button label', () => {
-      const { getByText } = render(<Complete />);
+      const { getByTestId } = render(<Complete />);
 
-      expect(getByText('Continue')).toBeTruthy();
+      const buttonLabel = getByTestId('button-label');
+      expect(buttonLabel.props.children).toBe('Continue');
     });
   });
 
@@ -502,9 +480,10 @@ describe('Complete Component', () => {
     });
 
     it('renders button with correct label', () => {
-      const { getByText } = render(<Complete />);
+      const { getByTestId } = render(<Complete />);
 
-      expect(getByText('Continue')).toBeTruthy();
+      const buttonLabel = getByTestId('button-label');
+      expect(buttonLabel.props.children).toBe('Continue');
     });
   });
 

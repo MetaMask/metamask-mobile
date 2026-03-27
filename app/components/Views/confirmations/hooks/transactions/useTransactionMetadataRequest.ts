@@ -7,23 +7,18 @@ import {
 import { useSelector } from 'react-redux';
 
 import { selectTransactionMetadataById } from '../../../../../selectors/transactionController';
-import type { RootState } from '../../../../../reducers';
-import { useGasFeeModalTransaction } from '../../context/gas-fee-modal-transaction';
+import { RootState } from '../../../../UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal.test';
 import useApprovalRequest from '../useApprovalRequest';
 import { EMPTY_ADDRESS } from '../../../../../constants/transaction';
 
 export function useTransactionMetadataRequest() {
-  const { transactionId: overrideTransactionId } = useGasFeeModalTransaction();
   const { approvalRequest } = useApprovalRequest();
 
-  const effectiveId = overrideTransactionId ?? (approvalRequest?.id as string);
-
   const transactionMetadata = useSelector((state: RootState) =>
-    selectTransactionMetadataById(state, effectiveId),
+    selectTransactionMetadataById(state, approvalRequest?.id as string),
   );
 
   if (
-    !overrideTransactionId &&
     approvalRequest?.type === ApprovalType.Transaction &&
     !transactionMetadata
   ) {

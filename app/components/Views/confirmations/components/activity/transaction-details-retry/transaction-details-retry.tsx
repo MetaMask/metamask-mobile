@@ -4,7 +4,10 @@ import {
   TransactionType,
 } from '@metamask/transaction-controller';
 import { useTransactionDetails } from '../../../hooks/activity/useTransactionDetails';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { Box } from '../../../../../UI/Box/Box';
 import { AlignItems, FlexDirection } from '../../../../../UI/Box/box.types';
 import { usePerpsTrading } from '../../../../../UI/Perps/hooks';
@@ -49,13 +52,12 @@ export function TransactionDetailsRetry() {
   return (
     <Box flexDirection={FlexDirection.Column} alignItems={AlignItems.stretch}>
       <Button
-        isFullWidth
+        width={ButtonWidthTypes.Full}
         onPress={handlePress}
-        variant={ButtonVariant.Primary}
+        label={strings('transaction_details.label.retry_button')}
+        variant={ButtonVariants.Primary}
         style={styles.button}
-      >
-        {strings('transaction_details.label.retry_button')}
-      </Button>
+      />
     </Box>
   );
 }

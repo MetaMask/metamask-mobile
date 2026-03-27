@@ -1,6 +1,7 @@
 import type {
   FeeMarketEIP1559Values,
   GasPriceValue,
+  TransactionMeta,
 } from '@metamask/transaction-controller';
 
 /**
@@ -20,6 +21,6 @@ export interface UseCancelSpeedupGasResult {
 }
 
 export interface UseCancelSpeedupGasInput {
-  /** Transaction id; hook reads the transaction from the store (supports gas edits via updateTransactionGasFees). */
-  txId: string | null | undefined;
+  tx: TransactionMeta | null;
+  isCancel: boolean;
 }

@@ -11,15 +11,14 @@ import ManageNetworksComponent from '../../../UI/ManageNetworks/ManageNetworks';
 import BackupAndSyncToggle from '../../../UI/Identity/BackupAndSyncToggle/BackupAndSyncToggle';
 import { selectIsBackupAndSyncEnabled } from '../../../../selectors/identity';
 import { RootState } from '../../../../reducers';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const GeneralSettings = () => {
   useOnboardingHeader(strings('default_settings.drawer_general_title'));
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const isBasicFunctionalityEnabled = useSelector(
     (state: RootState) => state?.settings?.basicFunctionalityEnabled,
   );

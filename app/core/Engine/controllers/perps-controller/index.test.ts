@@ -17,7 +17,6 @@ jest.mock(
   '../../../../components/UI/Perps/adapters/mobileInfrastructure',
   () => ({
     createMobileInfrastructure: jest.fn(() => ({})),
-    createMobileClientConfig: jest.fn(() => ({})),
   }),
 );
 jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({

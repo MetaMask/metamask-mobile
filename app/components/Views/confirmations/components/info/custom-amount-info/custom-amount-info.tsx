@@ -47,11 +47,11 @@ import { strings } from '../../../../../../../locales/i18n';
 import { hasTransactionType } from '../../../utils/transaction';
 import { useTransactionMetadataRequest } from '../../../hooks/transactions/useTransactionMetadataRequest';
 import { TransactionType } from '@metamask/transaction-controller';
-import {
-  Button,
+import Button, {
   ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../component-library/components/Buttons/Button';
 import { useAlerts } from '../../../context/alert-system-context';
 import { useTransactionConfirm } from '../../../hooks/transactions/useTransactionConfirm';
 import EngineService from '../../../../../../core/EngineService';
@@ -263,13 +263,12 @@ function BuySection() {
         </Text>
       )}
       <Button
-        variant={ButtonVariant.Primary}
+        label={strings('confirm.custom_amount.buy_button')}
+        variant={ButtonVariants.Primary}
         onPress={handleBuyPress}
-        isFullWidth
+        width={ButtonWidthTypes.Full}
         size={ButtonSize.Lg}
-      >
-        {strings('confirm.custom_amount.buy_button')}
-      </Button>
+      />
     </Box>
   );
 }
@@ -288,14 +287,13 @@ function ConfirmButton({
     <Button
       style={[disabled && styles.disabledButton]}
       size={ButtonSize.Lg}
-      variant={ButtonVariant.Primary}
-      isFullWidth
-      isDisabled={disabled}
-      onPress={() => onConfirm()}
+      label={alertTitle ?? buttonLabel}
+      variant={ButtonVariants.Primary}
+      width={ButtonWidthTypes.Full}
+      disabled={disabled}
+      onPress={onConfirm}
       testID={ConfirmationFooterSelectorIDs.CONFIRM_BUTTON}
-    >
-      {alertTitle ?? buttonLabel}
-    </Button>
+    />
   );
 }
 
@@ -317,12 +315,7 @@ function useIsResultReady({
 function useButtonLabel() {
   const transaction = useTransactionMetadataRequest();
 
-  if (
-    hasTransactionType(transaction, [
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-  ) {
+  if (hasTransactionType(transaction, [TransactionType.predictWithdraw])) {
     return strings('confirm.deposit_edit_amount_predict_withdraw');
   }
 

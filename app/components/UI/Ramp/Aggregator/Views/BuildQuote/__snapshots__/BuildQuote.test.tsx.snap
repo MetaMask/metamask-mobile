@@ -1742,7 +1742,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -1795,7 +1794,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -1848,7 +1846,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -1915,7 +1912,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -1968,7 +1964,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -2021,7 +2016,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -2088,7 +2082,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -2141,7 +2134,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -2194,7 +2186,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -2263,7 +2254,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -2316,7 +2306,6 @@ exports[`BuildQuote View Balance display displays balance from useBalance for no
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -5950,7 +5939,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6003,7 +5991,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6056,7 +6043,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6123,7 +6109,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6176,7 +6161,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6229,7 +6213,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6296,7 +6279,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6349,7 +6331,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6402,7 +6383,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6471,7 +6451,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -6524,7 +6503,6 @@ exports[`BuildQuote View Crypto Currency Data renders the loading page when cryp
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -8889,7 +8867,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -8942,7 +8919,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -8995,7 +8971,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9062,7 +9037,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9115,7 +9089,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9168,7 +9141,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9235,7 +9207,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9288,7 +9259,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9341,7 +9311,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9410,7 +9379,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -9463,7 +9431,6 @@ exports[`BuildQuote View Fiat Currency Data renders the loading page when fiats 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -11959,7 +11926,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12012,7 +11978,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12065,7 +12030,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12132,7 +12096,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12185,7 +12148,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12238,7 +12200,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12305,7 +12266,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12358,7 +12318,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12411,7 +12370,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12480,7 +12438,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -12533,7 +12490,6 @@ exports[`BuildQuote View Payment Method Data renders no icons if there are no pa
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14363,7 +14319,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14416,7 +14371,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14469,7 +14423,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14536,7 +14489,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14589,7 +14541,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14642,7 +14593,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14709,7 +14659,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14762,7 +14711,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14815,7 +14763,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14884,7 +14831,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -14937,7 +14883,6 @@ exports[`BuildQuote View Payment Method Data renders the loading page when payme
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17278,7 +17223,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17331,7 +17275,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17384,7 +17327,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17451,7 +17393,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17504,7 +17445,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17557,7 +17497,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17624,7 +17563,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17677,7 +17615,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17730,7 +17667,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17799,7 +17735,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -17852,7 +17787,6 @@ exports[`BuildQuote View Regions data renders the loading page when regions are 
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -19732,7 +19666,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -19785,7 +19718,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -19838,7 +19770,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -19905,7 +19836,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -19958,7 +19888,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -20011,7 +19940,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -20078,7 +20006,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -20131,7 +20058,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -20184,7 +20110,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -20253,7 +20178,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -20306,7 +20230,6 @@ exports[`BuildQuote View renders correctly 1`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22132,7 +22055,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-1"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22185,7 +22107,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-2"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22238,7 +22159,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-3"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22305,7 +22225,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-4"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22358,7 +22277,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-5"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22411,7 +22329,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-6"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22478,7 +22395,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-7"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22531,7 +22447,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-8"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22584,7 +22499,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-9"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22653,7 +22567,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       },
                                     ]
                                   }
-                                  testID="keypad-key-dot"
                                 >
                                   <Text
                                     accessibilityRole="none"
@@ -22706,7 +22619,6 @@ exports[`BuildQuote View renders correctly 2`] = `
                                       undefined,
                                     ]
                                   }
-                                  testID="keypad-key-0"
                                 >
                                   <Text
                                     accessibilityRole="none"

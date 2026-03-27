@@ -60,7 +60,7 @@ function extractStatusCode(error: unknown): number | null {
  */
 function parseLedgerCommunicationError(
   error: LedgerCommunicationErrors,
-  walletType?: HardwareWalletType | null,
+  walletType: HardwareWalletType,
 ): HardwareWalletError {
   switch (error) {
     case LedgerCommunicationErrors.LedgerDisconnected:
@@ -122,7 +122,7 @@ function parseLedgerCommunicationError(
  */
 function parseLedgerStatusCode(
   statusCode: number,
-  walletType: HardwareWalletType | null | undefined,
+  walletType: HardwareWalletType,
   originalError?: Error,
 ): HardwareWalletError {
   const hexCode = toHexStatusCode(statusCode);
@@ -163,7 +163,7 @@ function parseLedgerStatusCode(
  */
 function parseErrorByName(
   error: Error,
-  walletType?: HardwareWalletType | null,
+  walletType: HardwareWalletType,
 ): HardwareWalletError | null {
   const name = error.name;
 
@@ -196,7 +196,7 @@ function parseErrorByName(
  */
 function parseErrorByMessage(
   error: Error,
-  walletType?: HardwareWalletType | null,
+  walletType: HardwareWalletType,
 ): HardwareWalletError | null {
   const message = error.message.toLowerCase();
   const name = error.name?.toLowerCase() ?? '';
@@ -285,7 +285,7 @@ function parseErrorByMessage(
  */
 export function parseErrorByType(
   error: unknown,
-  walletType?: HardwareWalletType | null,
+  walletType: HardwareWalletType,
 ): HardwareWalletError {
   if (error instanceof HardwareWalletError) {
     return error;

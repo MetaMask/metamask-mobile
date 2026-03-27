@@ -125,9 +125,6 @@ jest.mock('../../app/core/Engine', () => {
       AuthenticationController: {
         getBearerToken: jest.fn().mockResolvedValue('mock-bearer-token'),
       },
-      AssetsContractController: {
-        getTokenStandardAndDetails: jest.fn().mockResolvedValue({}),
-      },
       TransactionController: {
         state: {
           transactions: [],

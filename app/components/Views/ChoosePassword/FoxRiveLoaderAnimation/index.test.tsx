@@ -1,18 +1,19 @@
 import React from 'react';
 import { render } from '@testing-library/react-native';
-import { brandColor } from '@metamask/design-tokens';
-import { mockTheme } from '../../../../util/theme';
 
 // Mock useTheme hook
-const mockUseTheme = jest.fn().mockReturnValue(mockTheme);
-
-jest.mock('../../../../util/theme', () => {
-  const actual = jest.requireActual('../../../../util/theme');
-  return {
-    ...actual,
-    useTheme: () => mockUseTheme(),
-  };
+const mockUseTheme = jest.fn().mockReturnValue({
+  colors: {
+    background: { default: '#FFFFFF' },
+    text: { default: '#000000' },
+  },
+  themeAppearance: 'light',
 });
+
+// Mock dependencies
+jest.mock('../../../../util/theme', () => ({
+  useTheme: () => mockUseTheme(),
+}));
 
 // Mock ActivityIndicator
 jest.mock('react-native', () => ({
@@ -55,6 +56,16 @@ jest.mock('../../../../util/device', () => ({
   __esModule: true,
   default: mockDevice,
 }));
+
+// Mock styles
+jest.mock('./index.styles', () =>
+  jest.fn(() => ({
+    animationContainer: { testID: 'animation-container' },
+    animationWrapper: { testID: 'animation-wrapper' },
+    textWrapper: { testID: 'text-wrapper' },
+    riveAnimation: { testID: 'rive-animation' },
+  })),
+);
 
 import FoxRiveLoaderAnimation from './FoxRiveLoaderAnimation';
 
@@ -114,8 +125,8 @@ describe('FoxRiveLoaderAnimation', () => {
     // Arrange
     mockUseTheme.mockReturnValueOnce({
       colors: {
-        background: { default: brandColor.black },
-        text: { default: brandColor.white },
+        background: { default: '#000000' },
+        text: { default: '#FFFFFF' },
       },
       themeAppearance: 'dark',
     });

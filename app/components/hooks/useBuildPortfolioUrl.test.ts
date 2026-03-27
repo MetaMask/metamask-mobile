@@ -1,8 +1,7 @@
 import { renderHook } from '@testing-library/react-hooks';
 import { useSelector } from 'react-redux';
 import { useBuildPortfolioUrl } from './useBuildPortfolioUrl';
-import { useAnalytics } from './useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../util/test/analyticsMock';
+import { useMetrics } from './useMetrics';
 import { buildPortfolioUrl } from '../../util/browser';
 
 // Mock dependencies
@@ -10,7 +9,9 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('./useAnalytics/useAnalytics');
+jest.mock('./useMetrics', () => ({
+  useMetrics: jest.fn(),
+}));
 
 jest.mock('../../util/browser', () => ({
   buildPortfolioUrl: jest.fn(),
@@ -21,7 +22,7 @@ describe('useBuildPortfolioUrl', () => {
   const mockUseSelector = useSelector as jest.MockedFunction<
     typeof useSelector
   >;
-  const mockUseAnalytics = jest.mocked(useAnalytics);
+  const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
   const mockBuildPortfolioUrl = buildPortfolioUrl as jest.MockedFunction<
     typeof buildPortfolioUrl
   >;
@@ -30,11 +31,19 @@ describe('useBuildPortfolioUrl', () => {
     jest.clearAllMocks();
 
     // Setup default mocks
-    mockUseAnalytics.mockReturnValue(
-      createMockUseAnalyticsHook({
-        isEnabled: mockIsEnabled,
-      }),
-    );
+    mockUseMetrics.mockReturnValue({
+      isEnabled: mockIsEnabled,
+      trackEvent: jest.fn(),
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      getMetaMetricsId: jest.fn(),
+      createEventBuilder: jest.fn(),
+    });
   });
 
   it('should build portfolio URL with metrics enabled and marketing enabled', () => {

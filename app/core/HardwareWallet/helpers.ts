@@ -7,7 +7,7 @@ import { strings } from '../../../locales/i18n';
  * Helper to get wallet type display name
  */
 export const getHardwareWalletTypeName = (
-  walletType?: HardwareWalletType | null,
+  walletType?: HardwareWalletType,
 ): string => {
   switch (walletType) {
     case HardwareWalletType.Ledger:

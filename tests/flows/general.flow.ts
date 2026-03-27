@@ -65,38 +65,36 @@ export const dismissDevScreens = async (): Promise<void> => {
  *
  * @async
  * @function waitForAppReady
- * @param {number} timeout - Maximum time to wait in milliseconds (default: 20000)
+ * @param {number} timeout - Maximum time to wait in milliseconds (default: 15000)
  * @returns {Promise<void>} Resolves when app is ready
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
-  timeout: number = 20000,
+  timeout: number = 15000,
 ): Promise<void> => {
   const startTime = Date.now();
 
   logger.debug('Waiting for app to complete rehydration and stabilize...');
 
   try {
-    // Initial wait for app to finish launching and start rehydration
-    await sleep(1000);
+    await sleep(500);
     await Utilities.executeWithRetry(
       async () => {
         await Assertions.expectElementToBeVisible(LoginView.container, {
           description: 'Login view should be stable',
-          timeout: 3000,
+          timeout: 2000,
         });
 
-        // Verify it stays visible (not flickering during rehydration)
-        await sleep(1500);
+        // Verify it stays visible (not flickering)
+        await sleep(1000);
 
         await Assertions.expectElementToBeVisible(LoginView.container, {
           description: 'Login view should remain visible',
-          timeout: 2000,
+          timeout: 1000,
         });
       },
       {
         timeout,
-        interval: 2000,
         description:
           'wait for app to complete rehydration and stabilize on login screen',
       },

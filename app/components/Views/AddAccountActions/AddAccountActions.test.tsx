@@ -17,9 +17,8 @@ import { RootState } from '../../../reducers';
 import { WalletClientType } from '../../../core/SnapKeyring/MultichainWalletSnapClient';
 import { MultichainNetwork } from '@metamask/multichain-transactions-controller';
 import { MetaMetricsEvents } from '../../../core/Analytics';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import { TrxScope } from '@metamask/keyring-api';
 
 const mockedNavigate = jest.fn();
@@ -34,8 +33,8 @@ jest.mock('@react-navigation/native', () => {
 });
 
 const mockTrackEvent = jest.fn();
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: jest.fn(),
+jest.mock('../../../components/hooks/useMetrics', () => ({
+  useMetrics: jest.fn(),
 }));
 
 jest.mock('../../../actions/multiSrp', () => ({
@@ -65,12 +64,10 @@ describe('AddAccountActions', () => {
   beforeEach(() => {
     jest.clearAllMocks();
 
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      }),
-    );
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: MetricsEventBuilder.createEventBuilder,
+    });
   });
 
   it('renders correctly', () => {
@@ -228,7 +225,7 @@ describe('AddAccountActions', () => {
     fireEvent.press(importSrpButton);
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
-      AnalyticsEventBuilder.createEventBuilder(
+      MetricsEventBuilder.createEventBuilder(
         MetaMetricsEvents.IMPORT_SECRET_RECOVERY_PHRASE_CLICKED,
       ).build(),
     );

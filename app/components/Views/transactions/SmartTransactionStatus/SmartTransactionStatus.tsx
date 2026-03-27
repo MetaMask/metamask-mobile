@@ -16,7 +16,9 @@ import {
 import { useSelector } from 'react-redux';
 import { selectEvmChainId } from '../../../../selectors/networkController';
 import { useNavigation } from '@react-navigation/native';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import Routes from '../../../../constants/navigation/Routes';
 import TransactionBackgroundTop from '../../../../images/transaction-background-top.svg';
 import TransactionBackgroundBottom from '../../../../images/transaction-background-bottom.svg';
@@ -242,6 +244,9 @@ const createStyles = (colors: ThemeColors) =>
       width: '100%',
       gap: 10,
     },
+    button: {
+      width: '100%',
+    },
   });
 
 const SmartTransactionStatus = ({
@@ -347,9 +352,10 @@ const SmartTransactionStatus = ({
   const renderPrimaryButton = () =>
     handlePrimaryButtonPress ? (
       <Button
-        variant={ButtonVariant.Primary}
+        variant={ButtonVariants.Primary}
+        label={primaryButtonText}
         onPress={handlePrimaryButtonPress}
-        isFullWidth
+        style={styles.button}
       >
         {primaryButtonText}
       </Button>
@@ -358,9 +364,10 @@ const SmartTransactionStatus = ({
   const renderSecondaryButton = () =>
     handleSecondaryButtonPress ? (
       <Button
-        variant={ButtonVariant.Secondary}
+        variant={ButtonVariants.Secondary}
+        label={secondaryButtonText}
         onPress={handleSecondaryButtonPress}
-        isFullWidth
+        style={styles.button}
       >
         {secondaryButtonText}
       </Button>

@@ -220,7 +220,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       );
 
       const continueButton = getByRole('button', { name: 'Continue' });
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
 
     it('renders paste button when no seed phrase is entered', () => {
@@ -335,7 +335,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       // Wait for continue button to be enabled
       await waitFor(
         () => {
-          expect(continueButton).toBeEnabled();
+          expect(continueButton.props.disabled).toBe(false);
         },
         { timeout: 3000 },
       );
@@ -513,7 +513,7 @@ describe('ImportFromSecretRecoveryPhrase', () => {
 
       // Verify continue button is still disabled (since it's not a complete seed phrase)
       const continueButton = getByRole('button', { name: 'Continue' });
-      expect(continueButton).toBeEnabled();
+      expect(continueButton.props.disabled).toBe(false);
     });
 
     it('on backspace key press, the input field length is updated', async () => {

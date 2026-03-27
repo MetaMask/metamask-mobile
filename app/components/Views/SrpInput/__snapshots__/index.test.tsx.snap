@@ -21,22 +21,17 @@ exports[`SrpInput renders default settings correctly 1`] = `
   onResponderTerminationRequest={[Function]}
   onStartShouldSetResponder={[Function]}
   style={
-    [
-      {
-        "display": "flex",
-      },
-      {
-        "alignItems": "center",
-        "backgroundColor": "#b4b4b528",
-        "borderColor": "#b4b4b566",
-        "borderRadius": 12,
-        "borderWidth": 1,
-        "flexDirection": "row",
-        "height": 48,
-        "paddingLeft": 16,
-        "paddingRight": 16,
-      },
-    ]
+    {
+      "alignItems": "center",
+      "backgroundColor": "#b4b4b528",
+      "borderColor": "#b4b4b566",
+      "borderRadius": 12,
+      "borderWidth": 1,
+      "flexDirection": "row",
+      "height": 48,
+      "opacity": 1,
+      "paddingHorizontal": 16,
+    }
   }
   testID="textfield"
 >
@@ -44,13 +39,12 @@ exports[`SrpInput renders default settings correctly 1`] = `
     style={
       [
         {
-          "display": "flex",
-          "flexBasis": "0%",
-          "flexGrow": 1,
-          "flexShrink": 1,
+          "backgroundColor": "inherit",
           "height": 46,
         },
-        undefined,
+        {
+          "flex": 1,
+        },
       ]
     }
   >

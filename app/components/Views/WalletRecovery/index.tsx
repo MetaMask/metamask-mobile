@@ -326,7 +326,7 @@ const WalletRecovery = () => {
               {strings('protect_your_wallet.srps_title')}
             </Text>
             <SelectSRP
-              containerStyle={StyleSheet.flatten(styles.srpListContainer)}
+              containerStyle={styles.srpListContainer}
               showArrowName={strings('protect_your_wallet.reveal')}
             />
           </View>

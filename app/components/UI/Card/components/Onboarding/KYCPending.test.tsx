@@ -42,42 +42,9 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(Text, { testID, ...props }, children),
-    Button: ({
-      children,
-      testID,
-      onPress,
-      label,
-      isDisabled,
-      disabled,
-      ...props
-    }: {
-      children?: React.ReactNode;
-      testID?: string;
-      onPress?: () => void;
-      label?: string;
-      isDisabled?: boolean;
-      disabled?: boolean;
-    }) => {
-      const { TouchableOpacity } = jest.requireActual('react-native');
-      return ReactActual.createElement(
-        TouchableOpacity,
-        { testID, onPress, disabled: disabled || isDisabled, ...props },
-        ReactActual.createElement(Text, {}, children || label),
-      );
-    },
     TextVariant: {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
-    },
-    ButtonVariant: {
-      Primary: 'Primary',
-      Secondary: 'Secondary',
-      Link: 'Link',
-    },
-    ButtonSize: {
-      Sm: 'Sm',
-      Md: 'Md',
-      Lg: 'Lg',
     },
   };
 });
@@ -318,11 +285,12 @@ describe('KYCPending Component', () => {
     });
 
     it('displays the correct button label', () => {
-      const { getByTestId, getByText } = render(<KYCPending />);
+      const { getByTestId } = render(<KYCPending />);
 
-      const button = getByTestId('kyc-pending-got-it-button');
-      expect(button).toBeTruthy();
-      expect(getByText('Got it')).toBeTruthy();
+      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
+
+      expect(buttonLabel).toBeTruthy();
+      expect(buttonLabel.props.children).toBe('Got it');
     });
 
     it('navigates to wallet home when Got it button is pressed', () => {
@@ -420,9 +388,11 @@ describe('KYCPending Component', () => {
     });
 
     it('uses correct i18n key for Got it button', () => {
-      const { getByText } = render(<KYCPending />);
+      const { getByTestId } = render(<KYCPending />);
 
-      expect(getByText('Got it')).toBeTruthy();
+      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
+
+      expect(buttonLabel.props.children).toBe('Got it');
     });
   });
 

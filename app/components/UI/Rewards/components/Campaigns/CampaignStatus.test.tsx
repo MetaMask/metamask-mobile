@@ -33,8 +33,8 @@ const createTestCampaign = (overrides = {}): CampaignDto => ({
   endDate: '2027-12-31T23:59:59.999Z',
   termsAndConditions: null,
   excludedRegions: [],
+  statusLabel: 'Active',
   details: null,
-  featured: true,
   ...overrides,
 });
 
@@ -57,9 +57,12 @@ describe('CampaignStatus', () => {
 
   it('renders campaign image', () => {
     const campaign = createTestCampaign({
-      image: {
-        lightModeUrl: 'https://example.com/light.png',
-        darkModeUrl: 'https://example.com/dark.png',
+      details: {
+        image: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
+        howItWorks: { title: '', description: '', phases: [] },
       },
     });
     const { getByTestId } = render(<CampaignStatus campaign={campaign} />);
@@ -85,6 +88,10 @@ describe('CampaignStatus', () => {
   it('renders howItWorks title when available', () => {
     const campaign = createTestCampaign({
       details: {
+        image: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
         howItWorks: {
           title: 'How it works',
           description: 'Description',
@@ -109,6 +116,10 @@ describe('CampaignStatus', () => {
   it('does not render howItWorks title when title is empty', () => {
     const campaign = createTestCampaign({
       details: {
+        image: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
         howItWorks: { title: '', description: '', phases: [] },
       },
     });
@@ -121,6 +132,10 @@ describe('CampaignStatus', () => {
   it('renders howItWorks description when available', () => {
     const campaign = createTestCampaign({
       details: {
+        image: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
         howItWorks: {
           title: 'How it works',
           description: 'Hold ONDO tokens to earn rewards',
@@ -145,6 +160,10 @@ describe('CampaignStatus', () => {
   it('does not render howItWorks description when description is empty', () => {
     const campaign = createTestCampaign({
       details: {
+        image: {
+          lightModeUrl: 'https://example.com/light.png',
+          darkModeUrl: 'https://example.com/dark.png',
+        },
         howItWorks: { title: 'Title', description: '', phases: [] },
       },
     });

@@ -2,23 +2,30 @@ import React from 'react';
 import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import CampaignTile from './CampaignTile';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
+import PreviousSeasonTile from '../PreviousSeason/PreviousSeasonTile';
+import { selectSeasonName } from '../../../../../reducers/rewards/selectors';
+import { useSelector } from 'react-redux';
 
 interface CampaignsGroupProps {
   title: string;
   campaigns: CampaignDto[];
   testID?: string;
+  displayPreviousSeason?: boolean;
 }
 
 /**
  * Section component for displaying a group of campaigns with a title.
- * Campaign interactivity is determined by whether the campaign type is supported.
  */
 const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
   title,
   campaigns,
   testID,
+  displayPreviousSeason = false,
 }) => {
-  if (campaigns.length === 0) {
+  const seasonName = useSelector(selectSeasonName);
+  const showPreviousSeason = displayPreviousSeason && !!seasonName;
+
+  if (campaigns.length === 0 && !showPreviousSeason) {
     return null;
   }
 
@@ -30,6 +37,7 @@ const CampaignsGroup: React.FC<CampaignsGroupProps> = ({
       {campaigns.map((campaign) => (
         <CampaignTile key={campaign.id} campaign={campaign} />
       ))}
+      {showPreviousSeason && <PreviousSeasonTile />}
     </Box>
   );
 };

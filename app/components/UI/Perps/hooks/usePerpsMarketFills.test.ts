@@ -224,21 +224,19 @@ describe('usePerpsMarketFills', () => {
       });
     });
 
-    it('prefers WebSocket data over REST data for exact duplicates', async () => {
-      // Arrange - identical fill in both sources (same orderId, timestamp, size, price)
+    it('prefers WebSocket data over REST data for duplicates', async () => {
+      // Arrange - same orderId+timestamp but different prices
       const restFill = createMockFill({
         orderId: 'order-1',
         symbol: 'BTC',
         timestamp: 1640995200000,
-        size: '0.5',
-        price: '50000',
+        price: '49000', // REST has older price
       });
       const wsFill = createMockFill({
         orderId: 'order-1',
         symbol: 'BTC',
         timestamp: 1640995200000,
-        size: '0.5',
-        price: '50000',
+        price: '50000', // WebSocket has fresher price
       });
 
       mockUsePerpsLiveFills.mockReturnValue({
@@ -252,52 +250,11 @@ describe('usePerpsMarketFills', () => {
         usePerpsMarketFills({ symbol: 'BTC' }),
       );
 
-      // Assert - should deduplicate to single fill
+      // Assert - should use WebSocket price
       await waitFor(() => {
         expect(result.current.fills).toHaveLength(1);
       });
       expect(result.current.fills[0].price).toBe('50000');
-    });
-
-    it('preserves multi-fill trades with same orderId and timestamp but different size/price', async () => {
-      // Arrange - SL order split into 2 fills at same timestamp
-      const fill1 = createMockFill({
-        orderId: 'sl-order-1',
-        symbol: 'BTC',
-        timestamp: 1640995200000,
-        size: '0.3',
-        price: '49000',
-        pnl: '-15.00',
-        direction: 'Close Long',
-      });
-      const fill2 = createMockFill({
-        orderId: 'sl-order-1',
-        symbol: 'BTC',
-        timestamp: 1640995200000,
-        size: '0.2',
-        price: '49000',
-        pnl: '-10.00',
-        direction: 'Close Long',
-      });
-
-      mockUsePerpsLiveFills.mockReturnValue({
-        fills: [],
-        isInitialLoading: false,
-      });
-      mockProvider.getOrderFills.mockResolvedValue([fill1, fill2]);
-
-      // Act
-      const { result } = renderHook(() =>
-        usePerpsMarketFills({ symbol: 'BTC' }),
-      );
-
-      // Assert - both fills should be preserved (not collapsed by dedup)
-      await waitFor(() => {
-        expect(result.current.fills).toHaveLength(2);
-      });
-      const sizes = result.current.fills.map((f) => f.size);
-      expect(sizes).toContain('0.3');
-      expect(sizes).toContain('0.2');
     });
 
     it('combines unique fills from both sources', async () => {

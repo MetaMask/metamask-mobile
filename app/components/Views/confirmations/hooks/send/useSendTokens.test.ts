@@ -132,7 +132,6 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       includeAllTokens: false,
-      tokenFilter: undefined,
     });
     expect(result.current).toHaveLength(4);
   });
@@ -156,7 +155,6 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       includeAllTokens: false,
-      tokenFilter: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockEvmToken);
@@ -181,7 +179,6 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       includeAllTokens: false,
-      tokenFilter: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockSolanaToken);
@@ -206,7 +203,6 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       includeAllTokens: false,
-      tokenFilter: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockTronToken);
@@ -231,7 +227,6 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       includeAllTokens: false,
-      tokenFilter: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockBitcoinToken);
@@ -245,25 +240,6 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
       includeAllTokens: false,
-      tokenFilter: undefined,
-    });
-  });
-
-  it('forwards tokenFilter to useAccountTokens', () => {
-    mockUseAccountTokens.mockReturnValue([mockEvmToken]);
-    const filter = jest.fn(() => true);
-
-    renderHook(() =>
-      useSendTokens({
-        includeAllTokens: true,
-        tokenFilter: filter,
-      }),
-    );
-
-    expect(mockUseAccountTokens).toHaveBeenCalledWith({
-      includeNoBalance: false,
-      includeAllTokens: true,
-      tokenFilter: filter,
     });
   });
 

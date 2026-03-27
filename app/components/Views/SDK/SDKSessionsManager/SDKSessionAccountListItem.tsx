@@ -11,7 +11,9 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import Text from '../../../../component-library/components/Texts/Text';
 import { ConnectionProps } from '../../../../core/SDKConnect/Connection';
 import { useTheme } from '../../../../util/theme';
@@ -98,11 +100,10 @@ export const SDKSessionAccountListItem = ({
       </BadgeWrapper>
       <Text style={styles.dappName}>{sessionName}</Text>
       <Button
-        variant={ButtonVariant.Tertiary}
+        label={strings('sdk.manage')}
+        variant={ButtonVariants.Link}
         onPress={() => onDisconnect(connection.id)}
-      >
-        {strings('sdk.manage')}
-      </Button>
+      />
     </View>
   );
 };

@@ -609,6 +609,35 @@ export const initialState = {
           },
         },
       },
+      SwapsController: {
+        chainCache: {
+          [ethChainId]: {
+            aggregatorMetadata: null,
+            tokens: null,
+            topAssets: [
+              {
+                address: ethToken1Address,
+                symbol: 'TOKEN1',
+              },
+              {
+                address: ethToken2Address,
+                symbol: 'HELLO',
+              },
+            ],
+            aggregatorMetadataLastFetched: 0,
+            topAssetsLastFetched: 0,
+            tokensLastFetched: 0,
+          },
+          [optimismChainId]: {
+            aggregatorMetadata: null,
+            tokens: null,
+            topAssets: null,
+            aggregatorMetadataLastFetched: 0,
+            topAssetsLastFetched: 0,
+            tokensLastFetched: 0,
+          },
+        },
+      },
       KeyringController: {
         vault: '',
         isUnlocked: true,

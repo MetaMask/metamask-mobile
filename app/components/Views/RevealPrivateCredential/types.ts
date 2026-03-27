@@ -1,4 +1,5 @@
 import { RouteProp } from '@react-navigation/native';
+import { createStyles } from './styles';
 import type { RevealPrivateCredentialParams } from './RevealPrivateCredential.types';
 
 export enum RevealSrpStage {
@@ -6,6 +7,8 @@ export enum RevealSrpStage {
   Quiz = 'quiz',
   ActionViewScreen = 'actionViewScreen',
 }
+
+export type RevealPrivateCredentialStyleSheet = ReturnType<typeof createStyles>;
 
 /** Route prop for RevealPrivateCredential screen; params come from canonical RevealPrivateCredentialParams. */
 export type RevealPrivateCredentialRouteProp = RouteProp<
@@ -25,6 +28,7 @@ export interface IRevealPrivateCredentialProps {
 export interface SRPQuizIntroductionProps {
   onGetStarted: () => void;
   onLearnMore: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface SRPSecurityQuizProps {
@@ -34,6 +38,7 @@ export interface SRPSecurityQuizProps {
   onAnswerClick: (buttonIndex: number) => void;
   onContinueClick: () => void;
   onLearnMore: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface SeedPhraseDisplayProps {
@@ -41,20 +46,21 @@ export interface SeedPhraseDisplayProps {
   showSeedPhrase: boolean;
   clipboardEnabled: boolean;
   onCopyToClipboard: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface SeedPhraseConcealerProps {
   onReveal: () => void;
-  testID?: string;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface PasswordEntryProps {
-  password: string;
   onPasswordChange: (password: string) => void;
   onSubmit: () => void;
   warningMessage: string;
   showPassword: boolean;
   onToggleShowPassword: () => void;
+  styles: RevealPrivateCredentialStyleSheet;
 }
 
 export interface SRPTabViewProps {
@@ -64,4 +70,5 @@ export interface SRPTabViewProps {
   onRevealSeedPhrase: () => void;
   onCopyToClipboard: () => void;
   onTabChange: (event: { i: number }) => void;
+  styles: RevealPrivateCredentialStyleSheet;
 }

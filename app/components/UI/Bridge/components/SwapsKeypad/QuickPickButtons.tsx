@@ -1,11 +1,10 @@
 import React from 'react';
 import { View } from 'react-native';
 import { quickPickButtonsStyles as styles } from './styles';
-import {
-  Button,
-  ButtonVariant,
-  ButtonBaseSize,
-} from '@metamask/design-system-react-native';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../../component-library/components/Buttons/Button';
 import { QuickPickButtonOption } from './types';
 
 interface Props {
@@ -23,13 +22,12 @@ export const QuickPickButtons = ({ options, show }: Props) => {
       {options.map((option) => (
         <Button
           key={option.label}
-          variant={ButtonVariant.Secondary}
-          size={ButtonBaseSize.Lg}
+          variant={ButtonVariants.Secondary}
+          size={ButtonSize.Lg}
+          label={option.label}
           onPress={option.onPress}
           style={styles.button}
-        >
-          {option.label}
-        </Button>
+        />
       ))}
     </View>
   );

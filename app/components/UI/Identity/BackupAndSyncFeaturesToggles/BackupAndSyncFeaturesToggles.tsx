@@ -20,8 +20,7 @@ import Icon, {
   IconName,
 } from '../../../../component-library/components/Icons/Icon';
 import { strings } from '../../../../../locales/i18n';
-import { MetaMetricsEvents } from '../../../../core/Analytics';
-import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { BACKUP_AND_SYNC_FEATURES_TOGGLES_TEST_IDS } from './BackupAndSyncFeaturesToggles.testIds';
 
 export const backupAndSyncFeaturesTogglesSections = [
@@ -53,7 +52,7 @@ const FeatureToggle = ({
   isBackupAndSyncEnabled: boolean;
 }) => {
   const theme = useTheme();
-  const { trackEvent, createEventBuilder } = useAnalytics();
+  const { trackEvent, createEventBuilder } = useMetrics();
   const { setIsBackupAndSyncFeatureEnabled } = useBackupAndSync();
 
   const { colors } = theme;

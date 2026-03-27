@@ -214,7 +214,7 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton).toBeDisabled();
+      expect(confirmButton.props.disabled).toBe(true);
     });
 
     it('disables confirm button when quotes are loading', () => {
@@ -225,7 +225,7 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton).toBeDisabled();
+      expect(confirmButton.props.disabled).toBe(true);
     });
 
     it('disables confirm button when alerts contain isBlocking entry', () => {
@@ -246,7 +246,7 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton).toBeDisabled();
+      expect(confirmButton.props.disabled).toBe(true);
     });
 
     it('enables confirm button when not loading and no blocking alerts', () => {
@@ -255,7 +255,7 @@ describe('MusdMaxConversionInfo', () => {
       const confirmButton = screen.getByTestId(
         MusdMaxConversionInfoTestIds.CONFIRM_BUTTON,
       );
-      expect(confirmButton).toBeEnabled();
+      expect(confirmButton.props.disabled).toBe(false);
     });
   });
 });

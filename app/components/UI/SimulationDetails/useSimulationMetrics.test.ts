@@ -8,8 +8,7 @@ import { renderHook } from '@testing-library/react-hooks';
 import { useDispatch } from 'react-redux';
 
 import { updateConfirmationMetric } from '../../../core/redux/slices/confirmationMetrics';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
@@ -24,7 +23,7 @@ import {
   useSimulationMetrics,
 } from './useSimulationMetrics';
 import useLoadingTime from './useLoadingTime';
-import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -42,14 +41,21 @@ jest.mock('react', () => ({
 jest.mock('./useLoadingTime');
 jest.mock('../../hooks/DisplayName/useDisplayName');
 jest.mock('../../../core/redux/slices/confirmationMetrics');
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
+jest.mock('../../../components/hooks/useMetrics');
 const mockTrackEvent = jest.fn();
-jest.mocked(useAnalytics).mockReturnValue(
-  createMockUseAnalyticsHook({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-  }),
-);
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: mockTrackEvent,
+  createEventBuilder: MetricsEventBuilder.createEventBuilder,
+  enable: jest.fn(),
+  addTraitsToUser: jest.fn(),
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 jest.mock('../../../selectors/networkController');
 
@@ -390,7 +396,7 @@ describe('useSimulationMetrics', () => {
 
       expect(mockTrackEvent).toHaveBeenCalledTimes(1);
       expect(mockTrackEvent).toHaveBeenCalledWith(
-        AnalyticsEventBuilder.createEventBuilder(
+        MetricsEventBuilder.createEventBuilder(
           MetaMetricsEvents.INCOMPLETE_ASSET_DISPLAYED,
         )
           .addProperties({

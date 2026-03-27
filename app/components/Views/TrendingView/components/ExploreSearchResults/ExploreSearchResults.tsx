@@ -1,39 +1,15 @@
 import React, { useMemo, useCallback, useRef, useEffect } from 'react';
 import { FlashList, ListRenderItem, FlashListRef } from '@shopify/flash-list';
-import { useNavigation, NavigationProp } from '@react-navigation/native';
-import type { RootStackParamList } from '../../../../../core/NavigationService/types';
-import {
-  Box,
-  Text,
-  TextVariant,
-  TextColor,
-  Icon,
-  IconName,
-  IconSize,
-  IconColor,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
-} from '@metamask/design-system-react-native';
+import { useNavigation } from '@react-navigation/native';
+import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Pressable } from 'react-native';
 import { SECTIONS_CONFIG, type SectionId } from '../../sections.config';
-import { MetaMetricsEvents } from '../../../../../core/Analytics/MetaMetrics.events';
-import {
-  TrackedRowItem,
-  trackExploreEvent,
-  useScrollTracking,
-} from '../../utils/exploreSearch';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
 import SitesSearchFooter from '../../../../UI/Sites/components/SitesSearchFooter/SitesSearchFooter';
 import { useSelector } from 'react-redux';
 import { useSearchTracking } from '../../../../UI/Trending/hooks/useSearchTracking/useSearchTracking';
 import { TimeOption } from '../../../../UI/Trending/components/TrendingTokensBottomSheet/TrendingTokenTimeBottomSheet';
-import Routes from '../../../../../constants/navigation/Routes';
-import { strings } from '../../../../../../locales/i18n';
-
-const MAX_ITEMS_PER_SECTION = 3;
 
 interface ExploreSearchResultsProps {
   searchQuery: string;
@@ -41,9 +17,7 @@ interface ExploreSearchResultsProps {
 
 interface ListItemHeader {
   type: 'header';
-  sectionId: SectionId;
-  title: string;
-  hasMore: boolean;
+  data: string;
 }
 
 interface ListItemData {
@@ -63,7 +37,7 @@ type FlatListItem = ListItemHeader | ListItemData | ListItemSkeleton;
 const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   searchQuery,
 }) => {
-  const navigation = useNavigation<NavigationProp<RootStackParamList>>();
+  const navigation = useNavigation();
   const tw = useTailwind();
   const { data, isLoading, sectionsOrder } = useExploreSearch(searchQuery);
   const flashListRef = useRef<FlashListRef<FlatListItem>>(null);
@@ -71,77 +45,22 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     selectBasicFunctionalityEnabled,
   );
 
-  const { onScrollBeginDrag, resetScrollTracking } = useScrollTracking(
-    'scrolled',
-    searchQuery,
-  );
-
-  useEffect(() => {
-    resetScrollTracking();
-  }, [searchQuery, resetScrollTracking]);
-
-  const handleViewMore = useCallback(
-    (sectionId: SectionId, title: string) => {
-      trackExploreEvent(MetaMetricsEvents.EXPLORE_SEARCH_INTERACTED, {
-        interaction_type: 'view_all_clicked',
-        search_query: searchQuery,
-        section_name: title,
-      });
-      navigation.navigate(Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW, {
-        sectionId,
-        title,
-        searchQuery,
-        data: data[sectionId],
-      });
-    },
-    [navigation, searchQuery, data],
-  );
-
   const renderSectionHeader = useCallback(
-    (item: ListItemHeader) => (
-      <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Between}
-        twClassName="py-2 bg-default"
-      >
+    (title: string) => (
+      <Box twClassName="py-2 bg-default">
         <Text variant={TextVariant.HeadingSm} twClassName="text-alternative">
-          {item.title}
+          {title}
         </Text>
-        {item.hasMore && (
-          <Pressable
-            onPress={() => handleViewMore(item.sectionId, item.title)}
-            hitSlop={8}
-            accessibilityRole="button"
-            accessibilityLabel={`${strings('trending.view_all')} ${item.title}`}
-            style={({ pressed }) =>
-              tw.style(
-                'flex-row items-center gap-1 rounded px-1',
-                pressed && 'opacity-50',
-              )
-            }
-          >
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {strings('trending.view_all')}
-            </Text>
-            <Icon
-              name={IconName.ArrowRight}
-              size={IconSize.Sm}
-              color={IconColor.IconAlternative}
-            />
-          </Pressable>
-        )}
       </Box>
     ),
-    [handleViewMore, tw],
+    [],
   );
 
+  // Build flat list data with sections
   const flatData = useMemo(() => {
     const result: FlatListItem[] = [];
 
+    // Filter sections based on basic functionality toggle
     const sectionIdsToShow = isBasicFunctionalityEnabled ? sectionsOrder : [];
 
     sectionIdsToShow.forEach((sectionId) => {
@@ -151,19 +70,17 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
       const items = data[sectionId];
       const sectionIsLoading = isLoading[sectionId];
 
+      // Show section if it has items or is loading
       if ((items && items.length > 0) || sectionIsLoading) {
-        const hasMore =
-          !sectionIsLoading && (items?.length ?? 0) > MAX_ITEMS_PER_SECTION;
-
+        // Add section header
         result.push({
           type: 'header',
-          sectionId,
-          title: section.title,
-          hasMore,
+          data: section.title,
         });
 
         if (sectionIsLoading) {
-          for (let i = 0; i < MAX_ITEMS_PER_SECTION; i++) {
+          // Show 3 skeleton items while loading
+          for (let i = 0; i < 3; i++) {
             result.push({
               type: 'skeleton',
               sectionId,
@@ -171,8 +88,8 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
             });
           }
         } else {
-          const visibleItems = items.slice(0, MAX_ITEMS_PER_SECTION);
-          visibleItems.forEach((item) => {
+          // Add section items
+          items.forEach((item) => {
             result.push({
               type: 'item',
               sectionId,
@@ -186,6 +103,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     return result;
   }, [data, isLoading, isBasicFunctionalityEnabled, sectionsOrder]);
 
+  // Scroll to top when search query changes
   useEffect(() => {
     if (flatData.length > 0) {
       flashListRef.current?.scrollToIndex({
@@ -195,6 +113,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
     }
   }, [searchQuery, flatData.length]);
 
+  // Track search events for tokens section
   useSearchTracking({
     searchQuery,
     resultsCount: data.tokens?.length || 0,
@@ -213,7 +132,7 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
   const renderFlatItem: ListRenderItem<FlatListItem> = useCallback(
     ({ item, index }) => {
       if (item.type === 'header') {
-        return renderSectionHeader(item);
+        return renderSectionHeader(item.data);
       }
 
       const section = SECTIONS_CONFIG[item.sectionId];
@@ -226,21 +145,30 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         return <section.Skeleton />;
       }
 
+      if (section.OverrideRowItemSearch) {
+        return (
+          <section.OverrideRowItemSearch
+            item={item.data}
+            index={index}
+            navigation={navigation}
+          />
+        );
+      }
+
+      // Cast navigation to 'never' to satisfy different navigation param list types
       return (
-        <TrackedRowItem
-          section={section}
+        <section.RowItem
           item={item.data}
           index={index}
-          searchQuery={searchQuery}
-          interactionType="result_clicked"
+          navigation={navigation}
         />
       );
     },
-    [renderSectionHeader, searchQuery],
+    [navigation, renderSectionHeader],
   );
 
   const keyExtractor = useCallback((item: FlatListItem, index: number) => {
-    if (item.type === 'header') return `header-${item.sectionId}`;
+    if (item.type === 'header') return `header-${item.data}`;
     if (item.type === 'skeleton')
       return `skeleton-${item.sectionId}-${item.index}`;
 
@@ -261,7 +189,6 @@ const ExploreSearchResults: React.FC<ExploreSearchResultsProps> = ({
         keyboardShouldPersistTaps="handled"
         testID="trending-search-results-list"
         ListFooterComponent={renderFooter}
-        onScrollBeginDrag={onScrollBeginDrag}
       />
     </Box>
   );

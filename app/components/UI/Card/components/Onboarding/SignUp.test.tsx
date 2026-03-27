@@ -85,25 +85,9 @@ jest.mock('./OnboardingStep', () => {
 });
 
 // Create test store
-// SignUp reads geoLocation from state.engine.backgroundState.GeolocationController.location
-// via selectGeolocationLocation. Pass { geoLocation: 'US' } etc. to control it.
-const createTestStore = (initialState: Record<string, unknown> = {}) => {
-  const { geoLocation, ...cardState } = initialState;
-  const engineState = {
-    backgroundState: {
-      GeolocationController:
-        typeof geoLocation === 'string' ? { location: geoLocation } : undefined,
-    },
-  };
-
-  return configureStore({
+const createTestStore = (initialState = {}) =>
+  configureStore({
     reducer: {
-      engine: (state = engineState, action = { type: '', payload: null }) => {
-        switch (action.type) {
-          default:
-            return state;
-        }
-      },
       card: (
         state = {
           onboarding: {
@@ -113,7 +97,8 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
             user: null,
           },
           userCardLocation: 'international',
-          ...cardState,
+          geoLocation: 'UNKNOWN',
+          ...initialState,
         },
         action = { type: '', payload: null },
       ) => {
@@ -129,7 +114,6 @@ const createTestStore = (initialState: Record<string, unknown> = {}) => {
       },
     },
   });
-};
 
 describe('SignUp Component', () => {
   let store: ReturnType<typeof createTestStore>;
@@ -181,7 +165,7 @@ describe('SignUp Component', () => {
       );
 
       const continueButton = getByTestId('signup-continue-button');
-      expect(continueButton).toBeDisabled();
+      expect(continueButton.props.disabled).toBe(true);
     });
 
     it('does not show error messages initially', () => {
@@ -460,7 +444,7 @@ describe('SignUp Component', () => {
 
       expect(queryByText('United Kingdom')).toBeNull();
       // Continue button must remain disabled — no eligible country was selected
-      expect(getByTestId('signup-continue-button')).toBeDisabled();
+      expect(getByTestId('signup-continue-button').props.disabled).toBe(true);
       expect(storeWithGB.getState().card.userCardLocation).toBe(
         'international',
       );
@@ -533,7 +517,7 @@ describe('SignUp Component', () => {
       // Now check if the continue button is enabled
       await waitFor(
         () => {
-          expect(continueButton).toBeEnabled();
+          expect(continueButton.props.disabled).toBe(false);
         },
         { timeout: 3000 },
       );
@@ -559,7 +543,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton).toBeDisabled();
+        expect(continueButton.props.disabled).toBe(true);
       });
     });
 
@@ -590,7 +574,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton).toBeDisabled();
+        expect(continueButton.props.disabled).toBe(true);
       });
     });
 
@@ -612,7 +596,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton).toBeDisabled();
+        expect(continueButton.props.disabled).toBe(true);
       });
     });
   });
@@ -637,7 +621,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton).toBeEnabled();
+        expect(continueButton.props.disabled).toBe(false);
       });
 
       await act(async () => {
@@ -666,7 +650,7 @@ describe('SignUp Component', () => {
       });
 
       await waitFor(() => {
-        expect(continueButton).toBeEnabled();
+        expect(continueButton.props.disabled).toBe(false);
       });
 
       await act(async () => {

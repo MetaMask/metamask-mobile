@@ -2,11 +2,11 @@ import React, { useCallback } from 'react';
 
 import { strings } from '../../../../../../../../locales/i18n';
 import Routes from '../../../../../../../constants/navigation/Routes';
-import {
-  Button,
+import Button, {
   ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../../../component-library/components/Buttons/Button';
 import { useParams } from '../../../../../../../util/navigation/navUtils.ts';
 import { useStyles } from '../../../../../../hooks/useStyles';
 import { AssetType, TokenStandard } from '../../../../types/token';
@@ -135,16 +135,17 @@ export const AmountKeyboard = ({
       additionalRow={
         amount.length > 0 || isNFT ? (
           <Button
-            isDisabled={Boolean(amountError) || !amount}
+            disabled={Boolean(amountError) || !amount}
+            label={
+              amountError ??
+              (isNFT ? strings('send.next') : strings('send.continue'))
+            }
             onPress={goToNextPage}
             size={ButtonSize.Lg}
             style={styles.continueButton}
-            variant={ButtonVariant.Primary}
-            isFullWidth
-          >
-            {amountError ??
-              (isNFT ? strings('send.next') : strings('send.continue'))}
-          </Button>
+            variant={ButtonVariants.Primary}
+            width={ButtonWidthTypes.Full}
+          />
         ) : undefined
       }
       enableEmptyValueString

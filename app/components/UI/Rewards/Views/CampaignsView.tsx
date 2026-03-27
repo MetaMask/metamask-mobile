@@ -91,6 +91,7 @@ const CampaignsView: React.FC = () => {
           title={strings('rewards.campaigns_view.previous_title')}
           campaigns={previous}
           testID={REWARDS_VIEW_SELECTORS.CAMPAIGNS_PREVIOUS_SECTION}
+          displayPreviousSeason
         />
       </Box>
     );

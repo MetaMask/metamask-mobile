@@ -40,12 +40,18 @@ jest.mock('../../../hooks/useFeatureFlagStats', () => ({
 }));
 
 // Mock theme
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      primary: { default: '#0376C9' },
+      border: { default: '#D6D9DC', muted: '#F2F4F6' },
+      text: { default: '#24272A', muted: '#6A737D', alternative: '#535A61' },
+      background: { default: '#FFFFFF', alternative: '#F8F9FA' },
+      warning: { muted: '#FFF4E6' },
+    },
+    brandColors: { white: '#FFFFFF' },
+  })),
+}));
 
 // Mock Tailwind
 jest.mock('@metamask/design-system-twrnc-preset', () => ({
@@ -65,9 +71,10 @@ jest.mock('@metamask/design-system-twrnc-preset', () => ({
   }),
 }));
 
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => ({
+// Mock useMetrics
+jest.mock('../../hooks/useMetrics/useMetrics', () => ({
   __esModule: true,
-  useAnalytics: jest.fn(() => ({
+  default: jest.fn(() => ({
     addTraitsToUser: jest.fn(),
   })),
 }));

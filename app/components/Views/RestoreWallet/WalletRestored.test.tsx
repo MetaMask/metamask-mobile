@@ -4,12 +4,11 @@ import { Linking } from 'react-native';
 import FilesystemStorage from 'redux-persist-filesystem-storage';
 import WalletRestored from './WalletRestored';
 import { useNavigation, StackActions } from '@react-navigation/native';
-import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../../components/hooks/useMetrics';
 import generateDeviceAnalyticsMetaData from '../../../util/metrics';
 import Routes from '../../../constants/navigation/Routes';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import renderWithProvider from '../../../util/test/renderWithProvider';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
 
@@ -42,7 +41,7 @@ jest.mock('../../../util/theme', () => ({
     },
   })),
 }));
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics');
+jest.mock('../../../components/hooks/useMetrics');
 jest.mock('../../../util/metrics');
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
   addEventListener: jest.fn(),
@@ -78,12 +77,10 @@ describe('WalletRestored', () => {
     });
 
     (useNavigation as jest.Mock).mockReturnValue(mockNavigation);
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
+    (useMetrics as jest.Mock).mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: mockCreateEventBuilder,
+    });
     (generateDeviceAnalyticsMetaData as jest.Mock).mockReturnValue({
       os: 'ios',
       version: '1.0.0',

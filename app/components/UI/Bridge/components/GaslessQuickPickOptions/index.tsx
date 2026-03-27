@@ -2,6 +2,8 @@ import React, { useCallback, useMemo } from 'react';
 import { QuickPickButtonOption } from '../SwapsKeypad/types';
 import { QuickPickButtons } from '../SwapsKeypad/QuickPickButtons';
 import { useShouldRenderMaxOption } from '../../hooks/useShouldRenderMaxOption';
+import { KeypadChangeData, Keys } from '../../../../Base/Keypad';
+import { useLatestBalance } from '../../hooks/useLatestBalance';
 import { BridgeToken } from '../../types';
 import { BigNumber } from 'bignumber.js';
 import { useABTest } from '../../../../../hooks';
@@ -15,19 +17,22 @@ import { useTrackInputAmountChange } from './useTrackInputAmountChange';
 
 interface GaslessQuickPickOptionsProps {
   token?: BridgeToken;
-  tokenBalance?: string;
   onMaxPress: () => void;
-  onAmountSelect: (value: string) => void;
+  onChange: (data: KeypadChangeData) => void;
   isQuoteSponsored?: boolean;
 }
 
 export const GaslessQuickPickOptions = ({
-  onAmountSelect,
+  onChange,
   onMaxPress,
   token,
-  tokenBalance,
   isQuoteSponsored,
 }: GaslessQuickPickOptionsProps) => {
+  const tokenBalance = useLatestBalance({
+    address: token?.address,
+    decimals: token?.decimals,
+    chainId: token?.chainId,
+  });
   const { variantName } = useABTest(
     NUMPAD_QUICK_ACTIONS_AB_KEY,
     NUMPAD_QUICK_ACTIONS_VARIANTS,
@@ -40,21 +45,23 @@ export const GaslessQuickPickOptions = ({
 
   const onQuickOptionPress = useCallback(
     (percentage: number) => () => {
-      if (!tokenBalance) {
-        return;
-      }
+      if (!tokenBalance?.displayBalance) return '0';
 
-      const balance = new BigNumber(tokenBalance);
+      const balance = new BigNumber(tokenBalance.displayBalance);
       const amount = balance
         .multipliedBy(percentage / 100)
         .decimalPlaces(token?.decimals ?? 18, BigNumber.ROUND_DOWN);
 
-      onAmountSelect(amount.toString());
+      onChange({
+        value: amount.toString(),
+        valueAsNumber: Number(amount),
+        pressedKey: Keys.Initial,
+      });
 
       const preset = `${percentage}%`;
       trackInputAmountChange({ inputValue: amount.toString(), preset });
     },
-    [tokenBalance, token?.decimals, onAmountSelect, trackInputAmountChange],
+    [tokenBalance, token?.decimals, onChange, trackInputAmountChange],
   );
 
   const handleTrackedMaxPress = useCallback(() => {
@@ -64,7 +71,7 @@ export const GaslessQuickPickOptions = ({
 
   const shouldRenderMaxOption = useShouldRenderMaxOption(
     token,
-    tokenBalance,
+    tokenBalance?.displayBalance,
     isQuoteSponsored,
   );
 

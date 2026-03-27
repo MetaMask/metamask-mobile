@@ -12,7 +12,6 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { getCampaignStatusInfo } from './CampaignTile.utils';
-import { strings } from '../../../../../../locales/i18n';
 
 export const CAMPAIGN_STATUS_TEST_IDS = {
   CONTAINER: 'campaign-status-container',
@@ -25,13 +24,9 @@ export const CAMPAIGN_STATUS_TEST_IDS = {
 
 interface CampaignStatusProps {
   campaign: CampaignDto;
-  optedIn?: boolean;
 }
 
-const CampaignStatus: React.FC<CampaignStatusProps> = ({
-  campaign,
-  optedIn = false,
-}) => {
+const CampaignStatus: React.FC<CampaignStatusProps> = ({ campaign }) => {
   const tw = useTailwind();
   const colorScheme = useColorScheme();
 
@@ -42,8 +37,8 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
 
   const backgroundImageUrl =
     colorScheme === 'dark'
-      ? campaign.image?.darkModeUrl
-      : campaign.image?.lightModeUrl;
+      ? campaign.details?.image?.darkModeUrl
+      : campaign.details?.image?.lightModeUrl;
 
   const howItWorksTitle = campaign.details?.howItWorks?.title;
   const howItWorksDescription = campaign.details?.howItWorks?.description;
@@ -65,12 +60,7 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
           alignItems={BoxAlignItems.Center}
           twClassName="gap-1"
         >
-          <Box
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-            twClassName="gap-1"
-            testID={CAMPAIGN_STATUS_TEST_IDS.STATUS_LABEL}
-          >
+          <Box testID={CAMPAIGN_STATUS_TEST_IDS.STATUS_LABEL}>
             <Text
               variant={TextVariant.BodyMd}
               fontWeight={FontWeight.Medium}
@@ -78,15 +68,6 @@ const CampaignStatus: React.FC<CampaignStatusProps> = ({
             >
               {statusLabel}
             </Text>
-            {optedIn && (
-              <Text
-                variant={TextVariant.BodyMd}
-                fontWeight={FontWeight.Medium}
-                color={TextColor.SuccessDefault}
-              >
-                ({strings('rewards.campaign.entered')})
-              </Text>
-            )}
           </Box>
 
           <Box

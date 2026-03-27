@@ -1,12 +1,10 @@
-import React, { type ComponentProps } from 'react';
-import { useWindowDimensions } from 'react-native';
+import React from 'react';
+import { useWindowDimensions, View } from 'react-native';
 import { FlatList } from 'react-native-gesture-handler';
-
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box } from '@metamask/design-system-react-native';
-
 import { strings } from '../../../../locales/i18n';
 import { SRPListProps } from './SRPList.types';
+import { useStyles } from '../../hooks/useStyles';
+import styleSheet from './SRPList.styles';
 import SRPListItem from '../SRPListItem';
 import { SRPListSelectorsIDs } from './SRPList.testIds';
 import { useHdKeyringsWithSnapAccounts } from '../../hooks/useHdKeyringsWithSnapAccounts';
@@ -19,29 +17,24 @@ const SRPList = ({
   containerStyle,
   showArrowName = '',
 }: SRPListProps) => {
+  // trigger sync SRP when SRP list is shown
   useSyncSRPs();
 
   const { height: windowHeight } = useWindowDimensions();
   const maxHeight = windowHeight * 0.7;
-  const tw = useTailwind();
+  const { styles } = useStyles(styleSheet, { maxHeight });
   const hdKeyringsWithSnapAccounts = useHdKeyringsWithSnapAccounts();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   return (
-    <Box
-      twClassName="py-4 px-4 bg-default m-2"
-      style={
-        {
-          maxHeight,
-          ...(containerStyle ?? {}),
-        } as ComponentProps<typeof Box>['style']
-      }
+    <View
+      style={[styles.base, containerStyle]}
       testID={SRPListSelectorsIDs.SRP_LIST}
     >
       <FlatList
-        style={tw.style('flex-grow-0')}
+        style={styles.flatList}
         data={hdKeyringsWithSnapAccounts}
-        contentContainerStyle={tw.style('py-1 gap-y-4')}
+        contentContainerStyle={styles.srpListContentContainer}
         renderItem={({ item, index }) => (
           <SRPListItem
             key={item.metadata.id}
@@ -65,7 +58,7 @@ const SRPList = ({
         scrollEnabled
         nestedScrollEnabled
       />
-    </Box>
+    </View>
   );
 };
 

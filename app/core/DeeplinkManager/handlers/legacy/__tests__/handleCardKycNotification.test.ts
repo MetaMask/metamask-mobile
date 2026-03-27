@@ -7,6 +7,7 @@ import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
   selectUserCardLocation,
+  selectCardGeoLocation,
   selectAlwaysShowCardButton,
 } from '../../../../redux/slices/card';
 import {
@@ -14,7 +15,6 @@ import {
   selectDisplayCardButtonFeatureFlag,
   selectCardFeatureFlag,
 } from '../../../../../selectors/featureFlagController/card';
-import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 import { CardSDK } from '../../../../../components/UI/Card/sdk/CardSDK';
 
 jest.mock('../../../../redux', () => ({
@@ -28,7 +28,6 @@ jest.mock('../../../../redux', () => ({
 jest.mock('../../../../NavigationService');
 jest.mock('../../../../redux/slices/card');
 jest.mock('../../../../../selectors/featureFlagController/card');
-jest.mock('../../../../../selectors/geolocationController');
 jest.mock('../../../../../util/Logger');
 jest.mock('../../../../../components/UI/Card/sdk/CardSDK');
 jest.mock('../../../../../components/UI/Card/util/mapCountryToLocation');
@@ -72,7 +71,7 @@ describe('handleCardKycNotification', () => {
     (selectUserCardLocation as unknown as jest.Mock).mockReturnValue(
       'international',
     );
-    (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('US');
+    (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('US');
     (selectAlwaysShowCardButton as unknown as jest.Mock).mockReturnValue(false);
     (
       selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
@@ -119,7 +118,7 @@ describe('handleCardKycNotification', () => {
       (
         selectDisplayCardButtonFeatureFlag as unknown as jest.Mock
       ).mockReturnValue(true);
-      (selectGeolocationLocation as unknown as jest.Mock).mockReturnValue('GB');
+      (selectCardGeoLocation as unknown as jest.Mock).mockReturnValue('GB');
       (selectCardSupportedCountries as unknown as jest.Mock).mockReturnValue({
         GB: true,
       });

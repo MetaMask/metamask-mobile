@@ -23,12 +23,12 @@ import { strings } from '../../../../locales/i18n';
 // Internal dependencies
 import createStyles from './ShowDisplayNFTMediaSheet.styles';
 import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const ShowDisplayNftMediaSheet = () => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
-  const { identify } = useAnalytics();
+  const { addTraitsToUser } = useMetrics();
 
   const onConfirm = () => {
     const { PreferencesController } = Engine.context;
@@ -37,7 +37,7 @@ const ShowDisplayNftMediaSheet = () => {
       const traits = {
         [UserProfileProperty.ENABLE_OPENSEA_API]: UserProfileProperty.ON,
       };
-      identify(traits);
+      addTraitsToUser(traits);
     });
   };
 

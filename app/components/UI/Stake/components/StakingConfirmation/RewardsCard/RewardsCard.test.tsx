@@ -62,6 +62,7 @@ describe('RewardsCard', () => {
         tooltip: strings('tooltip_modal.reward_rate.tooltip'),
         footerText: undefined,
         buttonText: undefined,
+        bottomPadding: undefined,
       },
       screen: 'tooltipModal',
     });
@@ -93,6 +94,7 @@ describe('RewardsCard', () => {
         tooltip: strings('tooltip_modal.reward_frequency.tooltip'),
         footerText: undefined,
         buttonText: undefined,
+        bottomPadding: undefined,
       },
       screen: 'tooltipModal',
     });

@@ -1,6 +1,6 @@
 /* eslint-disable import-x/prefer-default-export */
 import { useMemo } from 'react';
-import { useAppThemeFromContext, mockTheme } from '../../util/theme';
+import { useAppThemeFromContext } from '../../util/theme';
 import { Theme } from '../../util/theme/models';
 
 /**
@@ -28,7 +28,7 @@ export function useStyles<R, V>(
     | ((params: { theme: Theme }) => R),
   vars?: V,
 ): { styles: R; theme: Theme } {
-  const theme = useAppThemeFromContext() || mockTheme;
+  const theme = useAppThemeFromContext();
   const styles = useMemo(
     () => styleSheet({ theme, vars: vars as V }),
     [styleSheet, theme, vars],

@@ -33,7 +33,6 @@ import {
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
   PERPS_CONSTANTS,
-  DECIMAL_PRECISION_CONFIG,
 } from '@metamask/perps-controller';
 import { usePerpsLivePrices } from '../../hooks/stream';
 import { usePerpsEventTracking } from '../../hooks/usePerpsEventTracking';
@@ -75,7 +74,6 @@ const PerpsTPSLView: React.FC = () => {
   const [isUpdating, setIsUpdating] = useState(false);
   const { colors } = useTheme();
   const styles = createStyles(colors);
-
   const scrollViewRef = useRef<ScrollView>(null);
 
   // Keypad state management
@@ -109,21 +107,6 @@ const PerpsTPSLView: React.FC = () => {
   const hasValidLimitPrice =
     orderType === 'limit' && limitPrice && parseFloat(limitPrice) > 0;
   const currentPrice = hasValidLimitPrice ? parseFloat(limitPrice) : spotPrice;
-
-  // Compute keypad decimal places from current price so low-value assets
-  // (e.g. PUMP at ~$0.002) get enough decimal places to enter a trigger price.
-  // Formula: floor(-log10(price)) + MaxSignificantFigures, clamped to [2, MaxPriceDecimals].
-  const keypadDecimals =
-    currentPrice > 0 && isFinite(currentPrice)
-      ? Math.min(
-          Math.max(
-            2,
-            Math.floor(-Math.log10(currentPrice)) +
-              DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
-          ),
-          DECIMAL_PRECISION_CONFIG.MaxPriceDecimals,
-        )
-      : DECIMAL_PRECISION_CONFIG.MaxPriceDecimals;
 
   // Determine the entry price based on order type
   // For limit orders, use the limit price as entry price if available
@@ -588,7 +571,6 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={takeProfitPriceRef}
-                  testID={PerpsTPSLViewSelectorsIDs.TAKE_PROFIT_PRICE_INPUT}
                   style={styles.input}
                   value={takeProfitPrice}
                   onChangeText={(text) => {
@@ -759,7 +741,6 @@ const PerpsTPSLView: React.FC = () => {
                 </Text>
                 <TextInput
                   ref={stopLossPriceRef}
-                  testID={PerpsTPSLViewSelectorsIDs.STOP_LOSS_PRICE_INPUT}
                   style={styles.input}
                   value={stopLossPrice}
                   onChangeText={(text) => {
@@ -885,12 +866,7 @@ const PerpsTPSLView: React.FC = () => {
                 })()}
                 onChange={handleKeypadChange}
                 currency={TP_SL_VIEW_CONFIG.KeypadCurrencyCode}
-                decimals={
-                  focusedInput === 'takeProfitPercentage' ||
-                  focusedInput === 'stopLossPercentage'
-                    ? TP_SL_VIEW_CONFIG.KeypadDecimals
-                    : keypadDecimals
-                }
+                decimals={TP_SL_VIEW_CONFIG.KeypadDecimals}
               />
             </View>
           </>

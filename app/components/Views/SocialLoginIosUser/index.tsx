@@ -11,11 +11,11 @@ import Text, {
   TextVariant,
   TextColor,
 } from '../../../component-library/components/Texts/Text';
-import {
-  Button,
+import Button, {
   ButtonSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../locales/i18n';
 import Routes from '../../../constants/navigation/Routes';
 import { PREVIOUS_SCREEN, ONBOARDING } from '../../../constants/navigation';
@@ -97,22 +97,21 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
 
         <View style={styles.ctaContainer}>
           <Button
-            variant={ButtonVariant.Primary}
+            variant={ButtonVariants.Primary}
             testID={
               isUserTypeNew
                 ? OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_NEW_USER_BUTTON
                 : OnboardingSelectorIDs.SOCIAL_LOGIN_IOS_EXISTING_USER_BUTTON
             }
-            isFullWidth
+            width={ButtonWidthTypes.Full}
             size={Device.isMediumDevice() ? ButtonSize.Md : ButtonSize.Lg}
-            onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
-          >
-            {strings(
+            label={strings(
               isUserTypeNew
                 ? 'social_login_ios_user.new_user_button'
                 : 'social_login_ios_user.existing_user_button',
             )}
-          </Button>
+            onPress={isUserTypeNew ? handleSetMetaMaskPin : handleSecureWallet}
+          />
         </View>
       </View>
     </SafeAreaView>

@@ -2,6 +2,7 @@ import { useCallback, useState } from 'react';
 import { useSelector } from 'react-redux';
 import Engine from '../../../../core/Engine';
 import { selectRewardsSubscriptionId } from '../../../../selectors/rewards';
+import { selectCampaignsRewardsEnabledFlag } from '../../../../selectors/featureFlagController/rewards';
 import type { CampaignParticipantStatusDto } from '../../../../core/Engine/controllers/rewards-controller/types';
 
 export interface UseOptInToCampaignResult {
@@ -19,9 +20,11 @@ export interface UseOptInToCampaignResult {
 
 /**
  * Hook to opt the current subscription into a campaign.
+ * Returns null immediately when the campaigns feature flag is disabled.
  */
 export const useOptInToCampaign = (): UseOptInToCampaignResult => {
   const subscriptionId = useSelector(selectRewardsSubscriptionId);
+  const isCampaignsEnabled = useSelector(selectCampaignsRewardsEnabledFlag);
   const [isOptingIn, setIsOptingIn] = useState(false);
   const [optInError, setOptInError] = useState<string | undefined>(undefined);
 
@@ -29,7 +32,7 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
     async (
       campaignId: string,
     ): Promise<CampaignParticipantStatusDto | null> => {
-      if (!subscriptionId) {
+      if (!isCampaignsEnabled || !subscriptionId) {
         return null;
       }
 
@@ -50,7 +53,7 @@ export const useOptInToCampaign = (): UseOptInToCampaignResult => {
         setIsOptingIn(false);
       }
     },
-    [subscriptionId],
+    [subscriptionId, isCampaignsEnabled],
   );
 
   const clearOptInError = useCallback(() => setOptInError(undefined), []);

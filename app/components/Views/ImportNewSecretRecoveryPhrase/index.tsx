@@ -9,6 +9,11 @@ import React, {
 import { Alert, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation } from '@react-navigation/native';
+import Button, {
+  ButtonVariants,
+  ButtonSize,
+  ButtonWidthTypes,
+} from '../../../component-library/components/Buttons/Button';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import {
   KeyboardAwareScrollView,
@@ -22,10 +27,7 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
-  Button,
   ButtonIcon,
-  ButtonSize,
-  ButtonVariant,
   IconName,
   IconColor,
   Text,
@@ -181,10 +183,7 @@ const ImportNewSecretRecoveryPhrase = () => {
     try {
       // check if seedless pwd is outdated skip cache before importing SRP
       const isSeedlessPwdOutdated =
-        await Authentication.checkIsSeedlessPasswordOutdated({
-          skipCache: true,
-          captureSentryError: true,
-        });
+        await Authentication.checkIsSeedlessPasswordOutdated(true);
       if (isSeedlessPwdOutdated) {
         // no need to handle error here, password outdated state will trigger modal that force user to log out
         setLoading(false);
@@ -318,16 +317,15 @@ const ImportNewSecretRecoveryPhrase = () => {
       </KeyboardAwareScrollView>
       <Box twClassName="px-4 py-4 bg-default">
         <Button
-          variant={ButtonVariant.Primary}
+          variant={ButtonVariants.Primary}
           size={ButtonSize.Lg}
-          isFullWidth
+          width={ButtonWidthTypes.Full}
+          label={strings('import_new_secret_recovery_phrase.cta_text')}
           onPress={onSubmit}
           isDisabled={isSRPContinueButtonDisabled || loading}
-          isLoading={loading}
+          loading={loading}
           testID={ImportSRPIDs.IMPORT_BUTTON}
-        >
-          {strings('import_new_secret_recovery_phrase.cta_text')}
-        </Button>
+        />
       </Box>
       {isSrpWordSuggestionsEnabled && isKeyboardVisible && (
         <KeyboardStickyView

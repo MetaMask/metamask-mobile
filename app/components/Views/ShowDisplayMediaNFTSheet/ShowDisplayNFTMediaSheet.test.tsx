@@ -7,8 +7,7 @@ import ShowDisplayNFTMediaSheet from './ShowDisplayNFTMediaSheet';
 import Routes from '../../../constants/navigation/Routes';
 import { fireEvent } from '@testing-library/react-native';
 import Engine from '../../../core/Engine';
-import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { useMetrics } from '../../hooks/useMetrics';
 
 const setDisplayNftMediaSpy = jest.spyOn(
   Engine.context.PreferencesController,
@@ -29,15 +28,23 @@ const initialState = {
   },
 };
 
-jest.mock('../../hooks/useAnalytics/useAnalytics');
+jest.mock('../../hooks/useMetrics');
 
-const mockIdentify = jest.fn();
+const mockAddTraitsToUser = jest.fn();
 
-jest.mocked(useAnalytics).mockReturnValue(
-  createMockUseAnalyticsHook({
-    identify: mockIdentify,
-  }),
-);
+(useMetrics as jest.MockedFn<typeof useMetrics>).mockReturnValue({
+  trackEvent: jest.fn(),
+  createEventBuilder: jest.fn(),
+  enable: jest.fn(),
+  addTraitsToUser: mockAddTraitsToUser,
+  createDataDeletionTask: jest.fn(),
+  checkDataDeleteStatus: jest.fn(),
+  getDeleteRegulationCreationDate: jest.fn(),
+  getDeleteRegulationId: jest.fn(),
+  isDataRecorded: jest.fn(),
+  isEnabled: jest.fn(),
+  getMetaMetricsId: jest.fn(),
+});
 
 const Stack = createStackNavigator();
 
@@ -78,7 +85,7 @@ describe('ShowNftSheet', () => {
     fireEvent.press(confirmButton);
 
     expect(setDisplayNftMediaSpy).toHaveBeenCalledWith(true);
-    expect(mockIdentify).toHaveBeenCalledWith({
+    expect(mockAddTraitsToUser).toHaveBeenCalledWith({
       'Enable OpenSea API': 'ON',
     });
   });
@@ -100,6 +107,6 @@ describe('ShowNftSheet', () => {
     fireEvent.press(cancelButton);
 
     expect(setDisplayNftMediaSpy).not.toHaveBeenCalled();
-    expect(mockIdentify).not.toHaveBeenCalled();
+    expect(mockAddTraitsToUser).not.toHaveBeenCalled();
   });
 });

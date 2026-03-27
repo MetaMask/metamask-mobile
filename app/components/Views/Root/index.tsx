@@ -22,7 +22,6 @@ import { SnapsExecutionWebView } from '../../../lib/snaps';
 import { ReducedMotionConfig, ReduceMotion } from 'react-native-reanimated';
 import { QueryClientProvider } from '@tanstack/react-query';
 import reactQueryService from '../../../core/ReactQueryService';
-import { HardwareWalletProvider } from '../../../core/HardwareWallet';
 
 /**
  * Top level of the component hierarchy
@@ -73,30 +72,28 @@ const Root = ({ foxCode }: RootProps) => {
     <SafeAreaProvider>
       <Provider store={store}>
         <PersistGate persistor={persistor}>
-          <ErrorBoundary view="Root">
-            {
-              ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-              // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
-              <SnapsExecutionWebView />
-              ///: END:ONLY_INCLUDE_IF
-            }
-            <QueryClientProvider client={reactQueryService.queryClient}>
-              <FeatureFlagOverrideProvider>
-                <ThemeProvider>
-                  <NavigationProvider>
-                    <ControllersGate>
-                      <ToastContextWrapper>
-                        <HardwareWalletProvider>
-                          <ReducedMotionConfig mode={ReduceMotion.Never} />
-                          <App />
-                        </HardwareWalletProvider>
-                      </ToastContextWrapper>
-                    </ControllersGate>
-                  </NavigationProvider>
-                </ThemeProvider>
-              </FeatureFlagOverrideProvider>
-            </QueryClientProvider>
-          </ErrorBoundary>
+          {
+            ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
+            // NOTE: This must be mounted before Engine initialization since Engine interacts with SnapsExecutionWebView
+            <SnapsExecutionWebView />
+            ///: END:ONLY_INCLUDE_IF
+          }
+          <QueryClientProvider client={reactQueryService.queryClient}>
+            <FeatureFlagOverrideProvider>
+              <ThemeProvider>
+                <NavigationProvider>
+                  <ControllersGate>
+                    <ToastContextWrapper>
+                      <ErrorBoundary view="Root">
+                        <ReducedMotionConfig mode={ReduceMotion.Never} />
+                        <App />
+                      </ErrorBoundary>
+                    </ToastContextWrapper>
+                  </ControllersGate>
+                </NavigationProvider>
+              </ThemeProvider>
+            </FeatureFlagOverrideProvider>
+          </QueryClientProvider>
         </PersistGate>
       </Provider>
     </SafeAreaProvider>

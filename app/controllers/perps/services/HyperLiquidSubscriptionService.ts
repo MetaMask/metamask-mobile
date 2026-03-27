@@ -2115,39 +2115,26 @@ export class HyperLiquidSubscriptionService {
     const subscription = await subscriptionClient.userFills(
       { user: userAddress },
       (data: UserFillsWsEvent) => {
-        // Build a Map for O(1) lookup instead of O(n) find per fill
-        const orderMap = new Map<string, string>();
-        if (this.#cachedOrders) {
-          for (const order of this.#cachedOrders) {
-            if (order.detailedOrderType) {
-              orderMap.set(order.orderId, order.detailedOrderType);
-            }
-          }
-        }
-        const orderFills: OrderFill[] = data.fills.map((fill) => {
-          const oid = fill.oid.toString();
-          return {
-            orderId: oid,
-            symbol: fill.coin,
-            side: fill.side,
-            size: fill.sz,
-            price: fill.px,
-            fee: fill.fee,
-            timestamp: fill.time,
-            pnl: fill.closedPnl,
-            direction: fill.dir,
-            feeToken: fill.feeToken,
-            startPosition: fill.startPosition,
-            liquidation: fill.liquidation
-              ? {
-                  liquidatedUser: fill.liquidation.liquidatedUser,
-                  markPx: fill.liquidation.markPx,
-                  method: fill.liquidation.method,
-                }
-              : undefined,
-            detailedOrderType: orderMap.get(oid),
-          };
-        });
+        const orderFills: OrderFill[] = data.fills.map((fill) => ({
+          orderId: fill.oid.toString(),
+          symbol: fill.coin,
+          side: fill.side,
+          size: fill.sz,
+          price: fill.px,
+          fee: fill.fee,
+          timestamp: fill.time,
+          pnl: fill.closedPnl,
+          direction: fill.dir,
+          feeToken: fill.feeToken,
+          startPosition: fill.startPosition,
+          liquidation: fill.liquidation
+            ? {
+                liquidatedUser: fill.liquidation.liquidatedUser,
+                markPx: fill.liquidation.markPx,
+                method: fill.liquidation.method,
+              }
+            : undefined,
+        }));
 
         // Cache fills for cache-first pattern (similar to price caching)
         // This allows getOrFetchFills() to return cached data without REST API calls

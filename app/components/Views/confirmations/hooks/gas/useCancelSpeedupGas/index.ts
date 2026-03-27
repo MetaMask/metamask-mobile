@@ -1,7 +1,4 @@
-export {
-  useCancelSpeedupGas,
-  getBumpParamsForCancelSpeedup,
-} from './useCancelSpeedupGas';
+export { useCancelSpeedupGas } from './useCancelSpeedupGas';
 export type {
   UseCancelSpeedupGasInput,
   UseCancelSpeedupGasResult,

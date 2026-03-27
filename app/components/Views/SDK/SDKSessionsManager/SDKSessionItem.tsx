@@ -12,11 +12,10 @@ import Badge, {
   BadgeVariant,
 } from '../../../../component-library/components/Badges/Badge';
 import BadgeWrapper from '../../../../component-library/components/Badges/BadgeWrapper';
-import {
-  Button,
-  ButtonBaseSize,
-  ButtonVariant,
-} from '@metamask/design-system-react-native';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+} from '../../../../component-library/components/Buttons/Button';
 import Text, {
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
@@ -146,13 +145,12 @@ export const SDKSessionItem = ({
         </Text>
       </View>
       <Button
-        variant={ButtonVariant.Secondary}
+        label={strings('sdk.manage')}
+        variant={ButtonVariants.Secondary}
         style={styles.selfCenter}
-        size={ButtonBaseSize.Sm}
+        size={ButtonSize.Sm}
         onPress={() => onManage()}
-      >
-        {strings('sdk.manage')}
-      </Button>
+      />
     </View>
   );
 };

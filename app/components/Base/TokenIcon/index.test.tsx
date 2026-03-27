@@ -35,12 +35,19 @@ jest.mock('../RemoteImage', () => ({
 }));
 
 // Mock useTheme hook
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
+jest.mock('../../../util/theme', () => ({
+  useTheme: jest.fn(() => ({
+    colors: {
+      background: {
+        default: '#FFFFFF',
+        alternative: '#F2F4F6',
+      },
+      text: {
+        default: '#24292E',
+      },
+    },
+  })),
+}));
 
 // Mock image imports with various types
 jest.mock('../../../images/image-icons', () => ({

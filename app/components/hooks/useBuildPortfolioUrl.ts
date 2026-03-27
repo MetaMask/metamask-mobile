@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useSelector } from 'react-redux';
-import { useAnalytics } from './useAnalytics/useAnalytics';
+import { useMetrics } from './useMetrics';
 import { buildPortfolioUrl } from '../../util/browser';
 import type { RootState } from '../../reducers';
 
@@ -20,7 +20,7 @@ import type { RootState } from '../../reducers';
  * });
  */
 export const useBuildPortfolioUrl = () => {
-  const { isEnabled } = useAnalytics();
+  const { isEnabled } = useMetrics();
   const isDataCollectionForMarketingEnabled = useSelector(
     (state: RootState) => state.security.dataCollectionForMarketing,
   );

@@ -1,20 +1,23 @@
 import React from 'react';
-import {
-  Box,
-  Text,
+import { ButtonSize } from '../../../../component-library/components/Buttons/Button';
+import ButtonPrimary from '../../../../component-library/components/Buttons/Button/variants/ButtonPrimary';
+import ButtonSecondary from '../../../../component-library/components/Buttons/Button/variants/ButtonSecondary';
+import ButtonLink from '../../../../component-library/components/Buttons/Button/variants/ButtonLink';
+import Text, {
   TextColor,
   TextVariant,
-  Button,
-  ButtonSize,
-  ButtonVariant,
-  IconName,
-  BoxFlexDirection,
-  BoxAlignItems,
-  BoxJustifyContent,
+} from '../../../../component-library/components/Texts/Text';
+import { Box } from '../../../UI/Box/Box';
+import {
+  AlignItems,
+  FlexDirection,
+  JustifyContent,
+} from '../../../UI/Box/box.types';
+import {
   Icon,
   IconColor,
+  IconName,
   IconSize,
-  TextButton,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../locales/i18n';
 import { ExportCredentialsIds } from '../../MultichainAccounts/AccountDetails/ExportCredentials.testIds';
@@ -31,19 +34,20 @@ const SRPSecurityQuiz = ({
   onAnswerClick,
   onContinueClick,
   onLearnMore,
+  styles,
 }: SRPSecurityQuizProps) => {
   const renderQuestionResult = () => (
     <Box
-      flexDirection={BoxFlexDirection.Column}
-      alignItems={BoxAlignItems.Start}
-      justifyContent={BoxJustifyContent.Start}
-      gap={4}
+      flexDirection={FlexDirection.Column}
+      alignItems={AlignItems.flexStart}
+      justifyContent={JustifyContent.flexStart}
+      gap={16}
     >
       <Box
-        flexDirection={BoxFlexDirection.Row}
-        alignItems={BoxAlignItems.Center}
-        justifyContent={BoxJustifyContent.Center}
-        gap={1}
+        flexDirection={FlexDirection.Row}
+        alignItems={AlignItems.center}
+        justifyContent={JustifyContent.center}
+        gap={8}
       >
         <Icon
           name={correctAnswer ? IconName.Confirmation : IconName.CircleX}
@@ -53,10 +57,8 @@ const SRPSecurityQuiz = ({
           }
         />
         <Text
-          variant={TextVariant.HeadingLg}
-          color={
-            correctAnswer ? TextColor.SuccessDefault : TextColor.ErrorDefault
-          }
+          variant={TextVariant.HeadingLG}
+          color={correctAnswer ? TextColor.Success : TextColor.Error}
         >
           {strings(
             correctAnswer
@@ -67,19 +69,19 @@ const SRPSecurityQuiz = ({
       </Box>
       {currentQuestionIndex === 1 && (
         <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Start}
-          justifyContent={BoxJustifyContent.Start}
-          gap={4}
+          flexDirection={FlexDirection.Column}
+          alignItems={AlignItems.flexStart}
+          justifyContent={JustifyContent.flexStart}
+          gap={16}
         >
-          <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
+          <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
             {strings(
               correctAnswer
                 ? 'srp_security_quiz.question_one.right_answer_title'
                 : 'srp_security_quiz.question_one.wrong_answer_title',
             )}
           </Text>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings(
               correctAnswer
                 ? 'srp_security_quiz.question_one.right_answer_description'
@@ -90,19 +92,19 @@ const SRPSecurityQuiz = ({
       )}
       {currentQuestionIndex === 2 && (
         <Box
-          flexDirection={BoxFlexDirection.Column}
-          alignItems={BoxAlignItems.Start}
-          justifyContent={BoxJustifyContent.Start}
-          gap={4}
+          flexDirection={FlexDirection.Column}
+          alignItems={AlignItems.flexStart}
+          justifyContent={JustifyContent.flexStart}
+          gap={16}
         >
-          <Text variant={TextVariant.HeadingLg} color={TextColor.TextDefault}>
+          <Text variant={TextVariant.HeadingLG} color={TextColor.Default}>
             {strings(
               correctAnswer
                 ? 'srp_security_quiz.question_two.right_answer_title'
                 : 'srp_security_quiz.question_two.wrong_answer_title',
             )}
           </Text>
-          <Text variant={TextVariant.BodyMd} color={TextColor.TextAlternative}>
+          <Text variant={TextVariant.BodyMD} color={TextColor.Alternative}>
             {strings(
               correctAnswer
                 ? 'srp_security_quiz.question_two.right_answer_description'
@@ -116,68 +118,64 @@ const SRPSecurityQuiz = ({
 
   const renderAnswerButtons = () => (
     <Box
-      flexDirection={BoxFlexDirection.Column}
-      alignItems={BoxAlignItems.End}
-      justifyContent={BoxJustifyContent.End}
-      twClassName="w-full flex-1"
-      gap={4}
+      flexDirection={FlexDirection.Column}
+      alignItems={AlignItems.center}
+      style={styles.quizButtonContainer}
+      gap={16}
     >
-      <Button
-        variant={ButtonVariant.Secondary}
+      <ButtonSecondary
         onPress={() => onAnswerClick(1)}
         size={ButtonSize.Lg}
+        label={strings(
+          currentQuestionIndex === 1
+            ? 'srp_security_quiz.question_one.wrong_answer'
+            : 'srp_security_quiz.question_two.right_answer',
+        )}
         testID={
           currentQuestionIndex === 1
             ? SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER
             : SrpSecurityQuestionTwoSelectorsIDs.RIGHT_ANSWER
         }
-        twClassName="w-full text-center"
-      >
-        {strings(
-          currentQuestionIndex === 1
-            ? 'srp_security_quiz.question_one.wrong_answer'
-            : 'srp_security_quiz.question_two.right_answer',
-        )}
-      </Button>
-      <Button
-        variant={ButtonVariant.Secondary}
+        style={styles.button}
+      />
+      <ButtonSecondary
         onPress={() => onAnswerClick(2)}
         size={ButtonSize.Lg}
+        label={strings(
+          currentQuestionIndex === 1
+            ? 'srp_security_quiz.question_one.right_answer'
+            : 'srp_security_quiz.question_two.wrong_answer',
+        )}
         testID={
           currentQuestionIndex === 1
             ? SrpSecurityQuestionOneSelectorsIDs.RIGHT_ANSWER
             : SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER
         }
-        twClassName="w-full text-center"
-      >
-        {strings(
-          currentQuestionIndex === 1
-            ? 'srp_security_quiz.question_one.right_answer'
-            : 'srp_security_quiz.question_two.wrong_answer',
-        )}
-      </Button>
-      <TextButton
+        style={styles.button}
+      />
+      <ButtonLink
         onPress={onLearnMore}
+        label={strings('multichain_accounts.reveal_srp.learn_more')}
         testID={ExportCredentialsIds.LEARN_MORE_BUTTON}
-        twClassName="w-full text-center flex items-center justify-center"
-      >
-        {strings('multichain_accounts.reveal_srp.learn_more')}
-      </TextButton>
+        style={styles.button}
+      />
     </Box>
   );
 
   const renderAnsweredButtons = () => (
     <Box
-      flexDirection={BoxFlexDirection.Column}
-      alignItems={BoxAlignItems.End}
-      justifyContent={BoxJustifyContent.End}
-      twClassName="w-full flex-1"
-      gap={4}
+      flexDirection={FlexDirection.Column}
+      style={styles.quizAnsweredContainer}
+      gap={16}
     >
-      <Button
-        variant={ButtonVariant.Primary}
+      <ButtonPrimary
         onPress={onContinueClick}
         size={ButtonSize.Lg}
+        label={strings(
+          correctAnswer
+            ? 'srp_security_quiz.continue'
+            : 'srp_security_quiz.try_again',
+        )}
         testID={
           correctAnswer
             ? currentQuestionIndex === 1
@@ -187,38 +185,28 @@ const SRPSecurityQuiz = ({
               ? SrpSecurityQuestionOneSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON
               : SrpSecurityQuestionTwoSelectorsIDs.WRONG_ANSWER_TRY_AGAIN_BUTTON
         }
-        twClassName="w-full text-center"
-      >
-        {strings(
-          correctAnswer
-            ? 'srp_security_quiz.continue'
-            : 'srp_security_quiz.try_again',
-        )}
-      </Button>
-      <TextButton
+        style={styles.button}
+      />
+      <ButtonLink
         onPress={onLearnMore}
+        label={strings('multichain_accounts.reveal_srp.learn_more')}
         testID={ExportCredentialsIds.LEARN_MORE_BUTTON}
-        twClassName="w-full text-center flex items-center justify-center"
-      >
-        {strings('multichain_accounts.reveal_srp.learn_more')}
-      </TextButton>
+        style={styles.button}
+      />
     </Box>
   );
 
   return (
     <Box
-      flexDirection={BoxFlexDirection.Column}
-      alignItems={BoxAlignItems.Start}
-      justifyContent={BoxJustifyContent.Start}
-      twClassName="w-full flex-1"
-      paddingHorizontal={4}
-      paddingTop={2}
-      paddingBottom={6}
+      style={styles.quizQuestionContainer}
+      flexDirection={FlexDirection.Column}
+      alignItems={AlignItems.flexStart}
+      justifyContent={JustifyContent.flexStart}
     >
       <Text
-        variant={TextVariant.BodyMd}
-        color={TextColor.TextAlternative}
-        twClassName="mb-2"
+        variant={TextVariant.BodyMD}
+        color={TextColor.Alternative}
+        style={styles.stepIndicatorContainer}
       >
         {strings('srp_security_quiz.question_step', {
           step: currentQuestionIndex,
@@ -230,9 +218,9 @@ const SRPSecurityQuiz = ({
 
       {!questionAnswered && (
         <Text
-          variant={TextVariant.HeadingLg}
-          color={TextColor.TextDefault}
-          twClassName="w-[90%] mb-6"
+          variant={TextVariant.HeadingLG}
+          color={TextColor.Default}
+          style={styles.quizQuestion}
         >
           {strings(
             currentQuestionIndex === 1

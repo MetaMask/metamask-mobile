@@ -11,10 +11,12 @@ import {
   Label,
   Text,
   TextVariant,
-  Button,
-  ButtonVariant,
-  ButtonSize,
 } from '@metamask/design-system-react-native';
+import Button, {
+  ButtonSize,
+  ButtonVariants,
+  ButtonWidthTypes,
+} from '../../../../../component-library/components/Buttons/Button';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -802,16 +804,15 @@ const PhysicalAddress = () => {
         </Text>
       ) : null}
       <Button
-        variant={ButtonVariant.Primary}
+        variant={ButtonVariants.Primary}
+        label={strings('card.card_onboarding.continue_button')}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        isFullWidth
+        width={ButtonWidthTypes.Full}
         isDisabled={isDisabled}
-        isLoading={registerLoading || isPollingVerification}
+        loading={registerLoading || isPollingVerification}
         testID="physical-address-continue-button"
-      >
-        {strings('card.card_onboarding.continue_button')}
-      </Button>
+      />
     </Box>
   );
 

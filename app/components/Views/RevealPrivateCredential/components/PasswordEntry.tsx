@@ -1,43 +1,30 @@
 import React from 'react';
-import {
-  TextField,
-  IconName,
+import { ButtonIcon, IconName } from '@metamask/design-system-react-native';
+import Text, {
   TextVariant,
-  Text,
-  TextFieldSize,
-  FontWeight,
-  ButtonIcon,
-  TextColor,
-} from '@metamask/design-system-react-native';
+} from '../../../../component-library/components/Texts/Text';
+import TextField from '../../../../component-library/components/Form/TextField/TextField';
 import { strings } from '../../../../../locales/i18n';
 import { RevealSeedViewSelectorsIDs } from '../RevealSeedView.testIds';
 import { useTheme } from '../../../../util/theme';
 import { PasswordEntryProps } from '../types';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PasswordEntry = ({
-  password,
   onPasswordChange,
   onSubmit,
   warningMessage,
   showPassword,
   onToggleShowPassword,
+  styles,
 }: PasswordEntryProps) => {
-  const tw = useTailwind();
   const { colors, themeAppearance } = useTheme();
 
   return (
     <>
-      <Text
-        twClassName="mb-1"
-        color={TextColor.TextDefault}
-        variant={TextVariant.BodyMd}
-        fontWeight={FontWeight.Medium}
-      >
+      <Text style={styles.enterPassword} variant={TextVariant.BodyMDMedium}>
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextField
-        value={password}
         placeholder={'Password'}
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
@@ -46,7 +33,6 @@ const PasswordEntry = ({
         onSubmitEditing={onSubmit}
         keyboardAppearance={themeAppearance}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
-        accessibilityLabel={RevealSeedViewSelectorsIDs.PASSWORD_INPUT_BOX_ID}
         returnKeyType="done"
         autoComplete="password"
         endAccessory={
@@ -55,12 +41,9 @@ const PasswordEntry = ({
             onPress={onToggleShowPassword}
           />
         }
-        size={TextFieldSize.Lg}
       />
       <Text
-        twClassName="mt-2"
-        color={TextColor.ErrorDefault}
-        variant={TextVariant.BodySm}
+        style={styles.warningText}
         testID={RevealSeedViewSelectorsIDs.PASSWORD_WARNING_ID}
       >
         {warningMessage}

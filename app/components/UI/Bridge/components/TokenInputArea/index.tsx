@@ -6,8 +6,6 @@ import {
   StyleProp,
   ViewStyle,
   Platform,
-  TextInputSelectionChangeEventData,
-  NativeSyntheticEvent,
 } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useStyles } from '../../../../../component-library/hooks';
@@ -21,9 +19,8 @@ import { selectCurrentCurrency } from '../../../../../selectors/currencyRateCont
 import { BigNumber } from 'ethers';
 import { BridgeToken } from '../../types';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
-import { Button, ButtonVariant } from '@metamask/design-system-react-native';
-import OldButton, {
-  ButtonVariants as OldButtonVariants,
+import Button, {
+  ButtonVariants,
 } from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -120,10 +117,6 @@ interface TokenInputAreaProps {
   onBlur?: () => void;
   onInputPress?: () => void;
   onMaxPress?: () => void;
-  selection?: { start: number; end: number };
-  onSelectionChange?: (
-    event: NativeSyntheticEvent<TextInputSelectionChangeEventData>,
-  ) => void;
   latestAtomicBalance?: BigNumber;
   isSourceToken?: boolean;
   style?: StyleProp<ViewStyle>;
@@ -149,8 +142,6 @@ export const TokenInputArea = forwardRef<
       onBlur,
       onInputPress,
       onMaxPress,
-      selection,
-      onSelectionChange,
       latestAtomicBalance,
       isSourceToken,
       style,
@@ -280,20 +271,11 @@ export const TokenInputArea = forwardRef<
                   onBlur={() => {
                     onBlur?.();
                   }}
-                  // Source selection is controlled so Bridge can keep the
-                  // visible caret aligned with the raw cursor used by keypad
-                  // edits. On iOS you have to use the press-and-drag magnifier
-                  // handle; Android supports direct tap placement.
+                  // Android only issue, for long numbers, the input field will focus on the right hand side
+                  // Force it to focus on the left hand side
                   selection={
-                    // Android only issue, for long numbers, the input field will focus on the right hand side
-                    // Force it to focus on the left hand side
                     tokenType === TokenInputAreaType.Destination
                       ? { start: 0, end: 0 }
-                      : selection
-                  }
-                  onSelectionChange={
-                    tokenType === TokenInputAreaType.Source
-                      ? onSelectionChange
                       : undefined
                   }
                 />
@@ -310,16 +292,15 @@ export const TokenInputArea = forwardRef<
               />
             ) : (
               <Button
-                variant={ButtonVariant.Primary}
+                variant={ButtonVariants.Primary}
+                label={strings(tokenButtonText)}
                 onPress={
                   isSourceToken
                     ? navigateToSourceTokenSelector
                     : navigateToDestTokenSelector
                 }
                 testID={testID}
-              >
-                {strings(tokenButtonText)}
-              </Button>
+              />
             )}
           </Box>
           <Box style={styles.row}>
@@ -357,8 +338,8 @@ export const TokenInputArea = forwardRef<
                     tokenBalance &&
                     onMaxPress &&
                     shouldShowMaxButton && (
-                      <OldButton
-                        variant={OldButtonVariants.Link}
+                      <Button
+                        variant={ButtonVariants.Link}
                         label={strings('bridge.max')}
                         onPress={onMaxPress}
                         disabled={!subtitle}
