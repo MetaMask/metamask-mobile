@@ -1106,11 +1106,18 @@ const MainNavigator = () => {
         {() => <RampRoutes rampType={RampType.SELL} />}
       </Stack.Screen>
       <Stack.Screen name={Routes.DEPOSIT.ID} component={DepositRoutes} />
-      <Stack.Screen name={Routes.BRIDGE.ROOT} component={BridgeScreenStack} />
+      <Stack.Screen
+        name={Routes.BRIDGE.ROOT}
+        component={BridgeScreenStack}
+        options={{ presentation: 'modal' }}
+      />
       <Stack.Screen
         name={Routes.BRIDGE.MODALS.ROOT}
         component={BridgeModalStack}
-        options={clearStackNavigatorOptions}
+        options={{
+          ...clearStackNavigatorOptions,
+          presentation: 'modal',
+        }}
       />
       <Stack.Screen
         name="StakeScreens"
