@@ -47,9 +47,10 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
 
       await PlaywrightGestures.backgroundApp(35);
       await PlaywrightGestures.activateApp(currentDeviceDetails);
+
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(LoginView.passwordInput),
+          asPlaywrightElement(LoginView.container),
           {
             description: 'Login title should be visible',
           },

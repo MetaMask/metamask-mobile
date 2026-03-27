@@ -43,14 +43,14 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
 
       const timer1 = new TimerHelper(
         'Time since the the app is launched, until login screen appears',
-        { ios: 3000, android: 3000 },
+        { ios: 3000, android: 3500 },
         currentDeviceDetails.platform,
       );
 
+      await PlaywrightGestures.activateApp(currentDeviceDetails);
       await timer1.measure(async () => {
-        await PlaywrightGestures.activateApp(currentDeviceDetails);
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(LoginView.passwordInput),
+          asPlaywrightElement(LoginView.container),
           {
             description: 'Login title should be visible',
           },

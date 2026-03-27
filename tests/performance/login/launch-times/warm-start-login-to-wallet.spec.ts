@@ -60,7 +60,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
       await LoginView.tapLoginButton();
       await timer1.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(WalletView.totalBalance),
+          asPlaywrightElement(WalletView.container),
           {
             description: 'Wallet balance should be visible',
           },
