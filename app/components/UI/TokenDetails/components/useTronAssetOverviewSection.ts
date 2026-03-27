@@ -16,6 +16,7 @@ import { formatWithThreshold } from '../../../../util/assets';
 
 const FIAT_THRESHOLD = 0.01;
 const TRX_THRESHOLD = 0.00001;
+const SHARED_FIAT_ERROR_MESSAGE = 'Fiat unavailable';
 
 const STAKE_CHAIN_ID_BY_CAIP_CHAIN_ID = {
   'tron:0x2b6653dc': ChainId.TRON_MAINNET,
@@ -40,6 +41,7 @@ export interface TronAssetOverviewSectionViewModel {
   claimableRewardsRowProps?: TronClaimableRewardsRowProps;
   estimatedAnnualRewardsRowProps?: TronEstimatedAnnualRewardsRowProps;
   estimatedAnnualRewardsUnavailableBannerProps?: TronEstimatedAnnualRewardsUnavailableBannerProps;
+  errorMessages: string[];
 }
 
 const useTronAssetOverviewSection = ({
@@ -73,7 +75,7 @@ const useTronAssetOverviewSection = ({
 
   return useMemo(() => {
     if (!enabled) {
-      return {};
+      return { errorMessages: [] };
     }
 
     const maxFractionDigits =
@@ -87,17 +89,19 @@ const useTronAssetOverviewSection = ({
         maximumFractionDigits: maxFractionDigits,
       },
     )} TRX`;
-    const activeFiatAmount =
-      claimableRewardsFiatAmount != null && claimableRewardsCurrency
-        ? claimableRewardsFiatAmount
-        : 0;
-    const activeFiatCurrency = claimableRewardsCurrency ?? currentCurrency;
-    const formattedClaimableFiat = formatWithThreshold(
-      activeFiatAmount,
-      FIAT_THRESHOLD,
-      getLocaleLanguageCode(),
-      { style: 'currency', currency: activeFiatCurrency },
-    );
+    const hasClaimableFiat =
+      claimableRewardsFiatAmount != null && Boolean(claimableRewardsCurrency);
+    const formattedClaimableFiat = hasClaimableFiat
+      ? formatWithThreshold(
+          claimableRewardsFiatAmount as number,
+          FIAT_THRESHOLD,
+          getLocaleLanguageCode(),
+          {
+            style: 'currency',
+            currency: claimableRewardsCurrency as string,
+          },
+        )
+      : '-';
 
     const hasValidApyDecimal =
       tronApyFetchStatus === FetchStatus.Fetched && Boolean(apyDecimal?.trim());
@@ -119,13 +123,16 @@ const useTronAssetOverviewSection = ({
         },
       )} TRX`;
       const estimatedFiatNum =
-        fiatRate != null && fiatRate > 0 ? estimatedTrxNum * fiatRate : 0;
-      const formattedEstimatedFiat = formatWithThreshold(
-        estimatedFiatNum,
-        FIAT_THRESHOLD,
-        getLocaleLanguageCode(),
-        { style: 'currency', currency: currentCurrency },
-      );
+        fiatRate != null ? estimatedTrxNum * fiatRate : null;
+      const formattedEstimatedFiat =
+        estimatedFiatNum != null
+          ? formatWithThreshold(
+              estimatedFiatNum,
+              FIAT_THRESHOLD,
+              getLocaleLanguageCode(),
+              { style: 'currency', currency: currentCurrency },
+            )
+          : '-';
 
       estimatedAnnualRewardsRowProps = {
         title: strings('stake.estimated_annual_rewards'),
@@ -133,6 +140,15 @@ const useTronAssetOverviewSection = ({
         hideBalances: privacyMode,
       };
     }
+
+    const errorMessages = [
+      hasClaimableFiat || (hasValidApyDecimal && fiatRate != null)
+        ? undefined
+        : SHARED_FIAT_ERROR_MESSAGE,
+      tronApyFetchStatus === FetchStatus.Error && tronApyErrorMessage?.trim()
+        ? tronApyErrorMessage.trim()
+        : undefined,
+    ].filter((message): message is string => Boolean(message));
 
     const estimatedAnnualRewardsUnavailableBannerProps =
       tronApyFetchStatus === FetchStatus.Initial ||
@@ -157,6 +173,7 @@ const useTronAssetOverviewSection = ({
       },
       estimatedAnnualRewardsRowProps,
       estimatedAnnualRewardsUnavailableBannerProps,
+      errorMessages,
     };
   }, [
     apyDecimal,

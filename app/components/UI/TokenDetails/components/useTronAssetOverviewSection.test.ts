@@ -132,7 +132,7 @@ describe('useTronAssetOverviewSection', () => {
       fetchOnMount: false,
       chainId: ChainId.TRON_MAINNET,
     });
-    expect(result.current).toEqual({});
+    expect(result.current).toEqual({ errorMessages: [] });
   });
 
   it.each([
