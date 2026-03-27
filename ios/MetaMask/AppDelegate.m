@@ -42,7 +42,7 @@ static Braze *_braze = nil;
   // They will be passed down to the ViewController used by React Native.
   self.initialProps = @{@"foxCode": foxCode};
 
-  // Setup Braze — credentials come from Info.plist (injected via MM_BRAZE_API_KEY / MM_BRAZE_SDK_ENDPOINT from .ios.env)
+  // Setup Braze — credentials come from Info.plist (injected via MM_BRAZE_API_KEY_IOS / MM_BRAZE_SDK_ENDPOINT from .ios.env)
   NSString *brazeApiKey = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"braze_api_key"];
   NSString *brazeEndpoint = [[NSBundle mainBundle] objectForInfoDictionaryKey:@"braze_sdk_endpoint"];
   if (brazeApiKey.length > 0 && brazeEndpoint.length > 0) {

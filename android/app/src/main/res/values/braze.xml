@@ -4,7 +4,7 @@
     Braze SDK configuration.
     API key (com_braze_api_key) and endpoint (com_braze_custom_endpoint)
     are injected via resValue in build.gradle from environment variables:
-      - MM_BRAZE_API_KEY
+      - MM_BRAZE_API_KEY_ANDROID
       - MM_BRAZE_SDK_ENDPOINT
   -->
 
