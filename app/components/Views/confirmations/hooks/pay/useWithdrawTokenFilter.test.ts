@@ -10,10 +10,8 @@ import { AssetType, TokenStandard } from '../../types/token';
 import { EthAccountType } from '@metamask/keyring-api';
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { useSendTokens } from '../send/useSendTokens';
-import { useERC20Tokens } from '../../../../hooks/DisplayName/useERC20Tokens';
 
 jest.mock('../send/useSendTokens');
-jest.mock('../../../../hooks/DisplayName/useERC20Tokens');
 
 const STATE_MOCK = merge(
   {},
@@ -83,7 +81,6 @@ const ALL_TOKENS_MOCK = [
 ] as AssetType[];
 
 const mockUseSendTokens = jest.mocked(useSendTokens);
-const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
 
 function runHook({
   type,
@@ -117,7 +114,6 @@ describe('useWithdrawTokenFilter', () => {
   beforeEach(() => {
     jest.clearAllMocks();
     mockUseSendTokens.mockReturnValue(ALL_TOKENS_MOCK);
-    mockUseERC20Tokens.mockReturnValue([]);
   });
 
   it('returns passed-in tokens unchanged for non-withdraw transaction types', () => {
@@ -160,6 +156,7 @@ describe('useWithdrawTokenFilter', () => {
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: undefined,
+      enrichTokenRequests: [],
     });
   });
 
@@ -174,10 +171,11 @@ describe('useWithdrawTokenFilter', () => {
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: undefined,
+      enrichTokenRequests: [],
     });
   });
 
-  it('calls useSendTokens with includeNoBalance and tokenFilter when withdraw allowlist is present', () => {
+  it('calls useSendTokens with includeNoBalance, tokenFilter, and enrichTokenRequests when withdraw allowlist is present', () => {
     runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -188,6 +186,9 @@ describe('useWithdrawTokenFilter', () => {
     expect(mockUseSendTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
       tokenFilter: expect.any(Function),
+      enrichTokenRequests: expect.arrayContaining([
+        expect.objectContaining({ value: '0xaaa', variation: '0x1' }),
+      ]),
     });
   });
 
@@ -262,67 +263,7 @@ describe('useWithdrawTokenFilter', () => {
     expect(filter?.('0x89', '0xrandom')).toBe(false);
   });
 
-  it('creates zero-balance entry from API data for allowlisted tokens not in wallet', () => {
-    mockUseSendTokens.mockReturnValue([ALL_TOKENS_MOCK[0]]);
-    mockUseERC20Tokens.mockReturnValue([
-      { name: 'Token A', symbol: 'TKNA', image: 'icon-a.png', decimals: 18 },
-      {
-        name: 'New API Token',
-        symbol: 'NAT',
-        image: 'icon-nat.png',
-        decimals: 8,
-      },
-    ]);
-
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x1': ['0xaaa', '0xnewtoken'] },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-
-    expect(filtered).toHaveLength(2);
-    expect(filtered[0].address).toBe('0xaaa');
-    expect(filtered[0].balance).toBe('1.0');
-
-    expect(filtered[1].address).toBe('0xnewtoken');
-    expect(filtered[1].symbol).toBe('NAT');
-    expect(filtered[1].balance).toBe('0');
-    expect(filtered[1].decimals).toBe(8);
-    expect(filtered[1].image).toBe('icon-nat.png');
-  });
-
-  it('skips API entries with no name and no symbol', () => {
-    mockUseSendTokens.mockReturnValue([]);
-    mockUseERC20Tokens.mockReturnValue([
-      {
-        name: undefined,
-        symbol: undefined,
-        image: undefined,
-        decimals: undefined,
-      } as unknown as ReturnType<typeof useERC20Tokens>[number],
-    ]);
-
-    const { result } = runHook({
-      type: TransactionType.predictWithdraw,
-      postQuoteFlags: {
-        default: {
-          enabled: true,
-          tokens: { '0x1': ['0xunknown'] },
-        },
-      },
-    });
-
-    const filtered = result.current([]);
-    expect(filtered).toHaveLength(0);
-  });
-
-  it('does not pass native addresses to useERC20Tokens requests', () => {
+  it('does not pass native addresses in enrichTokenRequests', () => {
     runHook({
       type: TransactionType.predictWithdraw,
       postQuoteFlags: {
@@ -335,7 +276,8 @@ describe('useWithdrawTokenFilter', () => {
       },
     });
 
-    const requests = mockUseERC20Tokens.mock.calls[0][0];
+    const args = mockUseSendTokens.mock.calls[0]?.[0] ?? {};
+    const requests = args.enrichTokenRequests ?? [];
     expect(requests).toHaveLength(1);
     expect(requests[0].value).toBe('0xaaa');
   });

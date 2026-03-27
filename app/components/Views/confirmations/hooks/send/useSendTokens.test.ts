@@ -132,6 +132,7 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(4);
   });
@@ -155,6 +156,7 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockEvmToken);
@@ -179,6 +181,7 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockSolanaToken);
@@ -203,6 +206,7 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockTronToken);
@@ -227,6 +231,7 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
     expect(result.current).toHaveLength(1);
     expect(result.current[0]).toEqual(mockBitcoinToken);
@@ -240,6 +245,7 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: true,
       tokenFilter: undefined,
+      enrichTokenRequests: undefined,
     });
   });
 
@@ -256,6 +262,26 @@ describe('useSendTokens', () => {
     expect(mockUseAccountTokens).toHaveBeenCalledWith({
       includeNoBalance: false,
       tokenFilter: filter,
+      enrichTokenRequests: undefined,
+    });
+  });
+
+  it('forwards enrichTokenRequests to useAccountTokens', () => {
+    mockUseAccountTokens.mockReturnValue([mockEvmToken]);
+    const requests = [
+      { type: 'ethereumAddress' as const, value: '0xabc', variation: '0x1' },
+    ];
+
+    renderHook(() =>
+      useSendTokens({
+        enrichTokenRequests: requests as never,
+      }),
+    );
+
+    expect(mockUseAccountTokens).toHaveBeenCalledWith({
+      includeNoBalance: false,
+      tokenFilter: undefined,
+      enrichTokenRequests: requests,
     });
   });
 

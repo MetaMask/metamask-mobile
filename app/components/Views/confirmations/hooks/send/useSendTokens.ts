@@ -1,14 +1,17 @@
 import { useMemo } from 'react';
 import { AssetType } from '../../types/token';
+import { UseDisplayNameRequest } from '../../../../hooks/DisplayName/useDisplayName';
 import { useAccountTokens } from './useAccountTokens';
 import { useSendType } from './useSendType';
 
 export function useSendTokens({
   includeNoBalance = false,
   tokenFilter,
+  enrichTokenRequests,
 }: {
   includeNoBalance?: boolean;
   tokenFilter?: (chainId: string, address: string) => boolean;
+  enrichTokenRequests?: UseDisplayNameRequest[];
 } = {}): AssetType[] {
   const {
     isPredefinedTron,
@@ -16,7 +19,11 @@ export function useSendTokens({
     isPredefinedSolana,
     isPredefinedEvm,
   } = useSendType();
-  const allTokens = useAccountTokens({ includeNoBalance, tokenFilter });
+  const allTokens = useAccountTokens({
+    includeNoBalance,
+    tokenFilter,
+    enrichTokenRequests,
+  });
 
   return useMemo(() => {
     const accountTypeMap: Record<string, boolean> = {

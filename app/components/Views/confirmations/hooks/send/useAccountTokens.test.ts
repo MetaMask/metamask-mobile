@@ -8,6 +8,8 @@ import { TokenStandard } from '../../types/token';
 import { selectAssetsBySelectedAccountGroup } from '../../../../../selectors/assets/assets-list';
 import { selectCurrentCurrency } from '../../../../../selectors/currencyRateController';
 import { isTestNet } from '../../../../../util/networks';
+import { useERC20Tokens } from '../../../../hooks/DisplayName/useERC20Tokens';
+import { NameType } from '../../../../UI/Name/Name.types';
 
 jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
@@ -38,6 +40,8 @@ jest.mock('../../../../../selectors/currencyRateController', () => ({
   selectCurrentCurrency: jest.fn(),
 }));
 
+jest.mock('../../../../hooks/DisplayName/useERC20Tokens');
+
 const mockUseSelector = jest.mocked(useSelector);
 const mockGetNetworkBadgeSource = jest.mocked(getNetworkBadgeSource);
 const mockGetIntlNumberFormatter = jest.mocked(getIntlNumberFormatter);
@@ -46,6 +50,7 @@ const mockSelectAssetsBySelectedAccountGroup = jest.mocked(
 );
 const mockSelectCurrentCurrency = jest.mocked(selectCurrentCurrency);
 const mockIsTestNet = jest.mocked(isTestNet);
+const mockUseERC20Tokens = jest.mocked(useERC20Tokens);
 
 const mockAssets = {
   '0x1': [
@@ -102,6 +107,7 @@ describe('useAccountTokens', () => {
     mockGetIntlNumberFormatter.mockReturnValue(mockFormatter as any);
     mockFormatter.format.mockReturnValue('$100.50');
     mockIsTestNet.mockReturnValue(false);
+    mockUseERC20Tokens.mockReturnValue([]);
   });
 
   it('returns all assets with balance', () => {
@@ -625,6 +631,157 @@ describe('useAccountTokens', () => {
 
       expect(result.current).toHaveLength(1);
       expect(result.current[0].symbol).toBe('TOKEN1');
+    });
+  });
+
+  describe('enrichTokenRequests', () => {
+    it('adds zero-balance entries from API data for tokens not in wallet', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return {};
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const requests = [
+        {
+          type: NameType.EthereumAddress,
+          value: '0xusdc',
+          variation: '0x1',
+        },
+      ];
+
+      mockUseERC20Tokens.mockReturnValue([
+        {
+          name: 'USD Coin',
+          symbol: 'USDC',
+          decimals: 6,
+          image: 'https://example.com/usdc.png',
+        },
+      ]);
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ enrichTokenRequests: requests }),
+      );
+
+      expect(result.current).toHaveLength(1);
+      expect(result.current[0].symbol).toBe('USDC');
+      expect(result.current[0].balance).toBe('0');
+      expect(result.current[0].decimals).toBe(6);
+      expect(result.current[0].image).toBe('https://example.com/usdc.png');
+    });
+
+    it('does not duplicate tokens already in wallet', () => {
+      const accountAssets = {
+        '0x1': [
+          {
+            chainId: '0x1',
+            address: '0xusdc',
+            accountType: 'eip155:1/erc20:0xusdc',
+            fiat: { balance: '100' },
+            rawBalance: '0x1234',
+            symbol: 'USDC',
+          },
+        ],
+      };
+
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        accountAssets as any,
+      );
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return accountAssets;
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const requests = [
+        {
+          type: NameType.EthereumAddress,
+          value: '0xusdc',
+          variation: '0x1',
+        },
+      ];
+
+      mockUseERC20Tokens.mockReturnValue([
+        {
+          name: 'USD Coin',
+          symbol: 'USDC',
+          decimals: 6,
+          image: 'https://example.com/usdc.png',
+        },
+      ]);
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ enrichTokenRequests: requests }),
+      );
+
+      const usdcEntries = result.current.filter((a) => a.symbol === 'USDC');
+      expect(usdcEntries).toHaveLength(1);
+      expect(usdcEntries[0].balance).not.toBe('0');
+    });
+
+    it('skips API entries with no name and no symbol', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return {};
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const requests = [
+        {
+          type: NameType.EthereumAddress,
+          value: '0xunknown',
+          variation: '0x1',
+        },
+      ];
+
+      mockUseERC20Tokens.mockReturnValue([
+        {
+          name: undefined,
+          symbol: undefined,
+          image: undefined,
+          decimals: undefined,
+        } as unknown as ReturnType<typeof useERC20Tokens>[number],
+      ]);
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ enrichTokenRequests: requests }),
+      );
+
+      expect(result.current).toHaveLength(0);
+    });
+
+    it('does not add enrichment entries when enrichTokenRequests is empty', () => {
+      mockSelectAssetsBySelectedAccountGroup.mockReturnValue({});
+      mockUseSelector.mockImplementation((selector) => {
+        if (selector === selectAssetsBySelectedAccountGroup) {
+          return {};
+        }
+        if (selector === selectCurrentCurrency) {
+          return 'USD';
+        }
+        return undefined;
+      });
+
+      const { result } = renderHook(() =>
+        useAccountTokens({ enrichTokenRequests: [] }),
+      );
+
+      expect(result.current).toHaveLength(0);
     });
   });
 });
