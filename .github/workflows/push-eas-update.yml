@@ -82,6 +82,7 @@ jobs:
             echo "| **Update version** | ${UPDATE_MESSAGE} |"
             echo "| **Target version** | ${BASE_BRANCH_REF} |"
             echo "| **Environment** | ${TARGET_CHANNEL} |"
+            echo "| **Platform** | ${OTA_PUSH_PLATFORM} |"
             echo "| **Target commit** | ${{ needs.validate-pr.outputs.commit_sha }} |"
           } >> "$GITHUB_STEP_SUMMARY"
 
