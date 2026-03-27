@@ -45,6 +45,22 @@ jest.mock('../../../../hooks/useRefreshSmartTransactionsLiveness', () => ({
   useRefreshSmartTransactionsLiveness: jest.fn(),
 }));
 
+jest.mock(
+  '../../../../../core/HardwareWallet/contexts/QRSigningContext',
+  () => ({
+    ...jest.requireActual(
+      '../../../../../core/HardwareWallet/contexts/QRSigningContext',
+    ),
+    useQRSigning: jest.fn(() => ({
+      isSigningQRObject: false,
+      isRequestCompleted: false,
+      pendingScanRequest: undefined,
+      setRequestCompleted: jest.fn(),
+      cancelQRScanRequestIfPresent: jest.fn().mockResolvedValue(undefined),
+    })),
+  }),
+);
+
 const mockSetOptions = jest.fn();
 const mockNavigation = {
   addListener: jest.fn(),
