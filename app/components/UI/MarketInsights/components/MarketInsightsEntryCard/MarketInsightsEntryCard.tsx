@@ -1,17 +1,5 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Pressable, StyleSheet } from 'react-native';
-import Animated, {
-  useSharedValue,
-  useAnimatedStyle,
-  withTiming,
-  runOnJS,
-} from 'react-native-reanimated';
 import MaskedView from '@react-native-masked-view/masked-view';
 import LinearGradient from 'react-native-linear-gradient';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -37,14 +25,13 @@ import {
 } from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
+import SlidingTextCarousel from './SlidingTextCarousel';
 
 const GRADIENT_COLORS = ['#D86FCF', '#ED666E'] as const;
 const GRADIENT_START = { x: 0, y: 0 };
 const GRADIENT_END = { x: 1, y: 0 };
 const ARROW_ICON_SIZE = 16;
 const SPARKLE_SIZE = 16;
-const SLIDE_DURATION_MS = 350;
-const ROTATE_INTERVAL_MS = 5000;
 
 const styles = StyleSheet.create({
   gradientTextMask: {
@@ -59,14 +46,6 @@ const styles = StyleSheet.create({
   sparkleGradient: {
     width: SPARKLE_SIZE,
     height: SPARKLE_SIZE,
-  },
-  overflowHidden: {
-    overflow: 'hidden',
-  },
-  slidingText: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
   },
 });
 
@@ -131,158 +110,6 @@ const GradientSparkleIcon: React.FC = () => (
     />
   </MaskedView>
 );
-
-// ---------------------------------------------------------------------------
-// Sliding text carousel
-// ---------------------------------------------------------------------------
-
-interface SlidingTextCarouselProps {
-  texts: string[];
-  onSlideComplete?: () => void;
-}
-
-/**
- * Shows one text item at a time, sliding each one out to the left and bringing
- * the next in from the right every ROTATE_INTERVAL_MS milliseconds.
- * When there is only one item, it renders statically without animation.
- *
- * Uses a double-buffer approach: two slots (A and B) alternate roles between
- * "front" (visible, about to slide out) and "back" (off-screen right, about
- * to slide in). After each slide the departing slot is teleported off-screen
- * right and its text is refreshed while invisible — avoiding any flash.
- */
-const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
-  texts,
-  onSlideComplete,
-}) => {
-  const [containerWidth, setContainerWidth] = useState(0);
-  const isAnimating = useRef(false);
-
-  // Each slot owns its text content directly — no index-based lookup during render
-  const [slotAText, setSlotAText] = useState(texts[0] ?? '');
-  const [slotBText, setSlotBText] = useState(texts[1] ?? texts[0] ?? '');
-
-  // Slot A starts visible (x=0); slot B starts off-screen right (set after layout)
-  const slotAX = useSharedValue(0);
-  const slotBX = useSharedValue(0);
-
-  // Track which slot is the current "front" (visible) and which text comes next
-  const frontIsA = useRef(true);
-  const upcomingIndex = useRef(2);
-
-  useEffect(() => {
-    if (containerWidth > 0) {
-      slotBX.value = containerWidth;
-    }
-  }, [containerWidth, slotBX]);
-
-  const slotAStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: slotAX.value }],
-  }));
-  const slotBStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: slotBX.value }],
-  }));
-
-  /**
-   * Runs on the JS thread after a slide animation completes.
-   * All ref mutations must happen here — worklet closures run on the UI thread
-   * and writes to useRef objects there do not propagate back to the JS thread.
-   */
-  const onSlideEnd = useCallback(
-    (wasAFront: boolean, capturedIdx: number) => {
-      frontIsA.current = !wasAFront;
-      const nextText = texts[capturedIdx % texts.length];
-      if (wasAFront) {
-        setSlotAText(nextText);
-      } else {
-        setSlotBText(nextText);
-      }
-      upcomingIndex.current = (capturedIdx + 1) % texts.length;
-      onSlideComplete?.();
-      isAnimating.current = false;
-    },
-    [texts, setSlotAText, setSlotBText, onSlideComplete],
-  );
-
-  const advanceSlide = useCallback(() => {
-    if (texts.length <= 1 || isAnimating.current || containerWidth === 0) {
-      return;
-    }
-    isAnimating.current = true;
-
-    // Snapshot JS-thread values before entering the worklet
-    const aIsFront = frontIsA.current;
-    const capturedIdx = upcomingIndex.current;
-    const frontX = aIsFront ? slotAX : slotBX;
-    const backX = aIsFront ? slotBX : slotAX;
-
-    // Slide the front slot out to the left, the back slot in from the right
-    frontX.value = withTiming(-containerWidth, { duration: SLIDE_DURATION_MS });
-    backX.value = withTiming(0, { duration: SLIDE_DURATION_MS }, (finished) => {
-      if (finished) {
-        // Teleport the departing slot off-screen right while still invisible
-        frontX.value = containerWidth;
-        // Hand off all ref mutations back to the JS thread
-        runOnJS(onSlideEnd)(aIsFront, capturedIdx);
-      }
-    });
-  }, [texts.length, containerWidth, slotAX, slotBX, onSlideEnd]);
-
-  useEffect(() => {
-    if (texts.length <= 1) return undefined;
-    const interval = setInterval(advanceSlide, ROTATE_INTERVAL_MS);
-    return () => clearInterval(interval);
-  }, [texts.length, advanceSlide]);
-
-  const handleContainerLayout = useCallback(
-    (e: { nativeEvent: { layout: { width: number } } }) => {
-      const { width } = e.nativeEvent.layout;
-      if (width !== containerWidth) {
-        setContainerWidth(width);
-      }
-    },
-    [containerWidth],
-  );
-
-  if (texts.length <= 1) {
-    return (
-      <Text
-        variant={TextVariant.BodySm}
-        color={TextColor.TextDefault}
-        numberOfLines={2}
-      >
-        {texts[0] ?? ''}
-      </Text>
-    );
-  }
-
-  return (
-    <Box
-      twClassName="h-[44px]"
-      style={styles.overflowHidden}
-      onLayout={handleContainerLayout}
-    >
-      <Animated.View style={[styles.slidingText, slotAStyle]}>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextDefault}
-          numberOfLines={2}
-        >
-          {slotAText}
-        </Text>
-      </Animated.View>
-      <Animated.View style={[styles.slidingText, slotBStyle]}>
-        <Text
-          variant={TextVariant.BodySm}
-          color={TextColor.TextDefault}
-          numberOfLines={2}
-        >
-          {slotBText}
-        </Text>
-      </Animated.View>
-    </Box>
-  );
-};
 
 // ---------------------------------------------------------------------------
 // Main component

@@ -842,7 +842,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
-          {isMarketInsightsEnabled && marketInsightsCaip19Id ? (
+          {isMarketInsightsEnabled &&
+          marketInsightsCaip19Id &&
+          (marketInsightsReport || isMarketInsightsLoading) ? (
             <View style={styles.marketInsightsWrapper}>
               {marketInsightsReport ? (
                 <MarketInsightsEntryCard
@@ -852,9 +854,9 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   caip19Id={marketInsightsCaip19Id}
                   testID="market-insights-entry-card"
                 />
-              ) : isMarketInsightsLoading ? (
+              ) : (
                 <MarketInsightsEntryCardSkeleton />
-              ) : null}
+              )}
             </View>
           ) : null}
           {
