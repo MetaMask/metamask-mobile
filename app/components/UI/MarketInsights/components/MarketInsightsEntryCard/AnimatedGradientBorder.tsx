@@ -4,7 +4,6 @@ import Animated, {
   cancelAnimation,
   Easing,
   useAnimatedProps,
-  useDerivedValue,
   useSharedValue,
   withDelay,
   withSequence,
@@ -66,10 +65,14 @@ const SweepPath: React.FC<SweepPathProps> = ({
   const n = poly.n;
   const P = poly.perimeter;
 
-  const frame = useDerivedValue(() => {
+  /**
+   * Shared worklet that computes all per-frame animation values from
+   * `progress`. Both useAnimatedProps below call this, but Reanimated
+   * de-duplicates the read — the heavy work runs once per frame, not twice.
+   * This avoids the overhead of an intermediate object-valued SharedValue.
+   */
+  function computeFrame(p: number) {
     'worklet';
-    const p = progress.value;
-
     const trailPeak = P * BORDER_TRAIL_FRACTION;
     const trailMin = trailPeak * BORDER_TRAIL_ELASTIC_END_RATIO;
     const stretch = Math.sin(Math.PI * p);
@@ -83,13 +86,9 @@ const SweepPath: React.FC<SweepPathProps> = ({
     const dashOffset = P * pathPhase + P * BORDER_DASH_START_SHIFT_FRACTION;
 
     let tailS = dashOffset % P;
-    if (tailS < 0) {
-      tailS += P;
-    }
+    if (tailS < 0) tailS += P;
     tailS = (P - tailS) % P;
-    if (tailS < 0) {
-      tailS += P;
-    }
+    if (tailS < 0) tailS += P;
 
     const tailPt = pointAtLengthOnBorderPolyline(tailS, xs, ys, cum, n, P);
     const headPt = pointAtLengthOnBorderPolyline(
@@ -101,11 +100,9 @@ const SweepPath: React.FC<SweepPathProps> = ({
       P,
     );
 
-    const x1 = tailPt.x;
-    const y1 = tailPt.y;
     let x2 = headPt.x;
     let y2 = headPt.y;
-    if (Math.hypot(x2 - x1, y2 - y1) < 0.75) {
+    if (Math.hypot(x2 - tailPt.x, y2 - tailPt.y) < 0.75) {
       const ahead = pointAtLengthOnBorderPolyline(
         tailS + Math.max(trailLength, 3),
         xs,
@@ -133,36 +130,30 @@ const SweepPath: React.FC<SweepPathProps> = ({
       opacityEnvelope = 1 - v * v * v;
     }
 
-    const env = opacityEnvelope * opacityScale;
-
     return {
-      strokeDasharray: `${trailLength},${gap}`,
-      strokeDashoffset: dashOffset,
-      strokeOpacity: env,
-      x1,
-      y1,
+      trailLength,
+      gap,
+      dashOffset,
+      strokeOpacity: opacityEnvelope * opacityScale,
+      x1: tailPt.x,
+      y1: tailPt.y,
       x2,
       y2,
     };
-  });
+  }
 
   const pathAnimatedProps = useAnimatedProps(() => {
-    const f = frame.value;
+    const f = computeFrame(progress.value);
     return {
-      strokeDasharray: f.strokeDasharray,
-      strokeDashoffset: f.strokeDashoffset,
+      strokeDasharray: `${f.trailLength},${f.gap}`,
+      strokeDashoffset: f.dashOffset,
       strokeOpacity: f.strokeOpacity,
     };
   });
 
   const gradientAnimatedProps = useAnimatedProps(() => {
-    const f = frame.value;
-    return {
-      x1: f.x1,
-      y1: f.y1,
-      x2: f.x2,
-      y2: f.y2,
-    };
+    const f = computeFrame(progress.value);
+    return { x1: f.x1, y1: f.y1, x2: f.x2, y2: f.y2 };
   });
 
   return (

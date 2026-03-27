@@ -63,6 +63,7 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
   testID,
 }) => {
   const [containerWidth, setContainerWidth] = useState(0);
+  const containerWidthRef = useRef(0);
   const isAnimating = useRef(false);
 
   // Each slot owns its text content directly — no index-based lookup during render
@@ -112,7 +113,8 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
   );
 
   const advanceSlide = useCallback(() => {
-    if (texts.length <= 1 || isAnimating.current || containerWidth === 0) {
+    const cw = containerWidthRef.current;
+    if (texts.length <= 1 || isAnimating.current || cw === 0) {
       return;
     }
     isAnimating.current = true;
@@ -125,16 +127,16 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
     const backX = aIsFront ? slotBX : slotAX;
 
     // Slide the front slot out to the left, the back slot in from the right
-    frontX.value = withTiming(-containerWidth, { duration: SLIDE_DURATION_MS });
+    frontX.value = withTiming(-cw, { duration: SLIDE_DURATION_MS });
     backX.value = withTiming(0, { duration: SLIDE_DURATION_MS }, (finished) => {
       if (finished) {
         // Teleport the departing slot off-screen right while still invisible
-        frontX.value = containerWidth;
+        frontX.value = cw;
         // Hand off all ref mutations back to the JS thread
         runOnJS(onSlideEnd)(aIsFront, capturedIdx);
       }
     });
-  }, [texts.length, containerWidth, slotAX, slotBX, onSlideEnd, onSlideStart]);
+  }, [texts.length, slotAX, slotBX, onSlideEnd, onSlideStart]);
 
   useEffect(() => {
     if (texts.length <= 1) return undefined;
@@ -145,11 +147,12 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
   const handleContainerLayout = useCallback(
     (e: { nativeEvent: { layout: { width: number } } }) => {
       const { width } = e.nativeEvent.layout;
-      if (width !== containerWidth) {
+      if (width !== containerWidthRef.current) {
+        containerWidthRef.current = width;
         setContainerWidth(width);
       }
     },
-    [containerWidth],
+    [],
   );
 
   if (texts.length <= 1) {

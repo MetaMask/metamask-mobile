@@ -206,17 +206,23 @@ export function pointAtLengthOnBorderPolyline(
   if (u >= P) {
     return { x: xs[n - 1], y: ys[n - 1] };
   }
-  for (let i = 0; i < n - 1; i++) {
-    const c1 = cum[i + 1];
-    if (u <= c1) {
-      const c0 = cum[i];
-      const denom = c1 - c0 || 1;
-      const tt = (u - c0) / denom;
-      return {
-        x: xs[i] + tt * (xs[i + 1] - xs[i]),
-        y: ys[i] + tt * (ys[i + 1] - ys[i]),
-      };
+  // Binary search — cum[] is monotonically increasing so O(log n) suffices.
+  let lo = 0;
+  let hi = n - 2;
+  while (lo < hi) {
+    const mid = (lo + hi) >> 1;
+    if (cum[mid + 1] < u) {
+      lo = mid + 1;
+    } else {
+      hi = mid;
     }
   }
-  return { x: xs[n - 1], y: ys[n - 1] };
+  const c0 = cum[lo];
+  const c1 = cum[lo + 1];
+  const denom = c1 - c0 || 1;
+  const tt = (u - c0) / denom;
+  return {
+    x: xs[lo] + tt * (xs[lo + 1] - xs[lo]),
+    y: ys[lo] + tt * (ys[lo + 1] - ys[lo]),
+  };
 }

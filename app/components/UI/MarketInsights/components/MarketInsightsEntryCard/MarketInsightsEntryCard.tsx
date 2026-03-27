@@ -139,12 +139,16 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
 
   const [borderAnimationKey, setBorderAnimationKey] = useState(0);
 
+  // Derive a stable key from actual text content so the memo doesn't bust
+  // when the parent passes a new report object with identical data.
+  const trendsKey = report.trends.map((t) => t.description).join('\0');
   const displayTexts = useMemo(() => {
     const descriptions = report.trends
       .map((t) => t.description)
       .filter(Boolean);
     return descriptions.length > 0 ? descriptions : [report.summary];
-  }, [report.trends, report.summary]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [trendsKey, report.summary]);
 
   const handleDescriptionSlideStart = useCallback(() => {
     setBorderAnimationKey((k) => k + 1);
