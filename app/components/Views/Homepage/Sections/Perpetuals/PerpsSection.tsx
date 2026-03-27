@@ -378,11 +378,9 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     const isEmpty = !hasItems;
 
     const positionsOnlyHidden = isPositionsOnly && !hasItems && !showSkeleton;
-    const itemCount = isTrendingOnly
-      ? allCarouselMarkets.length
-      : hasItems
-        ? displayPositions.length + displayOrders.length
-        : 0;
+    const itemCount = hasItems
+      ? displayPositions.length + displayOrders.length
+      : 0;
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender && !positionsOnlyHidden ? sectionViewRef : null,

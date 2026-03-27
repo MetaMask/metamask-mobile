@@ -96,9 +96,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
-    const isTrendingOnly = mode === 'trending-only';
-
-    useTrendingRequest({ enabled: isTrendingOnly });
+    useTrendingRequest({ enabled: false });
 
     const {
       removeTokenState,
