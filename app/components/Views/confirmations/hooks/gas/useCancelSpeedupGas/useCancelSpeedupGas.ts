@@ -13,10 +13,10 @@ import BigNumber from 'bignumber.js';
 import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { RootState } from '../../../../../../reducers';
-import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import { selectNetworkConfigurationByChainId } from '../../../../../../selectors/networkController';
 import { selectTransactionMetadataById } from '../../../../../../selectors/transactionController';
 import {
+  type GasFeeEstimatesInput,
   gasEstimateGreaterThanGasUsedPlusTenPercent,
   getMediumEstimateGwei,
   getMediumGasPriceHex,
@@ -45,7 +45,7 @@ const STUB_TX = {
  */
 function getMarketEstimateParams(
   txParams: TransactionMeta['txParams'],
-  gasFeeEstimates: ReturnType<typeof selectGasFeeEstimates>,
+  gasFeeEstimates: GasFeeEstimatesInput,
 ): GasPriceValue | FeeMarketEIP1559Values | undefined {
   if (isEIP1559Transaction(txParams)) {
     const mediumEstimateGwei = getMediumEstimateGwei(gasFeeEstimates);
@@ -85,12 +85,12 @@ export interface BumpParamsResult {
  *
  * @param tx - The transaction metadata to bump.
  * @param isCancel - Whether the operation is a cancel (vs speed-up).
- * @param gasFeeEstimates - From selectGasFeeEstimates; used for market comparison and legacy zero-price fallback.
+ * @param gasFeeEstimates - Gas fee estimates; used for market comparison and legacy zero-price fallback.
  */
 export function getBumpParamsForCancelSpeedup(
   tx: TransactionMeta,
   isCancel: boolean,
-  gasFeeEstimates?: ReturnType<typeof selectGasFeeEstimates>,
+  gasFeeEstimates?: GasFeeEstimatesInput,
 ): BumpParamsResult | undefined {
   const txParams = tx?.txParams;
   if (!tx || !txParams) {

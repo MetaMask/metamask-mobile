@@ -17,6 +17,7 @@ const {
   estimateGas,
   getNetworkNonce,
   estimateGasFee,
+  getPreviousGasFromController,
   ...proxyMethods
 } = TransactionControllerUtils;
 

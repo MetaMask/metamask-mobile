@@ -1,9 +1,11 @@
 import {
   GasFeeEstimateLevel,
   GasFeeEstimateType,
+  type FeeMarketEIP1559Values,
   type FeeMarketGasFeeEstimates,
   type GasFeeEstimates,
   type GasPriceGasFeeEstimates,
+  type GasPriceValue,
   type LegacyGasFeeEstimates,
   type TransactionParams,
 } from '@metamask/transaction-controller';
@@ -167,4 +169,81 @@ export function gasEstimateGreaterThanGasUsedPlusTenPercent(
   }
 
   return new BigNumber(String(estimateGwei)).gt(bumpedGwei);
+}
+
+export interface PreviousGasParams {
+  maxFeePerGas?: string;
+  maxPriorityFeePerGas?: string;
+  gasPrice?: string;
+  gasLimit?: string;
+  gas?: string;
+}
+
+/**
+ * Ensures gas values for a replacement (cancel/speed-up) transaction are not
+ * underpriced. For each gas field the result is the higher of the user-selected
+ * value or `previousGas × rate`.
+ *
+ * @param gasValues - Current gas values the user selected (from the gas modal).
+ * @param previousGas - Original gas values captured when the cancel/speed-up modal opened.
+ * @param rate - Multiplier for minimum replacement gas.
+ * @returns Gas values safe for replacement, or the input unchanged when previousGas is absent.
+ */
+export function getGasValuesForReplacement(
+  gasValues: GasPriceValue | FeeMarketEIP1559Values | undefined,
+  previousGas: PreviousGasParams | undefined | null,
+  rate: number,
+): GasPriceValue | FeeMarketEIP1559Values | undefined {
+  if (!previousGas || !gasValues) {
+    return gasValues;
+  }
+
+  const hexBN = (v: string | undefined | null): BigNumber =>
+    v ? new BigNumber(addHexPrefix(String(v)), 16) : new BigNumber(0);
+
+  // Legacy (gasPrice) flow
+  if ('gasPrice' in gasValues) {
+    if (!previousGas.gasPrice) {
+      return gasValues;
+    }
+    const minGasPrice = hexBN(previousGas.gasPrice)
+      .times(rate)
+      .integerValue(BigNumber.ROUND_CEIL);
+    const minGasPriceHex = addHexPrefix(minGasPrice.toString(16));
+
+    const gasPrice = hexBN(gasValues.gasPrice).gte(minGasPrice)
+      ? gasValues.gasPrice
+      : minGasPriceHex;
+
+    return { gasPrice };
+  }
+
+  // EIP-1559 flow
+  if (!previousGas.maxFeePerGas || !previousGas.maxPriorityFeePerGas) {
+    return gasValues;
+  }
+
+  const minMaxFee = hexBN(previousGas.maxFeePerGas)
+    .times(rate)
+    .integerValue(BigNumber.ROUND_CEIL);
+  const minPriorityFee = hexBN(previousGas.maxPriorityFeePerGas)
+    .times(rate)
+    .integerValue(BigNumber.ROUND_CEIL);
+
+  const minMaxFeeHex = addHexPrefix(minMaxFee.toString(16));
+  const minPriorityFeeHex = addHexPrefix(minPriorityFee.toString(16));
+
+  const maxFeePerGas = hexBN(
+    (gasValues as FeeMarketEIP1559Values).maxFeePerGas,
+  ).gte(minMaxFee)
+    ? (gasValues as FeeMarketEIP1559Values).maxFeePerGas
+    : minMaxFeeHex;
+
+  const maxPriorityFeePerGas = hexBN(
+    (gasValues as FeeMarketEIP1559Values).maxPriorityFeePerGas,
+  ).gte(minPriorityFee)
+    ? (gasValues as FeeMarketEIP1559Values).maxPriorityFeePerGas
+    : minPriorityFeeHex;
+
+  return { maxFeePerGas, maxPriorityFeePerGas };
 }

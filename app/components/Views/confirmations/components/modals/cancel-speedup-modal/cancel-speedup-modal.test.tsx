@@ -82,6 +82,10 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
   updatePreviousGasParams: jest.fn(),
 }));
 
+jest.mock('../../../hooks/gas/useGasFeeEstimates', () => ({
+  useGasFeeEstimates: jest.fn(() => ({ gasFeeEstimates: {} })),
+}));
+
 jest.mock('../../../context/gas-fee-modal-transaction', () => ({
   GasFeeModalTransactionProvider: ({
     children,

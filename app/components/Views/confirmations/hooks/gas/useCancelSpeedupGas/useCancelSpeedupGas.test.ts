@@ -13,7 +13,7 @@ import {
 import { renderHookWithProvider } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 import { useFeeCalculations } from '../useFeeCalculations';
-import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
+import type { GasFeeEstimatesInput } from '../../../../../../util/confirmation/gas';
 
 const providerState = { state: { engine: { backgroundState } } } as const;
 
@@ -424,7 +424,7 @@ describe('getBumpParamsForCancelSpeedup', () => {
         suggestedMaxFeePerGas: '50', // 50 GWEI >> 1.1 GWEI
         suggestedMaxPriorityFeePerGas: '2',
       },
-    } as unknown as ReturnType<typeof selectGasFeeEstimates>;
+    } as GasFeeEstimatesInput;
 
     const result = getBumpParamsForCancelSpeedup(
       lowGasTx,
@@ -456,7 +456,7 @@ describe('getBumpParamsForCancelSpeedup', () => {
         suggestedMaxFeePerGas: '25', // 25 GWEI << 110 GWEI (100 * 1.1)
         suggestedMaxPriorityFeePerGas: '2',
       },
-    } as unknown as ReturnType<typeof selectGasFeeEstimates>;
+    } as GasFeeEstimatesInput;
 
     const result = getBumpParamsForCancelSpeedup(
       highGasTx,
@@ -483,7 +483,7 @@ describe('getBumpParamsForCancelSpeedup', () => {
 
     const estimates = {
       medium: '50', // 50 GWEI >> 1.1 GWEI
-    } as unknown as ReturnType<typeof selectGasFeeEstimates>;
+    } as GasFeeEstimatesInput;
 
     const result = getBumpParamsForCancelSpeedup(
       lowGasLegacyTx,

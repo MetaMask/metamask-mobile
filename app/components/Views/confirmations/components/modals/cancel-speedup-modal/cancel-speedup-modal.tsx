@@ -40,11 +40,11 @@ import {
   getBumpParamsForCancelSpeedup,
   useCancelSpeedupGas,
 } from '../../../hooks/gas/useCancelSpeedupGas';
-import { selectGasFeeEstimates } from '../../../../../../selectors/confirmTransaction';
 import {
   updatePreviousGasParams,
   updateTransactionGasFees,
 } from '../../../../../../util/transaction-controller';
+import { useGasFeeEstimates } from '../../../hooks/gas/useGasFeeEstimates';
 import { GasFeeModal } from '../gas-fee-modal';
 import { GasSpeed } from '../../gas/gas-speed';
 import NetworkAssetLogo from '../../../../../UI/NetworkAssetLogo';
@@ -52,8 +52,6 @@ import InfoSection from '../../UI/info-row/info-section';
 import InfoRow from '../../UI/info-row/info-row';
 import styleSheet from './cancel-speedup-modal.styles';
 import { useStyles } from '../../../../../hooks/useStyles';
-import { useSelector } from 'react-redux';
-import type { RootState } from '../../../../../../reducers';
 
 const NetworkFeeRow = ({
   fiat,
@@ -175,10 +173,7 @@ export function CancelSpeedupModal({
   const { colors } = useTheme();
   const [gasModalVisible, setGasModalVisible] = useState(false);
 
-  const gasFeeEstimates = useSelector((state: RootState) =>
-    selectGasFeeEstimates(state),
-  );
-
+  const { gasFeeEstimates } = useGasFeeEstimates(tx?.networkClientId);
   const {
     paramsForController,
     networkFeeNative,
