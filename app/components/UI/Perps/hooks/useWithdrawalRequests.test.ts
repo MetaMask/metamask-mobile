@@ -2,6 +2,7 @@ import { act } from '@testing-library/react-native';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
 import { useWithdrawalRequests } from './useWithdrawalRequests';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { usePerpsSelector } from './usePerpsSelector';
 import type {
   PerpsControllerState,
@@ -15,6 +16,12 @@ import {
 import { useSelector } from 'react-redux';
 
 jest.mock('../../../../core/Engine');
+jest.mock('../../../../util/Logger', () => ({
+  __esModule: true,
+  default: {
+    error: jest.fn(),
+  },
+}));
 jest.mock('./usePerpsSelector');
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
@@ -22,6 +29,9 @@ jest.mock('react-redux', () => ({
 }));
 
 const mockEngine = Engine as jest.Mocked<typeof Engine>;
+const mockLoggerError = Logger.error as jest.MockedFunction<
+  typeof Logger.error
+>;
 const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
   typeof usePerpsSelector
 >;
@@ -670,6 +680,21 @@ describe('useWithdrawalRequests', () => {
 
       expect(result.current.isLoading).toBe(false);
       expect(result.current.error).toBe('API Error');
+      expect(mockLoggerError).toHaveBeenCalledTimes(1);
+      expect(mockLoggerError.mock.calls[0][0]).toEqual(
+        expect.objectContaining({ message: 'API Error' }),
+      );
+      expect(mockLoggerError.mock.calls[0][1]).toMatchObject({
+        tags: { feature: expect.any(String) },
+        context: {
+          name: 'useWithdrawalRequests.executeWithdrawalCompletionCheck',
+          data: {
+            accountAddress: mockAddress.toLowerCase(),
+            pendingQueueLength: 2,
+            oldestPendingWithdrawalId: 'withdrawal-1',
+          },
+        },
+      });
     });
   });
 

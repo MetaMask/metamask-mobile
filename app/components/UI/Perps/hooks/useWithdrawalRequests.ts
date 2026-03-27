@@ -1,10 +1,15 @@
 import { useCallback, useEffect, useState, useRef, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import {
+  PERPS_CONSTANTS,
+  type UserHistoryItem,
+} from '@metamask/perps-controller';
 import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
+import { ensureError } from '../../../../util/errorUtils';
 import { usePerpsSelector } from './usePerpsSelector';
 import { useStableArray } from './useStableArray';
 import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import type { UserHistoryItem } from '@metamask/perps-controller';
 
 export interface WithdrawalRequest {
   id: string;
@@ -28,6 +33,9 @@ interface UseWithdrawalRequestsResult {
   error: string | null;
   refetch: () => Promise<void>;
 }
+
+const WITHDRAWAL_POLL_INTERVAL_MS = 5000;
+const WITHDRAWAL_SEARCH_BUFFER_MS = 60000;
 
 /**
  * Hook to track withdrawal requests and detect completion using FIFO queue matching.
@@ -76,6 +84,8 @@ export const useWithdrawalRequests = (
 
   const initialFetchDoneRef = useRef(false);
   const isFetchingRef = useRef(false);
+  const addressRef = useRef(selectedAddress);
+  addressRef.current = selectedAddress;
 
   const [isLoading, setIsLoading] = useState(!skipInitialFetch);
   const [error, setError] = useState<string | null>(null);
@@ -112,7 +122,8 @@ export const useWithdrawalRequests = (
       }
 
       const oldestPending = pendingQueue[0];
-      const searchStartTime = oldestPending.timestamp - 60000;
+      const searchStartTime =
+        oldestPending.timestamp - WITHDRAWAL_SEARCH_BUFFER_MS;
 
       const history: UserHistoryItem[] = await provider.getUserHistory({
         startTime: searchStartTime,
@@ -150,11 +161,27 @@ export const useWithdrawalRequests = (
         asset: matchingCompleted.asset,
       });
     } catch (err) {
-      const errorMessage =
-        err instanceof Error
-          ? err.message
-          : 'Failed to fetch completed withdrawals';
-      setError(errorMessage);
+      const errorInstance = ensureError(
+        err,
+        'useWithdrawalRequests.executeWithdrawalCompletionCheck',
+      );
+      const accountAddress = addressRef.current ?? 'unknown';
+
+      Logger.error(errorInstance, {
+        tags: {
+          feature: PERPS_CONSTANTS.FeatureName,
+        },
+        context: {
+          name: 'useWithdrawalRequests.executeWithdrawalCompletionCheck',
+          data: {
+            accountAddress,
+            pendingQueueLength: pendingQueue.length,
+            oldestPendingWithdrawalId: pendingQueue[0]?.id,
+          },
+        },
+      });
+
+      setError(errorInstance.message);
     }
   }, [pendingQueue, lastCompletedTimestamp, lastCompletedTxHashes]);
 
@@ -214,7 +241,7 @@ export const useWithdrawalRequests = (
 
     const pollInterval = setInterval(() => {
       runWithdrawalCompletionCheck();
-    }, 5000);
+    }, WITHDRAWAL_POLL_INTERVAL_MS);
 
     return () => {
       clearInterval(pollInterval);
