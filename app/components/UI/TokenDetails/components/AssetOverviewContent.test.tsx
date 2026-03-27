@@ -17,6 +17,7 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
+import useTronRewardsRowsViewModel from './useTronRewardsRowsViewModel';
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
@@ -28,6 +29,10 @@ const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
 const mockUsePerpsPositionForAsset = jest.fn();
+const mockUseTronRewardsRowsViewModel =
+  useTronRewardsRowsViewModel as jest.MockedFunction<
+    typeof useTronRewardsRowsViewModel
+  >;
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
@@ -91,6 +96,19 @@ jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
 }));
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
+
+jest.mock('./useTronRewardsRowsViewModel', () => ({
+  __esModule: true,
+  default: jest.fn(() => ({
+    claimableRewardsRowProps: {
+      title: 'Total claimable rewards',
+      subtitle: '$0.00 · 0 TRX',
+      hideBalances: false,
+    },
+    estimatedAnnualRewardsRowProps: null,
+    estimatedAnnualRewardsUnavailableBannerProps: null,
+  })),
+}));
 
 jest.mock(
   '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard',
@@ -423,6 +441,31 @@ describe('AssetOverviewContent', () => {
       );
 
       expect(onMarketInsightsDisplayResolved).toHaveBeenCalledWith(false);
+    });
+  });
+
+  describe('Tron rewards boundary', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'market-insights-opened' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(true);
+      mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+    });
+
+    it('disables the Tron rewards view model for non-Tron assets', () => {
+      renderWithProvider(<AssetOverviewContent {...defaultProps} />, {
+        state: createState(true),
+      });
+
+      expect(mockUseTronRewardsRowsViewModel).toHaveBeenCalledWith({
+        token: defaultProps.token,
+        enabled: false,
+      });
     });
   });
 

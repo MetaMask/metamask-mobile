@@ -61,7 +61,7 @@ describe('useTronRewardsRowsViewModel', () => {
     });
   });
 
-  it('returns display-ready props for both reward rows when APY data is available', () => {
+  it('returns display-ready props for the CTA and both reward rows when APY data is available', () => {
     mockUseTronStakeApy.mockReturnValue({
       fetchStatus: FetchStatus.Fetched,
       errorMessage: null,
@@ -76,6 +76,13 @@ describe('useTronRewardsRowsViewModel', () => {
       }),
     );
 
+    expect(result.current).toEqual(
+      expect.objectContaining({
+        stakingCtaProps: expect.objectContaining({
+          aprText: '4.5%',
+        }),
+      }),
+    );
     expect(result.current.claimableRewardsRowProps).toEqual(
       expect.objectContaining({
         title: strings('stake.tron.total_claimable_rewards'),
@@ -92,6 +99,30 @@ describe('useTronRewardsRowsViewModel', () => {
       result.current.estimatedAnnualRewardsUnavailableBannerProps,
     ).toBeNull();
   });
+
+  it.each([FetchStatus.Initial, FetchStatus.Fetching])(
+    'does not show an unavailable banner while APY fetch status is %s',
+    (fetchStatus) => {
+      mockUseTronStakeApy.mockReturnValue({
+        fetchStatus,
+        errorMessage: null,
+        apyDecimal: null,
+        apyPercent: null,
+        refetch: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useTronRewardsRowsViewModel({
+          token: { chainId: 'tron:0x2b6653dc', address: 'tron:foo' },
+        }),
+      );
+
+      expect(result.current.estimatedAnnualRewardsRowProps).toBeNull();
+      expect(
+        result.current.estimatedAnnualRewardsUnavailableBannerProps,
+      ).toBeNull();
+    },
+  );
 
   it('returns an unavailable banner message when APY fetch fails', () => {
     mockUseTronStakeApy.mockReturnValue({
