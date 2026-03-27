@@ -87,6 +87,13 @@ export const rampsControllerInit: ControllerInitFunction<
 
   startUnifiedBuyV2IfEnabled();
 
+  // Remote flags can be empty on first Engine init and fill in once the
+  // controller has fetched; re-check so RampsController.init() runs then.
+  //
+  // This event fires for any RemoteFeatureFlagController state update — not
+  // only rampsUnifiedBuyV2. When V2 is off, startUnifiedBuyV2IfEnabled returns
+  // immediately. When V2 is on, order subscriptions register once; init() and
+  // startOrderPolling() are idempotent, so repeat invocations are safe.
   initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
     startUnifiedBuyV2IfEnabled();
   });
