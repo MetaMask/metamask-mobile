@@ -178,11 +178,11 @@ describe('PrivateKeyList', () => {
   it('renders password input box correctly', () => {
     const { getByTestId } = renderWithPrivateKeyList();
 
-    expect(getByTestId(PrivateKeyListIds.PASSWORD_TITLE)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.BANNER)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.PASSWORD_INPUT)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON)).toBeDefined();
-    expect(getByTestId(PrivateKeyListIds.CANCEL_BUTTON)).toBeDefined();
+    expect(getByTestId(PrivateKeyListIds.PASSWORD_TITLE)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.BANNER)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.PASSWORD_INPUT)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON)).toBeOnTheScreen();
+    expect(getByTestId(PrivateKeyListIds.CANCEL_BUTTON)).toBeOnTheScreen();
   });
 
   it('shows an error message for an incorrect password', async () => {
@@ -249,7 +249,7 @@ describe('PrivateKeyList', () => {
   it('renders warning banner with correct title', () => {
     const { getByTestId, getByText } = renderWithPrivateKeyList();
 
-    expect(getByTestId(PrivateKeyListIds.BANNER)).toBeDefined();
+    expect(getByTestId(PrivateKeyListIds.BANNER)).toBeOnTheScreen();
     expect(
       getByText(strings('multichain_accounts.private_key_list.warning_title')),
     ).toBeOnTheScreen();
@@ -272,16 +272,12 @@ describe('PrivateKeyList', () => {
   });
 
   it('calls navigation.goBack when cancel is pressed', async () => {
-    jest.useRealTimers();
-
     const { getByTestId } = renderWithPrivateKeyList();
     fireEvent.press(getByTestId(PrivateKeyListIds.CANCEL_BUTTON));
 
     await waitFor(() => {
       expect(mockGoBack).toHaveBeenCalled();
     });
-
-    jest.useFakeTimers();
   });
 
   it('hides SOL-only accounts from the private key list', async () => {
@@ -314,9 +310,9 @@ describe('PrivateKeyList', () => {
     it('renders the password screen without error on Android', () => {
       const { getByTestId } = renderWithPrivateKeyList();
 
-      expect(getByTestId(PrivateKeyListIds.PASSWORD_TITLE)).toBeDefined();
-      expect(getByTestId(PrivateKeyListIds.CANCEL_BUTTON)).toBeDefined();
-      expect(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON)).toBeDefined();
+      expect(getByTestId(PrivateKeyListIds.PASSWORD_TITLE)).toBeOnTheScreen();
+      expect(getByTestId(PrivateKeyListIds.CANCEL_BUTTON)).toBeOnTheScreen();
+      expect(getByTestId(PrivateKeyListIds.CONTINUE_BUTTON)).toBeOnTheScreen();
     });
 
     it('reveals private key list on Android after correct password', async () => {
