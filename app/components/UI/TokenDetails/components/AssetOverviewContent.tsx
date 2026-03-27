@@ -97,7 +97,7 @@ import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakin
 import TronClaimableRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronClaimableRewardsRow';
 import TronEstimatedAnnualRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsRow';
 import TronEstimatedAnnualRewardsUnavailableBanner from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsUnavailableBanner';
-import useTronRewardsRowsViewModel from './useTronRewardsRowsViewModel';
+import useTronAssetOverviewSection from './useTronAssetOverviewSection';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -525,10 +525,15 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
 
   ///: BEGIN:ONLY_INCLUDE_IF(tron)
   const {
+    aprText: tronAprText,
     claimableRewardsRowProps,
     estimatedAnnualRewardsRowProps,
     estimatedAnnualRewardsUnavailableBannerProps,
-  } = useTronRewardsRowsViewModel({ token });
+  } = useTronAssetOverviewSection({
+    enabled: Boolean(isTronNative),
+    tokenAddress: token.address,
+    tokenChainId: token.chainId,
+  });
   ///: END:ONLY_INCLUDE_IF
 
   const goToBrowserUrl = (url: string) => {
@@ -927,10 +932,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
             isTronNative && !stakedTrxAsset && (
               <Box paddingTop={3} paddingHorizontal={4}>
-                <TronStakingCta
-                  asset={token}
-                  aprText={tronApyPercent ?? undefined}
-                />
+                <TronStakingCta asset={token} aprText={tronAprText} />
               </Box>
             )
             ///: END:ONLY_INCLUDE_IF

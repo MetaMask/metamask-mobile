@@ -17,7 +17,9 @@ import {
 } from '@metamask/perps-controller';
 import { strings } from '../../../../../locales/i18n';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
-import useTronRewardsRowsViewModel from './useTronRewardsRowsViewModel';
+import useTronAssetOverviewSection from './useTronAssetOverviewSection';
+import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
+import { TronStakingCtaTestIds } from '../../Earn/components/Tron/TronStakingCta/TronStakingCta.testIds';
 
 const mockHandlePerpsAction = jest.fn();
 const mockTrack = jest.fn();
@@ -29,10 +31,16 @@ const mockCreateEventBuilder = jest.fn();
 const mockUseMarketInsights = jest.fn();
 const mockSelectMarketInsightsEnabled = jest.fn(() => true);
 const mockUsePerpsPositionForAsset = jest.fn();
-const mockUseTronRewardsRowsViewModel =
-  useTronRewardsRowsViewModel as jest.MockedFunction<
-    typeof useTronRewardsRowsViewModel
+const mockUseTronAssetOverviewSection =
+  useTronAssetOverviewSection as jest.MockedFunction<
+    typeof useTronAssetOverviewSection
   >;
+const mockTronStakingCta = jest.fn(({ aprText }: { aprText?: string }) => (
+  <MockView
+    testID={TronStakingCtaTestIds.CONTAINER}
+    accessibilityLabel={aprText}
+  />
+));
 
 jest.mock('../../MarketInsights', () => ({
   __esModule: true,
@@ -97,9 +105,10 @@ jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
 
-jest.mock('./useTronRewardsRowsViewModel', () => ({
+jest.mock('./useTronAssetOverviewSection', () => ({
   __esModule: true,
   default: jest.fn(() => ({
+    aprText: undefined,
     claimableRewardsRowProps: {
       title: 'Total claimable rewards',
       subtitle: '$0.00 · 0 TRX',
@@ -108,6 +117,11 @@ jest.mock('./useTronRewardsRowsViewModel', () => ({
     estimatedAnnualRewardsRowProps: null,
     estimatedAnnualRewardsUnavailableBannerProps: null,
   })),
+}));
+
+jest.mock('../../Earn/components/Tron/TronStakingCta/TronStakingCta', () => ({
+  __esModule: true,
+  default: (props: { aprText?: string }) => mockTronStakingCta(props),
 }));
 
 jest.mock(
@@ -251,6 +265,7 @@ describe('AssetOverviewContent', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+      mockUseTronAssetOverviewSection.mockReturnValue({});
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -455,17 +470,51 @@ describe('AssetOverviewContent', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+      mockUseTronAssetOverviewSection.mockReturnValue({});
     });
 
-    it('disables the Tron rewards view model for non-Tron assets', () => {
+    it('disables the Tron asset overview section for non-Tron assets', () => {
       renderWithProvider(<AssetOverviewContent {...defaultProps} />, {
         state: createState(true),
       });
 
-      expect(mockUseTronRewardsRowsViewModel).toHaveBeenCalledWith({
-        token: defaultProps.token,
+      expect(mockUseTronAssetOverviewSection).toHaveBeenCalledWith({
+        tokenAddress: defaultProps.token.address,
+        tokenChainId: defaultProps.token.chainId,
         enabled: false,
       });
+    });
+
+    it('passes APR text into the unstaked Tron CTA when available', () => {
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        aprText: '4.5%',
+      });
+
+      const tronToken: TokenI = {
+        ...defaultToken,
+        address: 'tron:token',
+        chainId: 'tron:0x2b6653dc',
+        symbol: 'TRX',
+        name: 'TRON',
+      };
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          token={tronToken}
+          isTronNative
+          stakedTrxAsset={undefined}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId(TronStakingCtaTestIds.CONTAINER)).toBeOnTheScreen();
+      expect(mockTronStakingCta).toHaveBeenCalledWith(
+        expect.objectContaining({
+          asset: tronToken,
+          aprText: '4.5%',
+        }),
+      );
     });
   });
 
