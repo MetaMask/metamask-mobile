@@ -49,6 +49,7 @@ export interface SeedPhraseConcealerProps {
 }
 
 export interface PasswordEntryProps {
+  password: string;
   onPasswordChange: (password: string) => void;
   onSubmit: () => void;
   warningMessage: string;
