@@ -109,6 +109,22 @@ export const usePredictBuyConditions = ({
 
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
+  const isPaymentTokenRequired = useMemo(() => {
+    if (!selectedPaymentToken || !requiredTokens?.length) {
+      return false;
+    }
+    return requiredTokens.some(
+      (token) =>
+        normalizeQuoteComparableAddress(token.address, token.chainId) ===
+          normalizeQuoteComparableAddress(
+            selectedPaymentToken.address,
+            selectedPaymentToken.chainId,
+          ) &&
+        token.chainId.toLowerCase() ===
+          selectedPaymentToken.chainId?.toLowerCase(),
+    );
+  }, [selectedPaymentToken, requiredTokens]);
+
   // Workaround: TransactionPayController sets paymentToken and isLoading in
   // separate state updates, causing a render with stale totals + loading=false.
   // Compare quote source token with selected token to bridge the gap.
@@ -124,16 +140,6 @@ export const usePredictBuyConditions = ({
       return false;
     }
     if (!quotes?.length) {
-      const isPaymentTokenRequired = requiredTokens?.some(
-        (token) =>
-          normalizeQuoteComparableAddress(token.address, token.chainId) ===
-            normalizeQuoteComparableAddress(
-              selectedPaymentToken.address,
-              selectedPaymentToken.chainId,
-            ) &&
-          token.chainId.toLowerCase() ===
-            selectedPaymentToken.chainId?.toLowerCase(),
-      );
       return !isPaymentTokenRequired;
     }
     const request = quotes[0]?.request;
@@ -158,7 +164,7 @@ export const usePredictBuyConditions = ({
     selectedPaymentToken,
     quotes,
     payTotals,
-    requiredTokens,
+    isPaymentTokenRequired,
   ]);
 
   const isPayFeesLoading = useMemo(

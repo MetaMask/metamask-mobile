@@ -336,6 +336,69 @@ describe('usePredictBuyInfo', () => {
       expect(result.current.depositAmount).toBe(25);
     });
 
+    it('rounds the remaining amount up to 2 decimals when a deposit is still needed', () => {
+      mockPredictBalance = 0;
+      const params = {
+        ...defaultParams,
+        currentValue: 2,
+        preview: createMockPreview({
+          fees: {
+            totalFee: 0.075,
+            metamaskFee: 0.035,
+            providerFee: 0.04,
+            totalFeePercentage: 4,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.depositAmount).toBe(2.08);
+    });
+
+    it('rounds up even when the third decimal is below 5 so the deposit fully covers the shortfall', () => {
+      mockPredictBalance = 0;
+      const params = {
+        ...defaultParams,
+        currentValue: 2,
+        preview: createMockPreview({
+          fees: {
+            totalFee: 0.074,
+            metamaskFee: 0.034,
+            providerFee: 0.04,
+            totalFeePercentage: 4,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.depositAmount).toBe(2.08);
+    });
+
+    it('rounds a tiny positive shortfall up to the minimum cent instead of zero', () => {
+      mockPredictBalance = 2.075889;
+      const params = {
+        ...defaultParams,
+        currentValue: 2,
+        preview: createMockPreview({
+          fees: {
+            totalFee: 0.08,
+            metamaskFee: 0.04,
+            providerFee: 0.04,
+            totalFeePercentage: 4,
+            collector: '0xCollector',
+          },
+        }),
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(params));
+
+      expect(result.current.depositAmount).toBe(0.01);
+    });
+
     it('returns the full preview total when predict balance already covers the bet', () => {
       mockPredictBalance = 110;
       const params = {

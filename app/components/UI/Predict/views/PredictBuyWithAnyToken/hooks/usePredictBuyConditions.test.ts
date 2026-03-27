@@ -524,7 +524,21 @@ describe('usePredictBuyConditions', () => {
       expect(getNativeTokenAddress).toHaveBeenCalledWith('0x89');
     });
 
-    it('returns false when requiredTokens include selected token', () => {
+    it('returns false when requiredTokens include selected token and quotes are unavailable', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
+      mockQuotes = null;
+      mockPayTotals = { total: '100' };
+      mockRequiredTokens = [{ address: '0xABC', chainId: '0x1' }];
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isPayFeesLoading).toBe(false);
+    });
+
+    it('returns true when requiredTokens include selected token but quotes are empty', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
       mockQuotes = [];
@@ -535,7 +549,7 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions(defaultParams),
       );
 
-      expect(result.current.isPayFeesLoading).toBe(false);
+      expect(result.current.isPayFeesLoading).toBe(true);
     });
   });
 
