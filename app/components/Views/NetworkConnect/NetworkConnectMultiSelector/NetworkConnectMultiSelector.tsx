@@ -146,10 +146,7 @@ const NetworkConnectMultiSelector = ({
                 NetworkConnectMultiSelectorSelectorsIDs.UPDATE_CHAIN_PERMISSIONS
               }
               size={ButtonSize.Lg}
-              style={{
-                ...styles.buttonPositioning,
-                ...(isLoading && styles.disabledOpacity),
-              }}
+              style={styles.buttonPositioning}
               isDisabled={isLoading}
             >
               {strings('networks.update')}
