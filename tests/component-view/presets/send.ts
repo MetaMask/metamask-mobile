@@ -142,6 +142,7 @@ export function buildTronSendFixture(
                       name: 'Group 1',
                       pinned: false,
                       hidden: false,
+                      lastSelected: 0,
                     },
                     accounts: TRON_SEND_ACCOUNT_IDS,
                   },

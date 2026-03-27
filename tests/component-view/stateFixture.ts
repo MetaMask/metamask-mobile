@@ -121,7 +121,12 @@ export function buildNormalizedAccountTree(
             [GROUP_ID]: {
               id: GROUP_ID,
               type: 'MultipleAccount',
-              metadata: { name: 'Group 1', pinned: false, hidden: false },
+              metadata: {
+                name: 'Group 1',
+                pinned: false,
+                hidden: false,
+                lastSelected: 0,
+              },
               accounts: selectedAccountId ? [selectedAccountId] : [],
             },
           },
