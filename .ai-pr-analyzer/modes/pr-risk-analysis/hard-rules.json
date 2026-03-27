@@ -1,0 +1,22 @@
+[
+  {
+    "name": "mass-critical-changes",
+    "description": "More than 20 critical files changed — automatic high risk",
+    "trigger": {
+      "type": "criticalFileCount",
+      "threshold": 20
+    },
+    "action": "run-all",
+    "result": {
+      "risk_score": 85,
+      "risk_level": "high",
+      "summary": "Large-scale change affecting more than 20 critical files. Manual review strongly recommended.",
+      "testing_recommendations": [
+        "Full regression test suite recommended",
+        "Manual review of all critical file changes",
+        "Verify no breaking changes to controller initialization order",
+        "Check Engine startup sequence"
+      ]
+    }
+  }
+]

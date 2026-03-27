@@ -1,0 +1,31 @@
+repo: metamask/metamask-mobile
+
+critical:
+  files:
+    - package.json
+    - metro.config.js
+    - babel.config.js
+    - .detoxrc.js
+  keywords:
+    - Controller
+    - Engine
+  paths:
+    - app/core/
+    - tests/
+    - .github/workflows/
+    - .github/actions/
+
+searchDirs:
+  - app/
+  - e2e/
+  - .github/
+  - scripts/
+  - tests/
+
+models:
+  default: anthropic/claude-haiku-4-5
+  escalation: anthropic/claude-sonnet-4-6
+  escalationThreshold: 3
+
+modes:
+  - pr-risk-analysis
