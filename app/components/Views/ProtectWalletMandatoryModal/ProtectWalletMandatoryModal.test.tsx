@@ -12,7 +12,9 @@ import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const mockNavigate = jest.fn();
 
-interface MockNavigationState { routes: { name: string }[] }
+interface MockNavigationState {
+  routes: { name: string }[];
+}
 
 const mockGetState = jest.fn((): MockNavigationState | undefined => ({
   routes: [{ name: 'Home' }],
