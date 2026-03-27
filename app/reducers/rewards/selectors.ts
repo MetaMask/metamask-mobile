@@ -224,7 +224,7 @@ export const selectOndoCampaignLeaderboardTiers = (state: RootState) =>
   state.rewards.ondoCampaignLeaderboard?.tiers ?? EMPTY_TIERS;
 
 export const selectOndoCampaignLeaderboardComputedAt = (state: RootState) =>
-  state.rewards.ondoCampaignLeaderboard?.computed_at ?? null;
+  state.rewards.ondoCampaignLeaderboard?.computedAt ?? null;
 
 export const selectOndoCampaignLeaderboardTierNames = createSelector(
   selectOndoCampaignLeaderboardTiers,
@@ -240,7 +240,7 @@ export const selectOndoCampaignLeaderboardEntriesByTier =
 export const selectOndoCampaignLeaderboardTotalParticipantsByTier =
   (tierName: string | null) => (state: RootState) =>
     tierName && state.rewards.ondoCampaignLeaderboard?.tiers[tierName]
-      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].total_participants
+      ? state.rewards.ondoCampaignLeaderboard.tiers[tierName].totalParticipants
       : 0;
 
 // Campaign leaderboard position selectors
@@ -254,6 +254,18 @@ export const selectOndoCampaignLeaderboardPositionById =
     campaignId &&
     state.rewards.ondoCampaignLeaderboardPositions
       ? (state.rewards.ondoCampaignLeaderboardPositions[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
+
+export const selectOndoCampaignPortfolio = (state: RootState) =>
+  state.rewards.ondoCampaignPortfolio;
+
+export const selectOndoCampaignPortfolioById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignPortfolio
+      ? (state.rewards.ondoCampaignPortfolio[
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;

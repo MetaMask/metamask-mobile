@@ -25,6 +25,29 @@ jest.mock('../../../../UI/Predict/hooks/usePredictClaim', () => ({
   usePredictClaim: () => ({ claim: mockClaim }),
 }));
 
+jest.mock('../../../../UI/Predict/hooks/useUnrealizedPnL', () => ({
+  useUnrealizedPnL: jest.fn(() => ({
+    data: { cashUpnl: 10, percentUpnl: 5, user: '0x0' },
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: () => false,
+}));
+
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: jest.fn(() => ({
+      invalidateQueries: jest.fn(() => Promise.resolve()),
+    })),
+  };
+});
+
 // Mock the hooks
 jest.mock('./hooks', () => ({
   usePredictMarketsForHomepage: jest.fn(() => ({
