@@ -132,14 +132,29 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   };
 });
 
+const mockOndoLeaderboardPosition = jest.fn();
 jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: (props: Record<string, unknown>) => {
+      mockOndoLeaderboardPosition(props);
+      return ReactActual.createElement(View, {
+        testID: 'ondo-leaderboard-position',
+      });
+    },
+  };
+});
+
+jest.mock('../components/Campaigns/OndoPortfolio', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () =>
       ReactActual.createElement(View, {
-        testID: 'ondo-leaderboard-position',
+        testID: 'ondo-campaign-portfolio',
       }),
   };
 });
@@ -254,6 +269,7 @@ const hookDefaults = {
 describe('OndoCampaignDetailsView', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOndoLeaderboardPosition.mockReset();
     mockUseRewardCampaigns.mockReturnValue(hookDefaults);
     mockUseGetCampaignParticipantStatus.mockReturnValue({
       status: null,
@@ -265,6 +281,7 @@ describe('OndoCampaignDetailsView', () => {
       leaderboard: null,
       isLoading: false,
       hasError: false,
+      isLeaderboardNotYetComputed: false,
       tierNames: [],
       selectedTier: null,
       selectedTierData: null,
@@ -358,7 +375,7 @@ describe('OndoCampaignDetailsView', () => {
               howItWorks: {
                 title: 'How it works',
                 description: 'Description',
-                phases: [],
+                steps: [],
               },
             },
           }),

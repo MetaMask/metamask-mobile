@@ -28,6 +28,9 @@ import {
   MUSD_TOKEN_ADDRESS,
 } from '../../../../Earn/constants/musd';
 import { getNativeSourceToken } from '../../../../Bridge/utils/tokenUtils';
+import { useAnalytics } from '../../../../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../../../hooks/useMetrics';
+import { RewardsMetricsButtons } from '../../../utils';
 
 const ANNUAL_BONUS_RATE = 0.03;
 const BUY_MUSD_URL =
@@ -43,6 +46,7 @@ const MUSD_DEST_TOKEN: BridgeToken = {
 
 const MusdCalculatorTab: React.FC = () => {
   const tw = useTailwind();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const [musdAmount, setMusdAmount] = useState('1000');
 
   const ethSourceToken = useMemo(
@@ -77,8 +81,13 @@ const MusdCalculatorTab: React.FC = () => {
   }, []);
 
   const handleBuyMusd = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({ button_type: RewardsMetricsButtons.BUY_MUSD })
+        .build(),
+    );
     handleDeeplink({ uri: BUY_MUSD_URL });
-  }, []);
+  }, [trackEvent, createEventBuilder]);
 
   const { goToSwaps } = useSwapBridgeNavigation({
     location: SwapBridgeNavigationLocation.Rewards,
@@ -88,8 +97,13 @@ const MusdCalculatorTab: React.FC = () => {
   });
 
   const handleSwapMusd = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.REWARDS_PAGE_BUTTON_CLICKED)
+        .addProperties({ button_type: RewardsMetricsButtons.SWAP_TO_MUSD })
+        .build(),
+    );
     goToSwaps();
-  }, [goToSwaps]);
+  }, [goToSwaps, trackEvent, createEventBuilder]);
 
   return (
     <ScrollView
@@ -182,11 +196,11 @@ const MusdCalculatorTab: React.FC = () => {
 
       {/* Disclaimer */}
       <Text
-        variant={TextVariant.BodySm}
+        variant={TextVariant.BodyXs}
         color={TextColor.TextAlternative}
         twClassName="text-center"
       >
-        {strings('rewards.musd.disclaimer')}
+        {strings('rewards.musd.disclaimer_brief')}
       </Text>
     </ScrollView>
   );
