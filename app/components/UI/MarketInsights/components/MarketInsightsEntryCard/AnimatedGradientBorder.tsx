@@ -14,8 +14,6 @@ import Animated, {
 import Svg, { Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 import {
   BORDER_DASH_START_SHIFT_FRACTION,
-  BORDER_GRADIENT_HEAD,
-  BORDER_GRADIENT_TAIL,
   BORDER_RADIUS,
   BORDER_STROKE_WIDTH,
   BORDER_SWEEP_DURATION_MS,
@@ -26,6 +24,7 @@ import {
   BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION,
   BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION,
 } from './AnimatedGradientBorder.constants';
+import { CHROME_GRADIENT_HEAD, CHROME_GRADIENT_TAIL } from './constants';
 import {
   buildOpenBorderPathD,
   buildRoundedRectBorderPolyline,
@@ -174,8 +173,8 @@ const SweepPath: React.FC<SweepPathProps> = ({
           gradientUnits="userSpaceOnUse"
           animatedProps={gradientAnimatedProps}
         >
-          <Stop offset="0" stopColor={BORDER_GRADIENT_TAIL} />
-          <Stop offset="1" stopColor={BORDER_GRADIENT_HEAD} />
+          <Stop offset="0" stopColor={CHROME_GRADIENT_TAIL} />
+          <Stop offset="1" stopColor={CHROME_GRADIENT_HEAD} />
         </AnimatedLinearGradient>
       </Defs>
       <AnimatedPath

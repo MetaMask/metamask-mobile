@@ -1,35 +1,38 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { StyleSheet, TouchableOpacity, View } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import LinearGradient from 'react-native-linear-gradient';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import MaskedView from '@react-native-masked-view/masked-view';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { strings } from '../../../../../../locales/i18n';
 import AiSVG from '../../../../../component-library/components/Icons/Icon/assets/ai.svg';
 import ArrowRightSVG from '../../../../../component-library/components/Icons/Icon/assets/arrow-right.svg';
-import { strings } from '../../../../../../locales/i18n';
-import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import { endTrace, TraceName } from '../../../../../util/trace';
-import { useViewportTracking } from '../../hooks/useViewportTracking';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   EVENT_NAME,
   generateOpt,
 } from '../../../../../core/Analytics/MetaMetrics.events';
+import { endTrace, TraceName } from '../../../../../util/trace';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useViewportTracking } from '../../hooks/useViewportTracking';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
+import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import SlidingTextCarousel from './SlidingTextCarousel';
+import {
+  CHROME_GRADIENT_HEAD,
+  CHROME_GRADIENT_LINEAR_END,
+  CHROME_GRADIENT_LINEAR_START,
+  CHROME_GRADIENT_TAIL,
+} from './constants';
 
-const GRADIENT_COLORS = ['#D86FCF', '#ED666E'] as const;
-const GRADIENT_START = { x: 0, y: 0 };
-const GRADIENT_END = { x: 1, y: 0 };
 const ARROW_ICON_SIZE = 16;
 const SPARKLE_SIZE = 16;
 
@@ -74,9 +77,9 @@ const GradientText: React.FC<GradientTextProps> = ({
     style={styles.gradientTextMask}
   >
     <LinearGradient
-      colors={[...GRADIENT_COLORS]}
-      start={GRADIENT_START}
-      end={GRADIENT_END}
+      colors={[CHROME_GRADIENT_HEAD, CHROME_GRADIENT_TAIL]}
+      start={CHROME_GRADIENT_LINEAR_START}
+      end={CHROME_GRADIENT_LINEAR_END}
       style={styles.gradient}
     >
       <Text
@@ -103,9 +106,9 @@ const GradientSparkleIcon: React.FC = () => (
     }
   >
     <LinearGradient
-      colors={[...GRADIENT_COLORS]}
-      start={GRADIENT_START}
-      end={GRADIENT_END}
+      colors={[CHROME_GRADIENT_HEAD, CHROME_GRADIENT_TAIL]}
+      start={CHROME_GRADIENT_LINEAR_START}
+      end={CHROME_GRADIENT_LINEAR_END}
       style={styles.sparkleGradient}
     />
   </MaskedView>
@@ -234,7 +237,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
               name="arrow-right"
               width={ARROW_ICON_SIZE}
               height={ARROW_ICON_SIZE}
-              fill={GRADIENT_COLORS[1]}
+              fill={CHROME_GRADIENT_TAIL}
             />
           </Box>
 
@@ -251,7 +254,10 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
             gap={1}
           >
             <GradientSparkleIcon />
-            <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
               {strings('market_insights.footer_disclaimer')}
               {' • '}
               {timeAgo}

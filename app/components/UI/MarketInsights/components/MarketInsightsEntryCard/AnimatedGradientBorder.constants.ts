@@ -1,5 +1,5 @@
 /** Duration of the sweep traveling around the border in ms */
-export const BORDER_SWEEP_DURATION_MS = 800;
+export const BORDER_SWEEP_DURATION_MS = 1000;
 
 /** Border radius matching Tailwind's rounded-xl (12px) */
 export const BORDER_RADIUS = 12;
@@ -43,18 +43,6 @@ export const BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION = 0.7;
 
 /** Opacity fade-out begins at this `p` (second segment uses cubic ease-out). */
 export const BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION = 0.7;
-
-/** Trail tail (follows the sweep from behind). */
-export const BORDER_GRADIENT_TAIL = '#D86FCF';
-
-/** Trail head (leading edge of the sweep). */
-export const BORDER_GRADIENT_HEAD = '#ED666E';
-
-/** [tail, head] for consumers that need both (e.g. card chrome gradient). */
-export const BORDER_GRADIENT_COLORS = [
-  BORDER_GRADIENT_TAIL,
-  BORDER_GRADIENT_HEAD,
-] as const;
 
 /** Fraction of the card that must be visible on-screen to trigger the animation (1 = fully visible) */
 export const VISIBILITY_THRESHOLD = 1;
