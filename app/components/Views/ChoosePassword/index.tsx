@@ -87,6 +87,12 @@ import { AccountImportStrategy } from '@metamask/keyring-controller';
 import { setDataCollectionForMarketing } from '../../../actions/security';
 import { ChoosePasswordRouteParams } from './ChoosePassword.types';
 import { useNavigation, useRoute, RouteProp } from '@react-navigation/native';
+import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
+import generateDeviceAnalyticsMetaData, {
+  UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
+} from '../../../util/metrics';
+import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
+import { getSocialAccountType } from '../../../constants/onboarding';
 
 interface KeyringState {
   type: string;
@@ -310,6 +316,31 @@ const ChoosePassword = () => {
           },
         );
 
+        const oauthProvider = route.params?.provider;
+        const socialAccountType =
+          oauthProvider !== undefined
+            ? getSocialAccountType(oauthProvider, false)
+            : undefined;
+
+        metrics.trackEvent(
+          metrics
+            .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
+            .addProperties({
+              [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(isSelected),
+              is_metrics_opted_in: true,
+              location: 'onboarding_choosePassword',
+              updated_after_onboarding: false,
+              ...(socialAccountType && { account_type: socialAccountType }),
+            })
+            .build(),
+        );
+
+        await metrics.addTraitsToUser({
+          ...generateDeviceAnalyticsMetaData(),
+          ...generateUserSettingsAnalyticsMetaData(),
+          [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
+        });
+
         navigation.reset({
           index: 0,
           routes: [
@@ -332,7 +363,15 @@ const ChoosePassword = () => {
         });
       }
     },
-    [dispatch, isSelected, navigation, tryExportSeedPhrase, password],
+    [
+      dispatch,
+      isSelected,
+      metrics,
+      navigation,
+      route.params?.provider,
+      tryExportSeedPhrase,
+      password,
+    ],
   );
 
   const handleWalletCreationError = useCallback(
