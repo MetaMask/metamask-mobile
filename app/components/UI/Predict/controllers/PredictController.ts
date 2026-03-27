@@ -2455,6 +2455,13 @@ export class PredictController extends BaseController<
         analyticsProperties:
           this.state.activeOrders[address]?.analyticsProperties,
         preview: this.depositPreview[address],
+      }).catch((error) => {
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('handleTransactionSideEffects', {
+            operation: 'placeOrder',
+          }),
+        );
       });
     }
 
@@ -2469,7 +2476,14 @@ export class PredictController extends BaseController<
           delete state.activeOrders[address].batchId;
         }
       });
-      this.initPayWithAnyToken();
+      this.initPayWithAnyToken().catch((error) => {
+        Logger.error(
+          ensureError(error),
+          this.getErrorContext('handleTransactionSideEffects', {
+            operation: 'initPayWithAnyToken',
+          }),
+        );
+      });
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {
