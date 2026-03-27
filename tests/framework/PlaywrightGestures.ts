@@ -157,8 +157,14 @@ export default class PlaywrightGestures {
    * Scroll element into view
    */
   @boxedStep
-  static async scrollIntoView(elem: PlaywrightElement): Promise<void> {
-    await elem.unwrap().scrollIntoView();
+  static async scrollIntoView(
+    elem: PlaywrightElement,
+    options?: { scrollParams?: { direction?: 'up' | 'down' } },
+  ): Promise<void> {
+    const { scrollParams = { direction: 'up' } } = options || {};
+    await elem.unwrap().scrollIntoView({
+      direction: scrollParams.direction,
+    });
   }
 
   /**
@@ -168,23 +174,47 @@ export default class PlaywrightGestures {
   @boxedStep
   static async terminateApp(
     currentDeviceDetails: CurrentDeviceDetails,
+    options: {
+      maxRetries?: number;
+      retryDelay?: number;
+      finalTimeout?: number;
+    } = {},
   ): Promise<void> {
+    const { maxRetries = 3, retryDelay = 1000, finalTimeout = 2000 } = options;
     const drv = getDriver();
     if (!drv) throw new Error('Driver is not available');
+
+    let bundleId;
+    let retries = maxRetries;
+
     if (
       (await PlatformDetector.isAndroid()) &&
       currentDeviceDetails.packageName
     ) {
-      await drv.terminateApp(currentDeviceDetails.packageName);
+      bundleId = currentDeviceDetails.packageName;
     } else if ((await PlatformDetector.isIOS()) && currentDeviceDetails.appId) {
-      await drv.terminateApp(currentDeviceDetails.appId);
+      bundleId = currentDeviceDetails.appId;
     } else {
       throw new Error('Package name or app id is not available');
     }
+
+    while (retries > 0) {
+      try {
+        await drv.terminateApp(bundleId);
+        await new Promise((resolve) => setTimeout(resolve, retryDelay));
+        return;
+      } catch (error) {
+        console.log('Error terminating app', bundleId);
+        retries--;
+      }
+    }
+
+    // Timeout to ensure the app is terminated
+    await new Promise((resolve) => setTimeout(resolve, finalTimeout));
   }
 
   /**
-   * Activate the app.
+   * Activate the app
    * @param currentDeviceDetails - The current device details
    */
   @boxedStep
@@ -220,5 +250,31 @@ export default class PlaywrightGestures {
     if (!drv) throw new Error('Driver is not available');
 
     await drv.execute('mobile: backgroundApp', { seconds });
+  }
+
+  /**
+   * Hide keyboard for both Android and iOS
+   * @param keyName - The key to press on iOS keyboard (default: 'Done'). Common values: 'Done', 'Return', 'Search', 'Go', 'Next'
+   */
+  static async hideKeyboard(keyName: string = 'Done'): Promise<void> {
+    const drv = getDriver();
+    if (!drv) throw new Error('Driver is not available');
+
+    if (await PlatformDetector.isAndroid()) {
+      await drv.hideKeyboard();
+    } else {
+      // iOS - try pressKey strategy first, fallback to tap outside
+      try {
+        await drv.executeScript('mobile: hideKeyboard', [
+          {
+            strategy: 'pressKey',
+            key: keyName,
+          },
+        ]);
+      } catch {
+        // Fallback: tap outside the keyboard area (top of screen)
+        await drv.tap({ x: 100, y: 150 });
+      }
+    }
   }
 }
