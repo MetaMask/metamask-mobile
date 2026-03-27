@@ -7,6 +7,9 @@ import { Platform } from 'react-native';
 import Device from '../../../util/device';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AccountType } from '../../../constants/onboarding';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 const { InteractionManager } = jest.requireActual('react-native');
 
@@ -28,31 +31,7 @@ jest.mock('../../../util/analytics/analytics', () => ({
   },
 }));
 
-// Override global useAnalytics mock so calls proxy through to the mocked analytics module above
-jest.mock('../../hooks/useAnalytics/useAnalytics', () => {
-  const { AnalyticsEventBuilder } = jest.requireActual(
-    '../../../util/analytics/AnalyticsEventBuilder',
-  );
-  const { analytics: a } = jest.requireMock(
-    '../../../util/analytics/analytics',
-  );
-  return {
-    useAnalytics: () => ({
-      trackEvent: (event: unknown) => a.trackEvent(event),
-      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      enable: async (enable: boolean) => {
-        if (enable === false) {
-          await a.optOut();
-        } else {
-          await a.optIn();
-        }
-      },
-      identify: (traits: unknown) => a.identify(traits),
-      isEnabled: () => a.isEnabled(),
-      getAnalyticsId: () => a.getAnalyticsId(),
-    }),
-  };
-});
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 
 // Mock MetaMetrics for events and getInstance
 jest.mock('../../../core/Analytics/MetaMetrics', () => ({
@@ -112,6 +91,24 @@ jest.doMock('react-native', () => {
 describe('OptinMetrics', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: (event) => mockAnalytics.trackEvent(event),
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+        enable: async (enable) => {
+          if (enable === false) {
+            await mockAnalytics.optOut();
+          } else {
+            await mockAnalytics.optIn();
+          }
+        },
+        identify: async (traits) => {
+          mockAnalytics.identify(traits);
+        },
+        isEnabled: () => mockAnalytics.isEnabled(),
+        getAnalyticsId: () => mockAnalytics.getAnalyticsId(),
+      }),
+    );
     (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
     (Device.isAndroid as jest.Mock).mockReturnValue(false);
     (Device.isIos as jest.Mock).mockReturnValue(true);
