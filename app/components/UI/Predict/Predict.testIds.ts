@@ -80,6 +80,14 @@ export const getPredictFeedMockSelector = {
 // PREDICT MARKET DETAILS SELECTORS
 // ========================================
 
+export type PredictMarketDetailsTabKey = 'positions' | 'outcomes' | 'about';
+
+export const getPredictMarketDetailsSelector = {
+  tabBarTab: (tabKey: PredictMarketDetailsTabKey) =>
+    `predict-market-details-tab-bar-tab-${tabKey}`,
+  icon: (name: string) => `icon-${name}`,
+} as const;
+
 export const PredictMarketDetailsSelectorsIDs = {
   // Main screen
   SCREEN: 'predict-market-details-screen',
@@ -96,9 +104,9 @@ export const PredictMarketDetailsSelectorsIDs = {
   OUTCOMES_TAB: 'predict-market-details-outcomes-tab',
 
   // Tab labels
-  POSITIONS_TAB_LABEL: 'predict-market-details-tab-bar-tab-0',
-  OUTCOMES_TAB_LABEL: 'predict-market-details-tab-bar-tab-1',
-  ABOUT_TAB_LABEL: 'predict-market-details-tab-bar-tab-2',
+  POSITIONS_TAB_LABEL: getPredictMarketDetailsSelector.tabBarTab('positions'),
+  OUTCOMES_TAB_LABEL: getPredictMarketDetailsSelector.tabBarTab('outcomes'),
+  ABOUT_TAB_LABEL: getPredictMarketDetailsSelector.tabBarTab('about'),
 
   // Tab content containers
   ABOUT_TAB_CONTENT: 'about-tab-content',
@@ -117,11 +125,6 @@ export const PredictMarketDetailsSelectorsIDs = {
   DETAILS_CONTENT_SKELETON_LINE_1: 'predict-details-content-skeleton-line-1',
   DETAILS_BUTTONS_SKELETON_BUTTON_1:
     'predict-details-buttons-skeleton-button-1',
-} as const;
-
-export const getPredictMarketDetailsSelector = {
-  tabBarTab: (index: number) => `predict-market-details-tab-bar-tab-${index}`,
-  icon: (name: string) => `icon-${name}`,
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
