@@ -26,7 +26,7 @@ class LoginView {
         Matchers.getElementByLabel(LoginViewSelectors.PASSWORD_INPUT),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementByCatchAll(
+          PlaywrightMatchers.getElementByAccessibilityId(
             LoginViewSelectors.PASSWORD_INPUT,
           ),
         ios: () =>
