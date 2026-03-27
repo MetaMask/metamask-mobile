@@ -37,6 +37,13 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Checkout AI Analyzer
+        uses: actions/checkout@v4
+        with:
+          repository: MetaMask/ai-analyzer
+          path: .ai-analyzer-action
+          token: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Determine PR number
         id: pr-info
         shell: bash
@@ -52,7 +59,7 @@ jobs:
 
       - name: Run AI PR Analysis
         id: analysis
-        uses: MetaMask/ai-analyzer@main
+        uses: ./.ai-analyzer-action
         with:
           mode: ${{ env.INPUT_MODE || 'pr-risk-analysis' }}
           pr-number: ${{ steps.pr-info.outputs.pr_number }}
