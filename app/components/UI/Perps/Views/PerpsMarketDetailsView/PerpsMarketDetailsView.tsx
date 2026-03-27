@@ -1145,6 +1145,11 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
   const shouldShowLongShortButtonsOnly =
     shouldShowNewPositionActions && !showAddFundsCTA;
 
+  const shouldShowPerpsMarketInsights =
+    isPerpsInsightsEnabled &&
+    Boolean(market?.symbol) &&
+    (Boolean(perpsInsightsReport) || isPerpsInsightsLoading);
+
   const displayTitle = `${getPerpsDisplaySymbol(market.symbol)}-USD`;
 
   return (
@@ -1355,9 +1360,7 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
           )}
 
           {/* Market Insights Section - shown when flag is enabled and report is available or loading */}
-          {isPerpsInsightsEnabled &&
-          market?.symbol &&
-          (perpsInsightsReport || isPerpsInsightsLoading) ? (
+          {shouldShowPerpsMarketInsights ? (
             perpsInsightsReport ? (
               <MarketInsightsEntryCard
                 report={perpsInsightsReport}

@@ -641,6 +641,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     });
   };
 
+  const shouldShowMarketInsights =
+    isMarketInsightsEnabled &&
+    Boolean(marketInsightsCaip19Id) &&
+    (Boolean(marketInsightsReport) || isMarketInsightsLoading);
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -842,16 +847,14 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
-          {isMarketInsightsEnabled &&
-          marketInsightsCaip19Id &&
-          (marketInsightsReport || isMarketInsightsLoading) ? (
+          {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
               {marketInsightsReport ? (
                 <MarketInsightsEntryCard
                   report={marketInsightsReport}
                   timeAgo={marketInsightsTimeAgo}
                   onPress={handleMarketInsightsPress}
-                  caip19Id={marketInsightsCaip19Id}
+                  caip19Id={marketInsightsCaip19Id ?? undefined}
                   testID="market-insights-entry-card"
                 />
               ) : (
