@@ -187,7 +187,10 @@
     "@metamask/bridge-status-controller@npm:^69.0.0": "patch:@metamask/bridge-status-controller@npm%3A69.0.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-69.0.0-ec19aeeecf.patch",
     "bn.js@npm:4.11.6": "4.12.3",
     "bn.js@npm:5.2.1": "5.2.3",
-    "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch"
+    "expo-web-browser@npm:~14.0.2": "patch:expo-web-browser@npm%3A14.0.2#~/.yarn/patches/expo-web-browser-npm-14.0.2-98d00ce880.patch",
+    "@metamask/accounts-controller@npm:^37.0.0": "patch:@metamask/accounts-controller@npm%3A37.1.0#~/.yarn/patches/@metamask-accounts-controller-npm-37.1.0-d2e2ce8f3e.patch",
+    "@metamask/accounts-controller@npm:^36.0.0": "patch:@metamask/accounts-controller@npm%3A37.1.0#~/.yarn/patches/@metamask-accounts-controller-npm-37.1.0-d2e2ce8f3e.patch",
+    "@metamask/accounts-controller@npm:^35.0.2": "patch:@metamask/accounts-controller@npm%3A37.1.0#~/.yarn/patches/@metamask-accounts-controller-npm-37.1.0-d2e2ce8f3e.patch"
   },
   "dependencies": {
     "@config-plugins/detox": "^9.0.0",
@@ -206,7 +209,7 @@
     "@metamask/abi-utils": "^3.0.0",
     "@metamask/account-api": "^1.0.0",
     "@metamask/account-tree-controller": "^5.0.0",
-    "@metamask/accounts-controller": "^37.0.0",
+    "@metamask/accounts-controller": "patch:@metamask/accounts-controller@npm%3A37.1.0#~/.yarn/patches/@metamask-accounts-controller-npm-37.1.0-d2e2ce8f3e.patch",
     "@metamask/address-book-controller": "^7.1.0",
     "@metamask/ai-controllers": "^0.6.0",
     "@metamask/analytics-controller": "^1.0.0",

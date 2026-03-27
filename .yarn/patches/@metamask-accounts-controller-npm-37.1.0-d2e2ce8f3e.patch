@@ -1,0 +1,28 @@
+diff --git a/dist/utils.cjs b/dist/utils.cjs
+index a31fb461fdb30e8da6ee2f3ff150af893f000683..49eec63eae5cf04edbf1484dcd6adf7ae0f49890 100644
+--- a/dist/utils.cjs
++++ b/dist/utils.cjs
+@@ -38,6 +38,9 @@ function keyringTypeToName(keyringType) {
+         case keyring_controller_1.KeyringTypes.snap: {
+             return 'Snap Account';
+         }
++        case 'Money Keyring': {
++            return 'Money Account';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }
+diff --git a/dist/utils.mjs b/dist/utils.mjs
+index 7b3f6e2299cadf34744efbeff7f345fb570c88a1..0646a5661fbe60dfd8d6df52ccde732bb1441e61 100644
+--- a/dist/utils.mjs
++++ b/dist/utils.mjs
+@@ -35,6 +35,9 @@ export function keyringTypeToName(keyringType) {
+         case KeyringTypes.snap: {
+             return 'Snap Account';
+         }
++        case 'Money Keyring': {
++            return 'Money Account';
++        }
+         default: {
+             throw new Error(`Unknown keyring ${keyringType}`);
+         }
