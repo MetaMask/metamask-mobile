@@ -42,6 +42,7 @@ import HeaderCompactStandard from '../../../../../component-library/components-t
 import Routes from '../../../../../constants/navigation/Routes';
 import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from './BuildQuote.styles';
+import { getFontSizeForInputLength } from './getFontSizeForInputLength';
 import { useFormatters } from '../../../../hooks/useFormatters';
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import {
@@ -141,29 +142,6 @@ export const createBuildQuoteNavDetails = (
   ] as const;
 
 const DEFAULT_AMOUNT = 100;
-
-/**
- * Matches Predict amount display scaling — see PredictAmountDisplay.tsx
- * (getFontSizeForInputLength + lineHeight = fontSize + 10).
- */
-function getFontSizeForInputLength(contentLength: number) {
-  if (contentLength <= 8) {
-    return 60;
-  }
-  if (contentLength <= 10) {
-    return 48;
-  }
-  if (contentLength <= 12) {
-    return 32;
-  }
-  if (contentLength <= 14) {
-    return 24;
-  }
-  if (contentLength <= 18) {
-    return 18;
-  }
-  return 12;
-}
 
 function BuildQuote() {
   const navigation = useNavigation();
