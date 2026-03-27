@@ -102,10 +102,6 @@ import {
   MoneyAccountScreenStack,
 } from '../../UI/Money/routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
-import {
-  selectMoneyAccountDepositEnabledFlag,
-  selectMoneyAccountWithdrawEnabledFlag,
-} from '../../../selectors/featureFlagController/moneyAccount';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -942,15 +938,7 @@ const MainNavigator = () => {
   const isMoneyHomeScreenEnabled = useSelector(
     selectMoneyHomeScreenEnabledFlag,
   );
-  // Get feature flag state for conditional Money Account screen registration
-  const isMoneyAccountDepositEnabled = useSelector(
-    selectMoneyAccountDepositEnabledFlag,
-  );
-  const isMoneyAccountWithdrawEnabled = useSelector(
-    selectMoneyAccountWithdrawEnabledFlag,
-  );
-  const isMoneyAccountEnabled =
-    isMoneyAccountDepositEnabled || isMoneyAccountWithdrawEnabled;
+
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1112,13 +1100,11 @@ const MainNavigator = () => {
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}
-      {isMoneyAccountEnabled && (
-        <Stack.Screen
-          name={Routes.MONEY_ACCOUNT.ROOT}
-          component={MoneyAccountScreenStack}
-          options={slideFromRightAnimation}
-        />
-      )}
+      <Stack.Screen
+        name={Routes.MONEY_ACCOUNT.ROOT}
+        component={MoneyAccountScreenStack}
+        options={slideFromRightAnimation}
+      />
       <Stack.Screen
         name="StakeModals"
         component={StakeModalStack}
