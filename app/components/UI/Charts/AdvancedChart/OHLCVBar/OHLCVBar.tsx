@@ -9,13 +9,10 @@ import {
   BoxAlignItems,
   BoxJustifyContent,
 } from '@metamask/design-system-react-native';
-import {
-  formatPerpsFiat,
-  formatVolume,
-  PRICE_RANGES_UNIVERSAL,
-} from '../../../Perps/utils/formatUtils';
+import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format';
 import { strings } from '../../../../../../locales/i18n';
 import type { CrosshairData } from '../AdvancedChart.types';
+import { formatOhlcvVolumeDisplay } from './ohlcvBarVolumeFormat';
 
 interface OHLCVBarProps {
   data: CrosshairData;
@@ -30,20 +27,37 @@ const LABELS = [
   { key: 'low' as const, label: () => strings('perps.chart.ohlc.low') },
 ] as const;
 
-const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
+export const OHLCVBar: React.FC<OHLCVBarProps> = ({
+  data,
+  currency,
+  testID,
+}) => {
   const formatted = useMemo(() => {
-    const formatOpts = {
-      ranges: PRICE_RANGES_UNIVERSAL,
-      stripTrailingZeros: true,
-      currency: currency.toUpperCase(),
-    };
+    const subscriptOpts = { maxDigitsAfterSubscript: 1 };
     const prices = {
-      open: formatPerpsFiat(data.open, formatOpts),
-      close: formatPerpsFiat(data.close, formatOpts),
-      high: formatPerpsFiat(data.high, formatOpts),
-      low: formatPerpsFiat(data.low, formatOpts),
+      open: formatPriceWithSubscriptNotation(
+        data.open,
+        currency,
+        subscriptOpts,
+      ),
+      close: formatPriceWithSubscriptNotation(
+        data.close,
+        currency,
+        subscriptOpts,
+      ),
+      high: formatPriceWithSubscriptNotation(
+        data.high,
+        currency,
+        subscriptOpts,
+      ),
+      low: formatPriceWithSubscriptNotation(data.low, currency, subscriptOpts),
     };
-    const volume = data.volume !== undefined ? formatVolume(data.volume) : null;
+    const volume =
+      data.volume === undefined
+        ? null
+        : Number(data.volume) === 0
+          ? '—'
+          : formatOhlcvVolumeDisplay(data.volume, currency);
     return { prices, volume };
   }, [data.open, data.close, data.high, data.low, data.volume, currency]);
 
@@ -74,7 +88,6 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
               style={{ fontWeight: FontWeight.Medium }}
               color={TextColor.TextDefault}
               numberOfLines={1}
-              adjustsFontSizeToFit
             >
               {formatted.volume}
             </Text>
@@ -110,5 +123,3 @@ const OHLCVBar: React.FC<OHLCVBarProps> = ({ data, currency, testID }) => {
     </Box>
   );
 };
-
-export default OHLCVBar;

@@ -533,26 +533,71 @@ function applyChartScaleLayout(type) {
 }
 
 /**
+ * Subscript helpers for tiny prices — mirrors app/util/number/subscriptNotation.ts.
+ * This file is injected as a standalone script string in the chart WebView (see chartLogicString.ts),
+ * not executed in the Metro/RN bundle, so we cannot import or require the shared TS module.
+ */
+var SUBSCRIPT_DIGITS_CROSSHAIR = [
+  '₀',
+  '₁',
+  '₂',
+  '₃',
+  '₄',
+  '₅',
+  '₆',
+  '₇',
+  '₈',
+  '₉',
+];
+
+function toSubscriptDigitsCrosshair(n) {
+  return String(n)
+    .split('')
+    .map(function (digit) {
+      return SUBSCRIPT_DIGITS_CROSSHAIR[parseInt(digit, 10)];
+    })
+    .join('');
+}
+
+function formatSubscriptNotationCrosshair(abs) {
+  if (abs > 0 && abs < 0.0001) {
+    var priceStr = abs.toFixed(20);
+    var match = priceStr.match(/^0\\.0*([1-9]\\d*)/);
+    if (match) {
+      var leadingZeros = priceStr.indexOf(match[1]) - 2;
+      if (leadingZeros >= 4) {
+        var sig = match[1];
+        var significantDigits =
+          sig.slice(0, 4).replace(/0+$/, '') || sig.slice(0, 2);
+        return '0.0' + toSubscriptDigitsCrosshair(leadingZeros) + significantDigits;
+      }
+    }
+  }
+  return null;
+}
+
+/**
  * Custom crosshair labels (DOM overlay in #chart_surface; built-in TV labels disabled).
+ * Number only — no currency symbol.
  */
 function formatCrosshairPrice(price) {
   if (price === undefined || price === null || isNaN(Number(price))) {
     return '';
   }
   var p = Number(price);
-  if (Math.abs(p) >= 1000) {
-    return p.toLocaleString('en-US', {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2,
-    });
+  if (p === 0) {
+    return '0.00';
   }
-  if (Math.abs(p) >= 1) {
-    return p.toFixed(2);
+  var abs = Math.abs(p);
+  var sub = formatSubscriptNotationCrosshair(abs);
+  if (sub) {
+    return p < 0 ? '-' + sub : sub;
   }
-  if (Math.abs(p) >= 0.01) {
-    return p.toFixed(4);
-  }
-  return String(p);
+  return new Intl.NumberFormat('en-US', {
+    style: 'decimal',
+    minimumFractionDigits: 2,
+    maximumFractionDigits: abs >= 1 ? 2 : 4,
+  }).format(p);
 }
 
 function formatCrosshairTime(timeSeconds) {

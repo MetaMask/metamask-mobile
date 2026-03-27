@@ -23,7 +23,7 @@ import TimeRangeSelector, {
   type TimeRange,
 } from '../../Charts/AdvancedChart/TimeRangeSelector';
 import { useOHLCVChart } from '../../Charts/AdvancedChart/useOHLCVChart';
-import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar';
+import { OHLCVBar } from '../../Charts/AdvancedChart/OHLCVBar/OHLCVBar';
 import {
   Box,
   FontWeight,
