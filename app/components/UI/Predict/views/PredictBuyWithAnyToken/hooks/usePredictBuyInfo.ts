@@ -100,7 +100,7 @@ export const usePredictBuyInfo = ({
 
     if (remainingAmount <= 0) {
       return new BigNumber(totalPayForPredictBalance)
-        .decimalPlaces(2, BigNumber.ROUND_HALF_UP)
+        .decimalPlaces(2, BigNumber.ROUND_UP)
         .toNumber();
     }
     return new BigNumber(remainingAmount)

@@ -7150,6 +7150,45 @@ describe('PredictController', () => {
         });
       });
     });
+
+    it('retries pay-with-any-token init after order placement fails with an active batch', async () => {
+      await withController(async ({ controller }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          batchId: 'batch-1',
+        });
+
+        const retrySpy = jest
+          .spyOn(controller, 'initPayWithAnyToken')
+          .mockResolvedValue({
+            success: true,
+            response: {
+              batchId: 'batch-2',
+            },
+          } as never);
+
+        mockPolymarketProvider.placeOrder.mockRejectedValue(
+          new Error('Order placement failed'),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await expect(controller.placeOrder({ preview })).rejects.toThrow(
+          'Order placement failed',
+        );
+
+        expect(retrySpy).toHaveBeenCalledTimes(1);
+        expect(
+          controller.state.activeOrders[MOCK_ADDRESS]?.batchId,
+        ).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.error).toBe(
+          'Order placement failed',
+        );
+      });
+    });
   });
 
   describe('handleTransactionSideEffects for depositAndOrder', () => {

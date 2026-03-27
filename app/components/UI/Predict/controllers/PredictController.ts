@@ -1460,6 +1460,7 @@ export class PredictController extends BaseController<
     ) {
       this.update((state) => {
         state.activeOrders[activeOrderAddress] = {
+          ...state.activeOrders[activeOrderAddress],
           state: ActiveOrderState.DEPOSITING,
           analyticsProperties: params.analyticsProperties,
         };
@@ -1474,6 +1475,7 @@ export class PredictController extends BaseController<
     if (params.preview.side === Side.BUY) {
       this.update((state) => {
         state.activeOrders[activeOrderAddress] = {
+          ...state.activeOrders[activeOrderAddress],
           state: ActiveOrderState.PLACING_ORDER,
         };
       });
@@ -1622,6 +1624,7 @@ export class PredictController extends BaseController<
         state.lastUpdateTimestamp = Date.now();
         if (preview.side === Side.BUY) {
           state.activeOrders[activeOrderAddress] = {
+            ...state.activeOrders[activeOrderAddress],
             state: ActiveOrderState.PREVIEW,
             error: errorMessage,
           };
@@ -1643,6 +1646,23 @@ export class PredictController extends BaseController<
           completionDuration,
         }),
       );
+
+      if (this.state.activeOrders[activeOrderAddress]?.batchId) {
+        this.update((state) => {
+          state.activeOrders[activeOrderAddress] = {
+            ...state.activeOrders[activeOrderAddress],
+            batchId: undefined,
+          };
+        });
+        this.initPayWithAnyToken().catch((err) => {
+          Logger.error(
+            ensureError(err),
+            this.getErrorContext('placeOrder', {
+              operation: 'initPayWithAnyToken',
+            }),
+          );
+        });
+      }
 
       // Log error for debugging and future Sentry integration
       DevLogger.log('PredictController: Place order failed', {
