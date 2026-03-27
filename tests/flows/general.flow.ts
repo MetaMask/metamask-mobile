@@ -4,6 +4,7 @@ import { Gestures } from '../framework';
 import Matchers from '../framework/Matchers';
 import Utilities, { sleep } from '../framework/Utilities';
 import LoginView from '../page-objects/wallet/LoginView';
+import WalletView from '../page-objects/wallet/WalletView';
 
 const logger = createLogger({
   name: 'GeneralFlow',
@@ -63,42 +64,70 @@ export const dismissDevScreens = async (): Promise<void> => {
  * Handles the case where React Native reload triggers state rehydration that may
  * cause the app to briefly log out and return to the login screen.
  *
+ * Also handles iOS relaunch after Settings lock: the keychain password may remain
+ * and biometric unlock may finish, landing the app on the wallet instead of login.
+ *
  * @async
  * @function waitForAppReady
  * @param {number} timeout - Maximum time to wait in milliseconds (default: 20000)
+ * @param {object} [options]
+ * @param {boolean} [options.allowUnlockedWallet=true] - When true, a stable wallet screen counts as ready.
  * @returns {Promise<void>} Resolves when app is ready
  * @throws {Error} Throws an error if app fails to stabilize within timeout
  */
 export const waitForAppReady = async (
   timeout: number = 20000,
+  options: { allowUnlockedWallet?: boolean } = {},
 ): Promise<void> => {
+  const { allowUnlockedWallet = true } = options;
   const startTime = Date.now();
 
   logger.debug('Waiting for app to complete rehydration and stabilize...');
 
   try {
-    // Initial wait for app to finish launching and start rehydration
     await sleep(1000);
     await Utilities.executeWithRetry(
       async () => {
-        await Assertions.expectElementToBeVisible(LoginView.container, {
-          description: 'Login view should be stable',
-          timeout: 3000,
-        });
-
-        // Verify it stays visible (not flickering during rehydration)
-        await sleep(1500);
-
-        await Assertions.expectElementToBeVisible(LoginView.container, {
-          description: 'Login view should remain visible',
-          timeout: 2000,
-        });
+        if (!allowUnlockedWallet) {
+          await Assertions.expectElementToBeVisible(LoginView.container, {
+            description: 'Login view should be stable',
+            timeout: 3000,
+          });
+          await sleep(1500);
+          await Assertions.expectElementToBeVisible(LoginView.container, {
+            description: 'Login view should remain visible',
+            timeout: 2000,
+          });
+          return;
+        }
+        try {
+          await Assertions.expectElementToBeVisible(LoginView.container, {
+            description: 'Login view should be stable',
+            timeout: 3000,
+          });
+          await sleep(1500);
+          await Assertions.expectElementToBeVisible(LoginView.container, {
+            description: 'Login view should remain visible',
+            timeout: 2000,
+          });
+        } catch {
+          await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+            description: 'Wallet view should be stable',
+            timeout: 3000,
+          });
+          await sleep(1500);
+          await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+            description: 'Wallet view should remain visible',
+            timeout: 2000,
+          });
+        }
       },
       {
         timeout,
         interval: 2000,
-        description:
-          'wait for app to complete rehydration and stabilize on login screen',
+        description: allowUnlockedWallet
+          ? 'wait for app to complete rehydration and stabilize on login or wallet screen'
+          : 'wait for app to complete rehydration and stabilize on login screen',
       },
     );
 
@@ -106,7 +135,9 @@ export const waitForAppReady = async (
   } catch (error) {
     logger.error(`App failed to stabilize within ${timeout}ms`, error);
     throw new Error(
-      `App did not stabilize on login screen within ${timeout}ms. ` +
+      (allowUnlockedWallet
+        ? `App did not stabilize on login or wallet screen within ${timeout}ms. `
+        : `App did not stabilize on login screen within ${timeout}ms. `) +
         `This may indicate rehydration issues or state corruption.`,
     );
   }

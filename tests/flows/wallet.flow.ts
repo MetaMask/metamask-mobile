@@ -392,6 +392,22 @@ export const loginToApp = async (password?: string): Promise<void> => {
 
   await Utilities.executeWithRetry(
     async () => {
+      // Keychain auto-unlock may have already landed on the wallet screen
+      try {
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet container visible (keychain auto-unlock)',
+          timeout: 3000,
+        });
+        await sleep(1000);
+        await Assertions.expectElementToBeVisible(WalletView.container, {
+          description: 'Wallet container should stay visible',
+          timeout: 2000,
+        });
+        return;
+      } catch {
+        // Not on wallet — proceed with password login
+      }
+
       await Assertions.expectElementToBeVisible(LoginView.container, {
         description: 'Login View container should be visible',
       });
