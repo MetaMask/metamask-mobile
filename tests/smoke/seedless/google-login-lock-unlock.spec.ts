@@ -4,10 +4,6 @@ import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 
 import { createOAuthMockttpService } from '../../api-mocking/seedless-onboarding';
-import {
-  remoteFeaturePerpsGtmOnboardingModalDisabled,
-  remoteFeaturePredictGtmOnboardingModalDisabled,
-} from '../../api-mocking/mock-responses/feature-flags-mocks';
 import { E2EOAuthHelpers } from '../../module-mocking/oauth';
 import { SmokeWalletPlatform } from '../../tags';
 import {
@@ -39,10 +35,6 @@ describe(SmokeWalletPlatform('Google Login - Lock and Unlock'), () => {
       {
         fixture,
         restartDevice: true,
-        remoteFeatureFlagOverrides: {
-          ...remoteFeaturePredictGtmOnboardingModalDisabled(),
-          ...remoteFeaturePerpsGtmOnboardingModalDisabled(),
-        },
         testSpecificMock: async (mockServer: Mockttp) => {
           const oAuthMockttpService = createOAuthMockttpService();
           oAuthMockttpService.configureGoogleNewUser();

@@ -444,7 +444,6 @@ export const loadFixture = async (
 
 export const createMockAPIServer = async (
   testSpecificMock?: TestSpecificMock,
-  remoteFeatureFlagOverrides: Record<string, unknown> = {},
 ): Promise<{
   mockServerInstance: MockServerE2E;
   mockServerPort: number;
@@ -472,9 +471,9 @@ export const createMockAPIServer = async (
   // Additional Global Mocks
   await mockNotificationServices(mockServer);
 
-  // Feature Flags — last writer wins; merge overrides so test-specific flags
-  // are not overwritten by production defaults.
-  await setupRemoteFeatureFlagsMock(mockServer, remoteFeatureFlagOverrides);
+  // Feature Flags
+  // testSpecificMock can override this if needed
+  await setupRemoteFeatureFlagsMock(mockServer);
 
   const endpoints = await mockServer.getMockedEndpoints();
   logger.debug(`Mocked endpoints: ${endpoints.length}`);
@@ -511,7 +510,6 @@ export async function withFixtures(
       },
     ],
     testSpecificMock,
-    remoteFeatureFlagOverrides = {},
     launchArgs,
     languageAndLocale,
     permissions = {},
@@ -584,10 +582,7 @@ export async function withFixtures(
     }
 
     // Step 4: Start mock server (testSpecificMock can reference everything above)
-    const mockServerResult = await createMockAPIServer(
-      testSpecificMock,
-      remoteFeatureFlagOverrides,
-    );
+    const mockServerResult = await createMockAPIServer(testSpecificMock);
     mockServerInstance = mockServerResult.mockServerInstance;
     mockServerPort = mockServerResult.mockServerPort;
 
