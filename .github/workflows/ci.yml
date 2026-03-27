@@ -475,7 +475,9 @@ jobs:
   smart-e2e-selection:
     name: 'Smart E2E Selection'
     runs-on: ubuntu-latest
-    if: ${{ github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true' && !github.event.pull_request.head.repo.fork }}
+    if: ${{ (github.event_name != 'merge_group' || needs.check-skip-merge-queue.outputs.skip-merge-queue != 'true') && !github.event.pull_request.head.repo.fork }}
+    needs:
+      - check-skip-merge-queue
     continue-on-error: true
     permissions:
       contents: read
