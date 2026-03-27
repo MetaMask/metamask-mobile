@@ -180,11 +180,12 @@ export function CancelSpeedupModal({
     networkFeeNative,
     networkFeeFiat,
     nativeTokenSymbol,
+    isTransactionModifiable,
   } = useCancelSpeedupGas({ txId: tx?.id });
 
   // Seed the transaction with bump params when cancel/speed up modal opens so the gas modal shows suggested values.
   useEffect(() => {
-    if (!isVisible || !tx?.id || !tx) return;
+    if (!isVisible || !tx?.id || !isTransactionModifiable) return;
     const bumpParams = getBumpParamsForCancelSpeedup(
       tx,
       isCancel,
@@ -193,7 +194,14 @@ export function CancelSpeedupModal({
     if (bumpParams) {
       updateTransactionGasFees(tx.id, bumpParams);
     }
-  }, [isVisible, tx?.id, isCancel, gasFeeEstimates, tx]);
+  }, [
+    isVisible,
+    tx?.id,
+    isCancel,
+    gasFeeEstimates,
+    tx,
+    isTransactionModifiable,
+  ]);
 
   // Dismiss gas modal when parent cancel/speed up modal closes.
   useEffect(() => {
@@ -201,6 +209,13 @@ export function CancelSpeedupModal({
       setGasModalVisible(false);
     }
   }, [isVisible]);
+
+  // Close the gas modal when the transaction is no longer modifiable.
+  useEffect(() => {
+    if (isVisible && gasModalVisible && !isTransactionModifiable) {
+      setGasModalVisible(false);
+    }
+  }, [isVisible, gasModalVisible, isTransactionModifiable]);
 
   const openGasModal = useCallback(() => {
     setGasModalVisible(true);
@@ -267,7 +282,9 @@ export function CancelSpeedupModal({
                     native={networkFeeNative}
                     symbol={nativeTokenSymbol}
                     chainId={chainId}
-                    onEditPress={openGasModal}
+                    onEditPress={
+                      isTransactionModifiable ? openGasModal : undefined
+                    }
                   />
                   <SpeedRow transactionId={tx?.id} />
                 </InfoSection>

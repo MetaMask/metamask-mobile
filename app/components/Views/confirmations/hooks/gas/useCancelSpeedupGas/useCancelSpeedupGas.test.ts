@@ -1,7 +1,8 @@
-import type {
-  FeeMarketEIP1559Values,
-  GasPriceValue,
-  TransactionMeta,
+import {
+  TransactionStatus,
+  type FeeMarketEIP1559Values,
+  type GasPriceValue,
+  type TransactionMeta,
 } from '@metamask/transaction-controller';
 import {
   getBumpParamsForCancelSpeedup,
@@ -317,6 +318,44 @@ describe('useCancelSpeedupGas', () => {
       mockFeeCalculations.estimatedFeeNative,
     );
     expect(result.current.networkFeeDisplay).toContain('ETH');
+  });
+
+  describe('isTransactionModifiable', () => {
+    it('returns false when txId is null (no tx)', () => {
+      const { result } = renderHookWithProvider(
+        () => useCancelSpeedupGas({ txId: null }),
+        providerState,
+      );
+      expect(result.current.isTransactionModifiable).toBe(false);
+    });
+
+    it.each([TransactionStatus.unapproved, TransactionStatus.submitted])(
+      'returns true when tx status is %s',
+      (status) => {
+        const tx = { ...mockTxEip1559, status } as unknown as TransactionMeta;
+        const { result } = renderHookWithProvider(
+          () => useCancelSpeedupGas({ txId: 'tx-1' }),
+          buildStateWithTransaction(tx),
+        );
+        expect(result.current.isTransactionModifiable).toBe(true);
+      },
+    );
+
+    it.each([
+      TransactionStatus.confirmed,
+      TransactionStatus.failed,
+      TransactionStatus.dropped,
+      TransactionStatus.rejected,
+      TransactionStatus.approved,
+      TransactionStatus.signed,
+    ])('returns false when tx status is %s', (status) => {
+      const tx = { ...mockTxEip1559, status } as unknown as TransactionMeta;
+      const { result } = renderHookWithProvider(
+        () => useCancelSpeedupGas({ txId: 'tx-1' }),
+        buildStateWithTransaction(tx),
+      );
+      expect(result.current.isTransactionModifiable).toBe(false);
+    });
   });
 });
 
