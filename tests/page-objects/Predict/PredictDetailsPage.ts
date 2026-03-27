@@ -125,7 +125,9 @@ class PredictDetailsPage {
   get backButton(): EncapsulatedElementType {
     return encapsulated({
       detox: () =>
-        Matchers.getElementByLabel('Back') as unknown as DetoxElement,
+        Matchers.getElementByID(
+          PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
+        ) as unknown as DetoxElement,
       appium: () =>
         PlaywrightMatchers.getElementById(
           PredictMarketDetailsSelectorsIDs.BACK_BUTTON,
