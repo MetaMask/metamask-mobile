@@ -501,8 +501,8 @@ function applyChartScaleLayout(type) {
       'scalesProperties.showSeriesLastValue': false,
       'scalesProperties.showStudyLastValue': false,
       'scalesProperties.showSymbolLabels': false,
-      'scalesProperties.showPriceScaleCrosshairLabel': true,
-      'scalesProperties.showTimeScaleCrosshairLabel': true,
+      'scalesProperties.showPriceScaleCrosshairLabel': false,
+      'scalesProperties.showTimeScaleCrosshairLabel': false,
       'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
       'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
       'scalesProperties.textColor': theme.textColor,
@@ -529,6 +529,330 @@ function applyChartScaleLayout(type) {
   applyLineTimeScaleVisibility(
     window.currentChartType === 2 ? getLineChrome().hideTimeScale : false,
   );
+  scheduleLastCloseLabelUpdate();
+}
+
+/**
+ * Custom crosshair labels (DOM overlay in #chart_surface; built-in TV labels disabled).
+ */
+function formatCrosshairPrice(price) {
+  if (price === undefined || price === null || isNaN(Number(price))) {
+    return '';
+  }
+  var p = Number(price);
+  if (Math.abs(p) >= 1000) {
+    return p.toLocaleString('en-US', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  }
+  if (Math.abs(p) >= 1) {
+    return p.toFixed(2);
+  }
+  if (Math.abs(p) >= 0.01) {
+    return p.toFixed(4);
+  }
+  return String(p);
+}
+
+function formatCrosshairTime(timeSeconds) {
+  if (
+    timeSeconds === undefined ||
+    timeSeconds === null ||
+    isNaN(Number(timeSeconds))
+  ) {
+    return '';
+  }
+  var d = new Date(Number(timeSeconds) * 1000);
+  var weekdays = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  var months = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
+  var w = weekdays[d.getDay()];
+  var day = d.getDate();
+  var mo = months[d.getMonth()];
+  var y = String(d.getFullYear()).slice(-2);
+  var h = String(d.getHours());
+  var min = String(d.getMinutes());
+  if (h.length < 2) {
+    h = '0' + h;
+  }
+  if (min.length < 2) {
+    min = '0' + min;
+  }
+  return w + ' ' + day + ' ' + mo + " '" + y + ' ' + h + ':' + min;
+}
+
+function hideCustomCrosshairLabels() {
+  var elP = document.getElementById('crosshair-price-label');
+  var elT = document.getElementById('crosshair-time-label');
+  if (elP) {
+    elP.style.display = 'none';
+    elP.style.left = '';
+    elP.style.right = '';
+    elP.style.transform = '';
+  }
+  if (elT) {
+    elT.style.display = 'none';
+    elT.style.left = '';
+    elT.style.transform = '';
+  }
+  scheduleLastCloseLabelUpdate();
+}
+
+/**
+ * X (px from #custom-crosshair-overlay left) of the **left** edge of the main pane’s
+ * \`.price-axis-container\` (smallest \`top\` = main chart price scale). Same as where the plot
+ * ends; scale legend text starts inside this column, not on the plot side.
+ */
+function getMainPriceAxisLeftRelativeToOverlay(overlay) {
+  if (!overlay || !overlay.getBoundingClientRect) {
+    return null;
+  }
+  var orect = overlay.getBoundingClientRect();
+  var bestLeft = null;
+  var bestTop = Infinity;
+  eachChartDocument(function (doc) {
+    var nodes = doc.querySelectorAll('.price-axis-container');
+    var i;
+    for (i = 0; i < nodes.length; i++) {
+      var r = nodes[i].getBoundingClientRect();
+      if (r.width < 2 || r.height < 16) {
+        continue;
+      }
+      if (r.top < bestTop) {
+        bestTop = r.top;
+        bestLeft = r.left - orect.left;
+      }
+    }
+  });
+  if (bestLeft === null || isNaN(bestLeft)) {
+    return null;
+  }
+  var maxW = overlay.clientWidth;
+  if (maxW <= 0) {
+    return null;
+  }
+  return Math.max(0, Math.min(bestLeft, maxW));
+}
+
+/**
+ * Place crosshair / last-close pills with the **left** edge on the main-chart / price-scale
+ * boundary (same X as \`getMainPriceAxisLeftRelativeToOverlay\`). TradingView’s horizontal
+ * crosshair line ends there; anchoring the pill here removes the gap vs right-aligning to
+ * legend text (narrow pills like “1.00” sat too far right).
+ */
+function positionPricePillAtPlotPriceBoundary(el, overlay, yPx) {
+  if (!el) {
+    return;
+  }
+  el.style.top = yPx + 'px';
+  if (!overlay) {
+    el.style.left = 'auto';
+    el.style.right = '0';
+    el.style.transform = 'translateY(-50%)';
+    return;
+  }
+  var boundaryLeft = getMainPriceAxisLeftRelativeToOverlay(overlay);
+  if (boundaryLeft !== null && !isNaN(boundaryLeft) && boundaryLeft >= 0) {
+    var w = el.offsetWidth;
+    if (!w || w <= 0) {
+      w = 0;
+    }
+    var pillLeft = boundaryLeft + 2; // Adding 2px to the boundary left to ensure the pill is not too close to the boundary.
+    var maxW = overlay.clientWidth;
+    if (maxW > 0) {
+      pillLeft = Math.max(0, Math.min(pillLeft, maxW - w));
+    }
+    el.style.left = pillLeft + 'px';
+    el.style.right = 'auto';
+    el.style.transform = 'translateY(-50%)';
+  } else {
+    el.style.left = 'auto';
+    el.style.right = '0';
+    el.style.transform = 'translateY(-50%)';
+  }
+}
+
+function updateCustomCrosshairLabels(params) {
+  var elP = document.getElementById('crosshair-price-label');
+  var elT = document.getElementById('crosshair-time-label');
+  var overlay = document.getElementById('custom-crosshair-overlay');
+  if (!elP || !elT || !overlay) {
+    return;
+  }
+  var ox = params.offsetX;
+  var oy = params.offsetY;
+  if (ox === undefined || oy === undefined || isNaN(ox) || isNaN(oy)) {
+    hideCustomCrosshairLabels();
+    return;
+  }
+  elP.textContent = formatCrosshairPrice(params.price);
+  var tSec =
+    params.userTime !== undefined && params.userTime !== null
+      ? params.userTime
+      : params.time;
+  elT.textContent = formatCrosshairTime(tSec);
+  elP.style.display = 'flex';
+  elT.style.display = 'flex';
+  function positionPricePill() {
+    positionPricePillAtPlotPriceBoundary(elP, overlay, oy);
+  }
+  positionPricePill();
+  try {
+    requestAnimationFrame(positionPricePill);
+  } catch (e) {}
+  /* Time label: left + translateX(-50%) → center at crosshair X; remeasure after layout. */
+  var ow = overlay.clientWidth;
+  function positionTimeLabel() {
+    var tw = elT.offsetWidth;
+    var halfTw = tw / 2;
+    var clampedOx = Math.max(halfTw, Math.min(ox, ow - halfTw));
+    elT.style.left = clampedOx + 'px';
+    elT.style.transform = 'translateX(-50%)';
+  }
+  positionTimeLabel();
+  try {
+    requestAnimationFrame(positionTimeLabel);
+  } catch (e) {}
+}
+
+// --- Last close price pill (same layout as crosshair labels in AdvancedChartTemplate) ---
+window.lastCloseLabelScheduled = false;
+
+function scheduleLastCloseLabelUpdate() {
+  if (window.lastCloseLabelScheduled) {
+    return;
+  }
+  window.lastCloseLabelScheduled = true;
+  try {
+    requestAnimationFrame(function () {
+      window.lastCloseLabelScheduled = false;
+      updateLastClosePriceLabel();
+    });
+  } catch (e) {
+    window.lastCloseLabelScheduled = false;
+    setTimeout(updateLastClosePriceLabel, 0);
+  }
+}
+
+function hideLastClosePriceLabelDom() {
+  var el = document.getElementById('last-close-price-label');
+  if (el) {
+    el.style.display = 'none';
+    el.style.left = '';
+    el.style.right = '';
+    el.style.transform = '';
+  }
+}
+
+/**
+ * Y pixel for a price (same space as crosshair \`offsetY\`). Uses
+ * \`priceToCoordinate\` / \`priceToPixels\` when present; else visible range → pane height.
+ */
+function getPriceYForLastCloseOverlay(chart, price) {
+  if (!chart || price === undefined || price === null || isNaN(Number(price))) {
+    return null;
+  }
+  var p = Number(price);
+  try {
+    var panes = chart.getPanes();
+    if (!panes || !panes.length) return null;
+    var pane = panes[0];
+    var scale = pane.getMainSourcePriceScale();
+    if (!scale) return null;
+
+    var y;
+    if (typeof scale.priceToCoordinate === 'function') {
+      y = scale.priceToCoordinate(p);
+    } else if (typeof scale.priceToPixels === 'function') {
+      y = scale.priceToPixels(p);
+    }
+    if (y !== null && y !== undefined && !isNaN(y)) return y;
+
+    var range = scale.getVisiblePriceRange();
+    if (!range || range.from === undefined || range.to === undefined) {
+      return null;
+    }
+    var lo = Math.min(range.from, range.to);
+    var hi = Math.max(range.from, range.to);
+    if (p < lo || p > hi) return null;
+    var h = pane.getHeight();
+    if (!h || h <= 0) return null;
+    return ((hi - p) / (hi - lo)) * h;
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
+ * Last-close DOM pill: candles always (when data); line only if showLastPriceLine (SET_LINE_CHROME).
+ * Stays visible alongside the crosshair price pill (crosshair stacks above when Y aligns).
+ */
+function updateLastClosePriceLabel() {
+  var el = document.getElementById('last-close-price-label');
+  if (!el) {
+    return;
+  }
+  var w = window;
+  if (
+    !w.chartWidget ||
+    !w.isChartReady ||
+    !w.ohlcvData ||
+    !w.ohlcvData.length
+  ) {
+    hideLastClosePriceLabelDom();
+    return;
+  }
+  var ct = w.currentChartType;
+  if (ct !== 1 && (ct !== 2 || !getLineChrome().showLastPriceLine)) {
+    hideLastClosePriceLabelDom();
+    return;
+  }
+  var lastBar = w.ohlcvData[w.ohlcvData.length - 1];
+  var y = getPriceYForLastCloseOverlay(
+    w.chartWidget.activeChart(),
+    lastBar.close,
+  );
+  if (y === null || y === undefined || isNaN(y)) {
+    el.style.display = 'none';
+    return;
+  }
+  el.textContent = formatCrosshairPrice(lastBar.close);
+  el.style.display = 'flex';
+  var overlay = document.getElementById('custom-crosshair-overlay');
+  positionPricePillAtPlotPriceBoundary(el, overlay, y);
+}
+
+/** Subscriptions that invalidate last-close Y (price scale / pane / time range). */
+function subscribeLastCloseLabelUpdates() {
+  if (!window.chartWidget) return;
+  var tick = scheduleLastCloseLabelUpdate;
+  try {
+    window.chartWidget.subscribe('series_event', function (ev) {
+      if (ev === 'price_scale_changed') tick();
+    });
+  } catch (e) {}
+  try {
+    window.chartWidget.subscribe('panes_height_changed', tick);
+  } catch (e) {}
+  try {
+    window.chartWidget
+      .activeChart()
+      .onVisibleRangeChanged()
+      .subscribe(null, tick);
+  } catch (e) {}
 }
 
 /**
@@ -611,7 +935,7 @@ function removeLineChartMarkupStyle() {
 
 /**
  * Line chart: hide time-axis row via TradingView overrides (if supported) plus DOM fallback
- * (same pattern as tv-pane-separator-hide). No effect on candle mode when hide is false.
+ * (same pattern as tv-candle-volume-markup). No effect on candle mode when hide is false.
  */
 function injectHideTimeAxisStyle() {
   var paneBg =
@@ -873,19 +1197,16 @@ function scheduleHidePriceScaleModeButtons() {
 }
 
 /**
- * Remove injected CSS that hides the pane separator between main series and Volume.
+ * Remove injected candle+volume layout stylesheet (surface backgrounds + overflowRule unclip).
  */
 function removeCandleVolumeScaleMarkup() {
-  removeInjectedStyleByIdFromChartDocs('tv-pane-separator-hide');
+  removeInjectedStyleByIdFromChartDocs('tv-candle-volume-markup');
 }
 
 /**
- * Candle + Volume: blend the pane splitter, hide the empty error-card layer, paint TV’s #131416
- * shell (\`screen-*\`, widget) to the pane color, and fix the time-scale row flex/width.
- *
- * Selectors must target only the outer \`chart-widget > .chart-markup-table\` — inner nodes also
- * use \`chart-markup-table\` (e.g. \`.pane\`), so \`.chart-markup-table > div:last-child\` was matching
- * the wrong subtree and breaking the time-axis row (black gutter under volume, misaligned border).
+ * Candle + volume (overlay on single pane): paint widget / screen / chart-root to the theme
+ * background. \`overflowRule\` (first) already includes unclip for \`.chart-gui-wrapper\` via
+ * \`buildChartDomUnclipCss\`. Older time-scale / error-card DOM patches were removed after QA.
  */
 function updateCandleVolumeScaleColumnVisibility() {
   removeCandleVolumeScaleMarkup();
@@ -910,28 +1231,7 @@ function updateCandleVolumeScaleColumnVisibility() {
   var bg = window.CONFIG.theme.backgroundColor;
 
   var style = targetDoc.createElement('style');
-  style.id = 'tv-pane-separator-hide';
-  // Hide pane separator entirely so it cannot sit under price-scale / floating labels.
-  // If chart layout between main + volume panes regresses, revert to blending (1px + pane bg).
-  // display:none removes the node from layout and hides it; extra visibility/size rules are redundant.
-  var sepHide = 'display:none!important;';
-  var errHide =
-    'display:none!important;visibility:hidden!important;opacity:0!important;pointer-events:none!important;' +
-    'width:0!important;height:0!important;overflow:hidden!important;';
-  // Last direct row under the outer table = time-scale flex row (not a descendant \`.pane\` table).
-  var timeRowFix =
-    'display:flex!important;width:100%!important;align-items:stretch!important;' +
-    'background:' +
-    bg +
-    '!important;';
-  var timeAxisFix =
-    'flex:1 1 auto!important;min-width:0!important;width:auto!important;max-width:none!important;' +
-    'background:' +
-    bg +
-    '!important;';
-  var timeCanvasFix =
-    'width:100%!important;max-width:100%!important;box-sizing:border-box!important;';
-  var axisCellBg = 'background:' + bg + '!important;';
+  style.id = 'tv-candle-volume-markup';
 
   style.textContent =
     sel.overflowRule +
@@ -946,35 +1246,7 @@ function updateCandleVolumeScaleColumnVisibility() {
     sel.chartRootSel +
     '{background:' +
     bg +
-    '!important;}' +
-    sel.chartRootSel +
-    ' > div:first-child .pane .chart-gui-wrapper{' +
-    'overflow:visible!important;' +
-    '}' +
-    sel.chartRootSel +
-    ' [class*="paneSeparator"]{' +
-    sepHide +
-    '}' +
-    sel.chartRootSel +
-    ' [class*="errorCardRendererContainer"]{' +
-    errHide +
-    '}' +
-    sel.chartRootSel +
-    '>div:last-child{' +
-    timeRowFix +
-    '}' +
-    sel.chartRootSel +
-    '>div:last-child .time-axis{' +
-    timeAxisFix +
-    '}' +
-    sel.chartRootSel +
-    '>div:last-child .time-axis canvas{' +
-    timeCanvasFix +
-    '}' +
-    sel.chartRootSel +
-    '>div:last-child [class*="price-axis-container"]{' +
-    axisCellBg +
-    '}';
+    '!important;}';
   (targetDoc.head || targetDoc.documentElement).appendChild(style);
 }
 
@@ -1151,7 +1423,8 @@ function handleSetPositionLines(payload) {
 }
 
 // ============================================
-// Single last-close price label via horizontal_line shape
+// Last close: green dashed horizontal_line (showPrice:false) + DOM pill (#last-close-price-label,
+// same styles as crosshair labels in AdvancedChartTemplate)
 // ============================================
 window.lastPriceShapeId = null;
 
@@ -1209,7 +1482,7 @@ function createLastPriceLine() {
           linestyle: 2,
           linewidth: 1,
           showLabel: false,
-          showPrice: true,
+          showPrice: false,
           fontsize: 11,
           horzLabelsAlign: 'right',
         },
@@ -1231,6 +1504,7 @@ function createLastPriceLine() {
         return;
       }
       window.lastPriceShapeId = id;
+      scheduleLastCloseLabelUpdate();
     })
     .catch(function (e) {
       // Silent catch - shape creation can fail if chart state changes
@@ -1246,6 +1520,7 @@ function removeAllLastPriceHorizontalOverlays() {
   sweepNonPositionHorizontalLines();
   window.lastPriceShapeId = null;
   window.lineLastPriceShapeId = null;
+  hideLastClosePriceLabelDom();
 }
 
 function createLineLastPriceLine() {
@@ -1276,7 +1551,7 @@ function createLineLastPriceLine() {
           linestyle: 2,
           linewidth: 1,
           showLabel: false,
-          showPrice: true,
+          showPrice: false,
           fontsize: 11,
           horzLabelsAlign: 'right',
         },
@@ -1297,6 +1572,7 @@ function createLineLastPriceLine() {
         return;
       }
       window.lineLastPriceShapeId = id;
+      scheduleLastCloseLabelUpdate();
     })
     .catch(function () {});
 }
@@ -1421,14 +1697,9 @@ function createVolumeStudy(useOverlay) {
       'volume.transparency': 0,
     };
     var promise = useOverlay
-      ? chart.createStudy(
-          'Volume',
-          true,
-          false,
-          {},
-          inputs,
-          { priceScale: 'no-scale' },
-        )
+      ? chart.createStudy('Volume', true, false, {}, inputs, {
+          priceScale: 'no-scale',
+        })
       : chart.createStudy('Volume', false, false, {}, inputs);
 
     promise
@@ -1821,7 +2092,8 @@ function initChart() {
           'scalesProperties.showSymbolLabels': false,
           'scalesProperties.showRightScale': true,
           'scalesProperties.showLeftScale': false,
-          'scalesProperties.showPriceScaleCrosshairLabel': true,
+          'scalesProperties.showPriceScaleCrosshairLabel': false,
+          'scalesProperties.showTimeScaleCrosshairLabel': false,
           'scalesProperties.crosshairLabelBgColorDark': '#FFFFFF',
           'scalesProperties.crosshairLabelBgColorLight': '#FFFFFF',
 
@@ -1894,6 +2166,7 @@ function initChart() {
               if (!window.chartWidget) return;
               try {
                 applyChartContainerOverflowUnclip();
+                scheduleLastCloseLabelUpdate();
                 if (window.currentChartType === 2) {
                   syncTimeScaleRightMargin(true);
                   try {
@@ -1904,6 +2177,8 @@ function initChart() {
             }, 80);
           });
       } catch (e) {}
+
+      subscribeLastCloseLabelUpdates();
 
       sendToReactNative('CHART_READY', {});
 
@@ -1924,10 +2199,16 @@ function initChart() {
               params.price === undefined ||
               params.time === undefined
             ) {
+              hideCustomCrosshairLabels();
               return;
             }
 
-            if (Date.now() < window.ohlcvDismissUntil) return;
+            if (Date.now() < window.ohlcvDismissUntil) {
+              hideCustomCrosshairLabels();
+              return;
+            }
+
+            updateCustomCrosshairLabels(params);
 
             if (!window.ohlcvBarVisible) {
               window.ohlcvBarShownAt = Date.now();
@@ -1975,6 +2256,7 @@ function initChart() {
             window.ohlcvBarVisible = false;
             window.ohlcvBarShownAt = 0;
             window.ohlcvDismissUntil = Date.now() + 800;
+            hideCustomCrosshairLabels();
             setTimeout(function () {
               sendToReactNative('CROSSHAIR_MOVE', { data: null });
             }, 50);
