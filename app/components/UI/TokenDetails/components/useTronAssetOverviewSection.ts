@@ -13,7 +13,6 @@ import type { TronEstimatedAnnualRewardsUnavailableBannerProps } from '../../Ear
 import useTronStakeApy, { FetchStatus } from '../../Earn/hooks/useTronStakeApy';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../util/assets';
-import type { TokenI } from '../../Tokens/types';
 
 const FIAT_THRESHOLD = 0.01;
 const TRX_THRESHOLD = 0.00001;
@@ -69,7 +68,7 @@ const useTronAssetOverviewSection = ({
     nonEvmFiatRate,
     currentCurrency,
   } = useTronStakingRewardsSummary({
-    token: { address: tokenAddress ?? '' } as TokenI,
+    tokenAddress,
   });
 
   return useMemo(() => {
