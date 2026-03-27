@@ -1,41 +1,49 @@
 /** Duration of the sweep traveling around the border in ms */
-export const BORDER_SWEEP_DURATION_MS = 1000;
+export const BORDER_SWEEP_DURATION_MS = 800;
 
 /** Border radius matching Tailwind's rounded-xl (12px) */
 export const BORDER_RADIUS = 12;
 
 /** Stroke width of the sharp main border line */
-export const BORDER_STROKE_WIDTH = 3;
-
-/** Stroke width of the soft glow layer behind the main stroke (simulates blur) */
-export const BORDER_GLOW_STROKE_WIDTH = 7;
-
-/** Opacity multiplier for the glow layer */
-export const BORDER_GLOW_OPACITY = 0.15;
+export const BORDER_STROKE_WIDTH = 2.5;
 
 /** Fraction of the perimeter visible as the sweep segment
  * How long the trail is
  */
-export const BORDER_TRAIL_FRACTION = 0.4;
-
-/** Fraction of progress used for the fade-in at the start of the sweep
- * How long the fade-in is
- */
-export const BORDER_FADE_IN_FRACTION = 0.8;
-
-/** Fraction of progress used for the fade-out at the end of the sweep
- * How long the fade-out is
- */
-export const BORDER_FADE_OUT_FRACTION = 0.8;
+export const BORDER_TRAIL_FRACTION = 0.5;
 
 /**
- * Gradient stop colors: purple → orange → card background.
- * The third stop makes the trailing end blend into the card surface.
+ * Elastic trail: at sweep start/end the trail length is this fraction of
+ * the peak length (`BORDER_TRAIL_FRACTION * perimeter`). Middle of sweep uses
+ * the full peak length. 1 disables compression at the ends.
  */
+export const BORDER_TRAIL_ELASTIC_END_RATIO = 1;
+
+/**
+ * Constant phase added to `strokeDashoffset` (`perimeter * this`), independent
+ * of animation progress (rotates where the dash sits on the path).
+ */
+export const BORDER_DASH_START_SHIFT_FRACTION = 0.4;
+
+/**
+ * Normalized sweep at `p === 0`. See `AnimatedGradientBorder` worklet:
+ * `sweepT = start + p * (end - start)`, `pathPhase = 1 - sweepT`.
+ */
+export const BORDER_SWEEP_PATH_START_FRACTION = 0;
+
+/** Normalized sweep position when the animation completes (`p === 1`). */
+export const BORDER_SWEEP_PATH_END_FRACTION = 0.9;
+
+/** Trail tail (follows the sweep from behind). */
+export const BORDER_GRADIENT_TAIL = '#D86FCF';
+
+/** Trail head (leading edge of the sweep). */
+export const BORDER_GRADIENT_HEAD = '#ED666E';
+
+/** [tail, head] for consumers that need both (e.g. card chrome gradient). */
 export const BORDER_GRADIENT_COLORS = [
-  '#D075FF',
-  '#FF5C16',
-  '#1C1D1F',
+  BORDER_GRADIENT_TAIL,
+  BORDER_GRADIENT_HEAD,
 ] as const;
 
 /** Fraction of the card that must be visible on-screen to trigger the animation (1 = fully visible) */
