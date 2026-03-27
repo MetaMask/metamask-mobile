@@ -22,33 +22,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
-      pull-requests: read
-
-    env:
-      INPUT_PR_NUMBER: ${{ github.event.inputs.pr-number }}
-      INPUT_MODE: ${{ github.event.inputs.mode }}
-      INPUT_PROVIDER: ${{ github.event.inputs.provider }}
-      EVENT_PR_NUMBER: ${{ github.event.pull_request.number }}
-      EVENT_BASE_REF: ${{ github.event.pull_request.base.ref }}
+      pull-requests: write
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 0
-
-      - name: Determine PR number
-        id: pr-info
-        shell: bash
-        run: |
-          if [ -n "$INPUT_PR_NUMBER" ]; then
-            echo "pr_number=$INPUT_PR_NUMBER" >> "$GITHUB_OUTPUT"
-          elif [ -n "$EVENT_PR_NUMBER" ]; then
-            echo "pr_number=$EVENT_PR_NUMBER" >> "$GITHUB_OUTPUT"
-          fi
-
-          BASE="${EVENT_BASE_REF:-main}"
-          echo "base_branch=$BASE" >> "$GITHUB_OUTPUT"
 
       - name: Checkout AI Analyzer
         uses: actions/checkout@v4
@@ -59,57 +39,11 @@ jobs:
           token: ${{ secrets.AI_ANALYZER_TOKEN }}
 
       - name: Run AI PR Analysis
-        id: analysis
         uses: ./.ai-analyzer-action
         with:
-          mode: ${{ env.INPUT_MODE || 'pr-risk-analysis' }}
-          pr-number: ${{ steps.pr-info.outputs.pr_number }}
-          base-branch: ${{ steps.pr-info.outputs.base_branch }}
-          provider: ${{ env.INPUT_PROVIDER }}
+          mode: ${{ inputs.mode || 'pr-risk-analysis' }}
+          pr-number: ${{ inputs.pr-number }}
+          provider: ${{ inputs.provider }}
           claude-api-key: ${{ secrets.E2E_CLAUDE_API_KEY }}
           openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
           google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
-
-      - name: Summary
-        shell: bash
-        env:
-          RISK_LEVEL: ${{ steps.analysis.outputs.risk_level }}
-          RISK_SCORE: ${{ steps.analysis.outputs.risk_score }}
-          CONFIDENCE: ${{ steps.analysis.outputs.confidence }}
-          RESULT_JSON: ${{ steps.analysis.outputs.result_json }}
-        run: |
-          echo "## AI PR Analysis Results" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-
-          case "$RISK_LEVEL" in
-            low)      BADGE="🟢" ;;
-            medium)   BADGE="🟡" ;;
-            high)     BADGE="🟠" ;;
-            critical) BADGE="🔴" ;;
-            *)        BADGE="⚪" ;;
-          esac
-
-          echo "| Metric | Value |" >> "$GITHUB_STEP_SUMMARY"
-          echo "|--------|-------|" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Risk Level | ${BADGE} **${RISK_LEVEL}** |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Risk Score | ${RISK_SCORE}/100 |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Confidence | ${CONFIDENCE}% |" >> "$GITHUB_STEP_SUMMARY"
-          echo "" >> "$GITHUB_STEP_SUMMARY"
-
-          if [ -n "$RESULT_JSON" ] && [ "$RESULT_JSON" != "{}" ]; then
-            SUMMARY=$(echo "$RESULT_JSON" | jq -r '.summary // empty')
-            if [ -n "$SUMMARY" ]; then
-              echo "### Summary" >> "$GITHUB_STEP_SUMMARY"
-              echo "$SUMMARY" >> "$GITHUB_STEP_SUMMARY"
-              echo "" >> "$GITHUB_STEP_SUMMARY"
-            fi
-
-            REASONING=$(echo "$RESULT_JSON" | jq -r '.reasoning // empty')
-            if [ -n "$REASONING" ]; then
-              echo "<details><summary>Detailed Reasoning</summary>" >> "$GITHUB_STEP_SUMMARY"
-              echo "" >> "$GITHUB_STEP_SUMMARY"
-              echo "$REASONING" >> "$GITHUB_STEP_SUMMARY"
-              echo "" >> "$GITHUB_STEP_SUMMARY"
-              echo "</details>" >> "$GITHUB_STEP_SUMMARY"
-            fi
-          fi
