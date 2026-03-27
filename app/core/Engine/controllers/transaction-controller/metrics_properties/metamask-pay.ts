@@ -29,6 +29,7 @@ const COPY_METRICS = [
 
 const PAY_TYPES = [
   TransactionType.perpsDeposit,
+  TransactionType.perpsWithdraw,
   TransactionType.predictDeposit,
   TransactionType.predictWithdraw,
 ];
