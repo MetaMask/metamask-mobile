@@ -66,7 +66,11 @@ const TopTradersSection = forwardRef<
   }
 
   return (
-    <View ref={sectionViewRef} onLayout={onLayout}>
+    <View
+      ref={sectionViewRef}
+      onLayout={onLayout}
+      testID="homepage-top-traders-section-root"
+    >
       <Box gap={3}>
         <SectionHeader title={title} onPress={handleViewAll} />
         <ScrollView

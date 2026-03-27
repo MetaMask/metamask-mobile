@@ -32,6 +32,10 @@ const TopTradersView = () => {
     navigation.goBack();
   }, [navigation]);
 
+  const handleSearchPress = useCallback(() => {
+    // Search UI will be wired when the leaderboard data layer ships.
+  }, []);
+
   return (
     <SafeAreaView
       style={tw.style('flex-1 bg-default')}
@@ -52,6 +56,7 @@ const TopTradersView = () => {
         <ButtonIcon
           iconName={IconName.Search}
           size={ButtonIconSize.Md}
+          onPress={handleSearchPress}
           testID={TopTradersViewSelectorsIDs.SEARCH_BUTTON}
         />
       </Box>

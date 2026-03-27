@@ -43,4 +43,11 @@ describe('TopTradersView', () => {
     fireEvent.press(screen.getByTestId(TopTradersViewSelectorsIDs.BACK_BUTTON));
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
+
+  it('handles search button press without error', () => {
+    renderWithProvider(<TopTradersView />);
+    fireEvent.press(
+      screen.getByTestId(TopTradersViewSelectorsIDs.SEARCH_BUTTON),
+    );
+  });
 });
