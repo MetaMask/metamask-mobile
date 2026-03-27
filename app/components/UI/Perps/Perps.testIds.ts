@@ -417,6 +417,15 @@ export const PerpsTransactionSelectorsIDs = {
   FUNDING_TRANSACTION_VIEW: 'perps-funding-transaction-view',
   ORDER_TRANSACTION_VIEW: 'perps-order-transaction-view',
 
+  // FlashList
+  FLASH_LIST: 'perps-transactions-flash-list',
+
+  // Fill tags
+  FILL_TAG_TAKE_PROFIT: 'perps-fill-tag-take-profit',
+  FILL_TAG_STOP_LOSS: 'perps-fill-tag-stop-loss',
+  FILL_TAG_LIQUIDATED: 'perps-fill-tag-liquidated',
+  FILL_TAG_ADL: 'perps-fill-tag-adl',
+
   // Common buttons
   BLOCK_EXPLORER_BUTTON: 'block-explorer-button',
 };
@@ -542,6 +551,10 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsLimitPriceBottomSheetSelectorsIDs = {
   PRICE_DISPLAY: 'perps-limit-price-display',
   CONFIRM_BUTTON: 'perps-limit-price-confirm-button',
+  PRESET_MID: 'perps-limit-price-preset-mid',
+  PRESET_BID: 'perps-limit-price-preset-bid',
+  PRESET_ASK: 'perps-limit-price-preset-ask',
+  PRESET_PERCENT: 'perps-limit-price-preset-',
 };
 
 // ========================================

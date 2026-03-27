@@ -65,6 +65,22 @@ export const formatPercentage = (
 };
 
 /**
+ * Builds `amount` / `percent` for `strings('predict.unrealized_pnl_value', …)`.
+ * Same rules as PredictPositionsHeader: signed cash, signed % via `formatPercentage`.
+ */
+export function formatPredictUnrealizedPnLStringParts(data: {
+  cashUpnl: number;
+  percentUpnl: number;
+}): { amount: string; percent: string } {
+  const { cashUpnl, percentUpnl } = data;
+  const amountSign = cashUpnl >= 0 ? '+' : '-';
+  const amount = `${amountSign}$${Math.abs(cashUpnl).toFixed(2)}`;
+  const percentSign = percentUpnl >= 0 ? '+' : '';
+  const percent = `${percentSign}${formatPercentage(percentUpnl)}`;
+  return { amount, percent };
+}
+
+/**
  * Formats a price value as USD currency with rounding up to nearest cent
  * @param price - Raw numeric price value
  * @param options - Optional formatting options

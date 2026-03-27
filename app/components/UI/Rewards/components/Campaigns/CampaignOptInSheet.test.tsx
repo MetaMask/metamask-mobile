@@ -66,6 +66,19 @@ const mockUseOptInToCampaign = useOptInToCampaign as jest.MockedFunction<
   typeof useOptInToCampaign
 >;
 
+const mockShowToast = jest.fn();
+const mockRewardsToastOptionsSuccess = jest.fn((title: string) => ({ title }));
+jest.mock('../../hooks/useRewardsToast', () => ({
+  __esModule: true,
+  default: () => ({
+    showToast: mockShowToast,
+    RewardsToastOptions: {
+      success: mockRewardsToastOptionsSuccess,
+      error: jest.fn(),
+    },
+  }),
+}));
+
 jest.mock(
   '../../../../../component-library/components/BottomSheets/BottomSheet',
   () => {
@@ -165,8 +178,8 @@ const createTestCampaign = (
   endDate: '2027-12-31T23:59:59.999Z',
   termsAndConditions: null,
   excludedRegions: [],
-  statusLabel: 'Active',
   details: null,
+  featured: true,
   ...overrides,
 });
 
@@ -175,6 +188,8 @@ const mockOptInToCampaign = jest.fn();
 describe('CampaignOptInSheet', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockShowToast.mockClear();
+    mockRewardsToastOptionsSuccess.mockClear();
     // Default: geo complete, non-restricted country — keeps non-geo tests clean.
     mockGeolocation = 'AU';
     mockGeoStatus = 'complete';
@@ -250,6 +265,41 @@ describe('CampaignOptInSheet', () => {
     fireEvent.press(getByTestId('campaign-opt-in-cta'));
     await new Promise((resolve) => setTimeout(resolve, 0));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+
+  it('shows success toast after successful opt-in', async () => {
+    mockOptInToCampaign.mockResolvedValue({ optedIn: true });
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockRewardsToastOptionsSuccess).toHaveBeenCalledWith(
+      'rewards.campaign.opt_in_success_toast',
+    );
+  });
+
+  it('does not show toast when opt-in throws', async () => {
+    mockOptInToCampaign.mockRejectedValue(new Error('API error'));
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockShowToast).not.toHaveBeenCalled();
+  });
+
+  it('does not show toast or close when optedIn is false', async () => {
+    const onClose = jest.fn();
+    mockOptInToCampaign.mockResolvedValue({ optedIn: false });
+    const { getByTestId } = render(
+      <CampaignOptInSheet campaign={createTestCampaign()} onClose={onClose} />,
+    );
+    fireEvent.press(getByTestId('campaign-opt-in-cta'));
+    await new Promise((resolve) => setTimeout(resolve, 0));
+    expect(mockShowToast).not.toHaveBeenCalled();
+    expect(onClose).not.toHaveBeenCalled();
   });
 
   it('does not call onClose when opt-in throws', async () => {
