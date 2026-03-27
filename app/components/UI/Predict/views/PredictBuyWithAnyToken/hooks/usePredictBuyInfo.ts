@@ -42,7 +42,7 @@ export const usePredictBuyInfo = ({
     if (
       isPredictBalanceSelected ||
       !payTotals?.fees ||
-      !!insufficientPayTokenBalanceAlert
+      insufficientPayTokenBalanceAlert
     )
       return 0;
     const { provider, sourceNetwork, targetNetwork } = payTotals.fees;
@@ -112,5 +112,6 @@ export const usePredictBuyInfo = ({
     depositAmount,
     total,
     rewardsFeeAmount,
+    totalPayForPredictBalance,
   };
 };

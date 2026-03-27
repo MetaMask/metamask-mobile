@@ -48,6 +48,13 @@ jest.mock('./usePredictBuyAvailableBalance', () => ({
   }),
 }));
 
+jest.mock(
+  '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
+  () => ({
+    useInsufficientPayTokenBalanceAlert: () => [null],
+  }),
+);
+
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: jest.fn((key: string, options?: Record<string, unknown>) => {
     if (key === 'predict.order.prediction_minimum_bet') {

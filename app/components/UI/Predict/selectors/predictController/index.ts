@@ -22,7 +22,7 @@ const selectPredictWithdrawTransaction = createSelector(
 
 const selectPredictActiveOrders = createSelector(
   selectPredictControllerState,
-  (predictState) => predictState?.activeOrder ?? {},
+  (predictState) => predictState?.activeOrders ?? {},
 );
 
 const selectPredictActiveOrderByAddress = ({ address }: { address: string }) =>

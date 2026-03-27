@@ -65,7 +65,7 @@ export function PredictPayWithRow({
         flexDirection={BoxFlexDirection.Row}
         alignItems={BoxAlignItems.Center}
         justifyContent={BoxJustifyContent.Center}
-        twClassName="rounded-full bg-muted py-2 pl-[9px] pr-[16px] mt-2"
+        twClassName={`rounded-full  py-2 pl-[9px] pr-[16px] mt-2 ${disabled ? '' : 'bg-muted'}`}
         gap={3}
       >
         {tokenIconAddress && tokenIconChainId && (

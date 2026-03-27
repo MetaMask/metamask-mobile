@@ -119,7 +119,7 @@ const defaultParams = {
   isBelowMinimum: false,
   isInsufficientBalance: false,
   maxBetAmount: 100,
-  depositAmount: 0,
+  isPayFeesLoading: false,
 };
 
 describe('usePredictBuyError', () => {

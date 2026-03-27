@@ -151,7 +151,7 @@ export type PredictControllerState = {
   // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
 
-  activeOrder: {
+  activeOrders: {
     [address: string]: {
       batchId?: string;
       state: ActiveOrderState;
@@ -184,7 +184,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   pendingDeposits: {},
   pendingClaims: {},
   withdrawTransaction: null,
-  activeOrder: {},
+  activeOrders: {},
   selectedPaymentToken: null,
   accountMeta: {},
 });
@@ -247,7 +247,7 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
-  activeOrder: {
+  activeOrders: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -1455,11 +1455,11 @@ export class PredictController extends BaseController<
     const activeOrderAddress = this.getEvmAccountAddress();
 
     if (
-      this.state.activeOrder[activeOrderAddress]?.state ===
+      this.state.activeOrders[activeOrderAddress]?.state ===
       ActiveOrderState.PAY_WITH_ANY_TOKEN
     ) {
       this.update((state) => {
-        state.activeOrder[activeOrderAddress] = {
+        state.activeOrders[activeOrderAddress] = {
           state: ActiveOrderState.DEPOSITING,
           analyticsProperties: params.analyticsProperties,
         };
@@ -1471,11 +1471,13 @@ export class PredictController extends BaseController<
       } as unknown as Result;
     }
 
-    this.update((state) => {
-      state.activeOrder[activeOrderAddress] = {
-        state: ActiveOrderState.PLACING_ORDER,
-      };
-    });
+    if (params.preview.side === Side.BUY) {
+      this.update((state) => {
+        state.activeOrders[activeOrderAddress] = {
+          state: ActiveOrderState.PLACING_ORDER,
+        };
+      });
+    }
 
     const startTime = performance.now();
     const { analyticsProperties, preview: previewParam } = params;
@@ -1540,11 +1542,13 @@ export class PredictController extends BaseController<
         throw new Error(result.error);
       }
 
-      this.update((state) => {
-        state.activeOrder[activeOrderAddress] = {
-          state: ActiveOrderState.SUCCESS,
-        };
-      });
+      if (preview.side === Side.BUY) {
+        this.update((state) => {
+          state.activeOrders[activeOrderAddress] = {
+            state: ActiveOrderState.SUCCESS,
+          };
+        });
+      }
 
       const { spentAmount, receivedAmount } = result.response;
 
@@ -1616,10 +1620,12 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-        state.activeOrder[activeOrderAddress] = {
-          state: ActiveOrderState.PREVIEW,
-          error: errorMessage,
-        };
+        if (preview.side === Side.BUY) {
+          state.activeOrders[activeOrderAddress] = {
+            state: ActiveOrderState.PREVIEW,
+            error: errorMessage,
+          };
+        }
         state.selectedPaymentToken = null;
       });
 
@@ -1974,8 +1980,8 @@ export class PredictController extends BaseController<
   public clearOrderError(): void {
     const address = this.getEvmAccountAddress();
     this.update((state) => {
-      if (state.activeOrder[address]) {
-        delete state.activeOrder[address].error;
+      if (state.activeOrders[address]) {
+        delete state.activeOrders[address].error;
       }
     });
   }
@@ -2006,7 +2012,7 @@ export class PredictController extends BaseController<
     );
 
     const activeOrderAddress = this.getEvmAccountAddress();
-    const activeOrder = this.state.activeOrder[activeOrderAddress];
+    const activeOrder = this.state.activeOrders[activeOrderAddress];
     if (!activeOrder) {
       return;
     }
@@ -2018,8 +2024,8 @@ export class PredictController extends BaseController<
         return;
       }
       this.update((state) => {
-        if (state.activeOrder[activeOrderAddress]) {
-          state.activeOrder[activeOrderAddress].state =
+        if (state.activeOrders[activeOrderAddress]) {
+          state.activeOrders[activeOrderAddress].state =
             ActiveOrderState.PREVIEW;
         }
       });
@@ -2031,8 +2037,8 @@ export class PredictController extends BaseController<
         return;
       }
       this.update((state) => {
-        if (state.activeOrder[activeOrderAddress]) {
-          state.activeOrder[activeOrderAddress].state =
+        if (state.activeOrders[activeOrderAddress]) {
+          state.activeOrders[activeOrderAddress].state =
             ActiveOrderState.PAY_WITH_ANY_TOKEN;
         }
       });
@@ -2042,7 +2048,7 @@ export class PredictController extends BaseController<
   public clearActiveOrder(address?: string): void {
     const resolvedAddress = address ?? this.getEvmAccountAddress();
     this.update((state) => {
-      delete state.activeOrder[resolvedAddress];
+      delete state.activeOrders[resolvedAddress];
     });
   }
 
@@ -2189,16 +2195,16 @@ export class PredictController extends BaseController<
     const provider = this.provider;
     const activeOrderAddress = this.getEvmAccountAddress();
 
-    if (!this.state.activeOrder[activeOrderAddress]) {
+    if (!this.state.activeOrders[activeOrderAddress]) {
       this.update((state) => {
         state.selectedPaymentToken = null;
-        state.activeOrder[activeOrderAddress] = {
+        state.activeOrders[activeOrderAddress] = {
           state: ActiveOrderState.PREVIEW,
         };
       });
     }
 
-    const activeOrder = this.state.activeOrder[activeOrderAddress];
+    const activeOrder = this.state.activeOrders[activeOrderAddress];
     if (!activeOrder) {
       throw new Error(
         'Active order is required for pay-with-any-token confirmation',
@@ -2213,8 +2219,8 @@ export class PredictController extends BaseController<
       const signer = this.getSigner();
 
       this.update((state) => {
-        if (state.activeOrder[activeOrderAddress]) {
-          delete state.activeOrder[activeOrderAddress].batchId;
+        if (state.activeOrders[activeOrderAddress]) {
+          delete state.activeOrders[activeOrderAddress].batchId;
         }
       });
 
@@ -2289,9 +2295,9 @@ export class PredictController extends BaseController<
       const { batchId } = batchResult;
 
       this.update((state) => {
-        if (state.activeOrder[activeOrderAddress]) {
-          state.activeOrder[activeOrderAddress].batchId = batchId;
-          delete state.activeOrder[activeOrderAddress].error;
+        if (state.activeOrders[activeOrderAddress]) {
+          state.activeOrders[activeOrderAddress].batchId = batchId;
+          delete state.activeOrders[activeOrderAddress].error;
         }
       });
 
@@ -2438,7 +2444,7 @@ export class PredictController extends BaseController<
     if (type === 'depositAndOrder' && status === 'confirmed') {
       if (!this.depositPreview[address]) {
         this.update((state) => {
-          state.activeOrder[address] = {
+          state.activeOrders[address] = {
             state: ActiveOrderState.PREVIEW,
             error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
           };
@@ -2447,7 +2453,7 @@ export class PredictController extends BaseController<
       }
       this.placeOrder({
         analyticsProperties:
-          this.state.activeOrder[address]?.analyticsProperties,
+          this.state.activeOrders[address]?.analyticsProperties,
         preview: this.depositPreview[address],
       });
     }
@@ -2457,10 +2463,10 @@ export class PredictController extends BaseController<
         transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
 
       this.update((state) => {
-        if (state.activeOrder[address]) {
-          state.activeOrder[address].state = ActiveOrderState.PREVIEW;
-          state.activeOrder[address].error = errorMessage;
-          delete state.activeOrder[address].batchId;
+        if (state.activeOrders[address]) {
+          state.activeOrders[address].state = ActiveOrderState.PREVIEW;
+          state.activeOrders[address].error = errorMessage;
+          delete state.activeOrders[address].batchId;
         }
       });
       this.initPayWithAnyToken();

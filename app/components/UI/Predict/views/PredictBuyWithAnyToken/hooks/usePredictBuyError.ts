@@ -17,6 +17,7 @@ interface UsePredictBuyInfoParams {
   isBelowMinimum: boolean;
   isInsufficientBalance: boolean;
   maxBetAmount: number;
+  isPayFeesLoading: boolean;
 }
 
 export const usePredictBuyError = ({
@@ -27,6 +28,7 @@ export const usePredictBuyError = ({
   isBelowMinimum,
   isInsufficientBalance,
   maxBetAmount,
+  isPayFeesLoading,
 }: UsePredictBuyInfoParams) => {
   const { activeOrder, clearOrderError } = usePredictActiveOrder();
   const { isBalanceLoading } = usePredictBuyAvailableBalance();
@@ -40,7 +42,11 @@ export const usePredictBuyError = ({
       return undefined;
     }
 
-    if (!isPredictBalanceSelected && !!insufficientPayTokenBalanceAlert) {
+    if (
+      !isPayFeesLoading &&
+      !isPredictBalanceSelected &&
+      !!insufficientPayTokenBalanceAlert
+    ) {
       return {
         status: 'error',
         error: insufficientPayTokenBalanceAlert.message,
@@ -58,6 +64,7 @@ export const usePredictBuyError = ({
     isPlacingOrder,
     isConfirming,
     preview,
+    isPayFeesLoading,
     isPredictBalanceSelected,
     insufficientPayTokenBalanceAlert,
     activeOrder?.error,
@@ -103,8 +110,8 @@ export const usePredictBuyError = ({
 
     return undefined;
   }, [
-    errorResult,
     previewError,
+    errorResult,
     isBelowMinimum,
     isInsufficientBalance,
     maxBetAmount,

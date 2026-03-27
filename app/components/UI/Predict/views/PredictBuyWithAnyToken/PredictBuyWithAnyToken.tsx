@@ -132,6 +132,7 @@ const PredictBuyWithAnyToken = () => {
     depositFee,
     depositAmount,
     rewardsFeeAmount,
+    totalPayForPredictBalance,
   } = usePredictBuyInfo({
     currentValue,
     preview,
@@ -148,6 +149,7 @@ const PredictBuyWithAnyToken = () => {
     isBelowMinimum,
     isInsufficientBalance,
     maxBetAmount,
+    canSelectToken,
   } = usePredictBuyConditions({
     currentValue,
     depositFee,
@@ -155,6 +157,8 @@ const PredictBuyWithAnyToken = () => {
     isPreviewCalculating,
     isUserInputChange,
     isConfirming,
+    totalPayForPredictBalance,
+    isInputFocused,
   });
 
   const { errorMessage, isOrderNotFilled, resetOrderNotFilled } =
@@ -166,6 +170,7 @@ const PredictBuyWithAnyToken = () => {
       isInsufficientBalance,
       maxBetAmount,
       isConfirming,
+      isPayFeesLoading,
     });
 
   const { handleConfirm, placeOrder } = usePredictBuyActions({
@@ -237,7 +242,7 @@ const PredictBuyWithAnyToken = () => {
             isPlacingOrder={isPlacingOrder}
           />
           {payWithAnyTokenEnabled && (
-            <PredictPayWithRow disabled={isPlacingOrder} />
+            <PredictPayWithRow disabled={isPlacingOrder || !canSelectToken} />
           )}
         </Box>
       </ScrollView>

@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 import {
   useIsTransactionPayLoading,
   useIsTransactionPayQuoteLoading,
@@ -15,6 +15,8 @@ import { useInsufficientPayTokenBalanceAlert } from '../../../../../Views/confir
 import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
+import { usePredictBalance } from '../../../hooks/usePredictBalance';
+import { useTransactionPayHasSourceAmount } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayHasSourceAmount';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
@@ -23,6 +25,8 @@ interface UsePredictBuyConditionsParams {
   isPreviewCalculating: boolean;
   isUserInputChange: boolean;
   isConfirming: boolean;
+  totalPayForPredictBalance: number;
+  isInputFocused: boolean;
 }
 
 const normalizeQuoteComparableAddress = (
@@ -47,6 +51,8 @@ export const usePredictBuyConditions = ({
   isPreviewCalculating,
   isUserInputChange,
   isConfirming,
+  totalPayForPredictBalance,
+  isInputFocused,
 }: UsePredictBuyConditionsParams) => {
   const { isBalanceLoading, availableBalance } =
     usePredictBuyAvailableBalance();
@@ -56,8 +62,13 @@ export const usePredictBuyConditions = ({
   const payTotals = useTransactionPayTotals();
   const quotes = useTransactionPayQuotes();
   const requiredTokens = useTransactionPayRequiredTokens();
-  const { isPredictBalanceSelected, selectedPaymentToken } =
-    usePredictPaymentToken();
+  const {
+    isPredictBalanceSelected,
+    selectedPaymentToken,
+    resetSelectedPaymentToken,
+  } = usePredictPaymentToken();
+  const { data: predictBalance = 0 } = usePredictBalance();
+  const hasSourceAmount = useTransactionPayHasSourceAmount();
 
   const [insufficientPayTokenBalanceAlert] =
     useInsufficientPayTokenBalanceAlert();
@@ -78,13 +89,17 @@ export const usePredictBuyConditions = ({
     const feeRate = (preview?.fees?.totalFeePercentage ?? 0) / 100;
     return Math.max(
       0,
-      Math.floor(((availableBalance - depositFee) / (1 + feeRate)) * 100) / 100,
+      Math.floor((availableBalance / (1 + feeRate)) * 100) / 100,
     );
-  }, [availableBalance, depositFee, preview?.fees?.totalFeePercentage]);
+  }, [availableBalance, preview?.fees?.totalFeePercentage]);
 
   const isInsufficientBalance = useMemo(
-    () => !isConfirming && currentValue > 0 && currentValue > maxBetAmount,
-    [isConfirming, currentValue, maxBetAmount],
+    () =>
+      !isConfirming &&
+      isPredictBalanceSelected &&
+      currentValue > 0 &&
+      currentValue > maxBetAmount,
+    [isConfirming, isPredictBalanceSelected, currentValue, maxBetAmount],
   );
 
   const isInsufficientPayTokenBalance = useMemo(
@@ -149,12 +164,16 @@ export const usePredictBuyConditions = ({
   const isPayFeesLoading = useMemo(
     () =>
       shouldWaitForPayFees &&
-      (isPayTotalsLoading || isPayQuoteLoading || isQuotesStale),
+      (isPayTotalsLoading ||
+        isPayQuoteLoading ||
+        isQuotesStale ||
+        !hasSourceAmount),
     [
       shouldWaitForPayFees,
       isPayTotalsLoading,
       isPayQuoteLoading,
       isQuotesStale,
+      hasSourceAmount,
     ],
   );
 
@@ -185,6 +204,27 @@ export const usePredictBuyConditions = ({
     [isPreviewCalculating, isUserInputChange],
   );
 
+  const canSelectToken = useMemo(
+    () => totalPayForPredictBalance > predictBalance,
+    [predictBalance, totalPayForPredictBalance],
+  );
+
+  useEffect(() => {
+    if (
+      !isPredictBalanceSelected &&
+      !isInputFocused &&
+      predictBalance >= totalPayForPredictBalance
+    ) {
+      resetSelectedPaymentToken();
+    }
+  }, [
+    isInputFocused,
+    isPredictBalanceSelected,
+    predictBalance,
+    resetSelectedPaymentToken,
+    totalPayForPredictBalance,
+  ]);
+
   return {
     isBelowMinimum,
     isInsufficientBalance,
@@ -194,5 +234,6 @@ export const usePredictBuyConditions = ({
     isUserChangeTriggeringCalculation,
     isPayFeesLoading,
     isBalancePulsing,
+    canSelectToken,
   };
 };

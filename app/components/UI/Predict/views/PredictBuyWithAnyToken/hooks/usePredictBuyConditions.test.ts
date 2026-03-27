@@ -21,6 +21,9 @@ let mockSelectedPaymentToken: {
 } | null = null;
 let mockIsDepositPending = false;
 let mockInsufficientPayTokenBalanceAlert: { message: string } | null = null;
+let mockPredictBalance = 0;
+let mockHasSourceAmount = true;
+const mockResetSelectedPaymentToken = jest.fn();
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
   usePredictBuyAvailableBalance: () => ({
@@ -39,6 +42,13 @@ jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
     isPredictBalanceSelected: mockIsPredictBalanceSelected,
     selectedPaymentToken: mockSelectedPaymentToken,
+    resetSelectedPaymentToken: mockResetSelectedPaymentToken,
+  }),
+}));
+
+jest.mock('../../../hooks/usePredictBalance', () => ({
+  usePredictBalance: () => ({
+    data: mockPredictBalance,
   }),
 }));
 
@@ -69,6 +79,13 @@ jest.mock(
   }),
 );
 
+jest.mock(
+  '../../../../../Views/confirmations/hooks/pay/useTransactionPayHasSourceAmount',
+  () => ({
+    useTransactionPayHasSourceAmount: () => mockHasSourceAmount,
+  }),
+);
+
 const defaultParams = {
   currentValue: 10,
   depositFee: 0,
@@ -80,6 +97,8 @@ const defaultParams = {
   isPreviewCalculating: false,
   isUserInputChange: false,
   isConfirming: false,
+  totalPayForPredictBalance: 0,
+  isInputFocused: false,
 };
 
 describe('usePredictBuyConditions', () => {
@@ -97,6 +116,8 @@ describe('usePredictBuyConditions', () => {
     mockSelectedPaymentToken = null;
     mockIsDepositPending = false;
     mockInsufficientPayTokenBalanceAlert = null;
+    mockPredictBalance = 0;
+    mockHasSourceAmount = true;
   });
 
   describe('isBelowMinimum', () => {
@@ -209,41 +230,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.maxBetAmount).toBe(100);
     });
 
-    it('subtracts depositFee before applying fee rate', () => {
-      mockAvailableBalance = 106;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          depositFee: 2,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 4 },
-          } as OrderPreview,
-        }),
-      );
-
-      expect(result.current.maxBetAmount).toBe(100);
-    });
-
-    it('returns 0 when depositFee exceeds available balance', () => {
-      mockAvailableBalance = 1;
-
-      const { result } = renderHook(() =>
-        usePredictBuyConditions({
-          ...defaultParams,
-          depositFee: 5,
-          preview: {
-            rateLimited: false,
-            fees: { totalFeePercentage: 4 },
-          } as OrderPreview,
-        }),
-      );
-
-      expect(result.current.maxBetAmount).toBe(0);
-    });
-
-    it('returns full available balance when fee rate is 0 and no depositFee', () => {
+    it('returns full available balance when fee rate is 0', () => {
       mockAvailableBalance = 50;
 
       const { result } = renderHook(() =>

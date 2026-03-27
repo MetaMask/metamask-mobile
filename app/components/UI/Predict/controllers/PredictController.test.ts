@@ -137,13 +137,13 @@ const MOCK_ADDRESS = '0x1234567890123456789012345678901234567890';
 
 function setActiveOrderForTest(
   controller: PredictController,
-  order: PredictControllerState['activeOrder'][string] | null,
+  order: PredictControllerState['activeOrders'][string] | null,
 ) {
   controller.updateStateForTesting((state) => {
     if (order) {
-      state.activeOrder[MOCK_ADDRESS] = order;
+      state.activeOrders[MOCK_ADDRESS] = order;
     } else {
-      delete state.activeOrder[MOCK_ADDRESS];
+      delete state.activeOrders[MOCK_ADDRESS];
     }
   });
 }
@@ -3589,7 +3589,7 @@ describe('PredictController', () => {
 
         controller.clearActiveOrder();
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -3704,14 +3704,14 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.batchId).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.batchId).toBe(
           'batch-123',
         );
         expect(
-          controller.state.activeOrder[MOCK_ADDRESS]?.error,
+          controller.state.activeOrders[MOCK_ADDRESS]?.error,
         ).toBeUndefined();
       });
     });
@@ -3729,11 +3729,11 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
         expect(
-          controller.state.activeOrder[MOCK_ADDRESS]?.error,
+          controller.state.activeOrders[MOCK_ADDRESS]?.error,
         ).toBeUndefined();
         expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
         expect(addTransactionBatch).not.toHaveBeenCalled();
@@ -3752,7 +3752,7 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
@@ -3770,7 +3770,7 @@ describe('PredictController', () => {
           }),
         );
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -3778,7 +3778,7 @@ describe('PredictController', () => {
 
     it('still sets selectedPaymentToken when activeOrder is null', () => {
       withController(({ controller }) => {
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
 
         controller.selectPaymentToken(
           createAssetToken({
@@ -3808,7 +3808,7 @@ describe('PredictController', () => {
         controller.clearOrderError();
 
         expect(
-          controller.state.activeOrder[MOCK_ADDRESS]?.error,
+          controller.state.activeOrders[MOCK_ADDRESS]?.error,
         ).toBeUndefined();
       });
     });
@@ -3822,14 +3822,14 @@ describe('PredictController', () => {
         controller.clearOrderError();
 
         expect(
-          controller.state.activeOrder[MOCK_ADDRESS]?.error,
+          controller.state.activeOrders[MOCK_ADDRESS]?.error,
         ).toBeUndefined();
       });
     });
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
 
         expect(() => controller.clearOrderError()).not.toThrow();
       });
@@ -3844,7 +3844,7 @@ describe('PredictController', () => {
 
         controller.clearOrderError();
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -3870,15 +3870,15 @@ describe('PredictController', () => {
           state: ActiveOrderState.PREVIEW,
         });
         controller.updateStateForTesting((state) => {
-          state.activeOrder[OTHER_ADDRESS] = {
+          state.activeOrders[OTHER_ADDRESS] = {
             state: ActiveOrderState.PLACING_ORDER,
           };
         });
 
         controller.clearActiveOrder();
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
-        expect(controller.state.activeOrder[OTHER_ADDRESS]).toEqual({
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[OTHER_ADDRESS]).toEqual({
           state: ActiveOrderState.PLACING_ORDER,
         });
       });
@@ -3891,7 +3891,7 @@ describe('PredictController', () => {
           error: 'current error',
         });
         controller.updateStateForTesting((state) => {
-          state.activeOrder[OTHER_ADDRESS] = {
+          state.activeOrders[OTHER_ADDRESS] = {
             state: ActiveOrderState.PREVIEW,
             error: 'other error',
           };
@@ -3900,9 +3900,9 @@ describe('PredictController', () => {
         controller.clearOrderError();
 
         expect(
-          controller.state.activeOrder[MOCK_ADDRESS]?.error,
+          controller.state.activeOrders[MOCK_ADDRESS]?.error,
         ).toBeUndefined();
-        expect(controller.state.activeOrder[OTHER_ADDRESS]?.error).toBe(
+        expect(controller.state.activeOrders[OTHER_ADDRESS]?.error).toBe(
           'other error',
         );
       });
@@ -3914,7 +3914,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.SUCCESS,
         });
         controller.updateStateForTesting((state) => {
-          state.activeOrder[OTHER_ADDRESS] = {
+          state.activeOrders[OTHER_ADDRESS] = {
             state: ActiveOrderState.PLACING_ORDER,
           };
         });
@@ -3923,8 +3923,8 @@ describe('PredictController', () => {
 
         controller.onPlaceOrderEnd();
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
-        expect(controller.state.activeOrder[OTHER_ADDRESS]).toEqual({
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[OTHER_ADDRESS]).toEqual({
           state: ActiveOrderState.PLACING_ORDER,
         });
         expect(getDepositPreview(controller)[MOCK_ADDRESS]).toBeUndefined();
@@ -3938,7 +3938,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PREVIEW,
         });
         controller.updateStateForTesting((state) => {
-          state.activeOrder[OTHER_ADDRESS] = {
+          state.activeOrders[OTHER_ADDRESS] = {
             state: ActiveOrderState.SUCCESS,
           };
         });
@@ -3947,10 +3947,10 @@ describe('PredictController', () => {
 
         controller.onPlaceOrderEnd(OTHER_ADDRESS);
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toEqual({
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toEqual({
           state: ActiveOrderState.PREVIEW,
         });
-        expect(controller.state.activeOrder[OTHER_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[OTHER_ADDRESS]).toBeUndefined();
         expect(getDepositPreview(controller)[MOCK_ADDRESS]).toBeDefined();
         expect(getDepositPreview(controller)[OTHER_ADDRESS]).toBeUndefined();
       });
@@ -3962,7 +3962,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
         });
         controller.updateStateForTesting((state) => {
-          state.activeOrder[OTHER_ADDRESS] = {
+          state.activeOrders[OTHER_ADDRESS] = {
             state: ActiveOrderState.SUCCESS,
           };
         });
@@ -3974,10 +3974,10 @@ describe('PredictController', () => {
           preview,
         });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.DEPOSITING,
         );
-        expect(controller.state.activeOrder[OTHER_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[OTHER_ADDRESS]?.state).toBe(
           ActiveOrderState.SUCCESS,
         );
         expect(getDepositPreview(controller)[MOCK_ADDRESS]).toEqual(preview);
@@ -3992,7 +3992,7 @@ describe('PredictController', () => {
           error: 'old error',
         });
         controller.updateStateForTesting((state) => {
-          state.activeOrder[OTHER_ADDRESS] = {
+          state.activeOrders[OTHER_ADDRESS] = {
             state: ActiveOrderState.PREVIEW,
             error: 'other error',
           };
@@ -4004,10 +4004,10 @@ describe('PredictController', () => {
           symbol: 'USDC.e',
         } as any);
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
-        expect(controller.state.activeOrder[OTHER_ADDRESS]).toEqual({
+        expect(controller.state.activeOrders[OTHER_ADDRESS]).toEqual({
           state: ActiveOrderState.PREVIEW,
           error: 'other error',
         });
@@ -4032,7 +4032,7 @@ describe('PredictController', () => {
             batchId: 'default-batch',
           },
         });
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
         expect(controller.state.selectedPaymentToken).toBeNull();
@@ -4052,7 +4052,7 @@ describe('PredictController', () => {
           'Pay-with-any-token confirmation is already in progress',
         );
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.batchId).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.batchId).toBe(
           'batch-in-progress',
         );
         expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
@@ -4626,7 +4626,7 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -4658,7 +4658,7 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
@@ -4686,7 +4686,7 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
       });
     });
 
@@ -7077,7 +7077,7 @@ describe('PredictController', () => {
 
         controller.onPlaceOrderEnd();
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toBeUndefined();
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
@@ -7121,7 +7121,7 @@ describe('PredictController', () => {
           success: false,
           response: { status: 'deposit_in_progress' },
         });
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toEqual({
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toEqual({
           state: ActiveOrderState.DEPOSITING,
           analyticsProperties: { marketId: 'market-1' },
         });
@@ -7145,7 +7145,7 @@ describe('PredictController', () => {
 
         await controller.placeOrder({ preview });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toEqual({
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toEqual({
           state: ActiveOrderState.SUCCESS,
         });
       });
@@ -7250,7 +7250,7 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]).toEqual({
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toEqual({
           state: ActiveOrderState.PREVIEW,
           error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
         });
@@ -7284,7 +7284,7 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
       });
@@ -7325,10 +7325,10 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(retrySpy).toHaveBeenCalledTimes(1);
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.state).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.error).toBe(
+        expect(controller.state.activeOrders[MOCK_ADDRESS]?.error).toBe(
           'User rejected the request.',
         );
       });
@@ -7359,7 +7359,9 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeOrder[MOCK_ADDRESS]?.error).toBeDefined();
+        expect(
+          controller.state.activeOrders[MOCK_ADDRESS]?.error,
+        ).toBeDefined();
       });
     });
   });
