@@ -1,4 +1,3 @@
-import Logger from '../../util/Logger';
 import {
   getE2EByoaAuthSecret,
   getE2EMockOAuthEmailForQaMock,
@@ -19,18 +18,14 @@ export interface QAMockTokenExchangeResult {
   accountName: string;
 }
 
+const DEFAULT_E2E_BYOA_AUTH_SECRET = '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
+
 export class QAMockOAuthService {
   static async exchangeTokens(
     loginHandler: BaseLoginHandler,
     fetchImpl: typeof fetch = global.fetch,
   ): Promise<QAMockTokenExchangeResult> {
-    const byoaSecret = getE2EByoaAuthSecret();
-    if (!byoaSecret) {
-      throw new OAuthError(
-        'E2E_MOCK_OAUTH requires E2E_BYOA_AUTH_SECRET for QA mock token exchange',
-        OAuthErrorType.LoginError,
-      );
-    }
+    const byoaSecret = getE2EByoaAuthSecret() ?? DEFAULT_E2E_BYOA_AUTH_SECRET;
 
     const e2eEmail = `${loginHandler.authConnection}.newuser+e2e@web3auth.io`;
     const emailForMock =

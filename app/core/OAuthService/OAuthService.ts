@@ -196,139 +196,34 @@ export class OAuthService {
     return result;
   };
 
-  #trackSocialLoginFailure = ({
-    authConnection,
-    errorCategory,
-    error,
-  }: {
-    authConnection: AuthConnection;
-    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
-    error: unknown;
-  }) => {
-    const isUserCancelled =
-      error instanceof OAuthError &&
-      (error.code === OAuthErrorType.UserCancelled ||
-        error.code === OAuthErrorType.UserDismissed);
-
-    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
-    if (this.localState.userClickedRehydration !== undefined) {
-      userClickedRehydration = this.localState.userClickedRehydration
-        ? 'true'
-        : 'false';
-    }
-
-    analytics.trackEvent(
-      AnalyticsEventBuilder.createEventBuilder(
-        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
-      )
-        .addProperties({
-          account_type: `default_${authConnection}`,
-          is_rehydration: userClickedRehydration,
-          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
-          error_category: errorCategory,
-        })
-        .build(),
-    );
-  };
-
-  #executeProviderLogin = async (
+  #handleOAuthLoginMockPath = async (
     loginHandler: BaseLoginHandler,
-  ): Promise<LoginHandlerResult> => {
-    let providerLoginSuccess = false;
-    try {
-      trace({
-        name: TraceName.OnboardingOAuthProviderLogin,
-        op: TraceOperation.OnboardingSecurityOp,
-      });
-      const loginResult = await loginHandler.login();
-      if (!loginResult) {
-        throw new OAuthError(
-          'Login handler return empty result',
-          OAuthErrorType.LoginError,
-        );
-      }
-      providerLoginSuccess = true;
-      return loginResult;
-    } catch (error) {
-      const errorMessage =
-        error instanceof Error ? error.message : 'Unknown error';
-
-      if (
-        !(
-          error instanceof OAuthError &&
-          (error.code === OAuthErrorType.UserCancelled ||
-            error.code === OAuthErrorType.UserDismissed)
-        )
-      ) {
-        trace({
-          name: TraceName.OnboardingOAuthProviderLoginError,
-          op: TraceOperation.OnboardingError,
-          tags: { errorMessage },
-        });
-        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
-      }
-
-      this.#trackSocialLoginFailure({
-        authConnection: loginHandler.authConnection,
-        errorCategory: 'provider_login',
-        error,
-      });
-
-      throw error;
-    } finally {
-      endTrace({
-        name: TraceName.OnboardingOAuthProviderLogin,
-        data: { success: providerLoginSuccess },
-      });
-
-      if (
-        Platform.OS === 'android' &&
-        loginHandler.authConnection === AuthConnection.Google
-      ) {
-        acmSignOut().catch((e) =>
-          Logger.log(e, 'acmSignOut: failed to clear cached credential'),
-        );
-      }
-    }
-  };
-
-  handleOAuthLogin = async (
-    loginHandler: BaseLoginHandler,
-    userClickedRehydration: boolean,
   ): Promise<HandleOAuthLoginResult> => {
-    const web3AuthNetwork = this.config.web3AuthNetwork;
-
-    if (this.localState.loginInProgress) {
+    try {
+      return await this.#handleMockOAuthLogin(loginHandler);
+    } catch (error) {
+      Logger.log(error as Error, {
+        message: 'handleOAuthLogin E2E_MOCK_OAUTH',
+      });
+      this.#dispatchPostLogin({
+        type: OAuthLoginResultType.ERROR,
+        existingUser: false,
+        error: error instanceof Error ? error.message : 'Unknown error',
+      });
+      if (error instanceof OAuthError) {
+        throw error;
+      }
       throw new OAuthError(
-        'Login already in progress',
-        OAuthErrorType.LoginInProgress,
+        error instanceof Error ? error : 'Unknown error',
+        OAuthErrorType.LoginError,
       );
     }
-    this.updateLocalState({ userClickedRehydration });
-    this.#dispatchLogin();
+  };
 
-    if (isE2EMockOAuth()) {
-      try {
-        return await this.#handleMockOAuthLogin(loginHandler);
-      } catch (error) {
-        Logger.log(error as Error, {
-          message: 'handleOAuthLogin E2E_MOCK_OAUTH',
-        });
-        this.#dispatchPostLogin({
-          type: OAuthLoginResultType.ERROR,
-          existingUser: false,
-          error: error instanceof Error ? error.message : 'Unknown error',
-        });
-        if (error instanceof OAuthError) {
-          throw error;
-        }
-        throw new OAuthError(
-          error instanceof Error ? error : 'Unknown error',
-          OAuthErrorType.LoginError,
-        );
-      }
-    }
-
+  #handleOAuthLoginProductionPath = async (
+    loginHandler: BaseLoginHandler,
+    web3AuthNetwork: Web3AuthNetwork,
+  ): Promise<HandleOAuthLoginResult> => {
     try {
       let data: AuthResponse, handleCodeFlowResult: HandleOAuthLoginResult;
 
@@ -448,6 +343,127 @@ export class OAuthService {
         OAuthErrorType.LoginError,
       );
     }
+  };
+
+  #trackSocialLoginFailure = ({
+    authConnection,
+    errorCategory,
+    error,
+  }: {
+    authConnection: AuthConnection;
+    errorCategory: 'provider_login' | 'get_auth_tokens' | 'seedless_auth';
+    error: unknown;
+  }) => {
+    const isUserCancelled =
+      error instanceof OAuthError &&
+      (error.code === OAuthErrorType.UserCancelled ||
+        error.code === OAuthErrorType.UserDismissed);
+
+    let userClickedRehydration: 'true' | 'false' | 'unknown' = 'unknown';
+    if (this.localState.userClickedRehydration !== undefined) {
+      userClickedRehydration = this.localState.userClickedRehydration
+        ? 'true'
+        : 'false';
+    }
+
+    analytics.trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
+      )
+        .addProperties({
+          account_type: `default_${authConnection}`,
+          is_rehydration: userClickedRehydration,
+          failure_type: isUserCancelled ? 'user_cancelled' : 'error',
+          error_category: errorCategory,
+        })
+        .build(),
+    );
+  };
+
+  #executeProviderLogin = async (
+    loginHandler: BaseLoginHandler,
+  ): Promise<LoginHandlerResult> => {
+    let providerLoginSuccess = false;
+    try {
+      trace({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        op: TraceOperation.OnboardingSecurityOp,
+      });
+      const loginResult = await loginHandler.login();
+      if (!loginResult) {
+        throw new OAuthError(
+          'Login handler return empty result',
+          OAuthErrorType.LoginError,
+        );
+      }
+      providerLoginSuccess = true;
+      return loginResult;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+
+      if (
+        !(
+          error instanceof OAuthError &&
+          (error.code === OAuthErrorType.UserCancelled ||
+            error.code === OAuthErrorType.UserDismissed)
+        )
+      ) {
+        trace({
+          name: TraceName.OnboardingOAuthProviderLoginError,
+          op: TraceOperation.OnboardingError,
+          tags: { errorMessage },
+        });
+        endTrace({ name: TraceName.OnboardingOAuthProviderLoginError });
+      }
+
+      this.#trackSocialLoginFailure({
+        authConnection: loginHandler.authConnection,
+        errorCategory: 'provider_login',
+        error,
+      });
+
+      throw error;
+    } finally {
+      endTrace({
+        name: TraceName.OnboardingOAuthProviderLogin,
+        data: { success: providerLoginSuccess },
+      });
+
+      if (
+        Platform.OS === 'android' &&
+        loginHandler.authConnection === AuthConnection.Google
+      ) {
+        acmSignOut().catch((e) =>
+          Logger.log(e, 'acmSignOut: failed to clear cached credential'),
+        );
+      }
+    }
+  };
+
+  handleOAuthLogin = async (
+    loginHandler: BaseLoginHandler,
+    userClickedRehydration: boolean,
+  ): Promise<HandleOAuthLoginResult> => {
+    const web3AuthNetwork = this.config.web3AuthNetwork;
+
+    if (this.localState.loginInProgress) {
+      throw new OAuthError(
+        'Login already in progress',
+        OAuthErrorType.LoginInProgress,
+      );
+    }
+    this.updateLocalState({ userClickedRehydration });
+    this.#dispatchLogin();
+
+    if (isE2EMockOAuth()) {
+      return await this.#handleOAuthLoginMockPath(loginHandler);
+    }
+
+    return await this.#handleOAuthLoginProductionPath(
+      loginHandler,
+      web3AuthNetwork,
+    );
   };
 
   updateLocalState = (newState: Partial<OAuthService['localState']>) => {
