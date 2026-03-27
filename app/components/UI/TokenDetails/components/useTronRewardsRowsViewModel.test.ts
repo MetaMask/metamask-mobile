@@ -1,4 +1,5 @@
 import { renderHook } from '@testing-library/react-native';
+import { ChainId } from '@metamask/stake-sdk';
 import { strings } from '../../../../../locales/i18n';
 import useTronAssetOverviewSection from './useTronAssetOverviewSection';
 
@@ -28,6 +29,9 @@ jest.mock('../../Earn/hooks/useTronStakeApy', () => ({
 jest.mock('../../../../selectors/preferencesController', () => ({
   selectPrivacyMode: jest.fn(),
 }));
+
+const TRON_MAINNET_CAIP_CHAIN_ID = 'tron:0x2b6653dc';
+const TRON_NILE_CAIP_CHAIN_ID = 'tron:0xcd8690dc';
 
 import { useSelector } from 'react-redux';
 import useTronStakingRewardsSummary from '../../Earn/components/Tron/TronStakingRewardsRows/useTronStakingRewardsSummary';
@@ -80,10 +84,42 @@ describe('useTronAssetOverviewSection', () => {
 
     expect(mockUseTronStakeApy).toHaveBeenCalledWith({
       fetchOnMount: false,
-      chainId: 'tron:0x2b6653dc',
+      chainId: ChainId.TRON_MAINNET,
     });
     expect(result.current).toEqual({});
   });
+
+  it.each([
+    [TRON_MAINNET_CAIP_CHAIN_ID, ChainId.TRON_MAINNET],
+    [TRON_NILE_CAIP_CHAIN_ID, ChainId.TRON_NILE],
+  ])(
+    'maps CAIP chain id %s to stake chain id %s',
+    (tokenChainId, expectedChainId) => {
+      mockUseTronStakeApy.mockReturnValue({
+        fetchStatus: FetchStatus.Fetched,
+        errorMessage: null,
+        apyDecimal: '4.5',
+        apyPercent: '4.5%',
+        refetch: jest.fn(),
+      });
+
+      const { result } = renderHook(() =>
+        useTronAssetOverviewSection({
+          enabled: true,
+          tokenAddress: 'tron:foo',
+          tokenChainId,
+        }),
+      );
+
+      expect(mockUseTronStakeApy).toHaveBeenCalledWith({
+        fetchOnMount: true,
+        chainId: expectedChainId,
+      });
+      expect(result.current).toEqual(
+        expect.objectContaining({ aprText: '4.5%' }),
+      );
+    },
+  );
 
   it('returns APR text and both reward row props when APY data is available', () => {
     mockUseTronStakeApy.mockReturnValue({
@@ -98,13 +134,13 @@ describe('useTronAssetOverviewSection', () => {
       useTronAssetOverviewSection({
         enabled: true,
         tokenAddress: 'tron:foo',
-        tokenChainId: 'tron:0x2b6653dc',
+        tokenChainId: TRON_MAINNET_CAIP_CHAIN_ID,
       }),
     );
 
     expect(mockUseTronStakeApy).toHaveBeenCalledWith({
       fetchOnMount: true,
-      chainId: 'tron:0x2b6653dc',
+      chainId: ChainId.TRON_MAINNET,
     });
     expect(result.current).toEqual(
       expect.objectContaining({ aprText: '4.5%' }),
@@ -141,7 +177,7 @@ describe('useTronAssetOverviewSection', () => {
         useTronAssetOverviewSection({
           enabled: true,
           tokenAddress: 'tron:foo',
-          tokenChainId: 'tron:0x2b6653dc',
+          tokenChainId: TRON_MAINNET_CAIP_CHAIN_ID,
         }),
       );
 
@@ -166,7 +202,7 @@ describe('useTronAssetOverviewSection', () => {
       useTronAssetOverviewSection({
         enabled: true,
         tokenAddress: 'tron:foo',
-        tokenChainId: 'tron:0x2b6653dc',
+        tokenChainId: TRON_MAINNET_CAIP_CHAIN_ID,
       }),
     );
 
@@ -192,7 +228,7 @@ describe('useTronAssetOverviewSection', () => {
       useTronAssetOverviewSection({
         enabled: true,
         tokenAddress: 'tron:foo',
-        tokenChainId: 'tron:0x2b6653dc',
+        tokenChainId: TRON_MAINNET_CAIP_CHAIN_ID,
       }),
     );
 

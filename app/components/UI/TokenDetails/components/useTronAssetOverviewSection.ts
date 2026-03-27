@@ -3,6 +3,7 @@ import { useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { MULTICHAIN_NETWORK_DECIMAL_PLACES } from '@metamask/multichain-network-controller';
 import type { CaipChainId } from '@metamask/utils';
+import { ChainId } from '@metamask/stake-sdk';
 import I18n, { strings } from '../../../../../locales/i18n';
 import { getLocaleLanguageCode } from '../../../../components/hooks/useFormatters';
 import useTronStakingRewardsSummary from '../../Earn/components/Tron/TronStakingRewardsRows/useTronStakingRewardsSummary';
@@ -16,6 +17,18 @@ import type { TokenI } from '../../Tokens/types';
 
 const FIAT_THRESHOLD = 0.01;
 const TRX_THRESHOLD = 0.00001;
+
+const STAKE_CHAIN_ID_BY_CAIP_CHAIN_ID = {
+  'tron:0x2b6653dc': ChainId.TRON_MAINNET,
+  'tron:0xcd8690dc': ChainId.TRON_NILE,
+} as const;
+
+const getTronStakeChainId = (tokenChainId?: string) =>
+  tokenChainId
+    ? STAKE_CHAIN_ID_BY_CAIP_CHAIN_ID[
+        tokenChainId as keyof typeof STAKE_CHAIN_ID_BY_CAIP_CHAIN_ID
+      ]
+    : undefined;
 
 export interface UseTronAssetOverviewSectionArgs {
   enabled: boolean;
@@ -36,8 +49,8 @@ const useTronAssetOverviewSection = ({
   tokenChainId,
 }: UseTronAssetOverviewSectionArgs): TronAssetOverviewSectionViewModel => {
   // These hooks must stay unconditional to preserve React's hook ordering.
-  // When `enabled` is false, the hook still reads selector state and cached
-  // summary data, but it returns before any Tron formatting or row/banner work.
+  // When `enabled` is false, APY fetches are disabled and the hook returns
+  // before computing APR text or Tron reward/banner props.
   const privacyMode = useSelector(selectPrivacyMode);
   const {
     apyDecimal,
@@ -46,7 +59,7 @@ const useTronAssetOverviewSection = ({
     errorMessage: tronApyErrorMessage,
   } = useTronStakeApy({
     fetchOnMount: enabled,
-    chainId: tokenChainId as Parameters<typeof useTronStakeApy>[0]['chainId'],
+    chainId: getTronStakeChainId(tokenChainId),
   });
   const {
     claimableRewardsTrxAmount,
