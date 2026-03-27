@@ -287,6 +287,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       const isGlobalPasswordOutdated =
         await Authentication.checkIsSeedlessPasswordOutdated();
       if (isGlobalPasswordOutdated) {
+        setLoading(false);
         handleSeedlessPasswordOutdated();
         return;
       }
