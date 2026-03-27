@@ -117,6 +117,8 @@ import {
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
+import { TopTradersView } from '../../Views/SocialLeaderboard';
+import { selectSocialLeaderboardEnabled } from '../../../selectors/featureFlagController/socialLeaderboard';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
@@ -951,6 +953,9 @@ const MainNavigator = () => {
   const isMarketInsightsPerpsEnabled = useSelector(
     selectMarketInsightsPerpsEnabled,
   );
+  const isSocialLeaderboardEnabled = useSelector(
+    selectSocialLeaderboardEnabled,
+  );
 
   return (
     <Stack.Navigator
@@ -1168,6 +1173,13 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}
           component={MarketInsightsView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isSocialLeaderboardEnabled && (
+        <Stack.Screen
+          name={Routes.SOCIAL_LEADERBOARD.VIEW}
+          component={TopTradersView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
       )}

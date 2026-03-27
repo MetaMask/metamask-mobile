@@ -1011,6 +1011,11 @@
       "see_more": "See more"
     }
   },
+  "social_leaderboard": {
+    "top_traders_view": {
+      "title": "Top Traders"
+    }
+  },
   "perps": {
     "basic_functionality_disabled_title": "Perps is not available",
     "title": "Perps",
@@ -8265,6 +8270,7 @@
       "perpetuals": "Perpetuals",
       "predictions": "Predictions",
       "whats_happening": "What's happening",
+      "top_traders": "Top Traders",
       "whats_happening_categories": {
         "geopolitical": "Geopolitical",
         "macro": "Macro",
