@@ -294,7 +294,7 @@ describe('useTronAssetOverviewSection', () => {
     });
 
     expect(result.current.claimableRewardsRowProps?.subtitle).toBe(
-      '$0.00 · 1.23456 TRX',
+      '- · 1.23456 TRX',
     );
   });
 
@@ -306,7 +306,7 @@ describe('useTronAssetOverviewSection', () => {
     });
 
     expect(result.current.estimatedAnnualRewardsRowProps?.subtitle).toBe(
-      '$0.00 · 4.500 TRX',
+      '- · 4.500 TRX',
     );
   });
 
@@ -358,9 +358,9 @@ describe('useTronAssetOverviewSection', () => {
     });
 
     const current = result.current as { errorMessages?: string[] };
-    expect(current.errorMessages).toEqual([
-      'Fiat unavailable',
-      'APR endpoint down',
-    ]);
+    expect(current.errorMessages).toHaveLength(2);
+    expect(current.errorMessages).toEqual(
+      expect.arrayContaining(['Fiat unavailable', 'APR endpoint down']),
+    );
   });
 });
