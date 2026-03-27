@@ -16,7 +16,10 @@ import { selectUseTransactionSimulations } from '../../../../../selectors/prefer
 import { useHasInsufficientBalance } from '../useHasInsufficientBalance';
 import { useIsTransactionPayLoading } from '../pay/useTransactionPayData';
 
-const IGNORE_TYPES = [TransactionType.predictWithdraw];
+const IGNORE_TYPES = [
+  TransactionType.perpsWithdraw,
+  TransactionType.predictWithdraw,
+];
 
 export const useInsufficientBalanceAlert = ({
   ignoreGasFeeToken,
