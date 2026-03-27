@@ -38,8 +38,6 @@ import { hasTransactionType } from '../../utils/transaction';
 import { PredictClaimFooter } from '../predict-confirmations/predict-claim-footer/predict-claim-footer';
 import { useIsTransactionPayLoading } from '../../hooks/pay/useTransactionPayData';
 import { Skeleton } from '../../../../../component-library/components/Skeleton';
-import { useQRHardwareContext } from '../../context/qr-hardware-context';
-
 const HIDE_FOOTER_BY_DEFAULT_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.perpsDepositAndOrder,
@@ -57,7 +55,6 @@ export const Footer = () => {
     hasUnconfirmedDangerAlerts,
   } = useAlerts();
   const { onConfirm, onReject } = useConfirmActions();
-  const { isSigningQRObject, needsCameraPermission } = useQRHardwareContext();
   const { securityAlertResponse } = useSecurityAlertResponse();
   const transactionMetadata = useTransactionMetadataRequest();
   const { trackAlertMetrics } = useConfirmationAlertMetrics();
@@ -117,10 +114,6 @@ export const Footer = () => {
   });
 
   const confirmButtonLabel = () => {
-    if (isSigningQRObject) {
-      return strings('confirm.qr_get_sign');
-    }
-
     if (isPayLoading) {
       return strings('confirm.confirm');
     }
@@ -152,10 +145,7 @@ export const Footer = () => {
   };
 
   const isConfirmDisabled =
-    needsCameraPermission ||
-    hasBlockingAlerts ||
-    isTransactionValueUpdating ||
-    isPayLoading;
+    hasBlockingAlerts || isTransactionValueUpdating || isPayLoading;
 
   const buttons = [
     {
