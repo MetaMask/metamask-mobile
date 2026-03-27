@@ -286,33 +286,31 @@ describe('useTronAssetOverviewSection', () => {
     );
   });
 
-  it('starts the claimable subtitle with a dash when claimable fiat is missing', () => {
+  it('preserves the claimable TRX amount when claimable fiat is missing', () => {
     const { result } = renderSubject({
       summary: {
         claimableRewardsFiatAmount: undefined,
       },
     });
 
-    expect(result.current.claimableRewardsRowProps?.subtitle).toMatch(/^-+/);
-    expect(result.current.claimableRewardsRowProps?.subtitle).toContain('TRX');
+    expect(result.current.claimableRewardsRowProps?.subtitle).toBe(
+      '$0.00 · 1.23456 TRX',
+    );
   });
 
-  it('starts the estimated subtitle with a dash when estimated fiat is missing but APY and TRX are available', () => {
+  it('preserves the estimated TRX amount when estimated fiat is missing but APY is available', () => {
     const { result } = renderSubject({
       summary: {
         fiatRate: undefined,
       },
     });
 
-    expect(result.current.estimatedAnnualRewardsRowProps?.subtitle).toMatch(
-      /^-+/,
-    );
-    expect(result.current.estimatedAnnualRewardsRowProps?.subtitle).toContain(
-      'TRX',
+    expect(result.current.estimatedAnnualRewardsRowProps?.subtitle).toBe(
+      '$0.00 · 4.500 TRX',
     );
   });
 
-  it('returns one normalized fiat error message when both claimable and estimated fiat are missing', () => {
+  it('returns the shared fiat bullet once when both claimable and estimated fiat are missing', () => {
     const { result } = renderSubject({
       summary: {
         claimableRewardsFiatAmount: undefined,
@@ -324,7 +322,7 @@ describe('useTronAssetOverviewSection', () => {
     const current = result.current as { errorMessages?: string[] };
     expect(result.current.claimableRewardsRowProps).toBeDefined();
     expect(result.current.estimatedAnnualRewardsRowProps).toBeDefined();
-    expect(current.errorMessages).toHaveLength(1);
+    expect(current.errorMessages).toEqual(['Fiat unavailable']);
   });
 
   it('returns an APY error message and omits the estimated row when APY is unavailable', () => {
@@ -343,7 +341,7 @@ describe('useTronAssetOverviewSection', () => {
     expect(current.errorMessages).toEqual(['APR endpoint down']);
   });
 
-  it('returns exactly two deduped banner messages when APY and fiat are both unavailable', () => {
+  it('returns both the shared fiat bullet and the APY error when they are unavailable together', () => {
     const { result } = renderSubject({
       apy: {
         fetchStatus: FetchStatus.Error,
@@ -360,9 +358,9 @@ describe('useTronAssetOverviewSection', () => {
     });
 
     const current = result.current as { errorMessages?: string[] };
-    expect(current.errorMessages).toHaveLength(2);
-    expect(current.errorMessages).toEqual(
-      expect.arrayContaining(['APR endpoint down']),
-    );
+    expect(current.errorMessages).toEqual([
+      'Fiat unavailable',
+      'APR endpoint down',
+    ]);
   });
 });

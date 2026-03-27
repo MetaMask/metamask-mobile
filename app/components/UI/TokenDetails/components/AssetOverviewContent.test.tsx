@@ -35,12 +35,6 @@ const mockUseTronAssetOverviewSection =
   useTronAssetOverviewSection as jest.MockedFunction<
     typeof useTronAssetOverviewSection
   >;
-const mockTronErrorsBanner = jest.fn(({ messages }: { messages: string[] }) => (
-  <MockView
-    testID="tron-errors-banner"
-    accessibilityLabel={messages.join('|')}
-  />
-));
 const mockTronStakingCta = jest.fn(({ aprText }: { aprText?: string }) => (
   <MockView
     testID={TronStakingCtaTestIds.CONTAINER}
@@ -129,7 +123,12 @@ jest.mock(
   '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner',
   () => ({
     __esModule: true,
-    default: (props: { messages: string[] }) => mockTronErrorsBanner(props),
+    default: ({ messages }: { messages: string[] }) => (
+      <MockView
+        testID="tron-errors-banner"
+        accessibilityLabel={messages.join('|')}
+      />
+    ),
   }),
   { virtual: true },
 );
@@ -281,7 +280,6 @@ describe('AssetOverviewContent', () => {
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
       mockUseTronAssetOverviewSection.mockReturnValue({});
-      mockTronErrorsBanner.mockClear();
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -567,7 +565,7 @@ describe('AssetOverviewContent', () => {
       ).toBeNull();
     });
 
-    it('renders one errors banner when the hook returns errorMessages and passes them through', () => {
+    it('renders the errors banner with the normalized message payload from the hook', () => {
       mockUseTronAssetOverviewSection.mockReturnValue({
         claimableRewardsRowProps: {
           title: 'Total claimable rewards',
@@ -587,7 +585,7 @@ describe('AssetOverviewContent', () => {
         name: 'TRON',
       };
 
-      renderWithProvider(
+      const { getByTestId } = renderWithProvider(
         <AssetOverviewContent
           {...defaultProps}
           token={tronToken}
@@ -597,11 +595,9 @@ describe('AssetOverviewContent', () => {
         { state: createState(true) },
       );
 
-      expect(mockTronErrorsBanner).toHaveBeenCalledTimes(1);
-      expect(mockTronErrorsBanner).toHaveBeenCalledWith(
-        expect.objectContaining({
-          messages: ['Fiat unavailable', 'APR unavailable'],
-        }),
+      expect(getByTestId('tron-errors-banner')).toHaveProp(
+        'accessibilityLabel',
+        'Fiat unavailable|APR unavailable',
       );
     });
   });
