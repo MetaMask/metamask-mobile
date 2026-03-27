@@ -32,7 +32,7 @@ export const BORDER_DASH_START_SHIFT_FRACTION = 0.4;
 export const BORDER_SWEEP_PATH_START_FRACTION = 0;
 
 /** Normalized sweep position when the animation completes (`p === 1`). */
-export const BORDER_SWEEP_PATH_END_FRACTION = 0.8;
+export const BORDER_SWEEP_PATH_END_FRACTION = 0.9;
 
 /**
  * Opacity fade-in completes at this animation progress (`p`). Lower = trail
