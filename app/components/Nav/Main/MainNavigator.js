@@ -97,8 +97,15 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
-import { MoneyScreenStack } from '../../UI/Money/routes';
+import {
+  MoneyScreenStack,
+  MoneyAccountScreenStack,
+} from '../../UI/Money/routes';
 import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
+import {
+  selectMoneyAccountDepositEnabledFlag,
+  selectMoneyAccountWithdrawEnabledFlag,
+} from '../../../selectors/featureFlagController/moneyAccount';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -935,6 +942,15 @@ const MainNavigator = () => {
   const isMoneyHomeScreenEnabled = useSelector(
     selectMoneyHomeScreenEnabledFlag,
   );
+  // Get feature flag state for conditional Money Account screen registration
+  const isMoneyAccountDepositEnabled = useSelector(
+    selectMoneyAccountDepositEnabledFlag,
+  );
+  const isMoneyAccountWithdrawEnabled = useSelector(
+    selectMoneyAccountWithdrawEnabledFlag,
+  );
+  const isMoneyAccountEnabled =
+    isMoneyAccountDepositEnabled || isMoneyAccountWithdrawEnabled;
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1094,6 +1110,13 @@ const MainNavigator = () => {
           name={Routes.MONEY.ROOT}
           component={MoneyScreenStack}
           options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
+      {isMoneyAccountEnabled && (
+        <Stack.Screen
+          name={Routes.MONEY_ACCOUNT.ROOT}
+          component={MoneyAccountScreenStack}
+          options={slideFromRightAnimation}
         />
       )}
       <Stack.Screen

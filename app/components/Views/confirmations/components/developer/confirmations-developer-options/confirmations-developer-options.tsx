@@ -145,6 +145,7 @@ function MoneyAccountDeposit() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountDeposit,
+      stack: Routes.MONEY_ACCOUNT.ROOT,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -166,6 +167,7 @@ function MoneyAccountWithdraw() {
     addTransactionBatchAndNavigate({
       loader: ConfirmationLoader.CustomAmount,
       transactionType: TransactionType.moneyAccountWithdraw,
+      stack: Routes.MONEY_ACCOUNT.ROOT,
     });
   }, [addTransactionBatchAndNavigate]);
 
@@ -201,15 +203,17 @@ function useAddTransactionBatch() {
       headerShown,
       loader,
       transactionType,
+      stack = Routes.PREDICT.ROOT,
     }: {
       headerShown?: boolean;
       loader?: ConfirmationLoader;
       transactionType: TransactionType;
+      stack?: string;
     }) => {
       navigateToConfirmation({
         headerShown,
         loader,
-        stack: Routes.PREDICT.ROOT,
+        stack,
       });
 
       addTransactionBatch({
