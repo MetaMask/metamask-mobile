@@ -466,7 +466,10 @@ export class PredictController extends BaseController<
     const remoteFeatureFlagState = this.messenger.call(
       'RemoteFeatureFlagController:getState',
     );
-    const flags = remoteFeatureFlagState.remoteFeatureFlags;
+    const flags = {
+      ...(remoteFeatureFlagState.remoteFeatureFlags ?? {}),
+      ...(remoteFeatureFlagState.localOverrides ?? {}),
+    };
 
     const liveSportsFlag =
       unwrapRemoteFeatureFlag<PredictLiveSportsFlag>(flags.predictLiveSports) ??
@@ -502,11 +505,19 @@ export class PredictController extends BaseController<
         ),
       ) ?? false;
 
+    const predictWithAnyTokenEnabled =
+      validatedVersionGatedFeatureFlag(
+        unwrapRemoteFeatureFlag<VersionGatedFeatureFlag>(
+          flags.predictWithAnyToken,
+        ),
+      ) ?? false;
+
     return {
       feeCollection,
       liveSportsLeagues,
       marketHighlightsFlag,
       fakOrdersEnabled,
+      predictWithAnyTokenEnabled,
     };
   }
 
@@ -1453,10 +1464,12 @@ export class PredictController extends BaseController<
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
     const activeOrderAddress = params.address ?? this.getEvmAccountAddress();
+    const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
 
     if (
+      predictWithAnyTokenEnabled &&
       this.state.activeOrders[activeOrderAddress]?.state ===
-      ActiveOrderState.PAY_WITH_ANY_TOKEN
+        ActiveOrderState.PAY_WITH_ANY_TOKEN
     ) {
       this.update((state) => {
         state.activeOrders[activeOrderAddress] = {
@@ -1472,7 +1485,7 @@ export class PredictController extends BaseController<
       } as unknown as Result;
     }
 
-    if (params.preview.side === Side.BUY) {
+    if (predictWithAnyTokenEnabled && params.preview.side === Side.BUY) {
       this.update((state) => {
         state.activeOrders[activeOrderAddress] = {
           ...state.activeOrders[activeOrderAddress],
@@ -1544,7 +1557,7 @@ export class PredictController extends BaseController<
         throw new Error(result.error);
       }
 
-      if (preview.side === Side.BUY) {
+      if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
         this.update((state) => {
           state.activeOrders[activeOrderAddress] = {
             state: ActiveOrderState.SUCCESS,
@@ -1622,7 +1635,7 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-        if (preview.side === Side.BUY) {
+        if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
           state.activeOrders[activeOrderAddress] = {
             ...state.activeOrders[activeOrderAddress],
             state: ActiveOrderState.PREVIEW,
@@ -1647,7 +1660,10 @@ export class PredictController extends BaseController<
         }),
       );
 
-      if (this.state.activeOrders[activeOrderAddress]?.batchId) {
+      if (
+        predictWithAnyTokenEnabled &&
+        this.state.activeOrders[activeOrderAddress]?.batchId
+      ) {
         this.update((state) => {
           state.activeOrders[activeOrderAddress] = {
             ...state.activeOrders[activeOrderAddress],
