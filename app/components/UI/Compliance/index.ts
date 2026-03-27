@@ -10,5 +10,4 @@ export {
 export {
   useWalletCompliance,
   useComplianceGate,
-  useAccountGroupCompliance,
 } from './hooks/useWalletCompliance';

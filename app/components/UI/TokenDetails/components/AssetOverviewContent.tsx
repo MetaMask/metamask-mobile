@@ -38,6 +38,8 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsPositionForAsset } from '../../Perps/hooks/usePerpsPositionForAsset';
 import { selectPerpsEligibility } from '../../Perps/selectors/perpsController';
+import { useComplianceGate } from '../../Compliance';
+import { selectSelectedInternalAccountAddress } from '../../../../selectors/accountsController';
 import PerpsBottomSheetTooltip from '../../Perps/components/PerpsBottomSheetTooltip';
 import { usePerpsEventTracking } from '../../Perps/hooks/usePerpsEventTracking';
 import { MetaMetricsEvents } from '../../../../core/Analytics/MetaMetrics.events';
@@ -282,38 +284,50 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     useState(false);
   const { track } = usePerpsEventTracking();
 
+  // Compliance gate
+  const selectedAddress = useSelector(selectSelectedInternalAccountAddress);
+  const { gate } = useComplianceGate(selectedAddress ?? '');
+
   const closeEligibilityModal = useCallback(() => {
     setIsEligibilityModalVisible(false);
     resetNavigationLockRef.current?.();
   }, []);
 
-  const handleLongPress = useCallback(() => {
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-    handlePerpsAction?.('long');
-  }, [isEligible, track, handlePerpsAction]);
+  const handleLongPress = useCallback(
+    () =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+        handlePerpsAction?.('long');
+      }),
+    [gate, isEligible, track, handlePerpsAction],
+  );
 
-  const handleShortPress = useCallback(() => {
-    if (!isEligible) {
-      track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
-        [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
-          PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
-        [PERPS_EVENT_PROPERTY.SOURCE]:
-          PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
-      });
-      setIsEligibilityModalVisible(true);
-      return;
-    }
-    handlePerpsAction?.('short');
-  }, [isEligible, track, handlePerpsAction]);
+  const handleShortPress = useCallback(
+    () =>
+      gate(async () => {
+        if (!isEligible) {
+          track(MetaMetricsEvents.PERPS_SCREEN_VIEWED, {
+            [PERPS_EVENT_PROPERTY.SCREEN_TYPE]:
+              PERPS_EVENT_VALUE.SCREEN_TYPE.GEO_BLOCK_NOTIF,
+            [PERPS_EVENT_PROPERTY.SOURCE]:
+              PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
+          });
+          setIsEligibilityModalVisible(true);
+          return;
+        }
+        handlePerpsAction?.('short');
+      }),
+    [gate, isEligible, track, handlePerpsAction],
+  );
 
   const { isBuyable, isLoading: isBuyableLoading } = useTokenBuyability(token);
 

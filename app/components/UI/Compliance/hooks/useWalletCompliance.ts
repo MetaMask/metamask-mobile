@@ -1,13 +1,19 @@
 import { useSelector } from 'react-redux';
-import { useCallback, useEffect, useMemo } from 'react';
+import { useCallback, useMemo } from 'react';
 import Engine from '../../../../core/Engine';
+import { DevLogger } from '../../../../core/SDKConnect/utils/DevLogger';
 import {
   selectIsWalletBlocked,
   selectAreAnyWalletsBlocked,
 } from '../../../../selectors/complianceController';
 import { selectComplianceEnabled } from '../../../../selectors/featureFlagController/compliance';
-import { selectSelectedAccountGroupWithInternalAccountsAddresses } from '../../../../selectors/multichainAccounts/accountTreeController';
 import { useAccessRestrictedModal } from '../contexts/AccessRestrictedContext';
+
+type ComplianceResult =
+  | { blocked: boolean }
+  | { blocked: boolean }[]
+  | undefined
+  | null;
 
 type AddressInput = string | string[];
 
@@ -36,7 +42,10 @@ function normalizeAddresses(input: AddressInput): string[] {
  * const { isBlocked } = useWalletCompliance(['0xEVM...', 'bc1q...', 'So1...']);
  * ```
  */
-export function useWalletCompliance(address: AddressInput) {
+export function useWalletCompliance(address?: AddressInput) {
+  if (!address) {
+    return { isBlocked: false, checkCompliance: async () => undefined };
+  }
   const addressKey = Array.isArray(address) ? address.join(',') : address;
   // eslint-disable-next-line react-hooks/exhaustive-deps -- addressKey is a stable scalar derived from address
   const addresses = useMemo(() => normalizeAddresses(address), [addressKey]);
@@ -85,63 +94,56 @@ export function useWalletCompliance(address: AddressInput) {
  * }
  * ```
  */
-export function useComplianceGate(address: AddressInput) {
+export function useComplianceGate(address?: AddressInput) {
   const isComplianceEnabled = useSelector(selectComplianceEnabled);
   const { isBlocked: rawIsBlocked, checkCompliance } =
     useWalletCompliance(address);
+  const { showAccessRestrictedModal } = useAccessRestrictedModal();
 
   const isBlocked = isComplianceEnabled && rawIsBlocked;
 
+  const gate = useCallback(
+    async <T>(action: () => Promise<T>): Promise<T | void> => {
+      if (!isComplianceEnabled) {
+        DevLogger.log(
+          '[useComplianceGate] Compliance disabled, skipping check',
+        );
+        return action();
+      }
+
+      let blocked = false;
+
+      try {
+        DevLogger.log('[useComplianceGate] Running compliance check');
+
+        const result = (await checkCompliance()) as ComplianceResult;
+        blocked = Array.isArray(result)
+          ? result.some((r) => r.blocked)
+          : (result?.blocked ?? false);
+
+        DevLogger.log('[useComplianceGate] Check complete', {
+          blocked,
+          result,
+        });
+      } catch (error) {
+        DevLogger.log('[useComplianceGate] Error checking compliance', error);
+        return action();
+      }
+
+      if (blocked) {
+        DevLogger.log('[useComplianceGate] Wallet blocked, showing modal');
+        showAccessRestrictedModal();
+        return;
+      }
+
+      DevLogger.log('[useComplianceGate] Wallet not blocked, proceeding');
+      return action();
+    },
+    [isComplianceEnabled, checkCompliance, showAccessRestrictedModal],
+  );
+
   return useMemo(
-    () => ({ isComplianceEnabled, isBlocked, checkCompliance }),
-    [isComplianceEnabled, isBlocked, checkCompliance],
+    () => ({ isComplianceEnabled, isBlocked, checkCompliance, gate }),
+    [isComplianceEnabled, isBlocked, checkCompliance, gate],
   );
-}
-
-/**
- * Zero-config hook that checks compliance for all addresses in the
- * currently selected account group. In multichain wallets, one group
- * can contain EVM, Solana, Bitcoin, and other chain-specific addresses.
- *
- * Returns `isBlocked: true` if ANY address in the group is blocked.
- *
- * @returns Object with `isComplianceEnabled`, `isBlocked`, and `checkCompliance`.
- *
- * @example
- * ```tsx
- * const { isBlocked } = useAccountGroupCompliance();
- *
- * if (isBlocked) {
- *   // Current account group contains a sanctioned address
- * }
- * ```
- */
-export function useAccountGroupCompliance() {
-  const addresses = useSelector(
-    selectSelectedAccountGroupWithInternalAccountsAddresses,
-  );
-  const filteredAddresses = useMemo(
-    () => addresses.filter((addr): addr is string => addr != null),
-    [addresses],
-  );
-  const complianceGate = useComplianceGate(
-    filteredAddresses.length > 0 ? filteredAddresses : [],
-  );
-
-  const { showAccessRestrictedModal, hideAccessRestrictedModal } =
-    useAccessRestrictedModal();
-
-  useEffect(() => {
-    if (complianceGate.isBlocked) {
-      showAccessRestrictedModal();
-    } else {
-      hideAccessRestrictedModal();
-    }
-  }, [
-    complianceGate.isBlocked,
-    showAccessRestrictedModal,
-    hideAccessRestrictedModal,
-  ]);
-
-  return complianceGate;
 }
