@@ -23,11 +23,6 @@ on:
         required: false
         type: string
         default: ''
-      upload_to_sentry:
-        description: 'When true, sets SENTRY_DISABLE_AUTO_UPLOAD=false for the build (source maps / debug symbols upload).'
-        required: false
-        type: boolean
-        default: false
   workflow_dispatch:
     inputs:
       build_name:
@@ -321,8 +316,6 @@ jobs:
       # Build with retry logic. Timeouts: 55min per attempt, 115min total for step, 120min job
       - name: Build ${{ matrix.platform }}
         timeout-minutes: 115
-        env:
-          SENTRY_DISABLE_AUTO_UPLOAD: ${{ inputs.upload_to_sentry && 'false' || 'true' }}
         uses: nick-fields/retry@ce71cc2ab81d554ebbe88c79ab5975992d79ba08 #v3.0.2
         with:
           timeout_minutes: 55
