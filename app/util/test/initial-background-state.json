@@ -711,6 +711,7 @@
     "pointsEvents": {},
     "campaigns": {},
     "ondoCampaignLeaderboardPositions": {},
+    "ondoCampaignPortfolio": {},
     "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
