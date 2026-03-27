@@ -66,7 +66,7 @@ export const useGetOndoPortfolioPosition = (
           portfolio: result,
         }),
       );
-    } catch {
+    } catch (e) {
       setHasError(true);
     } finally {
       setIsLoading(false);

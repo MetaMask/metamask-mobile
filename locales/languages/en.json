@@ -7941,7 +7941,8 @@
       "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
       "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically.",
       "geo_restriction_banner_title": "Not available in your region",
-      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations."
+      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
+      "opt_in_success_toast": "You're in!"
     },
     "campaign_mechanics": {
       "title": "Mechanics"

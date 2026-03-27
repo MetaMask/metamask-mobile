@@ -535,7 +535,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
-    it('shows the CTA in loading state while participant status is loading', () => {
+    it('hides the CTA while participant status is loading', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -546,8 +546,8 @@ describe('OndoCampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeDefined();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
     });
 
     it('does not render CTA when no campaign is loaded', () => {
