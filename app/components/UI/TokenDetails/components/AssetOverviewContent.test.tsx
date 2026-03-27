@@ -110,6 +110,19 @@ jest.mock('../../Perps/components/PerpsDiscoveryBanner', () => ({
 }));
 
 jest.mock('../../AssetOverview/TokenDetails', () => () => null);
+jest.mock(
+  '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail',
+  () => ({
+    __esModule: true,
+    default: ({ testID }: { testID?: string }) => (
+      <MockView testID={testID ?? 'tron-energy-bandwidth-detail'} />
+    ),
+  }),
+);
+jest.mock('./TronAssetOverviewSection', () => ({
+  __esModule: true,
+  default: () => <MockView testID="tron-asset-overview-section" />,
+}));
 
 jest.mock(
   '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard',
@@ -556,6 +569,59 @@ describe('AssetOverviewContent', () => {
       expect(
         queryByTestId(TokenOverviewSelectorsIDs.PERPS_POSITION_CARD),
       ).toBeNull();
+    });
+  });
+
+  describe('Tron native gating', () => {
+    beforeEach(() => {
+      jest.clearAllMocks();
+      mockBuild.mockReturnValue({ category: 'market-insights-opened' });
+      mockAddProperties.mockReturnValue({ build: mockBuild });
+      mockCreateEventBuilder.mockReturnValue({
+        addProperties: mockAddProperties,
+      });
+      mockSelectMarketInsightsEnabled.mockReturnValue(false);
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: null,
+      });
+      mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
+    });
+
+    it('renders Tron section when token matches shared Tron-native predicate', () => {
+      const tronNativeToken = {
+        ...defaultToken,
+        chainId: 'tron:728126428',
+        ticker: 'TRX',
+        symbol: 'TRX',
+      } as TokenI;
+
+      const { getByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={tronNativeToken} />,
+        { state: createState(true) },
+      );
+
+      expect(getByTestId('tron-energy-bandwidth-detail')).toBeOnTheScreen();
+      expect(getByTestId('tron-asset-overview-section')).toBeOnTheScreen();
+    });
+
+    it('does not render Tron section when ticker is missing even if symbol is TRX', () => {
+      const tronSymbolOnlyToken = {
+        ...defaultToken,
+        chainId: 'tron:728126428',
+        symbol: 'TRX',
+        ticker: undefined,
+      } as TokenI;
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent {...defaultProps} token={tronSymbolOnlyToken} />,
+        { state: createState(true) },
+      );
+
+      expect(queryByTestId('tron-energy-bandwidth-detail')).toBeNull();
+      expect(queryByTestId('tron-asset-overview-section')).toBeNull();
     });
   });
 

@@ -21,9 +21,8 @@ const TRX_THRESHOLD = 0.00001;
  * Maps a token's CAIP-2 chain id (`tron:<reference>`) to the stake SDK network.
  *
  * The reference after `tron:` is the Tron network id. MetaMask uses the decimal
- * string form from {@link TrxScope} (e.g. `tron:728126428` for mainnet). The same
- * id is sometimes written in hex (`tron:0x2b6653dc` — 0x2b6653dc === 728126428),
- * so we accept both shapes for compatibility with tests and any legacy payloads.
+ * string form from {@link TrxScope} (e.g. `tron:728126428` for mainnet and
+ * `tron:3448148188` for nile).
  */
 const STAKE_SDK_CHAIN_ID_BY_CAIP_CHAIN_ID: Record<
   string,
@@ -158,6 +157,10 @@ const useTronAssetOverviewSection = ({
       claimableRewardsFiatAmount != null && Boolean(claimableRewardsCurrency);
     const hasValidApyDecimal =
       tronApyFetchStatus === FetchStatus.Fetched && apyDecimal !== null;
+    const hasClaimableRewards = claimableRewardsTrxAmount > 0;
+    const hasActiveStake = totalStakedTrx > 0;
+    const showClaimableRewardsRow = hasClaimableRewards;
+    const showEstimatedRewardsRow = hasActiveStake && hasValidApyDecimal;
 
     const formattedClaimableTrx = `${formatWithThreshold(
       claimableRewardsTrxAmount,
@@ -181,13 +184,15 @@ const useTronAssetOverviewSection = ({
         )
       : '-';
 
-    const apyErrorMessage = getApyErrorMessage({
-      hasValidApyDecimal,
-      fetchStatus: tronApyFetchStatus,
-      errorMessage: tronApyErrorMessage,
-    });
+    const apyErrorMessage = hasActiveStake
+      ? getApyErrorMessage({
+          hasValidApyDecimal,
+          fetchStatus: tronApyFetchStatus,
+          errorMessage: tronApyErrorMessage,
+        })
+      : undefined;
 
-    const estimatedRewards = hasValidApyDecimal
+    const estimatedRewards = showEstimatedRewardsRow
       ? (() => {
           const rewardRounded = new BigNumber(totalStakedTrx)
             .multipliedBy(new BigNumber(apyDecimal as string).dividedBy(100))
@@ -215,19 +220,24 @@ const useTronAssetOverviewSection = ({
         })()
       : undefined;
 
-    const claimableRewardsRowProps = buildClaimableRewardsRowProps({
-      formattedClaimableFiat,
-      formattedClaimableTrx,
-      privacyMode,
-    });
+    const claimableRewardsRowProps = showClaimableRewardsRow
+      ? buildClaimableRewardsRowProps({
+          formattedClaimableFiat,
+          formattedClaimableTrx,
+          privacyMode,
+        })
+      : undefined;
     const estimatedAnnualRewardsRowProps = buildEstimatedAnnualRewardsRowProps({
       estimatedRewards,
       privacyMode,
     });
+    const hasVisibleRowMissingFiat =
+      (showClaimableRewardsRow && !hasClaimableFiat) ||
+      (showEstimatedRewardsRow && fiatRate == null);
     const errorMessages = [
-      hasClaimableFiat || (hasValidApyDecimal && fiatRate != null)
-        ? undefined
-        : strings('stake.tron.fiat_unavailable'),
+      hasVisibleRowMissingFiat
+        ? strings('stake.tron.fiat_unavailable')
+        : undefined,
       apyErrorMessage,
     ].filter((message): message is string => Boolean(message));
 

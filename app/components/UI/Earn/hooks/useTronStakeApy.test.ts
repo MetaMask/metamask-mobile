@@ -195,8 +195,8 @@ describe('useTronStakeApy', () => {
     });
   });
 
-  describe.skip('loading state', () => {
-    it('sets isLoading true during fetch', async () => {
+  describe('loading state', () => {
+    it('sets fetchStatus to Fetching during an in-flight fetch', async () => {
       let resolvePromise: (
         value: ReturnType<typeof createMockWitnessesResponse>,
       ) => void = () => undefined;
@@ -207,33 +207,65 @@ describe('useTronStakeApy', () => {
       });
       mockGetWitnesses.mockReturnValue(pendingPromise);
 
-      const { result } = renderHook(() => useTronStakeApy());
+      const { result, waitFor } = renderHook(() => useTronStakeApy());
 
-      expect(result.current.fetchStatus).toBe(FetchStatus.Fetching);
+      await waitFor(() => {
+        expect(result.current.fetchStatus).toBe(FetchStatus.Fetching);
+      });
 
       await act(async () => {
         resolvePromise(createMockWitnessesResponse());
       });
     });
 
-    it('sets isLoading false after successful fetch', async () => {
-      mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
+    it('sets fetchStatus to Fetched after a successful fetch', async () => {
+      let resolvePromise: (
+        value: ReturnType<typeof createMockWitnessesResponse>,
+      ) => void = () => undefined;
+      const pendingPromise = new Promise<
+        ReturnType<typeof createMockWitnessesResponse>
+      >((resolve) => {
+        resolvePromise = resolve;
+      });
+      mockGetWitnesses.mockReturnValue(pendingPromise);
 
-      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
+      const { result, waitFor } = renderHook(() => useTronStakeApy());
 
-      await waitForNextUpdate();
+      await waitFor(() => {
+        expect(result.current.fetchStatus).toBe(FetchStatus.Fetching);
+      });
 
-      expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
+      await act(async () => {
+        resolvePromise(createMockWitnessesResponse());
+      });
+
+      await waitFor(() => {
+        expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
+      });
     });
 
-    it('sets isLoading false after failed fetch', async () => {
-      mockGetWitnesses.mockRejectedValue(new Error('API Error'));
+    it('sets fetchStatus to Error after a failed fetch', async () => {
+      let rejectPromise: (error: Error) => void = () => undefined;
+      const pendingPromise = new Promise<
+        ReturnType<typeof createMockWitnessesResponse>
+      >((_resolve, reject) => {
+        rejectPromise = reject;
+      });
+      mockGetWitnesses.mockReturnValue(pendingPromise);
 
-      const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
+      const { result, waitFor } = renderHook(() => useTronStakeApy());
 
-      await waitForNextUpdate();
+      await waitFor(() => {
+        expect(result.current.fetchStatus).toBe(FetchStatus.Fetching);
+      });
 
-      expect(result.current.fetchStatus).toBe(FetchStatus.Error);
+      await act(async () => {
+        rejectPromise(new Error('API Error'));
+      });
+
+      await waitFor(() => {
+        expect(result.current.fetchStatus).toBe(FetchStatus.Error);
+      });
     });
   });
 

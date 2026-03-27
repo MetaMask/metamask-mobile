@@ -53,7 +53,7 @@ const TronAssetOverviewSection = ({
           <TronErrorsBanner messages={errorMessages} />
         </Box>
       ) : null}
-      {stakedTrxAsset ? (
+      {claimableRewardsRowProps || estimatedAnnualRewardsRowProps ? (
         <Box paddingHorizontal={4}>
           {claimableRewardsRowProps ? (
             <TronClaimableRewardsRow {...claimableRewardsRowProps} />

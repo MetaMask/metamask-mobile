@@ -50,7 +50,10 @@ const useTronStakingRewardsSummary = ({
   let fiatRate: number | undefined;
   if (tokenAddress) {
     const rate = multichainAssetsRates?.[tokenAddress as CaipAssetType];
-    fiatRate = rate?.rate ? Number(rate.rate) : undefined;
+    if (rate?.rate != null) {
+      const parsedRate = Number(rate.rate);
+      fiatRate = Number.isNaN(parsedRate) ? undefined : parsedRate;
+    }
   }
 
   const claimableRewardsTrxAmount = trxStakingRewards

@@ -183,6 +183,35 @@ describe('useTokenBalance', () => {
     );
   });
 
+  it('does not treat TRX symbol without TRX ticker as Tron native', () => {
+    const tronTokenWithoutTicker = {
+      address: '',
+      chainId: TRON_MAINNET_CHAIN_ID,
+      symbol: 'TRX',
+      ticker: undefined,
+    } as TokenI;
+
+    mockSelectAsset.mockReturnValue({
+      balance: '1000',
+      balanceFiat: '$100.00',
+      symbol: 'TRX',
+    } as TokenI);
+
+    mockSelectTronResources.mockReturnValue({
+      ...createEmptySpecialAssetsMap(),
+      stakedTrxForEnergy: createMockTronAsset('strx-energy', '100'),
+      stakedTrxForBandwidth: createMockTronAsset('strx-bandwidth', '200'),
+    });
+
+    const { result } = renderHookWithProvider(() =>
+      useTokenBalance(tronTokenWithoutTicker),
+    );
+
+    expect(result.current.isTronNative).toBe(false);
+    expect(result.current.stakedTrxAsset).toBeUndefined();
+    expect(mockCreateStakedTrxAsset).not.toHaveBeenCalled();
+  });
+
   it('returns in-lock-period balance for Tron native token', () => {
     const tronToken = {
       address: '',
