@@ -369,6 +369,7 @@ describe('useGetDelegationSettings', () => {
     it('returns loading state from useQuery', () => {
       (useQuery as jest.Mock).mockReturnValue({
         data: undefined,
+        isFetching: true,
         isLoading: true,
         error: null,
       });
