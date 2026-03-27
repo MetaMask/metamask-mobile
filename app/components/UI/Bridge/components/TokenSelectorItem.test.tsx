@@ -41,6 +41,10 @@ jest.mock('../../../../component-library/hooks', () => ({
       badgeWrapper: {},
       noFeeBadge: {},
       selectedItemWrapperReset: {},
+      tokenSymbolRow: {},
+      tokenSymbol: {},
+      verifiedIcon: {},
+      childrenWrapper: {},
     },
   }),
 }));
@@ -73,6 +77,29 @@ jest.mock(
 jest.mock('../../../../component-library/components/Avatars/Avatar', () => ({
   AvatarSize: { Md: 'Md' },
 }));
+
+jest.mock('@metamask/design-system-react-native', () => {
+  const { createElement } = jest.requireActual('react');
+  const { Text } = jest.requireActual('react-native');
+  const Icon = jest.fn(({ testID, name }: { testID?: string; name: string }) =>
+    createElement(Text, { testID }, name),
+  );
+  return {
+    __esModule: true,
+    default: Icon,
+    Icon,
+    __mockIcon: Icon,
+    IconColor: { InfoDefault: 'InfoDefault' },
+    IconName: { VerifiedFilled: 'VerifiedFilled' },
+    IconSize: { Sm: 'Sm' },
+  };
+});
+
+const { __mockIcon: mockDSIcon } = jest.requireMock(
+  '@metamask/design-system-react-native',
+) as {
+  __mockIcon: jest.Mock;
+};
 
 jest.mock('../../../../component-library/base-components/TagBase', () => {
   const { createElement } = jest.requireActual('react');
@@ -179,6 +206,56 @@ describe('TokenSelectorItem', () => {
         <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
       );
 
+      expect(getByText('No MM Fee')).toBeTruthy();
+    });
+
+    it('renders verified icon when token is verified', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: true,
+      });
+
+      const { getByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(getByTestId('token-verified-icon-ETH')).toBeTruthy();
+      expect(mockDSIcon).toHaveBeenCalled();
+      expect(mockDSIcon.mock.calls[0][0]).toEqual(
+        expect.objectContaining({
+          testID: 'token-verified-icon-ETH',
+          name: 'VerifiedFilled',
+          size: 'Sm',
+          color: 'InfoDefault',
+        }),
+      );
+    });
+
+    it('does not render verified icon when token is not verified', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: false,
+      });
+
+      const { queryByTestId } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} />,
+      );
+
+      expect(queryByTestId('token-verified-icon-ETH')).toBeNull();
+      expect(mockDSIcon).not.toHaveBeenCalled();
+    });
+
+    it('renders verified icon alongside no fee badge', () => {
+      const token = createMockTokenWithBalance({
+        symbol: 'ETH',
+        isVerified: true,
+      });
+
+      const { getByTestId, getByText } = render(
+        <TokenSelectorItem token={token} onPress={mockOnPress} isNoFeeAsset />,
+      );
+
+      expect(getByTestId('token-verified-icon-ETH')).toBeTruthy();
       expect(getByText('No MM Fee')).toBeTruthy();
     });
 

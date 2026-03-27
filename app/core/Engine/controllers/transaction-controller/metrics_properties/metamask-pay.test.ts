@@ -4,14 +4,11 @@ import {
 } from '@metamask/transaction-controller';
 import { getMetaMaskPayProperties } from './metamask-pay';
 import { TransactionMetrics, TransactionMetricsBuilder } from '../types';
-import { Hex } from '@metamask/utils';
 import { RootState } from '../../../../../reducers';
 import { TransactionPayStrategy } from '@metamask/transaction-pay-controller';
 import { merge } from 'lodash';
 import { NATIVE_TOKEN_ADDRESS } from '../../../../../components/Views/confirmations/constants/tokens';
 import { TRANSACTION_EVENTS } from '../../../../Analytics/events/confirmations';
-
-const BATCH_ID_MOCK = '0x1234' as Hex;
 
 const PAY_CONTROLLER_STATE_MOCK = {
   engine: {
@@ -165,14 +162,11 @@ describe('Metamask Pay Metrics', () => {
       sensitiveProperties: {},
     });
 
-    request.transactionMeta.batchId = BATCH_ID_MOCK;
-
     request.allTransactions = [
       {
         id: 'parent-1',
-        batchId: BATCH_ID_MOCK,
-        txParams: { nonce: '0x2' },
         type: TransactionType.perpsDeposit,
+        requiredTransactionIds: ['child-1'],
       } as TransactionMeta,
     ];
 
@@ -208,21 +202,12 @@ describe('Metamask Pay Metrics', () => {
   });
 
   it('adds step property if swap', () => {
-    request.transactionMeta.batchId = BATCH_ID_MOCK;
-
     request.allTransactions = [
       {
-        id: 'child-0',
-        batchId: BATCH_ID_MOCK,
-        txParams: { nonce: '0x0' },
-      } as TransactionMeta,
-      {
         id: 'parent-1',
-        batchId: BATCH_ID_MOCK,
         type: TransactionType.perpsDeposit,
-        txParams: { nonce: '0x2' },
+        requiredTransactionIds: ['child-0', 'child-1'],
       } as TransactionMeta,
-      request.transactionMeta,
     ];
 
     const result = getMetaMaskPayProperties(request);
@@ -267,21 +252,17 @@ describe('Metamask Pay Metrics', () => {
   });
 
   it('adds quote properties if swap', () => {
-    request.transactionMeta.batchId = BATCH_ID_MOCK;
     request.transactionMeta.type = TransactionType.swap;
 
     request.allTransactions = [
       {
         id: 'child-0',
-        batchId: BATCH_ID_MOCK,
         type: TransactionType.swap,
-        txParams: { nonce: '0x0' },
       } as TransactionMeta,
       {
         id: 'parent-1',
-        batchId: BATCH_ID_MOCK,
         type: TransactionType.perpsDeposit,
-        txParams: { nonce: '0x2' },
+        requiredTransactionIds: ['child-0', 'child-1'],
       } as TransactionMeta,
       request.transactionMeta,
     ];
@@ -490,11 +471,24 @@ describe('Metamask Pay Metrics', () => {
       jest.restoreAllMocks();
     });
 
-    it('adds mm_pay_time_to_complete_s for finalized parent MM Pay transaction', () => {
+    it('adds mm_pay_time_to_complete_s for finalized parent MM Pay transaction using latest child submittedTime via requiredTransactionIds', () => {
       jest.spyOn(Date, 'now').mockReturnValue(1060500);
 
       request.transactionMeta.type = TransactionType.perpsDeposit;
-      request.transactionMeta.submittedTime = 1000000;
+      request.transactionMeta.requiredTransactionIds = ['child-a', 'child-b'];
+
+      request.allTransactions = [
+        {
+          id: 'child-a',
+          submittedTime: 900000,
+          txParams: {},
+        } as TransactionMeta,
+        {
+          id: 'child-b',
+          submittedTime: 1000000,
+          txParams: {},
+        } as TransactionMeta,
+      ];
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
@@ -505,7 +499,7 @@ describe('Metamask Pay Metrics', () => {
       );
     });
 
-    it('adds mm_pay_time_to_complete_s for finalized child transaction using parent submittedTime', () => {
+    it('does not add mm_pay_time_to_complete_s for finalized child transaction with parent', () => {
       jest.spyOn(Date, 'now').mockReturnValue(2045123);
 
       request.allTransactions = [
@@ -519,11 +513,7 @@ describe('Metamask Pay Metrics', () => {
 
       const result = getMetaMaskPayProperties(request) as TransactionMetrics;
 
-      expect(result.properties).toStrictEqual(
-        expect.objectContaining({
-          mm_pay_time_to_complete_s: 45.123,
-        }),
-      );
+      expect(result.properties).not.toHaveProperty('mm_pay_time_to_complete_s');
     });
 
     it('does not add mm_pay_time_to_complete_s for non-finalized events', () => {

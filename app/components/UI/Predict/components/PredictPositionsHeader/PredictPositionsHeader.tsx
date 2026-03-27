@@ -49,7 +49,11 @@ import { usePredictPositions } from '../../hooks/usePredictPositions';
 import { selectPredictWonPositions } from '../../selectors/predictController';
 import { PredictPosition } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
-import { formatPercentage, formatPrice } from '../../utils/format';
+import {
+  formatPercentage,
+  formatPredictUnrealizedPnLStringParts,
+  formatPrice,
+} from '../../utils/format';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import PredictClaimButton from '../PredictActionButtons/PredictClaimButton';
 import { PredictEventValues } from '../../constants/eventNames';
@@ -163,16 +167,10 @@ const PredictPositionsHeader = forwardRef<
 
   const unrealizedAmount = unrealizedPnL?.cashUpnl ?? 0;
   const unrealizedPercent = unrealizedPnL?.percentUpnl ?? 0;
-
-  const formatAmount = (amount: number) => {
-    const sign = amount >= 0 ? '+' : '-';
-    return `${sign}$${Math.abs(amount).toFixed(2)}`;
-  };
-
-  const formatPercent = (percent: number) => {
-    const sign = percent >= 0 ? '+' : '';
-    return `${sign}${formatPercentage(percent)}`;
-  };
+  const unrealizedPnLDisplayParts = formatPredictUnrealizedPnLStringParts({
+    cashUpnl: unrealizedAmount,
+    percentUpnl: unrealizedPercent,
+  });
 
   const hasClaimableAmount =
     wonPositions.length > 0 && totalClaimableAmount !== undefined;
@@ -315,10 +313,10 @@ const PredictPositionsHeader = forwardRef<
                     isHidden={privacyMode}
                     length={SensitiveTextLength.Long}
                   >
-                    {strings('predict.unrealized_pnl_value', {
-                      amount: formatAmount(unrealizedAmount),
-                      percent: formatPercent(unrealizedPercent),
-                    })}
+                    {strings(
+                      'predict.unrealized_pnl_value',
+                      unrealizedPnLDisplayParts,
+                    )}
                   </SensitiveText>
                 )}
               </Box>
