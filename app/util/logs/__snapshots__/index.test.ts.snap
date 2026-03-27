@@ -650,6 +650,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
           "isLoading": false,
           "selected": null,
         },
+        "providerAutoSelected": false,
         "providers": {
           "data": [],
           "error": null,
@@ -1467,6 +1468,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
           "isLoading": false,
           "selected": null,
         },
+        "providerAutoSelected": false,
         "providers": {
           "data": [],
           "error": null,

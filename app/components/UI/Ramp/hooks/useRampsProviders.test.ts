@@ -220,7 +220,10 @@ describe('useRampsProviders', () => {
     it('calls determinePreferredProvider with completed orders and providers when providers exist and selectedProvider is null', () => {
       const store = createMockStore({ data: mockProviders });
       mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue(mockProviders[0]);
+      mockDeterminePreferredProvider.mockReturnValue({
+        provider: mockProviders[0],
+        autoSelected: false,
+      });
 
       renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
@@ -235,7 +238,10 @@ describe('useRampsProviders', () => {
     it('calls setSelectedProvider with result of determinePreferredProvider when providers exist and selectedProvider is null', () => {
       const store = createMockStore({ data: mockProviders });
       mockGetOrders.mockReturnValue(emptyOrders);
-      mockDeterminePreferredProvider.mockReturnValue(mockProviders[1]);
+      mockDeterminePreferredProvider.mockReturnValue({
+        provider: mockProviders[1],
+        autoSelected: true,
+      });
 
       renderHook(() => useRampsProviders(), {
         wrapper: wrapper(store),
@@ -243,7 +249,7 @@ describe('useRampsProviders', () => {
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[1].id);
+      ).toHaveBeenCalledWith(mockProviders[1].id, { autoSelected: true });
     });
 
     it('does not call determinePreferredProvider when providers is empty', () => {

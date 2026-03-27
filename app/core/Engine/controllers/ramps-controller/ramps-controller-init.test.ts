@@ -178,6 +178,7 @@ describe('ramps controller init', () => {
         },
       },
       orders: [],
+      providerAutoSelected: false,
     };
 
     initRequestMock.persistedState = {

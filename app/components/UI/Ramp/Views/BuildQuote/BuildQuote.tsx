@@ -275,7 +275,9 @@ function BuildQuote() {
 
     if (providerAutoSelected && effectiveAssetId) {
       const supportingProvider = providers.find(
-        (p) => p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+        (p) =>
+          p.id !== selectedProvider?.id &&
+          p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
       );
       if (supportingProvider) {
         setSelectedProvider(supportingProvider);
