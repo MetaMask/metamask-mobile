@@ -32,9 +32,9 @@ const TronErrorsBanner = ({ messages }: TronErrorsBannerProps) => (
       twClassName="mt-0.5 text-error-default"
     />
     <Box twClassName="flex-1">
-      {messages.map((message) => (
+      {messages.map((message, index) => (
         <Box
-          key={message}
+          key={`${index}-${message}`}
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Start}
           twClassName="gap-1"

@@ -9,14 +9,12 @@ import { getLocaleLanguageCode } from '../../../../components/hooks/useFormatter
 import useTronStakingRewardsSummary from '../../Earn/components/Tron/TronStakingRewardsRows/useTronStakingRewardsSummary';
 import type { TronClaimableRewardsRowProps } from '../../Earn/components/Tron/TronStakingRewardsRows/TronClaimableRewardsRow';
 import type { TronEstimatedAnnualRewardsRowProps } from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsRow';
-import type { TronEstimatedAnnualRewardsUnavailableBannerProps } from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsUnavailableBanner';
 import useTronStakeApy, { FetchStatus } from '../../Earn/hooks/useTronStakeApy';
 import { selectPrivacyMode } from '../../../../selectors/preferencesController';
 import { formatWithThreshold } from '../../../../util/assets';
 
 const FIAT_THRESHOLD = 0.01;
 const TRX_THRESHOLD = 0.00001;
-const SHARED_FIAT_ERROR_MESSAGE = 'Fiat unavailable';
 
 const STAKE_CHAIN_ID_BY_CAIP_CHAIN_ID = {
   'tron:0x2b6653dc': ChainId.TRON_MAINNET,
@@ -40,7 +38,6 @@ export interface TronAssetOverviewSectionViewModel {
   aprText?: string;
   claimableRewardsRowProps?: TronClaimableRewardsRowProps;
   estimatedAnnualRewardsRowProps?: TronEstimatedAnnualRewardsRowProps;
-  estimatedAnnualRewardsUnavailableBannerProps?: TronEstimatedAnnualRewardsUnavailableBannerProps;
   errorMessages: string[];
 }
 
@@ -105,6 +102,13 @@ const useTronAssetOverviewSection = ({
 
     const hasValidApyDecimal =
       tronApyFetchStatus === FetchStatus.Fetched && Boolean(apyDecimal?.trim());
+    const apyErrorMessage =
+      tronApyFetchStatus === FetchStatus.Error
+        ? tronApyErrorMessage?.trim() ||
+          strings('stake.tron.estimated_rewards_api_unavailable')
+        : tronApyFetchStatus === FetchStatus.Fetched && !hasValidApyDecimal
+          ? strings('stake.tron.estimated_rewards_api_unavailable')
+          : undefined;
 
     let estimatedAnnualRewardsRowProps:
       | TronEstimatedAnnualRewardsRowProps
@@ -144,25 +148,9 @@ const useTronAssetOverviewSection = ({
     const errorMessages = [
       hasClaimableFiat || (hasValidApyDecimal && fiatRate != null)
         ? undefined
-        : SHARED_FIAT_ERROR_MESSAGE,
-      tronApyFetchStatus === FetchStatus.Error && tronApyErrorMessage?.trim()
-        ? tronApyErrorMessage.trim()
-        : undefined,
+        : strings('stake.tron.fiat_unavailable'),
+      apyErrorMessage,
     ].filter((message): message is string => Boolean(message));
-
-    const estimatedAnnualRewardsUnavailableBannerProps =
-      tronApyFetchStatus === FetchStatus.Initial ||
-      tronApyFetchStatus === FetchStatus.Fetching
-        ? undefined
-        : estimatedAnnualRewardsRowProps
-          ? undefined
-          : {
-              message:
-                tronApyFetchStatus === FetchStatus.Error &&
-                tronApyErrorMessage?.trim()
-                  ? tronApyErrorMessage.trim()
-                  : strings('stake.tron.estimated_rewards_api_unavailable'),
-            };
 
     return {
       aprText: hasValidApyDecimal ? (apyPercent ?? undefined) : undefined,
@@ -172,7 +160,6 @@ const useTronAssetOverviewSection = ({
         hideBalances: privacyMode,
       },
       estimatedAnnualRewardsRowProps,
-      estimatedAnnualRewardsUnavailableBannerProps,
       errorMessages,
     };
   }, [

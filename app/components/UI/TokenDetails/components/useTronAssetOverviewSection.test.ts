@@ -203,13 +203,19 @@ describe('useTronAssetOverviewSection', () => {
         hideBalances: false,
       }),
     );
+    expect(result.current.errorMessages).toEqual([]);
+  });
+
+  it('does not expose a legacy unavailable banner prop', () => {
+    const { result } = renderSubject();
+
     expect(
-      result.current.estimatedAnnualRewardsUnavailableBannerProps,
-    ).toBeUndefined();
+      'estimatedAnnualRewardsUnavailableBannerProps' in result.current,
+    ).toBe(false);
   });
 
   it.each([FetchStatus.Initial, FetchStatus.Fetching])(
-    'does not show an unavailable banner while APY fetch status is %s',
+    'does not emit errors while APY fetch status is %s',
     (fetchStatus) => {
       mockUseTronStakeApy.mockReturnValue({
         fetchStatus,
@@ -229,13 +235,11 @@ describe('useTronAssetOverviewSection', () => {
 
       expect(result.current.aprText).toBeUndefined();
       expect(result.current.estimatedAnnualRewardsRowProps).toBeUndefined();
-      expect(
-        result.current.estimatedAnnualRewardsUnavailableBannerProps,
-      ).toBeUndefined();
+      expect(result.current.errorMessages).toEqual([]);
     },
   );
 
-  it('returns an unavailable banner message when APY fetch fails', () => {
+  it('returns an APY error message when APY fetch fails', () => {
     mockUseTronStakeApy.mockReturnValue({
       fetchStatus: FetchStatus.Error,
       errorMessage: 'APR endpoint down',
@@ -254,14 +258,10 @@ describe('useTronAssetOverviewSection', () => {
 
     expect(result.current.aprText).toBeUndefined();
     expect(result.current.estimatedAnnualRewardsRowProps).toBeUndefined();
-    expect(result.current.estimatedAnnualRewardsUnavailableBannerProps).toEqual(
-      {
-        message: 'APR endpoint down',
-      },
-    );
+    expect(result.current.errorMessages).toEqual(['APR endpoint down']);
   });
 
-  it('uses fallback copy when APY fetch succeeds without an APY decimal', () => {
+  it('returns the localized APY fallback message when APY fetch succeeds without an APY decimal', () => {
     mockUseTronStakeApy.mockReturnValue({
       fetchStatus: FetchStatus.Fetched,
       errorMessage: null,
@@ -279,10 +279,10 @@ describe('useTronAssetOverviewSection', () => {
     );
 
     expect(result.current.estimatedAnnualRewardsRowProps).toBeUndefined();
-    expect(result.current.estimatedAnnualRewardsUnavailableBannerProps).toEqual(
-      {
-        message: strings('stake.tron.estimated_rewards_api_unavailable'),
-      },
+    expect(result.current.errorMessages).toEqual(
+      expect.arrayContaining([
+        strings('stake.tron.estimated_rewards_api_unavailable'),
+      ]),
     );
   });
 
@@ -322,7 +322,9 @@ describe('useTronAssetOverviewSection', () => {
     const current = result.current as { errorMessages?: string[] };
     expect(result.current.claimableRewardsRowProps).toBeDefined();
     expect(result.current.estimatedAnnualRewardsRowProps).toBeDefined();
-    expect(current.errorMessages).toEqual(['Fiat unavailable']);
+    expect(current.errorMessages).toEqual([
+      strings('stake.tron.fiat_unavailable'),
+    ]);
   });
 
   it('returns an APY error message and omits the estimated row when APY is unavailable', () => {
@@ -360,7 +362,27 @@ describe('useTronAssetOverviewSection', () => {
     const current = result.current as { errorMessages?: string[] };
     expect(current.errorMessages).toHaveLength(2);
     expect(current.errorMessages).toEqual(
-      expect.arrayContaining(['Fiat unavailable', 'APR endpoint down']),
+      expect.arrayContaining([
+        strings('stake.tron.fiat_unavailable'),
+        'APR endpoint down',
+      ]),
     );
+  });
+
+  it('preserves zero fiat values instead of degrading them to missing', () => {
+    const { result } = renderSubject({
+      summary: {
+        claimableRewardsFiatAmount: 0,
+        fiatRate: 0,
+      },
+    });
+
+    expect(result.current.claimableRewardsRowProps?.subtitle).toContain(
+      '$0.00',
+    );
+    expect(result.current.estimatedAnnualRewardsRowProps?.subtitle).toContain(
+      '$0.00',
+    );
+    expect(result.current.errorMessages).toEqual([]);
   });
 });

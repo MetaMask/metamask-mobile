@@ -96,7 +96,7 @@ import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/Tr
 import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
 import TronClaimableRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronClaimableRewardsRow';
 import TronEstimatedAnnualRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsRow';
-import TronEstimatedAnnualRewardsUnavailableBanner from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsUnavailableBanner';
+import TronErrorsBanner from '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner';
 import useTronAssetOverviewSection from './useTronAssetOverviewSection';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
@@ -528,7 +528,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     aprText: tronAprText,
     claimableRewardsRowProps,
     estimatedAnnualRewardsRowProps,
-    estimatedAnnualRewardsUnavailableBannerProps,
+    errorMessages,
   } = useTronAssetOverviewSection({
     enabled: Boolean(isTronNative),
     tokenAddress: token.address,
@@ -885,10 +885,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   <TronEstimatedAnnualRewardsRow
                     {...estimatedAnnualRewardsRowProps}
                   />
-                ) : estimatedAnnualRewardsUnavailableBannerProps ? (
-                  <TronEstimatedAnnualRewardsUnavailableBanner
-                    {...estimatedAnnualRewardsUnavailableBannerProps}
-                  />
+                ) : null}
+                {errorMessages.length > 0 ? (
+                  <Box paddingTop={2}>
+                    <TronErrorsBanner messages={errorMessages} />
+                  </Box>
                 ) : null}
               </Box>
             )

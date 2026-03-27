@@ -35,6 +35,12 @@ const mockUseTronAssetOverviewSection =
   useTronAssetOverviewSection as jest.MockedFunction<
     typeof useTronAssetOverviewSection
   >;
+const mockTronErrorsBanner = jest.fn(({ messages }: { messages: string[] }) => (
+  <MockView
+    testID="tron-errors-banner"
+    accessibilityLabel={messages.join('|')}
+  />
+));
 const mockTronStakingCta = jest.fn(({ aprText }: { aprText?: string }) => (
   <MockView
     testID={TronStakingCtaTestIds.CONTAINER}
@@ -115,7 +121,7 @@ jest.mock('./useTronAssetOverviewSection', () => ({
       hideBalances: false,
     },
     estimatedAnnualRewardsRowProps: null,
-    estimatedAnnualRewardsUnavailableBannerProps: null,
+    errorMessages: [],
   })),
 }));
 
@@ -123,12 +129,7 @@ jest.mock(
   '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner',
   () => ({
     __esModule: true,
-    default: ({ messages }: { messages: string[] }) => (
-      <MockView
-        testID="tron-errors-banner"
-        accessibilityLabel={messages.join('|')}
-      />
-    ),
+    default: (props: { messages: string[] }) => mockTronErrorsBanner(props),
   }),
   { virtual: true },
 );
@@ -539,7 +540,7 @@ describe('AssetOverviewContent', () => {
           hideBalances: false,
         },
         estimatedAnnualRewardsRowProps: undefined,
-        estimatedAnnualRewardsUnavailableBannerProps: undefined,
+        errorMessages: [],
       });
 
       const tronToken: TokenI = {
@@ -565,7 +566,7 @@ describe('AssetOverviewContent', () => {
       ).toBeNull();
     });
 
-    it('renders the errors banner with the normalized message payload from the hook', () => {
+    it('renders exactly one errors banner with the normalized message payload from the hook', () => {
       mockUseTronAssetOverviewSection.mockReturnValue({
         claimableRewardsRowProps: {
           title: 'Total claimable rewards',
@@ -573,7 +574,6 @@ describe('AssetOverviewContent', () => {
           hideBalances: false,
         },
         estimatedAnnualRewardsRowProps: undefined,
-        estimatedAnnualRewardsUnavailableBannerProps: undefined,
         errorMessages: ['Fiat unavailable', 'APR unavailable'],
       } as never);
 
@@ -599,6 +599,10 @@ describe('AssetOverviewContent', () => {
         'accessibilityLabel',
         'Fiat unavailable|APR unavailable',
       );
+      expect(mockTronErrorsBanner).toHaveBeenCalledTimes(1);
+      expect(mockTronErrorsBanner).toHaveBeenCalledWith({
+        messages: ['Fiat unavailable', 'APR unavailable'],
+      });
     });
   });
 
