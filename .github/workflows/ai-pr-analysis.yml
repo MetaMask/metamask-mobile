@@ -50,9 +50,17 @@ jobs:
           BASE="${EVENT_BASE_REF:-main}"
           echo "base_branch=$BASE" >> "$GITHUB_OUTPUT"
 
+      - name: Checkout AI Analyzer
+        uses: actions/checkout@v4
+        with:
+          repository: MetaMask/ai-analyzer
+          ref: main
+          path: .ai-analyzer-action
+          token: ${{ secrets.AI_ANALYZER_TOKEN }}
+
       - name: Run AI PR Analysis
         id: analysis
-        uses: MetaMask/ai-analyzer@main
+        uses: ./.ai-analyzer-action
         with:
           mode: ${{ env.INPUT_MODE || 'pr-risk-analysis' }}
           pr-number: ${{ steps.pr-info.outputs.pr_number }}
