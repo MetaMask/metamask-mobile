@@ -140,6 +140,20 @@ class AuthenticationService {
     ReduxService.store.dispatch(passwordSet());
   }
 
+  /**
+   * Clears all auth-related storage flags and resets the allow-login-with-remember-me
+   * Redux state. Centralised here so that both `storePassword` and `resetPassword`
+   * stay in sync when new flags are added in the future.
+   */
+  private clearAuthStorageFlags = async (): Promise<void> => {
+    await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
+    await StorageWrapper.removeItem(PASSCODE_DISABLED);
+    await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
+    if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
+      ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
+    }
+  };
+
   private dispatchLogout(): void {
     ReduxService.store.dispatch(logOut());
   }
@@ -377,13 +391,8 @@ class AuthenticationService {
       // Store password in keychain with appropriate type
       await SecureKeychain.setGenericPassword(password, authType);
 
-      // Remove legacy authentication flags
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-      await StorageWrapper.removeItem(PASSCODE_DISABLED);
-      await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
-      if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
-        ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
-      }
+      // Remove legacy authentication flags and reset remember-me state
+      await this.clearAuthStorageFlags();
 
       // Keep Redux in sync with keychain so getAuthCapabilities reflects actual access control
       this.updateOsAuthEnabled(
@@ -411,13 +420,8 @@ class AuthenticationService {
     try {
       await SecureKeychain.resetGenericPassword();
 
-      await StorageWrapper.removeItem(BIOMETRY_CHOICE_DISABLED);
-      await StorageWrapper.removeItem(PASSCODE_DISABLED);
-      await StorageWrapper.removeItem(PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME);
+      await this.clearAuthStorageFlags();
       this.updateOsAuthEnabled(false);
-      if (ReduxService.store.getState().security?.allowLoginWithRememberMe) {
-        ReduxService.store.dispatch(setAllowLoginWithRememberMe(false));
-      }
     } catch (error) {
       throw new AuthenticationError(
         `${AUTHENTICATION_RESET_PASSWORD_FAILED_MESSAGE} ${
@@ -845,11 +849,12 @@ class AuthenticationService {
     } catch (error) {
       // Error while submitting password.
 
-      const errorToHandle = ensureError(error, 'Unlock wallet failed');
       let shouldResetOnLock = false;
-      // check for specific error
+      // Only check for specific error messages when the thrown value is an actual
+      // Error instance; strings or other primitives should not trigger the alert.
       if (
-        errorToHandle.message.includes(
+        error instanceof Error &&
+        error.message.includes(
           UNLOCK_WALLET_ERROR_MESSAGES.USER_NOT_AUTHENTICATED,
         )
       ) {
