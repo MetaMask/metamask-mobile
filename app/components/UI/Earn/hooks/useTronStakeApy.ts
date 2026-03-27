@@ -11,6 +11,15 @@ const CONSENSYS_WITNESS_ADDRESS_BY_CHAIN_ID: Record<TronChainId, string> = {
   [ChainId.TRON_NILE]: 'TBSX9dpxbNrsLgTADXtkC2ASmxW4Q2mTgY',
 };
 
+/** Lifecycle for Tron witness / APY fetch. `Fetched` + empty `apyDecimal` is treated as error by UI. */
+export enum FetchStatus {
+  Initial = 'initial',
+  Fetching = 'fetching',
+  Fetched = 'fetched',
+  // eslint-disable-next-line @typescript-eslint/no-shadow
+  Error = 'error',
+}
+
 interface UseTronStakeApyOptions {
   fetchOnMount?: boolean;
   chainId?: TronChainId;
@@ -20,14 +29,16 @@ const useTronStakeApy = ({
   fetchOnMount = true,
   chainId = ChainId.TRON_MAINNET,
 }: UseTronStakeApyOptions = {}) => {
-  const [isLoading, setIsLoading] = useState(false);
+  const [fetchStatus, setFetchStatus] = useState<FetchStatus>(
+    FetchStatus.Initial,
+  );
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [apyDecimal, setApyDecimal] = useState<string | null>(null);
   const [apyPercent, setApyPercent] = useState<string | null>(null);
 
   const fetchConsensysWitness = useCallback(async () => {
     try {
-      setIsLoading(true);
+      setFetchStatus(FetchStatus.Fetching);
       setErrorMessage(null);
 
       const witnesses = await tronStakingApiService.getWitnesses(chainId);
@@ -37,6 +48,8 @@ const useTronStakeApy = ({
           witness.address === CONSENSYS_WITNESS_ADDRESS_BY_CHAIN_ID[chainId],
       );
 
+      setFetchStatus(FetchStatus.Fetched);
+
       if (consensysWitness) {
         setApyDecimal(consensysWitness.annualizedRate);
         setApyPercent(`${truncateNumber(consensysWitness.annualizedRate)}%`);
@@ -45,13 +58,12 @@ const useTronStakeApy = ({
         setApyPercent(null);
       }
     } catch (error: unknown) {
+      setFetchStatus(FetchStatus.Error);
       setErrorMessage(
         error instanceof Error ? error.message : 'Unknown error occurred',
       );
       setApyDecimal(null);
       setApyPercent(null);
-    } finally {
-      setIsLoading(false);
     }
   }, [chainId]);
 
@@ -69,7 +81,7 @@ const useTronStakeApy = ({
   }, [fetchConsensysWitness]);
 
   return {
-    isLoading,
+    fetchStatus,
     errorMessage,
     apyDecimal,
     apyPercent,

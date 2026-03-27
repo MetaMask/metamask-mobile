@@ -1,6 +1,6 @@
 import { renderHook, act } from '@testing-library/react-hooks';
 import { ChainId } from '@metamask/stake-sdk';
-import useTronStakeApy from './useTronStakeApy';
+import useTronStakeApy, { FetchStatus } from './useTronStakeApy';
 import { tronStakingApiService } from '../../Stake/sdk/stakeSdkProvider';
 
 jest.mock('../../Stake/sdk/stakeSdkProvider', () => ({
@@ -118,6 +118,7 @@ describe('useTronStakeApy', () => {
       await waitForNextUpdate();
 
       expect(result.current.apyDecimal).toBe('5.25');
+      expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
     });
 
     it('sets apyPercent with truncated rate and percent symbol', async () => {
@@ -147,6 +148,7 @@ describe('useTronStakeApy', () => {
 
       expect(result.current.apyDecimal).toBeNull();
       expect(result.current.apyPercent).toBeNull();
+      expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
     });
 
     it('returns null APY values when witnesses data is empty', async () => {
@@ -158,6 +160,7 @@ describe('useTronStakeApy', () => {
 
       expect(result.current.apyDecimal).toBeNull();
       expect(result.current.apyPercent).toBeNull();
+      expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
     });
   });
 
@@ -171,6 +174,7 @@ describe('useTronStakeApy', () => {
       await waitForNextUpdate();
 
       expect(result.current.errorMessage).toBe(errorMessage);
+      expect(result.current.fetchStatus).toBe(FetchStatus.Error);
     });
 
     it('sets errorMessage to default when non-Error is thrown', async () => {
@@ -181,6 +185,7 @@ describe('useTronStakeApy', () => {
       await waitForNextUpdate();
 
       expect(result.current.errorMessage).toBe('Unknown error occurred');
+      expect(result.current.fetchStatus).toBe(FetchStatus.Error);
     });
 
     it('clears APY values when error occurs', async () => {
@@ -196,7 +201,7 @@ describe('useTronStakeApy', () => {
   });
 
   describe('loading state', () => {
-    it('sets isLoading true during fetch', async () => {
+    it('sets fetchStatus to Fetching during fetch', async () => {
       let resolvePromise: (
         value: ReturnType<typeof createMockWitnessesResponse>,
       ) => void = () => undefined;
@@ -209,31 +214,31 @@ describe('useTronStakeApy', () => {
 
       const { result } = renderHook(() => useTronStakeApy());
 
-      expect(result.current.isLoading).toBe(true);
+      expect(result.current.fetchStatus).toBe(FetchStatus.Fetching);
 
       await act(async () => {
         resolvePromise(createMockWitnessesResponse());
       });
     });
 
-    it('sets isLoading false after successful fetch', async () => {
+    it('sets fetchStatus to Fetched after successful fetch', async () => {
       mockGetWitnesses.mockResolvedValue(createMockWitnessesResponse());
 
       const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
       await waitForNextUpdate();
 
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.fetchStatus).toBe(FetchStatus.Fetched);
     });
 
-    it('sets isLoading false after failed fetch', async () => {
+    it('sets fetchStatus to Error after failed fetch', async () => {
       mockGetWitnesses.mockRejectedValue(new Error('API Error'));
 
       const { result, waitForNextUpdate } = renderHook(() => useTronStakeApy());
 
       await waitForNextUpdate();
 
-      expect(result.current.isLoading).toBe(false);
+      expect(result.current.fetchStatus).toBe(FetchStatus.Error);
     });
   });
 

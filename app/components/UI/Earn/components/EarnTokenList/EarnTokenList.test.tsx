@@ -116,7 +116,6 @@ jest.mock('../../hooks/useTronStakeApy', () => ({
   default: jest.fn().mockReturnValue({
     apyDecimal: null,
     apyPercent: null,
-    isLoading: false,
     error: null,
   }),
 }));
