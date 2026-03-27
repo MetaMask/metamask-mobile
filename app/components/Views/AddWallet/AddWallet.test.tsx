@@ -48,7 +48,7 @@ describe('AddWallet', () => {
     });
 
     expect(screen.getByTestId(AddWalletTestIds.SCREEN)).toBeOnTheScreen();
-    expect(screen.getByText('Add a wallet')).toBeOnTheScreen();
+    expect(screen.getByText('Add wallet')).toBeOnTheScreen();
     expect(screen.getByText('Import a wallet')).toBeOnTheScreen();
     expect(
       screen.getByText('Using a 12, 18 or 24-word seed phrase'),
