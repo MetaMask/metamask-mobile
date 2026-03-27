@@ -19,9 +19,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
     'Cold Start after importing a wallet',
     { tag: '@metamask-mobile-platform' },
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
-      await onboardingFlowImportSRPPlaywright(
-        'senior sad choose poem balance pledge shadow unfold high remember business army',
-      );
+      await onboardingFlowImportSRPPlaywright(process.env.TEST_SRP_3 ?? '');
 
       await PlaywrightGestures.terminateApp(currentDeviceDetails);
       await PlaywrightGestures.activateApp(currentDeviceDetails);
