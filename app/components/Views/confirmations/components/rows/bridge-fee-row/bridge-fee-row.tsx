@@ -137,12 +137,17 @@ function Tooltip({
       TransactionType.perpsWithdraw,
     ])
   ) {
-    message = hasTransactionType(transactionMeta, [
-      TransactionType.predictWithdraw,
-      TransactionType.perpsWithdraw,
-    ])
-      ? strings('confirm.tooltip.predict_withdraw.transaction_fee')
-      : strings('confirm.tooltip.predict_deposit.transaction_fee');
+    if (
+      hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])
+    ) {
+      message = strings('confirm.tooltip.perps_withdraw.transaction_fee');
+    } else if (
+      hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
+    ) {
+      message = strings('confirm.tooltip.predict_withdraw.transaction_fee');
+    } else {
+      message = strings('confirm.tooltip.predict_deposit.transaction_fee');
+    }
   }
 
   if (hasTransactionType(transactionMeta, [TransactionType.musdConversion])) {
