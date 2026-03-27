@@ -74,6 +74,9 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
+    TRENDING_TOKENS: 'trending_tokens',
+    TRENDING_PERPS: 'trending_perps',
+    TRENDING_PREDICT: 'trending_predict',
   },
 }));
 
@@ -140,6 +143,28 @@ const mockClaimablePositions = [
     size: 125,
     percentPnl: 1150,
     claimable: true,
+  },
+];
+
+const mockMarkets = [
+  {
+    id: 'market-1',
+    title: 'Will BTC reach 100k?',
+    endDate: '2026-03-01',
+    outcomes: [
+      {
+        id: 'outcome-1',
+        title: 'Yes',
+        image: 'https://example.com/yes.png',
+        tokens: [{ title: 'Yes', price: 0.55 }],
+      },
+      {
+        id: 'outcome-2',
+        title: 'No',
+        image: 'https://example.com/no.png',
+        tokens: [{ title: 'No', price: 0.45 }],
+      },
+    ],
   },
 ];
 
@@ -588,6 +613,112 @@ describe('PredictionsSection', () => {
 
       expect(mockRefetchPositions).toHaveBeenCalled();
       expect(mockRefetchMarkets).toHaveBeenCalled();
+    });
+  });
+
+  describe('mode="positions-only"', () => {
+    it('renders positions when user has positions', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: mockActivePositions,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(screen.getByText('Test Position 1')).toBeOnTheScreen();
+    });
+
+    it('returns null when no positions after loading', () => {
+      mockUsePredictPositionsForHomepage.mockReturnValue({
+        positions: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+  });
+
+  describe('mode="trending-only"', () => {
+    it('renders markets carousel when markets are available', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
+    });
+
+    it('uses titleOverride when provided', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+          titleOverride="Trending predictions"
+        />,
+      );
+
+      expect(screen.getByText('Trending predictions')).toBeOnTheScreen();
+    });
+
+    it('returns null when no markets after loading', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: [],
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      const { toJSON } = renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
     });
   });
 });

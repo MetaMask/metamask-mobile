@@ -4,11 +4,18 @@ import { PerpsConnectionProvider } from '../../../../UI/Perps/providers/PerpsCon
 import { PerpsStreamProvider } from '../../../../UI/Perps/providers/PerpsStreamManager';
 import { selectPerpsEnabledFlag } from '../../../../UI/Perps';
 import PerpsSection from './PerpsSection';
-import type { SectionRefreshHandle } from '../../types';
+import type { SectionRefreshHandle, HomeSectionMode } from '../../types';
+import type { HomeSectionName } from '../../hooks/useHomeViewedEvent';
 
 export interface PerpsSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+  /** @default 'default' */
+  mode?: HomeSectionMode;
+  /** Override the section name used in analytics events. */
+  sectionName?: HomeSectionName;
+  /** Override the section header title. */
+  titleOverride?: string;
 }
 
 /**
@@ -19,24 +26,38 @@ export interface PerpsSectionProps {
 const PerpsSectionWithProvider = forwardRef<
   SectionRefreshHandle,
   PerpsSectionProps
->(({ sectionIndex, totalSectionsLoaded }, ref) => {
-  const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
+>(
+  (
+    {
+      sectionIndex,
+      totalSectionsLoaded,
+      mode = 'default',
+      sectionName,
+      titleOverride,
+    },
+    ref,
+  ) => {
+    const isPerpsEnabled = useSelector(selectPerpsEnabledFlag);
 
-  if (!isPerpsEnabled) {
-    return null;
-  }
+    if (!isPerpsEnabled) {
+      return null;
+    }
 
-  return (
-    <PerpsConnectionProvider suppressErrorView>
-      <PerpsStreamProvider>
-        <PerpsSection
-          ref={ref}
-          sectionIndex={sectionIndex}
-          totalSectionsLoaded={totalSectionsLoaded}
-        />
-      </PerpsStreamProvider>
-    </PerpsConnectionProvider>
-  );
-});
+    return (
+      <PerpsConnectionProvider suppressErrorView>
+        <PerpsStreamProvider>
+          <PerpsSection
+            ref={ref}
+            sectionIndex={sectionIndex}
+            totalSectionsLoaded={totalSectionsLoaded}
+            mode={mode}
+            sectionName={sectionName}
+            titleOverride={titleOverride}
+          />
+        </PerpsStreamProvider>
+      </PerpsConnectionProvider>
+    );
+  },
+);
 
 export default PerpsSectionWithProvider;

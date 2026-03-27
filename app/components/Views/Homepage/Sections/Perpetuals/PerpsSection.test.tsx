@@ -243,6 +243,9 @@ jest.mock('../../hooks/useHomeViewedEvent', () => ({
     DEFI: 'defi',
     PREDICT: 'predict',
     NFTS: 'nfts',
+    TRENDING_TOKENS: 'trending_tokens',
+    TRENDING_PERPS: 'trending_perps',
+    TRENDING_PREDICT: 'trending_predict',
   },
 }));
 
@@ -1387,6 +1390,123 @@ describe('PerpsSection', () => {
       expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
         expect.objectContaining({ itemCount: 0 }),
       );
+    });
+  });
+
+  describe('mode="positions-only"', () => {
+    it('renders positions when user has positions', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsLivePositions.mockReturnValue({
+          positions: [makePosition()],
+          isInitialLoading: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(screen.getByText(/BTC.*10X position/)).toBeOnTheScreen();
+    });
+
+    it('returns null when no positions and not loading', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsLivePositions.mockReturnValue({
+          positions: [],
+          isInitialLoading: false,
+        });
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsLiveOrders.mockReturnValue({
+          orders: [],
+          isInitialLoading: false,
+        });
+
+      const { toJSON } = renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(toJSON()).toBeNull();
+    });
+  });
+
+  describe('mode="trending-only"', () => {
+    it('renders trending carousel when markets are available', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [makeTrendingMarket()],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      expect(
+        screen.getByTestId('homepage-trending-perps-carousel'),
+      ).toBeOnTheScreen();
+    });
+
+    it('uses titleOverride when provided', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [makeTrendingMarket()],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+          titleOverride="Trending perpetuals"
+        />,
+      );
+
+      expect(screen.getByText('Trending perpetuals')).toBeOnTheScreen();
+    });
+
+    it('renders skeleton when markets are loading', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [],
+          isLoading: true,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      expect(screen.getByTestId('skeleton-placeholder')).toBeOnTheScreen();
     });
   });
 });
