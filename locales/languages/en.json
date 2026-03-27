@@ -3993,6 +3993,7 @@
     "tx_review_predict_deposit": "Funded predictions",
     "tx_review_predict_claim": "Claimed wins",
     "tx_review_predict_withdraw": "Predictions withdraw",
+    "tx_review_perps_withdraw": "Perps withdraw",
     "tx_review_musd_conversion": "mUSD conversion",
     "claim": "Claim",
     "sent_ether": "Sent ETH",
@@ -6497,9 +6498,9 @@
       "switch_account_type": "Account update",
       "approve": "Approve request",
       "perps_deposit": "Add funds",
+      "perps_withdraw": "Withdraw",
       "predict_deposit": "Add Prediction funds",
-      "predict_withdraw": "Withdraw",
-      "perps_withdraw": "Withdraw"
+      "predict_withdraw": "Withdraw"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
@@ -7954,6 +7955,8 @@
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again.",
       "join_campaign": "Join the campaign",
+      "entries_closed_title": "Entries closed",
+      "entries_closed_description": "You missed the opt-in window",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
@@ -8039,6 +8042,7 @@
       "musd_conversion": "Converted to mUSD",
       "musd_claim": "Claimed mUSD",
       "perps_deposit": "Funded perps account",
+      "perps_withdraw": "Withdrawal",
       "predict_claim": "Claimed winnings",
       "predict_deposit": "Funded Predict account",
       "predict_withdraw": "Withdrawal",
@@ -8066,6 +8070,7 @@
       "musd_convert_send": "Sent {{sourceSymbol}} from {{sourceChain}}",
       "musd_claim": "Claim mUSD",
       "perps_deposit": "Add funds",
+      "perps_withdraw": "Withdrawal",
       "predict_deposit": "Add funds",
       "swap": "Swap tokens",
       "swap_approval": "Approve tokens"
