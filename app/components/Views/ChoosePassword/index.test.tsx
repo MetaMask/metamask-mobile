@@ -95,6 +95,11 @@ jest.mock('../../../core/Engine', () => ({
   },
 }));
 
+jest.mock('../../../util/test/utils', () => ({
+  ...jest.requireActual('../../../util/test/utils'),
+  isE2E: false,
+}));
+
 jest.mock('./FoxRiveLoaderAnimation/FoxRiveLoaderAnimation');
 
 jest.mock('../../../store/storage-wrapper', () => ({
@@ -1184,6 +1189,7 @@ describe('ChoosePassword', () => {
       ...mockRoute.params,
       [PREVIOUS_SCREEN]: ONBOARDING,
       oauthLoginSuccess: true,
+      provider: 'google',
     };
     const component = renderWithProviders(<ChoosePassword />);
 
@@ -1227,77 +1233,8 @@ describe('ChoosePassword', () => {
           },
         ],
       });
-    });
-
-    mockNewWalletAndKeychain.mockRestore();
-  });
-
-  it('should navigate to success screen when oauth2Login is true', async () => {
-    (Authentication.componentAuthenticationType as jest.Mock).mockResolvedValue(
-      {
-        currentAuthType: 'biometrics',
-        availableBiometryType: 'faceID',
-      },
-    );
-    const mockNewWalletAndKeychain = jest.spyOn(
-      Authentication,
-      'newWalletAndKeychain',
-    );
-    mockNewWalletAndKeychain.mockResolvedValue(undefined);
-    mockMetricsIsEnabled.mockReturnValueOnce(true);
-
-    mockRoute.params = {
-      ...mockRoute.params,
-      [PREVIOUS_SCREEN]: ONBOARDING,
-      oauthLoginSuccess: true,
-    };
-    const component = renderWithProviders(<ChoosePassword />);
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 100));
-    });
-
-    const passwordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-    );
-    const confirmPasswordInput = component.getByTestId(
-      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-    );
-    const checkbox = component.getByTestId(
-      ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID,
-    );
-    const submitButton = component.getByTestId(
-      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
-    );
-
-    await act(async () => {
-      fireEvent.press(checkbox);
-      fireEvent.changeText(passwordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!');
-    });
-
-    await act(async () => {
-      fireEvent(submitButton, 'press');
-    });
-
-    await act(async () => {
-      await new Promise((resolve) => setTimeout(resolve, 200));
-    });
-
-    // Wait for the animation callback to trigger navigation
-    await waitFor(() => {
-      expect(mockNavigation.reset).toHaveBeenCalledWith({
-        index: 0,
-        routes: [
-          {
-            name: 'OnboardingSuccess',
-            params: { showPasswordHint: true },
-          },
-        ],
-      });
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
     });
 
     mockNewWalletAndKeychain.mockRestore();
@@ -1578,6 +1515,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
       const spyUpdateMarketingOptInStatus = jest.spyOn(
         OAuthLoginService,
@@ -1618,6 +1556,8 @@ describe('ChoosePassword', () => {
 
       expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
     });
 
     it('should call updateMarketingOptInStatus API when OAuth user creates password with marketing opt-in disabled', async () => {
@@ -1631,6 +1571,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'apple',
       };
       const spyUpdateMarketingOptInStatus = jest.spyOn(
         OAuthLoginService,
@@ -1663,6 +1604,8 @@ describe('ChoosePassword', () => {
 
       expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
       expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+      expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
     });
   });
   describe('Tracing functionality', () => {
