@@ -40,7 +40,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
         },
         currentDeviceDetails.platform,
       );
-      timer.measure(async () => {
+      await timer.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.hamburgerMenuButton),
         );
