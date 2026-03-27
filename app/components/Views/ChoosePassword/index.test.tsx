@@ -220,10 +220,11 @@ const mockMetrics = {
   isEnabled: mockMetricsIsEnabled,
   trackEvent: mockTrackEvent,
   enable: mockEnable,
-  addTraitsToUser: jest.fn(),
+  identify: jest.fn().mockResolvedValue(undefined),
+  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
   createEventBuilder: jest.fn(() => ({
     addProperties: jest.fn().mockReturnThis(),
-    build: jest.fn(),
+    build: jest.fn(() => ({ name: 'Analytics Preference Selected' })),
   })),
   getMetaMetricsId: jest.fn(),
 };
@@ -658,6 +659,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
 
       const component = renderWithProviders(<ChoosePassword />);
@@ -677,6 +679,8 @@ describe('ChoosePassword', () => {
             },
           ],
         });
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -980,6 +984,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'google',
       };
       const spyUpdateMarketingOptInStatus = jest
         .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
@@ -993,6 +998,8 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(true);
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
@@ -1014,6 +1021,7 @@ describe('ChoosePassword', () => {
         ...mockRoute.params,
         [PREVIOUS_SCREEN]: ONBOARDING,
         oauthLoginSuccess: true,
+        provider: 'apple',
       };
       const spyUpdateMarketingOptInStatus = jest
         .spyOn(OAuthLoginService, 'updateMarketingOptInStatus')
@@ -1027,6 +1035,8 @@ describe('ChoosePassword', () => {
       await waitFor(() => {
         expect(mockNewWalletAndKeychain).toHaveBeenCalledTimes(1);
         expect(spyUpdateMarketingOptInStatus).toHaveBeenCalledWith(false);
+        expect(mockTrackEvent).toHaveBeenCalled();
+        expect(mockMetrics.addTraitsToUser).toHaveBeenCalled();
       });
 
       mockNewWalletAndKeychain.mockRestore();
