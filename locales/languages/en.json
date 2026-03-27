@@ -6500,7 +6500,7 @@
       "predict_deposit": "Add Prediction funds",
       "predict_withdraw": "Withdraw",
       "perps_withdraw": "Withdraw",
-      "money_account_deposit": "Add Money Account funds"
+      "money_account_deposit": "Add funds"
     },
     "sub_title": {
       "permit": "This site wants permission to spend your tokens.",
