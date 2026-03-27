@@ -91,7 +91,6 @@ import { UserProfileProperty } from '../../../util/metrics/UserSettingsAnalytics
 import generateDeviceAnalyticsMetaData, {
   UserSettingsAnalyticsMetaData as generateUserSettingsAnalyticsMetaData,
 } from '../../../util/metrics';
-import { getConfiguredCaipChainIds } from '../../../util/metrics/MultichainAPI/networkMetricUtils';
 import { getSocialAccountType } from '../../../constants/onboarding';
 
 interface KeyringState {
@@ -322,24 +321,30 @@ const ChoosePassword = () => {
             ? getSocialAccountType(oauthProvider, false)
             : undefined;
 
-        metrics.trackEvent(
-          metrics
-            .createEventBuilder(MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED)
-            .addProperties({
-              [UserProfileProperty.HAS_MARKETING_CONSENT]: Boolean(isSelected),
-              is_metrics_opted_in: true,
-              location: 'onboarding_choosePassword',
-              updated_after_onboarding: false,
-              ...(socialAccountType && { account_type: socialAccountType }),
-            })
-            .build(),
-        );
+        try {
+          metrics.trackEvent(
+            metrics
+              .createEventBuilder(
+                MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
+              )
+              .addProperties({
+                [UserProfileProperty.HAS_MARKETING_CONSENT]:
+                  Boolean(isSelected),
+                is_metrics_opted_in: true,
+                location: 'onboarding_choosePassword',
+                updated_after_onboarding: false,
+                ...(socialAccountType && { account_type: socialAccountType }),
+              })
+              .build(),
+          );
 
-        await metrics.addTraitsToUser({
-          ...generateDeviceAnalyticsMetaData(),
-          ...generateUserSettingsAnalyticsMetaData(),
-          [UserProfileProperty.CHAIN_IDS]: getConfiguredCaipChainIds(),
-        });
+          await metrics.addTraitsToUser({
+            ...generateDeviceAnalyticsMetaData(),
+            ...generateUserSettingsAnalyticsMetaData(),
+          });
+        } catch (analyticsError) {
+          Logger.error(analyticsError as Error);
+        }
 
         navigation.reset({
           index: 0,
