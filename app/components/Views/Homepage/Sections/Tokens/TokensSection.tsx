@@ -96,6 +96,10 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
+    const isTrendingOnly = mode === 'trending-only';
+
+    useTrendingRequest({ enabled: isTrendingOnly });
+
     const {
       removeTokenState,
       showRemoveMenu,
@@ -311,7 +315,7 @@ const TokensSectionTrendingOnly = forwardRef<
       results: trendingTokens,
       isLoading: isTrendingLoading,
       fetch: fetchTrendingTokens,
-    } = useTrendingRequest({});
+    } = useTrendingRequest({ enabled: true });
 
     useImperativeHandle(
       ref,
