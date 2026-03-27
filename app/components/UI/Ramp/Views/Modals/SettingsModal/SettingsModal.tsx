@@ -9,10 +9,8 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../../component-library/components/Icons/Icon';
+import { IconName, IconColor } from '@metamask/design-system-react-native';
+import { IconName as ComponentLibraryIconName } from '../../../../../../component-library/components/Icons/Icon';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
@@ -166,8 +164,8 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CheckBold,
-        iconColor: IconColor.Success,
+        iconName: ComponentLibraryIconName.CheckBold,
+        iconColor: IconColor.SuccessDefault,
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -181,8 +179,8 @@ function SettingsModal() {
             ),
           },
         ],
-        iconName: IconName.CircleX,
-        iconColor: IconColor.Error,
+        iconName: ComponentLibraryIconName.CircleX,
+        iconColor: IconColor.ErrorDefault,
         hasNoTimeout: false,
       });
     }

@@ -3,10 +3,8 @@ import { Linking } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import {
-  IconName,
-  IconColor,
-} from '../../../../../../../component-library/components/Icons/Icon';
+import { IconName, IconColor } from '@metamask/design-system-react-native';
+import { IconName as ComponentLibraryIconName } from '../../../../../../../component-library/components/Icons/Icon';
 
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { useRampNavigation } from '../../../../hooks/useRampNavigation';
@@ -87,8 +85,8 @@ function ConfigurationModal() {
         labelOptions: [
           { label: strings('deposit.configuration_modal.logged_out_success') },
         ],
-        iconName: IconName.CheckBold,
-        iconColor: IconColor.Success,
+        iconName: ComponentLibraryIconName.CheckBold,
+        iconColor: IconColor.SuccessDefault,
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -98,8 +96,8 @@ function ConfigurationModal() {
         labelOptions: [
           { label: strings('deposit.configuration_modal.logged_out_error') },
         ],
-        iconName: IconName.CircleX,
-        iconColor: IconColor.Error,
+        iconName: ComponentLibraryIconName.CircleX,
+        iconColor: IconColor.ErrorDefault,
         hasNoTimeout: false,
       });
     }

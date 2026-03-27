@@ -1,25 +1,26 @@
 import React from 'react';
+import { View } from 'react-native';
 import { render } from '@testing-library/react-native';
 import QuoteDisplay from './QuoteDisplay';
 import { ThemeContext, mockTheme } from '../../../../../../util/theme';
 
 jest.mock('../../../../../../component-library/components/Skeleton', () => {
-  const { View } = jest.requireActual('react-native');
+  const { View: RNSkeletonView } =
+    jest.requireActual<typeof import('react-native')>('react-native');
   return {
     Skeleton: ({ width, height }: { width: number; height: number }) => (
-      <View testID="skeleton" style={{ width, height }} />
+      <RNSkeletonView testID="skeleton" style={{ width, height }} />
     ),
   };
 });
 
-jest.mock('../../../../../../component-library/components/Icons/Icon', () => {
-  const { View } = jest.requireActual('react-native');
+jest.mock('@metamask/design-system-react-native', () => {
+  const actual = jest.requireActual<
+    typeof import('@metamask/design-system-react-native')
+  >('@metamask/design-system-react-native');
   return {
-    __esModule: true,
-    IconName: { Warning: 'Warning' },
-    IconSize: { Sm: '16' },
-    IconColor: { Warning: 'Warning' },
-    default: ({ testID }: { testID?: string }) => (
+    ...actual,
+    Icon: ({ testID }: { testID?: string }) => (
       <View testID={testID ?? 'icon'} />
     ),
   };

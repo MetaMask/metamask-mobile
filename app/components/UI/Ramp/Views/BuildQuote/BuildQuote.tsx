@@ -26,11 +26,11 @@ import { reportRampsError } from '../../utils/reportRampsError';
 import Keypad, { type KeypadChangeData, Keys } from '../../../../Base/Keypad';
 import PaymentMethodPill from '../../components/PaymentMethodPill';
 import QuickAmounts from '../../components/QuickAmounts';
-import Text, {
+import {
+  Text,
   TextVariant,
   TextColor,
-} from '../../../../../component-library/components/Texts/Text';
-import {
+  FontWeight,
   Button,
   ButtonVariant,
   ButtonSize,
@@ -141,6 +141,29 @@ export const createBuildQuoteNavDetails = (
   ] as const;
 
 const DEFAULT_AMOUNT = 100;
+
+/**
+ * Matches Predict amount display scaling — see PredictAmountDisplay.tsx
+ * (getFontSizeForInputLength + lineHeight = fontSize + 10).
+ */
+function getFontSizeForInputLength(contentLength: number) {
+  if (contentLength <= 8) {
+    return 60;
+  }
+  if (contentLength <= 10) {
+    return 48;
+  }
+  if (contentLength <= 12) {
+    return 32;
+  }
+  if (contentLength <= 14) {
+    return 24;
+  }
+  if (contentLength <= 18) {
+    return 18;
+  }
+  return 12;
+}
 
 function BuildQuote() {
   const navigation = useNavigation();
@@ -314,6 +337,13 @@ function BuildQuote() {
     };
   }, [currency, formatCurrency]);
   const quickAmounts = userRegion?.country?.quickAmounts ?? [50, 100, 200, 400];
+
+  const amountDisplayString = useMemo(
+    () => `${currencyPrefix}${amount}${currencySuffix}`,
+    [currencyPrefix, currencySuffix, amount],
+  );
+  const amountFontSize = getFontSizeForInputLength(amountDisplayString.length);
+  const amountLineHeight = amountFontSize + 10;
 
   /*
    * Tracks RAMPS_SCREEN_VIEWED
@@ -832,31 +862,38 @@ function BuildQuote() {
                 <View style={styles.amountRow}>
                   <Text
                     testID={BuildQuoteSelectors.AMOUNT_INPUT}
-                    variant={TextVariant.HeadingLG}
+                    variant={TextVariant.BodyMd}
+                    fontWeight={FontWeight.Regular}
                     color={
                       rampsError || hasNoQuotes || quoteFetchError
-                        ? TextColor.Error
+                        ? TextColor.ErrorDefault
                         : undefined
                     }
-                    style={styles.mainAmount}
+                    twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     numberOfLines={1}
-                    adjustsFontSizeToFit
                   >
                     {currencyPrefix}
                     {amount}
                   </Text>
                   <Animated.View
-                    style={[styles.cursor, { opacity: cursorOpacity }]}
+                    style={[
+                      styles.cursor,
+                      {
+                        height: Math.max(amountLineHeight - 4, 16),
+                        opacity: cursorOpacity,
+                      },
+                    ]}
                   />
                   {currencySuffix ? (
                     <Text
-                      variant={TextVariant.HeadingLG}
+                      variant={TextVariant.BodyMd}
+                      fontWeight={FontWeight.Regular}
                       color={
                         rampsError || hasNoQuotes || quoteFetchError
-                          ? TextColor.Error
+                          ? TextColor.ErrorDefault
                           : undefined
                       }
-                      style={styles.mainAmount}
+                      twClassName={`text-[${amountFontSize}px] tracking-tight leading-[${amountLineHeight}px] font-normal text-center`}
                     >
                       {currencySuffix}
                     </Text>
@@ -909,7 +946,7 @@ function BuildQuote() {
                   ) : (
                     selectedProvider && (
                       <Text
-                        variant={TextVariant.BodySM}
+                        variant={TextVariant.BodySm}
                         style={styles.poweredByText}
                       >
                         {strings('fiat_on_ramp.powered_by_provider', {
