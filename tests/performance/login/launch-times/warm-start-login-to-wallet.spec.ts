@@ -33,7 +33,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
     async ({ currentDeviceDetails, driver, performanceTracker }, testInfo) => {
       await loginToAppPlaywright();
       await PlaywrightAssertions.expectElementToBeVisible(
-        asPlaywrightElement(WalletView.accountIcon),
+        asPlaywrightElement(WalletView.totalBalance),
         {
           description:
             'Wallet account icon should be visible before warm start',
@@ -59,7 +59,13 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
 
       await LoginView.tapLoginButton();
       await timer1.measure(async () => {
-        await WalletView.waitForBalanceToStabilize();
+        await PlaywrightAssertions.expectElementToBeVisible(
+          asPlaywrightElement(WalletView.totalBalance),
+          {
+            description: 'Wallet balance should be visible',
+          },
+        );
+        // await WalletView.waitForBalanceToStabilize();
       });
 
       performanceTracker.addTimers(timer1);

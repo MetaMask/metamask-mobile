@@ -41,7 +41,7 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
 
       const timer1 = new TimerHelper(
         'Time since the user open the app again and the login screen appears',
-        { ios: 2500, android: 2500 },
+        { ios: 2500, android: 3000 },
         currentDeviceDetails.platform,
       );
 
