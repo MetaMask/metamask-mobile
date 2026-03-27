@@ -170,18 +170,18 @@ describe('EarnRewardsPreview', () => {
       ).toBeOnTheScreen();
     });
 
-    it('hides the entire section when geoLocation is undefined even if geo status is complete', () => {
+    it('hides only the mUSD card when geoLocation is undefined, keeps Card card visible', () => {
       setupSelectors({ geoLocation: undefined });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
+      ).toBeOnTheScreen();
     });
 
     it('shows mUSD card when geoLocation is UNKNOWN (treated as non-UK)', () => {
@@ -241,18 +241,18 @@ describe('EarnRewardsPreview', () => {
   });
 
   describe('after geo loaded — UK user', () => {
-    it('hides the entire earn section for UK users (no mUSD and no MetaMask Card row)', () => {
+    it('hides only the mUSD card for UK users, keeps the Card card visible', () => {
       setupSelectors({ geoLocation: 'GB' });
       const { queryByTestId } = render(<EarnRewardsPreview />);
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_PREVIEW),
-      ).toBeNull();
+      ).toBeOnTheScreen();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_MUSD_CARD),
       ).toBeNull();
       expect(
         queryByTestId(REWARDS_VIEW_SELECTORS.EARN_REWARDS_CARD_CARD),
-      ).toBeNull();
+      ).toBeOnTheScreen();
     });
   });
 

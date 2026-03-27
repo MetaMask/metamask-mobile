@@ -125,10 +125,6 @@ const EarnRewardsPreview: React.FC = () => {
     handleDeeplink({ uri: 'metamask://card-onboarding' });
   }, []);
 
-  if (!isMusdGeoLoading && !showMusdCard) {
-    return null;
-  }
-
   return (
     <Box
       twClassName="gap-3 p-4 -mt-2"

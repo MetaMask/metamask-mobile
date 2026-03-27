@@ -139,7 +139,7 @@ const SignUp = () => {
 
   const isDisabled = useMemo(() => {
     if (isWaitlistMode) {
-      return !selectedCountry;
+      return false;
     }
     return (
       !email ||
