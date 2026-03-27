@@ -21,7 +21,7 @@ export const getRelatedAssetImageSource = (
   asset: RelatedAsset,
 ): ImageSourcePropType | undefined => {
   // 1. Wallet CDN via CAIP-19 (PNG — works with AvatarToken)
-  const firstCaip = asset.caip19[0];
+  const firstCaip = asset.caip19?.[0];
   if (firstCaip) {
     try {
       const { chainId } = parseCaipAssetType(firstCaip as CaipAssetType);
@@ -37,7 +37,7 @@ export const getRelatedAssetImageSource = (
 
   // 2. Perps SVG for assets with no CAIP-19 (e.g. xyz:TSLA via hlPerpsMarket)
   const firstHlPerpsMarket = asset.hlPerpsMarket?.[0];
-  if (firstHlPerpsMarket && asset.caip19.length === 0) {
+  if (firstHlPerpsMarket && !asset.caip19?.length) {
     const urls = getAssetIconUrls(firstHlPerpsMarket, K_PREFIX_ASSETS);
     if (urls) {
       return { uri: urls.primary };
