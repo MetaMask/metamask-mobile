@@ -92,7 +92,6 @@ static Braze *_braze = nil;
 // Explicitly define remote notification delegates to ensure compatibility with some third-party libraries
 - (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
 {
-  [AppDelegate.braze.notifications registerDeviceToken:deviceToken];
   return [super application:application didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
 }
 
