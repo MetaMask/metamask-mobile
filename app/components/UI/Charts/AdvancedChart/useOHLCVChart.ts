@@ -4,7 +4,7 @@ import type { OHLCVTimePeriod } from './TimeRangeSelector';
 
 const OHLCV_BASE_URL = 'https://price.api.cx.metamask.io/v3/ohlcv-chart';
 
-interface OHLCVApiCandle {
+export interface OHLCVApiCandle {
   timestamp: number;
   open: number;
   high: number;
@@ -13,7 +13,7 @@ interface OHLCVApiCandle {
   volume: number;
 }
 
-interface OHLCVApiResponse {
+export interface OHLCVApiResponse {
   data: OHLCVApiCandle[];
   hasNext: boolean;
   nextCursor: string;
