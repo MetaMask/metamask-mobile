@@ -280,6 +280,39 @@ describe('AuthTokenHandler', () => {
         }),
       );
     });
+
+    it('falls back to the legacy iOS Google clientId when the Redux store throws during refresh', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        json: jest.fn().mockResolvedValueOnce({
+          id_token: 'new-id-token',
+          access_token: 'new-access-token',
+          metadata_access_token: 'new-metadata-access-token',
+        }),
+      });
+      mockDeviceIsIos.mockReturnValue(true);
+      mockGetState.mockImplementation(() => {
+        throw new Error('store unavailable');
+      });
+
+      await AuthTokenHandler.refreshJWTToken({
+        connection: mockConnection,
+        refreshToken: mockRefreshToken,
+      });
+
+      expect(fetchSpy).toHaveBeenCalledWith(
+        `${mockServerUrl}${AUTH_SERVER_TOKEN_PATH}`,
+        expect.objectContaining({
+          body: JSON.stringify({
+            client_id: 'mock-ios-google-client-id',
+            login_provider: mockConnection,
+            network: 'test-network',
+            refresh_token: mockRefreshToken,
+            grant_type: 'refresh_token',
+          }),
+        }),
+      );
+    });
   });
 
   describe('renewRefreshToken', () => {

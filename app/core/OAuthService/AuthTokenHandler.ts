@@ -44,10 +44,15 @@ interface AuthTokenHandlerInterface {
  * refreshing tokens after the supported login config changes.
  */
 const getActiveIosGoogleClientId = () => {
-  const clientId =
-    ReduxService.store.getState().onboarding.seedlessOnboarding?.clientId;
-  if (clientId) {
-    return clientId;
+  try {
+    const clientId =
+      ReduxService.store.getState().onboarding.seedlessOnboarding?.clientId;
+    if (clientId) {
+      return clientId;
+    }
+  } catch {
+    // Redux store unavailable (e.g. during a background token refresh before
+    // the store is initialised) – fall through to the legacy IosGID below.
   }
   // if client id is not set, use the default legacy IosGID
   if (!IosGID) {
