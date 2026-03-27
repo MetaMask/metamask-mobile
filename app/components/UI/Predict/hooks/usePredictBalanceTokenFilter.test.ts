@@ -45,6 +45,10 @@ jest.mock('../../../Views/confirmations/utils/transaction', () => ({
   hasTransactionType: jest.fn(),
 }));
 
+jest.mock('../../../../util/networks', () => ({
+  getNetworkImageSource: jest.fn(() => 'polygon-network-badge'),
+}));
+
 const mockHasTransactionType = hasTransactionType as jest.MockedFunction<
   typeof hasTransactionType
 >;
@@ -194,5 +198,15 @@ describe('usePredictBalanceTokenFilter', () => {
 
     expect(filteredTokens[0].image).toBe('');
     expect(filteredTokens[0].logo).toBe('');
+  });
+
+  it('adds the polygon network badge to the synthetic token', () => {
+    mockHasTransactionType.mockReturnValue(true);
+    const tokens = [createMockToken()];
+
+    const { result } = renderHook(() => usePredictBalanceTokenFilter());
+    const filteredTokens = result.current(tokens);
+
+    expect(filteredTokens[0].networkBadgeSource).toBe('polygon-network-badge');
   });
 });

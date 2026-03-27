@@ -18,7 +18,7 @@ jest.mock('../../../../core/Engine', () => ({
       getBalance: jest.fn(),
       deposit: jest.fn(),
       payWithAnyTokenConfirmation: jest.fn(),
-      initiPayWithAnyToken: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       depositWithConfirmation: jest.fn(),

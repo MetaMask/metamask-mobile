@@ -10,6 +10,8 @@ import {
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
   selectPredictWithdrawTransaction,
+  selectPredictActiveOrders,
+  selectPredictActiveOrderByAddress,
   selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
@@ -135,6 +137,78 @@ describe('Predict Controller Selectors', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selectPredictWithdrawTransaction(mockState as any);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectPredictActiveOrders', () => {
+    it('returns active orders when they exist', () => {
+      const activeOrders = {
+        '0x123': {
+          state: 'preview',
+          batchId: 'batch-1',
+        },
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeOrders,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveOrders(mockState as any);
+
+      expect(result).toEqual(activeOrders);
+    });
+
+    it('returns the active order for a specific address', () => {
+      const activeOrder = {
+        state: 'placing_order',
+        batchId: 'batch-2',
+      };
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeOrders: {
+                '0x123': activeOrder,
+              },
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveOrderByAddress({ address: '0x123' })(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+      );
+
+      expect(result).toEqual(activeOrder);
+    });
+
+    it('returns null when the active order for an address does not exist', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeOrders: {},
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveOrderByAddress({ address: '0xabc' })(
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockState as any,
+      );
 
       expect(result).toBeNull();
     });

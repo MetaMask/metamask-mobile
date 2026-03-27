@@ -14,6 +14,7 @@ let mockActiveOrder: { error?: string } | null = null;
 let mockPredictBalance = 0;
 let mockAvailableBalance = 1000;
 let mockIsBalanceLoading = false;
+let mockInsufficientPayTokenBalanceAlert: { message: string } | null = null;
 
 jest.mock('../../../hooks/usePredictPaymentToken', () => ({
   usePredictPaymentToken: () => ({
@@ -51,7 +52,9 @@ jest.mock('./usePredictBuyAvailableBalance', () => ({
 jest.mock(
   '../../../../../Views/confirmations/hooks/alerts/useInsufficientPayTokenBalanceAlert',
   () => ({
-    useInsufficientPayTokenBalanceAlert: () => [null],
+    useInsufficientPayTokenBalanceAlert: () => [
+      mockInsufficientPayTokenBalanceAlert,
+    ],
   }),
 );
 
@@ -121,6 +124,7 @@ describe('usePredictBuyInfo', () => {
     mockPredictBalance = 0;
     mockAvailableBalance = 1000;
     mockIsBalanceLoading = false;
+    mockInsufficientPayTokenBalanceAlert = null;
   });
 
   describe('depositFee', () => {
@@ -174,6 +178,76 @@ describe('usePredictBuyInfo', () => {
       const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
 
       expect(result.current.depositFee).toBe(2.0);
+    });
+
+    it('returns 0 when there is an insufficient pay token balance alert', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+      mockInsufficientPayTokenBalanceAlert = {
+        message: 'Insufficient payment token balance',
+      };
+
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.depositFee).toBe(0);
+    });
+
+    it('keeps the last accepted deposit fee while confirming', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result, rerender } = renderHook(
+        (params: typeof defaultParams) => usePredictBuyInfo(params),
+        {
+          initialProps: { ...defaultParams, isConfirming: true },
+        },
+      );
+
+      expect(result.current.depositFee).toBe(5);
+
+      mockPayTotals = {};
+
+      rerender({ ...defaultParams, isConfirming: true });
+
+      expect(result.current.depositFee).toBe(5);
+    });
+
+    it('clears the accepted deposit fee after confirming ends', () => {
+      mockIsPredictBalanceSelected = false;
+      mockPayTotals = {
+        fees: {
+          provider: { usd: 1.5 },
+          sourceNetwork: { estimate: { usd: 2.5 } },
+          targetNetwork: { usd: 1.0 },
+        },
+      };
+
+      const { result, rerender } = renderHook(
+        (params: typeof defaultParams) => usePredictBuyInfo(params),
+        {
+          initialProps: { ...defaultParams, isConfirming: true },
+        },
+      );
+
+      expect(result.current.depositFee).toBe(5);
+
+      mockPayTotals = {};
+
+      rerender({ ...defaultParams, isConfirming: false });
+
+      expect(result.current.depositFee).toBe(0);
     });
   });
 
@@ -282,6 +356,14 @@ describe('usePredictBuyInfo', () => {
       const { result } = renderHook(() => usePredictBuyInfo(params));
 
       expect(result.current.depositAmount).toBe(1.04);
+    });
+  });
+
+  describe('totalPayForPredictBalance', () => {
+    it('returns the bet amount plus provider and MetaMask fees', () => {
+      const { result } = renderHook(() => usePredictBuyInfo(defaultParams));
+
+      expect(result.current.totalPayForPredictBalance).toBe(105);
     });
   });
 

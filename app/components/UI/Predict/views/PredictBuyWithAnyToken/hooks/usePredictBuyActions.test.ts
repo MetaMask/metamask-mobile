@@ -1,6 +1,7 @@
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
 import { usePredictBuyActions } from './usePredictBuyActions';
+import { PREDICT_ERROR_CODES } from '../../../constants/errors';
 import {
   ActiveOrderState,
   OrderPreview,
@@ -23,6 +24,10 @@ const mockSetIsConfirming = jest.fn();
 const mockTransitionEndUnsubscribe = jest.fn();
 const mockBeforeRemoveUnsubscribe = jest.fn();
 const mockInvalidateOrderQueries = jest.fn();
+const mockTransitionEndCallbacks: ((e: {
+  data: { closing: boolean };
+}) => void)[] = [];
+const mockBeforeRemoveCallbacks: (() => void)[] = [];
 
 let mockActiveOrder: {
   batchId?: string | null;
@@ -34,11 +39,15 @@ const createAddListenerMock =
   () =>
   (event: string, callback: (e?: { data: { closing: boolean } }) => void) => {
     if (event === 'transitionEnd') {
+      mockTransitionEndCallbacks.push(
+        callback as (e: { data: { closing: boolean } }) => void,
+      );
       callback({ data: { closing: false } });
       return mockTransitionEndUnsubscribe;
     }
 
     if (event === 'beforeRemove') {
+      mockBeforeRemoveCallbacks.push(callback as () => void);
       return () => {
         callback();
         mockBeforeRemoveUnsubscribe();
@@ -139,6 +148,8 @@ describe('usePredictBuyActions', () => {
     mockPayWithAnyTokenEnabled = true;
     mockInitiPayWithAnyToken.mockResolvedValue(undefined);
     mockInvalidateOrderQueries.mockReset();
+    mockTransitionEndCallbacks.length = 0;
+    mockBeforeRemoveCallbacks.length = 0;
     mockAddListener.mockImplementation(createAddListenerMock());
   });
 
@@ -218,6 +229,31 @@ describe('usePredictBuyActions', () => {
 
       expect(mockInitiPayWithAnyToken).toHaveBeenCalledTimes(1);
     });
+
+    it('does not initialize pay with any token when transitionEnd is closing', () => {
+      renderHook(() => usePredictBuyActions(createDefaultParams()));
+
+      mockInitiPayWithAnyToken.mockClear();
+
+      act(() => {
+        mockTransitionEndCallbacks[0]({ data: { closing: true } });
+      });
+
+      expect(mockInitiPayWithAnyToken).not.toHaveBeenCalled();
+    });
+
+    it('does not register cleanup listeners when pay with any token is disabled', () => {
+      mockPayWithAnyTokenEnabled = false;
+
+      const { unmount } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      unmount();
+
+      expect(mockOnConfirmActionsReject).not.toHaveBeenCalled();
+      expect(mockOnPlaceOrderEnd).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleConfirm', () => {
@@ -274,6 +310,85 @@ describe('usePredictBuyActions', () => {
       });
 
       expect(mockPlaceOrder).not.toHaveBeenCalled();
+    });
+
+    it('returns a preview not available error when preview is null', async () => {
+      const params = createDefaultParams();
+      params.preview = null;
+      const { result } = renderHook(() => usePredictBuyActions(params));
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.handleConfirm();
+      });
+
+      expect(outcome).toEqual({
+        status: 'error',
+        error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
+      });
+    });
+  });
+
+  describe('placeOrder helper', () => {
+    it('returns a success result when placeOrder resolves', async () => {
+      const placeOrderResult = { success: true };
+      mockPlaceOrder.mockResolvedValue(placeOrderResult);
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview: createDefaultParams().preview as OrderPreview,
+        });
+      });
+
+      expect(outcome).toEqual({
+        status: 'success',
+        result: placeOrderResult,
+      });
+    });
+
+    it('returns the error message when placeOrder rejects with an Error', async () => {
+      mockPlaceOrder.mockRejectedValue(new Error('Order failed'));
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview: createDefaultParams().preview as OrderPreview,
+        });
+      });
+
+      expect(outcome).toEqual({
+        status: 'error',
+        error: 'Order failed',
+      });
+    });
+
+    it('returns the default error when placeOrder rejects with a non-Error value', async () => {
+      mockPlaceOrder.mockRejectedValue('unexpected failure');
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      let outcome;
+      await act(async () => {
+        outcome = await result.current.placeOrder({
+          analyticsProperties: { marketId: 'market-1' },
+          preview: createDefaultParams().preview as OrderPreview,
+        });
+      });
+
+      expect(outcome).toEqual({
+        status: 'error',
+        error: PREDICT_ERROR_CODES.PLACE_ORDER_FAILED,
+      });
     });
   });
 

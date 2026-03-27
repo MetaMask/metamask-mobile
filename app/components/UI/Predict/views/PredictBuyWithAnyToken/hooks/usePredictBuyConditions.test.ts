@@ -1,5 +1,6 @@
 import { renderHook } from '@testing-library/react-native';
 import { usePredictBuyConditions } from './usePredictBuyConditions';
+import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { ActiveOrderState, OrderPreview } from '../../../types';
 
 let mockIsBalanceLoading = false;
@@ -86,6 +87,12 @@ jest.mock(
   }),
 );
 
+jest.mock('@metamask/assets-controllers', () => ({
+  getNativeTokenAddress: jest.fn(
+    () => '0x0000000000000000000000000000000000001010',
+  ),
+}));
+
 const defaultParams = {
   currentValue: 10,
   depositFee: 0,
@@ -118,6 +125,10 @@ describe('usePredictBuyConditions', () => {
     mockInsufficientPayTokenBalanceAlert = null;
     mockPredictBalance = 0;
     mockHasSourceAmount = true;
+  });
+
+  afterEach(() => {
+    jest.mocked(getNativeTokenAddress).mockClear();
   });
 
   describe('isBelowMinimum', () => {
@@ -423,6 +434,18 @@ describe('usePredictBuyConditions', () => {
 
       expect(result.current.isPayFeesLoading).toBe(false);
     });
+
+    it('returns true when source amount has not been set yet', () => {
+      mockIsPredictBalanceSelected = false;
+      mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
+      mockHasSourceAmount = false;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions(defaultParams),
+      );
+
+      expect(result.current.isPayFeesLoading).toBe(true);
+    });
   });
 
   describe('isQuotesStale', () => {
@@ -498,6 +521,7 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.isPayFeesLoading).toBe(false);
+      expect(getNativeTokenAddress).toHaveBeenCalledWith('0x89');
     });
 
     it('returns false when requiredTokens include selected token', () => {
@@ -596,6 +620,66 @@ describe('usePredictBuyConditions', () => {
       );
 
       expect(result.current.isUserChangeTriggeringCalculation).toBe(false);
+    });
+  });
+
+  describe('canSelectToken', () => {
+    it('returns true when the total exceeds predict balance', () => {
+      mockPredictBalance = 10;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          totalPayForPredictBalance: 20,
+        }),
+      );
+
+      expect(result.current.canSelectToken).toBe(true);
+    });
+
+    it('returns false when predict balance covers the total', () => {
+      mockPredictBalance = 20;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          totalPayForPredictBalance: 20,
+        }),
+      );
+
+      expect(result.current.canSelectToken).toBe(false);
+    });
+  });
+
+  describe('selected payment token reset effect', () => {
+    it('resets the selected token when predict balance covers the total and input is not focused', () => {
+      mockPredictBalance = 20;
+      mockIsPredictBalanceSelected = false;
+
+      renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          totalPayForPredictBalance: 20,
+          isInputFocused: false,
+        }),
+      );
+
+      expect(mockResetSelectedPaymentToken).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not reset the selected token while the input is focused', () => {
+      mockPredictBalance = 20;
+      mockIsPredictBalanceSelected = false;
+
+      renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          totalPayForPredictBalance: 20,
+          isInputFocused: true,
+        }),
+      );
+
+      expect(mockResetSelectedPaymentToken).not.toHaveBeenCalled();
     });
   });
 });
