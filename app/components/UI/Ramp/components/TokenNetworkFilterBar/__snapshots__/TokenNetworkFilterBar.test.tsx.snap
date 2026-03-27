@@ -170,7 +170,6 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -284,7 +283,6 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -398,7 +396,6 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -615,7 +612,6 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -729,7 +725,6 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -843,7 +838,6 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -1060,7 +1054,6 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -1174,7 +1167,6 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }
@@ -1288,7 +1280,6 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
               "borderRadius": 4,
               "height": 16,
               "justifyContent": "center",
-              "marginRight": 8,
               "overflow": "hidden",
               "width": 16,
             }

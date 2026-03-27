@@ -90,7 +90,6 @@ function TokenNetworkFilterBar({
                 imageSource={networkImageSource}
                 name={displayName}
                 size={AvatarSize.Xs}
-                style={styles.selectedNetworkIcon}
               />
             }
             onPress={() => handleNetworkPress(chainId)}
