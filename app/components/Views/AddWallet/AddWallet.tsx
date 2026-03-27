@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Pressable, SafeAreaView } from 'react-native';
+import { Pressable } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Box,
   BoxAlignItems,
@@ -80,7 +81,7 @@ const AddWallet = () => {
   );
 
   return (
-    <SafeAreaView style={tw`flex-1 bg-default`}>
+    <SafeAreaView style={tw`flex-1 bg-default`} edges={['top', 'bottom']}>
       <Box testID={AddWalletTestIds.SCREEN} twClassName="flex-1 bg-default">
         <Box twClassName="px-2 py-4">
           <ButtonIcon
