@@ -197,6 +197,44 @@ describeForPlatforms('BridgeView', () => {
     expect(await findByText('dest')).toBeOnTheScreen();
   });
 
+  describe('Gasless swap', () => {
+    it('shows error banner when gasless swap quote fetch fails and dismisses it on close', async () => {
+      const now = Date.now();
+
+      const { findByText, queryByText, getByTestId } = defaultBridgeWithTokens({
+        engine: {
+          backgroundState: {
+            BridgeController: {
+              quotes: [],
+              recommendedQuote: null,
+              quotesLastFetched: now,
+              quotesLoadingStatus: RequestStatus.FETCHED,
+              quoteFetchError: 'GaslessSwapSubmissionFailed',
+            },
+            RemoteFeatureFlagController: {
+              remoteFeatureFlags: {
+                gasFeesSponsoredNetwork: { '0x1': true },
+              },
+            },
+          },
+        },
+      } as unknown as Record<string, unknown>);
+
+      // Error banner appears after the gasless swap quote fetch failure
+      expect(
+        await findByText(strings('bridge.error_banner_description')),
+      ).toBeOnTheScreen();
+
+      // User dismisses the error banner
+      fireEvent.press(getByTestId(CommonSelectorsIDs.BANNER_CLOSE_BUTTON_ICON));
+
+      // Banner is gone after dismissal
+      expect(
+        queryByText(strings('bridge.error_banner_description')),
+      ).not.toBeOnTheScreen();
+    });
+  });
+
   describe('Swap team regression (bug matrix team-swaps-and-bridge)', () => {
     /** Issues covered: #24744, #24865, #24802, #25256 */
     // eslint-disable-next-line @metamask/design-tokens/color-no-hex -- "#24744" style references are GitHub issue IDs (e.g. "#2342"), not color literals
