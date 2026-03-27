@@ -1,6 +1,7 @@
 import Braze from '@braze/react-native-sdk';
 import Logger from '../../util/Logger';
 import { isE2E } from '../../util/test/utils';
+import Engine from '../Engine/Engine';
 
 /**
  * Set the Braze external user ID to the MetaMask profile ID.
@@ -18,8 +19,6 @@ export async function setBrazeUser(): Promise<void> {
   }
 
   try {
-    // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
-    const Engine = require('../Engine/Engine').default;
     const { AuthenticationController } = Engine.context;
 
     const sessionProfile = await AuthenticationController.getSessionProfile();
