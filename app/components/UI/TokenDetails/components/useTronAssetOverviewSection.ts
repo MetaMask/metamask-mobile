@@ -35,6 +35,9 @@ const useTronAssetOverviewSection = ({
   tokenAddress,
   tokenChainId,
 }: UseTronAssetOverviewSectionArgs): TronAssetOverviewSectionViewModel => {
+  // These hooks must stay unconditional to preserve React's hook ordering.
+  // When `enabled` is false, the hook still reads cached state and selector
+  // values, but it skips APY fetching and all Tron-specific formatting work.
   const privacyMode = useSelector(selectPrivacyMode);
   const {
     apyDecimal,

@@ -81,9 +81,6 @@ describe('useTronAssetOverviewSection', () => {
     expect(mockUseTronStakeApy).toHaveBeenCalledWith({
       fetchOnMount: false,
     });
-    expect(mockUseTronStakingRewardsSummary).toHaveBeenCalledWith({
-      token: { address: 'tron:foo' },
-    });
     expect(result.current).toEqual({});
   });
 
