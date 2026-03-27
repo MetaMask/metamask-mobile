@@ -18,13 +18,11 @@ import ActionView from '../../UI/ActionView';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import { SRP_GUIDE_URL } from '../../../constants/urls';
 import ClipboardManager from '../../../core/ClipboardManager';
-import { useTheme } from '../../../util/theme';
 import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
 import { passwordRequirementsMet } from '../../../util/password';
 import Device from '../../../util/device';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
-import { createStyles } from './styles';
 import { RevealSeedViewSelectorsIDs } from './RevealSeedView.testIds';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
@@ -48,6 +46,7 @@ import {
 import { useRevealCredential, useSRPQuiz } from './hooks';
 import { IRevealPrivateCredentialProps, RevealSrpStage } from './types';
 import HeaderCompactStandard from '../../../component-library/components-temp/HeaderCompactStandard';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const RevealPrivateCredential = ({
   navigation,
@@ -68,11 +67,8 @@ const RevealPrivateCredential = ({
   const checkSummedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
-
-  const theme = useTheme();
   const { trackEvent, createEventBuilder } = useAnalytics();
-  const { colors } = theme;
-  const styles = createStyles(theme, colors);
+  const tw = useTailwind();
 
   const selectedAddress =
     route?.params?.selectedAccount?.address || checkSummedAddress;
@@ -281,7 +277,7 @@ const RevealPrivateCredential = ({
             {strings('reveal_credential.seed_phrase_warning_explanation')}
           </Text>
         }
-        style={styles.warningWrapper}
+        style={tw.style('text-body-sm mt-6')}
       />
     </Box>
   );
@@ -335,17 +331,16 @@ const RevealPrivateCredential = ({
             onRevealSeedPhrase={() => setShowSeedPhrase(!showSeedPhrase)}
             onCopyToClipboard={copyPrivateCredentialToClipboard}
             onTabChange={onTabBarChange}
-            styles={styles}
           />
         ) : (
           <Box twClassName="p-5 pb-0">
             <PasswordEntry
+              password={password}
               onPasswordChange={setPassword}
               onSubmit={tryUnlock}
               warningMessage={warningIncorrectPassword}
               showPassword={showPassword}
               onToggleShowPassword={() => setShowPassword(!showPassword)}
-              styles={styles}
             />
           </Box>
         )}
@@ -359,7 +354,6 @@ const RevealPrivateCredential = ({
         <SRPQuizIntroduction
           onGetStarted={handleGetStartedClick}
           onLearnMore={handleLearnMoreClick}
-          styles={styles}
         />
       );
     }
@@ -372,7 +366,6 @@ const RevealPrivateCredential = ({
           onAnswerClick={handleQuestionAnswerClick}
           onContinueClick={handleAnsweredQuestionClick}
           onLearnMore={handleLearnMoreClick}
-          styles={styles}
         />
       );
     }

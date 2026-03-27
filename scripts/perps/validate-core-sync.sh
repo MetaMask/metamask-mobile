@@ -327,13 +327,7 @@ step_verify_fixes() {
 step_eslint_fix() {
   cd "$CORE_PATH"
 
-  # Back up suppressions file so we don't leave dirty changes in Core
   local supp_file="$CORE_PATH/eslint-suppressions.json"
-  local supp_backup=""
-  if [[ -f "$supp_file" ]]; then
-    supp_backup=$(mktemp)
-    cp "$supp_file" "$supp_backup"
-  fi
 
   progress "  ├─ Running --fix"
   yarn eslint 'packages/perps-controller/src/**/*.ts' --fix || true
@@ -357,11 +351,6 @@ step_eslint_fix() {
   else
     echo "WARN: eslint-suppressions.json not found"
     SUPPRESSION_COUNT=0
-  fi
-
-  # Restore original suppressions file
-  if [[ -n "$supp_backup" ]]; then
-    mv "$supp_backup" "$supp_file"
   fi
 
   cd "$MOBILE_ROOT"

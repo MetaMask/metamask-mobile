@@ -747,6 +747,17 @@
         "totalAccounts": 0,
         "wasInterrupted": false
       },
+      "ondoCampaignLeaderboard": null,
+      "ondoCampaignLeaderboardError": false,
+      "ondoCampaignLeaderboardLoading": false,
+      "ondoCampaignLeaderboardPositions": {},
+      "ondoCampaignLeaderboardSelectedTier": null,
+      "ondoCampaignPortfolio": {},
+      "campaignParticipantStatuses": {},
+      "campaigns": [],
+      "campaignsError": false,
+      "campaignsHasLoaded": false,
+      "campaignsLoading": false,
       "candidateSubscriptionId": "pending",
       "currentTier": null,
       "geoLocation": null,
@@ -780,7 +791,10 @@
       "snapshotsLoading": false,
       "unlockedRewardError": false,
       "unlockedRewardLoading": false,
-      "unlockedRewards": null
+      "unlockedRewards": null,
+      "versionGuardError": false,
+      "versionGuardLoading": false,
+      "versionGuardMinimumMobileVersion": null
     },
     "rpcEvents": {
       "signingEvent": {
