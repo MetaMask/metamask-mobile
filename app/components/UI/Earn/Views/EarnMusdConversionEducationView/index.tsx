@@ -16,8 +16,8 @@ import { useMusdConversion } from '../../hooks/useMusdConversion';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import { useNavigation } from '@react-navigation/native';
 import {
-  Button as DesignSystemButton,
-  ButtonVariant as DesignSystemButtonVariant,
+  Button,
+  ButtonVariant,
   ButtonSize,
 } from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
@@ -359,25 +359,24 @@ const EarnMusdConversionEducationView = () => {
       </View>
 
       <View style={styles.buttonsContainer}>
-        <DesignSystemButton
-          variant={DesignSystemButtonVariant.Primary}
+        <Button
+          variant={ButtonVariant.Primary}
           onPress={handleContinue}
           size={ButtonSize.Lg}
           isFullWidth
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.PRIMARY_BUTTON}
         >
           {primaryButtonText}
-        </DesignSystemButton>
-        <DesignSystemButton
-          variant={DesignSystemButtonVariant.Tertiary}
+        </Button>
+        <Button
+          variant={ButtonVariant.Tertiary}
           isFullWidth
           onPress={handleGoBack}
           testID={EARN_TEST_IDS.MUSD.CONVERSION_EDUCATION_VIEW.SECONDARY_BUTTON}
+          textProps={{ twClassName: 'text-default' }}
         >
-          <Text variant={TextVariant.BodyMDMedium}>
-            {strings('earn.musd_conversion.education.secondary_button')}
-          </Text>
-        </DesignSystemButton>
+          {strings('earn.musd_conversion.education.secondary_button')}
+        </Button>
       </View>
     </SafeAreaView>
   );
