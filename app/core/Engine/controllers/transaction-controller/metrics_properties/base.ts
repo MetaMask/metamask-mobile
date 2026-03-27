@@ -66,6 +66,10 @@ export function getTransactionTypeValue(
     return 'predict_withdraw';
   }
 
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    return 'perps_withdraw';
+  }
+
   if (hasTransactionType(transactionMeta, [TransactionType.predictClaim])) {
     return 'predict_claim';
   }
