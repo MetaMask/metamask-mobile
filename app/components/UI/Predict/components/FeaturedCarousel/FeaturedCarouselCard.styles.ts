@@ -13,7 +13,6 @@ const styleSheet = (params: { theme: Theme }) => {
       justifyContent: 'space-between',
     },
     buyButton: {
-      paddingVertical: 0,
       backgroundColor: theme.colors.success.muted,
     },
   });

@@ -7,16 +7,13 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Button,
+  ButtonBaseSize,
   Text,
   TextColor,
   TextVariant,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { useStyles } from '../../../../../component-library/hooks';
 import { strings } from '../../../../../../locales/i18n';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -183,21 +180,21 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                         index,
                         outcomeIdx,
                       )}
-                      variant={ButtonVariants.Secondary}
-                      size={ButtonSize.Sm}
-                      width={ButtonWidthTypes.Full}
-                      label={
-                        <Text
-                          variant={TextVariant.BodySm}
-                          style={tw.style('font-medium')}
-                          color={TextColor.SuccessDefault}
-                        >
-                          {`${strings('predict.buy')} ${outcome.groupItemTitle || outcome.title}`}
-                        </Text>
-                      }
                       onPress={() => handleBuy(outcome, token)}
-                      style={styles.buyButton}
-                    />
+                      style={{
+                        backgroundColor: styles.buyButton.backgroundColor,
+                      }}
+                      isFullWidth
+                      size={ButtonBaseSize.Md}
+                    >
+                      <Text
+                        variant={TextVariant.BodySm}
+                        style={tw.style('font-medium')}
+                        color={TextColor.SuccessDefault}
+                      >
+                        {`${strings('predict.buy')} ${outcome.groupItemTitle || outcome.title}`}
+                      </Text>
+                    </Button>
                   </Box>
                 </Box>
               );
