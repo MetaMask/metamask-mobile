@@ -50,6 +50,52 @@ const mockSelectPrivacyMode = selectPrivacyMode as jest.MockedFunction<
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
+interface TronStakeApyMockResult {
+  fetchStatus: FetchStatus;
+  errorMessage: string | null;
+  apyDecimal: string | null;
+  apyPercent: string | null;
+  refetch: jest.Mock;
+}
+
+const createFetchedApy = (
+  overrides: Partial<TronStakeApyMockResult> = {},
+): TronStakeApyMockResult => ({
+  fetchStatus: FetchStatus.Fetched,
+  errorMessage: null,
+  apyDecimal: '4.5',
+  apyPercent: '4.5%',
+  refetch: jest.fn(),
+  ...overrides,
+});
+
+const renderSubject = ({
+  apy = createFetchedApy(),
+  summary = {},
+}: {
+  apy?: ReturnType<typeof createFetchedApy>;
+  summary?: Partial<ReturnType<typeof useTronStakingRewardsSummary>>;
+} = {}) => {
+  mockUseTronStakeApy.mockReturnValue(apy);
+  mockUseTronStakingRewardsSummary.mockReturnValue({
+    claimableRewardsTrxAmount: 1.23456,
+    claimableRewardsFiatAmount: 12.34,
+    claimableRewardsCurrency: 'USD',
+    totalStakedTrx: 100,
+    fiatRate: 0.5,
+    currentCurrency: 'USD',
+    ...summary,
+  });
+
+  return renderHook(() =>
+    useTronAssetOverviewSection({
+      enabled: true,
+      tokenAddress: 'tron:foo',
+      tokenChainId: TRON_MAINNET_CAIP_CHAIN_ID,
+    }),
+  );
+};
+
 describe('useTronAssetOverviewSection', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -237,6 +283,86 @@ describe('useTronAssetOverviewSection', () => {
       {
         message: strings('stake.tron.estimated_rewards_api_unavailable'),
       },
+    );
+  });
+
+  it('starts the claimable subtitle with a dash when claimable fiat is missing', () => {
+    const { result } = renderSubject({
+      summary: {
+        claimableRewardsFiatAmount: undefined,
+      },
+    });
+
+    expect(result.current.claimableRewardsRowProps?.subtitle).toMatch(/^-+/);
+    expect(result.current.claimableRewardsRowProps?.subtitle).toContain('TRX');
+  });
+
+  it('starts the estimated subtitle with a dash when estimated fiat is missing but APY and TRX are available', () => {
+    const { result } = renderSubject({
+      summary: {
+        fiatRate: undefined,
+      },
+    });
+
+    expect(result.current.estimatedAnnualRewardsRowProps?.subtitle).toMatch(
+      /^-+/,
+    );
+    expect(result.current.estimatedAnnualRewardsRowProps?.subtitle).toContain(
+      'TRX',
+    );
+  });
+
+  it('returns one normalized fiat error message when both claimable and estimated fiat are missing', () => {
+    const { result } = renderSubject({
+      summary: {
+        claimableRewardsFiatAmount: undefined,
+        claimableRewardsCurrency: undefined,
+        fiatRate: undefined,
+      },
+    });
+
+    const current = result.current as { errorMessages?: string[] };
+    expect(result.current.claimableRewardsRowProps).toBeDefined();
+    expect(result.current.estimatedAnnualRewardsRowProps).toBeDefined();
+    expect(current.errorMessages).toHaveLength(1);
+  });
+
+  it('returns an APY error message and omits the estimated row when APY is unavailable', () => {
+    const { result } = renderSubject({
+      apy: {
+        fetchStatus: FetchStatus.Error,
+        errorMessage: 'APR endpoint down',
+        apyDecimal: null,
+        apyPercent: null,
+        refetch: jest.fn(),
+      },
+    });
+
+    const current = result.current as { errorMessages?: string[] };
+    expect(result.current.estimatedAnnualRewardsRowProps).toBeUndefined();
+    expect(current.errorMessages).toEqual(['APR endpoint down']);
+  });
+
+  it('returns exactly two deduped banner messages when APY and fiat are both unavailable', () => {
+    const { result } = renderSubject({
+      apy: {
+        fetchStatus: FetchStatus.Error,
+        errorMessage: 'APR endpoint down',
+        apyDecimal: null,
+        apyPercent: null,
+        refetch: jest.fn(),
+      },
+      summary: {
+        claimableRewardsFiatAmount: undefined,
+        claimableRewardsCurrency: undefined,
+        fiatRate: undefined,
+      },
+    });
+
+    const current = result.current as { errorMessages?: string[] };
+    expect(current.errorMessages).toHaveLength(2);
+    expect(current.errorMessages).toEqual(
+      expect.arrayContaining(['APR endpoint down']),
     );
   });
 });

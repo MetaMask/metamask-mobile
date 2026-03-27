@@ -35,6 +35,12 @@ const mockUseTronAssetOverviewSection =
   useTronAssetOverviewSection as jest.MockedFunction<
     typeof useTronAssetOverviewSection
   >;
+const mockTronErrorsBanner = jest.fn(({ messages }: { messages: string[] }) => (
+  <MockView
+    testID="tron-errors-banner"
+    accessibilityLabel={messages.join('|')}
+  />
+));
 const mockTronStakingCta = jest.fn(({ aprText }: { aprText?: string }) => (
   <MockView
     testID={TronStakingCtaTestIds.CONTAINER}
@@ -118,6 +124,15 @@ jest.mock('./useTronAssetOverviewSection', () => ({
     estimatedAnnualRewardsUnavailableBannerProps: null,
   })),
 }));
+
+jest.mock(
+  '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner',
+  () => ({
+    __esModule: true,
+    default: (props: { messages: string[] }) => mockTronErrorsBanner(props),
+  }),
+  { virtual: true },
+);
 
 jest.mock('../../Earn/components/Tron/TronStakingCta/TronStakingCta', () => ({
   __esModule: true,
@@ -266,6 +281,7 @@ describe('AssetOverviewContent', () => {
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
       mockUseTronAssetOverviewSection.mockReturnValue({});
+      mockTronErrorsBanner.mockClear();
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -549,6 +565,44 @@ describe('AssetOverviewContent', () => {
       expect(
         queryByTestId('tron-staking-rewards-estimated-unavailable-banner'),
       ).toBeNull();
+    });
+
+    it('renders one errors banner when the hook returns errorMessages and passes them through', () => {
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        claimableRewardsRowProps: {
+          title: 'Total claimable rewards',
+          subtitle: '- · 0 TRX',
+          hideBalances: false,
+        },
+        estimatedAnnualRewardsRowProps: undefined,
+        estimatedAnnualRewardsUnavailableBannerProps: undefined,
+        errorMessages: ['Fiat unavailable', 'APR unavailable'],
+      } as never);
+
+      const tronToken: TokenI = {
+        ...defaultToken,
+        address: 'tron:token',
+        chainId: 'tron:0x2b6653dc',
+        symbol: 'TRX',
+        name: 'TRON',
+      };
+
+      renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          token={tronToken}
+          isTronNative
+          stakedTrxAsset={tronToken}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(mockTronErrorsBanner).toHaveBeenCalledTimes(1);
+      expect(mockTronErrorsBanner).toHaveBeenCalledWith(
+        expect.objectContaining({
+          messages: ['Fiat unavailable', 'APR unavailable'],
+        }),
+      );
     });
   });
 
