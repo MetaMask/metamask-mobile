@@ -287,9 +287,9 @@ const usePredictPositionsSectionData = () => {
       claimable: true,
     });
 
-  const handleClaim = useCallback(async () => {
-    await claim();
-  }, [claim]);
+    const handleClaim = useCallback(async () => {
+      await claim();
+    }, [claim]);
 
   const hasPositions = positions.length > 0;
   const {
@@ -299,21 +299,21 @@ const usePredictPositionsSectionData = () => {
     enabled: hasPositions,
   });
 
-  const predictHomepageUnrealizedPnl = useMemo(
-    () =>
-      getPredictHomepageUnrealizedPnlRowState({
+    const predictHomepageUnrealizedPnl = useMemo(
+      () =>
+        getPredictHomepageUnrealizedPnlRowState({
+          hasPositions,
+          privacyMode,
+          isPnlLoading: isPredictUnrealizedPnLLoading,
+          pnl: predictUnrealizedPnL,
+        }),
+      [
         hasPositions,
         privacyMode,
-        isPnlLoading: isPredictUnrealizedPnLLoading,
-        pnl: predictUnrealizedPnL,
-      }),
-    [
-      hasPositions,
-      privacyMode,
-      isPredictUnrealizedPnLLoading,
-      predictUnrealizedPnL,
-    ],
-  );
+        isPredictUnrealizedPnLLoading,
+        predictUnrealizedPnL,
+      ],
+    );
 
   return {
     privacyMode,

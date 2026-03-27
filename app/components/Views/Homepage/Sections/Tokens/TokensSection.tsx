@@ -224,7 +224,7 @@ const TokensSectionMain = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     });
 
     const handleViewAllTokens = useCallback(() => {
-      navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
+        navigation.navigate(Routes.WALLET.TOKENS_FULL_VIEW);
     }, [navigation]);
 
     const handleTokensRetry = useCallback(async () => {
