@@ -86,17 +86,6 @@ jest.mock('./useRampsOrders', () => ({
   })),
 }));
 
-jest.mock('./useRampsOrders', () => ({
-  useRampsOrders: jest.fn(() => ({
-    orders: [],
-    getOrderById: jest.fn(),
-    addOrder: jest.fn(),
-    removeOrder: jest.fn(),
-    refreshOrder: jest.fn(),
-    getOrderFromCallback: jest.fn(),
-  })),
-}));
-
 const createMockStore = () =>
   configureStore({
     reducer: {
