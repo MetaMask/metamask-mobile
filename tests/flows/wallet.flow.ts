@@ -3,6 +3,7 @@ import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
   PlaywrightAssertions,
+  PlaywrightGestures,
   PortManager,
   ResourceType,
   sleep,
@@ -25,7 +26,6 @@ import ImportWalletView from '../page-objects/Onboarding/ImportWalletView';
 import OnboardingView from '../page-objects/Onboarding/OnboardingView';
 import OnboardingSheet from '../page-objects/Onboarding/OnboardingSheet';
 import Accounts from '../../wdio/helpers/Accounts';
-import MetaMetricsOptIn from '../page-objects/Onboarding/MetaMetricsOptInView';
 import EnableDeviceNotificationsAlert from '../page-objects/Onboarding/EnableDeviceNotificationsAlert';
 import ProtectYourWalletModal from '../page-objects/Onboarding/ProtectYourWalletModal';
 import SkipAccountSecurityModal from '../page-objects/Onboarding/SkipAccountSecurityModal';
@@ -38,6 +38,8 @@ import LoginView from '../page-objects/wallet/LoginView';
 import { getPasswordForScenario } from '../framework/utils/TestConstants';
 import PlaywrightUtilities from '../framework/PlaywrightUtilities';
 import AccountListBottomSheet from '../page-objects/wallet/AccountListBottomSheet';
+import MetaMetricsOptInView from '../page-objects/Onboarding/MetaMetricsOptInView';
+import PredictModalView from '../page-objects/Predict/PredictModalView';
 
 const logger = createLogger({
   name: 'WalletFlow',
@@ -220,14 +222,14 @@ export const importWalletWithRecoveryPhrase = async ({
   await CreatePasswordView.tapCreatePasswordButton();
 
   if (!fromResetWallet) {
-    await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+    await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
       description: 'MetaMetrics Opt-In should be visible',
     });
     if (!optInToMetrics) {
-      await MetaMetricsOptIn.tapMetricsCheckbox();
+      await MetaMetricsOptInView.tapMetricsCheckbox();
     }
 
-    await MetaMetricsOptIn.tapAgreeButton();
+    await MetaMetricsOptInView.tapAgreeButton();
   }
   //'Should dismiss Enable device Notifications checks alert'
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -330,14 +332,14 @@ export const CreateNewWallet = async ({
   });
   await ManualBackupStep1View.tapOnRemindMeLaterButton();
 
-  await Assertions.expectElementToBeVisible(MetaMetricsOptIn.container, {
+  await Assertions.expectElementToBeVisible(MetaMetricsOptInView.container, {
     description: 'MetaMetrics Opt-In should be visible',
   });
   if (!optInToMetrics) {
-    await MetaMetricsOptIn.tapMetricsCheckbox();
+    await MetaMetricsOptInView.tapMetricsCheckbox();
   }
 
-  await MetaMetricsOptIn.tapAgreeButton();
+  await MetaMetricsOptInView.tapAgreeButton();
   await device.disableSynchronization(); // Detox is hanging after wallet creation
 
   await Assertions.expectElementToBeVisible(OnboardingSuccessView.container, {
@@ -484,4 +486,74 @@ export const selectAccountByDevice = async (
   );
   await AccountListBottomSheet.waitForAccountSyncToComplete();
   await AccountListBottomSheet.tapAccountByNameV2(accountName);
+};
+
+/**
+ * Dismisses the predictions modal.
+ * @async
+ * @function dismisspredictionsModalPlaywright
+ * @returns {Promise<void>} Resolves when the predictions modal is dismissed.
+ */
+export const dismisspredictionsModalPlaywright = async (): Promise<void> => {
+  try {
+    await PlaywrightAssertions.expectElementToBeVisible(
+      await asPlaywrightElement(PredictModalView.notNowButton),
+    );
+    await PredictModalView.tapNotNowButton();
+  } catch {
+    logger.error('Predict Modal Not Now Button is not visible');
+  }
+};
+
+/**
+ * Completes the onboarding flow for importing a SRP.
+ * @param srp - The SRP to import.
+ * @returns {Promise<void>} Resolves when the onboarding flow for importing a SRP is complete.
+ */
+export const onboardingFlowImportSRPPlaywright = async (
+  srp: string,
+): Promise<void> => {
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(OnboardingView.newWalletButton),
+  );
+
+  await OnboardingView.tapHaveAnExistingWallet();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(OnboardingSheet.importSeedButton),
+  );
+
+  await OnboardingSheet.tapImportSeedButton();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(ImportWalletView.title),
+  );
+
+  await ImportWalletView.typeSecretRecoveryPhrase(srp, true);
+
+  await ImportWalletView.tapContinueButton();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(CreatePasswordView.newPasswordInput),
+  );
+
+  await CreatePasswordView.enterPassword(
+    getPasswordForScenario('onboarding') ?? '',
+  );
+  await CreatePasswordView.reEnterPassword(
+    getPasswordForScenario('onboarding') ?? '',
+  );
+  await CreatePasswordView.tapIUnderstandCheckBox();
+  await CreatePasswordView.tapCreatePasswordButton();
+
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(MetaMetricsOptInView.screenTitle),
+  );
+  await MetaMetricsOptInView.tapIAgreeButton();
+
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(OnboardingSuccessView.doneButton),
+  );
+  await OnboardingSuccessView.tapDone();
+  await dismisspredictionsModalPlaywright();
+  await PlaywrightAssertions.expectElementToBeVisible(
+    await asPlaywrightElement(WalletView.container),
+  );
 };

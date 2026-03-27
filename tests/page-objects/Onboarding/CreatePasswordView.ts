@@ -31,11 +31,8 @@ class CreatePasswordView {
             ),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(
-            ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
-            {
-              exact: true,
-            },
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.description("${ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}")`,
           ),
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
@@ -57,11 +54,8 @@ class CreatePasswordView {
             ),
       appium: {
         android: () =>
-          PlaywrightMatchers.getElementById(
-            ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
-            {
-              exact: true,
-            },
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            `.description("${ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}")`,
           ),
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
