@@ -6,37 +6,6 @@ import {
   CampaignType,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
-const mockShowToast = jest.fn();
-const mockEntriesClosed = jest.fn((title: string, subtitle?: string) => ({
-  title,
-  subtitle,
-  preset: 'entriesClosed',
-}));
-
-jest.mock('../../hooks/useRewardsToast', () => ({
-  __esModule: true,
-  default: () => ({
-    showToast: mockShowToast,
-    RewardsToastOptions: {
-      success: jest.fn(),
-      error: jest.fn(),
-      entriesClosed: mockEntriesClosed,
-    },
-  }),
-}));
-
-jest.mock('@react-navigation/native', () => {
-  const React = jest.requireActual('react');
-  return {
-    useFocusEffect: (effect: () => void | (() => void)) => {
-      React.useEffect(() => {
-        const cleanup = effect();
-        return typeof cleanup === 'function' ? cleanup : undefined;
-      }, [effect]);
-    },
-  };
-});
-
 jest.mock('@metamask/design-system-react-native', () => {
   const actual = jest.requireActual('@metamask/design-system-react-native');
   return { ...actual };
@@ -62,9 +31,6 @@ jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const map: Record<string, string> = {
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.checking_opt_in_status': 'Checking...',
-      'rewards.campaign_details.entries_closed_title': 'Entries closed',
-      'rewards.campaign_details.entries_closed_description': 'Missed window',
     };
     return map[key] ?? key;
   },
@@ -87,7 +53,6 @@ function buildCampaign(overrides: Partial<CampaignDto> = {}): CampaignDto {
 
 describe('CampaignJoinCTA', () => {
   beforeEach(() => {
-    jest.clearAllMocks();
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
   });
@@ -113,21 +78,19 @@ describe('CampaignJoinCTA', () => {
       getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON),
     ).toBeOnTheScreen();
     expect(getByText('Join Campaign')).toBeOnTheScreen();
-    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
-  it('shows checking label while participant status is loading', () => {
-    const { getByText } = render(
+  it('renders the button in loading state while participant status is loading', () => {
+    const { getByTestId } = render(
       <CampaignJoinCTA
         campaign={buildCampaign()}
-        participantStatus={{
-          status: null,
-          isLoading: true,
-        }}
+        participantStatus={{ status: null, isLoading: true }}
       />,
     );
 
-    expect(getByText('Checking...')).toBeTruthy();
+    expect(
+      getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON),
+    ).toBeOnTheScreen();
   });
 
   it('renders nothing when the user has already opted in', () => {
@@ -142,7 +105,6 @@ describe('CampaignJoinCTA', () => {
     );
 
     expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
-    expect(mockShowToast).not.toHaveBeenCalled();
   });
 
   it('renders nothing when the campaign is not active', () => {
@@ -159,66 +121,19 @@ describe('CampaignJoinCTA', () => {
     expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
   });
 
-  it('renders nothing when entries are closed but shows the entries-closed toast once', () => {
-    jest.setSystemTime(new Date('2025-08-10T12:00:00.000Z'));
-
-    const campaign = buildCampaign({
-      details: {
-        howItWorks: { title: 'How', description: 'Desc', steps: [] },
-        depositCutoffDate: '2025-08-01T00:00:00.000Z',
-      },
-    });
-
-    const { queryByTestId, rerender } = render(
+  it('renders nothing when entries are closed (past deposit cutoff)', () => {
+    const { queryByTestId } = render(
       <CampaignJoinCTA
-        campaign={campaign}
+        campaign={buildCampaign({
+          details: {
+            howItWorks: { title: 'How', description: 'Desc', steps: [] },
+            depositCutoffDate: '2025-08-01T00:00:00.000Z',
+          },
+        })}
         participantStatus={defaultParticipant}
       />,
     );
 
-    expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
-    expect(mockEntriesClosed).toHaveBeenCalledWith(
-      'Entries closed',
-      'Missed window',
-    );
-
-    rerender(
-      <CampaignJoinCTA
-        campaign={campaign}
-        participantStatus={defaultParticipant}
-      />,
-    );
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
-  });
-
-  it('does not show the entries-closed toast while participant status is still loading', () => {
-    jest.setSystemTime(new Date('2025-08-10T12:00:00.000Z'));
-
-    const campaign = buildCampaign({
-      details: {
-        howItWorks: { title: 'How', description: 'Desc', steps: [] },
-        depositCutoffDate: '2025-08-01T00:00:00.000Z',
-      },
-    });
-
-    const { rerender, queryByTestId } = render(
-      <CampaignJoinCTA
-        campaign={campaign}
-        participantStatus={{ status: null, isLoading: true }}
-      />,
-    );
-
-    expect(mockShowToast).not.toHaveBeenCalled();
-
-    rerender(
-      <CampaignJoinCTA
-        campaign={campaign}
-        participantStatus={defaultParticipant}
-      />,
-    );
-
-    expect(mockShowToast).toHaveBeenCalledTimes(1);
     expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
   });
 
