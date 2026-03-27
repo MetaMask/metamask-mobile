@@ -37,6 +37,7 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
+/* eslint-disable @metamask/design-tokens/color-no-hex -- theme mock uses hex for test compatibility */
 const mockThemeColors = {
   background: {
     default: '#FFFFFF',
@@ -55,6 +56,7 @@ const mockThemeColors = {
     default: 'rgba(0,0,0,0.5)',
   },
 };
+/* eslint-enable @metamask/design-tokens/color-no-hex */
 
 const mockNavigation = {
   goBack: jest.fn(),
@@ -282,12 +284,13 @@ describe('Navbar', () => {
     });
 
     it('uses custom background color when provided', () => {
+      const testColor = 'rgb(255, 0, 0)';
       const options = getTransparentOnboardingNavbarOptions(
         mockThemeColors,
-        '#FF0000',
+        testColor,
       );
 
-      expect(options.headerStyle.backgroundColor).toBe('#FF0000');
+      expect(options.headerStyle.backgroundColor).toBe(testColor);
     });
 
     it('hides logo when showLogo is false', () => {
