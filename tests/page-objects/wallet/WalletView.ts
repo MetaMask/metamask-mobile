@@ -10,7 +10,6 @@ import {
   PredictPositionSelectorsIDs,
   PredictClaimConfirmationSelectorsIDs,
 } from '../../../app/components/UI/Predict/Predict.testIds';
-import { getAssetTestId } from '../../../wdio/screen-objects/testIDs/Screens/WalletView.testIds';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
@@ -28,6 +27,7 @@ import { encapsulatedAction } from '../../framework/encapsulatedAction';
 import PlaywrightMatchers from '../../framework/PlaywrightMatchers';
 import { PlatformDetector } from '../../framework/PlatformLocator';
 import PlaywrightGestures from '../../framework/PlaywrightGestures';
+import { getAssetTestId } from '../../selectors/Wallet/WalletView.selectors';
 
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
@@ -800,7 +800,9 @@ class WalletView {
         });
       },
       appium: async () => {
-        await UnifiedGestures.waitAndTap(this.tokensSection);
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.tokensSection),
+        );
       },
     });
   }

@@ -157,8 +157,14 @@ export default class PlaywrightGestures {
    * Scroll element into view
    */
   @boxedStep
-  static async scrollIntoView(elem: PlaywrightElement): Promise<void> {
-    await elem.unwrap().scrollIntoView();
+  static async scrollIntoView(
+    elem: PlaywrightElement,
+    options?: { scrollParams?: { direction?: 'up' | 'down' } },
+  ): Promise<void> {
+    const { scrollParams = { direction: 'up' } } = options || {};
+    await elem.unwrap().scrollIntoView({
+      direction: scrollParams.direction,
+    });
   }
 
   /**

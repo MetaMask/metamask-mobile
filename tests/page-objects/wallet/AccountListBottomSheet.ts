@@ -10,6 +10,7 @@ import Matchers from '../../framework/Matchers';
 import Gestures from '../../framework/Gestures';
 import UnifiedGestures from '../../framework/UnifiedGestures';
 import {
+  asPlaywrightElement,
   encapsulated,
   EncapsulatedElementType,
 } from '../../framework/EncapsulatedElement';
@@ -90,11 +91,19 @@ class AccountListBottomSheet {
     );
   }
 
-  createAccountLink(index: number): DetoxElement {
-    return Matchers.getElementByID(
-      AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
-      index,
-    );
+  createAccountLink(index: number): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+          index,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          AccountListBottomSheetSelectorsIDs.CREATE_ACCOUNT,
+          { exact: true },
+        ),
+    });
   }
 
   async getAccountElementByAccountName(
@@ -140,8 +149,11 @@ class AccountListBottomSheet {
     );
   }
 
-  async accountNameInList(accountName: string): Promise<DetoxElement> {
-    return Matchers.getElementByText(accountName, 1);
+  accountNameInList(accountName: string): EncapsulatedElementType {
+    return encapsulated({
+      detox: () => Matchers.getElementByText(accountName, 1),
+      appium: () => PlaywrightMatchers.getElementByCatchAll(accountName),
+    });
   }
 
   async tapAccountIndex(index: number): Promise<void> {
@@ -190,9 +202,22 @@ class AccountListBottomSheet {
   }
 
   async tapCreateAccount(index: number): Promise<void> {
-    const link = this.createAccountLink(index);
-    await Gestures.waitAndTap(link, {
-      elemDescription: 'Create account link',
+    await encapsulatedAction({
+      detox: async () => {
+        const link = this.createAccountLink(index);
+        await Gestures.waitAndTap(link, {
+          elemDescription: 'Create account link',
+        });
+      },
+      appium: async () => {
+        await PlaywrightGestures.scrollIntoView(
+          await asPlaywrightElement(this.createAccountLink(0)),
+          { scrollParams: { direction: 'down' } },
+        );
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.createAccountLink(index)),
+        );
+      },
     });
   }
 
@@ -222,9 +247,17 @@ class AccountListBottomSheet {
   }
 
   async tapAccountByName(accountName: string): Promise<void> {
-    const name = Matchers.getElementByText(accountName);
-
-    await Gestures.waitAndTap(name);
+    await encapsulatedAction({
+      detox: async () => {
+        const name = Matchers.getElementByText(accountName);
+        await Gestures.waitAndTap(name);
+      },
+      appium: async () => {
+        const name = await PlaywrightMatchers.getElementByText(accountName);
+        await PlaywrightGestures.scrollIntoView(name);
+        await PlaywrightGestures.waitAndTap(name);
+      },
+    });
   }
 
   async tapAccountByNameV2(accountName: string): Promise<void> {
