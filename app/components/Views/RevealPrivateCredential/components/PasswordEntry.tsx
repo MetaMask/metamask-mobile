@@ -16,6 +16,7 @@ import { PasswordEntryProps } from '../types';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
 const PasswordEntry = ({
+  password,
   onPasswordChange,
   onSubmit,
   warningMessage,
@@ -36,6 +37,7 @@ const PasswordEntry = ({
         {strings('reveal_credential.enter_password')}
       </Text>
       <TextField
+        value={password}
         placeholder={'Password'}
         placeholderTextColor={colors.text.muted}
         onChangeText={onPasswordChange}
