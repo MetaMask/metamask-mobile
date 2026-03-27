@@ -1,7 +1,7 @@
 import messaging, {
   type FirebaseMessagingTypes,
 } from '@react-native-firebase/messaging';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import { processNotification } from '@metamask/notification-services-controller/notification-services';
 import { createMockNotificationEthSent } from '@metamask/notification-services-controller/notification-services/mocks';
 

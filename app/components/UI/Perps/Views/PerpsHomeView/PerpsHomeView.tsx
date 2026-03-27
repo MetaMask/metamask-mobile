@@ -21,9 +21,9 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
+  TextColor,
 } from '@metamask/design-system-react-native';
 import { useStyles } from '../../../../../component-library/hooks';
-import { TextColor } from '../../../../../component-library/components/Texts/Text';
 import { strings } from '../../../../../../locales/i18n';
 import { formatPnl, formatPercentage } from '../../utils/formatUtils';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -141,10 +141,9 @@ const PerpsHomeView = () => {
   const { positionsSubtitle, positionsSubtitleColor, positionsSubtitleSuffix } =
     useMemo(() => {
       const pnlNum = parseFloat(unrealizedPnl);
-      const isPnlZero = BigNumber(unrealizedPnl).isZero();
 
-      // Only show subtitle when there are positions and P&L is non-zero
-      if (!hasPositions || isPnlZero) {
+      // Open (filled) positions only — hide when flat so spacing matches homepage sections
+      if (!hasPositions) {
         return {
           positionsSubtitle: undefined,
           positionsSubtitleColor: undefined,
@@ -154,12 +153,11 @@ const PerpsHomeView = () => {
 
       const color =
         pnlNum > 0
-          ? TextColor.Success
+          ? TextColor.SuccessDefault
           : pnlNum < 0
-            ? TextColor.Error
-            : TextColor.Alternative;
+            ? TextColor.ErrorDefault
+            : TextColor.TextDefault;
 
-      // Format: "-$18.47 (2.1%)" colored + "Unrealized PnL" in default color
       const subtitle = `${formatPnl(pnlNum)} (${formatPercentage(roe, 1)})`;
       const suffix = strings('perps.unrealized_pnl');
 
@@ -210,6 +208,8 @@ const PerpsHomeView = () => {
         PERPS_EVENT_VALUE.SCREEN_TYPE.PERPS_HOME,
       [PERPS_EVENT_PROPERTY.SOURCE]: source,
       [PERPS_EVENT_PROPERTY.HAS_PERP_BALANCE]: hasPerpBalance,
+      [PERPS_EVENT_PROPERTY.OPEN_POSITION]: livePositions.positions.length,
+      [PERPS_EVENT_PROPERTY.OPEN_ORDER]: orders?.length || 0,
       ...(buttonClicked && {
         [PERPS_EVENT_PROPERTY.BUTTON_CLICKED]: buttonClicked,
       }),
@@ -235,7 +235,7 @@ const PerpsHomeView = () => {
     );
     perpsNavigation.navigateToMarketList({
       defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       fromHome: true,
       button_clicked: PERPS_EVENT_VALUE.BUTTON_CLICKED.MAGNIFYING_GLASS,
       button_location: PERPS_EVENT_VALUE.BUTTON_LOCATION.PERPS_HOME,
@@ -257,7 +257,7 @@ const PerpsHomeView = () => {
         .build(),
     );
     navigation.navigate(Routes.PERPS.TUTORIAL, {
-      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
     });
   }, [navigation, trackEvent, createEventBuilder]);
 
@@ -445,7 +445,7 @@ const PerpsHomeView = () => {
               <PerpsCard
                 key={`${position.symbol}-${index}`}
                 position={position}
-                source={PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB}
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
               />
             ))}
           </View>
@@ -465,7 +465,7 @@ const PerpsHomeView = () => {
               <PerpsCard
                 key={order.orderId}
                 order={order}
-                source={PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB}
+                source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
               />
             ))}
           </View>
@@ -477,6 +477,7 @@ const PerpsHomeView = () => {
           isLoading={isLoading.markets}
           positions={positions}
           orders={orders}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
 
         {/* Crypto Markets List */}
@@ -487,6 +488,7 @@ const PerpsHomeView = () => {
             marketType="crypto"
             sortBy={sortBy}
             isLoading={isLoading.markets}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           />
         </View>
 
@@ -497,6 +499,7 @@ const PerpsHomeView = () => {
           marketType="commodities"
           sortBy={sortBy}
           isLoading={isLoading.markets}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
 
         {/* Stocks Markets List */}
@@ -507,6 +510,7 @@ const PerpsHomeView = () => {
             marketType="stocks"
             sortBy={sortBy}
             isLoading={isLoading.markets}
+            source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
           />
         </View>
 
@@ -516,6 +520,7 @@ const PerpsHomeView = () => {
           markets={forexMarkets}
           marketType="forex"
           isLoading={isLoading.markets}
+          source={PERPS_EVENT_VALUE.SOURCE.PERPS_HOME}
         />
 
         {/* Recent Activity List */}

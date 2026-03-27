@@ -25,9 +25,12 @@ import type {
   LineaTokenRewardDto,
   ApplyReferralDto,
   ApplyBonusCodeDto,
-  SnapshotDto,
   CampaignDto,
   CampaignParticipantStatusDto,
+  ClientVersionRequirementDto,
+  CampaignLeaderboardDto,
+  CampaignLeaderboardPositionDto,
+  OndoGmPortfolioDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -195,11 +198,6 @@ export interface RewardsDataServiceApplyBonusCodeAction {
   handler: RewardsDataService['applyBonusCode'];
 }
 
-export interface RewardsDataServiceGetSnapshotsAction {
-  type: `${typeof SERVICE_NAME}:getSnapshots`;
-  handler: RewardsDataService['getSnapshots'];
-}
-
 export interface RewardsDataServiceGetSubscriptionAccountsAction {
   type: `${typeof SERVICE_NAME}:getSubscriptionAccounts`;
   handler: RewardsDataService['getSubscriptionAccounts'];
@@ -218,6 +216,26 @@ export interface RewardsDataServiceOptInToCampaignAction {
 export interface RewardsDataServiceGetCampaignParticipantStatusAction {
   type: `${typeof SERVICE_NAME}:getCampaignParticipantStatus`;
   handler: RewardsDataService['getCampaignParticipantStatus'];
+}
+
+export interface RewardsDataServiceGetClientVersionRequirementsAction {
+  type: `${typeof SERVICE_NAME}:getClientVersionRequirements`;
+  handler: RewardsDataService['getClientVersionRequirements'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignLeaderboardAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboard`;
+  handler: RewardsDataService['getOndoCampaignLeaderboard'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignLeaderboardPositionAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignLeaderboardPosition`;
+  handler: RewardsDataService['getOndoCampaignLeaderboardPosition'];
+}
+
+export interface RewardsDataServiceGetOndoCampaignPortfolioPositionAction {
+  type: `${typeof SERVICE_NAME}:getOndoCampaignPortfolioPosition`;
+  handler: RewardsDataService['getOndoCampaignPortfolioPosition'];
 }
 
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
@@ -262,7 +280,6 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -272,7 +289,11 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetCampaignParticipantStatusAction;
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetClientVersionRequirementsAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -404,10 +425,6 @@ export class RewardsDataService {
       this.applyBonusCode.bind(this),
     );
     this.#messenger.registerActionHandler(
-      `${SERVICE_NAME}:getSnapshots`,
-      this.getSnapshots.bind(this),
-    );
-    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getSubscriptionAccounts`,
       this.getSubscriptionAccounts.bind(this),
     );
@@ -424,6 +441,18 @@ export class RewardsDataService {
       this.getCampaignParticipantStatus.bind(this),
     );
     this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignLeaderboard`,
+      this.getOndoCampaignLeaderboard.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignLeaderboardPosition`,
+      this.getOndoCampaignLeaderboardPosition.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getOndoCampaignPortfolioPosition`,
+      this.getOndoCampaignPortfolioPosition.bind(this),
+    );
+    this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getRewardsEnvUrl`,
       this.getRewardsEnvUrl.bind(this),
     );
@@ -438,6 +467,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getDefaultRewardsEnvUrl`,
       this.getDefaultRewardsEnvUrl.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:getClientVersionRequirements`,
+      this.getClientVersionRequirements.bind(this),
     );
   }
 
@@ -483,6 +516,25 @@ export class RewardsDataService {
       process.env.METAMASK_ENVIRONMENT,
     );
     return defaultUrl;
+  }
+
+  /**
+   * Fetch the minimum client version requirements from the public API.
+   * @returns The client version requirements DTO.
+   */
+  async getClientVersionRequirements(): Promise<ClientVersionRequirementDto> {
+    const response = await this.makeRequest(
+      '/public/client-version-requirements',
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get client version requirements failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as ClientVersionRequirementDto;
   }
 
   /**
@@ -1273,31 +1325,6 @@ export class RewardsDataService {
   }
 
   /**
-   * Get snapshots for a specific season.
-   * @param seasonId - The ID of the season to get snapshots for.
-   * @param subscriptionId - The subscription ID for authentication.
-   * @returns The list of snapshots for the season.
-   */
-  async getSnapshots(
-    seasonId: string,
-    subscriptionId: string,
-  ): Promise<SnapshotDto[]> {
-    const response = await this.makeRequest(
-      `/v1/seasons/${seasonId}/snapshots`,
-      {
-        method: 'GET',
-      },
-      subscriptionId,
-    );
-
-    if (!response.ok) {
-      throw new Error(`Get snapshots failed: ${response.status}`);
-    }
-
-    return (await response.json()) as SnapshotDto[];
-  }
-
-  /**
    * Get CAIP-10 encoded account addresses linked to the current subscription.
    * @param subscriptionId - The subscription ID for authentication.
    * @returns Array of CAIP-10 account strings (up to 1000).
@@ -1360,6 +1387,11 @@ export class RewardsDataService {
       subscriptionId,
     );
 
+    if (response.status === 409) {
+      // Already opted in — fetch and return current status as a graceful success
+      return this.getCampaignParticipantStatus(subscriptionId, campaignId);
+    }
+
     if (!response.ok) {
       throw new Error(`Opt-in to campaign failed: ${response.status}`);
     }
@@ -1390,5 +1422,86 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as CampaignParticipantStatusDto;
+  }
+
+  /**
+   * Get the campaign leaderboard showing top 20 participants per tier.
+   * This is a public endpoint - no authentication required.
+   * @param campaignId - The campaign ID to get leaderboard for.
+   * @returns The leaderboard data grouped by tier.
+   */
+  async getOndoCampaignLeaderboard(
+    campaignId: string,
+  ): Promise<CampaignLeaderboardDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/leaderboard`,
+      { method: 'GET' },
+    );
+
+    if (!response.ok) {
+      throw new Error(`Get campaign leaderboard failed: ${response.status}`);
+    }
+
+    return (await response.json()) as CampaignLeaderboardDto;
+  }
+
+  /**
+   * Get the current user's position on the campaign leaderboard.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID to get position for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The user's leaderboard position, or null if not found (404).
+   */
+  async getOndoCampaignLeaderboardPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<CampaignLeaderboardPositionDto | null> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/leaderboard/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign leaderboard position failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as CampaignLeaderboardPositionDto;
+  }
+
+  /**
+   * Get the current user's Ondo GM portfolio for a campaign.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID to get portfolio for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The portfolio, or null if not found (404).
+   */
+  async getOndoCampaignPortfolioPosition(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmPortfolioDto | null> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/portfolio/me`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(
+        `Get campaign portfolio position failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as OndoGmPortfolioDto;
   }
 }

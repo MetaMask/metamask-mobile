@@ -8,7 +8,6 @@ import { useNavigation } from '@react-navigation/native';
 import { WalletViewSelectorsIDs } from '../../../Views/Wallet/WalletView.testIds';
 import { useAnalytics } from '../../../hooks/useAnalytics/useAnalytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
-import { createMockUseAnalyticsHook } from '../../../../util/test/analyticsMock';
 import { SCROLL_TO_TOKEN_EVENT } from '../constants';
 
 // Mock external dependencies
@@ -18,14 +17,12 @@ jest.mock('@react-navigation/native', () => ({
 
 jest.mock('../../../hooks/useAnalytics/useAnalytics');
 
-jest.mock('../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      primary: { default: '#0376C9' },
-      icon: { default: '#24292E' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: jest.fn((key) => key),
@@ -76,25 +73,6 @@ jest.mock('./TokenListItem/TokenListItem', () => ({
     );
   },
 }));
-
-jest.mock('./TokenListItemV2/TokenListItemV2', () => ({
-  TokenListItemV2: ({ assetKey }: { assetKey: { address: string } }) => {
-    const React = jest.requireActual('react');
-    const { View, Text } = jest.requireActual('react-native');
-    return React.createElement(
-      View,
-      { testID: `token-item-v2-${assetKey.address}` },
-      React.createElement(Text, null, `Token V2: ${assetKey.address}`),
-    );
-  },
-}));
-
-jest.mock(
-  '../../../../selectors/featureFlagController/tokenListLayout',
-  () => ({
-    selectTokenListLayoutV2Enabled: jest.fn(() => false),
-  }),
-);
 
 // Mock design system components
 jest.mock('@metamask/design-system-react-native', () => ({
@@ -162,7 +140,9 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
   typeof useNavigation
 >;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseAnalytics = jest.mocked(useAnalytics);
+const mockUseAnalytics = useAnalytics as jest.MockedFunction<
+  typeof useAnalytics
+>;
 
 const mockTokenKeys = [
   {
@@ -194,14 +174,20 @@ describe('TokenList', () => {
       navigate: mockNavigate,
     } as unknown as ReturnType<typeof useNavigation>);
 
-    mockUseAnalytics.mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        // The real builder is needed so build() produces the correct event shape
-        // for assertions on trackEvent call arguments.
-        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
-      }),
-    );
+    mockUseAnalytics.mockReturnValue({
+      trackEvent: mockTrackEvent,
+      createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      enable: jest.fn(),
+      addTraitsToUser: jest.fn(),
+      createDataDeletionTask: jest.fn(),
+      checkDataDeleteStatus: jest.fn(),
+      getDeleteRegulationCreationDate: jest.fn(),
+      getDeleteRegulationId: jest.fn(),
+      isDataRecorded: jest.fn(),
+      isEnabled: jest.fn(),
+      getAnalyticsId: jest.fn(),
+      identify: jest.fn(),
+    });
 
     // Mock useSelector to call the selector function with empty state
     mockUseSelector.mockImplementation((selector) => selector({}));

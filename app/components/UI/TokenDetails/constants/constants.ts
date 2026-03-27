@@ -1,4 +1,5 @@
 import type { TokenI } from '../../Tokens/types';
+import type { TokenSecurityData } from '@metamask/assets-controllers';
 
 /**
  * Source of navigation to Token Details page
@@ -8,6 +9,8 @@ export enum TokenDetailsSource {
   MobileTokenList = 'mobile-token-list',
   /** Token list in full page view */
   MobileTokenListPage = 'mobile-token-list-page',
+  /** Homepage section entry point */
+  HomeSection = 'home_section',
   /** Trending tokens section */
   Trending = 'trending',
   /** Swap/Bridge token selector */
@@ -22,4 +25,5 @@ export enum TokenDetailsSource {
  */
 export interface TokenDetailsRouteParams extends TokenI {
   source?: TokenDetailsSource;
+  securityData?: TokenSecurityData;
 }

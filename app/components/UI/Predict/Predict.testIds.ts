@@ -80,6 +80,14 @@ export const getPredictFeedMockSelector = {
 // PREDICT MARKET DETAILS SELECTORS
 // ========================================
 
+export type PredictMarketDetailsTabKey = 'positions' | 'outcomes' | 'about';
+
+export const getPredictMarketDetailsSelector = {
+  tabBarTab: (tabKey: PredictMarketDetailsTabKey) =>
+    `predict-market-details-tab-bar-tab-${tabKey}`,
+  icon: (name: string) => `icon-${name}`,
+} as const;
+
 export const PredictMarketDetailsSelectorsIDs = {
   // Main screen
   SCREEN: 'predict-market-details-screen',
@@ -96,9 +104,9 @@ export const PredictMarketDetailsSelectorsIDs = {
   OUTCOMES_TAB: 'predict-market-details-outcomes-tab',
 
   // Tab labels
-  POSITIONS_TAB_LABEL: 'predict-market-details-tab-bar-tab-0',
-  OUTCOMES_TAB_LABEL: 'predict-market-details-tab-bar-tab-1',
-  ABOUT_TAB_LABEL: 'predict-market-details-tab-bar-tab-2',
+  POSITIONS_TAB_LABEL: getPredictMarketDetailsSelector.tabBarTab('positions'),
+  OUTCOMES_TAB_LABEL: getPredictMarketDetailsSelector.tabBarTab('outcomes'),
+  ABOUT_TAB_LABEL: getPredictMarketDetailsSelector.tabBarTab('about'),
 
   // Tab content containers
   ABOUT_TAB_CONTENT: 'about-tab-content',
@@ -128,10 +136,6 @@ export const PredictMarketDetailsSelectorsIDs = {
   // Action buttons (Yes/No for single outcome markets)
   ACTION_BUTTON_YES: 'predict-market-details-action-button-yes',
   ACTION_BUTTON_NO: 'predict-market-details-action-button-no',
-} as const;
-
-export const getPredictMarketDetailsSelector = {
-  tabBarTab: (index: number) => `predict-market-details-tab-bar-tab-${index}`,
 } as const;
 
 export const PredictMarketDetailsSelectorsText = {
@@ -250,6 +254,11 @@ export const getPredictSearchSelector = {
 
 export const PredictBalanceSelectorsIDs = {
   BALANCE_CARD: 'predict-balance-card',
+} as const;
+
+export const PredictBalanceSelectorsText = {
+  AVAILABLE_BALANCE: enContent.predict.available_balance,
+  WITHDRAW: enContent.predict.deposit.withdraw,
 } as const;
 
 // ========================================

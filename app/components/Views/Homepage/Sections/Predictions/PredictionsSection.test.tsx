@@ -25,6 +25,29 @@ jest.mock('../../../../UI/Predict/hooks/usePredictClaim', () => ({
   usePredictClaim: () => ({ claim: mockClaim }),
 }));
 
+jest.mock('../../../../UI/Predict/hooks/useUnrealizedPnL', () => ({
+  useUnrealizedPnL: jest.fn(() => ({
+    data: { cashUpnl: 10, percentUpnl: 5, user: '0x0' },
+    isLoading: false,
+    error: null,
+  })),
+}));
+
+jest.mock('../../../../../selectors/preferencesController', () => ({
+  ...jest.requireActual('../../../../../selectors/preferencesController'),
+  selectPrivacyMode: () => false,
+}));
+
+jest.mock('@tanstack/react-query', () => {
+  const actual = jest.requireActual('@tanstack/react-query');
+  return {
+    ...actual,
+    useQueryClient: jest.fn(() => ({
+      invalidateQueries: jest.fn(() => Promise.resolve()),
+    })),
+  };
+});
+
 // Mock the hooks
 jest.mock('./hooks', () => ({
   usePredictMarketsForHomepage: jest.fn(() => ({
@@ -310,7 +333,7 @@ describe('PredictionsSection', () => {
   });
 
   describe('error state', () => {
-    it('renders error state when markets fail to load', () => {
+    it('returns null when markets fail to load', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: false,
@@ -318,15 +341,14 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       });
 
-      renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
-      expect(screen.getByText('Unable to load predictions')).toBeOnTheScreen();
-      expect(screen.getByText('Retry')).toBeOnTheScreen();
+      expect(toJSON()).toBeNull();
     });
 
-    it('does not render error state while still loading', () => {
+    it('renders loading state instead of returning null while data is still loading', () => {
       mockUsePredictMarketsForHomepage.mockReturnValue({
         markets: [],
         isLoading: true,
@@ -334,13 +356,11 @@ describe('PredictionsSection', () => {
         refetch: jest.fn(),
       });
 
-      renderWithProvider(
+      const { toJSON } = renderWithProvider(
         <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
       );
 
-      expect(
-        screen.queryByText('Unable to load predictions'),
-      ).not.toBeOnTheScreen();
+      expect(toJSON()).not.toBeNull();
     });
   });
 
