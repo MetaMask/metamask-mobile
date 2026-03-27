@@ -163,7 +163,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {campaign.details?.howItWorks &&
                 !isOptedIn &&
-                areEntriesClosed &&
+                !areEntriesClosed &&
                 getCampaignStatus(campaign) === 'active' && (
                   <>
                     <Box twClassName="border-b border-border-muted" />

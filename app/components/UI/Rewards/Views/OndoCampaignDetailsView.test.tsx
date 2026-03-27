@@ -384,8 +384,9 @@ describe('OndoCampaignDetailsView', () => {
       expect(getByTestId('campaign-status')).toBeDefined();
     });
 
-    it('renders CampaignHowItWorks when campaign is active and past the deposit cutoff date', () => {
-      // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff
+    it('does not render CampaignHowItWorks when campaign is active and past the deposit cutoff date', () => {
+      // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff.
+      // HowItWorks is hidden once entries are closed so the user sees the leaderboard instead.
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
@@ -401,12 +402,13 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('campaign-how-it-works')).toBeDefined();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('campaign-how-it-works')).toBeNull();
     });
 
-    it('does not render CampaignHowItWorks when campaign is active and entries are still open', () => {
-      // Any real-world date is "future" relative to the mocked Date.now() of 123ms
+    it('renders CampaignHowItWorks when campaign is active and entries are still open', () => {
+      // Any real-world date is "future" relative to the mocked Date.now() of 123ms,
+      // so opt-in is still allowed and HowItWorks should be visible.
       const nextWeek = new Date();
       nextWeek.setDate(nextWeek.getDate() + 7);
       mockUseRewardCampaigns.mockReturnValue({
@@ -424,8 +426,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('campaign-how-it-works')).toBeNull();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('campaign-how-it-works')).toBeDefined();
     });
 
     it('does not render CampaignHowItWorks when campaign has no details', () => {
