@@ -34,6 +34,7 @@ import { rewardsBulkLinkSaga } from './rewardsBulkLinkAccountGroups';
 import Authentication from '../../core/Authentication';
 import { AppState, AppStateStatus } from 'react-native';
 import trackErrorAsAnalytics from '../../util/metrics/TrackError/trackErrorAsAnalytics';
+import { providerErrors } from '@metamask/rpc-errors';
 
 /**
  * Creates a channel to listen to app state changes.
@@ -51,7 +52,12 @@ function appStateListenerChannel() {
  * Checks seedless password status and performs the correct auth flow.
  */
 async function tryBiometricUnlock(): Promise<void> {
-  if (await Authentication.checkIsSeedlessPasswordOutdated()) {
+  if (
+    await Authentication.checkIsSeedlessPasswordOutdated({
+      skipCache: true,
+      captureSentryError: false,
+    })
+  ) {
     NavigationService.navigation?.reset({
       routes: [
         {
@@ -108,6 +114,19 @@ export function* appStateListenerTask() {
 export function* appLockStateMachine() {
   while (true) {
     yield take(UserActionType.LOCKED_APP);
+
+    // Reject any pending confirmations so the user doesn't see a stale confirmation after unlock.
+    try {
+      const { ApprovalController } = Engine.context;
+      if (ApprovalController) {
+        ApprovalController.clearRequests(providerErrors.userRejectedRequest());
+      }
+    } catch (error) {
+      Logger.error(
+        error as Error,
+        'Failed to reject pending approvals on app lock',
+      );
+    }
 
     // Navigate to lock screen.
     NavigationService.navigation?.navigate(Routes.LOCK_SCREEN);

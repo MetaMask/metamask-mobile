@@ -19,9 +19,11 @@ class LoginScreen {
   get loginScreen() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.CONTAINER);
-    } else {
-      return AppwrightSelectors.getElementByResourceId(this._device, LoginViewSelectors.CONTAINER);
     }
+    return AppwrightSelectors.getElementByID(
+      this._device,
+      LoginViewSelectors.CONTAINER,
+    );
   }
 
   get welcomeBackText() {
@@ -46,23 +48,26 @@ class LoginScreen {
     );
   }
 
+  // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)
   get getPasswordInputElement() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(
         LoginViewSelectors.PASSWORD_INPUT,
       );
-    } else {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByID(
-          this._device,
-          LoginViewSelectors.PASSWORD_INPUT,
-        );
-      } else {
-        return AppwrightSelectors.getElementByID(this._device, "textfield", true);
-      }
     }
+     if (AppwrightSelectors.isAndroid(this._device)) {
+      return AppwrightSelectors.getElementByCatchAll(
+        this._device,
+        LoginViewSelectors.PASSWORD_INPUT,
+      );
+    }
+    return AppwrightSelectors.getElementByID(
+      this._device,
+      LoginViewSelectors.PASSWORD_INPUT,
+    );
   }
 
+  // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)
   get unlockButton() {
     // TODO: update the component to have a testID property and use that instead of text
     if (!this._device) {
@@ -72,6 +77,7 @@ class LoginScreen {
     }
   }
 
+  // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)
   get title() {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(LoginViewSelectors.TITLE_ID);
@@ -100,6 +106,7 @@ class LoginScreen {
     }
   }
 
+  // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)
   async waitForScreenToDisplay() {
     if (!this._device) {
       const element = await this.title;
@@ -119,6 +126,7 @@ class LoginScreen {
     }
   }
 
+  // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)
   async typePassword(password) {
     //await this.isLoginScreenVisible();
     if (!this._device) {
@@ -131,6 +139,7 @@ class LoginScreen {
     }
   }
 
+  // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)
   async tapUnlockButton() {
     if (!this._device) {
       const element = await this.unlockButton;

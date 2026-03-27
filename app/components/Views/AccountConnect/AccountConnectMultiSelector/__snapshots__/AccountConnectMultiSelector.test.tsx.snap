@@ -48,7 +48,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
           testID="sheet-header-back-button"
         >
           <SvgMock
-            color="#121314"
+            color="#131416"
             fill="currentColor"
             height={20}
             name="ArrowLeft"
@@ -66,9 +66,9 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Bold",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -97,7 +97,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,
@@ -180,7 +180,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                 accessibilityRole="text"
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Regular",
                     "fontSize": 16,
                     "letterSpacing": 0,
@@ -432,7 +432,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -448,7 +448,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -467,7 +467,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               accessible={true}
               style={
                 {
-                  "backgroundColor": "#3c4d9d0f",
+                  "backgroundColor": "#b4b4b528",
                   "bottom": 0,
                   "flexDirection": "row",
                   "left": 0,
@@ -542,7 +542,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                         {
                           "alignItems": "center",
                           "backgroundColor": "#ffffff",
-                          "borderColor": "#b7bbc8",
+                          "borderColor": "#949596",
                           "borderRadius": 4,
                           "borderWidth": 2,
                           "height": 20,
@@ -605,7 +605,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#121314",
+                          "color": "#131416",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -621,7 +621,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
                       numberOfLines={1}
                       style={
                         {
-                          "color": "#686e7d",
+                          "color": "#66676a",
                           "fontFamily": "Geist-Regular",
                           "fontSize": 16,
                           "letterSpacing": 0,
@@ -675,7 +675,7 @@ exports[`AccountConnectMultiSelector renders correctly 1`] = `
               {
                 "alignItems": "center",
                 "alignSelf": "flex-start",
-                "backgroundColor": "#121314",
+                "backgroundColor": "#131416",
                 "borderRadius": 12,
                 "flex": 1,
                 "flexDirection": "row",

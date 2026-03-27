@@ -30,20 +30,12 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-        alternative: '#F2F4F6',
-      },
-      text: {
-        default: '#24272A',
-        alternative: '#6A737D',
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
@@ -158,15 +150,16 @@ describe('AccountsMenu', () => {
     mockAlert = jest.spyOn(Alert, 'alert').mockImplementation(jest.fn());
     // Setup useSelector to return different values based on the selector
     (useSelector as jest.Mock).mockImplementation((selector) => {
-      // Mock state object
       const mockState = {
-        fiatOrders: { detectedGeolocation: 'US' },
+        engine: {
+          backgroundState: {
+            GeolocationController: { location: 'US' },
+          },
+        },
       };
 
-      // Try to call the selector with mock state
       try {
         const result = selector(mockState);
-        // If it's the geolocation selector, return 'US'
         if (result === 'US') {
           return 'US';
         }
@@ -433,7 +426,11 @@ describe('AccountsMenu', () => {
     } = {}) => {
       (useSelector as jest.Mock).mockImplementation((selector) => {
         const mockState = {
-          fiatOrders: { detectedGeolocation: 'US' },
+          engine: {
+            backgroundState: {
+              GeolocationController: { location: 'US' },
+            },
+          },
         };
 
         try {
@@ -628,6 +625,26 @@ describe('AccountsMenu', () => {
 
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.SETTINGS.SDK_SESSIONS_MANAGER,
+      );
+    });
+  });
+
+  describe('Networks Row', () => {
+    it('render Networks row', () => {
+      const { getByText, getByTestId } = render(<AccountsMenu />);
+
+      expect(getByText('accounts_menu.networks')).toBeOnTheScreen();
+      expect(getByTestId(AccountsMenuSelectorsIDs.NETWORKS)).toBeOnTheScreen();
+    });
+
+    it('navigate to NetworksManagement when Networks is pressed', () => {
+      const { getByTestId } = render(<AccountsMenu />);
+      const networksButton = getByTestId(AccountsMenuSelectorsIDs.NETWORKS);
+
+      fireEvent.press(networksButton);
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.NETWORKS_MANAGEMENT,
       );
     });
   });

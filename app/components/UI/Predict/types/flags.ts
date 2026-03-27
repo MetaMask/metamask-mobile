@@ -1,13 +1,8 @@
-import type { Hex } from '@metamask/utils';
+import { Infer } from '@metamask/superstruct';
+import { PredictFeeCollectionSchema } from '../schemas';
 import { VersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 
-export interface PredictFeeCollection {
-  enabled: boolean;
-  collector: Hex;
-  metamaskFee: number;
-  providerFee: number;
-  waiveList: string[];
-}
+export type PredictFeeCollection = Infer<typeof PredictFeeCollectionSchema>;
 
 export interface PredictLiveSportsFlag {
   enabled: boolean;
@@ -27,6 +22,7 @@ export interface PredictFeatureFlags {
   feeCollection: PredictFeeCollection;
   liveSportsLeagues: string[];
   marketHighlightsFlag: PredictMarketHighlightsFlag;
+  fakOrdersEnabled: boolean;
 }
 
 export interface PredictHotTabFlag extends VersionGatedFeatureFlag {

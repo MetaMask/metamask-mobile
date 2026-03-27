@@ -7,6 +7,16 @@ export enum Side {
   SELL = 'SELL',
 }
 
+export type PredictOrderType = 'FOK' | 'FAK';
+
+export enum ActiveOrderState {
+  PREVIEW = 'preview',
+  DEPOSITING = 'depositing',
+  PLACING_ORDER = 'placing_order',
+  REDIRECTING = 'redirecting',
+  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
+}
+
 export enum PredictPriceHistoryInterval {
   ONE_HOUR = '1h',
   SIX_HOUR = '6h',
@@ -125,21 +135,21 @@ export type PredictSportsLeague = 'nfl' | 'nba';
 export type PredictGameStatus = 'scheduled' | 'ongoing' | 'ended';
 
 // Team data
-export interface PredictSportTeam {
+export type PredictSportTeam = {
   id: string;
   name: string;
   logo: string;
   abbreviation: string; // e.g., "SEA", "DEN"
   color: string; // Team primary color (hex)
   alias: string; // Team alias (e.g., "Seahawks")
-}
+};
 
 // Parsed score data
-export interface PredictGameScore {
+export type PredictGameScore = {
   away: number;
   home: number;
   raw: string; // Original "away-home" format (e.g., "21-14")
-}
+};
 
 export type PredictGamePeriod =
   | 'NS' // Not Started
@@ -153,10 +163,11 @@ export type PredictGamePeriod =
   | 'End Q4' // End of Fourth Quarter
   | 'OT' // Overtime
   | 'FT' // Final
-  | 'VFT'; // Verified fulltime (when closed=true)
+  | 'VFT' // Verified fulltime (when closed=true)
+  | (string & {}); // Escape hatch for future sports with different period formats
 
 // Game data attached to market
-export interface PredictMarketGame {
+export type PredictMarketGame = {
   id: string;
   startTime: string;
   endTime?: string; // ISO date when game ended, available for ended games
@@ -168,7 +179,7 @@ export interface PredictMarketGame {
   homeTeam: PredictSportTeam;
   awayTeam: PredictSportTeam;
   turn?: string; // Team abbreviation with possession
-}
+};
 
 // Live update types for WebSocket data
 export interface GameUpdate {
@@ -433,6 +444,8 @@ export interface PredictFees {
   totalFee: number;
   totalFeePercentage: number;
   collector: Hex;
+  executors?: string[];
+  permit2Enabled?: boolean;
 }
 
 /**
@@ -468,6 +481,7 @@ export interface OrderPreview {
   // For sell orders, we can store the position ID
   // so we can perform optimistic updates
   positionId?: string;
+  orderType?: PredictOrderType;
 }
 
 export type OrderResult = Result<{

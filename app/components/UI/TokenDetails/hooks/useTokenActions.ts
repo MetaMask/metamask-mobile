@@ -94,11 +94,18 @@ export interface UseTokenActionsResult {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
-  goToSwaps: () => void;
+  goToSwaps: (
+    tokenOverride?: BridgeToken,
+    destTokenOverride?: BridgeToken,
+    buttonLabel?: string,
+    scrollToTopOnNav?: boolean,
+  ) => void;
   /** Sticky bar Buy handler - smart source selection, current asset as destination */
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
   handleSellPress: () => void;
+  /** Whether the user has any tokens with positive balance that can be used as a swap source */
+  hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
 }
 
@@ -176,10 +183,11 @@ export const useTokenActions = ({
       location: ActionLocation.ASSET_DETAILS,
     });
 
-    const accountForChain =
-      isNonEvmToken && token.chainId
-        ? getAccountByScope(token.chainId as CaipChainId)
-        : selectedInternalAccount;
+    const accountForChain = token.chainId
+      ? (getAccountByScope(
+          formatChainIdToCaip(token.chainId as Hex) as CaipChainId,
+        ) ?? selectedInternalAccount)
+      : selectedInternalAccount;
 
     const addressForChain = accountForChain?.address;
 
@@ -322,7 +330,7 @@ export const useTokenActions = ({
         .build(),
     );
 
-    goToBuy({ assetId });
+    goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
   }, [
     trackEvent,
     createEventBuilder,
@@ -431,12 +439,17 @@ export const useTokenActions = ({
         assetId = undefined;
       }
 
-      goToBuy({ assetId });
+      goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
       return;
     }
 
     if (!goToSwaps) return;
-    goToSwaps(buySourceToken, currentTokenAsBridgeToken);
+    goToSwaps(
+      buySourceToken,
+      currentTokenAsBridgeToken,
+      strings('asset_overview.buy_button'),
+      true,
+    );
   }, [
     goToSwaps,
     goToBuy,
@@ -449,7 +462,12 @@ export const useTokenActions = ({
   // Sell: current token as source, let swap UI compute default dest
   const handleSellPress = useCallback(() => {
     if (!goToSwaps) return;
-    goToSwaps(currentTokenAsBridgeToken, undefined);
+    goToSwaps(
+      currentTokenAsBridgeToken,
+      undefined,
+      strings('asset_overview.sell_button'),
+      true,
+    );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
   return {
@@ -459,6 +477,7 @@ export const useTokenActions = ({
     goToSwaps,
     handleBuyPress,
     handleSellPress,
+    hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };
 };

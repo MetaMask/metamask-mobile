@@ -2,27 +2,21 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
-  useState,
 } from 'react';
-import {
-  ScrollView,
-  NativeSyntheticEvent,
-  NativeScrollEvent,
-  View,
-  StyleSheet,
-} from 'react-native';
-import LinearGradient from 'react-native-linear-gradient';
+import { useQueryClient } from '@tanstack/react-query';
+import { ScrollView, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { Box, TextVariant } from '@metamask/design-system-react-native';
-import { useTheme } from '../../../../../util/theme';
-import SectionTitle from '../../components/SectionTitle';
-import ErrorState from '../../components/ErrorState';
+import { Box } from '@metamask/design-system-react-native';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import Routes from '../../../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
 import {
   usePredictMarketsForHomepage,
@@ -35,26 +29,26 @@ import {
   PredictPositionRowSkeleton,
 } from './components';
 import ViewMoreCard from '../../components/ViewMoreCard';
-import { colorWithOpacity } from '../../../../../util/colors';
-import type { PredictPosition } from '../../../../UI/Predict/types';
+import type {
+  PredictPosition,
+  UnrealizedPnL,
+} from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
+import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
+import { predictQueries } from '../../../../UI/Predict/queries';
+import { getEvmAccountFromSelectedAccountGroup } from '../../../../UI/Predict/utils/accounts';
+import { formatPredictUnrealizedPnLStringParts } from '../../../../UI/Predict/utils/format';
+import useHomeViewedEvent, {
+  HomeSectionNames,
+} from '../../hooks/useHomeViewedEvent';
+import HomepageSectionUnrealizedPnlRow, {
+  type HomepageUnrealizedPnlTone,
+} from '../../components/HomepageSectionUnrealizedPnlRow';
 
 const MAX_MARKETS_DISPLAYED = 5;
-
-// Card dimensions for snap offsets
-const CARD_WIDTH = 280;
-const GAP = 12;
-const PADDING = 16; // px-4
-
-// Calculate snap offsets: first card at 0, then padding + card + (gap + card) * n
-// ViewMoreCard is excluded — its snap position would exceed max scroll on typical screens,
-// causing the scroll view to snap back and never reach it.
-const SNAP_OFFSETS = Array.from({ length: MAX_MARKETS_DISPLAYED }, (_, i) =>
-  i === 0 ? 0 : PADDING + CARD_WIDTH + (GAP + CARD_WIDTH) * (i - 1),
-);
 
 // Skeleton keys for loading state
 const SKELETON_KEYS = Array.from(
@@ -62,22 +56,52 @@ const SKELETON_KEYS = Array.from(
   (__, i) => `skeleton-${i}`,
 );
 
-// Fade overlay width
-const FADE_WIDTH = 40;
+interface PredictionsSectionProps {
+  sectionIndex: number;
+  totalSectionsLoaded: number;
+}
 
-const styles = StyleSheet.create({
-  scrollContainer: {
-    position: 'relative',
-  },
-  fadeOverlay: {
-    position: 'absolute',
-    right: 0,
-    top: 0,
-    bottom: 0,
-    width: FADE_WIDTH,
-    pointerEvents: 'none',
-  },
-});
+interface PredictHomepageUnrealizedPnlRowState {
+  show: boolean;
+  isLoading: boolean;
+  valueText?: string;
+  tone: HomepageUnrealizedPnlTone;
+}
+
+function getPredictHomepageUnrealizedPnlRowState(input: {
+  hasPositions: boolean;
+  privacyMode: boolean;
+  isPnlLoading: boolean;
+  pnl: UnrealizedPnL | null | undefined;
+}): PredictHomepageUnrealizedPnlRowState {
+  const { hasPositions, privacyMode, isPnlLoading, pnl } = input;
+
+  if (!hasPositions || privacyMode) {
+    return { show: false, isLoading: false, tone: 'neutral' };
+  }
+  if (isPnlLoading) {
+    return { show: true, isLoading: true, tone: 'neutral' };
+  }
+  if (!pnl) {
+    return { show: false, isLoading: false, tone: 'neutral' };
+  }
+
+  const cashUpnl = pnl.cashUpnl ?? 0;
+  const valueText = strings(
+    'predict.unrealized_pnl_value',
+    formatPredictUnrealizedPnLStringParts({
+      cashUpnl,
+      percentUpnl: pnl.percentUpnl ?? 0,
+    }),
+  );
+
+  return {
+    show: true,
+    isLoading: false,
+    valueText,
+    tone: cashUpnl > 0 ? 'positive' : cashUpnl < 0 ? 'negative' : 'neutral',
+  };
+}
 
 /**
  * PredictionsSection - Displays prediction content on the homepage
@@ -88,68 +112,109 @@ const styles = StyleSheet.create({
  *
  * Returns null if the Predict feature flag is disabled.
  */
-const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
+const PredictionsSection = forwardRef<
+  SectionRefreshHandle,
+  PredictionsSectionProps
+>(({ sectionIndex, totalSectionsLoaded }, ref) => {
+  const sectionViewRef = useRef<View>(null);
   const tw = useTailwind();
-  const { colors } = useTheme();
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const privacyMode = useSelector(selectPrivacyMode);
+  const queryClient = useQueryClient();
   const title = strings('homepage.sections.predictions');
   const { claim } = usePredictClaim();
-
-  // Track scroll position for fade effect
-  const [fadeOpacity, setFadeOpacity] = useState(1);
 
   // Fetch both positions and markets
   const {
     positions,
     isLoading: isLoadingPositions,
     error: positionsError,
-    refresh: refreshPositions,
+    refetch: refetchPositions,
   } = usePredictPositionsForHomepage();
 
   const {
     markets,
     isLoading: isLoadingMarkets,
     error: marketsError,
-    refresh: refreshMarkets,
+    refetch: refetchMarkets,
   } = usePredictMarketsForHomepage(MAX_MARKETS_DISPLAYED);
 
-  const {
-    positions: claimablePositions,
-    isLoading: isLoadingClaimable,
-    refresh: refreshClaimable,
-  } = usePredictPositionsForHomepage(undefined, true);
+  const { totalClaimableValue, isLoading: isLoadingClaimable } =
+    usePredictPositionsForHomepage({ claimable: true });
 
   const handleClaim = useCallback(async () => {
     await claim();
-    await refreshClaimable();
-  }, [claim, refreshClaimable]);
-
-  const totalClaimable = claimablePositions.reduce(
-    (sum, p) => sum + (p.currentValue ?? 0),
-    0,
-  );
+  }, [claim]);
 
   // Determine if user has positions
   const hasPositions = positions.length > 0;
 
-  // Use ref so refresh always reads the latest value without stale closures
-  const hasPositionsRef = useRef(hasPositions);
-  hasPositionsRef.current = hasPositions;
+  const {
+    data: predictUnrealizedPnL,
+    isLoading: isPredictUnrealizedPnLLoading,
+  } = useUnrealizedPnL({
+    enabled: hasPositions,
+  });
 
-  // Refresh: only refresh positions if user has them, always refresh markets + claimable
+  const predictHomepageUnrealizedPnl = useMemo(
+    () =>
+      getPredictHomepageUnrealizedPnlRowState({
+        hasPositions,
+        privacyMode,
+        isPnlLoading: isPredictUnrealizedPnLLoading,
+        pnl: predictUnrealizedPnL,
+      }),
+    [
+      hasPositions,
+      privacyMode,
+      isPredictUnrealizedPnLLoading,
+      predictUnrealizedPnL,
+    ],
+  );
+
+  const isLoading = isLoadingPositions || isLoadingMarkets;
+
+  const hasError =
+    !isLoadingPositions &&
+    !isLoadingMarkets &&
+    !hasPositions &&
+    markets.length === 0 &&
+    (positionsError || marketsError);
+
+  const isEmpty =
+    !isLoading && !hasPositions && markets.length === 0 && !hasError;
+
+  const itemCount = hasPositions ? positions.length : markets.length;
+
+  // Determine whether the section will actually render visible content.
+  // Pass null when the section returns null so the event fires immediately.
+  // !isLoading is required: isEmpty is false during loading (its formula starts
+  // with !isLoading), so without this guard the hook would fire with stale
+  // itemCount/isEmpty values before data arrives.
+  const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
+
+  const { onLayout } = useHomeViewedEvent({
+    sectionRef: willRender ? sectionViewRef : null,
+    isLoading,
+    sectionName: HomeSectionNames.PREDICT,
+    sectionIndex,
+    totalSectionsLoaded,
+    // Treat error state as empty — there is no useful content to show.
+    isEmpty: isEmpty || !!hasError,
+    itemCount,
+  });
+
   const refresh = useCallback(async () => {
-    if (hasPositionsRef.current) {
-      await Promise.all([
-        refreshPositions(),
-        refreshMarkets(),
-        refreshClaimable(),
-      ]);
-    } else {
-      await Promise.all([refreshMarkets(), refreshClaimable()]);
-    }
-  }, [refreshPositions, refreshMarkets, refreshClaimable]);
+    const addr = getEvmAccountFromSelectedAccountGroup()?.address;
+    const invalidatePnl = addr
+      ? queryClient.invalidateQueries({
+          queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
+        })
+      : Promise.resolve();
+    await Promise.all([refetchPositions(), refetchMarkets(), invalidatePnl]);
+  }, [queryClient, refetchPositions, refetchMarkets]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -158,32 +223,6 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
       screen: Routes.PREDICT.MARKET_LIST,
     });
   }, [navigation]);
-
-  // Handle scroll to update fade opacity
-  const handleScroll = useCallback(
-    (event: NativeSyntheticEvent<NativeScrollEvent>) => {
-      const { contentOffset, contentSize, layoutMeasurement } =
-        event.nativeEvent;
-      const scrollableWidth = contentSize.width - layoutMeasurement.width;
-
-      // No scrollable content — hide fade
-      if (scrollableWidth <= 0) {
-        setFadeOpacity(0);
-        return;
-      }
-
-      const distanceFromEnd = scrollableWidth - contentOffset.x;
-
-      // Fade out the overlay as we approach the end (within 100px)
-      const fadeThreshold = 100;
-      const newOpacity = Math.min(
-        1,
-        Math.max(0, distanceFromEnd / fadeThreshold),
-      );
-      setFadeOpacity(newOpacity);
-    },
-    [],
-  );
 
   const handlePositionPress = useCallback(
     (position: PredictPosition) => {
@@ -204,58 +243,62 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
     return null;
   }
 
-  // Show error state when both hooks fail and nothing is loading
-  const hasError =
-    !isLoadingPositions &&
-    !isLoadingMarkets &&
-    !hasPositions &&
-    markets.length === 0 &&
-    (positionsError || marketsError);
-
+  // Don't render if there is a connection error
   if (hasError) {
-    return (
-      <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <ErrorState
-          title={strings('homepage.error.unable_to_load', {
-            section: title.toLowerCase(),
-          })}
-          onRetry={refresh}
-        />
-      </Box>
-    );
+    return null;
   }
 
   // Render positions if user has any
   if (hasPositions || isLoadingPositions) {
     return (
-      <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
-        <Box>
-          {isLoadingPositions ? (
-            <>
-              <PredictPositionRowSkeleton />
-              <PredictPositionRowSkeleton />
-            </>
-          ) : (
-            positions.map((position) => (
-              <PredictPositionRow
-                key={`${position.outcomeId}:${position.outcomeIndex}`}
-                position={position}
-                onPress={handlePositionPress}
+      <View ref={sectionViewRef} onLayout={onLayout}>
+        <Box gap={3}>
+          <Box gap={1}>
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPredictions}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                'predictions',
+              )}
+            />
+            {predictHomepageUnrealizedPnl.show && (
+              <HomepageSectionUnrealizedPnlRow
+                isLoading={predictHomepageUnrealizedPnl.isLoading}
+                valueText={predictHomepageUnrealizedPnl.valueText}
+                tone={predictHomepageUnrealizedPnl.tone}
+                label={strings('predict.unrealized_pnl_label')}
+                testID="homepage-predict-unrealized-pnl"
               />
-            ))
-          )}
-          {!isLoadingPositions && !isLoadingClaimable && totalClaimable > 0 && (
-            <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
-              <PredictClaimButton
-                amount={totalClaimable}
-                onPress={handleClaim}
-              />
-            </Box>
-          )}
+            )}
+          </Box>
+          <Box>
+            {isLoadingPositions ? (
+              <>
+                <PredictPositionRowSkeleton />
+                <PredictPositionRowSkeleton />
+              </>
+            ) : (
+              positions.map((position) => (
+                <PredictPositionRow
+                  key={`${position.outcomeId}:${position.outcomeIndex}`}
+                  position={position}
+                  onPress={handlePositionPress}
+                />
+              ))
+            )}
+            {!isLoadingPositions &&
+              !isLoadingClaimable &&
+              totalClaimableValue > 0 && (
+                <Box paddingHorizontal={4} paddingTop={1} paddingBottom={3}>
+                  <PredictClaimButton
+                    amount={totalClaimableValue}
+                    onPress={handleClaim}
+                  />
+                </Box>
+              )}
+          </Box>
         </Box>
-      </Box>
+      </View>
     );
   }
 
@@ -266,17 +309,17 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
 
   // Render trending markets if no positions
   return (
-    <Box gap={3}>
-      <SectionTitle title={title} onPress={handleViewAllPredictions} />
-      <View style={styles.scrollContainer}>
+    <View ref={sectionViewRef} onLayout={onLayout}>
+      <Box gap={3}>
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllPredictions}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+        />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={tw.style('px-4 gap-3')}
-          snapToOffsets={SNAP_OFFSETS}
-          decelerationRate="fast"
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
         >
           {isLoadingMarkets ? (
             SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
@@ -287,26 +330,13 @@ const PredictionsSection = forwardRef<SectionRefreshHandle>((_, ref) => {
               ))}
               <ViewMoreCard
                 onPress={handleViewAllPredictions}
-                twClassName="w-[180px] h-[180px]"
-                textVariant={TextVariant.BodyLg}
+                twClassName="w-[180px] flex-1"
               />
             </>
           )}
         </ScrollView>
-        {/* Fade overlay on the right edge */}
-        {fadeOpacity > 0 && (
-          <LinearGradient
-            colors={[
-              colorWithOpacity(colors.background.default, 0),
-              colors.background.default,
-            ]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 0 }}
-            style={[styles.fadeOverlay, { opacity: fadeOpacity }]}
-          />
-        )}
-      </View>
-    </Box>
+      </Box>
+    </View>
   );
 });
 

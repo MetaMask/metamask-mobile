@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import {
   selectProviders,
-  selectRampsOrders,
+  selectRampsOrdersForSelectedAccountGroup,
 } from '../../../../selectors/rampsController';
 import { type Provider } from '@metamask/ramps-controller';
 import Engine from '../../../../core/Engine';
@@ -55,7 +55,9 @@ export function useRampsProviders(): UseRampsProvidersResult {
   } = useSelector(selectProviders);
 
   const legacyOrders = useSelector(getOrders);
-  const controllerOrders = useSelector(selectRampsOrders);
+  const controllerOrders = useSelector(
+    selectRampsOrdersForSelectedAccountGroup,
+  );
 
   const completedOrders = useMemo(
     () => [
@@ -72,7 +74,7 @@ export function useRampsProviders(): UseRampsProvidersResult {
   );
 
   useEffect(() => {
-    if (providers.length > 0 && !selectedProvider) {
+    if (providers && providers.length > 0 && !selectedProvider) {
       setSelectedProvider(
         determinePreferredProvider(completedOrders, providers),
       );

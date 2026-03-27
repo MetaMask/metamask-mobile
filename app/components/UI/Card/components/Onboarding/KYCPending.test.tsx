@@ -42,9 +42,42 @@ jest.mock('@metamask/design-system-react-native', () => {
       children?: React.ReactNode;
       testID?: string;
     }) => ReactActual.createElement(Text, { testID, ...props }, children),
+    Button: ({
+      children,
+      testID,
+      onPress,
+      label,
+      isDisabled,
+      disabled,
+      ...props
+    }: {
+      children?: React.ReactNode;
+      testID?: string;
+      onPress?: () => void;
+      label?: string;
+      isDisabled?: boolean;
+      disabled?: boolean;
+    }) => {
+      const { TouchableOpacity } = jest.requireActual('react-native');
+      return ReactActual.createElement(
+        TouchableOpacity,
+        { testID, onPress, disabled: disabled || isDisabled, ...props },
+        ReactActual.createElement(Text, {}, children || label),
+      );
+    },
     TextVariant: {
       HeadingLg: 'HeadingLg',
       BodyMd: 'BodyMd',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
   };
 });
@@ -185,11 +218,14 @@ jest.mock('../../../../../../locales/i18n', () => ({
 }));
 
 // Mock styles/common
-jest.mock('../../../../../styles/common', () => ({
-  colors: {
-    white: '#FFFFFF',
-  },
-}));
+jest.mock('../../../../../styles/common', () => {
+  const { brandColor } = jest.requireActual('@metamask/design-tokens');
+  return {
+    colors: {
+      white: brandColor.white,
+    },
+  };
+});
 
 describe('KYCPending Component', () => {
   const mockNavigate = jest.fn();
@@ -282,12 +318,11 @@ describe('KYCPending Component', () => {
     });
 
     it('displays the correct button label', () => {
-      const { getByTestId } = render(<KYCPending />);
+      const { getByTestId, getByText } = render(<KYCPending />);
 
-      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
-
-      expect(buttonLabel).toBeTruthy();
-      expect(buttonLabel.props.children).toBe('Got it');
+      const button = getByTestId('kyc-pending-got-it-button');
+      expect(button).toBeTruthy();
+      expect(getByText('Got it')).toBeTruthy();
     });
 
     it('navigates to wallet home when Got it button is pressed', () => {
@@ -385,11 +420,9 @@ describe('KYCPending Component', () => {
     });
 
     it('uses correct i18n key for Got it button', () => {
-      const { getByTestId } = render(<KYCPending />);
+      const { getByText } = render(<KYCPending />);
 
-      const buttonLabel = getByTestId('kyc-pending-got-it-button-label');
-
-      expect(buttonLabel.props.children).toBe('Got it');
+      expect(getByText('Got it')).toBeTruthy();
     });
   });
 

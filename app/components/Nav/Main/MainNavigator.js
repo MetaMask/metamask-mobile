@@ -27,11 +27,14 @@ import Contacts from '../../Views/Settings/Contacts';
 import FeatureFlagOverride from '../../Views/FeatureFlagOverride';
 import Wallet from '../../Views/Wallet';
 import AssetDetails from '../../Views/AssetDetails';
+import SecurityTrustScreen from '../../UI/SecurityTrust/Views/SecurityTrustScreen';
 import AddAsset from '../../Views/AddAsset/AddAsset';
 import NftFullView from '../../Views/NftFullView';
 import TokensFullView from '../../Views/TokensFullView';
-import TrendingTokensFullView from '../../Views/TrendingTokens/TrendingTokensFullView/TrendingTokensFullView';
 import DeFiFullView from '../../Views/DeFiFullView';
+import CashTokensFullView from '../../Views/CashTokensFullView';
+import TrendingTokensFullView from '../../UI/Trending/Views/TrendingTokensFullView/TrendingTokensFullView';
+import RWATokensFullView from '../../UI/Trending/Views/RWATokensFullView/RWATokensFullView';
 import { RevealPrivateCredential } from '../../Views/RevealPrivateCredential';
 import WalletConnectSessions from '../../Views/WalletConnectSessions';
 import OfflineMode from '../../Views/OfflineMode';
@@ -44,13 +47,12 @@ import AccountBackupStep1B from '../../Views/AccountBackupStep1B';
 import ManualBackupStep1 from '../../Views/ManualBackupStep1';
 import ManualBackupStep2 from '../../Views/ManualBackupStep2';
 import ManualBackupStep3 from '../../Views/ManualBackupStep3';
-import PaymentRequest from '../../UI/PaymentRequest';
-import PaymentRequestSuccess from '../../UI/PaymentRequestSuccess';
 import ContactForm from '../../Views/Settings/Contacts/ContactForm';
 import ActivityView from '../../Views/ActivityView';
 import RewardsNavigator from '../../UI/Rewards/RewardsNavigator';
 import { ExploreFeed } from '../../Views/TrendingView/TrendingView';
 import ExploreSearchScreen from '../../Views/TrendingView/Views/ExploreSearchScreen/ExploreSearchScreen';
+import ExploreSectionResultsFullView from '../../Views/TrendingView/Views/ExploreSectionResultsFullView/ExploreSectionResultsFullView';
 import TrendingFeedSessionManager from '../../UI/Trending/services/TrendingFeedSessionManager';
 import CollectiblesDetails from '../../UI/CollectibleModal';
 import OptinMetrics from '../../UI/OptinMetrics';
@@ -67,6 +69,7 @@ import V2BankDetails from '../../UI/Ramp/Views/NativeFlow/BankDetails';
 import { colors as importedColors } from '../../../styles/common';
 import OrderDetails from '../../UI/Ramp/Aggregator/Views/OrderDetails';
 import RampsOrderDetails from '../../UI/Ramp/Views/OrderDetails';
+import DepositOrderDetails from '../../UI/Ramp/Deposit/Views/DepositOrderDetails/DepositOrderDetails';
 import ProcessingInfoModal from '../../UI/Ramp/Views/Modals/ProcessingInfoModal/ProcessingInfoModal';
 import SendTransaction from '../../UI/Ramp/Aggregator/Views/SendTransaction';
 import TabBar from '../../../component-library/components/Navigation/TabBar';
@@ -94,6 +97,8 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
+import { MoneyScreenStack } from '../../UI/Money/routes';
+import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -111,11 +116,11 @@ import {
   MarketInsightsView,
   selectMarketInsightsEnabled,
 } from '../../UI/MarketInsights';
+import { selectMarketInsightsPerpsEnabled } from '../../../selectors/featureFlagController/marketInsights';
 import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import PerpsPositionTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsPositionTransactionView';
 import PerpsOrderTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsOrderTransactionView';
 import PerpsFundingTransactionView from '../../UI/Perps/Views/PerpsTransactionsView/PerpsFundingTransactionView';
-import TurnOnBackupAndSync from '../../Views/Identity/TurnOnBackupAndSync/TurnOnBackupAndSync';
 import DeFiProtocolPositionDetails from '../../UI/DeFiPositions/DeFiProtocolPositionDetails';
 import UnmountOnBlur from '../../Views/UnmountOnBlur';
 ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -178,7 +183,7 @@ const WalletModalFlow = () => (
     <Stack.Screen
       name={'Wallet'}
       component={Wallet}
-      options={{ headerShown: true, animationEnabled: false }}
+      options={{ headerShown: false, animationEnabled: false }}
     />
   </Stack.Navigator>
 );
@@ -199,6 +204,10 @@ const AssetStackFlow = (props) => (
       name={'AssetDetails'}
       component={AssetDetails}
       initialParams={{ address: props.route.params?.address }}
+    />
+    <Stack.Screen
+      name={Routes.SECURITY_TRUST}
+      component={SecurityTrustScreen}
     />
     <Stack.Screen
       name={Routes.TRANSACTION_DETAILS}
@@ -261,6 +270,10 @@ const TransactionsHome = () => (
     <Stack.Screen
       name={Routes.RAMP.RAMPS_ORDER_DETAILS}
       component={RampsOrderDetails}
+    />
+    <Stack.Screen
+      name={Routes.DEPOSIT.ORDER_DETAILS}
+      component={DepositOrderDetails}
     />
     <Stack.Screen
       name={Routes.RAMP.BANK_DETAILS_STANDALONE}
@@ -837,21 +850,6 @@ const OfflineModeView = () => (
   </Stack.Navigator>
 );
 
-const PaymentRequestView = () => (
-  <Stack.Navigator>
-    <Stack.Screen
-      name="PaymentRequest"
-      component={PaymentRequest}
-      options={PaymentRequest.navigationOptions}
-    />
-    <Stack.Screen
-      name="PaymentRequestSuccess"
-      component={PaymentRequestSuccess}
-      options={PaymentRequestSuccess.navigationOptions}
-    />
-  </Stack.Navigator>
-);
-
 /* eslint-disable react/prop-types */
 const NotificationsModeView = (props) => (
   <Stack.Navigator>
@@ -933,6 +931,10 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
+  // Get feature flag state for conditional Money home screen registration
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -942,8 +944,13 @@ const MainNavigator = () => {
     () => predictEnabledFlag,
     [predictEnabledFlag],
   );
-  // Get feature flag state for conditional Market Insights screen registration
+  // Get feature flag state for conditional Market Insights screen registration.
+  // The screen must be registered when either the token or perps insights flag is
+  // on — both entry points navigate to the same screen.
   const isMarketInsightsEnabled = useSelector(selectMarketInsightsEnabled);
+  const isMarketInsightsPerpsEnabled = useSelector(
+    selectMarketInsightsPerpsEnabled,
+  );
 
   return (
     <Stack.Navigator
@@ -990,6 +997,11 @@ const MainNavigator = () => {
         component={DeFiFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
+      <Stack.Screen
+        name={Routes.WALLET.CASH_TOKENS_FULL_VIEW}
+        component={CashTokensFullView}
+        options={{ headerShown: false, ...slideFromRightAnimation }}
+      />
       <Stack.Screen name="AddAsset" component={AddAsset} />
       <Stack.Screen
         name="ConfirmAddAsset"
@@ -1009,6 +1021,11 @@ const MainNavigator = () => {
       <Stack.Screen
         name="TrendingTokensFullView"
         component={TrendingTokensFullView}
+        options={slideFromRightAnimation}
+      />
+      <Stack.Screen
+        name="RWATokensFullView"
+        component={RWATokensFullView}
         options={slideFromRightAnimation}
       />
 
@@ -1040,7 +1057,6 @@ const MainNavigator = () => {
         component={NftFullView}
         options={{ headerShown: false, ...slideFromRightAnimation }}
       />
-      <Stack.Screen name="PaymentRequestView" component={PaymentRequestView} />
       <Stack.Screen
         name={Routes.RAMP.TOKEN_SELECTION}
         component={TokenListRoutes}
@@ -1073,6 +1089,13 @@ const MainNavigator = () => {
         component={EarnModalStack}
         options={clearStackNavigatorOptions}
       />
+      {isMoneyHomeScreenEnabled && (
+        <Stack.Screen
+          name={Routes.MONEY.ROOT}
+          component={MoneyScreenStack}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
       <Stack.Screen
         name="StakeModals"
         component={StakeModalStack}
@@ -1141,7 +1164,7 @@ const MainNavigator = () => {
           />
         </>
       )}
-      {isMarketInsightsEnabled && (
+      {(isMarketInsightsEnabled || isMarketInsightsPerpsEnabled) && (
         <Stack.Screen
           name={Routes.MARKET_INSIGHTS.VIEW}
           component={MarketInsightsView}
@@ -1157,6 +1180,11 @@ const MainNavigator = () => {
         <Stack.Screen
           name={Routes.SITES_FULL_VIEW}
           component={SitesFullView}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+        <Stack.Screen
+          name={Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW}
+          component={ExploreSectionResultsFullView}
           options={{ headerShown: false, ...slideFromRightAnimation }}
         />
         <Stack.Screen
@@ -1195,11 +1223,6 @@ const MainNavigator = () => {
         name={Routes.NOTIFICATIONS.OPT_IN_STACK}
         component={NotificationsOptInStack}
         options={NotificationsOptInStack.navigationOptions}
-      />
-      <Stack.Screen
-        name={Routes.IDENTITY.TURN_ON_BACKUP_AND_SYNC}
-        component={TurnOnBackupAndSync}
-        options={TurnOnBackupAndSync.navigationOptions}
       />
       <Stack.Screen
         name="DeFiProtocolPositionDetails"

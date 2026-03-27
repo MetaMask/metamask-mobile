@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -40,12 +40,9 @@ import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format'
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
-import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
-import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
-import { BridgeToken } from '../../../Bridge/types';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
@@ -166,6 +163,7 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isFromTrending: true,
     source: TokenDetailsSource.Trending,
     rwaData: token.rwaData,
+    securityData: token.securityData,
   };
 };
 
@@ -181,7 +179,6 @@ const TrendingTokenRowItem = ({
     selectNetworkConfigurationsByCaipChainId,
   );
   const { addPopularNetwork } = useAddPopularNetwork();
-  const { isStockToken } = useRWAToken();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Memoize derived values
@@ -252,7 +249,10 @@ const TrendingTokenRowItem = ({
       }
     }
 
-    navigation.navigate('Asset', assetParams);
+    // Use push so we always open a new Asset screen for the tapped token.
+    // This prevents issues such as dismissing screens like Bridge instead
+    // of navigating forward to the new token.
+    navigation.dispatch(StackActions.push('Asset', assetParams));
   }, [
     assetParams,
     caipChainId,
@@ -310,12 +310,6 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token as unknown as BridgeToken) && (
-          <StockBadge
-            style={styles.stockBadgeWrapper}
-            token={token as unknown as BridgeToken}
-          />
-        )}
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>

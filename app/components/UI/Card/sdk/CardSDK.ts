@@ -49,6 +49,8 @@ import {
   GetOnboardingConsentResponse,
   CardDetailsTokenRequest,
   CardDetailsTokenResponse,
+  CardPinTokenRequest,
+  CardPinTokenResponse,
   CreateOrderRequest,
   CreateOrderResponse,
   GetOrderStatusResponse,
@@ -56,6 +58,7 @@ import {
   CashbackWithdrawRequest,
   CashbackWithdrawResponse,
   CashbackWithdrawEstimationResponse,
+  DelegationPostApprovalParams,
 } from '../types';
 import { getDefaultBaanxApiBaseUrlForMetaMaskEnv } from '../util/mapBaanxApiUrl';
 import {
@@ -462,29 +465,6 @@ export class CardSDK {
 
     return batches;
   }
-
-  getGeoLocation = async (): Promise<string> => {
-    try {
-      const response = await fetch(
-        'https://on-ramp.api.cx.metamask.io/geolocation',
-      );
-
-      if (!response.ok) {
-        throw new Error(`Failed to get geolocation: ${response.statusText}`);
-      }
-
-      return await response.text();
-    } catch (error) {
-      Logger.error(error as Error, {
-        tags: { feature: 'card', operation: 'getGeoLocation' },
-        context: {
-          name: 'card_geolocation',
-          data: { endpoint: 'geolocation' },
-        },
-      });
-      return 'UNKNOWN';
-    }
-  };
 
   // Only runs on linea network
   getSupportedTokensAllowances = async (
@@ -1141,6 +1121,45 @@ export class CardSDK {
     return (await response.json()) as CardDetailsTokenResponse;
   };
 
+  /**
+   * Generate a secure token for viewing the card PIN through an image-based display.
+   * The token is time-limited (~10 minutes) and single-use.
+   * The PIN is never transmitted as plain text, ensuring PCI compliance.
+   *
+   * @param request - Optional customization for the PIN image appearance
+   * @returns Promise containing the token and imageUrl for displaying the card PIN
+   */
+  generateCardPinToken = async (
+    request?: CardPinTokenRequest,
+  ): Promise<CardPinTokenResponse> => {
+    const response = await this.makeRequest('/v1/card/pin/token', {
+      fetchOptions: {
+        method: 'POST',
+        ...(request && { body: JSON.stringify(request) }),
+      },
+      authenticated: true,
+    });
+
+    if (!response.ok) {
+      const errorType =
+        response.status === 401 || response.status === 403
+          ? CardErrorType.INVALID_CREDENTIALS
+          : response.status === 404
+            ? CardErrorType.NO_CARD
+            : CardErrorType.SERVER_ERROR;
+
+      throw this.logAndCreateError(
+        errorType,
+        'Failed to generate card PIN token. Please try again.',
+        'generateCardPinToken',
+        'card/pin/token',
+        response.status,
+      );
+    }
+
+    return (await response.json()) as CardPinTokenResponse;
+  };
+
   getCardExternalWalletDetails = async (
     delegationSettings: DelegationSettingsNetwork[],
   ): Promise<CardExternalWalletDetailsResponse> => {
@@ -1216,6 +1235,10 @@ export class CardSDK {
             wallet,
             delegationSettings,
           );
+
+        if (!tokenDetails) {
+          return null;
+        }
 
         const caipChainId = (() => {
           if (networkLower === 'solana') {
@@ -1520,66 +1543,81 @@ export class CardSDK {
   };
 
   /**
-   * Complete EVM wallet delegation for spending limit increase
-   * This is Step 3 of the delegation process (after user completes blockchain transaction)
+   * Complete wallet delegation for spending limit increase.
+   * This is Step 3 of the delegation process (after user completes the blockchain transaction).
+   * Routes to the EVM or Solana endpoint based on params.network.
    */
-  completeEVMDelegation = async (params: {
-    address: string;
-    network: CardNetwork;
-    currency: string;
-    amount: string;
-    txHash: string;
-    sigHash: string;
-    sigMessage: string;
-    token: string;
-  }): Promise<{ success: boolean }> => {
-    // Validate address format (must be valid Ethereum address)
-    const addressRegex = /^0x[a-fA-F0-9]{40}$/;
-    if (!addressRegex.test(params.address)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid Ethereum address format',
-      );
+  completeDelegation = async (
+    params: DelegationPostApprovalParams,
+  ): Promise<{ success: boolean }> => {
+    const isSolana = params.network === 'solana';
+
+    if (isSolana) {
+      // Validate Solana address format (Base58, 32-44 characters)
+      const solanaAddressRegex = /^[1-9A-HJ-NP-Za-km-z]{32,44}$/;
+      if (!solanaAddressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana address format',
+        );
+      }
+
+      // Validate Solana transaction signature format (Base58, 87-88 characters)
+      const solanaTxHashRegex = /^[1-9A-HJ-NP-Za-km-z]{87,88}$/;
+      if (!solanaTxHashRegex.test(params.txHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Solana transaction signature format',
+        );
+      }
+    } else {
+      // Validate EVM address format
+      const addressRegex = /^0x[a-fA-F0-9]{40}$/;
+      if (!addressRegex.test(params.address)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid Ethereum address format',
+        );
+      }
+
+      // Validate EVM signature format
+      const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
+      if (!sigHashRegex.test(params.sigHash)) {
+        throw new CardError(
+          CardErrorType.VALIDATION_ERROR,
+          'Invalid signature format',
+        );
+      }
+
+      if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
+        throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
+      }
     }
 
-    // Validate signature format (must be valid EVM signature)
-    const sigHashRegex = /^0x[a-fA-F0-9]{130}$/;
-    if (!sigHashRegex.test(params.sigHash)) {
-      throw new CardError(
-        CardErrorType.VALIDATION_ERROR,
-        'Invalid signature format',
-      );
-    }
+    const endpointSuffix = isSolana ? 'solana' : 'evm';
+    const endpoint = `delegation/${endpointSuffix}/post-approval`;
 
-    // Validate network
-    if (!SUPPORTED_ASSET_NETWORKS.includes(params.network)) {
-      throw new CardError(CardErrorType.VALIDATION_ERROR, 'Invalid network');
-    }
-
-    const response = await this.makeRequest(
-      '/v1/delegation/evm/post-approval',
-      {
-        fetchOptions: {
-          method: 'POST',
-          body: JSON.stringify(params),
-        },
-        authenticated: true,
+    const response = await this.makeRequest(`/v1/${endpoint}`, {
+      fetchOptions: {
+        method: 'POST',
+        body: JSON.stringify(params),
       },
-    );
+      authenticated: true,
+    });
 
     if (!response.ok) {
       throw this.logAndCreateError(
         CardErrorType.SERVER_ERROR,
         'Failed to complete delegation. Please try again.',
-        'completeEVMDelegation',
-        'delegation/evm/post-approval',
+        'completeDelegation',
+        endpoint,
         response.status,
         { network: params.network, currency: params.currency },
       );
     }
 
     const result = await response.json();
-    this.logDebugInfo('completeEVMDelegation', result);
+    this.logDebugInfo('completeDelegation', result);
 
     return result;
   };

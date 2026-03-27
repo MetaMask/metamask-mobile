@@ -1,14 +1,16 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import ExploreSearchResults from './ExploreSearchResults';
 import { useExploreSearch } from '../../hooks/useExploreSearch';
 import { useSelector } from 'react-redux';
 import { selectBasicFunctionalityEnabled } from '../../../../../selectors/settings';
+import Routes from '../../../../../constants/navigation/Routes';
 
+const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
-    navigate: jest.fn(),
+    navigate: mockNavigate,
   }),
 }));
 
@@ -93,25 +95,27 @@ describe('ExploreSearchResults', () => {
             ],
           },
         ],
+        stocks: [],
         sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        stocks: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
     });
 
     const { getByText, getByTestId } = render(
       <ExploreSearchResults searchQuery="btc" />,
     );
 
-    expect(getByTestId('trending-search-results-list')).toBeDefined();
-    expect(getByText('Trending tokens')).toBeDefined();
-    expect(getByText('Perps')).toBeDefined();
-    expect(getByText('Predictions')).toBeDefined();
+    expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
+    expect(getByText('Perps')).toBeOnTheScreen();
+    expect(getByText('Predictions')).toBeOnTheScreen();
   });
 
   it('only shows sections with data or loading state', () => {
@@ -120,22 +124,24 @@ describe('ExploreSearchResults', () => {
         tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
         perps: [],
         predictions: [],
+        stocks: [],
         sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        stocks: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
     });
 
     const { getByText, queryByText } = render(
       <ExploreSearchResults searchQuery="btc" />,
     );
 
-    expect(getByText('Trending tokens')).toBeDefined();
+    expect(getByText('Trending tokens')).toBeOnTheScreen();
     expect(queryByText('Perps')).toBeNull();
     expect(queryByText('Predictions')).toBeNull();
   });
@@ -146,15 +152,17 @@ describe('ExploreSearchResults', () => {
         tokens: [],
         perps: [],
         predictions: [],
+        stocks: [],
         sites: [],
       },
       isLoading: {
         tokens: false,
         perps: false,
         predictions: false,
+        stocks: false,
         sites: false,
       },
-      sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+      sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
     });
 
     render(<ExploreSearchResults searchQuery="ethereum" />);
@@ -174,15 +182,17 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       // Act
@@ -191,8 +201,8 @@ describe('ExploreSearchResults', () => {
       );
 
       // Assert - FlashList renders with data and search query is passed to hook
-      expect(getByTestId('trending-search-results-list')).toBeDefined();
-      expect(getByText('Trending tokens')).toBeDefined();
+      expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
+      expect(getByText('Trending tokens')).toBeOnTheScreen();
       expect(mockUseExploreSearch).toHaveBeenCalledWith('bitcoin');
     });
 
@@ -203,22 +213,24 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       // Act
       const { getByTestId } = render(<ExploreSearchResults searchQuery="" />);
 
       // Assert - list renders, empty query means footer won't render
-      expect(getByTestId('trending-search-results-list')).toBeDefined();
+      expect(getByTestId('trending-search-results-list')).toBeOnTheScreen();
       expect(mockUseExploreSearch).toHaveBeenCalledWith('');
     });
   });
@@ -231,15 +243,17 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: true,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       // Act
@@ -248,7 +262,7 @@ describe('ExploreSearchResults', () => {
       );
 
       // Assert - shows header for loading section
-      expect(getByText('Trending tokens')).toBeDefined();
+      expect(getByText('Trending tokens')).toBeOnTheScreen();
     });
 
     it('hides section when not loading and has no data', () => {
@@ -258,15 +272,17 @@ describe('ExploreSearchResults', () => {
           tokens: [],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       // Act
@@ -295,15 +311,17 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [{ symbol: 'BTC-USD', name: 'Bitcoin' }],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
-        sectionsOrder: ['tokens', 'perps', 'predictions', 'sites'],
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
       });
 
       // Act
@@ -325,17 +343,20 @@ describe('ExploreSearchResults', () => {
           tokens: [{ assetId: '1', symbol: 'BTC', name: 'Bitcoin' }],
           perps: [],
           predictions: [],
+          stocks: [],
           sites: [],
         },
         isLoading: {
           tokens: false,
           perps: false,
           predictions: false,
+          stocks: false,
           sites: false,
         },
         sectionsOrder: [
           'tokens',
           'unknown' as 'tokens', // Intentionally invalid ID to test graceful handling
+          'stocks',
           'perps',
           'predictions',
           'sites',
@@ -344,7 +365,113 @@ describe('ExploreSearchResults', () => {
 
       // Act & Assert - should not throw
       const { getByText } = render(<ExploreSearchResults searchQuery="btc" />);
-      expect(getByText('Trending tokens')).toBeDefined();
+      expect(getByText('Trending tokens')).toBeOnTheScreen();
+    });
+  });
+
+  describe('view all and item limit', () => {
+    it('shows "View all" when a section has more than 3 items', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+            { assetId: '3', symbol: 'SOL', name: 'Solana' },
+            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+          ],
+          perps: [],
+          predictions: [],
+          stocks: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          stocks: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      });
+
+      const { getByText } = render(<ExploreSearchResults searchQuery="test" />);
+
+      expect(getByText('View all')).toBeOnTheScreen();
+    });
+
+    it('does not show "View all" when a section has 3 or fewer items', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+          ],
+          perps: [],
+          predictions: [],
+          stocks: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          stocks: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      });
+
+      const { queryByText } = render(
+        <ExploreSearchResults searchQuery="test" />,
+      );
+
+      expect(queryByText('View all')).toBeNull();
+    });
+
+    it('navigates to full view with section params when "View all" is pressed', () => {
+      mockUseExploreSearch.mockReturnValue({
+        data: {
+          tokens: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+            { assetId: '3', symbol: 'SOL', name: 'Solana' },
+            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+          ],
+          perps: [],
+          predictions: [],
+          stocks: [],
+          sites: [],
+        },
+        isLoading: {
+          tokens: false,
+          perps: false,
+          predictions: false,
+          stocks: false,
+          sites: false,
+        },
+        sectionsOrder: ['tokens', 'stocks', 'perps', 'predictions', 'sites'],
+      });
+
+      const { getByText } = render(
+        <ExploreSearchResults searchQuery="bitcoin" />,
+      );
+
+      fireEvent.press(getByText('View all'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.EXPLORE_SECTION_RESULTS_FULL_VIEW,
+        {
+          sectionId: 'tokens',
+          title: 'Trending tokens',
+          searchQuery: 'bitcoin',
+          data: [
+            { assetId: '1', symbol: 'BTC', name: 'Bitcoin' },
+            { assetId: '2', symbol: 'ETH', name: 'Ethereum' },
+            { assetId: '3', symbol: 'SOL', name: 'Solana' },
+            { assetId: '4', symbol: 'USDC', name: 'USD Coin' },
+          ],
+        },
+      );
     });
   });
 });

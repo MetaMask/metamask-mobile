@@ -24,9 +24,10 @@ import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
 import { AvatarSize } from '../../../../../component-library/components/Avatars/Avatar';
-import { strings } from '../../../../../../locales/i18n';
+import I18n, { strings } from '../../../../../../locales/i18n';
 import { toDateFormat } from '../../../../../util/date';
-import { renderFiat } from '../../../../../util/number';
+import { formatSubscriptNotation } from '../../../../../util/number/subscriptNotation';
+import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
 import Button, {
@@ -37,10 +38,22 @@ import Button, {
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
+import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
+
+const AMOUNT_PLACEHOLDER = '...';
+const TERMINAL_STATUSES = new Set([
+  RampsOrderStatus.Completed,
+  RampsOrderStatus.Failed,
+  RampsOrderStatus.Cancelled,
+  RampsOrderStatus.IdExpired,
+]);
 
 const localStyles = StyleSheet.create({
   badgeWrapperCenter: {
     alignSelf: 'center',
+  },
+  inlineIcon: {
+    transform: [{ translateY: 4 }],
   },
 });
 
@@ -162,7 +175,16 @@ const OrderContent: React.FC<OrderContentProps> = ({
     }
   };
 
-  const isLoading = !order.fiatAmount;
+  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
+  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
+
+  const hasAmounts = Boolean(
+    fiatCurrencyCode &&
+      ((order.fiatAmount != null && Number(order.fiatAmount) > 0) ||
+        (order.cryptoAmount != null && Number(order.cryptoAmount) > 0)),
+  );
+  const isTerminal = TERMINAL_STATUSES.has(order.status);
+  const isLoading = !hasAmounts && !isTerminal;
 
   const handleClose = useCallback(() => {
     trackEvent(
@@ -200,10 +222,6 @@ const OrderContent: React.FC<OrderContentProps> = ({
     createEventBuilder,
     trackEvent,
   ]);
-
-  const fiatDenomSymbol = order.fiatCurrency?.denomSymbol ?? '';
-  const fiatCurrencyCode = order.fiatCurrency?.symbol ?? '';
-  const cryptoSymbol = order.cryptoCurrency?.symbol ?? '';
 
   const normalizeChainIdForBadge = (chainId: string): string => {
     if (!chainId || chainId.includes(':') || chainId.startsWith('0x')) {
@@ -274,6 +292,18 @@ const OrderContent: React.FC<OrderContentProps> = ({
     const iban = getFieldValue('IBAN');
     const bic = getFieldValue('BIC');
 
+    const hasAnyField =
+      amount ||
+      accountName ||
+      accountType ||
+      bankName ||
+      routingNumber ||
+      accountNumber ||
+      iban ||
+      bic;
+
+    if (!hasAnyField) return null;
+
     return {
       amount,
       accountName,
@@ -287,7 +317,7 @@ const OrderContent: React.FC<OrderContentProps> = ({
   }, [hasBankDetails, getFieldValue]);
 
   return (
-    <Box twClassName="w-full">
+    <Box twClassName="w-full flex-1">
       <Box twClassName="items-center pt-8 pb-6">
         <BadgeWrapper
           badgePosition={BadgePosition.BottomRight}
@@ -309,11 +339,26 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </BadgeWrapper>
 
         <Text
+          testID={RampsOrderDetailsSelectorsIDs.TOKEN_AMOUNT}
           variant={TextVariant.DisplayLg}
           fontWeight={FontWeight.Bold}
           twClassName="mt-6 text-center"
         >
-          {order.cryptoAmount} {cryptoSymbol}
+          {order.cryptoAmount != null && Number(order.cryptoAmount) > 0
+            ? (formatSubscriptNotation(
+                parseFloat(String(order.cryptoAmount)),
+              ) ??
+              formatWithThreshold(
+                parseFloat(String(order.cryptoAmount)),
+                0.00001,
+                I18n.locale,
+                {
+                  minimumFractionDigits: 0,
+                  maximumFractionDigits: 5,
+                },
+              ))
+            : AMOUNT_PLACEHOLDER}{' '}
+          {cryptoSymbol}
         </Text>
       </Box>
 
@@ -442,12 +487,19 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-20" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.totalFeesFiat ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {hasAmounts
+              ? formatWithThreshold(
+                  Number(order.totalFeesFiat ?? 0),
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
+              : AMOUNT_PLACEHOLDER}
           </Text>
         )}
       </Box>
@@ -468,12 +520,19 @@ const OrderContent: React.FC<OrderContentProps> = ({
           <Box twClassName="bg-muted rounded h-[18px] w-24" />
         ) : (
           <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
-            {fiatDenomSymbol}
-            {renderFiat(
-              Number(order.fiatAmount ?? 0),
-              fiatCurrencyCode,
-              fiatDecimals,
-            )}
+            {hasAmounts
+              ? formatWithThreshold(
+                  Number(order.fiatAmount ?? 0),
+                  0,
+                  I18n.locale,
+                  {
+                    style: 'currency',
+                    currency: fiatCurrencyCode,
+                    minimumFractionDigits: fiatDecimals,
+                    maximumFractionDigits: fiatDecimals,
+                  },
+                )
+              : AMOUNT_PLACEHOLDER}
           </Text>
         )}
       </Box>
@@ -550,27 +609,41 @@ const OrderContent: React.FC<OrderContentProps> = ({
         </Box>
       )}
 
-      <Box twClassName="pt-4 pb-4 w-full">
+      <Box
+        twClassName={
+          showCloseButton ? 'w-full pb-4 mt-auto' : 'w-full pb-4 pt-4'
+        }
+      >
         {order.statusDescription && (
-          <TouchableOpacity onPress={handleInfoPress}>
-            <Box
-              flexDirection={BoxFlexDirection.Row}
-              twClassName="items-center justify-center mb-4"
-            >
-              <Text variant={TextVariant.BodySm} twClassName="text-alternative">
-                {order.statusDescription}
+          <Box twClassName={showCloseButton ? 'mb-4' : ''}>
+            <TouchableOpacity onPress={handleInfoPress}>
+              <Text
+                variant={TextVariant.BodySm}
+                twClassName="text-alternative text-center"
+              >
+                {(order.status === RampsOrderStatus.Pending ||
+                  order.status === RampsOrderStatus.Created ||
+                  order.status === RampsOrderStatus.Precreated ||
+                  order.status === RampsOrderStatus.Unknown) &&
+                order.statusDescription.startsWith('Your order')
+                  ? order.statusDescription.replace(
+                      /^Your order.*?is processing\.\s*/,
+                      '',
+                    ) || order.statusDescription
+                  : order.statusDescription}{' '}
+                <Icon
+                  name={IconName.Info}
+                  size={IconSize.Sm}
+                  twClassName="text-alternative"
+                  style={localStyles.inlineIcon}
+                />
               </Text>
-              <Icon
-                name={IconName.Info}
-                size={IconSize.Sm}
-                twClassName="text-alternative ml-1"
-              />
-            </Box>
-          </TouchableOpacity>
+            </TouchableOpacity>
+          </Box>
         )}
-
         {showCloseButton && (
           <Button
+            testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
             variant={ButtonVariants.Primary}
             size={ButtonSize.Lg}
             width={ButtonWidthTypes.Full}

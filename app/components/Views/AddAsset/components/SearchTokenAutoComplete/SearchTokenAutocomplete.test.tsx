@@ -307,7 +307,7 @@ describe('SearchTokenAutocomplete', () => {
   it('next button is disabled when no tokens are selected', () => {
     const { getByTestId } = renderComponent();
     const nextButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
-    expect(nextButton).toHaveProp('disabled', true);
+    expect(nextButton).toBeDisabled();
   });
 
   it('enables Next button after selecting a token', () => {
@@ -320,7 +320,7 @@ describe('SearchTokenAutocomplete', () => {
     fireEvent.press(tokenResult);
 
     const nextButton = getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON);
-    expect(nextButton).toHaveProp('disabled', false);
+    expect(nextButton).toBeEnabled();
   });
 
   it('shows clear button when search has text and clears on press', () => {
@@ -354,16 +354,10 @@ describe('SearchTokenAutocomplete', () => {
     );
 
     fireEvent.press(tokenResult);
-    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toHaveProp(
-      'disabled',
-      false,
-    );
+    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toBeEnabled();
 
     fireEvent.press(tokenResult);
-    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toHaveProp(
-      'disabled',
-      true,
-    );
+    expect(getByTestId(ImportTokenViewSelectorsIDs.NEXT_BUTTON)).toBeDisabled();
   });
 
   it('navigates to ConfirmAddAsset with correct params and tracks analytics', () => {

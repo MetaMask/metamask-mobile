@@ -22,6 +22,7 @@ export const PredictEventProperties = {
   // Trade specific
   MARKET_TYPE: 'market_type',
   OUTCOME: 'outcome',
+  ORDER_TYPE: 'order_type',
 
   // Sensitive properties
   AMOUNT_USD: 'amount_usd',

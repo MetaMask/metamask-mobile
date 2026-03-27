@@ -33,8 +33,6 @@ interface DeviceEventHandlersResult {
   handleDeviceEvent: (payload: DeviceEventPayload) => void;
   /** Parses an error into a HardwareWalletError and transitions to ErrorState. */
   handleError: (error: unknown) => void;
-  /** Clears the current error, returning to Disconnected if in ErrorState. */
-  clearError: () => void;
 }
 
 /**
@@ -64,9 +62,7 @@ export const useDeviceEventHandlers = ({
       } else {
         hwError = parseErrorByType(
           error,
-          walletType ??
-            refs.adapterRef.current?.walletType ??
-            HardwareWalletType.Ledger,
+          walletType ?? refs.adapterRef.current?.walletType,
         );
       }
 
@@ -79,15 +75,6 @@ export const useDeviceEventHandlers = ({
     },
     [updateConnectionState, walletType, refs],
   );
-
-  const clearError = useCallback(() => {
-    setters.setConnectionState((prev) => {
-      if (prev.status === ConnectionStatus.ErrorState) {
-        return { status: ConnectionStatus.Disconnected };
-      }
-      return prev;
-    });
-  }, [setters]);
 
   const handleDeviceEvent = useCallback(
     (payload: DeviceEventPayload) => {
@@ -135,9 +122,7 @@ export const useDeviceEventHandlers = ({
           } else {
             const lockedError = createHardwareWalletError(
               ErrorCode.AuthenticationDeviceLocked,
-              walletType ??
-                refs.adapterRef.current?.walletType ??
-                HardwareWalletType.Ledger,
+              walletType ?? refs.adapterRef.current?.walletType,
             );
             updateConnectionState({
               status: ConnectionStatus.ErrorState,
@@ -207,6 +192,5 @@ export const useDeviceEventHandlers = ({
     updateConnectionState,
     handleDeviceEvent,
     handleError,
-    clearError,
   };
 };

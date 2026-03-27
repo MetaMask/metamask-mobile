@@ -12,13 +12,11 @@ export const getCardholder = async ({
   cardFeatureFlag: CardFeatureFlag | null;
 }): Promise<{
   cardholderAddresses: string[];
-  geoLocation: string;
 }> => {
   try {
     if (!cardFeatureFlag || !caipAccountIds?.length) {
       return {
         cardholderAddresses: [],
-        geoLocation: 'UNKNOWN',
       };
     }
 
@@ -27,7 +25,6 @@ export const getCardholder = async ({
     });
 
     const cardCaipAccountIds = await cardSDK.isCardHolder(caipAccountIds);
-    const geoLocation = await cardSDK.getGeoLocation();
 
     const cardholderAddresses = cardCaipAccountIds.map((cardCaipAccountId) => {
       if (!isCaipAccountId(cardCaipAccountId)) return null;
@@ -41,7 +38,6 @@ export const getCardholder = async ({
 
     return {
       cardholderAddresses: cardholderAddresses.filter(Boolean) as string[],
-      geoLocation,
     };
   } catch (error) {
     Logger.error(
@@ -50,7 +46,6 @@ export const getCardholder = async ({
     );
     return {
       cardholderAddresses: [],
-      geoLocation: 'UNKNOWN',
     };
   }
 };

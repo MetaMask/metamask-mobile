@@ -17,7 +17,7 @@ import { useRampsController } from '../../../hooks/useRampsController';
 import { useRampsQuotes } from '../../../hooks/useRampsQuotes';
 import useRampAccountAddress from '../../../hooks/useRampAccountAddress';
 import { getOrdersProviders } from '../../../../../../reducers/fiatOrders';
-import { selectRampsOrders } from '../../../../../../selectors/rampsController';
+import { selectRampsOrdersForSelectedAccountGroup } from '../../../../../../selectors/rampsController';
 import { completedOrdersFromRampsOrders } from '../../../utils/determinePreferredProvider';
 import { useStyles } from '../../../../../hooks/useStyles';
 import styleSheet from './ProviderSelectionModal.styles';
@@ -59,7 +59,9 @@ function ProviderSelectionModal() {
   } = useRampsController();
 
   const legacyOrdersProviders = useSelector(getOrdersProviders);
-  const controllerOrders = useSelector(selectRampsOrders);
+  const controllerOrders = useSelector(
+    selectRampsOrdersForSelectedAccountGroup,
+  );
 
   const ordersProviders = useMemo(() => {
     const v2ProviderIds = completedOrdersFromRampsOrders(controllerOrders).map(
@@ -94,7 +96,7 @@ function ProviderSelectionModal() {
 
   const quoteFetchParams = useMemo(
     () =>
-      !skipQuotes && walletAddress && assetId
+      !skipQuotes && amount > 0 && walletAddress && assetId
         ? {
             amount,
             walletAddress,
@@ -121,6 +123,17 @@ function ProviderSelectionModal() {
     loading: quotesLoading,
     error: quotesError,
   } = useRampsQuotes(quoteFetchParams);
+
+  const handleDismiss = useCallback(
+    (hasPendingAction?: boolean) => {
+      if (!hasPendingAction && skipQuotes) {
+        navigation.navigate(Routes.RAMP.TOKEN_SELECTION, {
+          screen: Routes.RAMP.TOKEN_SELECTION,
+        });
+      }
+    },
+    [navigation, skipQuotes],
+  );
 
   const handleBack = useCallback(() => {
     navigation.goBack();
@@ -151,14 +164,14 @@ function ProviderSelectionModal() {
   );
 
   return (
-    <BottomSheet ref={sheetRef} shouldNavigateBack>
+    <BottomSheet ref={sheetRef} shouldNavigateBack onClose={handleDismiss}>
       <View style={styles.container}>
         <ProviderSelection
           providers={displayProviders}
           quotes={quotes}
           quotesLoading={quotesLoading}
           quotesError={quotesError}
-          showQuotes={!skipQuotes}
+          showQuotes={!skipQuotes && amount > 0}
           showBackButton={hasPaymentModalInStack}
           ordersProviders={ordersProviders.filter(
             (id): id is string => id != null,

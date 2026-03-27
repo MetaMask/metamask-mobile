@@ -111,7 +111,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
     <Text
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 18,
           "marginBottom": 4,
@@ -131,7 +131,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       <Text
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -198,7 +198,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       <Text
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -257,7 +257,7 @@ exports[`Token Component matches snapshot when token is not selected 1`] = `
       }
       tintColors={
         {
-          "false": "#b7bbc8",
+          "false": "#949596",
           "true": "#4459ff",
         }
       }
@@ -378,7 +378,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
     <Text
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 18,
           "marginBottom": 4,
@@ -398,7 +398,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       <Text
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -465,7 +465,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       <Text
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -524,7 +524,7 @@ exports[`Token Component matches snapshot when token is selected 1`] = `
       }
       tintColors={
         {
-          "false": "#b7bbc8",
+          "false": "#949596",
           "true": "#4459ff",
         }
       }
@@ -645,7 +645,7 @@ exports[`Token Component renders correctly 1`] = `
     <Text
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 18,
           "marginBottom": 4,
@@ -665,7 +665,7 @@ exports[`Token Component renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -732,7 +732,7 @@ exports[`Token Component renders correctly 1`] = `
       <Text
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -791,7 +791,7 @@ exports[`Token Component renders correctly 1`] = `
       }
       tintColors={
         {
-          "false": "#b7bbc8",
+          "false": "#949596",
           "true": "#4459ff",
         }
       }
@@ -912,7 +912,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
     <Text
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "fontFamily": "Geist-Regular",
           "fontSize": 18,
           "marginBottom": 4,
@@ -932,7 +932,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       <Text
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -999,7 +999,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       <Text
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Regular",
             "fontSize": 14,
           }
@@ -1058,7 +1058,7 @@ exports[`Token Component renders correctly with token chainId 1`] = `
       }
       tintColors={
         {
-          "false": "#b7bbc8",
+          "false": "#949596",
           "true": "#4459ff",
         }
       }

@@ -1,6 +1,9 @@
 import { Mockttp } from 'mockttp';
 import { TestSpecificMock } from '../../framework';
-import { setupMockRequest } from '../../api-mocking/helpers/mockHelpers';
+import {
+  setupMockRequest,
+  setupSSEMockRequest,
+} from '../../api-mocking/helpers/mockHelpers';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import {
   GET_TOKENS_MAINNET_RESPONSE,
@@ -11,15 +14,29 @@ import {
   GET_TOP_ASSETS_BASE_RESPONSE,
   GET_POPULAR_TOKENS_MAINNET_RESPONSE,
   GET_POPULAR_TOKENS_BASE_RESPONSE,
+  toSSEResponse,
 } from './constants';
 import { setupSpotPricesMock } from './swap-mocks';
+
+const BRIDGE_TX_STATUS_COMPLETE = {
+  status: 'COMPLETE',
+  srcChain: {
+    chainId: 1,
+    txHash:
+      '0xabcdef1234567890abcdef1234567890abcdef1234567890abcdef1234567890',
+  },
+  destChain: {
+    chainId: 8453,
+    txHash:
+      '0x1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef',
+  },
+};
 
 export const testSpecificMock: TestSpecificMock = async (
   mockServer: Mockttp,
 ) => {
   await setupSpotPricesMock(mockServer);
 
-  // Set up feature flags with chainRanking for network pills
   await setupRemoteFeatureFlagsMock(mockServer, {
     bridgeConfigV2: {
       chainRanking: [
@@ -66,21 +83,28 @@ export const testSpecificMock: TestSpecificMock = async (
     responseCode: 200,
   });
 
-  // Mock quote response ETH(Ethereum)->SOL(Solana)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuote.*destChainId=1151111081099710/i,
-    response: GET_QUOTE_ETH_SOLANA_RESPONSE,
-    responseCode: 200,
-  });
+  // ── SSE path (bridge-controller uses getQuoteStream for SSE streaming) ──
+  // Catch-all for getQuoteStream — low priority fallback to prevent real network calls
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream/i,
+    toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
+    1, // lower priority than specific mocks below (999)
+  );
 
-  // Mock quote response ETH(Ethereum)->ETH(BASE)
-  await setupMockRequest(mockServer, {
-    requestMethod: 'GET',
-    url: /getQuote.*destChainId=8453/i,
-    response: GET_QUOTE_ETH_BASE_RESPONSE,
-    responseCode: 200,
-  });
+  // Mock SSE quote response ETH(Ethereum)->SOL(Solana)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destChainId=1151111081099710/i,
+    toSSEResponse(GET_QUOTE_ETH_SOLANA_RESPONSE),
+  );
+
+  // Mock SSE quote response ETH(Ethereum)->ETH(BASE)
+  await setupSSEMockRequest(
+    mockServer,
+    /getQuoteStream.*destChainId=8453/i,
+    toSSEResponse(GET_QUOTE_ETH_BASE_RESPONSE),
+  );
 
   // Mock popular tokens (POST - for token selector)
   // This combines responses from all networks as the API returns tokens for all requested chainIds
@@ -91,6 +115,15 @@ export const testSpecificMock: TestSpecificMock = async (
       ...GET_POPULAR_TOKENS_MAINNET_RESPONSE,
       ...GET_POPULAR_TOKENS_BASE_RESPONSE,
     ],
+    responseCode: 200,
+  });
+
+  // Mock getTxStatus with a full response so the BridgeStatusController
+  // marks the bridge as complete (srcChain + destChain txHash present)
+  await setupMockRequest(mockServer, {
+    requestMethod: 'GET',
+    url: /getTxStatus/i,
+    response: BRIDGE_TX_STATUS_COMPLETE,
     responseCode: 200,
   });
 };

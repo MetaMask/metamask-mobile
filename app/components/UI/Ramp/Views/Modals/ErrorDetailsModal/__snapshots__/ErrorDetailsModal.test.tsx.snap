@@ -320,11 +320,11 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                             "flexDirection": "row",
                             "gap": 16,
                             "minHeight": 56,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                           },
                           false,
-                          {
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                         ]
                       }
                       testID="header"
@@ -373,13 +373,17 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 20,
+                                  "fontWeight": 700,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Error details
@@ -390,39 +394,74 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
-                            accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
+                          <View
+                            accessibilityState={
                               {
-                                "alignItems": "center",
-                                "borderRadius": 8,
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 32,
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
                               }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                  "width": 32,
+                                },
+                                undefined,
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
                             }
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#121314"
                               fill="currentColor"
-                              height={24}
                               name="Close"
                               style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "height": 24,
+                                    "width": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
-                              width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -445,13 +484,19 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Regular",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                {
+                                  "lineHeight": 24,
+                                },
+                              ]
                             }
                           >
                             This is a test error message.
@@ -468,43 +513,93 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
+                        accessibilityLabel="Got it"
                         accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
+                        accessibilityState={
                           {
-                            "alignItems": "center",
-                            "alignSelf": "flex-start",
-                            "backgroundColor": "#121314",
-                            "borderRadius": 12,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "width": "100%",
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#131416",
+                              "borderRadius": 12,
+                              "columnGap": 8,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "minWidth": 80,
+                              "opacity": 1,
+                              "overflow": "hidden",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "width": "100%",
+                            },
+                            {
+                              "width": "100%",
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
                         <Text
                           accessibilityRole="text"
+                          ellipsizeMode="clip"
+                          numberOfLines={1}
                           style={
-                            {
-                              "color": "#ffffff",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "color": "#ffffff",
+                                "flexGrow": 0,
+                                "flexShrink": 1,
+                                "flexWrap": "wrap",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "fontWeight": 400,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -838,11 +933,11 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                             "flexDirection": "row",
                             "gap": 16,
                             "minHeight": 56,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                           },
                           false,
-                          {
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                         ]
                       }
                       testID="header"
@@ -891,13 +986,17 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 20,
+                                  "fontWeight": 700,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Error details
@@ -908,39 +1007,74 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
-                            accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
+                          <View
+                            accessibilityState={
                               {
-                                "alignItems": "center",
-                                "borderRadius": 8,
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 32,
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
                               }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                  "width": 32,
+                                },
+                                undefined,
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
                             }
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#121314"
                               fill="currentColor"
-                              height={24}
                               name="Close"
                               style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "height": 24,
+                                    "width": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
-                              width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -963,13 +1097,19 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Regular",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                {
+                                  "lineHeight": 24,
+                                },
+                              ]
                             }
                           >
                             Error on line 1.
@@ -988,43 +1128,93 @@ Additional context for debugging.
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
+                        accessibilityLabel="Got it"
                         accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
+                        accessibilityState={
                           {
-                            "alignItems": "center",
-                            "alignSelf": "flex-start",
-                            "backgroundColor": "#121314",
-                            "borderRadius": 12,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "width": "100%",
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#131416",
+                              "borderRadius": 12,
+                              "columnGap": 8,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "minWidth": 80,
+                              "opacity": 1,
+                              "overflow": "hidden",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "width": "100%",
+                            },
+                            {
+                              "width": "100%",
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
                         <Text
                           accessibilityRole="text"
+                          ellipsizeMode="clip"
+                          numberOfLines={1}
                           style={
-                            {
-                              "color": "#ffffff",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "color": "#ffffff",
+                                "flexGrow": 0,
+                                "flexShrink": 1,
+                                "flexWrap": "wrap",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "fontWeight": 400,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1358,11 +1548,11 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                             "flexDirection": "row",
                             "gap": 16,
                             "minHeight": 56,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                           },
                           false,
-                          {
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                         ]
                       }
                       testID="header"
@@ -1411,13 +1601,17 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 20,
+                                  "fontWeight": 700,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Error details
@@ -1428,39 +1622,74 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
-                            accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
+                          <View
+                            accessibilityState={
                               {
-                                "alignItems": "center",
-                                "borderRadius": 8,
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 32,
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
                               }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                  "width": 32,
+                                },
+                                undefined,
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
                             }
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#121314"
                               fill="currentColor"
-                              height={24}
                               name="Close"
                               style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "height": 24,
+                                    "width": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
-                              width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -1483,13 +1712,19 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Regular",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                {
+                                  "lineHeight": 24,
+                                },
+                              ]
                             }
                           />
                         </View>
@@ -1504,43 +1739,93 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
+                        accessibilityLabel="Got it"
                         accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
+                        accessibilityState={
                           {
-                            "alignItems": "center",
-                            "alignSelf": "flex-start",
-                            "backgroundColor": "#121314",
-                            "borderRadius": 12,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "width": "100%",
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#131416",
+                              "borderRadius": 12,
+                              "columnGap": 8,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "minWidth": 80,
+                              "opacity": 1,
+                              "overflow": "hidden",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "width": "100%",
+                            },
+                            {
+                              "width": "100%",
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
                         <Text
                           accessibilityRole="text"
+                          ellipsizeMode="clip"
+                          numberOfLines={1}
                           style={
-                            {
-                              "color": "#ffffff",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "color": "#ffffff",
+                                "flexGrow": 0,
+                                "flexShrink": 1,
+                                "flexWrap": "wrap",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "fontWeight": 400,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -1874,11 +2159,11 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                             "flexDirection": "row",
                             "gap": 16,
                             "minHeight": 56,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                           },
                           false,
-                          {
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                         ]
                       }
                       testID="header"
@@ -1927,13 +2212,17 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 20,
+                                  "fontWeight": 700,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Error details
@@ -1944,39 +2233,74 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
-                            accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
+                          <View
+                            accessibilityState={
                               {
-                                "alignItems": "center",
-                                "borderRadius": 8,
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 32,
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
                               }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                  "width": 32,
+                                },
+                                undefined,
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
                             }
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#121314"
                               fill="currentColor"
-                              height={24}
                               name="Close"
                               style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "height": 24,
+                                    "width": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
-                              width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -1999,13 +2323,19 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Regular",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                {
+                                  "lineHeight": 24,
+                                },
+                              ]
                             }
                           >
                             No quotes available.
@@ -2022,82 +2352,182 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
+                        accessibilityLabel="Change provider"
                         accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
+                        accessibilityState={
                           {
-                            "alignItems": "center",
-                            "alignSelf": "flex-start",
-                            "backgroundColor": "#3c4d9d0f",
-                            "borderColor": "transparent",
-                            "borderRadius": 12,
-                            "borderWidth": 1,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "width": "100%",
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#b4b4b528",
+                              "borderColor": "transparent",
+                              "borderRadius": 12,
+                              "borderWidth": 1,
+                              "columnGap": 8,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "minWidth": 80,
+                              "opacity": 1,
+                              "overflow": "hidden",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "width": "100%",
+                            },
+                            {
+                              "width": "100%",
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
                         <Text
                           accessibilityRole="text"
+                          ellipsizeMode="clip"
+                          numberOfLines={1}
                           style={
-                            {
-                              "color": "#121314",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "color": "#131416",
+                                "flexGrow": 0,
+                                "flexShrink": 1,
+                                "flexWrap": "wrap",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "fontWeight": 400,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           Change provider
                         </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
+                      </View>
+                      <View
+                        accessibilityLabel="Got it"
                         accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
+                        accessibilityState={
                           {
-                            "alignItems": "center",
-                            "alignSelf": "flex-start",
-                            "backgroundColor": "#121314",
-                            "borderRadius": 12,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "width": "100%",
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#131416",
+                              "borderRadius": 12,
+                              "columnGap": 8,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "minWidth": 80,
+                              "opacity": 1,
+                              "overflow": "hidden",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "width": "100%",
+                            },
+                            {
+                              "width": "100%",
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
                         <Text
                           accessibilityRole="text"
+                          ellipsizeMode="clip"
+                          numberOfLines={1}
                           style={
-                            {
-                              "color": "#ffffff",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "color": "#ffffff",
+                                "flexGrow": 0,
+                                "flexShrink": 1,
+                                "flexWrap": "wrap",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "fontWeight": 400,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>
@@ -2431,11 +2861,11 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                             "flexDirection": "row",
                             "gap": 16,
                             "minHeight": 56,
+                            "paddingLeft": 8,
+                            "paddingRight": 8,
                           },
                           false,
-                          {
-                            "paddingHorizontal": 16,
-                          },
+                          undefined,
                         ]
                       }
                       testID="header"
@@ -2484,13 +2914,17 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Bold",
-                                "fontSize": 18,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Bold",
+                                  "fontSize": 20,
+                                  "fontWeight": 700,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                undefined,
+                              ]
                             }
                           >
                             Error details
@@ -2501,39 +2935,74 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                         <View
                           onLayout={[Function]}
                         >
-                          <TouchableOpacity
-                            accessible={true}
-                            activeOpacity={1}
-                            disabled={false}
-                            onPress={[Function]}
-                            onPressIn={[Function]}
-                            onPressOut={[Function]}
-                            style={
+                          <View
+                            accessibilityState={
                               {
-                                "alignItems": "center",
-                                "borderRadius": 8,
-                                "height": 32,
-                                "justifyContent": "center",
-                                "opacity": 1,
-                                "width": 32,
+                                "busy": undefined,
+                                "checked": undefined,
+                                "disabled": false,
+                                "expanded": undefined,
+                                "selected": undefined,
                               }
+                            }
+                            accessibilityValue={
+                              {
+                                "max": undefined,
+                                "min": undefined,
+                                "now": undefined,
+                                "text": undefined,
+                              }
+                            }
+                            accessible={true}
+                            collapsable={false}
+                            focusable={true}
+                            onBlur={[Function]}
+                            onClick={[Function]}
+                            onFocus={[Function]}
+                            onResponderGrant={[Function]}
+                            onResponderMove={[Function]}
+                            onResponderRelease={[Function]}
+                            onResponderTerminate={[Function]}
+                            onResponderTerminationRequest={[Function]}
+                            onStartShouldSetResponder={[Function]}
+                            style={
+                              [
+                                {
+                                  "alignItems": "center",
+                                  "backgroundColor": "transparent",
+                                  "borderRadius": 8,
+                                  "height": 32,
+                                  "justifyContent": "center",
+                                  "opacity": 1,
+                                  "width": 32,
+                                },
+                                undefined,
+                                {
+                                  "transform": [
+                                    {
+                                      "scale": 1,
+                                    },
+                                  ],
+                                },
+                              ]
                             }
                             testID="error-details-close-button"
                           >
                             <SvgMock
-                              color="#121314"
                               fill="currentColor"
-                              height={24}
                               name="Close"
                               style={
-                                {
-                                  "height": 24,
-                                  "width": 24,
-                                }
+                                [
+                                  {
+                                    "color": "#131416",
+                                    "height": 24,
+                                    "width": 24,
+                                  },
+                                  undefined,
+                                ]
                               }
-                              width={24}
                             />
-                          </TouchableOpacity>
+                          </View>
                         </View>
                       </View>
                     </View>
@@ -2556,13 +3025,19 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                           <Text
                             accessibilityRole="text"
                             style={
-                              {
-                                "color": "#121314",
-                                "fontFamily": "Geist-Regular",
-                                "fontSize": 16,
-                                "letterSpacing": 0,
-                                "lineHeight": 24,
-                              }
+                              [
+                                {
+                                  "color": "#131416",
+                                  "fontFamily": "Geist-Regular",
+                                  "fontSize": 16,
+                                  "fontWeight": 400,
+                                  "letterSpacing": 0,
+                                  "lineHeight": 24,
+                                },
+                                {
+                                  "lineHeight": 24,
+                                },
+                              ]
                             }
                           >
                             Provider error occurred.
@@ -2579,82 +3054,182 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                         }
                       }
                     >
-                      <TouchableOpacity
+                      <View
+                        accessibilityLabel="Contact Transak support"
                         accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
+                        accessibilityState={
                           {
-                            "alignItems": "center",
-                            "alignSelf": "flex-start",
-                            "backgroundColor": "#3c4d9d0f",
-                            "borderColor": "transparent",
-                            "borderRadius": 12,
-                            "borderWidth": 1,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "width": "100%",
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#b4b4b528",
+                              "borderColor": "transparent",
+                              "borderRadius": 12,
+                              "borderWidth": 1,
+                              "columnGap": 8,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "minWidth": 80,
+                              "opacity": 1,
+                              "overflow": "hidden",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "width": "100%",
+                            },
+                            {
+                              "width": "100%",
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
                         <Text
                           accessibilityRole="text"
+                          ellipsizeMode="clip"
+                          numberOfLines={1}
                           style={
-                            {
-                              "color": "#121314",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "color": "#131416",
+                                "flexGrow": 0,
+                                "flexShrink": 1,
+                                "flexWrap": "wrap",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "fontWeight": 400,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           Contact Transak support
                         </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
+                      </View>
+                      <View
+                        accessibilityLabel="Got it"
                         accessibilityRole="button"
-                        accessible={true}
-                        activeOpacity={1}
-                        onPress={[Function]}
-                        onPressIn={[Function]}
-                        onPressOut={[Function]}
-                        style={
+                        accessibilityState={
                           {
-                            "alignItems": "center",
-                            "alignSelf": "flex-start",
-                            "backgroundColor": "#121314",
-                            "borderRadius": 12,
-                            "flexDirection": "row",
-                            "height": 48,
-                            "justifyContent": "center",
-                            "overflow": "hidden",
-                            "paddingHorizontal": 16,
-                            "width": "100%",
+                            "busy": undefined,
+                            "checked": undefined,
+                            "disabled": false,
+                            "expanded": undefined,
+                            "selected": undefined,
                           }
+                        }
+                        accessibilityValue={
+                          {
+                            "max": undefined,
+                            "min": undefined,
+                            "now": undefined,
+                            "text": undefined,
+                          }
+                        }
+                        accessible={true}
+                        collapsable={false}
+                        focusable={true}
+                        onBlur={[Function]}
+                        onClick={[Function]}
+                        onFocus={[Function]}
+                        onResponderGrant={[Function]}
+                        onResponderMove={[Function]}
+                        onResponderRelease={[Function]}
+                        onResponderTerminate={[Function]}
+                        onResponderTerminationRequest={[Function]}
+                        onStartShouldSetResponder={[Function]}
+                        style={
+                          [
+                            {
+                              "alignItems": "center",
+                              "backgroundColor": "#131416",
+                              "borderRadius": 12,
+                              "columnGap": 8,
+                              "flexDirection": "row",
+                              "height": 48,
+                              "justifyContent": "center",
+                              "minWidth": 80,
+                              "opacity": 1,
+                              "overflow": "hidden",
+                              "paddingLeft": 16,
+                              "paddingRight": 16,
+                              "width": "100%",
+                            },
+                            {
+                              "width": "100%",
+                            },
+                            {
+                              "transform": [
+                                {
+                                  "scale": 1,
+                                },
+                              ],
+                            },
+                          ]
                         }
                       >
                         <Text
                           accessibilityRole="text"
+                          ellipsizeMode="clip"
+                          numberOfLines={1}
                           style={
-                            {
-                              "color": "#ffffff",
-                              "fontFamily": "Geist-Medium",
-                              "fontSize": 16,
-                              "letterSpacing": 0,
-                              "lineHeight": 24,
-                            }
+                            [
+                              {
+                                "color": "#ffffff",
+                                "flexGrow": 0,
+                                "flexShrink": 1,
+                                "flexWrap": "wrap",
+                                "fontFamily": "Geist-Medium",
+                                "fontSize": 16,
+                                "fontWeight": 400,
+                                "letterSpacing": 0,
+                                "lineHeight": 24,
+                                "textAlign": "center",
+                              },
+                              undefined,
+                            ]
                           }
                         >
                           Got it
                         </Text>
-                      </TouchableOpacity>
+                      </View>
                     </View>
                   </View>
                 </View>

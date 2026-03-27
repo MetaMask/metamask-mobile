@@ -7,7 +7,10 @@ import {
   MessengerActions,
   MessengerEvents,
 } from '@metamask/messenger';
-import type { RemoteFeatureFlagControllerGetStateAction } from '@metamask/remote-feature-flag-controller';
+import type {
+  RemoteFeatureFlagControllerGetStateAction,
+  RemoteFeatureFlagControllerStateChangeEvent,
+} from '@metamask/remote-feature-flag-controller';
 import { RootMessenger } from '../../types';
 
 type AllowedActions = MessengerActions<RampsControllerMessenger>;
@@ -95,7 +98,8 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'RampsControllerInit',
     RemoteFeatureFlagControllerGetStateAction,
-    RampsControllerOrderStatusChangedEvent,
+    | RampsControllerOrderStatusChangedEvent
+    | RemoteFeatureFlagControllerStateChangeEvent,
     RootMessenger
   >({
     namespace: 'RampsControllerInit',
@@ -104,7 +108,10 @@ export function getRampsControllerInitMessenger(rootMessenger: RootMessenger) {
 
   rootMessenger.delegate({
     actions: ['RemoteFeatureFlagController:getState'],
-    events: ['RampsController:orderStatusChanged'],
+    events: [
+      'RampsController:orderStatusChanged',
+      'RemoteFeatureFlagController:stateChange',
+    ],
     messenger,
   });
 

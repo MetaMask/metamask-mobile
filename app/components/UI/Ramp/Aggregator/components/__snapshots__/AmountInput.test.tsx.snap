@@ -5,16 +5,20 @@ exports[`AmountInput renders correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginVertical": 8,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginVertical": 8,
+        },
+      ]
     }
-    testID="label"
   >
     Amount
   </Text>,
@@ -26,7 +30,7 @@ exports[`AmountInput renders correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -65,6 +69,7 @@ exports[`AmountInput renders correctly 1`] = `
             testID="listitemcolumn"
           >
             <TouchableOpacity
+              accessibilityLabel="$100.50"
               accessibilityRole="button"
               accessible={true}
               hitSlop={
@@ -83,7 +88,7 @@ exports[`AmountInput renders correctly 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 24,
                     "letterSpacing": 0,
@@ -108,16 +113,20 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginVertical": 8,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginVertical": 8,
+        },
+      ]
     }
-    testID="label"
   >
     Amount
   </Text>,
@@ -129,7 +138,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -168,6 +177,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
             testID="listitemcolumn"
           >
             <TouchableOpacity
+              accessibilityLabel="$100.50"
               accessibilityRole="button"
               accessible={true}
               hitSlop={
@@ -186,7 +196,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
                 numberOfLines={1}
                 style={
                   {
-                    "color": "#121314",
+                    "color": "#131416",
                     "fontFamily": "Geist-Medium",
                     "fontSize": 24,
                     "letterSpacing": 0,
@@ -248,7 +258,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
                   accessibilityRole="text"
                   style={
                     {
-                      "color": "#121314",
+                      "color": "#131416",
                       "fontFamily": "Geist-Bold",
                       "fontSize": 16,
                       "letterSpacing": 0,
@@ -259,7 +269,7 @@ exports[`AmountInput renders correctly with currency selector 1`] = `
                   USD
                 </Text>
                 <SvgMock
-                  color="#686e7d"
+                  color="#66676a"
                   fill="currentColor"
                   height={16}
                   name="ArrowDown"
@@ -287,16 +297,20 @@ exports[`AmountInput renders loading state correctly 1`] = `
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginVertical": 8,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginVertical": 8,
+        },
+      ]
     }
-    testID="label"
   >
     Amount
   </Text>,
@@ -308,7 +322,7 @@ exports[`AmountInput renders loading state correctly 1`] = `
       style={
         [
           {
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -347,6 +361,7 @@ exports[`AmountInput renders loading state correctly 1`] = `
             testID="listitemcolumn"
           >
             <TouchableOpacity
+              accessibilityLabel="$100.50"
               accessibilityRole="button"
               accessible={true}
               hitSlop={
@@ -363,7 +378,7 @@ exports[`AmountInput renders loading state correctly 1`] = `
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -400,16 +415,20 @@ exports[`AmountInput renders loading state correctly with currency selector 1`] 
   <Text
     accessibilityRole="text"
     style={
-      {
-        "color": "#121314",
-        "fontFamily": "Geist-Regular",
-        "fontSize": 16,
-        "letterSpacing": 0,
-        "lineHeight": 24,
-        "marginVertical": 8,
-      }
+      [
+        {
+          "color": "#131416",
+          "fontFamily": "Geist-Regular",
+          "fontSize": 16,
+          "fontWeight": 400,
+          "letterSpacing": 0,
+          "lineHeight": 24,
+        },
+        {
+          "marginVertical": 8,
+        },
+      ]
     }
-    testID="label"
   >
     Amount
   </Text>,
@@ -421,7 +440,7 @@ exports[`AmountInput renders loading state correctly with currency selector 1`] 
       style={
         [
           {
-            "backgroundColor": "#3c4d9d0f",
+            "backgroundColor": "#b4b4b528",
             "borderRadius": 8,
             "padding": 16,
           },
@@ -460,6 +479,7 @@ exports[`AmountInput renders loading state correctly with currency selector 1`] 
             testID="listitemcolumn"
           >
             <TouchableOpacity
+              accessibilityLabel="$100.50"
               accessibilityRole="button"
               accessible={true}
               hitSlop={
@@ -476,7 +496,7 @@ exports[`AmountInput renders loading state correctly with currency selector 1`] 
                 style={
                   [
                     {
-                      "backgroundColor": "#858b9a14",
+                      "backgroundColor": "#b4b4b528",
                       "borderRadius": 30,
                       "padding": 14,
                     },
@@ -523,7 +543,7 @@ exports[`AmountInput renders loading state correctly with currency selector 1`] 
               style={
                 [
                   {
-                    "backgroundColor": "#858b9a14",
+                    "backgroundColor": "#b4b4b528",
                     "borderRadius": 30,
                     "padding": 14,
                   },

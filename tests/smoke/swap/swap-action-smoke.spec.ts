@@ -11,6 +11,7 @@ import {
 import { loginToApp } from '../../flows/wallet.flow';
 import { prepareSwapsTestEnvironment } from '../../helpers/swap/prepareSwapsTestEnvironment';
 import { testSpecificMock } from '../../helpers/swap/swap-mocks';
+import { setupSmartTransactionsMocks } from '../../helpers/swap/smart-transactions-mocks';
 import { DEFAULT_ANVIL_PORT } from '../../seeder/anvil-manager';
 import {
   EventPayload,
@@ -51,15 +52,12 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
       {
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x1',
-              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-              type: 'custom',
-              nickname: 'Localhost',
-              ticker: 'ETH',
-            },
+            chainId: '0x1',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Localhost',
+            ticker: 'ETH',
           })
-          .withDisabledSmartTransactions()
           .withMetaMetricsOptIn()
           .build(),
         localNodeOptions: [
@@ -73,8 +71,12 @@ describe(SmokeTrade('Swap from Actions'), (): void => {
             },
           },
         ],
-        testSpecificMock,
+        testSpecificMock: async (mockServer) => {
+          await testSpecificMock(mockServer);
+          await setupSmartTransactionsMocks(mockServer, DEFAULT_ANVIL_PORT);
+        },
         restartDevice: true,
+        skipReactNativeReload: true,
       },
       async ({ mockServer }) => {
         await loginToApp();

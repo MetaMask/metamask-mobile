@@ -2,18 +2,22 @@ import AppConstants from '../../../AppConstants';
 
 const {
   MM_UNIVERSAL_LINK_HOST,
+  MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+  MM_UNIVERSAL_LINK_TEST_APP_HOST,
+  MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
   MM_IO_UNIVERSAL_LINK_HOST,
   MM_IO_UNIVERSAL_LINK_TEST_HOST,
 } = AppConstants;
 
-const METAMASK_HOSTS = [
+const METAMASK_HOSTS: readonly string[] = [
   ...new Set(
     [
-      MM_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-      MM_IO_UNIVERSAL_LINK_HOST || 'link.metamask.io',
-      MM_IO_UNIVERSAL_LINK_TEST_HOST || 'link-test.metamask.io',
-      'metamask.app.link',
-      'metamask.test-app.link',
+      MM_UNIVERSAL_LINK_HOST,
+      MM_UNIVERSAL_LINK_HOST_ALTERNATE,
+      MM_IO_UNIVERSAL_LINK_HOST,
+      MM_IO_UNIVERSAL_LINK_TEST_HOST,
+      MM_UNIVERSAL_LINK_TEST_APP_HOST,
+      MM_UNIVERSAL_LINK_TEST_APP_HOST_ALTERNATE,
     ].filter(Boolean),
   ),
 ];

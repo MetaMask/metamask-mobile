@@ -34,6 +34,7 @@ const mockAdapterInstance = {
   destroy: jest.fn(),
   startDeviceDiscovery: jest.fn(),
   stopDeviceDiscovery: jest.fn(),
+  ensurePermissions: jest.fn().mockResolvedValue(true),
   isTransportAvailable: jest.fn().mockReturnValue(true),
   onTransportStateChange: jest
     .fn()
@@ -48,6 +49,17 @@ const mockAdapterInstance = {
 
 jest.mock('./adapters', () => ({
   createAdapter: jest.fn(() => mockAdapterInstance),
+}));
+
+jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
+  useAnalytics: () => ({
+    trackEvent: jest.fn(),
+    createEventBuilder: jest.fn().mockReturnValue({
+      addProperties: jest.fn().mockReturnValue({
+        build: jest.fn().mockReturnValue({ name: 'built-event' }),
+      }),
+    }),
+  }),
 }));
 
 jest.mock('@ledgerhq/react-native-hw-transport-ble', () => ({
@@ -149,8 +161,7 @@ describe('HardwareWalletProvider', () => {
 
   describe('wallet type detection', () => {
     it('detects hardware wallet from selected account', async () => {
-      const mockAccount = { address: '0x1234' };
-      mockUseSelector.mockReturnValue(mockAccount);
+      mockUseSelector.mockReturnValue({ address: '0x1234' });
       mockGetHardwareWalletType.mockReturnValue(HardwareWalletType.Ledger);
 
       const { getByTestId } = renderProvider();
@@ -196,8 +207,6 @@ describe('HardwareWalletProvider', () => {
 
       renderProvider();
 
-      // The provider always creates an adapter - for non-hardware accounts it creates
-      // a NonHardwareAdapter (passthrough) by calling createAdapter(null, ...)
       expect(mockCreateAdapter).toHaveBeenCalledWith(
         null,
         expect.objectContaining({
@@ -513,7 +522,7 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    describe('retryLastOperation (internal, via bottom sheet props)', () => {
+    describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
       it('transitions to connecting state when retrying', async () => {
         const { result } = renderWithActions();
 
@@ -536,7 +545,7 @@ describe('HardwareWalletProvider', () => {
         );
 
         const internalRetry =
-          capturedBottomSheetProps.retryLastOperation as () => Promise<void>;
+          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
         await act(async () => {
           await internalRetry();
         });
@@ -628,7 +637,6 @@ describe('HardwareWalletProvider', () => {
 
     it('updates wallet type when set', async () => {
       mockUseSelector.mockReturnValue(null);
-      mockGetHardwareWalletType.mockReturnValue(undefined);
 
       const { result } = renderHook(() => useTestActions(), {
         wrapper: ({ children }: { children: React.ReactNode }) => (

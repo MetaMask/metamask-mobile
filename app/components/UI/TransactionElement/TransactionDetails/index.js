@@ -18,6 +18,7 @@ import Logger from '../../../../util/Logger';
 import EthereumAddress from '../../EthereumAddress';
 import TransactionSummary from '../../../Views/TransactionSummary';
 import { toDateFormat } from '../../../../util/date';
+import StyledButton from '../../StyledButton';
 import StatusText from '../../../Base/StatusText';
 import Text, {
   TextColor,
@@ -29,9 +30,7 @@ import { withNavigation } from '@react-navigation/compat';
 import { ThemeContext, mockTheme } from '../../../../util/theme';
 import decodeTransaction from '../../TransactionElement/utils';
 import {
-  selectChainId,
   selectNetworkConfigurations,
-  selectProviderConfig,
   selectTickerByChainId,
 } from '../../../../selectors/networkController';
 import {
@@ -52,6 +51,7 @@ import {
 } from '../../../../selectors/transactionController';
 import { getGlobalEthQuery } from '../../../../util/networks/global-network';
 import { isNonEvmChainId } from '../../../../core/Multichain/utils';
+import { hasGasFeeTokenSelected } from '../../../Views/confirmations/utils/transaction';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
@@ -64,7 +64,7 @@ import {
   MAINNET_BLOCK_EXPLORER,
   SEPOLIA_BLOCK_EXPLORER,
 } from '../../../../constants/urls';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
+import { CHAIN_IDS, TransactionType } from '@metamask/transaction-controller';
 import TagBase from '../../../../component-library/base-components/TagBase';
 import { PopularList } from '../../../../util/networks/customNetworks';
 
@@ -128,10 +128,6 @@ class TransactionDetails extends PureComponent {
     */
     navigation: PropTypes.object,
     /**
-     * Chain ID string
-     */
-    chainId: PropTypes.string,
-    /**
      * Object corresponding to a transaction, containing transaction object, networkId and transaction hash string
      */
     transactionObject: PropTypes.object,
@@ -150,6 +146,8 @@ class TransactionDetails extends PureComponent {
     /**
      * A string representing the network name
      */
+    showSpeedUpModal: PropTypes.func,
+    showCancelModal: PropTypes.func,
     selectedAddress: PropTypes.string,
     transactions: PropTypes.array,
     ticker: PropTypes.string,
@@ -159,6 +157,7 @@ class TransactionDetails extends PureComponent {
     currentCurrency: PropTypes.string,
     swapsTransactions: PropTypes.object,
     primaryCurrency: PropTypes.string,
+
     /**
      * Avatar style to render for account icons
      */
@@ -177,12 +176,11 @@ class TransactionDetails extends PureComponent {
 
   /**
    * Returns the appropriate block explorer URL for a given chain
-   * @param {string} chainId - The chain ID to get the block explorer for
    * @param {string} txChainId - The transaction chain ID
    * @param {Object} networkConfigurations - The network configurations object
    * @returns {string} The block explorer URL
    */
-  getBlockExplorerForChain = (chainId, txChainId, networkConfigurations) => {
+  getBlockExplorerForChain = (txChainId, networkConfigurations) => {
     // First check for network configuration block explorer
     let blockExplorer =
       networkConfigurations?.[txChainId]?.blockExplorerUrls[
@@ -211,8 +209,8 @@ class TransactionDetails extends PureComponent {
     }
 
     // Check for non-EVM chain block explorer
-    if (isNonEvmChainId(chainId)) {
-      blockExplorer = findBlockExplorerForNonEvmChainId(chainId);
+    if (isNonEvmChainId(txChainId)) {
+      blockExplorer = findBlockExplorerForNonEvmChainId(txChainId);
     }
 
     return blockExplorer;
@@ -278,12 +276,10 @@ class TransactionDetails extends PureComponent {
   componentDidMount = () => {
     const {
       transactionObject: { chainId: txChainId },
-      chainId,
       networkConfigurations,
     } = this.props;
 
     const blockExplorer = this.getBlockExplorerForChain(
-      chainId,
       txChainId,
       networkConfigurations,
     );
@@ -320,10 +316,57 @@ class TransactionDetails extends PureComponent {
     return createStyles(colors);
   };
 
+  showSpeedUpModal = () => {
+    this.props.showSpeedUpModal?.();
+  };
+
+  showCancelModal = () => {
+    this.props.showCancelModal?.();
+  };
+
+  renderSpeedUpButton = () => {
+    const styles = this.getStyles();
+
+    return (
+      <StyledButton
+        type={'normal'}
+        containerStyle={[
+          styles.actionContainerStyle,
+          styles.speedupActionContainerStyle,
+        ]}
+        style={styles.actionStyle}
+        onPress={this.showSpeedUpModal}
+      >
+        {strings('transaction.speedup')}
+      </StyledButton>
+    );
+  };
+
+  renderCancelButton = () => {
+    const styles = this.getStyles();
+
+    return (
+      <StyledButton
+        type={'cancel'}
+        containerStyle={styles.actionContainerStyle}
+        style={styles.actionStyle}
+        onPress={this.showCancelModal}
+      >
+        {strings('transaction.cancel')}
+      </StyledButton>
+    );
+  };
+
   render = () => {
     const {
       transactionObject,
-      transactionObject: { status, time, txParams, chainId: txChainId },
+      transactionObject: {
+        status,
+        time,
+        txParams,
+        chainId: txChainId,
+        isSmartTransaction,
+      },
     } = this.props;
     const chainId = txChainId;
     const hasNestedTransactions = Boolean(
@@ -331,7 +374,13 @@ class TransactionDetails extends PureComponent {
     );
     const { updatedTransactionDetails } = this.state;
     const styles = this.getStyles();
-
+    const isBridgeTransaction =
+      transactionObject?.type === TransactionType.bridge;
+    const renderTxActions =
+      (status === 'submitted' || status === 'approved') &&
+      !isSmartTransaction &&
+      !isBridgeTransaction &&
+      !hasGasFeeTokenSelected(transactionObject);
     const { rpcBlockExplorer } = this.state;
 
     return updatedTransactionDetails ? (
@@ -356,6 +405,13 @@ class TransactionDetails extends PureComponent {
               {strings('transactions.status')}
             </DetailsModal.SectionTitle>
             <StatusText status={status} />
+            {!!renderTxActions &&
+              updatedTransactionDetails?.txChainId === chainId && (
+                <View style={styles.transactionActionsContainer}>
+                  {this.renderSpeedUpButton()}
+                  {this.renderCancelButton()}
+                </View>
+              )}
           </DetailsModal.Column>
           <DetailsModal.Column end>
             <DetailsModal.SectionTitle>
@@ -482,8 +538,6 @@ class TransactionDetails extends PureComponent {
 }
 
 const mapStateToProps = (state, ownProps) => ({
-  chainId: selectChainId(state),
-  providerConfig: selectProviderConfig(state),
   networkConfigurations: selectNetworkConfigurations(state),
   selectedAddress: selectSelectedInternalAccountFormattedAddress(state),
   transactions: selectTransactions(state),

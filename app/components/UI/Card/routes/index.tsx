@@ -27,6 +27,8 @@ import RegionSelectorModal from '../components/Onboarding/RegionSelectorModal';
 import ConfirmModal from '../components/Onboarding/ConfirmModal';
 import RecurringFeeModal from '../components/RecurringFeeModal/RecurringFeeModal';
 import DaimoPayModal from '../components/DaimoPayModal/DaimoPayModal';
+import ViewPinBottomSheet from '../components/ViewPinBottomSheet';
+import SpendingLimitOptionsSheet from '../Views/SpendingLimit/components/SpendingLimitOptionsSheet';
 import OrderCompleted from '../Views/OrderCompleted/OrderCompleted';
 import Cashback from '../Views/Cashback/Cashback';
 import {
@@ -115,14 +117,14 @@ export const cardChooseYourCardNavigationOptions = ({
   route,
 }: {
   navigation: NavigationProp<ParamListBase>;
-  route: { params?: { flow?: 'onboarding' | 'upgrade' } };
+  route: { params?: { flow?: 'onboarding' | 'upgrade' | 'home' } };
 }): StackNavigationOptions => {
   const flow = route.params?.flow || 'onboarding';
-  const isUpgradeFlow = flow === 'upgrade';
+  const showBackButton = flow === 'upgrade' || flow === 'home';
 
   return {
     headerLeft: () =>
-      isUpgradeFlow ? (
+      showBackButton ? (
         <ButtonIcon
           style={headerStyle.icon}
           size={ButtonIconSize.Md}
@@ -230,6 +232,14 @@ const CardModalsRoutes = () => (
     <ModalsStack.Screen
       name={Routes.CARD.MODALS.DAIMO_PAY}
       component={DaimoPayModal}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.VIEW_PIN}
+      component={ViewPinBottomSheet}
+    />
+    <ModalsStack.Screen
+      name={Routes.CARD.MODALS.SPENDING_LIMIT_OPTIONS}
+      component={SpendingLimitOptionsSheet}
     />
   </ModalsStack.Navigator>
 );

@@ -31,6 +31,7 @@ import ModalConfirmation from '../../../component-library/components/Modals/Moda
 import Toast, {
   ToastContext,
 } from '../../../component-library/components/Toast';
+import AgentStepHud from '../../../core/AgenticService/AgentStepHud';
 import PerpsWebSocketHealthToast, {
   WebSocketHealthToastProvider,
 } from '../../UI/Perps/components/PerpsWebSocketHealthToast';
@@ -56,7 +57,7 @@ import ConnectQRHardware from '../../Views/ConnectQRHardware';
 import SelectHardwareWallet from '../../Views/ConnectHardware/SelectHardware';
 import { UpdateNeeded } from '../../../components/UI/UpdateNeeded';
 import { OTAUpdatesModal } from '../../UI/OTAUpdatesModal';
-import NetworkSettings from '../../Views/Settings/NetworksSettings/NetworkSettings';
+import NetworkDetailsView from '../../Views/NetworksManagement/NetworkDetailsView';
 import ModalMandatory from '../../../component-library/components/Modals/ModalMandatory';
 import { RestoreWallet } from '../../Views/RestoreWallet';
 import WalletRestored from '../../Views/RestoreWallet/WalletRestored';
@@ -71,6 +72,7 @@ import FiatOnTestnetsFriction from '../../../components/Views/Settings/AdvancedS
 import WalletActions from '../../Views/WalletActions';
 import FundActionMenu from '../../UI/FundActionMenu';
 import MoreTokenActionsMenu from '../../UI/TokenDetails/components/MoreTokenActionsMenu';
+import SecurityBadgeBottomSheet from '../../UI/TokenDetails/components/SecurityBadgeBottomSheet';
 import NetworkSelector from '../../../components/Views/NetworkSelector';
 import ReturnToAppNotification from '../../Views/ReturnToAppNotification';
 import EditAccountName from '../../Views/EditAccountName/EditAccountName';
@@ -126,6 +128,7 @@ import ConfirmTurnOnBackupAndSyncModal from '../../UI/Identity/ConfirmTurnOnBack
 import AddNewAccountBottomSheet from '../../Views/AddNewAccount/AddNewAccountBottomSheet';
 import EligibilityFailedModal from '../../UI/Ramp/components/EligibilityFailedModal';
 import RampUnsupportedModal from '../../UI/Ramp/components/RampUnsupportedModal';
+import RampsBootstrap from '../../UI/Ramp/RampsBootstrap';
 import SwitchAccountTypeModal from '../../Views/confirmations/components/modals/switch-account-type-modal';
 import { AccountDetails } from '../../Views/MultichainAccounts/AccountDetails/AccountDetails';
 import { AccountGroupDetails } from '../../Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
@@ -147,15 +150,16 @@ import useInterval from '../../hooks/useInterval';
 import { Duration } from '@metamask/utils';
 import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 import { PayWithModal } from '../../Views/confirmations/components/modals/pay-with-modal/pay-with-modal';
-import { State2AccountConnectWrapper } from '../../Views/MultichainAccounts/MultichainAccountConnect/State2AccountConnectWrapper';
+import MultichainAccountConnect from '../../Views/MultichainAccounts/MultichainAccountConnect/MultichainAccountConnect';
 import { SmartAccountModal } from '../../Views/MultichainAccounts/AccountDetails/components/SmartAccountModal/SmartAccountModal';
 import TradeWalletActions from '../../Views/TradeWalletActions';
-import { BIP44AccountPermissionWrapper } from '../../Views/MultichainAccounts/MultichainPermissionsSummary/BIP44AccountPermissionWrapper';
+import { MultichainAccountPermissions } from '../../Views/MultichainAccounts/MultichainAccountPermissions/MultichainAccountPermissions';
 import SocialLoginIosUser from '../../Views/SocialLoginIosUser';
 import { useOTAUpdates } from '../../hooks/useOTAUpdates';
 import MultichainTransactionDetailsSheet from '../../UI/MultichainTransactionDetailsModal/MultichainTransactionDetailsSheet';
 import TransactionDetailsSheet from '../../UI/TransactionElement/TransactionDetailsSheet';
 import ImportWalletTipBottomSheet from '../../UI/TransactionElement/ImportWalletTipBottomSheet';
+import { AccessRestrictedProvider } from '../../UI/Compliance';
 
 const clearStackNavigatorOptions = {
   headerShown: false,
@@ -332,10 +336,10 @@ const AddNetworkFlow = () => {
   const route = useRoute();
 
   return (
-    <Stack.Navigator>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen
         name="AddNetwork"
-        component={NetworkSettings}
+        component={NetworkDetailsView}
         initialParams={route?.params}
       />
     </Stack.Navigator>
@@ -378,6 +382,10 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     <Stack.Screen
       name={Routes.MODAL.MORE_TOKEN_ACTIONS_MENU}
       component={MoreTokenActionsMenu}
+    />
+    <Stack.Screen
+      name={Routes.MODAL.SECURITY_BADGE_BOTTOM_SHEET}
+      component={SecurityBadgeBottomSheet}
     />
     <Stack.Screen
       name={Routes.MODAL.DELETE_WALLET}
@@ -459,11 +467,11 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_CONNECT}
-      component={State2AccountConnectWrapper}
+      component={MultichainAccountConnect}
     />
     <Stack.Screen
       name={Routes.SHEET.ACCOUNT_PERMISSIONS}
-      component={BIP44AccountPermissionWrapper}
+      component={MultichainAccountPermissions}
       initialParams={{ initialScreen: AccountPermissionsScreens.Connected }}
     />
     <Stack.Screen
@@ -1058,13 +1066,21 @@ const AppFlow = () => (
     <Stack.Screen
       name={Routes.ADD_NETWORK}
       component={AddNetworkFlow}
-      options={{ animationEnabled: true }}
+      options={{
+        animationEnabled: true,
+        cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+        gestureEnabled: true,
+      }}
     />
     {isNetworkUiRedesignEnabled() ? (
       <Stack.Screen
         name={Routes.EDIT_NETWORK}
         component={AddNetworkFlow}
-        options={{ animationEnabled: true }}
+        options={{
+          animationEnabled: true,
+          cardStyle: { flex: 1, backgroundColor: importedColors.transparent },
+          gestureEnabled: true,
+        }}
       />
     ) : null}
     <Stack.Screen
@@ -1118,16 +1134,17 @@ const App: React.FC = () => {
   useInterval(
     async () => {
       if (isSeedlessOnboardingLoginFlow) {
-        await Authentication.checkIsSeedlessPasswordOutdated(
-          firstLoad.current,
-        ).catch((error) => {
+        await Authentication.checkIsSeedlessPasswordOutdated({
+          skipCache: firstLoad.current,
+          captureSentryError: false,
+        }).catch((error) => {
           Logger.error(error, 'App: Error in checkIsSeedlessPasswordOutdated');
         });
         firstLoad.current = false;
       }
     },
     {
-      delay: Duration.Minute * 5,
+      delay: Duration.Minute * 10,
       immediate: true,
     },
   );
@@ -1167,13 +1184,18 @@ const App: React.FC = () => {
   }, []);
 
   return (
-    <WebSocketHealthToastProvider>
-      <AppFlow />
-      <Toast ref={toastRef} />
-      <PerpsWebSocketHealthToast />
-      <ControllerEventToastBridge registrations={predictRegistrations} />
-      <ProfilerManager />
-    </WebSocketHealthToastProvider>
+    <AccessRestrictedProvider>
+      <WebSocketHealthToastProvider>
+        {/* TODO: Temporary fix for non-V2 Buy token selection; remove RampsBootstrap once V2 flag is on for all users. */}
+        <RampsBootstrap />
+        <AppFlow />
+        <Toast ref={toastRef} />
+        <PerpsWebSocketHealthToast />
+        {__DEV__ && <AgentStepHud />}
+        <ControllerEventToastBridge registrations={predictRegistrations} />
+        <ProfilerManager />
+      </WebSocketHealthToastProvider>
+    </AccessRestrictedProvider>
   );
 };
 

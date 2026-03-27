@@ -40,6 +40,7 @@ import { useRampsUserRegion } from '../../hooks/useRampsUserRegion';
 import type { TransakBuyQuote } from '@metamask/ramps-controller';
 import type { AddressFormData } from '../../Deposit/Views/EnterAddress/EnterAddress';
 import { parseUserFacingError } from '../../utils/parseUserFacingError';
+import { BASIC_INFO_TEST_IDS } from './BasicInfo.testIds';
 
 export interface BasicInfoFormData {
   firstName: string;
@@ -253,6 +254,15 @@ const V2BasicInfo = (): JSX.Element => {
     }
   }, [logoutFromProvider, navigation]);
 
+  const handleSsnInfoPress = useCallback(() => {
+    navigation.navigate(
+      Routes.RAMP.MODALS.ID as never,
+      {
+        screen: Routes.RAMP.MODALS.SSN_INFO,
+      } as never,
+    );
+  }, [navigation]);
+
   const focusNextField = useCallback(
     (nextRef: React.RefObject<TextInput>) => () => {
       nextRef.current?.focus();
@@ -330,7 +340,7 @@ const V2BasicInfo = (): JSX.Element => {
                           label: strings('deposit.basic_info.login_with_email'),
                           onPress: handleLogout,
                           labelTextVariant: TextVariant.BodyMD,
-                          testID: 'basic-info-logout-button',
+                          testID: BASIC_INFO_TEST_IDS.LOGOUT_BUTTON,
                         }
                       : undefined
                   }
@@ -348,7 +358,7 @@ const V2BasicInfo = (): JSX.Element => {
                 )}
                 error={errors.firstName}
                 returnKeyType="next"
-                testID="first-name-input"
+                testID={BASIC_INFO_TEST_IDS.FIRST_NAME_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={firstNameInputRef}
                 autoComplete="given-name"
@@ -367,7 +377,7 @@ const V2BasicInfo = (): JSX.Element => {
                 )}
                 error={errors.lastName}
                 returnKeyType="next"
-                testID="last-name-input"
+                testID={BASIC_INFO_TEST_IDS.LAST_NAME_INPUT}
                 containerStyle={styles.nameInputContainer}
                 ref={lastNameInputRef}
                 autoComplete="family-name"
@@ -432,7 +442,7 @@ const V2BasicInfo = (): JSX.Element => {
               }}
               ref={dateInputRef}
               textFieldProps={{
-                testID: 'date-of-birth-input',
+                testID: BASIC_INFO_TEST_IDS.DATE_OF_BIRTH_INPUT,
               }}
             />
             {regionIsoCode === 'US' && (
@@ -442,7 +452,10 @@ const V2BasicInfo = (): JSX.Element => {
                     <Text variant={TextVariant.BodyMD}>
                       {strings('deposit.basic_info.social_security_number')}
                     </Text>
-                    <TouchableOpacity testID="ssn-info-button">
+                    <TouchableOpacity
+                      onPress={handleSsnInfoPress}
+                      testID={BASIC_INFO_TEST_IDS.SSN_INFO_BUTTON}
+                    >
                       <Icon
                         name={IconName.Info}
                         size={IconSize.Sm}
@@ -456,7 +469,7 @@ const V2BasicInfo = (): JSX.Element => {
                 onChangeText={handleFieldChange('ssn')}
                 error={errors.ssn}
                 returnKeyType="done"
-                testID="ssn-input"
+                testID={BASIC_INFO_TEST_IDS.SSN_INPUT}
                 ref={ssnInputRef}
                 autoComplete="off"
                 textContentType="none"
@@ -482,7 +495,7 @@ const V2BasicInfo = (): JSX.Element => {
             width={ButtonWidthTypes.Full}
             isDisabled={loading || !!error}
             loading={loading}
-            testID="continue-button"
+            testID={BASIC_INFO_TEST_IDS.CONTINUE_BUTTON}
           />
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>

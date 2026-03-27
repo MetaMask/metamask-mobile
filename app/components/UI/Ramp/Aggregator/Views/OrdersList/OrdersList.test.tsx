@@ -318,7 +318,7 @@ describe('OrdersList', () => {
 
     fireEvent.press(screen.getByRole('button', { name: 'Purchased' }));
     fireEvent.press(screen.getByRole('button', { name: /Purchased USDC/ }));
-    expect(mockNavigate).toHaveBeenCalledWith('OrderDetails', {
+    expect(mockNavigate).toHaveBeenCalledWith('DepositOrderDetails', {
       orderId: 'test-deposit-order-1',
     });
   });
