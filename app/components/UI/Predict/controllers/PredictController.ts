@@ -2331,7 +2331,7 @@ export class PredictController extends BaseController<
       const e = ensureError(error);
       Logger.error(
         e,
-        this.getErrorContext('initiPayWithAnyToken', {
+        this.getErrorContext('initPayWithAnyToken', {
           providerId: POLYMARKET_PROVIDER_ID,
         }),
       );

@@ -16,11 +16,9 @@ import { getNativeTokenAddress } from '@metamask/assets-controllers';
 import { Hex } from '@metamask/utils';
 import { EMPTY_ADDRESS } from '../../../../../../constants/transaction';
 import { usePredictBalance } from '../../../hooks/usePredictBalance';
-import { useTransactionPayHasSourceAmount } from '../../../../../Views/confirmations/hooks/pay/useTransactionPayHasSourceAmount';
 
 interface UsePredictBuyConditionsParams {
   currentValue: number;
-  depositFee: number;
   preview?: OrderPreview | null;
   isPreviewCalculating: boolean;
   isUserInputChange: boolean;
@@ -47,7 +45,6 @@ const normalizeQuoteComparableAddress = (
 export const usePredictBuyConditions = ({
   preview,
   currentValue,
-  depositFee,
   isPreviewCalculating,
   isUserInputChange,
   isConfirming,
@@ -68,7 +65,6 @@ export const usePredictBuyConditions = ({
     resetSelectedPaymentToken,
   } = usePredictPaymentToken();
   const { data: predictBalance = 0 } = usePredictBalance();
-  const hasSourceAmount = useTransactionPayHasSourceAmount();
 
   const [insufficientPayTokenBalanceAlert] =
     useInsufficientPayTokenBalanceAlert();
@@ -95,8 +91,8 @@ export const usePredictBuyConditions = ({
 
   const isInsufficientBalance = useMemo(
     () =>
-      !isConfirming &&
       isPredictBalanceSelected &&
+      !isConfirming &&
       currentValue > 0 &&
       currentValue > maxBetAmount,
     [isConfirming, isPredictBalanceSelected, currentValue, maxBetAmount],
@@ -173,15 +169,14 @@ export const usePredictBuyConditions = ({
       (isPayTotalsLoading ||
         isPayQuoteLoading ||
         isQuotesStale ||
-        quotes?.length === 0 ||
-        !hasSourceAmount),
+        (quotes?.length === 0 && !payTotals)),
     [
       shouldWaitForPayFees,
       isPayTotalsLoading,
       isPayQuoteLoading,
       isQuotesStale,
-      quotes,
-      hasSourceAmount,
+      payTotals,
+      quotes?.length,
     ],
   );
 

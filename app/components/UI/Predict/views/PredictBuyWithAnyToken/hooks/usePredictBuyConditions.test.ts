@@ -23,7 +23,6 @@ let mockSelectedPaymentToken: {
 let mockIsDepositPending = false;
 let mockInsufficientPayTokenBalanceAlert: { message: string } | null = null;
 let mockPredictBalance = 0;
-let mockHasSourceAmount = true;
 const mockResetSelectedPaymentToken = jest.fn();
 
 jest.mock('./usePredictBuyAvailableBalance', () => ({
@@ -80,13 +79,6 @@ jest.mock(
   }),
 );
 
-jest.mock(
-  '../../../../../Views/confirmations/hooks/pay/useTransactionPayHasSourceAmount',
-  () => ({
-    useTransactionPayHasSourceAmount: () => mockHasSourceAmount,
-  }),
-);
-
 jest.mock('@metamask/assets-controllers', () => ({
   getNativeTokenAddress: jest.fn(
     () => '0x0000000000000000000000000000000000001010',
@@ -124,7 +116,6 @@ describe('usePredictBuyConditions', () => {
     mockIsDepositPending = false;
     mockInsufficientPayTokenBalanceAlert = null;
     mockPredictBalance = 0;
-    mockHasSourceAmount = true;
   });
 
   afterEach(() => {
@@ -435,16 +426,15 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPayFeesLoading).toBe(false);
     });
 
-    it('returns true when source amount has not been set yet', () => {
+    it('returns false when source amount has not been set yet', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
-      mockHasSourceAmount = false;
 
       const { result } = renderHook(() =>
         usePredictBuyConditions(defaultParams),
       );
 
-      expect(result.current.isPayFeesLoading).toBe(true);
+      expect(result.current.isPayFeesLoading).toBe(false);
     });
   });
 
@@ -538,7 +528,7 @@ describe('usePredictBuyConditions', () => {
       expect(result.current.isPayFeesLoading).toBe(false);
     });
 
-    it('returns true when requiredTokens include selected token but quotes are empty', () => {
+    it('returns false when requiredTokens include selected token but quotes are empty', () => {
       mockIsPredictBalanceSelected = false;
       mockSelectedPaymentToken = { address: '0xabc', chainId: '0x1' };
       mockQuotes = [];
@@ -549,7 +539,7 @@ describe('usePredictBuyConditions', () => {
         usePredictBuyConditions(defaultParams),
       );
 
-      expect(result.current.isPayFeesLoading).toBe(true);
+      expect(result.current.isPayFeesLoading).toBe(false);
     });
   });
 

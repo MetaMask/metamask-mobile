@@ -152,7 +152,6 @@ const PredictBuyWithAnyToken = () => {
     canSelectToken,
   } = usePredictBuyConditions({
     currentValue,
-    depositFee,
     preview,
     isPreviewCalculating,
     isUserInputChange,
