@@ -7872,7 +7872,18 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/base-controller@npm:^9.0.0, @metamask/base-controller@npm:^9.0.1":
+"@metamask/base-controller@npm:^9.0.0":
+  version: 9.0.0
+  resolution: "@metamask/base-controller@npm:9.0.0"
+  dependencies:
+    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/utils": "npm:^11.8.1"
+    immer: "npm:^9.0.6"
+  checksum: 10/27554d34ec85c4b585b87850c90dfeaaf9c7e6430f2ab2fa80a1ec06ccc17641e118afab7ad765a0b7255ffef37bc9f6ca5065d459228a2dc660bc463293310d
+  languageName: node
+  linkType: hard
+
+"@metamask/base-controller@npm:^9.0.1":
   version: 9.0.1
   resolution: "@metamask/base-controller@npm:9.0.1"
   dependencies:
