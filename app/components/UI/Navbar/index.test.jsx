@@ -284,6 +284,14 @@ describe('getBridgeNavbar', () => {
       pop: jest.fn(),
     })),
   };
+  const mockThemeColors = {
+    background: {
+      default: mockTheme.colors.background.default,
+    },
+    primary: {
+      default: mockTheme.colors.primary.default,
+    },
+  };
 
   beforeEach(() => {
     jest.clearAllMocks();

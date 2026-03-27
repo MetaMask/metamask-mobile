@@ -187,12 +187,6 @@ const OndoCampaignDetailsView: React.FC = () => {
                   </>
                 )}
 
-              {participantStatus.isLoading && (
-                <Box twClassName="px-4 pt-4 gap-4">
-                  <Skeleton style={tw.style('h-32 rounded-xl')} />
-                </Box>
-              )}
-
               {!participantStatus.isLoading &&
                 (isOptedIn || Boolean(leaderboardCampaignId)) && (
                   <>
