@@ -195,7 +195,7 @@ jobs:
       - name: Download iOS build artifact
         uses: actions/download-artifact@v4
         with:
-          name: ios-ipa-main-rc
+          name: ios-main-rc
 
       - name: Find IPA path
         id: ipa
