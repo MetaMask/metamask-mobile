@@ -5,6 +5,10 @@ import OnboardingNavigator from './OnboardingNavigator';
 import RewardsDashboard from './Views/RewardsDashboard';
 import ReferralRewardsView from './Views/RewardsReferralView';
 import RewardsSettingsView from './Views/RewardsSettingsView';
+import CampaignsView from './Views/CampaignsView';
+import CampaignDetailsView from './Views/CampaignDetailsView';
+import CampaignMechanicsView from './Views/CampaignMechanicsView';
+import PreviousSeasonView from './Views/PreviousSeasonView';
 import { useSelector } from 'react-redux';
 import { selectRewardsSubscriptionId } from '../../../selectors/rewards';
 import { useCandidateSubscriptionId } from './hooks/useCandidateSubscriptionId';
@@ -62,11 +66,31 @@ const RewardsNavigator: React.FC = () => {
           <Stack.Screen
             name={Routes.REFERRAL_REWARDS_VIEW}
             component={ReferralRewardsView}
-            options={{ headerShown: true }}
+            options={{ headerShown: false }}
           />
           <Stack.Screen
             name={Routes.REWARDS_SETTINGS_VIEW}
             component={RewardsSettingsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.CAMPAIGNS_VIEW}
+            component={CampaignsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.PREVIOUS_SEASON_VIEW}
+            component={PreviousSeasonView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.CAMPAIGN_DETAILS}
+            component={CampaignDetailsView}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name={Routes.CAMPAIGN_MECHANICS}
+            component={CampaignMechanicsView}
             options={{ headerShown: false }}
           />
         </>

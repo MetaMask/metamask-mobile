@@ -138,6 +138,14 @@ jest.mock('./NftGridSkeleton', () => {
   return () => <View testID="nft-grid-skeleton" />;
 });
 
+// Mock Skeleton to avoid animation/design-system dependencies
+jest.mock('../../../component-library/components-temp/Skeleton', () => ({
+  Skeleton: ({ testID }: { testID?: string }) => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID={testID ?? 'nft-skeleton'} />;
+  },
+}));
+
 // Mock CollectiblesEmptyState - has complex dependencies
 jest.mock('../CollectiblesEmptyState', () => ({
   CollectiblesEmptyState: ({

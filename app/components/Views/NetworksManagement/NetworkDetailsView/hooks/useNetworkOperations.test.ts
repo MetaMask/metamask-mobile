@@ -137,6 +137,7 @@ const baseForm: NetworkFormState = {
 const defaultSaveOpts = () => ({
   enableAction: true,
   disabledByChainId: false,
+  disabledByName: false,
   disabledBySymbol: false,
   isCustomMainnet: false,
   shouldNetworkSwitchPopToWallet: true,
@@ -314,6 +315,20 @@ describe('useNetworkOperations', () => {
     expect(mockUpdateNetwork).not.toHaveBeenCalled();
   });
 
+  it('does nothing when disabledByName is true', async () => {
+    const { result } = renderHook(() => useNetworkOperations());
+
+    await act(async () => {
+      await result.current.saveNetwork(baseForm, {
+        ...defaultSaveOpts(),
+        disabledByName: true,
+      });
+    });
+
+    expect(mockAddNetwork).not.toHaveBeenCalled();
+    expect(mockUpdateNetwork).not.toHaveBeenCalled();
+  });
+
   it('does nothing when rpcUrl is missing', async () => {
     const { result } = renderHook(() => useNetworkOperations());
 
@@ -355,7 +370,7 @@ describe('useNetworkOperations', () => {
     expect(callArgs.nativeCurrency).toBe('');
   });
 
-  it('uses empty string when nickname is undefined', async () => {
+  it('does nothing when nickname is undefined', async () => {
     const { result } = renderHook(() => useNetworkOperations());
 
     await act(async () => {
@@ -365,8 +380,8 @@ describe('useNetworkOperations', () => {
       );
     });
 
-    const callArgs = mockAddNetwork.mock.calls[0][0];
-    expect(callArgs.name).toBe('');
+    expect(mockAddNetwork).not.toHaveBeenCalled();
+    expect(mockUpdateNetwork).not.toHaveBeenCalled();
   });
 
   it('sets individual chain filter when isAllNetworks is false', async () => {

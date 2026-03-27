@@ -11,7 +11,11 @@ import { MetaMetricsEvents } from '../../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../../util/analytics/analytics';
 import { trace, endTrace, TraceName } from '../../../../util/trace';
-import { setMeasurement } from '@sentry/react-native';
+import {
+  setMeasurement,
+  addBreadcrumb,
+  type SeverityLevel,
+} from '@sentry/react-native';
 import performance from 'react-native-performance';
 import { getStreamManagerInstance } from '../providers/PerpsStreamManager';
 import Engine from '../../../../core/Engine';
@@ -216,6 +220,14 @@ export function createMobileInfrastructure(): PerpsPlatformDependencies {
       },
       setMeasurement(name: string, value: number, unit: string): void {
         setMeasurement(name, value, unit);
+      },
+      addBreadcrumb(breadcrumb: {
+        category: string;
+        message: string;
+        level: SeverityLevel;
+        data?: Record<string, unknown>;
+      }): void {
+        addBreadcrumb(breadcrumb);
       },
     },
 

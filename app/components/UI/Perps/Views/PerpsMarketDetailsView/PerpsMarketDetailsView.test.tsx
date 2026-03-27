@@ -10,6 +10,8 @@ import {
 import { PerpsConnectionProvider } from '../../providers/PerpsConnectionProvider';
 import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import { Linking } from 'react-native';
+import { MetaMetricsEvents } from '../../../../../core/Analytics';
+import Routes from '../../../../../constants/navigation/Routes';
 
 // Mock Linking
 jest.mock('react-native/Libraries/Linking/Linking', () => ({
@@ -393,6 +395,34 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
     track: jest.fn(),
   })),
 }));
+
+const mockUseMarketInsights = jest.fn(
+  (_assetId?: string | null, _isEnabled?: boolean) => ({
+    report: null as Record<string, unknown> | null,
+    isLoading: false,
+    error: null,
+    timeAgo: '',
+  }),
+);
+
+jest.mock('../../../MarketInsights', () => ({
+  useMarketInsights: (assetId: string | null | undefined, isEnabled: boolean) =>
+    mockUseMarketInsights(assetId, isEnabled),
+  MarketInsightsEntryCard: ({ onPress }: { onPress: () => void }) => {
+    const { TouchableOpacity } = jest.requireActual('react-native');
+    return (
+      <TouchableOpacity testID="market-insights-entry-card" onPress={onPress} />
+    );
+  },
+  selectMarketInsightsEnabled: jest.fn(),
+}));
+
+jest.mock(
+  '../../../../../selectors/featureFlagController/marketInsights',
+  () => ({
+    selectMarketInsightsPerpsEnabled: jest.fn(),
+  }),
+);
 
 jest.mock('../../hooks/usePerpsPrices', () => ({
   usePerpsPrices: jest.fn(() => ({})),
@@ -1423,7 +1453,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'long',
         asset: 'BTC',
-        source: 'trade_action',
+        source: 'perp_asset_screen',
       });
     });
 
@@ -1459,7 +1489,7 @@ describe('PerpsMarketDetailsView', () => {
       expect(mockNavigateToOrder).toHaveBeenCalledWith({
         direction: 'short',
         asset: 'BTC',
-        source: 'trade_action',
+        source: 'perp_asset_screen',
       });
     });
 
@@ -3172,7 +3202,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getByText } = renderWithProvider(
+      const { getByText, getAllByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3183,7 +3213,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Should show the route market's leverage badge
       expect(getByText('25x')).toBeOnTheScreen();
-      expect(getByText('ETH-USD')).toBeOnTheScreen();
+      expect(getAllByText('ETH-USD').length).toBeGreaterThanOrEqual(1);
     });
 
     it('enriches market data from usePerpsMarkets when route has minimal data', async () => {
@@ -3213,7 +3243,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       }));
 
-      const { getByText, getByTestId } = renderWithProvider(
+      const { getByText, getByTestId, getAllByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3224,7 +3254,7 @@ describe('PerpsMarketDetailsView', () => {
 
       // Verify the header renders with correct market symbol
       expect(getByTestId('perps-market-header')).toBeOnTheScreen();
-      expect(getByText('BTC-USD')).toBeOnTheScreen();
+      expect(getAllByText('BTC-USD').length).toBeGreaterThanOrEqual(1);
 
       // Should show the enriched market's leverage badge from usePerpsMarkets
       await waitFor(() => {
@@ -3248,7 +3278,7 @@ describe('PerpsMarketDetailsView', () => {
         isRefreshing: false,
       });
 
-      const { getByText, queryByText } = renderWithProvider(
+      const { getAllByText, queryByText } = renderWithProvider(
         <PerpsConnectionProvider>
           <PerpsMarketDetailsView />
         </PerpsConnectionProvider>,
@@ -3258,10 +3288,140 @@ describe('PerpsMarketDetailsView', () => {
       );
 
       // Should show the asset name but no leverage badge (since no maxLeverage available)
-      expect(getByText('UNKNOWN-USD')).toBeOnTheScreen();
+      expect(getAllByText('UNKNOWN-USD').length).toBeGreaterThanOrEqual(1);
       // No leverage badge should be shown
       expect(queryByText('40x')).toBeNull();
       expect(queryByText('25x')).toBeNull();
+    });
+  });
+
+  describe('Market Insights analytics', () => {
+    const mockReport = {
+      summary: 'BTC momentum is building with increased buying pressure.',
+      sentiment: 'bullish',
+      generatedAt: new Date().toISOString(),
+    };
+
+    // Stable track mock reference set up in beforeEach via mockImplementation
+    const mockTrack = jest.fn();
+
+    beforeEach(() => {
+      // Override usePerpsEventTracking to expose a capturable track mock
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+      mockUsePerpsEventTrackingFn.mockImplementation(() => ({
+        track: mockTrack,
+      }));
+
+      // Enable perps market insights feature flag
+      const { useSelector } = jest.requireMock('react-redux');
+      const { selectPerpsEligibility } = jest.requireMock(
+        '../../selectors/perpsController',
+      );
+      const { selectMarketInsightsPerpsEnabled } = jest.requireMock(
+        '../../../../../selectors/featureFlagController/marketInsights',
+      );
+      useSelector.mockImplementation((selector: unknown) => {
+        if (selector === selectPerpsEligibility) return true;
+        if (selector === selectMarketInsightsPerpsEnabled) return true;
+        return undefined;
+      });
+
+      // Default: a report is available and loading is complete
+      mockUseMarketInsights.mockReturnValue({
+        report: mockReport,
+        isLoading: false,
+        error: null,
+        timeAgo: '5m ago',
+      });
+    });
+
+    afterEach(() => {
+      mockTrack.mockClear();
+    });
+
+    it('fires MARKET_INSIGHTS_OPENED with perps_market when entry card is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('market-insights-entry-card'));
+
+      expect(mockTrack).toHaveBeenCalledWith(
+        MetaMetricsEvents.MARKET_INSIGHTS_OPENED,
+        expect.objectContaining({ perps_market: 'BTC' }),
+      );
+    });
+
+    it('navigates to MarketInsightsView with isPerps flag when entry card is pressed', () => {
+      const { getByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      fireEvent.press(getByTestId('market-insights-entry-card'));
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MARKET_INSIGHTS.VIEW,
+        expect.objectContaining({
+          assetIdentifier: 'BTC',
+          isPerps: true,
+        }),
+      );
+    });
+
+    it('passes market_insights_displayed: true to PERPS_SCREEN_VIEWED when a report is available', () => {
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          properties: expect.objectContaining({
+            market_insights_displayed: true,
+          }),
+        }),
+      );
+    });
+
+    it('passes market_insights_displayed: false to PERPS_SCREEN_VIEWED when no report is returned', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: '',
+      });
+
+      renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      const { usePerpsEventTracking: mockUsePerpsEventTrackingFn } =
+        jest.requireMock('../../hooks/usePerpsEventTracking');
+
+      expect(mockUsePerpsEventTrackingFn).toHaveBeenCalledWith(
+        expect.objectContaining({
+          eventName: MetaMetricsEvents.PERPS_SCREEN_VIEWED,
+          properties: expect.objectContaining({
+            market_insights_displayed: false,
+          }),
+        }),
+      );
     });
   });
 });

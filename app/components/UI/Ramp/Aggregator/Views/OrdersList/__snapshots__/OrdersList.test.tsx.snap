@@ -127,7 +127,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "createdAt": 0,
-        "cryptoAmount": 0,
+        "cryptoAmount": "...",
         "cryptoCurrencySymbol": "ETH",
         "fiatAmount": undefined,
         "fiatCurrencyCode": "USD",
@@ -1336,7 +1336,7 @@ exports[`OrdersList renders buy only correctly when pressing buy filter 1`] = `
                 }
                 testID="orders-list-crypto-amount-buy-6"
               >
-                0
+                ...
                  
                 ETH
               </Text>
@@ -1505,7 +1505,7 @@ exports[`OrdersList renders correctly 1`] = `
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "createdAt": 0,
-        "cryptoAmount": 0,
+        "cryptoAmount": "...",
         "cryptoCurrencySymbol": "ETH",
         "fiatAmount": undefined,
         "fiatCurrencyCode": "USD",
@@ -2864,7 +2864,7 @@ exports[`OrdersList renders correctly 1`] = `
                 }
                 testID="orders-list-crypto-amount-buy-7"
               >
-                0
+                ...
                  
                 ETH
               </Text>
@@ -4979,7 +4979,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
       {
         "account": "0xe64dD0AB5ad7e8C5F2bf6Ce75C34e187af8b920A",
         "createdAt": 0,
-        "cryptoAmount": 0,
+        "cryptoAmount": "...",
         "cryptoCurrencySymbol": "ETH",
         "fiatAmount": undefined,
         "fiatCurrencyCode": "USD",
@@ -6338,7 +6338,7 @@ exports[`OrdersList resets filter to all after other filter was set 2`] = `
                 }
                 testID="orders-list-crypto-amount-buy-7"
               >
-                0
+                ...
                  
                 ETH
               </Text>

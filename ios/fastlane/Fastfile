@@ -20,7 +20,8 @@ platform :ios do
     # Convert groups parameter to array (Fastlane CLI passes strings, not arrays)
     groups_param = options[:groups] || ['MetaMask BETA & Release Candidates']
     groups = groups_param.is_a?(Array) ? groups_param : [groups_param]
-    notify_external_testers = true
+    distribute_external = options[:distribute_external].nil? ? true : options[:distribute_external].to_s.downcase == 'true'
+    notify_external_testers = distribute_external
     
     if ipa_path.nil? || ipa_path.empty?
       UI.user_error!("You must provide an ipa_path using ipa_path: '/path/to/app.ipa'")
@@ -96,7 +97,7 @@ platform :ios do
     upload_to_testflight(
       api_key: api_key,
       ipa: ipa_path,
-      distribute_external: true,
+      distribute_external: distribute_external,
       groups: groups,
       notify_external_testers: notify_external_testers,
       changelog: changelog_message
