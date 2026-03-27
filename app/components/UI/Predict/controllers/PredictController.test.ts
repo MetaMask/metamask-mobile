@@ -4147,6 +4147,31 @@ describe('PredictController', () => {
         expect(addTransactionBatch).toHaveBeenCalled();
       });
     });
+
+    it('uses explicit address param instead of getEvmAccountAddress when provided', async () => {
+      const explicitAddress = '0xcccccccccccccccccccccccccccccccccccccccc';
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[explicitAddress] = {
+            state: ActiveOrderState.PREVIEW,
+          };
+        });
+
+        const result = await controller.initPayWithAnyToken(explicitAddress);
+
+        expect(result).toEqual({
+          success: true,
+          response: {
+            batchId: 'default-batch',
+          },
+        });
+        expect(controller.state.activeOrders[explicitAddress]?.batchId).toBe(
+          'default-batch',
+        );
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
+      });
+    });
   });
 
   describe('transactionStatusChanged event', () => {
@@ -7178,6 +7203,7 @@ describe('PredictController', () => {
         );
 
         expect(retrySpy).toHaveBeenCalledTimes(1);
+        expect(retrySpy).toHaveBeenCalledWith(MOCK_ADDRESS);
         expect(
           controller.state.activeOrders[MOCK_ADDRESS]?.batchId,
         ).toBeUndefined();
@@ -7187,6 +7213,68 @@ describe('PredictController', () => {
         expect(controller.state.activeOrders[MOCK_ADDRESS]?.error).toBe(
           'Order placement failed',
         );
+      });
+    });
+
+    it('uses explicit address param instead of getEvmAccountAddress when provided', async () => {
+      const explicitAddress = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[explicitAddress] = {
+            state: ActiveOrderState.PREVIEW,
+          };
+        });
+
+        mockPolymarketProvider.placeOrder.mockResolvedValue({
+          success: true,
+          response: {
+            id: 'order-explicit',
+            spentAmount: '50',
+            receivedAmount: '100',
+          },
+        });
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({ preview, address: explicitAddress });
+
+        expect(controller.state.activeOrders[explicitAddress]?.state).toBe(
+          ActiveOrderState.SUCCESS,
+        );
+        expect(controller.state.activeOrders[MOCK_ADDRESS]).toBeUndefined();
+      });
+    });
+
+    it('retries initPayWithAnyToken with explicit address after order placement fails', async () => {
+      const explicitAddress = '0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
+
+      await withController(async ({ controller }) => {
+        controller.updateStateForTesting((state) => {
+          state.activeOrders[explicitAddress] = {
+            state: ActiveOrderState.DEPOSITING,
+            batchId: 'batch-explicit',
+          };
+        });
+
+        const retrySpy = jest
+          .spyOn(controller, 'initPayWithAnyToken')
+          .mockResolvedValue({
+            success: true,
+            response: { batchId: 'batch-retry' },
+          } as never);
+
+        mockPolymarketProvider.placeOrder.mockRejectedValue(
+          new Error('Order failed'),
+        );
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await expect(
+          controller.placeOrder({ preview, address: explicitAddress }),
+        ).rejects.toThrow('Order failed');
+
+        expect(retrySpy).toHaveBeenCalledWith(explicitAddress);
       });
     });
   });
@@ -7262,6 +7350,7 @@ describe('PredictController', () => {
         expect(placeOrderSpy).toHaveBeenCalledWith({
           analyticsProperties: { marketId: 'market-1' },
           preview,
+          address: accountAddress,
         });
       });
     });
@@ -7303,7 +7392,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.DEPOSITING,
         });
 
-        jest
+        const retrySpy = jest
           .spyOn(controller, 'initPayWithAnyToken')
           .mockResolvedValue(undefined as never);
 
@@ -7326,6 +7415,7 @@ describe('PredictController', () => {
         expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
+        expect(retrySpy).toHaveBeenCalledWith(accountAddress);
       });
     });
 
@@ -7364,6 +7454,7 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(retrySpy).toHaveBeenCalledTimes(1);
+        expect(retrySpy).toHaveBeenCalledWith(accountAddress);
         expect(controller.state.activeOrders[MOCK_ADDRESS]?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
@@ -7379,7 +7470,7 @@ describe('PredictController', () => {
           state: ActiveOrderState.DEPOSITING,
         });
 
-        jest
+        const retrySpy = jest
           .spyOn(controller, 'initPayWithAnyToken')
           .mockResolvedValue(undefined as never);
 
@@ -7401,6 +7492,120 @@ describe('PredictController', () => {
         expect(
           controller.state.activeOrders[MOCK_ADDRESS]?.error,
         ).toBeDefined();
+        expect(retrySpy).toHaveBeenCalledWith(accountAddress);
+      });
+    });
+
+    describe('when user switched accounts after initiating deposit', () => {
+      const originalAddress = '0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa';
+      const currentlySelectedAddress = MOCK_ADDRESS;
+      const createSwitchedAccountTransactionMeta = ({
+        nestedType,
+        status,
+        batchId,
+      }: {
+        nestedType: TransactionType;
+        status: TransactionStatus;
+        batchId?: string;
+      }) =>
+        ({
+          id: 'tx-switched',
+          status,
+          batchId,
+          txParams: {
+            from: originalAddress,
+            to: '0x0000000000000000000000000000000000000001',
+            value: '0x0',
+            data: '0x',
+          },
+          nestedTransactions: [
+            {
+              type: nestedType,
+            },
+          ],
+        }) as any;
+
+      it('forwards the transaction address to placeOrder when depositAndOrder confirms after account switch', () => {
+        withController(({ controller, messenger }) => {
+          const preview = createMockOrderPreview();
+          const placeOrderSpy = jest
+            .spyOn(controller, 'placeOrder')
+            .mockResolvedValue({
+              success: true,
+              response: {
+                id: 'order-456',
+                spentAmount: '100',
+                receivedAmount: '200',
+              },
+            } as any);
+
+          controller.updateStateForTesting((state) => {
+            state.activeOrders[originalAddress] = {
+              state: ActiveOrderState.DEPOSITING,
+              analyticsProperties: { marketId: 'market-2' },
+            };
+          });
+          (
+            controller as unknown as {
+              depositPreview: { [address: string]: OrderPreview };
+            }
+          ).depositPreview[originalAddress] = preview;
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta: {
+              ...createSwitchedAccountTransactionMeta({
+                nestedType: TransactionType.predictDeposit,
+                status: TransactionStatus.confirmed,
+              }),
+              type: TransactionType.predictDepositAndOrder,
+              nestedTransactions: [
+                { type: TransactionType.predictDepositAndOrder },
+              ],
+            },
+          } as { transactionMeta: TransactionMeta });
+
+          expect(placeOrderSpy).toHaveBeenCalledWith({
+            analyticsProperties: { marketId: 'market-2' },
+            preview,
+            address: originalAddress,
+          });
+        });
+      });
+
+      it('forwards the transaction address to initPayWithAnyToken when depositAndOrder fails after account switch', () => {
+        withController(({ controller, messenger }) => {
+          controller.updateStateForTesting((state) => {
+            state.activeOrders[originalAddress] = {
+              state: ActiveOrderState.DEPOSITING,
+            };
+          });
+
+          const retrySpy = jest
+            .spyOn(controller, 'initPayWithAnyToken')
+            .mockResolvedValue(undefined as never);
+
+          messenger.publish('TransactionController:transactionStatusUpdated', {
+            transactionMeta: {
+              ...createSwitchedAccountTransactionMeta({
+                nestedType: TransactionType.predictDeposit,
+                status: TransactionStatus.failed,
+              }),
+              type: TransactionType.predictDepositAndOrder,
+              nestedTransactions: [
+                { type: TransactionType.predictDepositAndOrder },
+              ],
+              error: { message: 'Transaction reverted' },
+            },
+          } as { transactionMeta: TransactionMeta });
+
+          expect(retrySpy).toHaveBeenCalledWith(originalAddress);
+          expect(controller.state.activeOrders[originalAddress]?.state).toBe(
+            ActiveOrderState.PREVIEW,
+          );
+          expect(
+            controller.state.activeOrders[currentlySelectedAddress],
+          ).toBeUndefined();
+        });
       });
     });
   });

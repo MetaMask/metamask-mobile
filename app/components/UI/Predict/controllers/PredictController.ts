@@ -1452,7 +1452,7 @@ export class PredictController extends BaseController<
   }
 
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
-    const activeOrderAddress = this.getEvmAccountAddress();
+    const activeOrderAddress = params.address ?? this.getEvmAccountAddress();
 
     if (
       this.state.activeOrders[activeOrderAddress]?.state ===
@@ -1654,7 +1654,7 @@ export class PredictController extends BaseController<
             batchId: undefined,
           };
         });
-        this.initPayWithAnyToken().catch((err) => {
+        this.initPayWithAnyToken(activeOrderAddress).catch((err) => {
           Logger.error(
             ensureError(err),
             this.getErrorContext('placeOrder', {
@@ -2211,9 +2211,11 @@ export class PredictController extends BaseController<
    * `PredictPayWithAnyTokenInfo`.
    *
    */
-  public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
+  public async initPayWithAnyToken(
+    address?: string,
+  ): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
-    const activeOrderAddress = this.getEvmAccountAddress();
+    const activeOrderAddress = address ?? this.getEvmAccountAddress();
 
     if (!this.state.activeOrders[activeOrderAddress]) {
       this.update((state) => {
@@ -2475,6 +2477,7 @@ export class PredictController extends BaseController<
         analyticsProperties:
           this.state.activeOrders[address]?.analyticsProperties,
         preview: this.depositPreview[address],
+        address,
       }).catch((error) => {
         Logger.error(
           ensureError(error),
@@ -2496,7 +2499,7 @@ export class PredictController extends BaseController<
           delete state.activeOrders[address].batchId;
         }
       });
-      this.initPayWithAnyToken().catch((error) => {
+      this.initPayWithAnyToken(address).catch((error) => {
         Logger.error(
           ensureError(error),
           this.getErrorContext('handleTransactionSideEffects', {
