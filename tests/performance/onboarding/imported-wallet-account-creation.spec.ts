@@ -5,7 +5,7 @@ import {
 } from '../../tags.performance.js';
 import WalletView from '../../page-objects/wallet/WalletView';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet';
-import { asPlaywrightElement , PlaywrightAssertions } from '../../framework';
+import { asPlaywrightElement, PlaywrightAssertions } from '../../framework';
 import TimerHelper from '../../framework/TimerHelper';
 import { onboardingFlowImportSRPPlaywright } from '../../flows/wallet.flow';
 
