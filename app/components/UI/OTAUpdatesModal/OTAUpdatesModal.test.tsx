@@ -109,23 +109,6 @@ const mockLoggerError = Logger.error as jest.MockedFunction<
   typeof Logger.error
 >;
 
-interface MockEventBuilder {
-  addProperties: jest.Mock;
-  build: jest.Mock;
-}
-
-const mockCreateEventBuilder = jest.fn((event: string): MockEventBuilder => {
-  const builder: MockEventBuilder = {
-    addProperties: jest.fn(),
-    build: jest.fn(),
-  };
-
-  builder.addProperties.mockReturnValue(builder);
-  builder.build.mockReturnValue({ event });
-
-  return builder;
-});
-
 const mockTrackEvent = jest.fn();
 
 jest.mock('../../hooks/useAnalytics/useAnalytics');
@@ -136,12 +119,11 @@ import OTAUpdatesModal from './OTAUpdatesModal';
 describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest.mocked(useAnalytics).mockReturnValue(
-      createMockUseAnalyticsHook({
-        trackEvent: mockTrackEvent,
-        createEventBuilder: mockCreateEventBuilder,
-      }),
-    );
+    jest
+      .mocked(useAnalytics)
+      .mockReturnValue(
+        createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
+      );
     (Platform as unknown as { OS: string }).OS = 'ios';
     mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
       if (callback) callback();
