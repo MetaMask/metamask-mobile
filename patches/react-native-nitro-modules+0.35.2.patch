@@ -1,0 +1,25 @@
+diff --git a/node_modules/react-native-nitro-modules/android/src/main/java/com/margelo/nitro/NitroModulesPackage.kt b/node_modules/react-native-nitro-modules/android/src/main/java/com/margelo/nitro/NitroModulesPackage.kt
+index 0000000..0000000 100644
+--- a/node_modules/react-native-nitro-modules/android/src/main/java/com/margelo/nitro/NitroModulesPackage.kt
++++ b/node_modules/react-native-nitro-modules/android/src/main/java/com/margelo/nitro/NitroModulesPackage.kt
+@@ -22,14 +22,16 @@
+     return ReactModuleInfoProvider {
+       val moduleInfos: MutableMap<String, ReactModuleInfo> = HashMap()
+       val isTurboModule: Boolean = BuildConfig.IS_NEW_ARCHITECTURE_ENABLED
++      // RN 0.76: use 7-arg ReactModuleInfo ctor; named canOverride/needsEagerInit mismatch primary _prefixed params.
+       moduleInfos[NitroModules.NAME] =
+         ReactModuleInfo(
+           NitroModules.NAME,
+           NitroModules.NAME,
+-          canOverrideExistingModule = false,
+-          needsEagerInit = false,
+-          isCxxModule = false,
+-          isTurboModule = isTurboModule,
++          false,
++          false,
++          false,
++          false,
++          isTurboModule,
+         )
+       moduleInfos
+     }
