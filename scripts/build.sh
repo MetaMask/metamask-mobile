@@ -417,6 +417,11 @@ prebuild_ios(){
 		echo "" > ios/debug.xcconfig
 		echo "" > ios/release.xcconfig
 	fi
+	# CI: Xcode substitutes Info.plist $(MM_FOX_CODE) from ios/*.xcconfig, filled by copying ../.ios.env.
+	# Exporting MM_FOX_CODE in the shell (e.g. GITHUB_ENV) is not enough; materialize .ios.env before xcodebuild.
+	if [ "${CI:-}" = true ] && [ -n "${MM_FOX_CODE:-}" ]; then
+		node "${__DIRNAME__}/write-ios-env-for-ci.js"
+	fi
 	# Required to install mixpanel dep
 	git submodule update --init --recursive
 	unset PREFIX
