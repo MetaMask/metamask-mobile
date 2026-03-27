@@ -134,16 +134,18 @@ export const usePerpsMarketStats = (
           : formatPerpsFiat(fallbackPrice, {
               ranges: PRICE_RANGES_UNIVERSAL,
             }),
-      volume24h: marketData.volume24h
-        ? `$${formatLargeNumber(marketData.volume24h, {
-            ranges: LARGE_NUMBER_RANGES_DETAILED,
-          })}`
-        : PERPS_CONSTANTS.FallbackDataDisplay,
-      openInterest: marketData.openInterest
-        ? `$${formatLargeNumber(marketData.openInterest, {
-            ranges: LARGE_NUMBER_RANGES_DETAILED,
-          })}`
-        : PERPS_CONSTANTS.FallbackDataDisplay,
+      volume24h:
+        marketData.volume24h != null
+          ? `$${formatLargeNumber(marketData.volume24h, {
+              ranges: LARGE_NUMBER_RANGES_DETAILED,
+            })}`
+          : PERPS_CONSTANTS.FallbackDataDisplay,
+      openInterest:
+        marketData.openInterest != null
+          ? `$${formatLargeNumber(marketData.openInterest, {
+              ranges: LARGE_NUMBER_RANGES_DETAILED,
+            })}`
+          : PERPS_CONSTANTS.FallbackDataDisplay,
       fundingRate: formatFundingRate(marketData.funding),
       markPrice: marketData.markPrice,
       currentPrice: fallbackPrice,
