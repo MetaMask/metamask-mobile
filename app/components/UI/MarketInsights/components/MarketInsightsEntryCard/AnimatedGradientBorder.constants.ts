@@ -1,3 +1,5 @@
+import { brandColor } from '@metamask/design-tokens';
+
 /** Duration of the sweep traveling around the border in ms */
 export const BORDER_SWEEP_DURATION_MS = 1000;
 
