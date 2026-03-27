@@ -265,7 +265,10 @@ const SecurityTrustScreen: React.FC = () => {
                   : 'bg-[rgba(133,139,154,0.77)]'
               }`}
             >
-              <Box twClassName="h-full bg-[#6B7FFF]" style={barFillStyle} />
+              <Box
+                twClassName="h-full bg-primary-default"
+                style={barFillStyle}
+              />
             </Box>
           </Box>
         )}
@@ -282,7 +285,7 @@ const SecurityTrustScreen: React.FC = () => {
               gap={2}
               twClassName="flex-1"
             >
-              <Box twClassName="w-3 h-3 rounded-full bg-[#6B7FFF]" />
+              <Box twClassName="w-3 h-3 rounded-full bg-primary-default" />
               <Text variant={TextVariant.BodySm} color={TextColor.TextDefault}>
                 {strings('security_trust.top_10_holders')}
               </Text>
