@@ -86,7 +86,7 @@ describe('AddActivationKey', () => {
   it('has button disabled when input is empty', () => {
     render(ActivationKeyForm);
     const addButton = screen.getByRole('button', { name: 'Add' });
-    expect(addButton.props.disabled).toBe(true);
+    expect(addButton).toBeDisabled();
   });
 
   it('navigates back when pressing cancel', () => {

@@ -4,11 +4,11 @@ import MaterialCommunityIcons from 'react-native-vector-icons/MaterialCommunityI
 import { useTheme } from '../../../../../util/theme';
 import Title from '../../../../Base/Title';
 import Text from '../../../../Base/Text';
-import Button, {
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { Colors } from '../../../../../util/theme/models';
 import { ScreenLocation } from '../types';
@@ -165,10 +165,11 @@ function ErrorView({
             <Button
               size={ButtonSize.Lg}
               onPress={ctaOnPressCallback}
-              label={ctaLabel || strings('fiat_on_ramp_aggregator.try_again')}
-              variant={ButtonVariants.Primary}
-              width={ButtonWidthTypes.Full}
-            />
+              variant={ButtonVariant.Primary}
+              isFullWidth
+            >
+              {ctaLabel || strings('fiat_on_ramp_aggregator.try_again')}
+            </Button>
           </View>
         )}
       </View>

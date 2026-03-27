@@ -6,12 +6,13 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 // External dependencies
 import Row from '../../components/Row';
 import ScreenLayout from '../../components/ScreenLayout';
-import { Label } from '@metamask/design-system-react-native';
-import TextField from '../../../../../../component-library/components/Form/TextField';
-import Button, {
-  ButtonVariants,
+import {
+  Label,
+  Button,
+  ButtonVariant,
   ButtonSize,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
+import TextField from '../../../../../../component-library/components/Form/TextField';
 import HeaderCompactStandard from '../../../../../../component-library/components-temp/HeaderCompactStandard';
 
 import Routes from '../../../../../../constants/navigation/Routes';
@@ -118,24 +119,24 @@ function ActivationKeyForm() {
 
             <Row style={style.buttons}>
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
                 style={style.button}
                 onPress={handleCancel}
-                label={strings('app_settings.fiat_on_ramp.cancel')}
-              />
+              >
+                {strings('app_settings.fiat_on_ramp.cancel')}
+              </Button>
               <Button
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 style={style.button}
                 onPress={handleSubmit}
-                label={
-                  key
-                    ? strings('app_settings.fiat_on_ramp.update')
-                    : strings('app_settings.fiat_on_ramp.add')
-                }
                 isDisabled={!regex.activationKey.test(activationKey)}
-              />
+              >
+                {key
+                  ? strings('app_settings.fiat_on_ramp.update')
+                  : strings('app_settings.fiat_on_ramp.add')}
+              </Button>
             </Row>
           </ScreenLayout.Content>
         </ScreenLayout.Body>

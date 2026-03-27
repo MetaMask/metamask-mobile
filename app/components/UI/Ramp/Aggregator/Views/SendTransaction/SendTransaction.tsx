@@ -28,11 +28,11 @@ import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../../component-library/components/Avatars/Avatar';
-import Button, {
-  ButtonVariants,
+import {
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import RemoteImage from '../../../../../Base/RemoteImage';
 
 import styleSheet from './SendTransaction.styles';
@@ -349,22 +349,16 @@ function SendTransaction() {
 
           <Row>
             <Button
-              variant={ButtonVariants.Primary}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Lg}
-              width={ButtonWidthTypes.Full}
+              isFullWidth
               onPress={handleSend}
               accessibilityRole="button"
               accessible
               isDisabled={isConfirming || !networkClientId}
-              label={
-                <Text
-                  variant={TextVariant.BodyLGMedium}
-                  color={TextColor.Inverse}
-                >
-                  {strings('fiat_on_ramp_aggregator.send_transaction.next')}
-                </Text>
-              }
-            />
+            >
+              {strings('fiat_on_ramp_aggregator.send_transaction.next')}
+            </Button>
           </Row>
           {/* <Row>
             <ButtonConfirm onLongPress={handleSend} disabled={isLoadingGas} />

@@ -339,7 +339,7 @@ describe('Settings', () => {
       });
       const [switchButton] = screen.getAllByRole('switch');
 
-      expect(addActivationKeyButton.props.disabled).toBe(true);
+      expect(addActivationKeyButton).toBeDisabled();
       expect(removeActivationKeyButton.props.disabled).toBe(true);
       expect(switchButton.props.disabled).toBe(true);
     });
