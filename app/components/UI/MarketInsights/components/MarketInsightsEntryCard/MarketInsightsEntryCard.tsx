@@ -1,35 +1,38 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Pressable, StyleSheet } from 'react-native';
-import MaskedView from '@react-native-masked-view/masked-view';
-import LinearGradient from 'react-native-linear-gradient';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import {
   Box,
-  Text,
-  TextVariant,
-  TextColor,
-  FontWeight,
-  BoxFlexDirection,
   BoxAlignItems,
+  BoxFlexDirection,
+  FontWeight,
+  Text,
+  TextColor,
+  TextVariant,
 } from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
+import MaskedView from '@react-native-masked-view/masked-view';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
+import { strings } from '../../../../../../locales/i18n';
 import AiSVG from '../../../../../component-library/components/Icons/Icon/assets/ai.svg';
 import ArrowRightSVG from '../../../../../component-library/components/Icons/Icon/assets/arrow-right.svg';
-import { strings } from '../../../../../../locales/i18n';
-import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
-import { endTrace, TraceName } from '../../../../../util/trace';
-import { useViewportTracking } from '../../hooks/useViewportTracking';
-import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import {
   EVENT_NAME,
   generateOpt,
 } from '../../../../../core/Analytics/MetaMetrics.events';
+import { endTrace, TraceName } from '../../../../../util/trace';
+import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
+import { useViewportTracking } from '../../hooks/useViewportTracking';
 import { AnimatedGradientBorder } from './AnimatedGradientBorder';
 import { VISIBILITY_THRESHOLD } from './AnimatedGradientBorder.constants';
+import type { MarketInsightsEntryCardProps } from './MarketInsightsEntryCard.types';
 import SlidingTextCarousel from './SlidingTextCarousel';
+import {
+  CHROME_GRADIENT_HEAD,
+  CHROME_GRADIENT_LINEAR_END,
+  CHROME_GRADIENT_LINEAR_START,
+  CHROME_GRADIENT_TAIL,
+} from './constants';
 
-const GRADIENT_COLORS = ['#D86FCF', '#ED666E'] as const;
-const GRADIENT_START = { x: 0, y: 0 };
-const GRADIENT_END = { x: 1, y: 0 };
 const ARROW_ICON_SIZE = 16;
 const SPARKLE_SIZE = 16;
 
@@ -74,9 +77,9 @@ const GradientText: React.FC<GradientTextProps> = ({
     style={styles.gradientTextMask}
   >
     <LinearGradient
-      colors={[...GRADIENT_COLORS]}
-      start={GRADIENT_START}
-      end={GRADIENT_END}
+      colors={[CHROME_GRADIENT_HEAD, CHROME_GRADIENT_TAIL]}
+      start={CHROME_GRADIENT_LINEAR_START}
+      end={CHROME_GRADIENT_LINEAR_END}
       style={styles.gradient}
     >
       <Text
@@ -103,9 +106,9 @@ const GradientSparkleIcon: React.FC = () => (
     }
   >
     <LinearGradient
-      colors={[...GRADIENT_COLORS]}
-      start={GRADIENT_START}
-      end={GRADIENT_END}
+      colors={[CHROME_GRADIENT_HEAD, CHROME_GRADIENT_TAIL]}
+      start={CHROME_GRADIENT_LINEAR_START}
+      end={CHROME_GRADIENT_LINEAR_END}
       style={styles.sparkleGradient}
     />
   </MaskedView>
@@ -143,7 +146,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
     return descriptions.length > 0 ? descriptions : [report.summary];
   }, [report.trends, report.summary]);
 
-  const handleSlideComplete = useCallback(() => {
+  const handleDescriptionSlideStart = useCallback(() => {
     setBorderAnimationKey((k) => k + 1);
   }, []);
 
@@ -154,13 +157,19 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
       return;
     }
 
+    const digestId =
+      'digestId' in report &&
+      typeof (report as { digestId?: unknown }).digestId === 'string'
+        ? (report as { digestId: string }).digestId
+        : undefined;
+
     const event = createEventBuilder(
       generateOpt(EVENT_NAME.MARKET_INSIGHTS_CARD_SCROLLED_TO_VIEW),
     )
       .addProperties({
         caip19: caip19Id,
         asset_symbol: report.asset,
-        digest_id: report.digestId,
+        ...(digestId !== undefined ? { digest_id: digestId } : {}),
       })
       .build();
     trackEvent(event);
@@ -194,68 +203,69 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
   );
 
   return (
-    <Pressable
-      collapsable={false}
-      ref={cardRef}
+    <TouchableOpacity
+      activeOpacity={0.7}
       onPress={onPress}
-      onLayout={onVisibilityLayout}
-      style={({ pressed }) =>
-        tw.style('px-4 mt-2 mb-4', pressed && 'opacity-80')
-      }
+      style={tw.style('px-4 mt-2 mb-4')}
       testID={testID}
     >
-      <Box
-        twClassName="bg-background-muted rounded-xl"
-        padding={4}
-        gap={1}
-        onLayout={handleLayout}
-      >
-        <AnimatedGradientBorder
-          dimensions={cardDimensions}
-          animationKey={borderAnimationKey}
-        />
-
-        {/* Title row */}
+      <View ref={cardRef} collapsable={false} onLayout={onVisibilityLayout}>
         <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
+          twClassName="bg-background-muted rounded-xl"
+          padding={4}
           gap={1}
+          onLayout={handleLayout}
         >
-          <GradientText
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-          >
-            {strings('market_insights.title')}
-          </GradientText>
-          <ArrowRightSVG
-            name="arrow-right"
-            width={ARROW_ICON_SIZE}
-            height={ARROW_ICON_SIZE}
-            fill={GRADIENT_COLORS[1]}
+          <AnimatedGradientBorder
+            dimensions={cardDimensions}
+            animationKey={borderAnimationKey}
           />
-        </Box>
 
-        {/* Body text: rotating trend descriptions */}
-        <SlidingTextCarousel
-          texts={displayTexts}
-          onSlideComplete={handleSlideComplete}
-        />
+          {/* Title row */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <GradientText
+              variant={TextVariant.BodySm}
+              fontWeight={FontWeight.Medium}
+            >
+              {strings('market_insights.title')}
+            </GradientText>
+            <ArrowRightSVG
+              name="arrow-right"
+              width={ARROW_ICON_SIZE}
+              height={ARROW_ICON_SIZE}
+              fill={CHROME_GRADIENT_TAIL}
+            />
+          </Box>
 
-        {/* Footer disclaimer */}
-        <Box
-          flexDirection={BoxFlexDirection.Row}
-          alignItems={BoxAlignItems.Center}
-          gap={1}
-        >
-          <GradientSparkleIcon />
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {strings('market_insights.footer_disclaimer')}
-            {' • '}
-            {timeAgo}
-          </Text>
+          {/* Body text: rotating trend descriptions */}
+          <SlidingTextCarousel
+            texts={displayTexts}
+            onSlideStart={handleDescriptionSlideStart}
+          />
+
+          {/* Footer disclaimer */}
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+            gap={1}
+          >
+            <GradientSparkleIcon />
+            <Text
+              variant={TextVariant.BodySm}
+              color={TextColor.TextAlternative}
+            >
+              {strings('market_insights.footer_disclaimer')}
+              {' • '}
+              {timeAgo}
+            </Text>
+          </Box>
         </Box>
-      </Box>
-    </Pressable>
+      </View>
+    </TouchableOpacity>
   );
 };
 
