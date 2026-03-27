@@ -9,8 +9,11 @@ import InAppBrowser from 'react-native-inappbrowser-reborn';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName, IconColor } from '@metamask/design-system-react-native';
-import { IconName as ComponentLibraryIconName } from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
+import {
+  IconName as ComponentLibraryIconName,
+  IconColor as ComponentLibraryIconColor,
+} from '../../../../../../component-library/components/Icons/Icon';
 import { createNavigationDetails } from '../../../../../../util/navigation/navUtils';
 import Routes from '../../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../../locales/i18n';
@@ -165,7 +168,8 @@ function SettingsModal() {
           },
         ],
         iconName: ComponentLibraryIconName.CheckBold,
-        iconColor: IconColor.SuccessDefault,
+        // Toast still renders component-library Icon; use its IconColor enum, not DS tokens.
+        iconColor: ComponentLibraryIconColor.Success,
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -180,7 +184,7 @@ function SettingsModal() {
           },
         ],
         iconName: ComponentLibraryIconName.CircleX,
-        iconColor: IconColor.ErrorDefault,
+        iconColor: ComponentLibraryIconColor.Error,
         hasNoTimeout: false,
       });
     }

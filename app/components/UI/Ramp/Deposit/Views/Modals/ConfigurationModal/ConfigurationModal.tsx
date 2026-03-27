@@ -3,8 +3,11 @@ import { Linking } from 'react-native';
 import BottomSheet, {
   BottomSheetRef,
 } from '../../../../../../../component-library/components/BottomSheets/BottomSheet';
-import { IconName, IconColor } from '@metamask/design-system-react-native';
-import { IconName as ComponentLibraryIconName } from '../../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
+import {
+  IconName as ComponentLibraryIconName,
+  IconColor as ComponentLibraryIconColor,
+} from '../../../../../../../component-library/components/Icons/Icon';
 
 import { createNavigationDetails } from '../../../../../../../util/navigation/navUtils';
 import { useRampNavigation } from '../../../../hooks/useRampNavigation';
@@ -86,7 +89,8 @@ function ConfigurationModal() {
           { label: strings('deposit.configuration_modal.logged_out_success') },
         ],
         iconName: ComponentLibraryIconName.CheckBold,
-        iconColor: IconColor.SuccessDefault,
+        // Toast still renders component-library Icon; use its IconColor enum, not DS tokens.
+        iconColor: ComponentLibraryIconColor.Success,
         hasNoTimeout: false,
       });
     } catch (error) {
@@ -97,7 +101,7 @@ function ConfigurationModal() {
           { label: strings('deposit.configuration_modal.logged_out_error') },
         ],
         iconName: ComponentLibraryIconName.CircleX,
-        iconColor: IconColor.ErrorDefault,
+        iconColor: ComponentLibraryIconColor.Error,
         hasNoTimeout: false,
       });
     }
