@@ -19,6 +19,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
 >
   <View>
     <View
+      accessibilityLabel="All"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -100,6 +101,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       </View>
     </View>
     <View
+      accessibilityLabel="Ethereum"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -261,6 +263,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       </View>
     </View>
     <View
+      accessibilityLabel="Optimism"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -374,6 +377,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (emp
       </View>
     </View>
     <View
+      accessibilityLabel="Polygon"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -509,6 +513,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
 >
   <View>
     <View
+      accessibilityLabel="All"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -590,6 +595,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       </View>
     </View>
     <View
+      accessibilityLabel="Ethereum"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -751,6 +757,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       </View>
     </View>
     <View
+      accessibilityLabel="Optimism"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -864,6 +871,7 @@ exports[`TokenNetworkFilterBar renders correctly with all networks selected (nul
       </View>
     </View>
     <View
+      accessibilityLabel="Polygon"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -999,6 +1007,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
 >
   <View>
     <View
+      accessibilityLabel="All"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -1082,6 +1091,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       </View>
     </View>
     <View
+      accessibilityLabel="Ethereum"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -1239,6 +1249,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       </View>
     </View>
     <View
+      accessibilityLabel="Optimism"
       accessibilityRole="button"
       accessibilityState={
         {
@@ -1352,6 +1363,7 @@ exports[`TokenNetworkFilterBar renders correctly with single network selected 1`
       </View>
     </View>
     <View
+      accessibilityLabel="Polygon"
       accessibilityRole="button"
       accessibilityState={
         {
