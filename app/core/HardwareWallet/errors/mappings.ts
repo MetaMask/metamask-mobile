@@ -74,7 +74,7 @@ export const MOBILE_ERROR_EXTENSIONS: Partial<
   [ErrorCode.DeviceNotFound]: {
     recoveryAction: RecoveryAction.RETRY,
     icon: IconName.Search,
-    iconColor: IconColor.Error,
+    iconColor: IconColor.Default,
     getLocalizedTitle: (walletType) =>
       strings('hardware_wallet.error.device_not_found_title', {
         device: getHardwareWalletTypeName(walletType),

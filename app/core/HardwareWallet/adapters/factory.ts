@@ -24,9 +24,6 @@ export function createAdapter(
     case HardwareWalletType.Ledger:
       return new LedgerBluetoothAdapter(options);
 
-    case HardwareWalletType.Qr:
-      return new QRWalletAdapter(options);
-
     default:
       return new NonHardwareAdapter(options);
   }
