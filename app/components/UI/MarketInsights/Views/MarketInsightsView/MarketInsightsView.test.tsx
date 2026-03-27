@@ -417,6 +417,12 @@ describe('MarketInsightsView', () => {
     expect(
       getByTestId(MarketInsightsSelectorsIDs.SOURCES_FOOTER),
     ).toBeOnTheScreen();
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION),
+    ).toHaveProp('ignoreSilentSwitch', 'obey');
+    expect(
+      getByTestId(MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION),
+    ).toHaveProp('mixWithOthers', 'mix');
     expect(getByText('Was this helpful?')).toBeOnTheScreen();
     expect(getByText('AI summary for information only')).toBeOnTheScreen();
 

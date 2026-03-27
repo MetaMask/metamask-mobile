@@ -625,6 +625,8 @@ const MarketInsightsView: React.FC = () => {
               muted
               paused={false}
               controls={false}
+              ignoreSilentSwitch="obey"
+              mixWithOthers="mix"
               disableFocus
               onEnd={handleVideoEnd}
               testID={MarketInsightsSelectorsIDs.BACKGROUND_ANIMATION}
