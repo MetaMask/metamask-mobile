@@ -80,7 +80,7 @@ export class BrowserStackConfigBuilder {
             captureContent: true,
           },
           networkLogs: true,
-          appiumVersion: '2.6.0', // BrowserStack doesn't support Appium 3 yet
+          appiumVersion: '3.1.0',
           idleTimeout: 180,
           deviceName: device.name,
           osVersion: device.osVersion,

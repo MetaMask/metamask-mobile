@@ -16,6 +16,9 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import PredictModalView from '../../page-objects/Predict/PredictModalView';
 import WalletView from '../../page-objects/wallet/WalletView';
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow';
+import { fetchProductionFeatureFlags } from '../feature-flag-helper';
+
+const testEnvironment = process.env.BUILD_VARIANT || '';
 
 /* Scenario 4: Imported wallet with +50 accounts */
 test.describe(PerformanceOnboarding, () => {
@@ -110,23 +113,38 @@ test.describe(PerformanceOnboarding, () => {
       });
 
       await OnboardingSuccessView.tapDone();
-      await timer6.measure(async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(PredictModalView.notNowButton),
-        );
-      });
 
-      await dismisspredictionsModalPlaywright();
+      const productionFeatureFlags = await fetchProductionFeatureFlags(
+        'main',
+        testEnvironment,
+      );
+
+      const predictGtmOnboardingModalEnabled = (
+        productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
+          enabled?: boolean;
+        }
+      )?.enabled;
+      if (
+        predictGtmOnboardingModalEnabled &&
+        predictGtmOnboardingModalEnabled === true
+      ) {
+        await timer6.measure(async () => {
+          await PlaywrightAssertions.expectElementToBeVisible(
+            await asPlaywrightElement(PredictModalView.notNowButton),
+          );
+        });
+        await dismisspredictionsModalPlaywright();
+      }
       await WalletView.tapOnTokensSection();
       await timer7.measure(async () => {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(WalletView.tokenRow('BNB')),
+        );
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.tokenRow('SOL')),
         );
         await PlaywrightAssertions.expectElementToBeVisible(
           await asPlaywrightElement(WalletView.tokenRow('BTC')),
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          await asPlaywrightElement(WalletView.tokenRow('TRX')),
         );
       });
 
@@ -136,9 +154,14 @@ test.describe(PerformanceOnboarding, () => {
         timer3,
         timer4,
         timer5,
-        timer6,
         timer7,
       );
+      if (
+        predictGtmOnboardingModalEnabled &&
+        predictGtmOnboardingModalEnabled === true
+      ) {
+        performanceTracker.addTimer(timer6);
+      }
       await performanceTracker.attachToTest(testInfo);
     },
   );
