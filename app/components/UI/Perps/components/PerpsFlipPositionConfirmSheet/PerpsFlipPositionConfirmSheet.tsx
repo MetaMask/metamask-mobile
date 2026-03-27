@@ -68,9 +68,11 @@ const PerpsFlipPositionConfirmSheet: React.FC<
   const price = parseFloat(currentPrice?.price || '0');
   const markPrice = parseFloat(currentPrice?.markPrice || '0');
 
-  // Calculate USD amount for fee estimation
+  // Calculate USD amount for fee estimation.
+  // A flip places one order of 2x position size (1x to close current, 1x to open opposite).
+  // Fee is charged on the full 2x notional, so multiply by 2 for an accurate estimate.
   const usdAmount = useMemo(
-    () => (positionSize * (markPrice || price)).toString(),
+    () => (positionSize * 2 * (markPrice || price)).toString(),
     [positionSize, markPrice, price],
   );
 
