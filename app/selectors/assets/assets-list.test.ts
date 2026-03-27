@@ -16,6 +16,7 @@ import {
   createSelectSortedAssetsBySelectedAccountGroup,
   selectAsset,
   selectAssetsBySelectedAccountGroup,
+  selectEnabledNetworks,
   selectSortedAssetsBySelectedAccountGroup,
   selectSortedAssetsBySelectedAccountGroupForChainIds,
   selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance,
@@ -363,6 +364,22 @@ const mockState = ({
       },
     },
   }) as unknown as RootState;
+
+describe('selectEnabledNetworks', () => {
+  it('returns a flat list of enabled network ids from all namespaces', () => {
+    const state = mockState();
+    const result = selectEnabledNetworks(state);
+
+    expect(result).toEqual(
+      expect.arrayContaining([
+        '0x1',
+        '0xa',
+        'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp',
+      ]),
+    );
+    expect(result).toHaveLength(3);
+  });
+});
 
 describe('selectAssetsBySelectedAccountGroup', () => {
   it('does not throw when the account tree lists ids missing from AccountsController', () => {
@@ -1913,5 +1930,186 @@ describe('selectTronSpecialAssetsBySelectedAccountGroup', () => {
       trxStakingRewards: undefined,
       trxInLockPeriod: undefined,
     });
+  });
+});
+
+describe('selectAsset edge cases', () => {
+  it('returns undefined when the requested asset does not exist', () => {
+    const state = mockState();
+    const result = selectAsset(state, {
+      address: '0xNON_EXISTENT_ADDRESS',
+      chainId: '0x1',
+      isStaked: false,
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns undefined when chainId does not exist in assets', () => {
+    const state = mockState();
+    const result = selectAsset(state, {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x999',
+      isStaked: false,
+    });
+
+    expect(result).toBeUndefined();
+  });
+
+  it('returns asset without balanceFiat when fiat data is undefined', () => {
+    const base = mockState();
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          CurrencyRateController: {
+            currentCurrency: 'USD',
+            currencyRates: {},
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    const result = selectAsset(state, {
+      address: '0x0000000000000000000000000000000000000000',
+      chainId: '0x1',
+      isStaked: false,
+    });
+
+    expect(result?.balanceFiat).toBeUndefined();
+  });
+});
+
+describe('selectAssetsBySelectedAccountGroup edge cases', () => {
+  it('handles undefined AccountTreeController gracefully', () => {
+    const base = mockState();
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          AccountTreeController: undefined,
+        },
+      },
+    } as unknown as RootState;
+
+    expect(() => selectAssetsBySelectedAccountGroup(state)).not.toThrow();
+  });
+
+  it('handles wallet with no groups', () => {
+    const base = mockState();
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'entropy:test': {
+                  id: 'entropy:test',
+                  groups: {},
+                },
+              },
+              selectedAccountGroup: 'entropy:test/0',
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(() => selectAssetsBySelectedAccountGroup(state)).not.toThrow();
+  });
+
+  it('handles group with null accounts', () => {
+    const base = mockState();
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'entropy:test': {
+                  id: 'entropy:test',
+                  groups: {
+                    'entropy:test/0': {
+                      id: 'entropy:test/0',
+                      accounts: null,
+                    },
+                  },
+                },
+              },
+              selectedAccountGroup: 'entropy:test/0',
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(() => selectAssetsBySelectedAccountGroup(state)).not.toThrow();
+  });
+
+  it('handles wallet with null groups', () => {
+    const base = mockState();
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'entropy:test': {
+                  id: 'entropy:test',
+                  groups: null,
+                },
+              },
+              selectedAccountGroup: '',
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(() => selectAssetsBySelectedAccountGroup(state)).not.toThrow();
+  });
+
+  it('resets selectedAccountGroup when all groups are removed by sanitization', () => {
+    const base = mockState();
+    const state = {
+      ...base,
+      engine: {
+        ...base.engine,
+        backgroundState: {
+          ...base.engine.backgroundState,
+          AccountTreeController: {
+            accountTree: {
+              wallets: {
+                'entropy:test': {
+                  id: 'entropy:test',
+                  groups: {
+                    'entropy:test/0': {
+                      id: 'entropy:test/0',
+                      accounts: ['non-existent-id-1', 'non-existent-id-2'],
+                    },
+                  },
+                },
+              },
+              selectedAccountGroup: 'entropy:test/0',
+            },
+          },
+        },
+      },
+    } as unknown as RootState;
+
+    expect(() => selectAssetsBySelectedAccountGroup(state)).not.toThrow();
   });
 });

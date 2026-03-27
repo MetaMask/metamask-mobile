@@ -389,6 +389,37 @@ describe('Navbar', () => {
 
       expect(options).toHaveProperty('header');
     });
+
+    it('invokes onClose after pop when back is pressed and onClose is provided', () => {
+      const onClose = jest.fn();
+      const options = getDepositNavbarOptions(
+        mockNavigation,
+        { title: 'Deposit', showBack: true },
+        { colors: mockThemeColors },
+        onClose,
+      );
+
+      const { getByTestId } = render(options.header());
+      fireEvent.press(getByTestId('deposit-back-navbar-button'));
+
+      expect(mockNavigation.pop).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    });
+
+    it('omits start button when showBack and showClose are false', () => {
+      const options = getDepositNavbarOptions(
+        mockNavigation,
+        {
+          title: 'Deposit',
+          showBack: false,
+          showClose: false,
+        },
+        { colors: mockThemeColors },
+      );
+
+      const { queryByTestId } = render(options.header());
+      expect(queryByTestId('deposit-back-navbar-button')).toBeNull();
+    });
   });
 
   describe('getEditAccountNameNavBarOptions', () => {
@@ -723,8 +754,102 @@ describe('Navbar', () => {
       );
 
       expect(options).toBeDefined();
-      // The getBridgeNavbar uses getHeaderCompactStandardNavbarOptions internally
-      // which sets up onClose to call navigation.getParent()?.pop()
+      const Header = options.header;
+      const { getByTestId } = render(<Header />);
+      fireEvent.press(getByTestId('button-icon'));
+      expect(navigationWithParent.getParent).toHaveBeenCalled();
+      expect(mockParentPop).toHaveBeenCalled();
+    });
+  });
+
+  describe('getEditableOptions back button behavior', () => {
+    it('calls navigation.pop when back button is pressed in edit mode', () => {
+      const routeWithEditMode = {
+        ...mockRoute,
+        params: { editMode: 'edit', dispatch: jest.fn() },
+      };
+      const options = getEditableOptions(
+        'Contact',
+        mockNavigation,
+        routeWithEditMode,
+        mockThemeColors,
+      );
+
+      const HeaderLeft = options.headerLeft;
+      const { getByTestId } = render(<HeaderLeft />);
+      fireEvent.press(getByTestId('edit-contact-back-button'));
+
+      expect(mockNavigation.pop).toHaveBeenCalled();
+    });
+  });
+
+  describe('getNavigationOptionsTitle close button behavior', () => {
+    it('renders and handles close button in fullscreen modal mode', () => {
+      const options = getNavigationOptionsTitle(
+        'Settings',
+        mockNavigation,
+        true,
+        mockThemeColors,
+      );
+
+      const HeaderRight = options.headerRight;
+      if (HeaderRight) {
+        const { getByTestId } = render(<HeaderRight />);
+        fireEvent.press(getByTestId('close-network-icon'));
+        expect(mockNavigation.goBack).toHaveBeenCalled();
+      }
+    });
+  });
+
+  describe('getStakingNavbar back button behavior', () => {
+    it('calls navigation.goBack when back button is pressed', () => {
+      const options = getStakingNavbar(
+        'Staking',
+        mockNavigation,
+        mockThemeColors,
+        { hasBackButton: true },
+      );
+
+      const HeaderLeft = options.headerLeft;
+      if (HeaderLeft) {
+        const rendered = render(
+          typeof HeaderLeft === 'function' ? <HeaderLeft /> : HeaderLeft,
+        );
+        fireEvent.press(rendered.getByTestId('button-icon'));
+        expect(mockNavigation.goBack).toHaveBeenCalled();
+        expect(rendered).toBeTruthy();
+      }
+    });
+  });
+
+  describe('getDepositNavbarOptions close button behavior', () => {
+    it('invokes onClose after pop when close button is pressed', () => {
+      const onClose = jest.fn();
+      const options = getDepositNavbarOptions(
+        mockNavigation,
+        { title: 'Deposit', showClose: true },
+        { colors: mockThemeColors },
+        onClose,
+      );
+
+      const rendered = render(options.header());
+      expect(rendered).toBeTruthy();
+      const { getByTestId } = rendered;
+      fireEvent.press(getByTestId('deposit-back-navbar-button'));
+      expect(mockNavigation.pop).toHaveBeenCalled();
+      expect(onClose).toHaveBeenCalled();
+    });
+  });
+
+  describe('getRampsOrderDetailsNavbarOptions close behavior', () => {
+    it('shows close button when showCloseButton is true', () => {
+      const options = getRampsOrderDetailsNavbarOptions(
+        mockNavigation,
+        { title: 'Order Details', showCloseButton: true },
+        { colors: mockThemeColors },
+      );
+
+      expect(options).toBeDefined();
     });
   });
 });

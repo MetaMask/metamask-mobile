@@ -317,7 +317,7 @@ describe('ProtectWalletMandatoryModal', () => {
 
     await waitFor(() => {
       expect(
-        getByText(/protect your wallet by setting a password/i),
+        getByText(/now that value was added to your wallet/i),
       ).toBeTruthy();
     });
   });
@@ -505,6 +505,20 @@ describe('ProtectWalletMandatoryModal', () => {
 
     await waitFor(() => {
       expect(queryByTestId('modal-container')).toBeTruthy();
+    });
+  });
+
+  it('does not crash when getState returns undefined', async () => {
+    mockGetState.mockReturnValue(undefined);
+    const store = createMockStore(false, false);
+
+    const { getByTestId } = renderWithTheme(
+      <ProtectWalletMandatoryModal />,
+      store,
+    );
+
+    await waitFor(() => {
+      expect(getByTestId('modal-container')).toBeTruthy();
     });
   });
 });
