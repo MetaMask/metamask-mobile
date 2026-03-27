@@ -104,6 +104,10 @@ export interface UseTokenActionsResult {
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
   handleSellPress: () => void;
+  /** Sticky token-details Swap handler with balance-aware defaults */
+  handleStickySwapPress: () => void;
+  /** Sticky token-details Swap visibility flag */
+  hasEligibleStickySwapTokens: boolean;
   /** Whether the user has any tokens with positive balance that can be used as a swap source */
   hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
@@ -112,6 +116,8 @@ export interface UseTokenActionsResult {
 export interface UseTokenActionsParams {
   token: TokenI;
   networkName?: string;
+  /** Optional up-to-date token balance from Token Details balance hook */
+  currentTokenBalance?: string;
 }
 
 /**
@@ -121,6 +127,7 @@ export interface UseTokenActionsParams {
 export const useTokenActions = ({
   token,
   networkName,
+  currentTokenBalance,
 }: UseTokenActionsParams): UseTokenActionsResult => {
   const navigation = useNavigation();
 
@@ -423,6 +430,21 @@ export const useTokenActions = ({
     return null;
   }, [userAssetsMap, token.chainId, token.address]);
 
+  const currentTokenHasBalance = useMemo(() => {
+    const balanceToCheck = currentTokenBalance ?? token.balance;
+
+    if (typeof balanceToCheck === 'number') {
+      return balanceToCheck > 0;
+    }
+
+    if (typeof balanceToCheck === 'string') {
+      const parsedBalance = Number(balanceToCheck.replace(/,/gu, '').trim());
+      return Number.isFinite(parsedBalance) && parsedBalance > 0;
+    }
+
+    return false;
+  }, [currentTokenBalance, token.balance]);
+
   const handleBuyPress = useCallback(() => {
     // If user has no eligible tokens to swap with, route to on-ramp
     if (!buySourceToken) {
@@ -470,6 +492,30 @@ export const useTokenActions = ({
     );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
+  // Sticky Token Details swap button only:
+  // - If current token has balance, keep current token as source
+  // - If current token has no balance, prefill source with best available token and current as destination
+  const handleStickySwapPress = useCallback(() => {
+    if (!goToSwaps) return;
+
+    if (currentTokenHasBalance) {
+      goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+      return;
+    }
+
+    if (buySourceToken) {
+      goToSwaps(buySourceToken, currentTokenAsBridgeToken, undefined, true);
+      return;
+    }
+
+    goToSwaps(currentTokenAsBridgeToken, undefined, undefined, true);
+  }, [
+    goToSwaps,
+    currentTokenHasBalance,
+    currentTokenAsBridgeToken,
+    buySourceToken,
+  ]);
+
   return {
     onBuy,
     onSend,
@@ -477,6 +523,9 @@ export const useTokenActions = ({
     goToSwaps,
     handleBuyPress,
     handleSellPress,
+    handleStickySwapPress,
+    hasEligibleStickySwapTokens:
+      buySourceToken !== null || currentTokenHasBalance,
     hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };

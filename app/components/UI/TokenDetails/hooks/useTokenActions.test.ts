@@ -276,6 +276,7 @@ describe('useTokenActions', () => {
       expect(result.current).toHaveProperty('goToSwaps');
       expect(result.current).toHaveProperty('handleBuyPress');
       expect(result.current).toHaveProperty('handleSellPress');
+      expect(result.current).toHaveProperty('handleStickySwapPress');
       expect(result.current).toHaveProperty('networkModal');
 
       expect(typeof result.current.onBuy).toBe('function');
@@ -284,6 +285,7 @@ describe('useTokenActions', () => {
       expect(typeof result.current.goToSwaps).toBe('function');
       expect(typeof result.current.handleBuyPress).toBe('function');
       expect(typeof result.current.handleSellPress).toBe('function');
+      expect(typeof result.current.handleStickySwapPress).toBe('function');
     });
   });
 
@@ -781,6 +783,82 @@ describe('useTokenActions', () => {
         }),
         undefined,
         'Sell',
+        true,
+      );
+    });
+  });
+
+  describe('handleStickySwapPress', () => {
+    it('uses current token as source when current token has positive balance', () => {
+      const tokenWithBalance = {
+        ...defaultToken,
+        balance: '1',
+      } as TokenI;
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: tokenWithBalance,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleStickySwapPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: defaultToken.address,
+          chainId: defaultToken.chainId,
+          symbol: defaultToken.symbol,
+        }),
+        undefined,
+        undefined,
+        true,
+      );
+    });
+
+    it('uses best available source token and current token as destination when current token has zero balance', () => {
+      const tokenWithZeroBalance = {
+        ...defaultToken,
+        balance: '0',
+      } as TokenI;
+
+      selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue({
+        '0x1': [
+          {
+            assetId: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+            chainId: '0x1',
+            decimals: 18,
+            symbol: 'WETH',
+            name: 'Wrapped Ether',
+            image: '',
+            fiat: { balance: 1000 },
+          },
+        ],
+      });
+
+      const { result } = renderHook(() =>
+        useTokenActions({
+          token: tokenWithZeroBalance,
+          networkName: 'Ethereum Mainnet',
+        }),
+      );
+
+      result.current.handleStickySwapPress();
+
+      expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
+      expect(mockGoToSwaps).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2',
+          chainId: '0x1',
+          symbol: 'WETH',
+        }),
+        expect.objectContaining({
+          address: defaultToken.address,
+          chainId: defaultToken.chainId,
+          symbol: defaultToken.symbol,
+        }),
+        undefined,
         true,
       );
     });

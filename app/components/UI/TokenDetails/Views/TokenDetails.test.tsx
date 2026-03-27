@@ -80,6 +80,7 @@ jest.mock('../../Ramp/hooks/useTokenBuyability', () => ({
 }));
 
 const mockGoToSwaps = jest.fn();
+const mockHandleStickySwapPress = jest.fn();
 const mockOnBuy = jest.fn();
 const mockUseTokenActions = jest.fn();
 jest.mock('../hooks/useTokenActions', () => ({
@@ -217,6 +218,7 @@ describe('TokenDetails', () => {
       goToSwaps: mockGoToSwaps,
       handleBuyPress: jest.fn(),
       handleSellPress: jest.fn(),
+      handleStickySwapPress: mockHandleStickySwapPress,
       hasEligibleSwapTokens: true,
       networkModal: null,
     });
@@ -291,12 +293,7 @@ describe('TokenDetails', () => {
 
       fireEvent.press(getByText('Swap'));
 
-      expect(mockGoToSwaps).toHaveBeenCalledWith(
-        undefined,
-        undefined,
-        undefined,
-        true,
-      );
+      expect(mockHandleStickySwapPress).toHaveBeenCalledTimes(1);
     });
 
     it('shows only Swap when user has eligible tokens but token is not buyable', () => {
@@ -319,6 +316,7 @@ describe('TokenDetails', () => {
         goToSwaps: mockGoToSwaps,
         handleBuyPress: jest.fn(),
         handleSellPress: jest.fn(),
+        handleStickySwapPress: mockHandleStickySwapPress,
         hasEligibleSwapTokens: false,
         networkModal: null,
       });
