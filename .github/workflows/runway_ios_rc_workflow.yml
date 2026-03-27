@@ -147,6 +147,7 @@ jobs:
       platform: ios
       skip_version_bump: false
       source_branch: ${{ inputs.source_branch || github.ref_name }}
+      upload_to_sentry: true
     secrets: inherit
 
   testflight-upload-summary:
