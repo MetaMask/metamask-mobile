@@ -30,6 +30,62 @@ jest.mock('../number', () => ({
 const mockDecGWEIToHexWEI = jest.requireMock('../conversions').decGWEIToHexWEI;
 const mockAddHexPrefix = jest.requireMock('../number').addHexPrefix;
 
+const ESTIMATES_FEE_MARKET = {
+  type: GasFeeEstimateType.FeeMarket,
+  [GasFeeEstimateLevel.Medium]: { suggestedMaxFeePerGas: '25' },
+};
+
+const ESTIMATES_FEE_MARKET_WITH_PRIORITY = {
+  type: GasFeeEstimateType.FeeMarket,
+  [GasFeeEstimateLevel.Medium]: {
+    suggestedMaxFeePerGas: '25',
+    suggestedMaxPriorityFeePerGas: '2',
+  },
+};
+
+const ESTIMATES_LEGACY = {
+  type: GasFeeEstimateType.Legacy,
+  [GasFeeEstimateLevel.Medium]: '20',
+};
+
+const ESTIMATES_GAS_PRICE = {
+  type: GasFeeEstimateType.GasPrice,
+  gasPrice: '15',
+};
+
+const ESTIMATES_UNTYPED_FEE_MARKET = {
+  medium: { suggestedMaxFeePerGas: '30' },
+};
+
+const ESTIMATES_UNTYPED_FEE_MARKET_WITH_PRIORITY = {
+  medium: {
+    suggestedMaxFeePerGas: '30',
+    suggestedMaxPriorityFeePerGas: '1.5',
+  },
+};
+
+const ESTIMATES_UNTYPED_STRING = { medium: '22' };
+const ESTIMATES_GAS_PRICE_FALLBACK = { gasPrice: '10' };
+
+const EIP1559_TX_PARAMS = {
+  maxFeePerGas: '0x59682f10',
+  maxPriorityFeePerGas: '0x59682f00',
+} as unknown as TransactionParams;
+
+const LEGACY_TX_PARAMS = {
+  gasPrice: '0x59682f10',
+} as unknown as TransactionParams;
+
+const HIGH_FEE_MARKET_ESTIMATE = {
+  medium: { suggestedMaxFeePerGas: '70' },
+} as GasFeeEstimatesInput;
+
+const LOW_FEE_MARKET_ESTIMATE = {
+  medium: { suggestedMaxFeePerGas: '1' },
+} as GasFeeEstimatesInput;
+
+const toHex = (n: number) => `0x${n.toString(16)}`;
+
 describe('getMediumGasPriceHex', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -156,240 +212,131 @@ describe('addTenPercentAndRound', () => {
     expect(addTenPercentAndRound('')).toBeUndefined();
   });
 
-  it('bumps a hex wei value by 10% and rounds down', () => {
-    // 100 decimal = 0x64; 100 * 1.1 = 110 = 0x6e
-    const result = addTenPercentAndRound('0x64');
-    expect(result).toBe('0x6e');
-  });
-
-  it('rounds fractional result down to integer', () => {
-    // 15 decimal = 0xf; 15 * 1.1 = 16.5 -> floor = 16 = 0x10
-    const result = addTenPercentAndRound('0xf');
-    expect(result).toBe('0x10');
-  });
-
-  it('handles large values', () => {
-    // 0x59682f10 = 1500000016 decimal; * 1.1 = 1650000017.6 -> floor = 1650000017 = 0x62590091
-    const result = addTenPercentAndRound('0x59682f10');
-    expect(result).toBe('0x62590091');
+  it.each([
+    [toHex(100), toHex(110), '100 -> 110'],
+    [toHex(15), toHex(16), '15 -> 16 (fractional floor)'],
+    [toHex(1_500_000_016), toHex(1_650_000_017), 'large value'],
+  ])('bumps %s to %s (%s)', (input, expected) => {
+    expect(addTenPercentAndRound(input)).toBe(expected);
   });
 });
 
 describe('getMediumEstimateGwei', () => {
-  it('returns undefined for null estimates', () => {
-    expect(getMediumEstimateGwei(null)).toBeUndefined();
-  });
-
-  it('returns undefined for undefined estimates', () => {
-    expect(getMediumEstimateGwei(undefined)).toBeUndefined();
-  });
-
-  it('extracts suggestedMaxFeePerGas from FeeMarket type', () => {
-    const estimates = {
-      type: GasFeeEstimateType.FeeMarket,
-      [GasFeeEstimateLevel.Medium]: { suggestedMaxFeePerGas: '25' },
-    };
-    expect(getMediumEstimateGwei(estimates)).toBe('25');
-  });
-
-  it('extracts medium value from Legacy type', () => {
-    const estimates = {
-      type: GasFeeEstimateType.Legacy,
-      [GasFeeEstimateLevel.Medium]: '20',
-    };
-    expect(getMediumEstimateGwei(estimates)).toBe('20');
-  });
-
-  it('extracts gasPrice from GasPrice type', () => {
-    const estimates = {
-      type: GasFeeEstimateType.GasPrice,
-      gasPrice: '15',
-    };
-    expect(getMediumEstimateGwei(estimates)).toBe('15');
-  });
-
-  it('extracts from untyped object shape with suggestedMaxFeePerGas', () => {
-    const estimates = {
-      medium: { suggestedMaxFeePerGas: '30' },
-    };
-    expect(getMediumEstimateGwei(estimates)).toBe('30');
-  });
-
-  it('extracts from untyped string shape', () => {
-    const estimates = { medium: '22' };
-    expect(getMediumEstimateGwei(estimates)).toBe('22');
-  });
-
-  it('falls back to gasPrice when medium is not available', () => {
-    const estimates = { gasPrice: '10' };
-    expect(getMediumEstimateGwei(estimates)).toBe('10');
-  });
-
-  it('returns undefined when no usable estimate', () => {
-    expect(getMediumEstimateGwei({})).toBeUndefined();
-  });
+  it.each([
+    ['null', null, undefined],
+    ['undefined', undefined, undefined],
+    ['FeeMarket typed', ESTIMATES_FEE_MARKET, '25'],
+    ['Legacy typed', ESTIMATES_LEGACY, '20'],
+    ['GasPrice typed', ESTIMATES_GAS_PRICE, '15'],
+    ['untyped fee-market object', ESTIMATES_UNTYPED_FEE_MARKET, '30'],
+    ['untyped string', ESTIMATES_UNTYPED_STRING, '22'],
+    ['gasPrice fallback', ESTIMATES_GAS_PRICE_FALLBACK, '10'],
+    ['empty object', {}, undefined],
+  ] as const)(
+    'returns expected value for %s estimates',
+    (_, estimates, expected) => {
+      expect(getMediumEstimateGwei(estimates)).toBe(expected);
+    },
+  );
 });
 
 describe('getMediumPriorityFeeGwei', () => {
-  it('returns undefined for null estimates', () => {
-    expect(getMediumPriorityFeeGwei(null)).toBeUndefined();
-  });
-
-  it('returns undefined for undefined estimates', () => {
-    expect(getMediumPriorityFeeGwei(undefined)).toBeUndefined();
-  });
-
-  it('extracts suggestedMaxPriorityFeePerGas from FeeMarket typed medium', () => {
-    const estimates = {
-      type: GasFeeEstimateType.FeeMarket,
-      [GasFeeEstimateLevel.Medium]: {
-        suggestedMaxFeePerGas: '25',
-        suggestedMaxPriorityFeePerGas: '2',
-      },
-    };
-    expect(getMediumPriorityFeeGwei(estimates)).toBe('2');
-  });
-
-  it('returns undefined from FeeMarket typed medium when priority is absent', () => {
-    const estimates = {
-      type: GasFeeEstimateType.FeeMarket,
-      [GasFeeEstimateLevel.Medium]: { suggestedMaxFeePerGas: '25' },
-    };
-    expect(getMediumPriorityFeeGwei(estimates)).toBeUndefined();
-  });
-
-  it('returns undefined for Legacy type', () => {
-    const estimates = {
-      type: GasFeeEstimateType.Legacy,
-      [GasFeeEstimateLevel.Medium]: '20',
-    };
-    expect(getMediumPriorityFeeGwei(estimates)).toBeUndefined();
-  });
-
-  it('returns undefined for GasPrice type', () => {
-    const estimates = {
-      type: GasFeeEstimateType.GasPrice,
-      gasPrice: '15',
-    };
-    expect(getMediumPriorityFeeGwei(estimates)).toBeUndefined();
-  });
-
-  it('extracts from untyped fee-market object with both max and priority', () => {
-    const estimates = {
-      medium: {
-        suggestedMaxFeePerGas: '30',
-        suggestedMaxPriorityFeePerGas: '1.5',
-      },
-    };
-    expect(getMediumPriorityFeeGwei(estimates)).toBe('1.5');
-  });
-
-  it('returns undefined for untyped legacy string medium', () => {
-    const estimates = { medium: '22' };
-    expect(getMediumPriorityFeeGwei(estimates)).toBeUndefined();
-  });
-
-  it('returns undefined when untyped medium object has only max fee', () => {
-    const estimates = {
-      medium: { suggestedMaxFeePerGas: '30' },
-    };
-    expect(getMediumPriorityFeeGwei(estimates)).toBeUndefined();
-  });
+  it.each([
+    ['null', null, undefined],
+    ['undefined', undefined, undefined],
+    ['FeeMarket with priority', ESTIMATES_FEE_MARKET_WITH_PRIORITY, '2'],
+    ['FeeMarket without priority', ESTIMATES_FEE_MARKET, undefined],
+    ['Legacy typed', ESTIMATES_LEGACY, undefined],
+    ['GasPrice typed', ESTIMATES_GAS_PRICE, undefined],
+    [
+      'untyped with priority',
+      ESTIMATES_UNTYPED_FEE_MARKET_WITH_PRIORITY,
+      '1.5',
+    ],
+    ['untyped string', ESTIMATES_UNTYPED_STRING, undefined],
+    ['untyped max-fee only', ESTIMATES_UNTYPED_FEE_MARKET, undefined],
+  ] as const)(
+    'returns expected value for %s estimates',
+    (_, estimates, expected) => {
+      expect(getMediumPriorityFeeGwei(estimates)).toBe(expected);
+    },
+  );
 });
 
 describe('gasEstimateGreaterThanGasUsedPlusTenPercent', () => {
-  it('returns true when EIP-1559 medium estimate exceeds bumped maxFeePerGas', () => {
-    // maxFeePerGas = 0x59682f10 = 1500000016 wei ≈ 1.500000016 GWEI
-    // bumped = 1.500000016 * 1.1 ≈ 1.650000018 GWEI
-    // medium suggestedMaxFeePerGas = 70 GWEI -> 70 > ~1.65 -> true
-    const txParams = {
-      maxFeePerGas: '0x59682f10',
-      maxPriorityFeePerGas: '0x59682f00',
-    } as unknown as TransactionParams;
-    const estimates = {
-      medium: { suggestedMaxFeePerGas: '70' },
-    } as GasFeeEstimatesInput;
-    expect(
-      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
-    ).toBe(true);
-  });
-
-  it('returns false when EIP-1559 medium estimate is below bumped maxFeePerGas', () => {
-    const txParams = {
-      maxFeePerGas: '0x59682f10',
-      maxPriorityFeePerGas: '0x59682f00',
-    } as unknown as TransactionParams;
-    const estimates = {
-      medium: { suggestedMaxFeePerGas: '1' },
-    } as GasFeeEstimatesInput;
-    expect(
-      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
-    ).toBe(false);
-  });
-
-  it('returns false when txParams has no maxFeePerGas and no gasPrice', () => {
-    const txParams = { gas: '0x5208' } as unknown as TransactionParams;
-    const estimates = {
-      medium: { suggestedMaxFeePerGas: '70' },
-    } as GasFeeEstimatesInput;
-    expect(
-      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
-    ).toBe(false);
-  });
-
-  it('returns true with legacy gasPrice when medium is higher', () => {
-    const txParams = { gasPrice: '0x59682f10' } as unknown as TransactionParams;
-    const estimates = { medium: '70' } as GasFeeEstimatesInput;
-    expect(
-      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
-    ).toBe(true);
-  });
-
-  it('returns false with legacy gasPrice when medium is lower', () => {
-    const txParams = { gasPrice: '0x59682f10' } as unknown as TransactionParams;
-    const estimates = { medium: '1' } as GasFeeEstimatesInput;
-    expect(
-      gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
-    ).toBe(false);
-  });
-
-  it('returns false when gasFeeEstimates is null', () => {
-    const txParams = {
-      maxFeePerGas: '0x59682f10',
-    } as unknown as TransactionParams;
-    expect(gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, null)).toBe(
+  it.each([
+    [
+      'EIP-1559 high estimate',
+      EIP1559_TX_PARAMS,
+      HIGH_FEE_MARKET_ESTIMATE,
+      true,
+    ],
+    [
+      'EIP-1559 low estimate',
+      EIP1559_TX_PARAMS,
+      LOW_FEE_MARKET_ESTIMATE,
       false,
-    );
-  });
-
-  it('handles fee-market estimates with legacy txParams', () => {
-    const txParams = { gasPrice: '0x59682f10' } as unknown as TransactionParams;
-    const estimates = {
-      medium: { suggestedMaxFeePerGas: '70' },
-    } as GasFeeEstimatesInput;
+    ],
+    [
+      'no gas fields',
+      { gas: '0x5208' } as unknown as TransactionParams,
+      HIGH_FEE_MARKET_ESTIMATE,
+      false,
+    ],
+    [
+      'legacy high',
+      LEGACY_TX_PARAMS,
+      { medium: '70' } as GasFeeEstimatesInput,
+      true,
+    ],
+    [
+      'legacy low',
+      LEGACY_TX_PARAMS,
+      { medium: '1' } as GasFeeEstimatesInput,
+      false,
+    ],
+    ['null estimates', EIP1559_TX_PARAMS, null, false],
+    [
+      'fee-market est + legacy tx',
+      LEGACY_TX_PARAMS,
+      HIGH_FEE_MARKET_ESTIMATE,
+      true,
+    ],
+  ] as const)('%s', (_, txParams, estimates, expected) => {
     expect(
       gasEstimateGreaterThanGasUsedPlusTenPercent(txParams, estimates),
-    ).toBe(true);
+    ).toBe(expected);
   });
 });
 
 describe('getGasValuesForReplacement', () => {
   const RATE = 1.1;
 
-  it('returns gasValues unchanged when previousGas is undefined', () => {
-    const gasValues = { maxFeePerGas: '0x10', maxPriorityFeePerGas: '0x2' };
-    expect(getGasValuesForReplacement(gasValues, undefined, RATE)).toBe(
-      gasValues,
-    );
-  });
-
-  it('returns gasValues unchanged when previousGas is null', () => {
-    const gasValues = { maxFeePerGas: '0x10', maxPriorityFeePerGas: '0x2' };
-    expect(getGasValuesForReplacement(gasValues, null, RATE)).toBe(gasValues);
-  });
+  it.each([
+    [
+      'previousGas is undefined',
+      { maxFeePerGas: toHex(16), maxPriorityFeePerGas: toHex(2) },
+      undefined,
+    ],
+    [
+      'previousGas is null',
+      { maxFeePerGas: toHex(16), maxPriorityFeePerGas: toHex(2) },
+      null,
+    ],
+  ] as const)(
+    'returns gasValues unchanged when %s',
+    (_, gasValues, previousGas) => {
+      expect(getGasValuesForReplacement(gasValues, previousGas, RATE)).toBe(
+        gasValues,
+      );
+    },
+  );
 
   it('returns undefined when gasValues is undefined', () => {
-    const previousGas = { maxFeePerGas: '0x10', maxPriorityFeePerGas: '0x2' };
+    const previousGas = {
+      maxFeePerGas: toHex(16),
+      maxPriorityFeePerGas: toHex(2),
+    };
     expect(
       getGasValuesForReplacement(undefined, previousGas, RATE),
     ).toBeUndefined();
@@ -398,73 +345,73 @@ describe('getGasValuesForReplacement', () => {
   describe('EIP-1559 flow', () => {
     it('keeps user values when both exceed previousGas × rate', () => {
       const previousGas = {
-        maxFeePerGas: '0x64', // 100
-        maxPriorityFeePerGas: '0x32', // 50
+        maxFeePerGas: toHex(100),
+        maxPriorityFeePerGas: toHex(50),
       };
       const gasValues = {
-        maxFeePerGas: '0x3e8', // 1000 >> 110
-        maxPriorityFeePerGas: '0x1f4', // 500 >> 55
+        maxFeePerGas: toHex(1000),
+        maxPriorityFeePerGas: toHex(500),
       };
       const result = getGasValuesForReplacement(gasValues, previousGas, RATE);
       expect(result).toEqual({
-        maxFeePerGas: '0x3e8',
-        maxPriorityFeePerGas: '0x1f4',
+        maxFeePerGas: toHex(1000),
+        maxPriorityFeePerGas: toHex(500),
       });
     });
 
     it('clamps maxPriorityFeePerGas up when below previousGas × rate', () => {
       const previousGas = {
-        maxFeePerGas: '0x64', // 100
-        maxPriorityFeePerGas: '0x64', // 100
+        maxFeePerGas: toHex(100),
+        maxPriorityFeePerGas: toHex(100),
       };
       const gasValues = {
-        maxFeePerGas: '0x3e8', // 1000 (fine, >> 110)
-        maxPriorityFeePerGas: '0x5', // 5 (too low, min is ceil(110) = 110 = 0x6e)
+        maxFeePerGas: toHex(1000),
+        maxPriorityFeePerGas: toHex(5),
       };
       const result = getGasValuesForReplacement(gasValues, previousGas, RATE);
       expect(result).toEqual({
-        maxFeePerGas: '0x3e8',
-        maxPriorityFeePerGas: '0x6e', // ceil(100 * 1.1) = 110
+        maxFeePerGas: toHex(1000),
+        maxPriorityFeePerGas: toHex(110), // ceil(100 × 1.1)
       });
     });
 
     it('clamps maxFeePerGas up when below previousGas × rate', () => {
       const previousGas = {
-        maxFeePerGas: '0x3e8', // 1000
-        maxPriorityFeePerGas: '0x32', // 50
+        maxFeePerGas: toHex(1000),
+        maxPriorityFeePerGas: toHex(50),
       };
       const gasValues = {
-        maxFeePerGas: '0x64', // 100 (too low, min is ceil(1100) = 1100 = 0x44c)
-        maxPriorityFeePerGas: '0x1f4', // 500 (fine, >> 55)
+        maxFeePerGas: toHex(100),
+        maxPriorityFeePerGas: toHex(500),
       };
       const result = getGasValuesForReplacement(gasValues, previousGas, RATE);
       expect(result).toEqual({
-        maxFeePerGas: '0x44c', // ceil(1000 * 1.1) = 1100
-        maxPriorityFeePerGas: '0x1f4',
+        maxFeePerGas: toHex(1100), // ceil(1000 × 1.1)
+        maxPriorityFeePerGas: toHex(500),
       });
     });
 
     it('clamps both fields when both are below replacement minimum', () => {
       const previousGas = {
-        maxFeePerGas: '0x3e8', // 1000
-        maxPriorityFeePerGas: '0x64', // 100
+        maxFeePerGas: toHex(1000),
+        maxPriorityFeePerGas: toHex(100),
       };
       const gasValues = {
-        maxFeePerGas: '0x1', // 1
-        maxPriorityFeePerGas: '0x1', // 1
+        maxFeePerGas: toHex(1),
+        maxPriorityFeePerGas: toHex(1),
       };
       const result = getGasValuesForReplacement(gasValues, previousGas, RATE);
       expect(result).toEqual({
-        maxFeePerGas: '0x44c', // 1100
-        maxPriorityFeePerGas: '0x6e', // 110
+        maxFeePerGas: toHex(1100),
+        maxPriorityFeePerGas: toHex(110),
       });
     });
 
     it('passes through when previousGas has no maxFeePerGas', () => {
-      const previousGas = { gasLimit: '0x5208' };
+      const previousGas = { gasLimit: toHex(21000) };
       const gasValues = {
-        maxFeePerGas: '0x1',
-        maxPriorityFeePerGas: '0x1',
+        maxFeePerGas: toHex(1),
+        maxPriorityFeePerGas: toHex(1),
       };
       expect(getGasValuesForReplacement(gasValues, previousGas, RATE)).toEqual(
         gasValues,
@@ -474,22 +421,22 @@ describe('getGasValuesForReplacement', () => {
 
   describe('Legacy (gasPrice) flow', () => {
     it('keeps user gasPrice when it exceeds previousGas × rate', () => {
-      const previousGas = { gasPrice: '0x64' }; // 100
-      const gasValues = { gasPrice: '0x3e8' }; // 1000 >> 110
+      const previousGas = { gasPrice: toHex(100) };
+      const gasValues = { gasPrice: toHex(1000) };
       const result = getGasValuesForReplacement(gasValues, previousGas, RATE);
-      expect(result).toEqual({ gasPrice: '0x3e8' });
+      expect(result).toEqual({ gasPrice: toHex(1000) });
     });
 
     it('clamps gasPrice up when below previousGas × rate', () => {
-      const previousGas = { gasPrice: '0x64' }; // 100
-      const gasValues = { gasPrice: '0x5' }; // 5 (too low)
+      const previousGas = { gasPrice: toHex(100) };
+      const gasValues = { gasPrice: toHex(5) };
       const result = getGasValuesForReplacement(gasValues, previousGas, RATE);
-      expect(result).toEqual({ gasPrice: '0x6e' }); // ceil(110) = 110
+      expect(result).toEqual({ gasPrice: toHex(110) }); // ceil(100 × 1.1)
     });
 
     it('passes through when previousGas has no gasPrice', () => {
-      const previousGas = { gasLimit: '0x5208' };
-      const gasValues = { gasPrice: '0x5' };
+      const previousGas = { gasLimit: toHex(21000) };
+      const gasValues = { gasPrice: toHex(5) };
       expect(getGasValuesForReplacement(gasValues, previousGas, RATE)).toEqual(
         gasValues,
       );
