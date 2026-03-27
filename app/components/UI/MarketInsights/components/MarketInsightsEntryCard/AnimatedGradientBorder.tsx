@@ -124,8 +124,8 @@ const SweepPath: React.FC<SweepPathProps> = ({
     let opacityEnvelope: number;
     if (t < fadeInEnd) {
       const u = fadeInEnd > 0 ? t / fadeInEnd : 1;
-      opacityEnvelope = 1 - (1 - u) * (1 - u);
-    } else if (t < fadeOutStart) {
+      opacityEnvelope = u * u * (3 - 2 * u);
+    } else if (fadeOutStart > fadeInEnd && t < fadeOutStart) {
       opacityEnvelope = 1;
     } else {
       const span = 1 - fadeOutStart;

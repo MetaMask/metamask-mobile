@@ -204,7 +204,11 @@ describe('MarketInsightsEntryCard', () => {
     );
 
     const pressable = getByTestId('market-insights-entry-card');
-    const innerBox = pressable.children[0] as unknown as {
+    // TouchableOpacity → View (viewport ref + onVisibilityLayout) → Box (handleLayout)
+    const viewportWrapper = pressable.children[0] as unknown as {
+      children: React.ReactNode[];
+    };
+    const innerBox = viewportWrapper.children[0] as unknown as {
       props: { onLayout?: (e: unknown) => void };
     };
 

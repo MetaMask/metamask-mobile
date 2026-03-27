@@ -36,13 +36,19 @@ export const BORDER_SWEEP_PATH_END_FRACTION = 1;
 
 /**
  * Opacity fade-in completes at this animation progress (`p`). Lower = trail
- * reaches full opacity sooner (quicker fade-in). Must stay below
- * `BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION`.
+ * reaches full opacity sooner. Fade-in uses smoothstep `u²(3-2u)` in the worklet.
+ * If `BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION` is greater than this value,
+ * opacity stays at 1 until fade-out starts; if equal, fade-out begins as soon
+ * as fade-in completes (no hold).
  */
 export const BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION = 0.7;
 
-/** Opacity fade-out begins at this `p` (second segment uses cubic ease-out). */
-export const BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION = 0.7;
+/**
+ * Opacity fade-out begins at this `p` (cubic ease-out to 0 at `p === 1`).
+ * Use a value strictly greater than `BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION`
+ * for a full-opacity plateau between the two phases.
+ */
+export const BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION = 0.8;
 
 /** Fraction of the card that must be visible on-screen to trigger the animation (1 = fully visible) */
 export const VISIBILITY_THRESHOLD = 1;
