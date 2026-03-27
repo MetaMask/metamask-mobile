@@ -48,15 +48,10 @@ module.exports = function (baseConfig) {
     process.env.METAMASK_ENVIRONMENT === 'e2e';
 
   /**
-   * E2E Metro redirects under tests/module-mocking/* (seedless controller + OAuth handlers).
-   * Master gate (same as before):
+   * E2E Metro redirects under tests/module-mocking.
    * - PERFORMANCE_TEST_JOB / E2E_USE_SEEDLESS_OAUTH_METRO_MOCK
-   * Sub-gates (only when master gate is on):
    * - E2E_USE_SEEDLESS_CONTROLLER_METRO_MOCK: seedless-onboarding-controller mock (default ON)
    * - E2E_USE_OAUTH_LOGIN_HANDLERS_METRO_MOCK: OAuthLoginHandlers mock (default ON)
-   * For Appwright: use a non-seedless onboarding perf binary with
-   * E2E_USE_OAUTH_LOGIN_HANDLERS_METRO_MOCK=false so import/new-wallet perf do not use OAuth
-   * Metro mocks; keep a separate seedless perf binary with defaults for seedless-*.spec.js.
    */
   const e2eAllowsSeedlessOAuthMetroMocks =
     isE2E &&
