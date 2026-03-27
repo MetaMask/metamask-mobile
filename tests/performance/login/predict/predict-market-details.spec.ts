@@ -72,10 +72,7 @@ perfTest.describe(PerformancePredict, () => {
       await PredictDetailsPage.tapAboutTab();
       await timer3.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictDetailsPage.aboutTab),
-        );
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(PredictDetailsPage.volumeLabel),
+          asPlaywrightElement(PredictDetailsPage.aboutTabContent),
         );
       });
 
@@ -98,7 +95,7 @@ perfTest.describe(PerformancePredict, () => {
 
         await timer4.measure(async () => {
           await PlaywrightAssertions.expectElementToBeVisible(
-            asPlaywrightElement(PredictDetailsPage.outcomesTab),
+            asPlaywrightElement(PredictDetailsPage.outcomesTabContent),
           );
         });
 
