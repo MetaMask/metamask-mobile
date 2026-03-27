@@ -32,7 +32,7 @@ import { parseCAIP19AssetId } from '../../../Ramp/Aggregator/utils/parseCaip19As
 import TrendingTokenLogo from '../../../Trending/components/TrendingTokenLogo';
 import { getTrendingTokenImageUrl } from '../../../Trending/utils/getTrendingTokenImageUrl';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
-import { useGetOndoPortfolioPosition } from '../../hooks/useGetOndoPortfolioPosition';
+import type { OndoGmPortfolioDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import Routes from '../../../../../constants/navigation/Routes';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import RewardsInfoBanner from '../RewardsInfoBanner';
@@ -84,14 +84,22 @@ const formatUsd = (value: string): string => {
 };
 
 interface OndoPortfolioProps {
-  campaignId: string;
+  portfolio: OndoGmPortfolioDto | null;
+  isLoading: boolean;
+  hasError: boolean;
+  hasFetched: boolean;
+  refetch: () => Promise<void>;
 }
 
-const OndoPortfolio: React.FC<OndoPortfolioProps> = ({ campaignId }) => {
+const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
+  portfolio,
+  isLoading,
+  hasError,
+  hasFetched,
+  refetch,
+}) => {
   const tw = useTailwind();
   const navigation = useNavigation();
-  const { portfolio, isLoading, hasError, hasFetched, refetch } =
-    useGetOndoPortfolioPosition(campaignId);
 
   const grouped = useMemo(
     () =>

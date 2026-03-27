@@ -31,6 +31,8 @@ import {
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
+import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -79,6 +81,25 @@ const OndoCampaignDetailsView: React.FC = () => {
     [campaign],
   );
 
+  // Single fetch point for portfolio — data is passed to both the portfolio section and
+  // used to gate the leaderboard rank section visibility
+  const {
+    portfolio: portfolioData,
+    isLoading: isPortfolioLoading,
+    hasError: hasPortfolioError,
+    hasFetched: portfolioHasFetched,
+    refetch: refetchPortfolio,
+  } = useGetOndoPortfolioPosition(isOptedIn ? campaignId : undefined);
+
+  const hasPositions =
+    portfolioHasFetched && Boolean(portfolioData?.positions.length);
+
+  // Rank section: only visible when opted in with confirmed portfolio activity
+  const showLeaderboardRankSection = isOptedIn && hasPositions;
+
+  // Portfolio section: hidden only when opted in, cutoff passed, AND confirmed empty
+  const showPortfolioSection = isOptedIn && (hasPositions || !areEntriesClosed);
+
   // Only fetch leaderboard data when we'll actually render the OndoLeaderboard
   // (non-opted-in view of a completed campaign, or active campaign past cutoff date)
   const leaderboardCampaignId = useMemo(
@@ -102,6 +123,14 @@ const OndoCampaignDetailsView: React.FC = () => {
     isLeaderboardNotYetComputed,
     refetch: refetchLeaderboard,
   } = useGetOndoLeaderboard(leaderboardCampaignId);
+
+  const {
+    position,
+    isLoading: isPositionLoading,
+    hasError: hasPositionError,
+    hasFetched: positionHasFetched,
+    refetch: refetchPosition,
+  } = useGetOndoLeaderboardPosition(isOptedIn ? campaignId : undefined);
 
   return (
     <ErrorBoundary navigation={navigation} view="OndoCampaignDetailsView">
@@ -176,11 +205,12 @@ const OndoCampaignDetailsView: React.FC = () => {
                 )}
 
               {!participantStatus.isLoading &&
-                (isOptedIn || Boolean(leaderboardCampaignId)) && (
+                (showLeaderboardRankSection ||
+                  Boolean(leaderboardCampaignId)) && (
                   <>
                     <Box twClassName="border-b border-border-muted" />
                     <Box twClassName="p-4">
-                      {isOptedIn ? (
+                      {showLeaderboardRankSection ? (
                         <>
                           <Pressable
                             onPress={() =>
@@ -213,7 +243,13 @@ const OndoCampaignDetailsView: React.FC = () => {
                               </Box>
                             </Box>
                           </Pressable>
-                          <OndoLeaderboardPosition campaignId={campaignId} />
+                          <OndoLeaderboardPosition
+                            position={position}
+                            isLoading={isPositionLoading}
+                            hasError={hasPositionError}
+                            hasFetched={positionHasFetched}
+                            refetch={refetchPosition}
+                          />
                         </>
                       ) : (
                         <>
@@ -239,11 +275,17 @@ const OndoCampaignDetailsView: React.FC = () => {
                   </>
                 )}
 
-              {!participantStatus.isLoading && isOptedIn && (
+              {!participantStatus.isLoading && showPortfolioSection && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
                   <Box twClassName="p-4">
-                    <OndoPortfolio campaignId={campaignId} />
+                    <OndoPortfolio
+                      portfolio={portfolioData}
+                      isLoading={isPortfolioLoading}
+                      hasError={hasPortfolioError}
+                      hasFetched={portfolioHasFetched}
+                      refetch={refetchPortfolio}
+                    />
                   </Box>
                 </>
               )}

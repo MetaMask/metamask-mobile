@@ -9,17 +9,12 @@ import {
   Skeleton,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
-import { useGetOndoLeaderboardPosition } from '../../hooks/useGetOndoLeaderboardPosition';
 import RewardsErrorBanner from '../RewardsErrorBanner';
 import { formatRateOfReturn } from './OndoLeaderboard.utils';
 import formatFiat from '../../../../../util/formatFiat';
 import { BigNumber } from 'bignumber.js';
-import {
-  selectRewardsSubscriptionId,
-  selectCampaignParticipantOptedIn,
-} from '../../../../../selectors/rewards';
+import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
   CONTAINER: 'ondo-leaderboard-position-container',
@@ -34,7 +29,11 @@ export const ONDO_LEADERBOARD_POSITION_TEST_IDS = {
 } as const;
 
 interface OndoLeaderboardPositionProps {
-  campaignId: string | undefined;
+  position: CampaignLeaderboardPositionDto | null;
+  isLoading: boolean;
+  hasError: boolean;
+  hasFetched: boolean;
+  refetch: () => Promise<void>;
 }
 
 const formatUsd = (value: number): string =>
@@ -105,19 +104,12 @@ const StatCell: React.FC<StatCellProps> = ({
  * and current USD value.
  */
 const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
-  campaignId,
+  position,
+  isLoading,
+  hasError,
+  hasFetched,
+  refetch,
 }) => {
-  const subscriptionId = useSelector(selectRewardsSubscriptionId);
-  const isOptedIn = useSelector(
-    selectCampaignParticipantOptedIn(subscriptionId, campaignId),
-  );
-  const { position, isLoading, hasError, hasFetched, refetch } =
-    useGetOndoLeaderboardPosition(campaignId);
-
-  if (!isOptedIn) {
-    return null;
-  }
-
   if (isLoading && !position) {
     return <PositionSkeleton />;
   }

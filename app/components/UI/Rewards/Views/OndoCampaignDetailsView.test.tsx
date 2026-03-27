@@ -11,6 +11,8 @@ import {
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
+import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
+import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -236,6 +238,18 @@ const mockUseGetOndoLeaderboard = useGetOndoLeaderboard as jest.MockedFunction<
   typeof useGetOndoLeaderboard
 >;
 
+jest.mock('../hooks/useGetOndoLeaderboardPosition');
+const mockUseGetOndoLeaderboardPosition =
+  useGetOndoLeaderboardPosition as jest.MockedFunction<
+    typeof useGetOndoLeaderboardPosition
+  >;
+
+jest.mock('../hooks/useGetOndoPortfolioPosition');
+const mockUseGetOndoPortfolioPosition =
+  useGetOndoPortfolioPosition as jest.MockedFunction<
+    typeof useGetOndoPortfolioPosition
+  >;
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -305,6 +319,20 @@ describe('OndoCampaignDetailsView', () => {
       selectedTierData: null,
       computedAt: null,
       setSelectedTier: jest.fn(),
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoLeaderboardPosition.mockReturnValue({
+      position: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoPortfolioPosition.mockReturnValue({
+      portfolio: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
       refetch: jest.fn(),
     });
   });
@@ -463,7 +491,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId('campaign-how-it-works')).toBeNull();
     });
 
-    it('renders OndoLeaderboardPosition when participant is opted in', () => {
+    it('renders OndoLeaderboardPosition when participant is opted in with positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -472,6 +500,13 @@ describe('OndoCampaignDetailsView', () => {
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
@@ -692,7 +727,7 @@ describe('OndoCampaignDetailsView', () => {
   });
 
   describe('leaderboard position', () => {
-    it('shows OndoLeaderboardPosition when participant is opted in', () => {
+    it('shows OndoLeaderboardPosition when participant is opted in with positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -701,6 +736,13 @@ describe('OndoCampaignDetailsView', () => {
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
@@ -808,7 +850,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByText('rewards.ondo_campaign_leaderboard.title')).toBeNull();
     });
 
-    it('shows leaderboard section header when opted in', () => {
+    it('shows leaderboard section header when opted in with positions', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
@@ -817,6 +859,13 @@ describe('OndoCampaignDetailsView', () => {
         status: { optedIn: true, participantCount: 1 },
         isLoading: false,
         hasError: false,
+        refetch: jest.fn(),
+      });
+      mockUseGetOndoPortfolioPosition.mockReturnValue({
+        portfolio: { positions: [{}], summary: {}, computedAt: '' } as never,
+        isLoading: false,
+        hasError: false,
+        hasFetched: true,
         refetch: jest.fn(),
       });
       const { getByText } = render(<OndoCampaignDetailsView />);
