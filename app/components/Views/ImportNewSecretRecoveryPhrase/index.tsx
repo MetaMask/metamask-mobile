@@ -222,7 +222,13 @@ const ImportNewSecretRecoveryPhrase = () => {
         hasNoTimeout: false,
       });
 
-      fetchAccountsWithActivity();
+      trace(
+        {
+          name: TraceName.ImportSrpFetchAccountsActivity,
+          op: TraceOperation.ImportSrp,
+        },
+        () => fetchAccountsWithActivity(),
+      );
 
       navigation.navigate('WalletView');
     } catch (e) {

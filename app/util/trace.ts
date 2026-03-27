@@ -130,6 +130,7 @@ export enum TraceName {
   ImportSrpBackground = 'Import SRP - Background',
   ImportSrpSyncUserStorage = 'Import SRP - Sync User Storage',
   ImportSrpSeedlessPasswordCheck = 'Import SRP - Seedless Password Check',
+  ImportSrpFetchAccountsActivity = 'Import SRP - Fetch Accounts Activity',
   ShowAccountAddressList = 'Show Account Address List',
   ShowAccountList = 'Show Account List',
   ShowAccountPrivateKeyList = 'Show Account Private Key List',
