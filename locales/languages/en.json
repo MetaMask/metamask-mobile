@@ -7910,7 +7910,9 @@
       "expired": "Expired"
     },
     "benefits": {
-      "title": "Perks"
+      "title": "Benefits",
+      "list_header":  "Available",
+      "title_claim": "Claim Benefit"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",

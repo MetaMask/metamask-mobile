@@ -108,6 +108,20 @@ export const formatTimeRemaining = (endDate: Date): string | null => {
   return `${dayString}${hourString}${minuteString}`?.trim();
 };
 
+export const formatDayHourRemaining = (endDate: Date | string): string | null => {
+  const { days, hours } = getTimeDifferenceFromNow(new Date(endDate).getTime());
+
+  // No time remaining
+  if (hours <= 0 && days <= 0) {
+    return null;
+  }
+
+  const dayString = days > 0 ? `${days}d ` : '';
+  const hourString = hours > 0 ? `${hours}h ` : '';
+
+  return `${dayString}${hourString}`?.trim();
+};
+
 // Get icon name with fallback to Star if invalid
 export const getIconName = (iconName: string): IconName =>
   Object.values(IconName).includes(iconName as IconName)

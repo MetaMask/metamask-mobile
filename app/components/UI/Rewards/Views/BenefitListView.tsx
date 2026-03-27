@@ -1,19 +1,16 @@
 import {
   Box,
-  FontWeight,
   Text,
+  TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { strings } from '../../../../../locales/i18n';
 import { REWARDS_VIEW_SELECTORS } from './RewardsView.constants.ts';
 import { useSelector } from 'react-redux';
-import {
-  FlatList,
-  ListRenderItem,
-  RefreshControl,
-  SafeAreaView,
-} from 'react-native';
+import { FlatList, ListRenderItem, RefreshControl } from 'react-native';
+
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   selectBenefits,
   selectBenefitsLoading,
@@ -22,11 +19,13 @@ import { useBenefits } from '../hooks/useBenefits.ts';
 import { SubscriptionBenefitDto } from '../../../../core/Engine/controllers/rewards-controller/types.ts';
 import BenefitCard from '../components/Benefits/BenefitCard.tsx';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../util/theme';
+import HeaderCompactStandard from '../../../../component-library/components-temp/HeaderCompactStandard';
+import { useNavigation } from '@react-navigation/native';
+import ErrorBoundary from '../../../Views/ErrorBoundary';
 
 const BenefitListView = () => {
   const tw = useTailwind();
-  const { colors } = useTheme();
+  const navigation = useNavigation();
 
   const benefits = useSelector(selectBenefits);
   const isLoading = useSelector(selectBenefitsLoading);
@@ -63,12 +62,9 @@ const BenefitListView = () => {
   const renderFooter = useCallback(() => {
     if (isLoading || benefits?.length === 0) return null;
     return (
-      <Box twClassName="pb-2 items-center justify-center">
-        <Text
-          variant={TextVariant.BodySm}
-          twClassName="text-alternative text-center"
-        >
-          Provided by The Miracle
+      <Box twClassName="items-center justify-center">
+        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
+          Powered by The Miracle
         </Text>
       </Box>
     );
@@ -86,38 +82,41 @@ const BenefitListView = () => {
   }, [isLoading, refreshing]);
 
   return (
-    <SafeAreaView
-      style={tw.style('flex-1', { backgroundColor: colors.background.default })}
-    >
-      <Box
-        twClassName="flex-1 px-4"
-        testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_SECTION}
+    <ErrorBoundary navigation={navigation} view="BenefitsListView">
+      <SafeAreaView
+        edges={{ bottom: 'additive' }}
+        style={tw.style('flex-1 bg-default')}
+        testID={REWARDS_VIEW_SELECTORS.LIST_BENEFIT_VIEW}
       >
-        <Text
-          variant={TextVariant.HeadingMd}
-          fontWeight={FontWeight.Medium}
-          twClassName="text-default mb-4 pt-2"
-        >
-          {strings('rewards.benefits.title')}
-        </Text>
+        <HeaderCompactStandard
+          title={strings('rewards.benefits.title')}
+          onBack={() => navigation.goBack()}
+          backButtonProps={{ testID: 'header-back-button' }}
+          includesTopInset
+        />
         {benefits?.length === 0 ? (
           emptyComponent
         ) : (
-          <FlatList
-            data={benefits}
-            renderItem={renderBenefitItem}
-            keyExtractor={(item) => item.id.toString()}
-            ListFooterComponent={renderFooter}
-            refreshControl={
-              <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-            }
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={tw.style('pb-6 gap-2')} // gap-2 between items
-            style={tw.style('flex-1')}
-          />
+          <Box twClassName="h-full p-4">
+            <Text twClassName="py-3" variant={TextVariant.HeadingMd}>
+              {strings('rewards.benefits.list_header')}
+            </Text>
+            <FlatList
+              data={benefits}
+              renderItem={renderBenefitItem}
+              keyExtractor={(item) => item.id.toString()}
+              ListFooterComponent={renderFooter}
+              refreshControl={
+                <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
+              }
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={tw.style('gap-3 pb-24')}
+              style={tw.style('flex-1')}
+            />
+          </Box>
         )}
-      </Box>
-    </SafeAreaView>
+      </SafeAreaView>
+    </ErrorBoundary>
   );
 };
 export default BenefitListView;

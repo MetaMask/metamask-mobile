@@ -27,7 +27,7 @@ import { MetaMetricsEvents, useMetrics } from '../../../hooks/useMetrics';
 import { selectSelectedAccountGroup } from '../../../../selectors/multichainAccounts/accountTreeController';
 import CampaignsPreview from '../components/Campaigns/CampaignsPreview';
 import EarnRewardsPreview from '../components/EarnRewards/EarnRewardsPreview';
-import BenefitsSummary from "../components/Benefits/BenefitsSummary.tsx";
+import BenefitsPreview from '../components/Benefits/BenefitsPreview.tsx';
 
 const RewardsDashboard: React.FC = () => {
   const tw = useTailwind();
@@ -197,7 +197,7 @@ const RewardsDashboard: React.FC = () => {
         <Box twClassName="flex-1 gap-4">
           <CampaignsPreview />
           <EarnRewardsPreview />
-          <BenefitsSummary/>
+          <BenefitsPreview/>
         </Box>
       </SafeAreaView>
       <Toast ref={toastRef} />

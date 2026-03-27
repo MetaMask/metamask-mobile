@@ -1,11 +1,23 @@
 import NavigationService from '../../../../../core/NavigationService';
 import Routes from '../../../../../constants/navigation/Routes.ts';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 import { Image, TouchableOpacity } from 'react-native';
 import { REWARDS_VIEW_SELECTORS } from '../../Views/RewardsView.constants.ts';
 import React from 'react';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { SubscriptionBenefitDto } from '../../../../../core/Engine/controllers/rewards-controller/types.ts';
+import { formatDayHourRemaining } from '../../utils/formatUtils.ts';
 
 interface Props {
   benefit: SubscriptionBenefitDto;
@@ -16,7 +28,7 @@ const BenefitCard = ({ benefit }: Props) => {
 
   return (
     <TouchableOpacity
-      style={tw.style('bg-section rounded-lg p-4 h-[132px]')}
+      style={tw.style('bg-section rounded-lg p-4 h-[154px]')}
       onPress={() =>
         NavigationService.navigation.navigate(Routes.BENEFIT_DETAILS_VIEW, {
           benefit,
@@ -34,23 +46,36 @@ const BenefitCard = ({ benefit }: Props) => {
           />
         </Box>
 
-        <Box twClassName="flex-1 justify-between h-full">
-          <Box>
-            <Box twClassName="flex-row items-center gap-1">
-              <Text
-                variant={TextVariant.HeadingSm}
-                twClassName="text-default flex-1"
-                numberOfLines={1}
-              >
-                {benefit.longTitle}
-              </Text>
-            </Box>
+        <Box twClassName="flex-1 gap-1">
+          <Text
+            variant={TextVariant.HeadingSm}
+            twClassName="text-default"
+            numberOfLines={1}
+          >
+            {benefit.longTitle}
+          </Text>
+          <Text
+            variant={TextVariant.BodyMd}
+            color={TextColor.TextAlternative}
+            numberOfLines={3}
+          >
+            {benefit.shortDescription}
+          </Text>
+          <Box
+            twClassName="gap-1"
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+          >
+            <Icon
+              name={IconName.Clock}
+              size={IconSize.Md}
+              color={IconColor.IconAlternative}
+            />
             <Text
               variant={TextVariant.BodyMd}
-              twClassName="text-alternative"
-              numberOfLines={3}
+              color={TextColor.TextAlternative}
             >
-              {benefit.shortDescription}
+              {formatDayHourRemaining(benefit.actionDate)}
             </Text>
           </Box>
         </Box>
