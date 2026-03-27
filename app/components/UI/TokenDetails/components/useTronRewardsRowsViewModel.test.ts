@@ -80,6 +80,7 @@ describe('useTronAssetOverviewSection', () => {
 
     expect(mockUseTronStakeApy).toHaveBeenCalledWith({
       fetchOnMount: false,
+      chainId: 'tron:0x2b6653dc',
     });
     expect(result.current).toEqual({});
   });
@@ -103,6 +104,7 @@ describe('useTronAssetOverviewSection', () => {
 
     expect(mockUseTronStakeApy).toHaveBeenCalledWith({
       fetchOnMount: true,
+      chainId: 'tron:0x2b6653dc',
     });
     expect(result.current).toEqual(
       expect.objectContaining({ aprText: '4.5%' }),

@@ -36,15 +36,18 @@ const useTronAssetOverviewSection = ({
   tokenChainId,
 }: UseTronAssetOverviewSectionArgs): TronAssetOverviewSectionViewModel => {
   // These hooks must stay unconditional to preserve React's hook ordering.
-  // When `enabled` is false, the hook still reads cached state and selector
-  // values, but it skips APY fetching and all Tron-specific formatting work.
+  // When `enabled` is false, the hook still reads selector state and cached
+  // summary data, but it returns before any Tron formatting or row/banner work.
   const privacyMode = useSelector(selectPrivacyMode);
   const {
     apyDecimal,
     apyPercent,
     fetchStatus: tronApyFetchStatus,
     errorMessage: tronApyErrorMessage,
-  } = useTronStakeApy({ fetchOnMount: enabled });
+  } = useTronStakeApy({
+    fetchOnMount: enabled,
+    chainId: tokenChainId as Parameters<typeof useTronStakeApy>[0]['chainId'],
+  });
   const {
     claimableRewardsTrxAmount,
     claimableRewardsFiatAmount,
