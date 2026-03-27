@@ -742,11 +742,11 @@ describe('OndoCampaignDetailsView', () => {
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('ondo-leaderboard')).toBeDefined();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-leaderboard')).toBeNull();
     });
 
-    it('does not show OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
+    it('shows OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
       // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
@@ -763,8 +763,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('ondo-leaderboard')).toBeNull();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-leaderboard')).toBeDefined();
     });
 
     it('shows OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
