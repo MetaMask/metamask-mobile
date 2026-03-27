@@ -8,7 +8,7 @@ import {
 import type { CampaignDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import type { UseGetCampaignParticipantStatusResult } from '../../hooks/useGetCampaignParticipantStatus';
 import CampaignOptInSheet from './CampaignOptInSheet';
-import { getCampaignStatus } from './CampaignTile.utils';
+import { getCampaignStatus, isOptinAllowed } from './CampaignTile.utils';
 import { strings } from '../../../../../../locales/i18n';
 
 export const CAMPAIGN_JOIN_CTA_TEST_IDS = {
@@ -25,7 +25,8 @@ interface CampaignJoinCTAProps {
 
 /**
  * Renders the "Join Campaign" CTA button and opt-in bottom sheet.
- * Hidden once the user has opted in or the campaign is complete.
+ * Hidden once the user has opted in, the campaign is no longer active,
+ * or the deposit cutoff date has passed.
  */
 const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
   campaign,
@@ -35,7 +36,8 @@ const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
 
   if (
     participantStatus.status?.optedIn === true ||
-    getCampaignStatus(campaign) !== 'active'
+    getCampaignStatus(campaign) !== 'active' ||
+    !isOptinAllowed(campaign)
   ) {
     return null;
   }
@@ -52,9 +54,7 @@ const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
           isDisabled={participantStatus.isLoading}
           testID={CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON}
         >
-          {participantStatus.isLoading
-            ? strings('rewards.campaign_details.checking_opt_in_status')
-            : strings('rewards.campaign_details.join_campaign')}
+          {strings('rewards.campaign_details.join_campaign')}
         </Button>
       </Box>
 
