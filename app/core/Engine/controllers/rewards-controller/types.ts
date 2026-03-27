@@ -189,12 +189,21 @@ export type ThemeImageState = {
 };
 
 /**
+ * Serializable version of OndoCampaignTier for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTierState = {
+  name: string;
+  minNetDeposit: number;
+};
+/**
  * Serializable version of CampaignDetails for state storage.
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
 export type CampaignDetailsState = {
   howItWorks: OndoCampaignHowItWorksState;
-  depositCutoffDate?: string;
+  depositCutoffDate: string;
+  tiers: OndoCampaignTierState[];
 };
 
 /**
@@ -567,7 +576,13 @@ export interface OndoCampaignHowItWorks {
 
 export interface OndoHoldingDetails {
   howItWorks: OndoCampaignHowItWorks;
-  depositCutoffDate?: string;
+  depositCutoffDate: string;
+  tiers: OndoCampaignTier[];
+}
+
+export interface OndoCampaignTier {
+  name: string;
+  minNetDeposit: number;
 }
 
 export type CampaignDetails = OndoHoldingDetails;

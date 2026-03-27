@@ -7976,7 +7976,9 @@
       "updated_at": "Last updated: {{time}}",
       "error_loading": "Failed to load your position",
       "error_loading_description": "There was an error loading your leaderboard position. Please try again.",
-      "retry": "Retry"
+      "retry": "Retry",
+      "tier_progress_deposit_more": "Deposit {{amount}} more to reach the next tier",
+      "tier_progress_top_tier": "You've reached the top tier"
     },
     "ondo_campaign_portfolio": {
       "title": "Positions",

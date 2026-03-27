@@ -21,6 +21,7 @@ import CampaignStatus from '../components/Campaigns/CampaignStatus';
 import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
+import OndoCampaignTierProgress from '../components/Campaigns/OndoCampaignTierProgress';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import CampaignEntriesClosedBanner from '../components/Campaigns/CampaignEntriesClosedBanner';
@@ -174,6 +175,10 @@ const OndoCampaignDetailsView: React.FC = () => {
                     </Box>
                   </>
                 )}
+
+              {!participantStatus.isLoading && isOptedIn && (
+                <OndoCampaignTierProgress campaignId={campaignId} />
+              )}
 
               {!participantStatus.isLoading &&
                 (isOptedIn || Boolean(leaderboardCampaignId)) && (

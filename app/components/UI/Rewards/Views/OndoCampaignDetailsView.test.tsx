@@ -137,6 +137,18 @@ jest.mock('../components/Campaigns/OndoLeaderboard', () => {
   };
 });
 
+jest.mock('../components/Campaigns/OndoCampaignTierProgress', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'ondo-campaign-tier-progress',
+      }),
+  };
+});
+
 const mockOndoLeaderboardPosition = jest.fn();
 jest.mock('../components/Campaigns/OndoLeaderboardPosition', () => {
   const ReactActual = jest.requireActual('react');
