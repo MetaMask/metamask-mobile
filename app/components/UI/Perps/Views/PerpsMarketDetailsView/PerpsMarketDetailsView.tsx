@@ -125,6 +125,7 @@ import {
 } from '../../selectors/featureFlags';
 import {
   MarketInsightsEntryCard,
+  MarketInsightsEntryCardSkeleton,
   useMarketInsights,
 } from '../../../MarketInsights';
 import { selectMarketInsightsPerpsEnabled } from '../../../../../selectors/featureFlagController/marketInsights';
@@ -1353,13 +1354,19 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
             </View>
           )}
 
-          {/* Market Insights Section - shown when perps insights flag is enabled and a report is available */}
-          {isPerpsInsightsEnabled && perpsInsightsReport && market?.symbol ? (
-            <MarketInsightsEntryCard
-              report={perpsInsightsReport}
-              timeAgo={perpsInsightsTimeAgo}
-              onPress={handleMarketInsightsPress}
-            />
+          {/* Market Insights Section - shown when flag is enabled and report is available or loading */}
+          {isPerpsInsightsEnabled &&
+          market?.symbol &&
+          (perpsInsightsReport || isPerpsInsightsLoading) ? (
+            perpsInsightsReport ? (
+              <MarketInsightsEntryCard
+                report={perpsInsightsReport}
+                timeAgo={perpsInsightsTimeAgo}
+                onPress={handleMarketInsightsPress}
+              />
+            ) : (
+              <MarketInsightsEntryCardSkeleton />
+            )
           ) : null}
 
           {/* Statistics Section - Always shown */}
