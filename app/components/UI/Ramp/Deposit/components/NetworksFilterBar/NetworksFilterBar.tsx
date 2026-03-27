@@ -116,7 +116,10 @@ function NetworksFilterBar({
                   }
                 }}
               >
-                <>
+                <Box
+                  flexDirection={FlexDirection.Row}
+                  alignItems={AlignItems.center}
+                >
                   {isSelected && (
                     <AvatarNetwork
                       key={chainId}
@@ -131,7 +134,7 @@ function NetworksFilterBar({
                   >
                     {displayName}
                   </Text>
-                </>
+                </Box>
               </Button>
             );
           })}
