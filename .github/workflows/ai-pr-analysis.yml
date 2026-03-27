@@ -52,7 +52,7 @@ jobs:
 
       - name: Run AI PR Analysis
         id: analysis
-        uses: MetaMask/ai-pr-analyzer@main
+        uses: MetaMask/ai-analyzer@main
         with:
           mode: ${{ env.INPUT_MODE || 'pr-risk-analysis' }}
           pr-number: ${{ steps.pr-info.outputs.pr_number }}
