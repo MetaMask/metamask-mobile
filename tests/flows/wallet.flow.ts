@@ -3,6 +3,7 @@ import NetworkView from '../page-objects/Settings/NetworksView';
 import {
   createLogger,
   PlaywrightAssertions,
+  PlaywrightGestures,
   PortManager,
   ResourceType,
   sleep,
@@ -527,11 +528,12 @@ export const onboardingFlowImportSRPPlaywright = async (
   );
 
   await ImportWalletView.typeSecretRecoveryPhrase(srp, true);
-  await ImportWalletView.tapImportScreenTitleToDismissKeyboard();
+  // await ImportWalletView.tapImportScreenTitleToDismissKeyboard();
+  await PlaywrightGestures.hideKeyboard();
 
   await ImportWalletView.tapContinueButton();
   await PlaywrightAssertions.expectElementToBeVisible(
-    await asPlaywrightElement(CreatePasswordView.container),
+    await asPlaywrightElement(CreatePasswordView.newPasswordInput),
   );
 
   await CreatePasswordView.enterPassword(

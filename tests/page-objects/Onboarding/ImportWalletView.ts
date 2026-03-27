@@ -238,9 +238,8 @@ class ImportWalletView {
   async tapImportScreenTitleToDismissKeyboard(
     _onboarding = true,
   ): Promise<void> {
-    await UnifiedGestures.tap(this.title, {
+    await UnifiedGestures.waitAndTap(this.title, {
       description: 'Import Wallet Title',
-      timeout: 1000,
     });
   }
 }

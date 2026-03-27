@@ -1,9 +1,4 @@
 import { test } from '../../../framework/fixture';
-import WalletMainScreen from '../../../../wdio/screen-objects/WalletMainScreen.js';
-import {
-  login,
-  onboardingFlowImportSRP,
-} from '../../../framework/utils/Flows.js';
 import {
   PerformanceOnboarding,
   PerformanceLaunch,
@@ -32,7 +27,7 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       await PlaywrightGestures.activateApp(currentDeviceDetails);
 
       await PlaywrightAssertions.expectElementToBeVisible(
-        await asPlaywrightElement(LoginView.title),
+        await asPlaywrightElement(LoginView.loginButton),
       );
 
       await loginToAppPlaywright({

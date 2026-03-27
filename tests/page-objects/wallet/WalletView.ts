@@ -32,8 +32,18 @@ import PlaywrightGestures from '../../framework/PlaywrightGestures';
 class WalletView {
   static readonly MAX_SCROLL_ITERATIONS = 4;
 
-  get container(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+  get container(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_CONTAINER,
+          {
+            exact: true,
+          },
+        ),
+    });
   }
 
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
