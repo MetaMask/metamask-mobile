@@ -48,7 +48,8 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceLaunch}`, () => {
           description: 'Login title should be visible',
         },
       );
-      await LoginView.enterPassword(getPasswordForScenario('login'));
+      const loginPassword = getPasswordForScenario('login');
+      await LoginView.enterPassword(loginPassword);
 
       const timer1 = new TimerHelper(
         'Time since the user clicks on unlock button, until the app unlocks',
