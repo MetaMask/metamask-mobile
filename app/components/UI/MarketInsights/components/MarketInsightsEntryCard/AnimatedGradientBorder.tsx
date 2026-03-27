@@ -25,8 +25,6 @@ import {
   BORDER_TRAIL_FRACTION,
   BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION,
   BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION,
-  BORDER_TRAIL_TIP_FADE_ARC_PX,
-  BORDER_TRAIL_TIP_SOFT_UNDERLAY_OPACITY,
 } from './AnimatedGradientBorder.constants';
 import {
   buildOpenBorderPathD,
@@ -137,20 +135,11 @@ const SweepPath: React.FC<SweepPathProps> = ({
     }
 
     const env = opacityEnvelope * opacityScale;
-    const fadeArc = BORDER_TRAIL_TIP_FADE_ARC_PX;
-    const minCoreDash = 4;
-    const coreLen =
-      trailLength > 2 * fadeArc + minCoreDash ? trailLength - 2 * fadeArc : 0;
-    const coreGap = P - coreLen;
-    const coreDashOffset = dashOffset + fadeArc;
 
     return {
-      underlayDasharray: `${trailLength},${gap}`,
-      underlayDashOffset: dashOffset,
-      underlayStrokeOpacity: env * BORDER_TRAIL_TIP_SOFT_UNDERLAY_OPACITY,
-      coreDasharray: coreLen > 0 ? `${coreLen},${coreGap}` : `0,${P}`,
-      coreDashOffset,
-      coreStrokeOpacity: coreLen > 0 ? env : 0,
+      strokeDasharray: `${trailLength},${gap}`,
+      strokeDashoffset: dashOffset,
+      strokeOpacity: env,
       x1,
       y1,
       x2,
@@ -158,21 +147,12 @@ const SweepPath: React.FC<SweepPathProps> = ({
     };
   });
 
-  const pathUnderlayAnimatedProps = useAnimatedProps(() => {
+  const pathAnimatedProps = useAnimatedProps(() => {
     const f = frame.value;
     return {
-      strokeDasharray: f.underlayDasharray,
-      strokeDashoffset: f.underlayDashOffset,
-      strokeOpacity: f.underlayStrokeOpacity,
-    };
-  });
-
-  const pathCoreAnimatedProps = useAnimatedProps(() => {
-    const f = frame.value;
-    return {
-      strokeDasharray: f.coreDasharray,
-      strokeDashoffset: f.coreDashOffset,
-      strokeOpacity: f.coreStrokeOpacity,
+      strokeDasharray: f.strokeDasharray,
+      strokeDashoffset: f.strokeDashoffset,
+      strokeOpacity: f.strokeOpacity,
     };
   });
 
@@ -205,16 +185,7 @@ const SweepPath: React.FC<SweepPathProps> = ({
         strokeWidth={strokeWidth}
         strokeLinecap="round"
         strokeLinejoin="round"
-        animatedProps={pathUnderlayAnimatedProps}
-      />
-      <AnimatedPath
-        d={pathData}
-        fill="none"
-        stroke={`url(#${GRADIENT_ID})`}
-        strokeWidth={strokeWidth}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        animatedProps={pathCoreAnimatedProps}
+        animatedProps={pathAnimatedProps}
       />
     </>
   );
@@ -227,8 +198,8 @@ interface AnimatedGradientBorderProps {
 }
 
 /**
- * Dashed stroke sweep with dim underlay + shorter bright core (arc inset) for
- * soft tips. Gradient is tail → head in user space (pink → coral).
+ * Single dashed stroke; trail-aligned gradient (tail → head). Sweep opacity
+ * envelope only (no separate head/tail tip layers).
  * Re-fires every time `animationKey` is incremented.
  */
 const AnimatedGradientBorder: React.FC<AnimatedGradientBorderProps> = ({
