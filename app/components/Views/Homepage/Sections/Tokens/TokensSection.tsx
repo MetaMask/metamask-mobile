@@ -20,10 +20,8 @@ import { selectSortedAssetsBySelectedAccountGroupForChainIdsByBalance } from '..
 import { useNetworkEnablement } from '../../../../hooks/useNetworkEnablement/useNetworkEnablement';
 import { selectAccountGroupBalanceForEmptyState } from '../../../../../selectors/assets/balances';
 import { TokenListItem } from '../../../../UI/Tokens/TokenList/TokenListItem/TokenListItem';
-import { TokenListItemV2 } from '../../../../UI/Tokens/TokenList/TokenListItemV2/TokenListItemV2';
 import RemoveTokenBottomSheet from '../../../../UI/Tokens/TokenList/RemoveTokenBottomSheet';
 import { ScamWarningModal } from '../../../../UI/Tokens/TokenList/ScamWarningModal/ScamWarningModal';
-import { selectTokenListLayoutV2Enabled } from '../../../../../selectors/featureFlagController/tokenListLayout';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { selectEvmNetworkConfigurationsByChainId } from '../../../../../selectors/networkController';
 import { RootState } from '../../../../../reducers';
@@ -36,6 +34,7 @@ import { SolScope } from '@metamask/keyring-api';
 import { toHex } from '@metamask/controller-utils';
 import type { Hex } from '@metamask/utils';
 import { refreshTokens } from '../../../../UI/Tokens/util/refreshTokens';
+import TokenListSkeleton from '../../../../UI/Tokens/TokenList/TokenListSkeleton/TokenListSkeleton';
 import { useRemoveToken } from '../../../../UI/Tokens/hooks/useRemoveToken';
 import useHomeViewedEvent, {
   HomeSectionNames,
@@ -73,8 +72,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       selectAccountGroupBalanceForEmptyState,
     );
     const privacyMode = useSelector(selectPrivacyMode);
-    const isTokenListV2 = useSelector(selectTokenListLayoutV2Enabled);
-    const ListItemComponent = isTokenListV2 ? TokenListItemV2 : TokenListItem;
     const { shouldShowTokenListItemCta } = useMusdCtaVisibility();
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
@@ -218,17 +215,22 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
             </SectionRow>
           ) : (
             <SectionRow>
-              {displayTokenKeys.map((tokenKey, index) => (
-                <ListItemComponent
-                  key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
-                  assetKey={tokenKey}
-                  showRemoveMenu={showRemoveMenu}
-                  setShowScamWarningModal={setShowScamWarningModal}
-                  privacyMode={privacyMode}
-                  showPercentageChange
-                  shouldShowTokenListItemCta={shouldShowTokenListItemCta}
-                />
-              ))}
+              {displayTokenKeys.length === 0 && sortedTokenKeys.length === 0 ? (
+                <TokenListSkeleton count={MAX_TOKENS_DISPLAYED} />
+              ) : (
+                displayTokenKeys.map((tokenKey, index) => (
+                  <TokenListItem
+                    key={`${tokenKey.chainId}-${tokenKey.address}-${tokenKey.isStaked ? 'staked' : 'unstaked'}-${index}`}
+                    assetKey={tokenKey}
+                    showRemoveMenu={showRemoveMenu}
+                    setShowScamWarningModal={setShowScamWarningModal}
+                    privacyMode={privacyMode}
+                    showPercentageChange
+                    shouldShowTokenListItemCta={shouldShowTokenListItemCta}
+                    isVisible
+                  />
+                ))
+              )}
             </SectionRow>
           )}
         </Box>

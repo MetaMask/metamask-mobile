@@ -27,16 +27,6 @@ jest.mock('@react-navigation/native', () => ({
   useNavigation: () => ({ navigate: mockNavigate }),
 }));
 
-jest.mock('../../../../../../component-library/hooks', () => ({
-  useStyles: () => ({
-    styles: {
-      balanceButtonsContainer: {},
-      balanceActionButton: {},
-      buttonsRow: {},
-    },
-  }),
-}));
-
 const mockTrackEvent = jest.fn();
 const mockBuilderAddProps = jest.fn().mockReturnThis();
 const mockBuilderBuild = jest.fn().mockReturnValue({});

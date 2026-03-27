@@ -58,7 +58,10 @@ import {
 import { selectContractExchangeRatesByChainId } from '../../../selectors/tokenRatesController';
 import { selectTokensByChainIdAndAddress } from '../../../selectors/tokensController';
 import Routes from '../../../constants/navigation/Routes';
-import { hasTransactionType } from '../../Views/confirmations/utils/transaction';
+import {
+  hasGasFeeTokenSelected,
+  hasTransactionType,
+} from '../../Views/confirmations/utils/transaction';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import {
   TRANSACTION_DETAIL_EVENTS,
@@ -135,7 +138,7 @@ const createStyles = (colors, typography) =>
     },
   });
 
-/* eslint-disable import/no-commonjs */
+/* eslint-disable import-x/no-commonjs */
 const transactionIconApprove = require('../../../images/transaction-icons/approve.png');
 const transactionIconInteraction = require('../../../images/transaction-icons/interaction.png');
 const transactionIconSent = require('../../../images/transaction-icons/send.png');
@@ -147,7 +150,7 @@ const transactionIconInteractionFailed = require('../../../images/transaction-ic
 const transactionIconSentFailed = require('../../../images/transaction-icons/send-failed.png');
 const transactionIconReceivedFailed = require('../../../images/transaction-icons/receive-failed.png');
 const transactionIconSwapFailed = require('../../../images/transaction-icons/swap-failed.png');
-/* eslint-enable import/no-commonjs */
+/* eslint-enable import-x/no-commonjs */
 
 const NEW_TRANSACTION_DETAILS_TYPES = [
   TransactionType.musdClaim,
@@ -516,7 +519,8 @@ class TransactionElement extends PureComponent {
           !isQRHardwareAccount &&
           !isLedgerAccount)) &&
       !isSmartTransaction &&
-      !isBridgeTransaction;
+      !isBridgeTransaction &&
+      !hasGasFeeTokenSelected(tx);
     const renderUnsignedQRActions =
       transactionStatus === 'approved' && isQRHardwareAccount;
     const renderLedgerActions =

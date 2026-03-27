@@ -1,9 +1,9 @@
 import React, { useMemo, useEffect, useRef } from 'react';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+import {
+  Button,
+  ButtonVariant,
+  ButtonBaseSize,
+} from '@metamask/design-system-react-native';
 import { strings } from '../../../../../../locales/i18n';
 import { BridgeViewSelectorsIDs } from '../../Views/BridgeView/BridgeView.testIds';
 import { useSelector } from 'react-redux';
@@ -72,7 +72,7 @@ export const SwapsConfirmButton = ({
   const {
     activeQuote,
     isLoading,
-    isExpired,
+    needsNewQuote,
     blockaidError,
     quoteFetchError,
     isNoQuotesAvailable,
@@ -81,13 +81,6 @@ export const SwapsConfirmButton = ({
   });
 
   const hasSufficientGas = useHasSufficientGas({ quote: activeQuote });
-
-  // The quote expired and no fetch is in progress — offer to get a new one.
-  // Also treat the edge-case where a fetch IS running but there is no active
-  // quote to fall back on — the user would otherwise be stuck on a spinner
-  // with no way to retry ("escape hatch").
-  const needsNewQuote =
-    isExpired && !isSubmittingTx && (!isLoading || !activeQuote);
 
   // Check both the display amount and the atomic amount are non-zero.
   // An amount like 0.000000001 BTC (8 decimals) is non-zero as a number but
@@ -164,7 +157,6 @@ export const SwapsConfirmButton = ({
     if (
       Number.isFinite(priceImpact) &&
       priceImpact >=
-        // @ts-expect-error TODO: remove comment after changes to core are published.
         (bridgeFeatureFlags?.priceImpactThreshold?.error ??
           AppConstants.BRIDGE.PRICE_IMPACT_ERROR_THRESHOLD)
     ) {
@@ -221,14 +213,15 @@ export const SwapsConfirmButton = ({
 
   return (
     <Button
-      variant={ButtonVariants.Primary}
-      size={ButtonSize.Lg}
-      loading={buttonIsInLoadingState}
-      label={label}
+      variant={ButtonVariant.Primary}
+      size={ButtonBaseSize.Lg}
+      isLoading={buttonIsInLoadingState}
       onPress={needsNewQuote ? handleGetNewQuote : handleContinue}
-      width={ButtonWidthTypes.Full}
+      isFullWidth
       testID={testID ?? BridgeViewSelectorsIDs.CONFIRM_BUTTON}
       isDisabled={needsNewQuote ? false : isSubmitDisabled}
-    />
+    >
+      {label}
+    </Button>
   );
 };

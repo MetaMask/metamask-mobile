@@ -11,7 +11,7 @@ import { ExperienceEnhancerBottomSheetSelectorsIDs } from './ExperienceEnhancerM
 jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: () => ({
     trackEvent: jest.fn(),
-    addTraitsToUser: jest.fn(),
+    identify: jest.fn(),
     createEventBuilder: jest.fn(() => ({
       addProperties: jest.fn().mockReturnThis(),
       build: jest.fn(),

@@ -1,5 +1,6 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
+import { StackActions } from '@react-navigation/native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import TrendingTokenRowItem from './TrendingTokenRowItem';
 import type { TrendingAsset } from '@metamask/assets-controllers';
@@ -23,12 +24,14 @@ jest.mock('../../services/TrendingFeedSessionManager', () => ({
 }));
 
 const mockNavigate = jest.fn();
+const mockDispatch = jest.fn();
 const mockAddPopularNetwork = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     navigate: mockNavigate,
+    dispatch: mockDispatch,
   }),
   createNavigatorFactory: () => ({}),
 }));
@@ -38,16 +41,11 @@ jest.mock('../../../../../component-library/hooks', () => ({
     const actualStyleSheet = jest.requireActual(
       './TrendingTokenRowItem.styles',
     ).default;
-    const mockTheme = {
-      colors: {
-        background: { default: '#FFFFFF', muted: '#F2F4F6' },
-        text: { default: '#24272A', alternative: '#6A737D', muted: '#8A8D90' },
-        primary: { default: '#037DD6' },
-        success: { default: '#00C853' },
-        border: { muted: '#D0D5DA' },
-      },
-    };
-    return { styles: actualStyleSheet({ theme: mockTheme }) };
+    const { mockTheme: baseMockTheme } = jest.requireActual(
+      '../../../../../util/theme',
+    );
+    const theme = { colors: baseMockTheme.colors };
+    return { styles: actualStyleSheet({ theme }) };
   }),
 }));
 
@@ -798,21 +796,24 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
-        chainId: '0x1',
-        address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
-        symbol: 'USDC',
-        name: 'USD Coin',
-        decimals: 6,
-        image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
-        pricePercentChange1d: 3.44,
-        isNative: false,
-        isETH: false,
-        isFromTrending: true,
-        rwaData: undefined,
-        source: 'trending',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push('Asset', {
+          chainId: '0x1',
+          address: '0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48',
+          symbol: 'USDC',
+          name: 'USD Coin',
+          decimals: 6,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/erc20/0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48.png',
+          pricePercentChange1d: 3.44,
+          isNative: false,
+          isETH: false,
+          isFromTrending: true,
+          rwaData: undefined,
+          source: 'trending',
+        }),
+      );
     });
 
     it('navigates to Asset page with isETH true for native ETH on Ethereum mainnet', () => {
@@ -858,21 +859,24 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
-        chainId: '0x1',
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'ETH',
-        name: 'Ethereum',
-        decimals: 18,
-        image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
-        pricePercentChange1d: 3.44,
-        isNative: true,
-        isETH: true,
-        isFromTrending: true,
-        rwaData: undefined,
-        source: 'trending',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push('Asset', {
+          chainId: '0x1',
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'ETH',
+          name: 'Ethereum',
+          decimals: 18,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/1/slip44/60.png',
+          pricePercentChange1d: 3.44,
+          isNative: true,
+          isETH: true,
+          isFromTrending: true,
+          rwaData: undefined,
+          source: 'trending',
+        }),
+      );
     });
 
     it('navigates to Asset page with isNative true and isETH false for native token on non-Ethereum chain', () => {
@@ -918,21 +922,24 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
-        chainId: '0x89',
-        address: '0x0000000000000000000000000000000000000000',
-        symbol: 'MATIC',
-        name: 'Polygon',
-        decimals: 18,
-        image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/slip44/966.png',
-        pricePercentChange1d: 3.44,
-        isNative: true,
-        isETH: false,
-        isFromTrending: true,
-        rwaData: undefined,
-        source: 'trending',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push('Asset', {
+          chainId: '0x89',
+          address: '0x0000000000000000000000000000000000000000',
+          symbol: 'MATIC',
+          name: 'Polygon',
+          decimals: 18,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/137/slip44/966.png',
+          pricePercentChange1d: 3.44,
+          isNative: true,
+          isETH: false,
+          isFromTrending: true,
+          rwaData: undefined,
+          source: 'trending',
+        }),
+      );
     });
 
     it('adds network directly when network is not added and navigates to asset', async () => {
@@ -995,7 +1002,10 @@ describe('TrendingTokenRowItem', () => {
 
       // Wait for the async navigation call
       await waitFor(() => {
-        expect(mockNavigate).toHaveBeenCalledWith('Asset', expect.any(Object));
+        expect(mockNavigate).not.toHaveBeenCalled();
+        expect(mockDispatch).toHaveBeenCalledWith(
+          StackActions.push('Asset', expect.any(Object)),
+        );
       });
     });
 
@@ -1054,7 +1064,7 @@ describe('TrendingTokenRowItem', () => {
       });
 
       // Navigation should NOT be called when network addition fails
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
 
       consoleErrorSpy.mockRestore();
     });
@@ -1077,7 +1087,7 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).not.toHaveBeenCalled();
     });
 
     it('navigates with assetId as address for non-EVM chains', () => {
@@ -1128,21 +1138,24 @@ describe('TrendingTokenRowItem', () => {
       );
       fireEvent.press(tokenRow);
 
-      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
-        chainId: 'bip122:000000000019d6689c085ae165831e93',
-        address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
-        symbol: 'BTC',
-        name: 'Bitcoin',
-        decimals: 8,
-        image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
-        pricePercentChange1d: 3.44,
-        isNative: true,
-        isETH: false,
-        isFromTrending: true,
-        rwaData: undefined,
-        source: 'trending',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push('Asset', {
+          chainId: 'bip122:000000000019d6689c085ae165831e93',
+          address: 'bip122:000000000019d6689c085ae165831e93/slip44:0',
+          symbol: 'BTC',
+          name: 'Bitcoin',
+          decimals: 8,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/bip122/000000000019d6689c085ae165831e93/slip44/0.png',
+          pricePercentChange1d: 3.44,
+          isNative: true,
+          isETH: false,
+          isFromTrending: true,
+          rwaData: undefined,
+          source: 'trending',
+        }),
+      );
     });
 
     it('navigates directly when network is not popular but is added', () => {
@@ -1194,21 +1207,24 @@ describe('TrendingTokenRowItem', () => {
       fireEvent.press(tokenRow);
 
       expect(queryByTestId('network-modal')).toBeNull();
-      expect(mockNavigate).toHaveBeenCalledWith('Asset', {
-        chainId: '0x3e7',
-        address: '0x123',
-        symbol: 'TEST',
-        name: 'Test Token',
-        decimals: 18,
-        image:
-          'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/999/erc20/0x123.png',
-        pricePercentChange1d: 3.44,
-        isNative: false,
-        isETH: false,
-        isFromTrending: true,
-        rwaData: undefined,
-        source: 'trending',
-      });
+      expect(mockNavigate).not.toHaveBeenCalled();
+      expect(mockDispatch).toHaveBeenCalledWith(
+        StackActions.push('Asset', {
+          chainId: '0x3e7',
+          address: '0x123',
+          symbol: 'TEST',
+          name: 'Test Token',
+          decimals: 18,
+          image:
+            'https://static.cx.metamask.io/api/v2/tokenIcons/assets/eip155/999/erc20/0x123.png',
+          pricePercentChange1d: 3.44,
+          isNative: false,
+          isETH: false,
+          isFromTrending: true,
+          rwaData: undefined,
+          source: 'trending',
+        }),
+      );
     });
   });
 

@@ -24,7 +24,7 @@ export class ReactQueryService {
           // On mobile, failures are often due to network drops.
           retry: 2,
           // Keep data in memory for longer.
-          gcTime: 1000 * 60 * 60 * 24, // 24 hours
+          cacheTime: 1000 * 60 * 60 * 24, // 24 hours
         },
       },
     });

@@ -9,6 +9,15 @@ const infuraProjectId = InfuraKey === 'null' ? '' : InfuraKey;
 export const LINEA_MAINNET_RPC_URL = `https://linea-mainnet.infura.io/v3/${infuraProjectId}`;
 export const BASE_MAINNET_RPC_URL = `https://base-mainnet.infura.io/v3/${infuraProjectId}`;
 export const MONAD_MAINNET_RPC_URL = `https://monad-mainnet.infura.io/v3/${infuraProjectId}`;
+export const COINME_TERMS_URL = 'https://coinme.com/legal/';
+export const CRB_TERMS_URL =
+  'https://baanx-public.s3-eu-west-1.amazonaws.com/Ledger/public-files/BaanxUS_CLCard_TOS.undefined-fddb292f91ce3.pdf';
+export const CRB_ACCOUNT_OPENING_URL =
+  'https://secure.baanx.co.uk/BAANX_US_ACCOUNT_OPENING_AGREEMENTS_AND_DISCLOSURES_08152025.pdf';
+export const CRB_PRIVACY_NOTICE_URL =
+  'https://secure.baanx.co.uk/Baanx_(CL)_U.S._Privacy_Notice_06.2025.pdf';
+export const CRB_PRIVACY_POLICY_URL =
+  'https://www.crossriver.com/legal/privacy-notice';
 export const BALANCE_SCANNER_ABI =
   balanceScannerAbi as ethers.ContractInterface;
 export const ARBITRARY_ALLOWANCE = 100000000000;
@@ -50,12 +59,16 @@ export const cardNetworkInfos: Record<CardNetwork, CardNetworkInfo> = {
   },
 };
 
-export const caipChainIdToNetwork: Record<CaipChainId, CardNetwork> = {
-  'eip155:59144': 'linea',
-  'eip155:8453': 'base',
-  'eip155:143': 'monad',
-  'solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp': 'solana',
-};
+export const CARD_CHAIN_IDS = Object.values(cardNetworkInfos).map(
+  (info) => info.caipChainId,
+);
+
+export const caipChainIdToNetwork = Object.fromEntries(
+  Object.entries(cardNetworkInfos).map(([network, info]) => [
+    info.caipChainId,
+    network,
+  ]),
+) as Record<CaipChainId, CardNetwork>;
 
 /**
  * Tokens that don't support the spending limit progress bar feature.

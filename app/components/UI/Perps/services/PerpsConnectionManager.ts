@@ -50,6 +50,7 @@ class PerpsConnectionManagerClass {
   private connectionRefCount = 0;
   private initPromise: Promise<void> | null = null;
   private disconnectPromise: Promise<void> | null = null;
+  private ensureConnectedPromise: Promise<void> | null = null;
   private hasPreloaded = false;
   private isPreloading = false;
   private prewarmCleanups: (() => void)[] = [];
@@ -470,9 +471,12 @@ class PerpsConnectionManagerClass {
   }
 
   /**
-   * Perform the actual disconnection after grace period expires
+   * Perform the actual disconnection after grace period expires.
+   * @param options.force - Bypass refCount guard (used by ensureConnected).
    */
-  private async performActualDisconnection(): Promise<void> {
+  private async performActualDisconnection(
+    options: { force?: boolean } = {},
+  ): Promise<void> {
     DevLogger.log(
       `PerpsConnectionManager: Grace period expired, performing disconnection (refCount: ${this.connectionRefCount})`,
     );
@@ -481,8 +485,8 @@ class PerpsConnectionManagerClass {
     this.gracePeriodTimer = null;
     this.isInGracePeriod = false;
 
-    // Only disconnect if we still have no references
-    if (this.connectionRefCount <= 0) {
+    // Only disconnect if we still have no references (unless forced)
+    if (options.force || this.connectionRefCount <= 0) {
       if (this.isConnected || this.isInitialized) {
         // Track that we're disconnecting
         this.isDisconnecting = true;
@@ -1059,6 +1063,54 @@ class PerpsConnectionManagerClass {
       this.isConnecting = false;
       this.isDisconnecting = false;
     }
+  }
+
+  /**
+   * Called on foreground return. Always forces a full reconnect.
+   *
+   * The grace period timer handles battery savings (disconnects after 30s
+   * in background). But regardless of whether the timer fired or not,
+   * we cannot trust the WebSocket state after backgrounding:
+   * - Grace period fired: already disconnected, need fresh connect
+   * - Grace period didn't fire (iOS suspends JS timers): WebSocket
+   * likely dead but isConnected still true, need fresh connect
+   *
+   * By always doing disconnect + connect, behavior is identical on both
+   * iOS and Android regardless of how long the app was backgrounded.
+   */
+  async ensureConnected(): Promise<void> {
+    // Guard against concurrent calls (e.g. rapid foreground transitions)
+    if (this.ensureConnectedPromise) {
+      return this.ensureConnectedPromise;
+    }
+
+    this.ensureConnectedPromise = this.performEnsureConnected();
+    try {
+      await this.ensureConnectedPromise;
+    } finally {
+      this.ensureConnectedPromise = null;
+    }
+  }
+
+  private async performEnsureConnected(): Promise<void> {
+    // Cancel grace period if still pending — we're taking over
+    this.cancelGracePeriod();
+
+    // Force clean state so connect() runs the full init → ping → preload path.
+    // Uses force: true to bypass the refCount guard — ensureConnected must
+    // always tear down, regardless of how many components hold references.
+    if (this.isConnected || this.isInitialized) {
+      await this.performActualDisconnection({ force: true });
+    }
+
+    // Reset refCount so connect() brings it to exactly 1.
+    // Without this, repeated background/foreground cycles would drift
+    // refCount upward (1→2→3…), eventually preventing grace-period
+    // disconnects from firing (they require refCount ≤ 0).
+    this.connectionRefCount = 0;
+
+    // Full reconnect: init → ping → preload
+    await this.connect();
   }
 
   async disconnect(): Promise<void> {

@@ -48,7 +48,6 @@ import {
   RewardsDataServiceGetSeasonOneLineaRewardTokensAction,
   RewardsDataServiceApplyReferralCodeAction,
   RewardsDataServiceApplyBonusCodeAction,
-  RewardsDataServiceGetSnapshotsAction,
   RewardsDataServiceGetRewardsEnvUrlAction,
   RewardsDataServiceCanChangeRewardsEnvUrlAction,
   RewardsDataServiceSetRewardsEnvUrlAction,
@@ -58,6 +57,10 @@ import {
   RewardsDataServiceOptInToCampaignAction,
   RewardsDataServiceGetCampaignParticipantStatusAction,
   RewardsDataServiceGetBenefitsAction,
+  RewardsDataServiceGetClientVersionRequirementsAction,
+  RewardsDataServiceGetOndoCampaignLeaderboardAction,
+  RewardsDataServiceGetOndoCampaignLeaderboardPositionAction,
+  RewardsDataServiceGetOndoCampaignPortfolioPositionAction,
 } from '../../controllers/rewards-controller/services/rewards-data-service';
 import { RootMessenger } from '../../types';
 
@@ -92,7 +95,6 @@ type AllowedActions =
   | RewardsDataServiceGetSeasonMetadataAction
   | RewardsDataServiceGetSeasonOneLineaRewardTokensAction
   | RewardsDataServiceApplyReferralCodeAction
-  | RewardsDataServiceGetSnapshotsAction
   | RewardsDataServiceGetRewardsEnvUrlAction
   | RewardsDataServiceCanChangeRewardsEnvUrlAction
   | RewardsDataServiceSetRewardsEnvUrlAction
@@ -102,7 +104,11 @@ type AllowedActions =
   | RewardsDataServiceGetSubscriptionAccountsAction
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
-  | RewardsDataServiceGetCampaignParticipantStatusAction;
+  | RewardsDataServiceGetCampaignParticipantStatusAction
+  | RewardsDataServiceGetClientVersionRequirementsAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardAction
+  | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction;
 
 // Don't reexport as per guidelines
 type AllowedEvents =
@@ -159,7 +165,6 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:getSeasonOneLineaRewardTokens',
       'RewardsDataService:applyReferralCode',
       'RewardsDataService:applyBonusCode',
-      'RewardsDataService:getSnapshots',
       'RewardsDataService:getSubscriptionAccounts',
       'RewardsDataService:getCampaigns',
       'RewardsDataService:optInToCampaign',
@@ -168,7 +173,11 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:canChangeRewardsEnvUrl',
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
-      'RewardsDataService:getBenefits'
+      'RewardsDataService:getBenefits',
+      'RewardsDataService:getClientVersionRequirements',
+      'RewardsDataService:getOndoCampaignLeaderboard',
+      'RewardsDataService:getOndoCampaignLeaderboardPosition',
+      'RewardsDataService:getOndoCampaignPortfolioPosition',
     ],
     events: [
       'AccountTreeController:selectedAccountGroupChange',

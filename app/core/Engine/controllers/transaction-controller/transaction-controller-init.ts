@@ -50,7 +50,9 @@ import {
   TransactionPayControllerMessenger,
   TransactionPayPublishHook,
 } from '@metamask/transaction-pay-controller';
+import { selectMetaMaskPayFlags } from '../../../../selectors/featureFlagController/confirmations';
 import { trace } from '../../../../util/trace';
+import { accountSupports7702 } from '../../../../util/transactions/account-supports-7702';
 import { Delegation7702PublishHook } from '../../../../util/transactions/hooks/delegation-7702-publish';
 import { isSendBundleSupported } from '../../../../util/transactions/sentinel-api';
 import { NetworkClientId } from '@metamask/network-controller';
@@ -109,6 +111,7 @@ export const TransactionControllerInit: ControllerInitFunction<
             publishHook({
               transactionMeta,
               getState,
+              keyringController,
               transactionController,
               smartTransactionsController,
               initMessenger,
@@ -133,6 +136,15 @@ export const TransactionControllerInit: ControllerInitFunction<
         isFirstTimeInteractionEnabled: () =>
           isFirstTimeInteractionEnabled(preferencesController),
         isEIP7702GasFeeTokensEnabled: async (transactionMeta) => {
+          if (
+            !(await accountSupports7702(
+              transactionMeta.txParams?.from,
+              keyringController as Parameters<typeof accountSupports7702>[1],
+            ))
+          ) {
+            return false;
+          }
+
           const { chainId, isExternalSign } = transactionMeta;
           const state = getState();
 
@@ -190,6 +202,7 @@ async function getNextNonce(
 async function publishHook({
   transactionMeta,
   getState,
+  keyringController,
   transactionController,
   smartTransactionsController,
   initMessenger,
@@ -197,6 +210,7 @@ async function publishHook({
 }: {
   transactionMeta: TransactionMeta;
   getState: () => RootState;
+  keyringController: Parameters<typeof accountSupports7702>[1];
   transactionController: TransactionController;
   smartTransactionsController: SmartTransactionsController;
   initMessenger: TransactionControllerInitMessenger;
@@ -210,8 +224,10 @@ async function publishHook({
     transactionMeta.chainId,
   );
 
+  const { stxDisabled } = selectMetaMaskPayFlags(state);
+
   const payResult = await new TransactionPayPublishHook({
-    isSmartTransaction: () => shouldUseSmartTransaction,
+    isSmartTransaction: () => shouldUseSmartTransaction && !stxDisabled,
     messenger: initMessenger as TransactionPayControllerMessenger,
   }).getHook()(transactionMeta, signedTransactionInHex);
 
@@ -221,7 +237,15 @@ async function publishHook({
 
   const { isExternalSign } = transactionMeta;
 
-  if (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign) {
+  const keyringSupports7702 = await accountSupports7702(
+    transactionMeta.txParams?.from,
+    keyringController,
+  );
+
+  if (
+    keyringSupports7702 &&
+    (!shouldUseSmartTransaction || !sendBundleSupport || isExternalSign)
+  ) {
     const hook = new Delegation7702PublishHook({
       isAtomicBatchSupported: transactionController.isAtomicBatchSupported.bind(
         transactionController,

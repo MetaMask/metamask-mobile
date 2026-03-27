@@ -7,7 +7,7 @@ import JsonSchemaFakerRule from '@open-rpc/test-coverage/build/rules/json-schema
 import HtmlReporter from '@open-rpc/test-coverage/build/reporters/html-reporter';
 
 import Browser from '../../page-objects/Browser/BrowserView';
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 const mockServer = require('@open-rpc/mock-server/build/index').default;
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
