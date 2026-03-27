@@ -11,13 +11,6 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import {
-  TextColor as CLTextColor,
-  TextVariant as CLTextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../../component-library/components/Texts/SensitiveText';
 
 export const TronClaimableRewardsRowTestIds = {
   ROW: 'tron-staking-rewards-total-row',
@@ -29,6 +22,8 @@ export interface TronClaimableRewardsRowProps {
   subtitle: string;
   hideBalances: boolean;
 }
+
+const HIDDEN_SUBTITLE = '•'.repeat(9);
 
 const TronClaimableRewardsRow = ({
   title,
@@ -53,15 +48,13 @@ const TronClaimableRewardsRow = ({
       >
         {title}
       </Text>
-      <SensitiveText
-        variant={CLTextVariant.BodySM}
-        color={CLTextColor.Alternative}
-        isHidden={hideBalances}
-        length={SensitiveTextLength.Medium}
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
         testID={TronClaimableRewardsRowTestIds.SUBTITLE}
       >
-        {subtitle}
-      </SensitiveText>
+        {hideBalances ? HIDDEN_SUBTITLE : subtitle}
+      </Text>
     </Box>
   </Box>
 );

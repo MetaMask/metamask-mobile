@@ -280,7 +280,9 @@ describe('AssetOverviewContent', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
-      mockUseTronAssetOverviewSection.mockReturnValue({});
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        errorMessages: [],
+      });
     });
 
     it('shows geo block modal and tracks event when Long is pressed and user is not eligible', () => {
@@ -485,7 +487,9 @@ describe('AssetOverviewContent', () => {
       mockSelectMarketInsightsEnabled.mockReturnValue(true);
       mockUseMarketInsights.mockReturnValue(defaultMarketInsightsResult);
       mockUsePerpsPositionForAsset.mockReturnValue(defaultPerpsPositionResult);
-      mockUseTronAssetOverviewSection.mockReturnValue({});
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        errorMessages: [],
+      });
     });
 
     it('disables the Tron asset overview section for non-Tron assets', () => {
@@ -503,6 +507,7 @@ describe('AssetOverviewContent', () => {
     it('passes APR text into the unstaked Tron CTA when available', () => {
       mockUseTronAssetOverviewSection.mockReturnValue({
         aprText: '4.5%',
+        errorMessages: [],
       });
 
       const tronToken: TokenI = {
@@ -575,7 +580,7 @@ describe('AssetOverviewContent', () => {
         },
         estimatedAnnualRewardsRowProps: undefined,
         errorMessages: ['Fiat unavailable', 'APR unavailable'],
-      } as never);
+      });
 
       const tronToken: TokenI = {
         ...defaultToken,

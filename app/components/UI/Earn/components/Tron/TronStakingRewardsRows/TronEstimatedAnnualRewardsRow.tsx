@@ -4,21 +4,13 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   FontWeight,
+  Icon as DSIcon,
+  IconName as DSIconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName as CLIconName,
-  IconSize as CLIconSize,
-} from '../../../../../../component-library/components/Icons/Icon';
-import {
-  TextColor as CLTextColor,
-  TextVariant as CLTextVariant,
-} from '../../../../../../component-library/components/Texts/Text';
-import SensitiveText, {
-  SensitiveTextLength,
-} from '../../../../../../component-library/components/Texts/SensitiveText';
 
 export const TronEstimatedAnnualRewardsRowTestIds = {
   ROW: 'tron-staking-rewards-estimated-row',
@@ -30,6 +22,8 @@ export interface TronEstimatedAnnualRewardsRowProps {
   subtitle: string;
   hideBalances: boolean;
 }
+
+const HIDDEN_SUBTITLE = '•'.repeat(9);
 
 const TronEstimatedAnnualRewardsRow = ({
   title,
@@ -44,7 +38,7 @@ const TronEstimatedAnnualRewardsRow = ({
     paddingBottom={3}
   >
     <Box twClassName="h-10 w-10 rounded-full bg-muted mr-4 items-center justify-center">
-      <Icon name={CLIconName.Calendar} size={CLIconSize.Md} />
+      <DSIcon name={DSIconName.Calendar} size={IconSize.Md} />
     </Box>
     <Box twClassName="flex-1">
       <Text
@@ -54,15 +48,13 @@ const TronEstimatedAnnualRewardsRow = ({
       >
         {title}
       </Text>
-      <SensitiveText
-        variant={CLTextVariant.BodySM}
-        color={CLTextColor.Alternative}
-        isHidden={hideBalances}
-        length={SensitiveTextLength.Medium}
+      <Text
+        variant={TextVariant.BodySm}
+        color={TextColor.TextAlternative}
         testID={TronEstimatedAnnualRewardsRowTestIds.SUBTITLE}
       >
-        {subtitle}
-      </SensitiveText>
+        {hideBalances ? HIDDEN_SUBTITLE : subtitle}
+      </Text>
     </Box>
   </Box>
 );

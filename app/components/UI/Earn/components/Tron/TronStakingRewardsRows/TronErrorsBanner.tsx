@@ -39,12 +39,12 @@ const TronErrorsBanner = ({ messages }: TronErrorsBannerProps) => (
           alignItems={BoxAlignItems.Start}
           twClassName="gap-1"
         >
-          <Text variant={TextVariant.BodySm} color={TextColor.Error}>
+          <Text variant={TextVariant.BodySm} color={TextColor.ErrorDefault}>
             {'•'}
           </Text>
           <Text
             variant={TextVariant.BodySm}
-            color={TextColor.Error}
+            color={TextColor.ErrorDefault}
             twClassName="flex-1"
           >
             {message}

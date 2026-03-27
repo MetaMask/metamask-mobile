@@ -28,6 +28,29 @@ const getTronStakeChainId = (tokenChainId?: string) =>
       ]
     : undefined;
 
+const getApyErrorMessage = ({
+  hasValidApyDecimal,
+  fetchStatus,
+  errorMessage,
+}: {
+  hasValidApyDecimal: boolean;
+  fetchStatus: FetchStatus;
+  errorMessage?: string | null;
+}) => {
+  if (fetchStatus === FetchStatus.Error) {
+    return (
+      errorMessage?.trim() ||
+      strings('stake.tron.estimated_rewards_api_unavailable')
+    );
+  }
+
+  if (fetchStatus === FetchStatus.Fetched && !hasValidApyDecimal) {
+    return strings('stake.tron.estimated_rewards_api_unavailable');
+  }
+
+  return undefined;
+};
+
 export interface UseTronAssetOverviewSectionArgs {
   enabled: boolean;
   tokenAddress?: string;
@@ -69,6 +92,8 @@ const useTronAssetOverviewSection = ({
   } = useTronStakingRewardsSummary({
     tokenAddress,
   });
+  const appLocale = I18n.locale;
+  const localeLanguageCode = getLocaleLanguageCode();
 
   return useMemo(() => {
     if (!enabled) {
@@ -80,7 +105,7 @@ const useTronAssetOverviewSection = ({
     const formattedClaimableTrx = `${formatWithThreshold(
       claimableRewardsTrxAmount,
       TRX_THRESHOLD,
-      I18n.locale,
+      appLocale,
       {
         minimumFractionDigits: 0,
         maximumFractionDigits: maxFractionDigits,
@@ -92,7 +117,7 @@ const useTronAssetOverviewSection = ({
       ? formatWithThreshold(
           claimableRewardsFiatAmount as number,
           FIAT_THRESHOLD,
-          getLocaleLanguageCode(),
+          localeLanguageCode,
           {
             style: 'currency',
             currency: claimableRewardsCurrency as string,
@@ -102,13 +127,11 @@ const useTronAssetOverviewSection = ({
 
     const hasValidApyDecimal =
       tronApyFetchStatus === FetchStatus.Fetched && Boolean(apyDecimal?.trim());
-    const apyErrorMessage =
-      tronApyFetchStatus === FetchStatus.Error
-        ? tronApyErrorMessage?.trim() ||
-          strings('stake.tron.estimated_rewards_api_unavailable')
-        : tronApyFetchStatus === FetchStatus.Fetched && !hasValidApyDecimal
-          ? strings('stake.tron.estimated_rewards_api_unavailable')
-          : undefined;
+    const apyErrorMessage = getApyErrorMessage({
+      hasValidApyDecimal,
+      fetchStatus: tronApyFetchStatus,
+      errorMessage: tronApyErrorMessage,
+    });
 
     let estimatedAnnualRewardsRowProps:
       | TronEstimatedAnnualRewardsRowProps
@@ -120,7 +143,7 @@ const useTronAssetOverviewSection = ({
         .decimalPlaces(3, BigNumber.ROUND_HALF_UP);
       const estimatedTrxNum = rewardRounded.toNumber();
       const formattedEstimatedTrx = `${estimatedTrxNum.toLocaleString(
-        undefined,
+        appLocale,
         {
           minimumFractionDigits: 3,
           maximumFractionDigits: 3,
@@ -133,7 +156,7 @@ const useTronAssetOverviewSection = ({
           ? formatWithThreshold(
               estimatedFiatNum,
               FIAT_THRESHOLD,
-              getLocaleLanguageCode(),
+              localeLanguageCode,
               { style: 'currency', currency: currentCurrency },
             )
           : '-';
@@ -171,6 +194,8 @@ const useTronAssetOverviewSection = ({
     currentCurrency,
     enabled,
     fiatRate,
+    appLocale,
+    localeLanguageCode,
     privacyMode,
     tokenChainId,
     totalStakedTrx,

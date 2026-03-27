@@ -90,14 +90,7 @@ import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
-import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
-import TronUnstakedBanner from '../../Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner';
-import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/TronStakingButtons';
-import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
-import TronClaimableRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronClaimableRewardsRow';
-import TronEstimatedAnnualRewardsRow from '../../Earn/components/Tron/TronStakingRewardsRows/TronEstimatedAnnualRewardsRow';
-import TronErrorsBanner from '../../Earn/components/Tron/TronStakingRewardsRows/TronErrorsBanner';
-import useTronAssetOverviewSection from './useTronAssetOverviewSection';
+import TronAssetOverviewSection from './TronAssetOverviewSection';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -523,19 +516,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     });
   }
 
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const {
-    aprText: tronAprText,
-    claimableRewardsRowProps,
-    estimatedAnnualRewardsRowProps,
-    errorMessages,
-  } = useTronAssetOverviewSection({
-    enabled: Boolean(isTronNative),
-    tokenAddress: token.address,
-    tokenChainId: token.chainId,
-  });
-  ///: END:ONLY_INCLUDE_IF
-
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
       url,
@@ -865,73 +845,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && stakedTrxAsset && (
-              <Balance
-                asset={stakedTrxAsset}
-                mainBalance={stakedTrxAsset.balance ?? ''}
-                secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
-                hideTitleHeading
-                hidePercentageChange
-              />
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && stakedTrxAsset && (
-              <Box paddingHorizontal={4}>
-                <TronClaimableRewardsRow {...claimableRewardsRowProps} />
-                {estimatedAnnualRewardsRowProps ? (
-                  <TronEstimatedAnnualRewardsRow
-                    {...estimatedAnnualRewardsRowProps}
-                  />
-                ) : null}
-                {errorMessages.length > 0 ? (
-                  <Box paddingTop={2}>
-                    <TronErrorsBanner messages={errorMessages} />
-                  </Box>
-                ) : null}
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && readyForWithdrawalBalance && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronUnstakedBanner
-                  amount={readyForWithdrawalBalance}
-                  chainId={String(token.chainId) as CaipChainId}
-                />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && inLockPeriodBalance && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronUnstakingBanner amount={inLockPeriodBalance} />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && stakedTrxAsset && (
-              <Box paddingTop={4} paddingHorizontal={4}>
-                <TronStakingButtons asset={stakedTrxAsset} />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && !stakedTrxAsset && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronStakingCta asset={token} aprText={tronAprText} />
-              </Box>
-            )
+            <TronAssetOverviewSection
+              token={token}
+              isTronNative={isTronNative}
+              stakedTrxAsset={stakedTrxAsset}
+              inLockPeriodBalance={inLockPeriodBalance}
+              readyForWithdrawalBalance={readyForWithdrawalBalance}
+            />
             ///: END:ONLY_INCLUDE_IF
           }
           {showPerpsSection && perpsPosition && (
