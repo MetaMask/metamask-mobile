@@ -71,7 +71,7 @@ const OndoCampaignDetailsView: React.FC = () => {
   const isOptedIn = participantStatus?.status?.optedIn === true;
 
   // Campaign is active but the deposit cutoff date has passed — user can no longer opt in
-  const canOptIn = useMemo(
+  const areEntriesClosed = useMemo(
     () =>
       campaign !== null &&
       getCampaignStatus(campaign) === 'active' &&
@@ -85,10 +85,10 @@ const OndoCampaignDetailsView: React.FC = () => {
     () =>
       campaign &&
       !isOptedIn &&
-      (getCampaignStatus(campaign) === 'complete' || !canOptIn)
+      (getCampaignStatus(campaign) === 'complete' || areEntriesClosed)
         ? campaignId
         : undefined,
-    [campaign, isOptedIn, canOptIn, campaignId],
+    [campaign, isOptedIn, areEntriesClosed, campaignId],
   );
 
   const {
@@ -163,7 +163,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
               {campaign.details?.howItWorks &&
                 !isOptedIn &&
-                canOptIn &&
+                areEntriesClosed &&
                 getCampaignStatus(campaign) === 'active' && (
                   <>
                     <Box twClassName="border-b border-border-muted" />
@@ -264,14 +264,17 @@ const OndoCampaignDetailsView: React.FC = () => {
           />
         )}
 
-        {campaign && canOptIn && !isOptedIn && !participantStatus.isLoading && (
-          <CampaignEntriesClosedBanner
-            title={strings('rewards.campaign_details.entries_closed_title')}
-            description={strings(
-              'rewards.campaign_details.entries_closed_description',
-            )}
-          />
-        )}
+        {campaign &&
+          areEntriesClosed &&
+          !isOptedIn &&
+          !participantStatus.isLoading && (
+            <CampaignEntriesClosedBanner
+              title={strings('rewards.campaign_details.entries_closed_title')}
+              description={strings(
+                'rewards.campaign_details.entries_closed_description',
+              )}
+            />
+          )}
       </SafeAreaView>
     </ErrorBoundary>
   );

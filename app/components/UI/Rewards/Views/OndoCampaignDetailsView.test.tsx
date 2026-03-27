@@ -712,16 +712,16 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId('ondo-leaderboard-position')).toBeNull();
     });
 
-    it('shows OndoLeaderboard when not opted in and campaign is active with entries still open', () => {
+    it('does not show OndoLeaderboard when not opted in and campaign is active with entries still open', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [createTestCampaign()],
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('ondo-leaderboard')).toBeDefined();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('ondo-leaderboard')).toBeNull();
     });
 
-    it('does not show OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
+    it('shows OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
       // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
@@ -738,8 +738,8 @@ describe('OndoCampaignDetailsView', () => {
           }),
         ],
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('ondo-leaderboard')).toBeNull();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('ondo-leaderboard')).toBeDefined();
     });
 
     it('does not show leaderboard section header when campaign is complete and not opted in', () => {
