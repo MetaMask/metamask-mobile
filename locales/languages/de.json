@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Aktive Boosts",
     "season_1": "Saison 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "mUSD-Bonus-Rechner",
       "description": "Finden Sie heraus, wie viel Sie durch die Konvertierung Ihrer Stablecoins in mUSD verdienen können.",
       "amount_label": "Konvertierter Betrag",

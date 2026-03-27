@@ -557,58 +557,6 @@
           }
         },
         "SnapController": {},
-        "SwapsController": {
-          "aggregatorMetadata": null,
-          "aggregatorMetadataLastFetched": 0,
-          "approvalTransaction": null,
-          "chainCache": {
-            "0x1": {
-              "aggregatorMetadata": null,
-              "aggregatorMetadataLastFetched": 0,
-              "tokens": null,
-              "tokensLastFetched": 0,
-              "topAssets": null,
-              "topAssetsLastFetched": 0
-            }
-          },
-          "error": {
-            "description": null,
-            "key": null
-          },
-          "fetchParams": {
-            "destinationToken": "",
-            "slippage": 0,
-            "sourceAmount": 0,
-            "sourceToken": "",
-            "walletAddress": ""
-          },
-          "fetchParamsMetaData": {
-            "destinationTokenInfo": {
-              "address": "",
-              "decimals": 0,
-              "symbol": ""
-            },
-            "networkClientId": "mainnet",
-            "sourceTokenInfo": {
-              "address": "",
-              "decimals": 0,
-              "symbol": ""
-            }
-          },
-          "isInPolling": false,
-          "pollingCyclesLeft": 4,
-          "quoteRefreshSeconds": null,
-          "quoteValues": {},
-          "quotes": {},
-          "quotesLastFetched": 0,
-          "tokens": null,
-          "tokensLastFetched": 0,
-          "topAggId": null,
-          "topAggSavings": null,
-          "topAssets": null,
-          "usedCustomGas": null,
-          "usedGasEstimate": null
-        },
         "TokenBalancesController": {
           "tokenBalances": {}
         },
@@ -799,6 +747,17 @@
         "totalAccounts": 0,
         "wasInterrupted": false
       },
+      "ondoCampaignLeaderboard": null,
+      "ondoCampaignLeaderboardError": false,
+      "ondoCampaignLeaderboardLoading": false,
+      "ondoCampaignLeaderboardPositions": {},
+      "ondoCampaignLeaderboardSelectedTier": null,
+      "ondoCampaignPortfolio": {},
+      "campaignParticipantStatuses": {},
+      "campaigns": [],
+      "campaignsError": false,
+      "campaignsHasLoaded": false,
+      "campaignsLoading": false,
       "candidateSubscriptionId": "pending",
       "currentTier": null,
       "geoLocation": null,
@@ -832,7 +791,10 @@
       "snapshotsLoading": false,
       "unlockedRewardError": false,
       "unlockedRewardLoading": false,
-      "unlockedRewards": null
+      "unlockedRewards": null,
+      "versionGuardError": false,
+      "versionGuardLoading": false,
+      "versionGuardMinimumMobileVersion": null
     },
     "rpcEvents": {
       "signingEvent": {

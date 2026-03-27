@@ -56,6 +56,11 @@ export const styleSheet = (params: { theme: Theme }) => {
       fontSize: 14,
       color: colors.text.alternative,
     },
+    fillTag: {
+      flexDirection: 'row' as const,
+      alignItems: 'center' as const,
+      gap: 8,
+    },
     rightContent: {
       alignItems: 'flex-end' as const,
     },

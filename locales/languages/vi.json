@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Tính năng tăng cường đang hoạt động",
     "season_1": "Mùa 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "Máy tính thưởng mUSD",
       "description": "Xem bạn có thể nhận được bao nhiêu khi chuyển đổi đồng ổn định của mình sang mUSD.",
       "amount_label": "Số lượng đã chuyển đổi",

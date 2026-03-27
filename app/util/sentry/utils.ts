@@ -160,29 +160,6 @@ export const sentryStateMask = {
       SubjectMetadataController: {
         [AllProperties]: false,
       },
-      SwapsController: {
-        swapsState: {
-          customGasPrice: true,
-          customMaxFeePerGas: true,
-          customMaxGas: true,
-          customMaxPriorityFeePerGas: true,
-          errorKey: true,
-          fetchParams: true,
-          quotesLastFetched: true,
-          quotesPollingLimitEnabled: true,
-          routeState: true,
-          saveFetchedQuotes: true,
-          selectedAggId: true,
-          swapsFeatureFlags: true,
-          swapsFeatureIsLive: true,
-          swapsQuotePrefetchingRefreshTime: true,
-          swapsQuoteRefreshTime: true,
-          swapsStxBatchStatusRefreshTime: true,
-          swapsStxGetTransactionsRefreshTime: true,
-          swapsStxMaxFeeMultiplier: true,
-          swapsUserFeeLevel: true,
-        },
-      },
       TokenListController: {
         tokensChainsCache: {
           [AllProperties]: false,
