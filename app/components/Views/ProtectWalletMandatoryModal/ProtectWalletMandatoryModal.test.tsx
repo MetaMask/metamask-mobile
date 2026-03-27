@@ -11,7 +11,10 @@ import ProtectWalletMandatoryModal from './ProtectWalletMandatoryModal';
 import { ThemeContext, mockTheme } from '../../../util/theme';
 
 const mockNavigate = jest.fn();
-const mockGetState = jest.fn(() => ({
+
+interface MockNavigationState { routes: { name: string }[] }
+
+const mockGetState = jest.fn((): MockNavigationState | undefined => ({
   routes: [{ name: 'Home' }],
 }));
 

@@ -7,6 +7,7 @@ import { configureStore } from '@reduxjs/toolkit';
 import DaimoPayModal from './DaimoPayModal';
 import { DaimoPayModalSelectors } from './DaimoPayModal.testIds';
 import DaimoPayService from '../../services/DaimoPayService';
+import Routes from '../../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
 const mockNavigate = jest.fn();
@@ -367,6 +368,7 @@ describe('DaimoPayModal', () => {
       });
 
       expect(mockTrackEvent).toHaveBeenCalled();
+      expect(mockGetParent).toHaveBeenCalled();
       expect(mockDispatch).toHaveBeenCalled();
     });
 
@@ -566,7 +568,15 @@ describe('DaimoPayModal', () => {
         });
       });
 
-      expect(mockNavigate).toHaveBeenCalled();
+      expect(mockGetParent).toHaveBeenCalled();
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.CARD.ORDER_COMPLETED,
+        expect.objectContaining({
+          paymentMethod: 'crypto',
+          transactionHash: '0x123abc',
+          fromUpgrade: false,
+        }),
+      );
       expect(mockDispatch).not.toHaveBeenCalled();
     });
   });

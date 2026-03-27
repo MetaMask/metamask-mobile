@@ -11,6 +11,34 @@ import {
 } from '@react-navigation/native';
 import { endTrace, trace, TraceName } from '../../../util/trace';
 
+const navigationContainerThemeCapture: {
+  theme?: { colors?: { background?: string } };
+} = {};
+
+jest.mock('@react-navigation/native', () => {
+  const actual = jest.requireActual('@react-navigation/native');
+  const ActualNavigationContainer = actual.NavigationContainer;
+  return {
+    ...actual,
+    NavigationContainer: React.forwardRef(
+      (
+        props: {
+          theme?: { colors?: { background?: string } };
+          children?: React.ReactNode;
+          onReady?: () => void;
+        },
+        ref: React.Ref<NavigationContainerRef<ParamListBase>>,
+      ) => {
+        navigationContainerThemeCapture.theme = props.theme;
+        return React.createElement(ActualNavigationContainer, {
+          ...props,
+          ref,
+        });
+      },
+    ),
+  };
+});
+
 jest.mock('../../../util/trace', () => {
   const actual = jest.requireActual('../../../util/trace');
   return {
@@ -31,18 +59,12 @@ jest.mock('react-redux', () => ({
   useDispatch: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => {
-  const { mockTheme } = jest.requireActual('../../../util/theme');
-  return {
-    useTheme: jest.fn(() => mockTheme),
-  };
-});
-
 describe('NavigationProvider', () => {
   const mockDispatch = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
+    navigationContainerThemeCapture.theme = undefined;
     NavigationService.navigation =
       undefined as unknown as NavigationContainerRef<ParamListBase>;
     (useDispatch as jest.Mock).mockReturnValue(mockDispatch);
@@ -57,6 +79,18 @@ describe('NavigationProvider', () => {
     );
 
     expect(getByText(testMessage)).toBeTruthy();
+  });
+
+  it('uses transparent NavigationContainer background theme', () => {
+    render(
+      <NavigationProvider>
+        <View />
+      </NavigationProvider>,
+    );
+
+    expect(navigationContainerThemeCapture.theme?.colors?.background).toBe(
+      'transparent',
+    );
   });
 
   it('dispatches navigation ready action when ready', async () => {

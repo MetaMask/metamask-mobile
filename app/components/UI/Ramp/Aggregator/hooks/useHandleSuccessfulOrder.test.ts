@@ -74,6 +74,7 @@ describe('useHandleSuccessfulOrder', () => {
 
     await result.current(sellOrder);
 
+    expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('OFFRAMP_PURCHASE_SUBMITTED', {
       payment_method_id: 'test-payment-method',
       order_type: OrderOrderTypeEnum.Sell,
@@ -116,6 +117,7 @@ describe('useHandleSuccessfulOrder', () => {
 
     await result.current(buyOrder);
 
+    expect(mockPop).toHaveBeenCalled();
     expect(mockTrackEvent).toHaveBeenCalledWith('ONRAMP_PURCHASE_SUBMITTED', {
       payment_method_id: 'test-payment-method',
       order_type: OrderOrderTypeEnum.Buy,
