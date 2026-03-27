@@ -3443,7 +3443,9 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('market-insights-entry-card-skeleton')).toBeTruthy();
+      expect(
+        getByTestId('market-insights-entry-card-skeleton'),
+      ).toBeOnTheScreen();
       expect(queryByTestId('market-insights-entry-card')).toBeNull();
     });
 
@@ -3455,7 +3457,7 @@ describe('PerpsMarketDetailsView', () => {
         { state: initialState },
       );
 
-      expect(getByTestId('market-insights-entry-card')).toBeTruthy();
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
       expect(queryByTestId('market-insights-entry-card-skeleton')).toBeNull();
     });
 

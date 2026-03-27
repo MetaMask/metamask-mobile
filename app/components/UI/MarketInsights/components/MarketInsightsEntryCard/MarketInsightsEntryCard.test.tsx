@@ -5,7 +5,6 @@ import type { CaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
-import MarketInsightsEntryCardSkeleton from './MarketInsightsEntryCardSkeleton';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
@@ -297,12 +296,5 @@ describe('MarketInsightsEntryCard', () => {
     });
 
     expect(getAnimationKey()).toBe(1);
-  });
-});
-
-describe('MarketInsightsEntryCardSkeleton', () => {
-  it('renders without crashing', () => {
-    const { toJSON } = render(<MarketInsightsEntryCardSkeleton />);
-    expect(toJSON()).not.toBeNull();
   });
 });
