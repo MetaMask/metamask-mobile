@@ -16,6 +16,7 @@ import TabsBar from '../../../../../component-library/components-temp/Tabs/TabsB
 import type { CampaignLeaderboardEntry } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
+import RewardsInfoBanner from '../RewardsInfoBanner';
 import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
 
 const ListSeparator = () => <Box twClassName="border-b border-border-muted" />;
@@ -29,6 +30,7 @@ export const CAMPAIGN_LEADERBOARD_TEST_IDS = {
   LOADING: 'campaign-leaderboard-loading',
   ERROR: 'campaign-leaderboard-error',
   EMPTY: 'campaign-leaderboard-empty',
+  NOT_YET_COMPUTED: 'campaign-leaderboard-not-yet-computed',
 } as const;
 
 interface CampaignLeaderboardProps {
@@ -40,6 +42,7 @@ interface CampaignLeaderboardProps {
   computedAt: string | null;
   isLoading: boolean;
   hasError: boolean;
+  isLeaderboardNotYetComputed?: boolean;
   onRetry?: () => void;
   currentUserReferralCode?: string | null;
 }
@@ -76,19 +79,19 @@ const LeaderboardEntryRow: React.FC<{
         fontWeight={isCurrentUser ? FontWeight.Bold : undefined}
         color={isCurrentUser ? TextColor.SuccessDefault : undefined}
       >
-        {entry.referral_code}
+        {entry.referralCode}
       </Text>
     </Box>
     <Text
       variant={TextVariant.BodyMd}
       fontWeight={FontWeight.Medium}
       color={
-        entry.rate_of_return >= 0
+        entry.rateOfReturn >= 0
           ? TextColor.SuccessDefault
           : TextColor.ErrorDefault
       }
     >
-      {formatRateOfReturn(entry.rate_of_return)}
+      {formatRateOfReturn(entry.rateOfReturn)}
     </Text>
   </Box>
 );
@@ -165,6 +168,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
   computedAt,
   isLoading,
   hasError,
+  isLeaderboardNotYetComputed = false,
   onRetry,
   currentUserReferralCode,
 }) => {
@@ -187,13 +191,13 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
       entry={item}
       isCurrentUser={
         !!currentUserReferralCode &&
-        item.referral_code === currentUserReferralCode
+        item.referralCode === currentUserReferralCode
       }
     />
   );
 
   const keyExtractor = (item: CampaignLeaderboardEntry) =>
-    `${item.rank}-${item.referral_code}`;
+    `${item.rank}-${item.referralCode}`;
 
   if (isLoading && entries.length === 0) {
     return <LeaderboardSkeleton />;
@@ -213,20 +217,26 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
     );
   }
 
+  if (isLeaderboardNotYetComputed && !isLoading && entries.length === 0) {
+    return (
+      <RewardsInfoBanner
+        title={<></>}
+        description={strings(
+          'rewards.ondo_campaign_leaderboard.not_yet_computed',
+        )}
+        testID={CAMPAIGN_LEADERBOARD_TEST_IDS.NOT_YET_COMPUTED}
+      />
+    );
+  }
+
   if (tierNames.length === 0) {
     return (
-      <Box
-        twClassName="py-8 items-center"
+      <RewardsInfoBanner
+        title={<></>}
+        description={strings('rewards.ondo_campaign_leaderboard.no_data')}
+        showInfoIcon
         testID={CAMPAIGN_LEADERBOARD_TEST_IDS.EMPTY}
-      >
-        <Text
-          variant={TextVariant.BodyMd}
-          color={TextColor.TextAlternative}
-          twClassName="text-center"
-        >
-          {strings('rewards.ondo_campaign_leaderboard.no_data')}
-        </Text>
-      </Box>
+      />
     );
   }
 
@@ -242,9 +252,9 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         <Text variant={TextVariant.HeadingMd} fontWeight={FontWeight.Bold}>
           {strings('rewards.ondo_campaign_leaderboard.title')}
         </Text>
-        {computedAt && (
+        {computedAt ? (
           <Text
-            variant={TextVariant.BodySm}
+            variant={TextVariant.BodyXs}
             color={TextColor.TextAlternative}
             testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
           >
@@ -252,7 +262,7 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
               time: formatComputedAt(computedAt),
             })}
           </Text>
-        )}
+        ) : null}
       </Box>
 
       {/* Tier selector */}
