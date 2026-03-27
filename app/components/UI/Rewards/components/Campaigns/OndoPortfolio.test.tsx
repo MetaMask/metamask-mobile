@@ -410,7 +410,7 @@ describe('OndoPortfolio', () => {
       expect(getByText('Apple Inc.')).toBeDefined();
     });
 
-    it('renders portfolio with no positions (no arrow icon, no position rows)', () => {
+    it('renders empty banner when portfolio has no positions', () => {
       mockUseGetOndoPortfolioPosition.mockReturnValue({
         portfolio: { ...MOCK_PORTFOLIO, positions: [] },
         isLoading: false,
@@ -419,12 +419,12 @@ describe('OndoPortfolio', () => {
         refetch: mockRefetch,
       });
 
-      const { getByTestId, queryByText } = render(
+      const { getByTestId, queryByTestId } = render(
         <OndoPortfolio campaignId={CAMPAIGN_ID} />,
       );
 
-      expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeDefined();
-      expect(queryByText('Apple Inc.')).toBeNull();
+      expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeDefined();
+      expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.CONTAINER)).toBeNull();
     });
   });
 

@@ -55,6 +55,7 @@ describe('CampaignJoinCTA', () => {
   beforeEach(() => {
     jest.useFakeTimers();
     jest.setSystemTime(new Date('2025-08-15T12:00:00.000Z'));
+    jest.clearAllMocks();
   });
 
   afterEach(() => {
@@ -80,17 +81,15 @@ describe('CampaignJoinCTA', () => {
     expect(getByText('Join Campaign')).toBeOnTheScreen();
   });
 
-  it('renders the button in loading state while participant status is loading', () => {
-    const { getByTestId } = render(
+  it('renders nothing while participant status is loading', () => {
+    const { queryByTestId } = render(
       <CampaignJoinCTA
         campaign={buildCampaign()}
         participantStatus={{ status: null, isLoading: true }}
       />,
     );
 
-    expect(
-      getByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON),
-    ).toBeOnTheScreen();
+    expect(queryByTestId(CAMPAIGN_JOIN_CTA_TEST_IDS.CTA_BUTTON)).toBeNull();
   });
 
   it('renders nothing when the user has already opted in', () => {

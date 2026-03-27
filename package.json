@@ -1,6 +1,6 @@
 {
   "name": "metamask",
-  "version": "7.72.0",
+  "version": "7.73.0",
   "private": true,
   "scripts": {
     "install:foundryup": "yarn mm-foundryup",
@@ -233,7 +233,6 @@
     "@metamask/eip-5792-middleware": "^2.0.0",
     "@metamask/eip1193-permission-middleware": "^1.0.2",
     "@metamask/ens-resolver-snap": "^1.1.0",
-    "@metamask/error-reporting-service": "^3.0.0",
     "@metamask/eth-hd-keyring": "^13.0.0",
     "@metamask/eth-json-rpc-filters": "^9.0.0",
     "@metamask/eth-json-rpc-middleware": "^23.1.0",
@@ -310,7 +309,7 @@
     "@metamask/storage-service": "^1.0.0",
     "@metamask/superstruct": "^3.2.1",
     "@metamask/swappable-obj-proxy": "^2.1.0",
-    "@metamask/transaction-controller": "^63.1.0",
+    "@metamask/transaction-controller": "^63.3.0",
     "@metamask/transaction-pay-controller": "^17.1.0",
     "@metamask/tron-wallet-snap": "1.24.0",
     "@metamask/utils": "^11.8.1",
