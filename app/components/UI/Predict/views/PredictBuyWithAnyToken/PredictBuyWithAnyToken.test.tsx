@@ -206,37 +206,41 @@ jest.mock('./components/PredictBuyError', () => {
 jest.mock('../../components/PredictFeeBreakdownSheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View, Text, Pressable } = jest.requireActual('react-native');
-  return ReactActual.forwardRef((
-    {
-      onClose,
-      fakOrdersEnabled,
-    }: {
-      onClose: () => void;
-      fakOrdersEnabled: boolean;
-    },
-    _ref,
-  ) => (
+  return ReactActual.forwardRef(
+    (
+      {
+        onClose,
+        fakOrdersEnabled,
+      }: {
+        onClose: () => void;
+        fakOrdersEnabled: boolean;
+      },
+      _ref: unknown,
+    ) => (
       <View testID="predict-fee-breakdown-sheet">
         <Text>{`fak-orders-${String(fakOrdersEnabled)}`}</Text>
         <Pressable testID="close-fee-breakdown" onPress={onClose}>
           <Text>Close Fee Breakdown</Text>
         </Pressable>
       </View>
-    ));
+    ),
+  );
 });
 
 jest.mock('../../components/PredictKeypad', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return ReactActual.forwardRef((_props, _ref) => <View testID="predict-keypad" />);
+  return ReactActual.forwardRef((_props: unknown, _ref: unknown) => (
+    <View testID="predict-keypad" />
+  ));
 });
 
 jest.mock('../../components/PredictOrderRetrySheet', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
-  return ReactActual.forwardRef(
-    (_props, _ref) => <View testID="predict-order-retry-sheet" />,
-  );
+  return ReactActual.forwardRef((_props: unknown, _ref: unknown) => (
+    <View testID="predict-order-retry-sheet" />
+  ));
 });
 
 jest.mock('./components/PredictPayWithAnyTokenInfo', () => {

@@ -153,14 +153,24 @@ describe('PredictPayWithAnyTokenInfo', () => {
   });
 
   describe('updateTokenAmountCallback effect', () => {
-    it('calls updateTokenAmountCallback when amountHuman is valid', () => {
+    it('calls updateTokenAmountCallback with the parsed deposit amount when amountHuman is valid', () => {
       mockIsPredictBalanceSelected = false;
       mockActiveTransactionMeta = { id: 'tx-1' };
       mockAmountHuman = '100.50';
 
       render(<PredictPayWithAnyTokenInfo depositAmount={100} />);
 
-      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100.50');
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('100');
+    });
+
+    it('uses the rounded parsed deposit amount instead of the fiat-converted amountHuman', () => {
+      mockIsPredictBalanceSelected = false;
+      mockActiveTransactionMeta = { id: 'tx-1' };
+      mockAmountHuman = '2.078803';
+
+      render(<PredictPayWithAnyTokenInfo depositAmount={2.08} />);
+
+      expect(mockUpdateTokenAmountCallback).toHaveBeenCalledWith('2.08');
     });
 
     it('does not call updateTokenAmountCallback when amountHuman is "0"', () => {

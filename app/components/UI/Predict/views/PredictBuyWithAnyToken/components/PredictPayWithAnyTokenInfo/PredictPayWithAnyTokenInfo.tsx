@@ -66,11 +66,10 @@ function PredictPayWithAnyTokenInfoInner({
       parsedDepositAmount.trim() !== '' &&
       transactionMeta
     ) {
-      updateTokenAmountCallback(amountHuman);
+      updateTokenAmountCallback(parsedDepositAmount);
     }
   }, [
     amountHuman,
-    depositAmount,
     transactionMeta,
     updateTokenAmountCallback,
     parsedDepositAmount,

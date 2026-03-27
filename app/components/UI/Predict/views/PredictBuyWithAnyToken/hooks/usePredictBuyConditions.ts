@@ -167,12 +167,14 @@ export const usePredictBuyConditions = ({
       (isPayTotalsLoading ||
         isPayQuoteLoading ||
         isQuotesStale ||
+        quotes?.length === 0 ||
         !hasSourceAmount),
     [
       shouldWaitForPayFees,
       isPayTotalsLoading,
       isPayQuoteLoading,
       isQuotesStale,
+      quotes,
       hasSourceAmount,
     ],
   );
