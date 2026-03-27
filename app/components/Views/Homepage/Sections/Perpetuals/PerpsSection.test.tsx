@@ -1508,5 +1508,32 @@ describe('PerpsSection', () => {
 
       expect(screen.getByTestId('skeleton-placeholder')).toBeOnTheScreen();
     });
+
+    it('passes itemCount from carousel market count in trending-only mode', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [
+            makeTrendingMarket({ symbol: 'BTC' }),
+            makeTrendingMarket({ symbol: 'ETH' }),
+          ],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({ itemCount: 2 }),
+      );
+    });
   });
 });

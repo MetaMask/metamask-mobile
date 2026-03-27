@@ -409,6 +409,45 @@ describe('TokensSection', () => {
     expect(screen.getByText('Tokens')).toBeOnTheScreen();
   });
 
+  it('enables useTrendingRequest only in trending-only mode', () => {
+    mockUseIsZeroBalanceAccount.mockReturnValue(false);
+
+    const { unmount: unmountDefault } = renderWithProvider(
+      <TokensSection sectionIndex={0} totalSectionsLoaded={1} />,
+    );
+    expect(mockUseTrendingRequest).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    unmountDefault();
+
+    mockUseTrendingRequest.mockClear();
+
+    const { unmount: unmountPositions } = renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        mode="positions-only"
+      />,
+    );
+    expect(mockUseTrendingRequest).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: false }),
+    );
+    unmountPositions();
+
+    mockUseTrendingRequest.mockClear();
+
+    renderWithProvider(
+      <TokensSection
+        sectionIndex={0}
+        totalSectionsLoaded={1}
+        mode="trending-only"
+      />,
+    );
+    expect(mockUseTrendingRequest).toHaveBeenLastCalledWith(
+      expect.objectContaining({ enabled: true }),
+    );
+  });
+
   it('renders "Tokens" title for zero balance account', () => {
     mockUseIsZeroBalanceAccount.mockReturnValue(true);
 

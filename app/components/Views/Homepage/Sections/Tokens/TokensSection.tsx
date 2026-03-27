@@ -95,11 +95,13 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
     const popularTokensListRef = useRef<SectionRefreshHandle>(null);
     const [hasTokensError, setHasTokensError] = useState(false);
 
+    const isTrendingOnly = mode === 'trending-only';
+
     const {
       results: trendingTokens,
       isLoading: isTrendingLoading,
       fetch: fetchTrendingTokens,
-    } = useTrendingRequest({});
+    } = useTrendingRequest({ enabled: isTrendingOnly });
 
     const {
       removeTokenState,
@@ -176,7 +178,6 @@ const TokensSection = forwardRef<SectionRefreshHandle, TokensSectionProps>(
       (!isCashSectionEnabled || sortedTokenKeys.length === 0);
     const showTokensError = hasTokensError || hasBalanceButNoTokens;
 
-    const isTrendingOnly = mode === 'trending-only';
     const isPositionsOnly = mode === 'positions-only';
 
     const refresh = useCallback(async () => {

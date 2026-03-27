@@ -148,6 +148,11 @@ export const useTrendingRequest = (options: {
   maxVolume24hUsd?: number;
   minMarketCap?: number;
   maxMarketCap?: number;
+  /**
+   * When false, skips the initial fetch, polling, and clears local state.
+   * @default true
+   */
+  enabled?: boolean;
 }) => {
   const {
     chainIds: providedChainIds = [],
@@ -157,6 +162,7 @@ export const useTrendingRequest = (options: {
     maxVolume24hUsd,
     minMarketCap = 0,
     maxMarketCap,
+    enabled = true,
   } = options;
 
   // Use provided chainIds or default to trending networks
@@ -181,6 +187,8 @@ export const useTrendingRequest = (options: {
   // Track the current request ID to prevent stale results from overwriting current ones
   const requestIdRef = useRef(0);
 
+  const initialLoadCompleteRef = useRef(false);
+
   // Stabilize the chainIds array reference to prevent unnecessary re-fetching
   const stableChainIds = useStableArray(chainIds);
 
@@ -188,13 +196,17 @@ export const useTrendingRequest = (options: {
     Awaited<ReturnType<typeof getTrendingTokens>>
   >([]);
 
-  const [isLoading, setIsLoading] = useState(true);
+  const [isLoading, setIsLoading] = useState(enabled);
 
   const [error, setError] = useState<Error | null>(null);
 
   const fetchTrendingTokens = useCallback(
     async (fetchOptions: FetchOptions = {}) => {
       const { isSilentUpdate = false } = fetchOptions;
+
+      if (!enabled) {
+        return;
+      }
 
       if (!stableChainIds.length) {
         if (!isSilentUpdate) {
@@ -250,16 +262,30 @@ export const useTrendingRequest = (options: {
       maxVolume24hUsd,
       minMarketCap,
       maxMarketCap,
+      enabled,
     ],
   );
 
-  // Automatically trigger fetch when options change
+  // Invalidate in-flight work and clear state when disabled
   useEffect(() => {
+    if (!enabled) {
+      requestIdRef.current += 1;
+      setIsLoading(false);
+      setResults([]);
+      setError(null);
+      initialLoadCompleteRef.current = false;
+    }
+  }, [enabled]);
+
+  // Automatically trigger fetch when options change (only while enabled)
+  useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     fetchTrendingTokens();
-  }, [fetchTrendingTokens]);
+  }, [enabled, fetchTrendingTokens]);
 
   // Track if initial load has completed successfully
-  const initialLoadCompleteRef = useRef(false);
   useEffect(() => {
     if (!isLoading && !initialLoadCompleteRef.current) {
       if (results.length > 0 || !error) {
@@ -270,6 +296,9 @@ export const useTrendingRequest = (options: {
 
   // Refresh interval effect
   useEffect(() => {
+    if (!enabled) {
+      return;
+    }
     // Don't poll if we are loading, or initial fetch did not return data
     if (
       isLoading ||
@@ -286,7 +315,7 @@ export const useTrendingRequest = (options: {
     return () => {
       clearInterval(pollingInterval);
     };
-  }, [isLoading, results.length, error, fetchTrendingTokens]);
+  }, [enabled, isLoading, results.length, error, fetchTrendingTokens]);
 
   return {
     results,

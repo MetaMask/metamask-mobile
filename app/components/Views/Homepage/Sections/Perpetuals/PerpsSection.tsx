@@ -327,8 +327,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
     }
 
     const positionsOnlyHidden = isPositionsOnly && !hasItems && !showSkeleton;
-    const itemCount =
-      !isTrendingOnly && hasItems
+    const itemCount = isTrendingOnly
+      ? allCarouselMarkets.length
+      : hasItems
         ? displayPositions.length + displayOrders.length
         : 0;
 
