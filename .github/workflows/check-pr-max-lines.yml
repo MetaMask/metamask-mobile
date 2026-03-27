@@ -9,7 +9,10 @@ permissions:
   pull-requests: write # Required for the called workflow to manage labels
 
 jobs:
+  # Large stable→release sync PRs exceed the default line budget; add label
+  # `skip-pr-line-check` on those PRs (e.g. mobile delivery / release automation).
   check-pr-max-lines:
+    if: ${{ !contains(github.event.pull_request.labels.*.name, 'skip-pr-line-check') }}
     runs-on: ubuntu-latest
     steps:
       - name: Check PR lines changed
