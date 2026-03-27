@@ -62,6 +62,10 @@ export default function useGoToPortfolioBridge(location: string) {
     trackEvent(
       createEventBuilder(MetaMetricsEvents.BRIDGE_LINK_CLICKED)
         .addProperties({
+          // action and name are legacy properties from the generateOpt definition
+          // that AnalyticsEventBuilder does not carry over automatically
+          action: 'Bridge',
+          name: 'Bridge',
           bridgeUrl: AppConstants.BRIDGE.URL,
           location,
           chain_id_source: getDecimalChainId(chainId),
