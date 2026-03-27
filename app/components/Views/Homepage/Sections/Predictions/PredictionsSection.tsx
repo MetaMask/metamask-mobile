@@ -30,6 +30,7 @@ import {
 } from './components';
 import ViewMoreCard from '../../components/ViewMoreCard';
 import type {
+  PredictMarket,
   PredictPosition,
   UnrealizedPnL,
 } from '../../../../UI/Predict/types';
@@ -56,6 +57,55 @@ const SKELETON_KEYS = Array.from(
   { length: MAX_MARKETS_DISPLAYED },
   (__, i) => `skeleton-${i}`,
 );
+
+type PredictionsTrendingHeaderTestId = 'trending-predictions' | 'predictions';
+
+interface HomepagePredictTrendingMarketsProps {
+  title: string;
+  onViewAll: () => void;
+  headerTestIdKey: PredictionsTrendingHeaderTestId;
+  isLoadingMarkets: boolean;
+  markets: PredictMarket[];
+}
+
+/**
+ * Shared header + horizontal markets carousel for homepage predictions
+ * (default “trending when empty” and dedicated trending-only section).
+ */
+const HomepagePredictTrendingMarkets = ({
+  title,
+  onViewAll,
+  headerTestIdKey,
+  isLoadingMarkets,
+  markets,
+}: HomepagePredictTrendingMarketsProps) => {
+  const tw = useTailwind();
+  return (
+    <Box gap={3}>
+      <SectionHeader
+        title={title}
+        onPress={onViewAll}
+        testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(headerTestIdKey)}
+      />
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={tw.style('px-4 gap-3')}
+      >
+        {isLoadingMarkets ? (
+          SKELETON_KEYS.map((key) => <PredictMarketCardSkeleton key={key} />)
+        ) : (
+          <>
+            {markets.map((market) => (
+              <PredictMarketCard key={market.id} market={market} />
+            ))}
+            <ViewMoreCard onPress={onViewAll} twClassName="w-[180px] flex-1" />
+          </>
+        )}
+      </ScrollView>
+    </Box>
+  );
+};
 
 interface PredictionsSectionProps {
   sectionIndex: number;
@@ -134,7 +184,6 @@ const PredictionsSection = forwardRef<
     ref,
   ) => {
     const sectionViewRef = useRef<View>(null);
-    const tw = useTailwind();
     const navigation =
       useNavigation<NavigationProp<PredictNavigationParamList>>();
     const isPredictEnabled = useSelector(selectPredictEnabledFlag);
@@ -293,36 +342,13 @@ const PredictionsSection = forwardRef<
 
       return (
         <View ref={sectionViewRef} onLayout={onLayout}>
-          <Box gap={3}>
-            <SectionHeader
-              title={title}
-              onPress={handleViewAllPredictions}
-              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-                'trending-predictions',
-              )}
-            />
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-3')}
-            >
-              {isLoadingMarkets ? (
-                SKELETON_KEYS.map((key) => (
-                  <PredictMarketCardSkeleton key={key} />
-                ))
-              ) : (
-                <>
-                  {markets.map((market) => (
-                    <PredictMarketCard key={market.id} market={market} />
-                  ))}
-                  <ViewMoreCard
-                    onPress={handleViewAllPredictions}
-                    twClassName="w-[180px] flex-1"
-                  />
-                </>
-              )}
-            </ScrollView>
-          </Box>
+          <HomepagePredictTrendingMarkets
+            title={title}
+            onViewAll={handleViewAllPredictions}
+            headerTestIdKey="trending-predictions"
+            isLoadingMarkets={isLoadingMarkets}
+            markets={markets}
+          />
         </View>
       );
     }
@@ -400,47 +426,13 @@ const PredictionsSection = forwardRef<
     // Render trending markets if no positions
     return (
       <View ref={sectionViewRef} onLayout={onLayout}>
-        <Box gap={3}>
-          <Box gap={1}>
-            <SectionHeader
-              title={title}
-              onPress={handleViewAllPredictions}
-              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
-                'predictions',
-              )}
-            />
-            {predictHomepageUnrealizedPnl.show && (
-              <HomepageSectionUnrealizedPnlRow
-                isLoading={predictHomepageUnrealizedPnl.isLoading}
-                valueText={predictHomepageUnrealizedPnl.valueText}
-                tone={predictHomepageUnrealizedPnl.tone}
-                label={strings('predict.unrealized_pnl_label')}
-                testID="homepage-predict-unrealized-pnl"
-              />
-            )}
-          </Box>
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            contentContainerStyle={tw.style('px-4 gap-3')}
-          >
-            {isLoadingMarkets ? (
-              SKELETON_KEYS.map((key) => (
-                <PredictMarketCardSkeleton key={key} />
-              ))
-            ) : (
-              <>
-                {markets.map((market) => (
-                  <PredictMarketCard key={market.id} market={market} />
-                ))}
-                <ViewMoreCard
-                  onPress={handleViewAllPredictions}
-                  twClassName="w-[180px] flex-1"
-                />
-              </>
-            )}
-          </ScrollView>
-        </Box>
+        <HomepagePredictTrendingMarkets
+          title={title}
+          onViewAll={handleViewAllPredictions}
+          headerTestIdKey="predictions"
+          isLoadingMarkets={isLoadingMarkets}
+          markets={markets}
+        />
       </View>
     );
   },

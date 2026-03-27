@@ -284,6 +284,31 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       [navigateToTutorialOrScreen],
     );
 
+    const trendingCarousel =
+      allCarouselMarkets.length > 0 ? (
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={tw.style('px-4 gap-2.5')}
+          testID="homepage-trending-perps-carousel"
+        >
+          {(allCarouselMarkets ?? []).map((market) => (
+            <PerpsMarketTileCard
+              key={market.symbol}
+              market={market}
+              sparklineData={sparklines[market.symbol]}
+              showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
+              onPress={handleTilePress}
+            />
+          ))}
+          <ViewMoreCard
+            onPress={handleViewMorePerps}
+            twClassName="w-[180px] flex-1"
+            testID="perps-view-more-card"
+          />
+        </ScrollView>
+      ) : null;
+
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
     const isLoadingSection = isTrendingOnly
@@ -348,29 +373,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
               <SectionRow>
                 <PerpsPositionSkeleton />
               </SectionRow>
-            ) : allCarouselMarkets.length > 0 ? (
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={tw.style('px-4 gap-2.5')}
-                testID="homepage-trending-perps-carousel"
-              >
-                {(allCarouselMarkets ?? []).map((market) => (
-                  <PerpsMarketTileCard
-                    key={market.symbol}
-                    market={market}
-                    sparklineData={sparklines[market.symbol]}
-                    showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
-                    onPress={handleTilePress}
-                  />
-                ))}
-                <ViewMoreCard
-                  onPress={handleViewMorePerps}
-                  twClassName="w-[180px] flex-1"
-                  testID="perps-view-more-card"
-                />
-              </ScrollView>
-            ) : null}
+            ) : (
+              trendingCarousel
+            )}
           </Box>
         </View>
       );
@@ -415,29 +420,9 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
                 ))}
               </Box>
             </SectionRow>
-          ) : allCarouselMarkets.length > 0 ? (
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={tw.style('px-4 gap-2.5')}
-              testID="homepage-trending-perps-carousel"
-            >
-              {(allCarouselMarkets ?? []).map((market) => (
-                <PerpsMarketTileCard
-                  key={market.symbol}
-                  market={market}
-                  sparklineData={sparklines[market.symbol]}
-                  showFavoriteTag={watchlistSymbolSet.has(market.symbol)}
-                  onPress={handleTilePress}
-                />
-              ))}
-              <ViewMoreCard
-                onPress={handleViewMorePerps}
-                twClassName="w-[180px] flex-1"
-                testID="perps-view-more-card"
-              />
-            </ScrollView>
-          ) : null}
+          ) : (
+            trendingCarousel
+          )}
         </Box>
       </View>
     );
