@@ -111,12 +111,12 @@ export const waitForAppReady = async (
             timeout: 2000,
           });
         } catch {
-          await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+          await Assertions.expectElementToBeVisible(WalletView.container, {
             description: 'Wallet view should be stable',
             timeout: 3000,
           });
           await sleep(1500);
-          await Assertions.expectElementToBeVisible(WalletView.safeArea, {
+          await Assertions.expectElementToBeVisible(WalletView.container, {
             description: 'Wallet view should remain visible',
             timeout: 2000,
           });
