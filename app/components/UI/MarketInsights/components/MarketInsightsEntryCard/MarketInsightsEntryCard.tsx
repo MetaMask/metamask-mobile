@@ -143,7 +143,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
     return descriptions.length > 0 ? descriptions : [report.summary];
   }, [report.trends, report.summary]);
 
-  const handleSlideComplete = useCallback(() => {
+  const handleDescriptionSlideStart = useCallback(() => {
     setBorderAnimationKey((k) => k + 1);
   }, []);
 
@@ -241,7 +241,7 @@ const MarketInsightsEntryCard: React.FC<MarketInsightsEntryCardProps> = ({
           {/* Body text: rotating trend descriptions */}
           <SlidingTextCarousel
             texts={displayTexts}
-            onSlideComplete={handleSlideComplete}
+            onSlideStart={handleDescriptionSlideStart}
           />
 
           {/* Footer disclaimer */}

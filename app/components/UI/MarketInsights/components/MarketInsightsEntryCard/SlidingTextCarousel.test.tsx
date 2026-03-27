@@ -102,6 +102,25 @@ describe('SlidingTextCarousel', () => {
     expect(onSlideComplete).toHaveBeenCalledTimes(1);
   });
 
+  it('calls onSlideStart when the interval begins a slide', () => {
+    const onSlideStart = jest.fn();
+    const { getByTestId } = render(
+      <SlidingTextCarousel
+        texts={['First', 'Second', 'Third']}
+        onSlideStart={onSlideStart}
+        testID="sliding-carousel-container"
+      />,
+    );
+
+    triggerLayout(getByTestId);
+
+    act(() => {
+      jest.advanceTimersByTime(ROTATE_INTERVAL_MS);
+    });
+
+    expect(onSlideStart).toHaveBeenCalledTimes(1);
+  });
+
   it('advances to the next text after one interval', () => {
     const { getByTestId, getByText } = render(
       <SlidingTextCarousel

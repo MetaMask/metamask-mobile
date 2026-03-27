@@ -39,7 +39,7 @@ export const BORDER_SWEEP_PATH_END_FRACTION = 1;
  * reaches full opacity sooner (quicker fade-in). Must stay below
  * `BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION`.
  */
-export const BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION = 0.5;
+export const BORDER_TRAIL_OPACITY_FADE_IN_END_FRACTION = 0.7;
 
 /** Opacity fade-out begins at this `p` (second segment uses cubic ease-out). */
 export const BORDER_TRAIL_OPACITY_FADE_OUT_START_FRACTION = 0.7;

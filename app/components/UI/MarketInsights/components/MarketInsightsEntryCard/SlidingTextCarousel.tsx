@@ -33,6 +33,8 @@ const styles = StyleSheet.create({
 export interface SlidingTextCarouselProps {
   /** List of text strings to cycle through. */
   texts: string[];
+  /** Called when a slide transition begins (after rotation gates pass). */
+  onSlideStart?: () => void;
   /** Called after each slide transition completes. */
   onSlideComplete?: () => void;
   /** Optional test ID applied to the animated container. */
@@ -56,6 +58,7 @@ export interface SlidingTextCarouselProps {
  */
 const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
   texts,
+  onSlideStart,
   onSlideComplete,
   testID,
 }) => {
@@ -113,6 +116,7 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
       return;
     }
     isAnimating.current = true;
+    onSlideStart?.();
 
     // Snapshot JS-thread values before entering the worklet
     const aIsFront = frontIsA.current;
@@ -130,7 +134,7 @@ const SlidingTextCarousel: React.FC<SlidingTextCarouselProps> = ({
         runOnJS(onSlideEnd)(aIsFront, capturedIdx);
       }
     });
-  }, [texts.length, containerWidth, slotAX, slotBX, onSlideEnd]);
+  }, [texts.length, containerWidth, slotAX, slotBX, onSlideEnd, onSlideStart]);
 
   useEffect(() => {
     if (texts.length <= 1) return undefined;
