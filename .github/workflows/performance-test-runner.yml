@@ -35,16 +35,6 @@ on:
         required: false
         type: string
         description: 'BrowserStack URL for the RN playground APK (mm-connect tests only)'
-      browserstack_onboarding_perf_app_url:
-        required: false
-        type: string
-        default: ''
-        description: 'Optional bs:// app for non-seedless onboarding perf (tests/appwright.config.ts ONBOARDING_PERF). Falls back to CLEAN URL.'
-      browserstack_seedless_perf_app_url:
-        required: false
-        type: string
-        default: ''
-        description: 'Optional bs:// app for seedless onboarding perf (SEEDLESS_PERF). Falls back to CLEAN URL.'
       sentry_target:
         required: false
         type: string
@@ -234,24 +224,6 @@ jobs:
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$BUILD_VARIANT"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
           } >> "$GITHUB_ENV"
-
-          if [ "${{ inputs.build_type }}" = "onboarding" ]; then
-            OP_URL="${{ inputs.browserstack_onboarding_perf_app_url }}"
-            SL_URL="${{ inputs.browserstack_seedless_perf_app_url }}"
-            if [ "${{ inputs.platform }}" = "android" ]; then
-              BS_PF=ANDROID
-            else
-              BS_PF=IOS
-            fi
-            if [ -n "$OP_URL" ]; then
-              echo "BROWSERSTACK_${BS_PF}_ONBOARDING_PERF_APP_URL=$OP_URL" >> "$GITHUB_ENV"
-              echo "Set BROWSERSTACK_${BS_PF}_ONBOARDING_PERF_APP_URL"
-            fi
-            if [ -n "$SL_URL" ]; then
-              echo "BROWSERSTACK_${BS_PF}_SEEDLESS_PERF_APP_URL=$SL_URL" >> "$GITHUB_ENV"
-              echo "Set BROWSERSTACK_${BS_PF}_SEEDLESS_PERF_APP_URL"
-            fi
-          fi
 
       - name: Run Tests
         env:
