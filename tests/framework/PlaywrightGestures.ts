@@ -187,4 +187,26 @@ export default class PlaywrightGestures {
       throw new Error('Package name or app id is not available');
     }
   }
+
+  /**
+   * Activate the app
+   * @param currentDeviceDetails - The current device details
+   */
+  @boxedStep
+  static async activateApp(
+    currentDeviceDetails: CurrentDeviceDetails,
+  ): Promise<void> {
+    const driver = getDriver();
+    if (!driver) throw new Error('Driver is not available');
+    if (
+      (await PlatformDetector.isAndroid()) &&
+      currentDeviceDetails.packageName
+    ) {
+      await driver.activateApp(currentDeviceDetails.packageName);
+    } else if ((await PlatformDetector.isIOS()) && currentDeviceDetails.appId) {
+      await driver.activateApp(currentDeviceDetails.appId);
+    } else {
+      throw new Error('Package name or app id is not available');
+    }
+  }
 }

@@ -240,6 +240,7 @@ class ImportWalletView {
   ): Promise<void> {
     await UnifiedGestures.tap(this.title, {
       description: 'Import Wallet Title',
+      timeout: 1000,
     });
   }
 }

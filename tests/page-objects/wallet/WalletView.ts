@@ -124,10 +124,18 @@ class WalletView {
     );
   }
 
-  get hamburgerMenuButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
-    );
+  get hamburgerMenuButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(
+          WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+        ),
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON,
+          { exact: true },
+        ),
+    });
   }
 
   get navbarNetworkText(): DetoxElement {
