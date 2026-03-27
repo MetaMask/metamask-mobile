@@ -7954,6 +7954,8 @@
       "opted_in": "You're opted in to this campaign",
       "opt_in_error": "Failed to opt in. Please try again.",
       "join_campaign": "Join the campaign",
+      "entries_closed_title": "Entries closed",
+      "entries_closed_description": "You missed the opt-in window",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
