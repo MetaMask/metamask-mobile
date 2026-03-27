@@ -15,16 +15,6 @@ import {
   PredictMarketDetailsSelectorsText,
 } from '../../../app/components/UI/Predict/Predict.testIds';
 
-const TAB_BAR_TAB_ID_PREFIX = `${PredictMarketDetailsSelectorsIDs.TAB_BAR}-tab-`;
-
-function getAndroidTabBarTabXPath(label: string): string {
-  return `//*[contains(@resource-id,'${TAB_BAR_TAB_ID_PREFIX}') and (@text='${label}' or @content-desc='${label}')]`;
-}
-
-function getIOSTabBarTabXPath(label: string): string {
-  return `//*[contains(@name,'${TAB_BAR_TAB_ID_PREFIX}') and (@label='${label}' or contains(@label,'${label}'))]`;
-}
-
 class PredictDetailsPage {
   get container(): EncapsulatedElementType {
     return encapsulated({
@@ -44,16 +34,11 @@ class PredictDetailsPage {
         Matchers.getElementByText(
           PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
         ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByXPath(
-            PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByXPath(
-            PredictMarketDetailsSelectorsText.POSITIONS_TAB_TEXT,
-          ),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.POSITIONS_TAB,
+          { exact: true },
+        ),
     });
   }
 
@@ -63,16 +48,11 @@ class PredictDetailsPage {
         Matchers.getElementByText(
           PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
         ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            PredictMarketDetailsSelectorsText.ABOUT_TAB_TEXT,
-          ),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.ABOUT_TAB,
+          { exact: true },
+        ),
     });
   }
 
@@ -82,16 +62,11 @@ class PredictDetailsPage {
         Matchers.getElementByText(
           PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
         ),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByCatchAll(
-            PredictMarketDetailsSelectorsText.OUTCOMES_TAB_TEXT,
-          ),
-      },
+      appium: () =>
+        PlaywrightMatchers.getElementById(
+          PredictMarketDetailsSelectorsIDs.OUTCOMES_TAB,
+          { exact: true },
+        ),
     });
   }
   //TODO: Add the correct TESTID on the component for the about tab content
