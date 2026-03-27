@@ -177,28 +177,25 @@ const ProviderSelection: React.FC<ProviderSelectionProps> = ({
     if (!displayQuotes || !quotes || quotesLoading) {
       // When quotes aren't available, separate by supportedCryptoCurrencies
       const assetId = selectedToken?.assetId;
-      if (assetId) {
-        const [supported, unsupported] = providers.reduce<
-          [ProviderListItem[], ProviderListItem[]]
-        >(
-          ([sup, unsup], provider) => {
-            const item: ProviderListItem = { type: 'provider', provider };
-            return provider.supportedCryptoCurrencies?.[assetId] === true
-              ? [[...sup, item], unsup]
-              : [sup, [...unsup, item]];
-          },
-          [[], []],
-        );
+      const [supported, unsupported] = providers.reduce<
+        [ProviderListItem[], ProviderListItem[]]
+      >(
+        ([sup, unsup], provider) => {
+          const item: ProviderListItem = { type: 'provider', provider };
+          if (!assetId) {
+            return [[...sup, item], unsup];
+          }
+          return provider.supportedCryptoCurrencies?.[assetId] === true
+            ? [[...sup, item], unsup]
+            : [sup, [...unsup, item]];
+        },
+        [[], []],
+      );
 
-        if (supported.length > 0 && unsupported.length > 0) {
-          return [...supported, { type: 'separator' as const }, ...unsupported];
-        }
-        return [...supported, ...unsupported];
+      if (assetId && supported.length > 0 && unsupported.length > 0) {
+        return [...supported, { type: 'separator' as const }, ...unsupported];
       }
-      return providers.map((provider) => ({
-        type: 'provider' as const,
-        provider,
-      }));
+      return [...supported, ...unsupported];
     }
 
     const sortOrder =
