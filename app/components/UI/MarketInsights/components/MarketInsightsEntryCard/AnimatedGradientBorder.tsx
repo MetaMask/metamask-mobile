@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect } from 'react';
 import { StyleSheet } from 'react-native';
 import Svg, { Defs, LinearGradient, Stop, Path } from 'react-native-svg';
 import Animated, {
@@ -6,7 +6,6 @@ import Animated, {
   useAnimatedProps,
   useSharedValue,
   withDelay,
-  withRepeat,
   withSequence,
   withTiming,
   cancelAnimation,
@@ -123,42 +122,40 @@ const SweepPath: React.FC<SweepPathProps> = ({
 
 interface AnimatedGradientBorderProps {
   dimensions: { width: number; height: number } | null;
-  /** When true the sweep animation fires once. */
-  shouldAnimate: boolean;
+  /** Increment this value to trigger a new animation sweep. 0 = no animation. */
+  animationKey: number;
 }
 
 /**
  * Animated border that sweeps clockwise around a rounded card once,
  * fading in at the start and fading out at the end.
  * A wider translucent glow layer underneath simulates a 10px layer blur.
+ * Re-fires every time `animationKey` is incremented.
  */
 const AnimatedGradientBorder: React.FC<AnimatedGradientBorderProps> = ({
   dimensions,
-  shouldAnimate,
+  animationKey,
 }) => {
   const progress = useSharedValue(0);
-  const hasAnimated = useRef(false);
 
   useEffect(() => {
-    if (!dimensions || !shouldAnimate || hasAnimated.current) return;
-    hasAnimated.current = true;
+    if (!dimensions || animationKey === 0) return;
 
-    progress.value = withRepeat(
-      withSequence(
-        withTiming(1, {
-          duration: BORDER_SWEEP_DURATION_MS,
-          easing: Easing.linear,
-        }),
-        withDelay(1500, withTiming(0, { duration: 0 })),
-      ),
-      2,
+    cancelAnimation(progress);
+    progress.value = 0;
+    progress.value = withSequence(
+      withTiming(1, {
+        duration: BORDER_SWEEP_DURATION_MS,
+        easing: Easing.linear,
+      }),
+      withDelay(1500, withTiming(0, { duration: 0 })),
     );
 
     return () => {
       cancelAnimation(progress);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dimensions, shouldAnimate]);
+  }, [dimensions, animationKey]);
 
   if (!dimensions) {
     return null;

@@ -1,8 +1,8 @@
 /** Duration of the sweep traveling around the border in ms */
 export const BORDER_SWEEP_DURATION_MS = 1000;
 
-/** Border radius matching Tailwind's rounded-2xl (16px) */
-export const BORDER_RADIUS = 16;
+/** Border radius matching Tailwind's rounded-xl (12px) */
+export const BORDER_RADIUS = 12;
 
 /** Stroke width of the sharp main border line */
 export const BORDER_STROKE_WIDTH = 3;

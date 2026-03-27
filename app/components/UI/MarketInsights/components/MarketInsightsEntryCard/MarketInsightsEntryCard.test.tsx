@@ -1,12 +1,27 @@
 import React from 'react';
-import { fireEvent, act } from '@testing-library/react-native';
+import { fireEvent, act, render } from '@testing-library/react-native';
 import type { CaipAssetType } from '@metamask/utils';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MarketInsightsEntryCard from './MarketInsightsEntryCard';
+import MarketInsightsEntryCardSkeleton from './MarketInsightsEntryCardSkeleton';
 import { EVENT_NAME } from '../../../../../core/Analytics/MetaMetrics.events';
 import { AnalyticsEventBuilder } from '../../../../../util/analytics/AnalyticsEventBuilder';
 import { createMockUseAnalyticsHook } from '../../../../../util/test/analyticsMock';
+
+jest.mock('react-native-linear-gradient', () => 'LinearGradient');
+
+jest.mock('@react-native-masked-view/masked-view', () =>
+  jest.fn(
+    ({
+      children,
+      maskElement,
+    }: {
+      children?: React.ReactNode;
+      maskElement?: React.ReactNode;
+    }) => [maskElement, children],
+  ),
+);
 
 const mockTrackEvent = jest.fn();
 jest.mock('../../../../hooks/useAnalytics/useAnalytics');
@@ -37,7 +52,13 @@ jest.mock('./AnimatedGradientBorder', () => ({
 const mockReport = {
   headline: 'ETH rallies on ETF optimism',
   summary: 'ETF optimism and whale accumulation are driving momentum.',
-  trends: [{ title: 'ETF optimism' }, { title: 'whale accumulation' }],
+  trends: [
+    { title: 'ETF optimism', description: 'ETF inflows are driving demand.' },
+    {
+      title: 'Whale accumulation',
+      description: 'Large holders keep accumulating.',
+    },
+  ],
   sources: [{ name: 'CoinDesk', type: 'news', url: 'coindesk.com' }],
 };
 
@@ -53,10 +74,10 @@ describe('MarketInsightsEntryCard', () => {
     );
   });
 
-  it('renders summary text and handles press', () => {
+  it('renders the title and first trend description', () => {
     const mockPress = jest.fn();
 
-    const { getByTestId, getByText } = renderWithProvider(
+    const { getByTestId, getByText, getAllByText } = renderWithProvider(
       <MarketInsightsEntryCard
         report={mockReport as never}
         timeAgo="3m ago"
@@ -66,12 +87,32 @@ describe('MarketInsightsEntryCard', () => {
       />,
     );
 
-    expect(
-      getByText('ETF optimism and whale accumulation are driving momentum.'),
-    ).toBeOnTheScreen();
+    // GradientText renders the label twice (mask + gradient child), so use getAllByText
+    expect(getAllByText('Market insights').length).toBeGreaterThan(0);
+    expect(getByText('ETF inflows are driving demand.')).toBeOnTheScreen();
 
     fireEvent.press(getByTestId('market-insights-entry-card'));
     expect(mockPress).toHaveBeenCalledTimes(1);
+  });
+
+  it('renders summary text when there are no trend descriptions', () => {
+    const { getByText } = renderWithProvider(
+      <MarketInsightsEntryCard
+        report={
+          {
+            ...mockReport,
+            trends: [],
+          } as never
+        }
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    expect(
+      getByText('ETF optimism and whale accumulation are driving momentum.'),
+    ).toBeOnTheScreen();
   });
 
   it('tracks Market Insights Card Scrolled to View when card becomes visible', () => {
@@ -177,7 +218,6 @@ describe('MarketInsightsEntryCard', () => {
     expect(getDimensions()).toBeNull();
 
     // First layout sets dimensions
-    const renderCountBefore = MockAnimatedGradientBorder.mock.calls.length;
     await act(() => {
       innerBox.props.onLayout?.({
         nativeEvent: { layout: { width: 350, height: 200 } },
@@ -203,5 +243,39 @@ describe('MarketInsightsEntryCard', () => {
       });
     });
     expect(getDimensions()).toEqual({ width: 400, height: 250 });
+  });
+
+  it('passes animationKey=0 initially and increments when the card becomes visible', () => {
+    MockAnimatedGradientBorder.mockClear();
+
+    renderWithProvider(
+      <MarketInsightsEntryCard
+        report={mockReport as never}
+        timeAgo="3m ago"
+        onPress={jest.fn()}
+        testID="market-insights-entry-card"
+      />,
+    );
+
+    const getAnimationKey = () => {
+      const calls = MockAnimatedGradientBorder.mock.calls;
+      const lastCall = calls[calls.length - 1];
+      return (lastCall[0] as Record<string, unknown>).animationKey;
+    };
+
+    expect(getAnimationKey()).toBe(0);
+
+    act(() => {
+      capturedOnVisible?.();
+    });
+
+    expect(getAnimationKey()).toBe(1);
+  });
+});
+
+describe('MarketInsightsEntryCardSkeleton', () => {
+  it('renders without crashing', () => {
+    const { toJSON } = render(<MarketInsightsEntryCardSkeleton />);
+    expect(toJSON()).not.toBeNull();
   });
 });
