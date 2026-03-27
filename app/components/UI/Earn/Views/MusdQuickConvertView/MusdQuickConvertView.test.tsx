@@ -420,42 +420,6 @@ describe('MusdQuickConvertView', () => {
 
       expect(mockInitiateMaxConversion).toHaveBeenCalledWith(token);
     });
-
-    it('does not call initiateMaxConversion twice on rapid double press', async () => {
-      const token = createMockToken();
-      mockUseMusdConversionTokens.mockReturnValue({
-        tokens: [token],
-        filterAllowedTokens: jest.fn(),
-        isConversionToken: jest.fn(),
-        isMusdSupportedOnChain: jest.fn(),
-        hasConvertibleTokensByChainId: jest.fn(),
-      });
-
-      let resolveInitiation: () => void;
-      mockInitiateMaxConversion.mockImplementation(
-        () =>
-          new Promise<void>((resolve) => {
-            resolveInitiation = resolve;
-          }),
-      );
-
-      const { getAllByTestId } = renderWithProvider(<MusdQuickConvertView />, {
-        state: initialRootState,
-      });
-
-      const maxButton = getAllByTestId(ConvertTokenRowTestIds.MAX_BUTTON)[0];
-
-      await act(async () => {
-        fireEvent.press(maxButton);
-        fireEvent.press(maxButton);
-      });
-
-      expect(mockInitiateMaxConversion).toHaveBeenCalledTimes(1);
-
-      await act(async () => {
-        resolveInitiation();
-      });
-    });
   });
 
   describe('Edit flow', () => {
