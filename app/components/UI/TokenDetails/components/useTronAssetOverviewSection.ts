@@ -65,7 +65,7 @@ const useTronAssetOverviewSection = ({
     claimableRewardsFiatAmount,
     claimableRewardsCurrency,
     totalStakedTrx,
-    nonEvmFiatRate,
+    fiatRate,
     currentCurrency,
   } = useTronStakingRewardsSummary({
     tokenAddress,
@@ -119,9 +119,7 @@ const useTronAssetOverviewSection = ({
         },
       )} TRX`;
       const estimatedFiatNum =
-        nonEvmFiatRate != null && nonEvmFiatRate > 0
-          ? estimatedTrxNum * nonEvmFiatRate
-          : 0;
+        fiatRate != null && fiatRate > 0 ? estimatedTrxNum * fiatRate : 0;
       const formattedEstimatedFiat = formatWithThreshold(
         estimatedFiatNum,
         FIAT_THRESHOLD,
@@ -168,7 +166,7 @@ const useTronAssetOverviewSection = ({
     claimableRewardsTrxAmount,
     currentCurrency,
     enabled,
-    nonEvmFiatRate,
+    fiatRate,
     privacyMode,
     tokenChainId,
     totalStakedTrx,

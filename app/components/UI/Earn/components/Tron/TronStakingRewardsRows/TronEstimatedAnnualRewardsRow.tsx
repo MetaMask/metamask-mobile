@@ -19,10 +19,11 @@ import {
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../../component-library/components/Texts/SensitiveText';
-import { TronStakingRewardsRowsTestIds } from './TronStakingRewardsRows.testIds';
 
-const ICON_CIRCLE_TW =
-  'h-10 w-10 rounded-full bg-muted mr-4 items-center justify-center';
+export const TronEstimatedAnnualRewardsRowTestIds = {
+  ROW: 'tron-staking-rewards-estimated-row',
+  SUBTITLE: 'tron-staking-rewards-estimated-subtitle',
+} as const;
 
 export interface TronEstimatedAnnualRewardsRowProps {
   title: string;
@@ -36,13 +37,13 @@ const TronEstimatedAnnualRewardsRow = ({
   hideBalances,
 }: TronEstimatedAnnualRewardsRowProps) => (
   <Box
-    testID={TronStakingRewardsRowsTestIds.ESTIMATED_ANNUAL_ROW}
+    testID={TronEstimatedAnnualRewardsRowTestIds.ROW}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
     paddingTop={3}
     paddingBottom={3}
   >
-    <Box twClassName={ICON_CIRCLE_TW}>
+    <Box twClassName="h-10 w-10 rounded-full bg-muted mr-4 items-center justify-center">
       <Icon name={CLIconName.Calendar} size={CLIconSize.Md} />
     </Box>
     <Box twClassName="flex-1">
@@ -58,7 +59,7 @@ const TronEstimatedAnnualRewardsRow = ({
         color={CLTextColor.Alternative}
         isHidden={hideBalances}
         length={SensitiveTextLength.Medium}
-        testID={TronStakingRewardsRowsTestIds.ESTIMATED_SUBTITLE}
+        testID={TronEstimatedAnnualRewardsRowTestIds.SUBTITLE}
       >
         {subtitle}
       </SensitiveText>

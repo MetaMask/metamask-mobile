@@ -60,7 +60,7 @@ describe('useTronAssetOverviewSection', () => {
       claimableRewardsFiatAmount: 12.34,
       claimableRewardsCurrency: 'USD',
       totalStakedTrx: 100,
-      nonEvmFiatRate: 0.5,
+      fiatRate: 0.5,
       currentCurrency: 'USD',
     });
   });
@@ -78,7 +78,7 @@ describe('useTronAssetOverviewSection', () => {
       useTronAssetOverviewSection({
         enabled: false,
         tokenAddress: 'tron:foo',
-        tokenChainId: 'tron:0x2b6653dc',
+        tokenChainId: TRON_MAINNET_CAIP_CHAIN_ID,
       }),
     );
 

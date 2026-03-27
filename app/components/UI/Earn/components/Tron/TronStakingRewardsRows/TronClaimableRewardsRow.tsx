@@ -18,7 +18,11 @@ import {
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../../component-library/components/Texts/SensitiveText';
-import { TronStakingRewardsRowsTestIds } from './TronStakingRewardsRows.testIds';
+
+export const TronClaimableRewardsRowTestIds = {
+  ROW: 'tron-staking-rewards-total-row',
+  SUBTITLE: 'tron-staking-rewards-total-subtitle',
+} as const;
 
 export interface TronClaimableRewardsRowProps {
   title: string;
@@ -32,7 +36,7 @@ const TronClaimableRewardsRow = ({
   hideBalances,
 }: TronClaimableRewardsRowProps) => (
   <Box
-    testID={TronStakingRewardsRowsTestIds.TOTAL_REWARDS_ROW}
+    testID={TronClaimableRewardsRowTestIds.ROW}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Center}
     paddingTop={3}
@@ -54,7 +58,7 @@ const TronClaimableRewardsRow = ({
         color={CLTextColor.Alternative}
         isHidden={hideBalances}
         length={SensitiveTextLength.Medium}
-        testID={TronStakingRewardsRowsTestIds.TOTAL_SUBTITLE}
+        testID={TronClaimableRewardsRowTestIds.SUBTITLE}
       >
         {subtitle}
       </SensitiveText>

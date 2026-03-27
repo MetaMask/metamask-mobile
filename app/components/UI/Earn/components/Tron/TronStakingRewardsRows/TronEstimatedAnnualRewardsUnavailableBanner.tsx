@@ -9,7 +9,10 @@ import {
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import { TronStakingRewardsRowsTestIds } from './TronStakingRewardsRows.testIds';
+
+export const TronEstimatedAnnualRewardsUnavailableBannerTestIds = {
+  CONTAINER: 'tron-staking-rewards-estimated-unavailable-banner',
+} as const;
 
 export interface TronEstimatedAnnualRewardsUnavailableBannerProps {
   message: string;
@@ -19,7 +22,7 @@ const TronEstimatedAnnualRewardsUnavailableBanner = ({
   message,
 }: TronEstimatedAnnualRewardsUnavailableBannerProps) => (
   <Box
-    testID={TronStakingRewardsRowsTestIds.ESTIMATED_UNAVAILABLE_BANNER}
+    testID={TronEstimatedAnnualRewardsUnavailableBannerTestIds.CONTAINER}
     flexDirection={BoxFlexDirection.Row}
     alignItems={BoxAlignItems.Start}
     twClassName="mt-1 bg-error-muted rounded-lg px-3 py-2 gap-2"

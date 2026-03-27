@@ -13,7 +13,7 @@ export interface TronStakingRewardsSummaryData {
   claimableRewardsFiatAmount: number | undefined;
   claimableRewardsCurrency: string | undefined;
   totalStakedTrx: number;
-  nonEvmFiatRate: number | undefined;
+  fiatRate: number | undefined;
   currentCurrency: string;
 }
 
@@ -26,10 +26,10 @@ const useTronStakingRewardsSummary = ({
   const multichainAssetsRates = useSelector(selectMultichainAssetsRates);
   const currentCurrency = useSelector(selectCurrentCurrency);
 
-  let nonEvmFiatRate: number | undefined;
+  let fiatRate: number | undefined;
   if (tokenAddress) {
     const rate = multichainAssetsRates?.[tokenAddress as CaipAssetType];
-    nonEvmFiatRate = rate?.rate ? Number(rate.rate) : undefined;
+    fiatRate = rate?.rate ? Number(rate.rate) : undefined;
   }
 
   const claimableRewardsTrxAmount = trxStakingRewards
@@ -53,7 +53,7 @@ const useTronStakingRewardsSummary = ({
     claimableRewardsFiatAmount,
     claimableRewardsCurrency: fiatCurrency,
     totalStakedTrx,
-    nonEvmFiatRate,
+    fiatRate,
     currentCurrency: (currentCurrency ?? 'USD').toUpperCase(),
   };
 };

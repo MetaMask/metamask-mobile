@@ -67,7 +67,7 @@ describe('useTronStakingRewardsSummary', () => {
       claimableRewardsFiatAmount: 12.5,
       claimableRewardsCurrency: 'usd',
       totalStakedTrx: 42,
-      nonEvmFiatRate: 0.5,
+      fiatRate: 0.5,
       currentCurrency: 'USD',
     });
   });

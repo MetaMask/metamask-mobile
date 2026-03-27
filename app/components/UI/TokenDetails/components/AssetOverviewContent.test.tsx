@@ -516,6 +516,40 @@ describe('AssetOverviewContent', () => {
         }),
       );
     });
+
+    it('does not fabricate an unavailable rewards banner when the hook omits it', () => {
+      mockUseTronAssetOverviewSection.mockReturnValue({
+        claimableRewardsRowProps: {
+          title: 'Total claimable rewards',
+          subtitle: '$0.00 · 0 TRX',
+          hideBalances: false,
+        },
+        estimatedAnnualRewardsRowProps: undefined,
+        estimatedAnnualRewardsUnavailableBannerProps: undefined,
+      });
+
+      const tronToken: TokenI = {
+        ...defaultToken,
+        address: 'tron:token',
+        chainId: 'tron:0x2b6653dc',
+        symbol: 'TRX',
+        name: 'TRON',
+      };
+
+      const { queryByTestId } = renderWithProvider(
+        <AssetOverviewContent
+          {...defaultProps}
+          token={tronToken}
+          isTronNative
+          stakedTrxAsset={tronToken}
+        />,
+        { state: createState(true) },
+      );
+
+      expect(
+        queryByTestId('tron-staking-rewards-estimated-unavailable-banner'),
+      ).toBeNull();
+    });
   });
 
   describe('Perps / Market Insights layout ordering', () => {

@@ -885,15 +885,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
                   <TronEstimatedAnnualRewardsRow
                     {...estimatedAnnualRewardsRowProps}
                   />
-                ) : (
+                ) : estimatedAnnualRewardsUnavailableBannerProps ? (
                   <TronEstimatedAnnualRewardsUnavailableBanner
-                    {...(estimatedAnnualRewardsUnavailableBannerProps ?? {
-                      message: strings(
-                        'stake.tron.estimated_rewards_api_unavailable',
-                      ),
-                    })}
+                    {...estimatedAnnualRewardsUnavailableBannerProps}
                   />
-                )}
+                ) : null}
               </Box>
             )
             ///: END:ONLY_INCLUDE_IF
