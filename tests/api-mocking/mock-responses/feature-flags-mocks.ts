@@ -122,6 +122,18 @@ export const remoteFeaturePredictGtmOnboardingModalDisabled = () => ({
   },
 });
 
+/**
+ * Disables the full-screen Perps "what's new" GTM modal (PERPS ARE HERE) shown when reaching wallet home.
+ * Mirrors {@link remoteFeaturePredictGtmOnboardingModalDisabled}; merge into
+ * {@link setupRemoteFeatureFlagsMock} when the modal blocks E2E flows.
+ */
+export const remoteFeaturePerpsGtmOnboardingModalDisabled = () => ({
+  perpsPerpGtmOnboardingModalEnabled: {
+    enabled: false,
+    minimumVersion: '0.0.0',
+  },
+});
+
 export const remoteFeatureFlagPredictEnabled = (enabled = true) => ({
   predictEnabled: enabled,
   predictTradingEnabled: {

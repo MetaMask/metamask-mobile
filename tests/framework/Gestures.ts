@@ -32,6 +32,8 @@ export default class Gestures {
       elemDescription?: string;
       delay?: number;
       waitForElementToDisappear?: boolean;
+      /** Passed to checkElementReadyState (visibility / stability waits); must match outer tap timeout. */
+      readyStateTimeout?: number;
     },
     point?: { x: number; y: number },
   ) => {
@@ -56,6 +58,7 @@ export default class Gestures {
       checkStability,
       checkVisibility,
       checkEnabled,
+      timeout: options.readyStateTimeout,
     });
 
     if (options.delay) {
@@ -104,6 +107,7 @@ export default class Gestures {
         elemDescription,
         waitForElementToDisappear,
         delay,
+        readyStateTimeout: timeout,
       });
     return Utilities.executeWithRetry(fn, {
       timeout,
@@ -141,6 +145,7 @@ export default class Gestures {
         elemDescription,
         delay,
         waitForElementToDisappear,
+        readyStateTimeout: timeout,
       });
 
     return Utilities.executeWithRetry(fn, {
@@ -222,6 +227,7 @@ export default class Gestures {
           checkVisibility,
           checkEnabled,
           elemDescription,
+          readyStateTimeout: timeout,
         },
         point,
       );
@@ -388,6 +394,7 @@ export default class Gestures {
         (
           el: {
             focus: () => void;
+            blur?: () => void;
             value: string;
             _valueTracker?: { setValue: (v: string) => void };
             dispatchEvent: (event: { bubbles?: boolean }) => void;
@@ -398,6 +405,8 @@ export default class Gestures {
           el.value = value;
           el._valueTracker && el._valueTracker.setValue('');
           el.dispatchEvent(new Event('input', { bubbles: true }));
+          // Dismiss iOS keyboard / input accessory so overlays (e.g. Confirm) stay hittable.
+          el.blur?.();
         },
         [text],
       );
@@ -524,18 +533,16 @@ export default class Gestures {
         const scrollable = await scrollableContainer;
 
         if (device.getPlatform() === 'android') {
-          const scrollableElement = element(scrollable);
           try {
             await waitFor(target).toBeVisible().withTimeout(100);
             return;
           } catch {
-            await scrollableElement.scroll(
-              scrollAmount,
-              direction,
-              startPositionX,
-              startPositionY,
-            );
-            await waitFor(target).toBeVisible().withTimeout(100);
+            // Single element().scroll() on FlatList is unreliable on Android; mirror iOS by
+            // scrolling the scrollable until the target is visible (Detox polls between scrolls).
+            await waitFor(target)
+              .toBeVisible()
+              .whileElement(scrollable)
+              .scroll(scrollAmount, direction, startPositionX, startPositionY);
           }
         } else {
           await waitFor(target)

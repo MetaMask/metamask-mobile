@@ -1473,7 +1473,10 @@ const Wallet = ({
   );
   const renderLoader = useCallback(
     () => (
-      <View style={styles.loader}>
+      <View
+        style={styles.loader}
+        testID={WalletViewSelectorsIDs.WALLET_LOADING_CONTAINER}
+      >
         <ActivityIndicator size="small" />
       </View>
     ),

@@ -3,6 +3,8 @@ import {
   WalletViewSelectorsText,
 } from '../../../app/components/Views/Wallet/WalletView.testIds';
 import { EARN_TEST_IDS } from '../../../app/components/UI/Earn/constants/testIds';
+import { TokenOverviewSelectorsIDs } from '../../../app/components/UI/AssetOverview/TokenOverview.testIds';
+import { ActivitiesViewSelectorsIDs } from '../../../app/components/Views/ActivityView/ActivitiesView.testIds';
 import { SECONDARY_BALANCE_BUTTON_TEST_ID } from '../../../app/components/UI/AssetElement/index.constants';
 import {
   PredictTabViewSelectorsIDs,
@@ -15,7 +17,6 @@ import UnifiedGestures from '../../framework/UnifiedGestures';
 import Matchers from '../../framework/Matchers';
 import TestHelpers from '../../helpers.js';
 import Assertions from '../../framework/Assertions';
-import PlaywrightAssertions from '../../framework/PlaywrightAssertions';
 import Utilities from '../../framework/Utilities';
 import {
   encapsulated,
@@ -32,6 +33,11 @@ class WalletView {
 
   get container(): DetoxElement {
     return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_CONTAINER);
+  }
+
+  /** Root SafeAreaView on the wallet screen; present while the wallet loader shows (before `wallet-screen`). */
+  get safeArea(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SAFE_AREA);
   }
 
   /** Matcher for the wallet homepage ScrollView (same pattern as other scroll containers). */
@@ -173,36 +179,10 @@ class WalletView {
     });
   }
 
-  get accountNameLabelText(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
-          { exact: true },
-        ),
-    });
-  }
-
   get accountName(): DetoxElement {
     return Matchers.getElementByID(
       WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_TEXT,
     );
-  }
-
-  get accountNameLabelInput(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(
-          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT,
-        ),
-      appium: () =>
-        PlaywrightMatchers.getElementById(
-          WalletViewSelectorsIDs.ACCOUNT_NAME_LABEL_INPUT,
-          { exact: true },
-        ),
-    });
   }
 
   get hideTokensLabel(): DetoxElement {
@@ -261,80 +241,6 @@ class WalletView {
       1,
     );
   }
-  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
-  get walletBuyButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
-  }
-
-  get walletSwapButton(): EncapsulatedElementType {
-    return encapsulated({
-      detox: () =>
-        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
-      appium: {
-        android: () =>
-          PlaywrightMatchers.getElementById(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-            { exact: true },
-          ),
-        ios: () =>
-          PlaywrightMatchers.getElementByAccessibilityId(
-            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
-          ),
-      },
-    });
-  }
-
-  get walletBridgeButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
-  }
-
-  get walletSendButton(): DetoxElement {
-    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
-  }
-
-  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
-  get musdConversionCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
-    );
-  }
-
-  get getMusdButton(): DetoxElement {
-    return Matchers.getElementByText('Get mUSD');
-  }
-
-  get getStartedButton(): DetoxElement {
-    return Matchers.getElementByText('Get Started');
-  }
-
-  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
-  get tokenListItemConvertToMusdCta(): DetoxElement {
-    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
-  }
-
-  get assetOverviewMusdCta(): DetoxElement {
-    return Matchers.getElementByID(
-      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
-    );
-  }
-
-  get walletReceiveButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
-    );
-  }
-  // Balance Empty State - displayed when account group has zero balance across all networks
-  get balanceEmptyStateContainer(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
-    );
-  }
-
-  get balanceEmptyStateActionButton(): DetoxElement {
-    return Matchers.getElementByID(
-      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
-    );
-  }
   getPredictCurrentPositionCardByIndex(index: number = 0): DetoxElement {
     return Matchers.getElementByID(
       PredictPositionSelectorsIDs.CURRENT_POSITION_CARD,
@@ -368,18 +274,6 @@ class WalletView {
   async tapCurrentMainWalletAccountActions(): Promise<void> {
     await Gestures.waitAndTap(this.currentMainWalletAccountActions, {
       elemDescription: 'Current Main Wallet Account Actions',
-    });
-  }
-
-  async longPressAccountNameLabel(): Promise<void> {
-    await UnifiedGestures.longPress(this.accountNameLabelText, {
-      description: 'Account name label',
-    });
-  }
-
-  async editAccountNameLabel(text: string): Promise<void> {
-    await UnifiedGestures.typeText(this.accountNameLabelInput, text, {
-      description: 'Account name label input',
     });
   }
 
@@ -1040,29 +934,84 @@ class WalletView {
     }
   }
 
-  async tapWalletBuyButton(): Promise<void> {
-    await Gestures.waitAndTap(this.walletBuyButton, {
-      elemDescription: 'Wallet Buy Button',
+  // Wallet-specific action buttons (from AssetDetailsActions in Wallet view)
+  get walletBuyButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BUY_BUTTON);
+  }
+
+  get walletSwapButton(): EncapsulatedElementType {
+    return encapsulated({
+      detox: () =>
+        Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SWAP_BUTTON),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementById(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+            { exact: true },
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByAccessibilityId(
+            WalletViewSelectorsIDs.WALLET_SWAP_BUTTON,
+          ),
+      },
     });
   }
 
-  async waitForScreenToDisplay(): Promise<void> {
-    await encapsulatedAction({
-      detox: async () => {
-        await Assertions.expectElementToBeVisible(this.container, {
-          timeout: 30000,
-          description: 'Wallet view should be visible',
-        });
-      },
-      appium: async () => {
-        await PlaywrightAssertions.expectElementToBeVisible(
-          asPlaywrightElement(this.walletSwapButton),
-          {
-            timeout: 30000,
-            description: 'Wallet swap button should be visible',
-          },
-        );
-      },
+  get walletBridgeButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_BRIDGE_BUTTON);
+  }
+
+  get walletSendButton(): DetoxElement {
+    return Matchers.getElementByID(WalletViewSelectorsIDs.WALLET_SEND_BUTTON);
+  }
+
+  // mUSD conversion (Earn) - asset list CTA, education screen, token list CTA, asset overview CTA
+  get musdConversionCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_LIST_CONVERSION_CTA,
+    );
+  }
+
+  get getMusdButton(): DetoxElement {
+    return Matchers.getElementByText('Get mUSD');
+  }
+
+  get getStartedButton(): DetoxElement {
+    return Matchers.getElementByText('Get Started');
+  }
+
+  /** Token list item CTA: "Get 3% mUSD bonus" on USDC row. Use testID + index (1 = USDC after ETH) to avoid regex/text flakiness. */
+  get tokenListItemConvertToMusdCta(): DetoxElement {
+    return Matchers.getElementByID(SECONDARY_BALANCE_BUTTON_TEST_ID, 1);
+  }
+
+  get assetOverviewMusdCta(): DetoxElement {
+    return Matchers.getElementByID(
+      EARN_TEST_IDS.MUSD.ASSET_OVERVIEW_CONVERSION_CTA,
+    );
+  }
+
+  get walletReceiveButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.WALLET_RECEIVE_BUTTON,
+    );
+  }
+  // Balance Empty State - displayed when account group has zero balance across all networks
+  get balanceEmptyStateContainer(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_CONTAINER,
+    );
+  }
+
+  get balanceEmptyStateActionButton(): DetoxElement {
+    return Matchers.getElementByID(
+      WalletViewSelectorsIDs.BALANCE_EMPTY_STATE_ACTION_BUTTON,
+    );
+  }
+
+  async tapWalletBuyButton(): Promise<void> {
+    await Gestures.waitAndTap(this.walletBuyButton, {
+      elemDescription: 'Wallet Buy Button',
     });
   }
 
@@ -1111,29 +1060,116 @@ class WalletView {
    * container as the Asset/Transactions screen (transactions-container).
    */
   async scrollDownToAssetOverviewMusdCta(): Promise<void> {
-    const assetOverviewScrollContainer = Matchers.getIdentifier(
-      'transactions-container',
-    );
-    await Gestures.scrollToElement(
-      this.assetOverviewMusdCta as unknown as DetoxElement,
-      assetOverviewScrollContainer,
+    // TokenDetails shows a loader until useTokenTransactions finishes; the FlatList
+    // (transactions-container) and header (token-asset-overview) mount only after.
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(TokenOverviewSelectorsIDs.CONTAINER),
       {
-        direction: 'down',
-        scrollAmount: 200,
-        elemDescription: 'Asset Overview mUSD CTA',
-        timeout: 15000,
+        timeout: 20000,
+        description:
+          'Token asset overview should be visible after opening token details',
       },
     );
+    await Assertions.expectElementToBeVisible(
+      Matchers.getElementByID(ActivitiesViewSelectorsIDs.CONTAINER),
+      {
+        timeout: 20000,
+        description:
+          'Transactions list should be mounted before scrolling to mUSD CTA',
+      },
+    );
+
+    const assetOverviewScrollContainer = Matchers.getIdentifier(
+      ActivitiesViewSelectorsIDs.CONTAINER,
+    );
+    const transactionsList = Matchers.getElementByID(
+      ActivitiesViewSelectorsIDs.CONTAINER,
+    );
+
+    try {
+      await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
+        timeout: 3000,
+        description:
+          'mUSD asset overview CTA already in view without scrolling',
+      });
+    } catch {
+      // CTA is below the fold in a tall header; scroll the FlatList.
+      await Utilities.executeWithRetry(
+        async () => {
+          try {
+            await Gestures.scrollToElement(
+              this.assetOverviewMusdCta as unknown as DetoxElement,
+              assetOverviewScrollContainer,
+              {
+                direction: 'down',
+                scrollAmount: 520,
+                elemDescription: 'Asset Overview mUSD CTA',
+                timeout: 10000,
+                delay: 400,
+              },
+            );
+          } catch {
+            await Gestures.swipe(transactionsList, 'up', {
+              percentage: 0.22,
+              speed: 'slow',
+              elemDescription:
+                'Recovery swipe when scrollToElement did not reach mUSD CTA',
+            });
+          }
+          // CTA can sit at the bottom edge (sticky footer / safe area) and fail Detox's
+          // visibility threshold; one slow swipe scrolls content up so the CTA clears it.
+          await Gestures.swipe(transactionsList, 'up', {
+            percentage: 0.2,
+            speed: 'slow',
+            elemDescription:
+              'Nudge token details scroll so mUSD CTA clears bottom inset',
+          });
+          await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
+            timeout: 8000,
+            description:
+              'Asset Overview mUSD CTA should be visible after scroll',
+          });
+        },
+        {
+          timeout: 28000,
+          description: 'Scroll to Asset Overview mUSD CTA',
+          elemDescription: 'Asset Overview mUSD CTA',
+        },
+      );
+    }
+
+    // Detox tap requires ~100% visibility; visibility assertions are looser. Always nudge
+    // (including when the CTA was already "visible") so the CTA clears tab bar / home indicator.
+    await Gestures.swipe(transactionsList, 'up', {
+      percentage: 0.22,
+      speed: 'slow',
+      elemDescription:
+        'Nudge mUSD CTA above tab bar for Detox tap visibility threshold',
+    });
+    await Gestures.swipe(transactionsList, 'up', {
+      percentage: 0.18,
+      speed: 'slow',
+      elemDescription: 'Second nudge mUSD CTA above home indicator',
+    });
     await Assertions.expectElementToBeVisible(this.assetOverviewMusdCta, {
-      timeout: 5000,
-      description: 'Asset Overview mUSD CTA should be visible after scroll',
+      timeout: 8000,
+      description: 'mUSD asset overview CTA ready to tap',
     });
   }
 
   async tapAssetOverviewMusdCta(): Promise<void> {
+    const transactionsList = Matchers.getElementByID(
+      ActivitiesViewSelectorsIDs.CONTAINER,
+    );
+    await Gestures.swipe(transactionsList, 'up', {
+      percentage: 0.12,
+      speed: 'slow',
+      elemDescription: 'Pre-tap nudge so mUSD CTA is fully hittable',
+    });
     await Gestures.waitAndTap(this.assetOverviewMusdCta, {
       checkStability: true,
       delay: 800,
+      timeout: 20000,
       elemDescription: 'Asset Overview mUSD CTA',
     });
   }
