@@ -160,7 +160,7 @@ describe('usePredictClaim', () => {
       previewOrder: jest.fn(),
       deposit: jest.fn(),
       prepareWithdraw: jest.fn(),
-      initiPayWithAnyToken: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
     } as ReturnType<typeof usePredictTrading>);
 
     mockUseConfirmNavigation.mockReturnValue({

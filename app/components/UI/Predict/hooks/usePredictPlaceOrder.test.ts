@@ -124,7 +124,7 @@ describe('usePredictPlaceOrder', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
-      initiPayWithAnyToken: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
     });
     mockRefetchBalance.mockResolvedValue({ data: 1000 });
     mockUsePredictBalance.mockReturnValue({

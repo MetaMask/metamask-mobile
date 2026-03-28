@@ -231,8 +231,8 @@ describe('usePredictTrading', () => {
     });
   });
 
-  describe('initiPayWithAnyToken', () => {
-    it('calls PredictController.initiPayWithAnyToken and returns result', async () => {
+  describe('initPayWithAnyToken', () => {
+    it('calls PredictController.initPayWithAnyToken and returns result', async () => {
       const mockResult = {
         success: true,
         response: { batchId: 'batch-123' },
@@ -244,7 +244,7 @@ describe('usePredictTrading', () => {
 
       const { result } = renderHook(() => usePredictTrading());
 
-      const response = await result.current.initiPayWithAnyToken();
+      const response = await result.current.initPayWithAnyToken();
 
       expect(
         Engine.context.PredictController.initPayWithAnyToken,
@@ -252,14 +252,14 @@ describe('usePredictTrading', () => {
       expect(response).toEqual(mockResult);
     });
 
-    it('throws error when PredictController.initiPayWithAnyToken fails', async () => {
+    it('throws error when PredictController.initPayWithAnyToken fails', async () => {
       const mockError = new Error('Failed to initialize pay with any token');
       (
         Engine.context.PredictController.initPayWithAnyToken as jest.Mock
       ).mockRejectedValue(mockError);
       const { result } = renderHook(() => usePredictTrading());
 
-      await expect(result.current.initiPayWithAnyToken()).rejects.toThrow(
+      await expect(result.current.initPayWithAnyToken()).rejects.toThrow(
         'Failed to initialize pay with any token',
       );
     });
@@ -416,7 +416,7 @@ describe('usePredictTrading', () => {
       const initialPreviewOrder = result.current.previewOrder;
       const initialPrepareWithdraw = result.current.prepareWithdraw;
       const initialDeposit = result.current.deposit;
-      const initialInitiPayWithAnyToken = result.current.initiPayWithAnyToken;
+      const initialInitPayWithAnyToken = result.current.initPayWithAnyToken;
 
       rerender({});
 
@@ -426,8 +426,8 @@ describe('usePredictTrading', () => {
       expect(result.current.previewOrder).toBe(initialPreviewOrder);
       expect(result.current.prepareWithdraw).toBe(initialPrepareWithdraw);
       expect(result.current.deposit).toBe(initialDeposit);
-      expect(result.current.initiPayWithAnyToken).toBe(
-        initialInitiPayWithAnyToken,
+      expect(result.current.initPayWithAnyToken).toBe(
+        initialInitPayWithAnyToken,
       );
     });
   });

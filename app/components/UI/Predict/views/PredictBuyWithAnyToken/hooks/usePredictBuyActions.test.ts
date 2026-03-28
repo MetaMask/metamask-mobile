@@ -17,7 +17,7 @@ const mockTrackPredictOrderEvent = jest.fn();
 const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
 const mockOnPlaceOrderEnd = jest.fn();
 const mockOnOrderCancelled = jest.fn();
-const mockInitiPayWithAnyToken = jest.fn();
+const mockInitPayWithAnyToken = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockTransitionEndUnsubscribe = jest.fn();
 const mockBeforeRemoveUnsubscribe = jest.fn();
@@ -93,7 +93,7 @@ jest.mock('../../../hooks/usePredictActiveOrder', () => ({
 jest.mock('../../../hooks/usePredictTrading', () => ({
   usePredictTrading: () => ({
     placeOrder: mockPlaceOrder,
-    initiPayWithAnyToken: mockInitiPayWithAnyToken,
+    initPayWithAnyToken: mockInitPayWithAnyToken,
   }),
 }));
 
@@ -104,8 +104,8 @@ jest.mock('../../../../../../core/Engine', () => ({
       onOrderCancelled: (...args: unknown[]) => mockOnOrderCancelled(...args),
       trackPredictOrderEvent: (...args: unknown[]) =>
         mockTrackPredictOrderEvent(...args),
-      initiPayWithAnyToken: (...args: unknown[]) =>
-        mockInitiPayWithAnyToken(...args),
+      initPayWithAnyToken: (...args: unknown[]) =>
+        mockInitPayWithAnyToken(...args),
     },
   },
 }));
@@ -135,7 +135,7 @@ describe('usePredictBuyActions', () => {
     jest.clearAllMocks();
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
-    mockInitiPayWithAnyToken.mockResolvedValue(undefined);
+    mockInitPayWithAnyToken.mockResolvedValue(undefined);
     mockTransitionEndCallbacks.length = 0;
     mockBeforeRemoveCallbacks.length = 0;
     mockAddListener.mockImplementation(createAddListenerMock());
@@ -152,18 +152,18 @@ describe('usePredictBuyActions', () => {
       });
     });
 
-    it('calls initiPayWithAnyToken on mount when pay with any token is enabled', () => {
+    it('calls initPayWithAnyToken on mount when pay with any token is enabled', () => {
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
-      expect(mockInitiPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
     });
 
-    it('does not call initiPayWithAnyToken when pay with any token is disabled', () => {
+    it('does not call initPayWithAnyToken when pay with any token is disabled', () => {
       mockPayWithAnyTokenEnabled = false;
 
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
-      expect(mockInitiPayWithAnyToken).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).not.toHaveBeenCalled();
     });
 
     it('rejects approval request on unmount when pay with any token is enabled', () => {
@@ -178,7 +178,7 @@ describe('usePredictBuyActions', () => {
       expect(mockOnConfirmActionsReject).toHaveBeenCalledTimes(1);
     });
 
-    it('only calls initiPayWithAnyToken once even if transitionEnd fires again', () => {
+    it('only calls initPayWithAnyToken once even if transitionEnd fires again', () => {
       const transitionEndCallbacks: ((e: {
         data: { closing: boolean };
       }) => void)[] = [];
@@ -215,19 +215,19 @@ describe('usePredictBuyActions', () => {
         transitionEndCallbacks[0]({ data: { closing: false } });
       });
 
-      expect(mockInitiPayWithAnyToken).toHaveBeenCalledTimes(1);
+      expect(mockInitPayWithAnyToken).toHaveBeenCalledTimes(1);
     });
 
     it('does not initialize pay with any token when transitionEnd is closing', () => {
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
-      mockInitiPayWithAnyToken.mockClear();
+      mockInitPayWithAnyToken.mockClear();
 
       act(() => {
         mockTransitionEndCallbacks[0]({ data: { closing: true } });
       });
 
-      expect(mockInitiPayWithAnyToken).not.toHaveBeenCalled();
+      expect(mockInitPayWithAnyToken).not.toHaveBeenCalled();
     });
 
     it('does not register cleanup listeners when pay with any token is disabled', () => {

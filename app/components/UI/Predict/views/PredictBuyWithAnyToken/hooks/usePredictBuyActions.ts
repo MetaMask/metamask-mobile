@@ -35,7 +35,7 @@ export const usePredictBuyActions = ({
     useApprovalRequest();
   const { onReject } = useConfirmActions();
   const { activeOrder } = usePredictActiveOrder();
-  const { placeOrder, initiPayWithAnyToken } = usePredictTrading();
+  const { placeOrder, initPayWithAnyToken } = usePredictTrading();
   const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
   const { PredictController } = Engine.context;
   const payWithAnyTokenEnabled = useSelector(
@@ -64,12 +64,12 @@ export const usePredictBuyActions = ({
     const unsubscribe = navigation.addListener('transitionEnd', (e) => {
       if (!e.data.closing && !hasInitializedPayWithAnyTokenRef.current) {
         hasInitializedPayWithAnyTokenRef.current = true;
-        initiPayWithAnyToken();
+        initPayWithAnyToken();
       }
     });
 
     return unsubscribe;
-  }, [navigation, initiPayWithAnyToken, payWithAnyTokenEnabled]);
+  }, [navigation, initPayWithAnyToken, payWithAnyTokenEnabled]);
 
   useEffect(() => {
     if (!payWithAnyTokenEnabled) {

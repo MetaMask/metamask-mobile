@@ -44,7 +44,7 @@ export function usePredictTrading() {
     return controller.depositWithConfirmation(params);
   }, []);
 
-  const initiPayWithAnyToken = useCallback(async () => {
+  const initPayWithAnyToken = useCallback(async () => {
     const controller = Engine.context.PredictController;
     return controller.initPayWithAnyToken();
   }, []);
@@ -56,6 +56,6 @@ export function usePredictTrading() {
     previewOrder,
     prepareWithdraw,
     deposit,
-    initiPayWithAnyToken,
+    initPayWithAnyToken,
   };
 }
