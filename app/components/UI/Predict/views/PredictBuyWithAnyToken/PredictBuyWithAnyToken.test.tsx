@@ -174,8 +174,20 @@ jest.mock(
 
 jest.mock('./components/PredictBuyAmountSection', () => {
   const { Text } = jest.requireActual('react-native');
-  return function MockPredictBuyAmountSection() {
-    return <Text testID="predict-buy-amount-section">Amount Section</Text>;
+  return function MockPredictBuyAmountSection({
+    availableBalanceDisplay,
+    isPlacingOrder,
+  }: {
+    availableBalanceDisplay: string;
+    isPlacingOrder: boolean;
+  }) {
+    return (
+      <Text testID="predict-buy-amount-section">
+        {`Amount Section ${availableBalanceDisplay} placing-${String(
+          isPlacingOrder,
+        )}`}
+      </Text>
+    );
   };
 });
 
@@ -325,7 +337,9 @@ describe('PredictBuyWithAnyToken', () => {
     renderWithProvider(<PredictBuyWithAnyToken />);
 
     expect(screen.getByTestId('predict-buy-preview-header')).toBeOnTheScreen();
-    expect(screen.getByTestId('predict-buy-amount-section')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
+      'Amount Section $10.00 placing-false',
+    );
     expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
       'disabled-false',
     );
@@ -377,5 +391,18 @@ describe('PredictBuyWithAnyToken', () => {
     renderWithProvider(<PredictBuyWithAnyToken />);
 
     expect(mockSetIsUserInputChange).not.toHaveBeenCalled();
+  });
+
+  it('disables token selection while an order is being placed', () => {
+    mockIsPlacingOrder = true;
+
+    renderWithProvider(<PredictBuyWithAnyToken />);
+
+    expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
+      'Amount Section $10.00 placing-true',
+    );
+    expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
+      'disabled-true',
+    );
   });
 });
