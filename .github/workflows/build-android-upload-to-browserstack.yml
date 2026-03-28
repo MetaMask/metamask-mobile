@@ -253,7 +253,6 @@ jobs:
           fi
           
           # Without-SRP build: seedless / BrowserStack perf onboarding (E2E_MOCK_OAUTH).
-          # Requires E2E_BYOA_AUTH_SECRET for UAT QA mock token exchange (mock login success, no seedless authenticate).
           # Optional E2E_MOCK_OAUTH_EMAIL overrides request email_id (default newuser+e2e@web3auth.io).
           ENV_VARS=$(jq -n \
             --arg byoa "${{ secrets.E2E_BYOA_AUTH_SECRET }}" \
