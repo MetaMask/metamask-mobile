@@ -1,12 +1,7 @@
 import { Mockttp } from 'mockttp';
 
-// Constants — matching extension's common-tron.ts
 export const TRON_ACCOUNT_ADDRESS = 'TJ3QZbBREK1Xybe1jf4nR9Attb8i54vGS3';
-export const TRON_RECIPIENT_ADDRESS = 'TK3xRFq22eEiATz6kfamDeAAQrPdfdGPeq';
-export const TRON_SECOND_ACCOUNT_ADDRESS =
-  'TK3xRFq22eEiATz6kfamDeAAQrPdfdGPeq';
-export const TRON_CHAIN_ID = 'tron:728126428';
-export const TRX_BALANCE = 6072392; // in SUN (~6.07 TRX)
+export const TRX_BALANCE = 6_072_392;
 export const TRX_TO_USD_RATE = 0.29469;
 export const SUN_PER_TRX = 1_000_000;
 
@@ -109,29 +104,6 @@ export async function mockTronSpotPrices(mockServer: Mockttp) {
     });
 }
 
-export async function mockTronGetBlock(mockServer: Mockttp) {
-  return await mockServer
-    .forPost(/\/wallet\/getblock/)
-    .thenJson(200, {
-      blockID: 'abc123',
-      block_header: {
-        raw_data: {
-          timestamp: Date.now(),
-          number: 12345678,
-        },
-      },
-    });
-}
-
-export async function mockBroadcastTransaction(mockServer: Mockttp) {
-  return await mockServer
-    .forPost(/\/wallet\/broadcasttransaction/)
-    .thenJson(200, {
-      result: true,
-      txid: '36c4096d30a82641ee9d8c12297ed330ddb0f8ae272dc2564995de7a4201a67e',
-    });
-}
-
 export async function mockTronFeatureFlags(mockServer: Mockttp) {
   return await mockServer
     .forGet(/client-config\.api\.cx\.metamask\.io\/v1\/flags/)
@@ -155,7 +127,5 @@ export async function mockTronApis(
     await mockTronGetTrc20Transactions(mockServer),
     await mockTronExchangeRates(mockServer),
     await mockTronSpotPrices(mockServer),
-    await mockTronGetBlock(mockServer),
-    await mockBroadcastTransaction(mockServer),
   ];
 }
