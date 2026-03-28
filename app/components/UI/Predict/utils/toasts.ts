@@ -39,3 +39,17 @@ export function showOrderPlacedToast(): void {
     data: { success: true },
   });
 }
+
+export function showOrderFailedToast(): void {
+  ToastService.showToast({
+    variant: ToastVariants.Icon,
+    iconName: IconName.Error,
+    labelOptions: [
+      {
+        label: strings('predict.order.prediction_failed'),
+        isBold: true,
+      },
+    ],
+    hasNoTimeout: false,
+  });
+}

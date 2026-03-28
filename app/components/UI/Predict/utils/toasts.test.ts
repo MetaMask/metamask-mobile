@@ -2,7 +2,7 @@ import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast/Toast.types';
 import { TraceName, TraceOperation } from '../../../../util/trace';
 import { PREDICT_CONSTANTS } from '../constants/errors';
-import { showOrderPlacedToast } from './toasts';
+import { showOrderFailedToast, showOrderPlacedToast } from './toasts';
 
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
@@ -85,5 +85,28 @@ describe('showOrderPlacedToast', () => {
     showOrderPlacedToast();
 
     expect(callOrder).toEqual(['trace', 'showToast', 'endTrace']);
+  });
+});
+
+describe('showOrderFailedToast', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+  });
+
+  it('calls ToastService.showToast with the prediction failed message', () => {
+    showOrderFailedToast();
+
+    expect(mockShowToast).toHaveBeenCalledTimes(1);
+    expect(mockShowToast).toHaveBeenCalledWith({
+      variant: ToastVariants.Icon,
+      iconName: IconName.Error,
+      labelOptions: [
+        {
+          label: 'predict.order.prediction_failed',
+          isBold: true,
+        },
+      ],
+      hasNoTimeout: false,
+    });
   });
 });

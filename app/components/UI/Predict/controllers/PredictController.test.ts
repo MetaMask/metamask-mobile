@@ -1282,13 +1282,49 @@ describe('PredictController', () => {
       });
     });
 
-    it('does not show toast when buy order fails', async () => {
+    it('shows failed toast when buy order fails and there is no active buy order', async () => {
       await withController(
         async ({ controller }) => {
           mockPolymarketProvider.placeOrder.mockRejectedValue(
             new Error('Order placement failed'),
           );
           mockShowToast.mockClear();
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Icon',
+              iconName: expect.any(String),
+              hasNoTimeout: false,
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not show failed toast when buy order fails and there is an active buy order', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          mockShowToast.mockClear();
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+          });
 
           const preview = createMockOrderPreview({ side: Side.BUY });
 

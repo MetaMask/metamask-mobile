@@ -120,7 +120,7 @@ import {
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { predictQueries } from '../queries';
 import { ensureError } from '../utils/predictErrorHandler';
-import { showOrderPlacedToast } from '../utils/toasts';
+import { showOrderFailedToast, showOrderPlacedToast } from '../utils/toasts';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import reactQueryService from '../../../../core/ReactQueryService';
 
@@ -1683,6 +1683,10 @@ export class PredictController extends BaseController<
       });
 
       traceData = { success: false, error: errorMessage };
+
+      if (!this.state.activeBuyOrder) {
+        showOrderFailedToast();
+      }
 
       // Log to Sentry with order context (excluding sensitive data like amounts)
       Logger.error(
