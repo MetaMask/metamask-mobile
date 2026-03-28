@@ -73,7 +73,7 @@ describe('predict controller init', () => {
       withdrawTransaction: null,
       selectedPaymentToken: null,
       accountMeta: {},
-      activeOrders: {},
+      activeBuyOrder: null,
     };
 
     initRequestMock.persistedState = {
