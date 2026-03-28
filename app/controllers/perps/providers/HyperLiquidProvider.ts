@@ -2,6 +2,7 @@ import { CaipAccountId } from '@metamask/utils';
 import type { Hex } from '@metamask/utils';
 import { v4 as uuidv4 } from 'uuid';
 
+import { DevLogger } from '../../../core/SDKConnect/utils/DevLogger';
 import type { CandlePeriod } from '../constants/chartConfig';
 import {
   BASIS_POINTS_DIVISOR,
@@ -4352,6 +4353,17 @@ export class HyperLiquidProvider implements PerpsProvider {
             order.detailedOrderType &&
             (order.detailedOrderType.includes('Take Profit') ||
               order.detailedOrderType.includes('Stop')),
+        );
+        DevLogger.log(
+          '[PR-28073] BUG_MARKER: updatePositionTPSL cache cancel candidates',
+          {
+            count: tpslOrders.length,
+            orders: tpslOrders.map((ord) => ({
+              id: ord.orderId,
+              isPosTpsl: ord.isPositionTpsl,
+              type: ord.detailedOrderType,
+            })),
+          },
         );
 
         cancelRequests = tpslOrders.map((order) => ({
