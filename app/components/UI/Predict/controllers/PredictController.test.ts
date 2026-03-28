@@ -137,6 +137,16 @@ jest.mock('../../../../util/analytics/analytics', () => ({
   },
 }));
 
+const mockInvalidateQueries = jest.fn();
+jest.mock('../../../../core/ReactQueryService', () => ({
+  __esModule: true,
+  default: {
+    queryClient: {
+      invalidateQueries: (...args: unknown[]) => mockInvalidateQueries(...args),
+    },
+  },
+}));
+
 type AllPredictControllerMessengerActions =
   MessengerActions<PredictControllerMessenger>;
 
@@ -1056,6 +1066,124 @@ describe('PredictController', () => {
 
         expect(result).toEqual(mockResult);
       });
+    });
+
+    it('invalidates order-related queries on successful buy order when predictWithAnyToken is enabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+          mockInvalidateQueries.mockClear();
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({ preview });
+
+          expect(mockInvalidateQueries).toHaveBeenCalledWith({
+            queryKey: ['predict', 'balance'],
+          });
+          expect(mockInvalidateQueries).toHaveBeenCalledWith({
+            queryKey: ['predict', 'positions'],
+          });
+          expect(mockInvalidateQueries).toHaveBeenCalledWith({
+            queryKey: ['predict', 'activity'],
+          });
+          expect(mockInvalidateQueries).toHaveBeenCalledWith({
+            queryKey: ['predict', 'unrealizedPnL'],
+          });
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not invalidate queries on successful sell order even when predictWithAnyToken is enabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '200',
+          receivedAmount: '100',
+        },
+      };
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+          mockInvalidateQueries.mockClear();
+
+          const preview = createMockOrderPreview({ side: Side.SELL });
+
+          await controller.placeOrder({ preview });
+
+          expect(mockInvalidateQueries).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not invalidate queries on successful buy order when predictWithAnyToken is disabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+        mockInvalidateQueries.mockClear();
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({ preview });
+
+        expect(mockInvalidateQueries).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not invalidate queries when buy order fails', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          mockInvalidateQueries.mockClear();
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          expect(mockInvalidateQueries).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
     });
 
     it('handle place order errors', async () => {

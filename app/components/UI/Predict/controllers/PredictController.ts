@@ -118,8 +118,10 @@ import {
   PredictMarketHighlightsFlag,
 } from '../types/flags';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
+import { predictQueries } from '../queries';
 import { ensureError } from '../utils/predictErrorHandler';
 import { validateDepositTransactions } from '../utils/validateTransactions';
+import reactQueryService from '../../../../core/ReactQueryService';
 
 /**
  * State shape for PredictController
@@ -1626,6 +1628,10 @@ export class PredictController extends BaseController<
         // If we can't get real share price, continue without it
       }
 
+      if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
+        this.invalidateOrderQueries();
+      }
+
       // Track Predict Trade Transaction with succeeded status (fire and forget)
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.SUCCEEDED,
@@ -2047,6 +2053,29 @@ export class PredictController extends BaseController<
       if (state.activeBuyOrder) {
         delete state.activeBuyOrder.error;
       }
+    });
+  }
+
+  /**
+   * Invalidates React Query caches for order-related data.
+   * Called after a successful order placement so that positions, activity,
+   * balance, and P&L reflect the latest state — even when the buy screen
+   * is no longer mounted (e.g. background deposit-and-order flow).
+   */
+  private invalidateOrderQueries(): void {
+    const { queryClient } = reactQueryService;
+
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.balance.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.positions.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.activity.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.unrealizedPnL.keys.all(),
     });
   }
 

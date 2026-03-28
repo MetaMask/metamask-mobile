@@ -21,6 +21,7 @@ jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
 const mockQueryClient = { invalidateQueries: jest.fn() };
 jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => mockQueryClient,
 }));
 jest.mock('../../../../../locales/i18n', () => ({

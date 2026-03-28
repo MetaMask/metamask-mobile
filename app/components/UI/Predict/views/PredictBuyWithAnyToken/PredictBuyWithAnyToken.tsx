@@ -63,8 +63,7 @@ const PredictBuyWithAnyToken = () => {
 
   const { isPlacingOrder } = usePredictActiveOrder();
 
-  const { showOrderPlacedToast, invalidateOrderQueries } =
-    usePredictPlaceOrder();
+  const { showOrderPlacedToast } = usePredictPlaceOrder();
 
   const [isFeeBreakdownVisible, setIsFeeBreakdownVisible] = useState(false);
 
@@ -177,7 +176,6 @@ const PredictBuyWithAnyToken = () => {
     preview,
     setIsConfirming,
     showOrderPlacedToast,
-    invalidateOrderQueries,
   });
 
   useEffect(() => {

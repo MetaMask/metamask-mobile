@@ -13,7 +13,6 @@ const mockDispatch = jest.fn();
 const mockOnConfirmActionsReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockUnsubscribe = jest.fn();
-const mockInvalidateQueries = jest.fn();
 const mockShowOrderPlacedToast = jest.fn();
 const mockTrackPredictOrderEvent = jest.fn();
 const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
@@ -23,7 +22,6 @@ const mockInitiPayWithAnyToken = jest.fn();
 const mockSetIsConfirming = jest.fn();
 const mockTransitionEndUnsubscribe = jest.fn();
 const mockBeforeRemoveUnsubscribe = jest.fn();
-const mockInvalidateOrderQueries = jest.fn();
 const mockTransitionEndCallbacks: ((e: {
   data: { closing: boolean };
 }) => void)[] = [];
@@ -113,12 +111,6 @@ jest.mock('../../../../../../core/Engine', () => ({
   },
 }));
 
-jest.mock('@tanstack/react-query', () => ({
-  useQueryClient: () => ({
-    invalidateQueries: mockInvalidateQueries,
-  }),
-}));
-
 const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
   preview: {
     marketId: 'market-1',
@@ -138,7 +130,6 @@ const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
   analyticsProperties: { marketId: 'market-1' },
   setIsConfirming: mockSetIsConfirming,
   showOrderPlacedToast: mockShowOrderPlacedToast,
-  invalidateOrderQueries: mockInvalidateOrderQueries,
 });
 
 describe('usePredictBuyActions', () => {
@@ -147,7 +138,6 @@ describe('usePredictBuyActions', () => {
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
     mockInitiPayWithAnyToken.mockResolvedValue(undefined);
-    mockInvalidateOrderQueries.mockReset();
     mockTransitionEndCallbacks.length = 0;
     mockBeforeRemoveCallbacks.length = 0;
     mockAddListener.mockImplementation(createAddListenerMock());
@@ -417,14 +407,10 @@ describe('usePredictBuyActions', () => {
   });
 
   describe('success effect', () => {
-    it('invalidates predict queries, shows toast, and closes the screen in SUCCESS state', async () => {
+    it('shows toast, and closes the screen in SUCCESS state', async () => {
       mockActiveOrder = { state: ActiveOrderState.SUCCESS };
 
       renderHook(() => usePredictBuyActions(createDefaultParams()));
-
-      await waitFor(() => {
-        expect(mockInvalidateOrderQueries).toHaveBeenCalledTimes(1);
-      });
 
       expect(mockShowOrderPlacedToast).toHaveBeenCalledTimes(1);
       expect(mockOnPlaceOrderEnd).toHaveBeenCalledTimes(1);
