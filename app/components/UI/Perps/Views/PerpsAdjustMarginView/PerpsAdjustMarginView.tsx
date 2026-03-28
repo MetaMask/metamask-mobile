@@ -348,7 +348,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   })}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />
@@ -396,7 +396,7 @@ const PerpsAdjustMarginView: React.FC = () => {
                   )}
                 </Text>
                 <Icon
-                  name={IconName.Arrow2Right}
+                  name={IconName.ArrowRight}
                   size={IconSize.Sm}
                   color={colors.icon.alternative}
                 />

@@ -235,7 +235,7 @@ jest.mock('../../../../../component-library/components/Texts/Text', () => {
 jest.mock('../../../../../component-library/components/Icons/Icon', () => ({
   __esModule: true,
   default: () => null,
-  IconName: { Arrow2Right: 'Arrow2Right' },
+  IconName: { Arrow2Right: 'Arrow2Right', ArrowRight: 'ArrowRight' },
   IconSize: { Md: 'Md' },
   IconColor: { Default: 'Default' },
 }));

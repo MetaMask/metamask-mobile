@@ -100,7 +100,7 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
     <View style={styles.header} testID={PerpsOrderHeaderSelectorsIDs.HEADER}>
       <ButtonIcon
         testID={PerpsOrderHeaderSelectorsIDs.BACK_BUTTON}
-        iconName={IconName.Arrow2Left}
+        iconName={IconName.ArrowLeft}
         onPress={handleBack}
         iconColor={IconColor.Default}
         size={ButtonIconSizes.Md}
