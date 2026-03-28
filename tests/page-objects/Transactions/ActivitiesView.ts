@@ -74,12 +74,18 @@ class ActivitiesView {
     );
   }
 
-  transactionStatus(row: number): DetoxElement {
-    return Matchers.getElementByID(`transaction-status-${row}`);
+  transactionStatus(identifier: number | string): DetoxElement {
+    return Matchers.getElementByID(`transaction-status-${identifier}`);
   }
 
   transactionItem(row: number): DetoxElement {
     return Matchers.getElementByID(`transaction-item-${row}`);
+  }
+
+  transactionItemTitle(row: number, titleText: string): DetoxElement {
+    return element(
+      by.text(titleText).withAncestor(by.id(`transaction-item-${row}`)),
+    ) as DetoxElement;
   }
 
   generateSwapActivityLabel(
@@ -198,26 +204,47 @@ class ActivitiesView {
   /**
    * Verifies that an activity item with the given title is visible and its row status matches.
    * Use after TabBarComponent.tapActivity(). Row 0 is the most recent transaction.
+   * For multichain entries, pass the transaction id so the status lookup matches the sheet contract.
    *
    * @param titleText - Activity title to look for (e.g. "mUSD conversion", "Sent ETH")
    * @param statusText - Expected status for the row (e.g. "Confirmed", "Failed")
    * @param rowIndex - Row index (default 0 = most recent)
+   * @param transactionId - Optional transaction id for multichain status selectors
    */
   async verifyActivityItemWithStatus(
     titleText: string,
     statusText: string,
     rowIndex = 0,
+    transactionId?: string,
   ): Promise<void> {
-    await Assertions.expectTextDisplayed(titleText, {
-      timeout: 20000,
-      description: `Activity item "${titleText}" should be visible`,
-    });
+    await Assertions.expectElementToBeVisible(
+      this.transactionItemTitle(rowIndex, titleText),
+      {
+        timeout: 20000,
+        description: `Activity row ${rowIndex} should contain "${titleText}"`,
+      },
+    );
     await Assertions.expectElementToHaveText(
-      this.transactionStatus(rowIndex),
+      this.transactionStatus(transactionId ?? rowIndex),
       statusText,
       {
         timeout: 10000,
-        description: `Activity row (index ${rowIndex}) should show status "${statusText}"`,
+        description: transactionId
+          ? `Activity transaction ${transactionId} should show status "${statusText}"`
+          : `Activity row (index ${rowIndex}) should show status "${statusText}"`,
+      },
+    );
+  }
+
+  async verifyActivityItemTitle(
+    titleText: string,
+    rowIndex = 0,
+  ): Promise<void> {
+    await Assertions.expectElementToBeVisible(
+      this.transactionItemTitle(rowIndex, titleText),
+      {
+        timeout: 20000,
+        description: `Activity row ${rowIndex} should contain "${titleText}"`,
       },
     );
   }
