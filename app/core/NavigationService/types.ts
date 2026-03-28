@@ -1,4 +1,8 @@
-import { ParamListBase } from '@react-navigation/native';
+import type {
+  ParamListBase,
+  NavigationProp,
+  NavigationState,
+} from '@react-navigation/native';
 
 // ============================================================================
 // Import types from their source files
@@ -106,7 +110,6 @@ import type {
   SDKLoadingParams,
   SDKFeedbackParams,
   SDKDisconnectParams,
-  ReturnToDappNotificationParams,
 } from '../../components/Views/SDK/SDK.types';
 
 // Notification params
@@ -129,7 +132,6 @@ import type {
 import type {
   RevealPrivateCredentialParams,
   RevealSRPCredentialParams,
-  SRPRevealQuizParams,
 } from '../../components/Views/RevealPrivateCredential/RevealPrivateCredential.types';
 
 // Card params
@@ -141,7 +143,6 @@ import type {
   AccountPermissionsParams,
   RevokeAllAccountPermissionsParams,
   ConnectionDetailsParams,
-  AddAccountParams,
   AmbiguousAddressParams,
 } from '../../components/Views/AccountActions/AccountActions.types';
 
@@ -179,14 +180,10 @@ import type {
 // Modal params
 import type {
   RootModalFlowParams,
-  ModalConfirmationParams,
-  ModalMandatoryParams,
   OptionsSheetParams,
   SelectSRPParams,
-  SeedphraseModalParams,
   TransactionDetailsSheetParams,
   ShowNftDisplayMediaParams,
-  OriginSpamModalParams,
   RegionSelectorParams,
   FoxLoaderParams,
   SnapSettingsParams,
@@ -197,6 +194,32 @@ import type {
   WebviewParams,
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
+import type { WhatsHappeningItem } from '../../components/Views/Homepage/Sections/WhatsHappening/types';
+
+// Screen params - imported from source files
+import type { AccountStatusParams } from '../../components/Views/AccountStatus/types';
+import type { DetectedTokensConfirmationParams } from '../../components/Views/DetectedTokensConfirmation';
+import type { ModalConfirmationRoute } from '../../component-library/components/Modals/ModalConfirmation/ModalConfirmation.types';
+import type { MandatoryModalParams } from '../../component-library/components/Modals/ModalMandatory/ModalMandatory.types';
+import type { OnboardingSheetParams } from '../../components/Views/OnboardingSheet';
+import type { AddNewAccountRouteParams } from '../../components/Views/AddNewAccount/AddNewAccountBottomSheet.types';
+import type { BasicFunctionalityModalParams } from '../../components/UI/BasicFunctionality/BasicFunctionalityModal/BasicFunctionalityModal';
+import type { NftOptionsParams } from '../../components/Views/NftOptions/NftOptions';
+import type { SRPQuizRouteParams } from '../../components/Views/Quiz/SRPQuiz/SRPQuiz';
+import type { OriginSpamModalRouteParams } from '../../components/Views/OriginSpamModal/OriginSpamModal';
+import type { ChangeInSimulationModalParams } from '../../components/Views/ChangeInSimulationModal/ChangeInSimulationModal';
+import type { ReturnToAppNotificationRouteParams } from '../../components/Views/ReturnToAppNotification/ReturnToAppNotification';
+
+/**
+ * Generic type for nested navigation params.
+ * Used when navigating to a screen within a nested navigator.
+ */
+export interface NestedNavigationParams {
+  screen?: string;
+  params?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
 /**
@@ -207,9 +230,9 @@ import { SectionId } from '../../components/Views/TrendingView/sections.config';
 export interface RootStackParamList extends ParamListBase {
   // Top-level routes
   WalletView: undefined;
-  BrowserTabHome: BrowserParams | undefined;
+  BrowserTabHome: BrowserParams | NestedNavigationParams | undefined;
   BrowserView: BrowserParams | undefined;
-  SettingsView: undefined;
+  SettingsView: NestedNavigationParams | undefined;
   DeprecatedNetworkDetails: undefined;
 
   // Ramp routes
@@ -234,8 +257,10 @@ export interface RootStackParamList extends ParamListBase {
   SendTransaction: undefined;
   RampSettings: undefined;
   RampActivationKeyForm: undefined;
-  RampAmountInput: SimpleRampBuildQuoteParams | undefined;
-  RampModals: undefined;
+  RampAmountInput:
+    | (SimpleRampBuildQuoteParams & { nativeFlowError?: string })
+    | undefined;
+  RampModals: NestedNavigationParams | undefined;
   RampTokenSelectorModal: undefined;
   RampFiatSelectorModal: undefined;
   RampIncompatibleAccountTokenModal: undefined;
@@ -253,7 +278,7 @@ export interface RootStackParamList extends ParamListBase {
   OtpCode: undefined;
   VerifyIdentity: undefined;
   BasicInfo: undefined;
-  EnterAddress: undefined;
+  EnterAddress: Record<string, unknown> | undefined;
   KycProcessing: undefined;
   OrderProcessing: undefined;
   DepositOrderDetails: undefined;
@@ -295,6 +320,9 @@ export interface RootStackParamList extends ParamListBase {
   RewardsDashboard: undefined;
   TrendingView: undefined;
   TrendingFeed: undefined;
+  WhatsHappeningDetailView:
+    | { items: WhatsHappeningItem[]; initialIndex: number }
+    | undefined;
   SitesFullView: undefined;
   ExploreSearch: undefined;
   ExploreSectionResultsFullView: {
@@ -312,14 +340,15 @@ export interface RootStackParamList extends ParamListBase {
 
   // Modal routes
   DeleteWalletModal: undefined;
-  RootModalFlow: RootModalFlowParams | undefined;
-  ModalConfirmation: ModalConfirmationParams | undefined;
-  ModalMandatory: ModalMandatoryParams | undefined;
+  RootModalFlow: RootModalFlowParams | NestedNavigationParams | undefined;
+  ModalConfirmation: ModalConfirmationRoute['params'] | undefined;
+  ModalMandatory: MandatoryModalParams['params'] | undefined;
   WhatsNewModal: undefined;
   TurnOffRememberMeModal: undefined;
   UpdateNeededModal: undefined;
   DetectedTokens: undefined;
-  SRPRevealQuiz: SRPRevealQuizParams | undefined;
+  DetectedTokensConfirmation: DetectedTokensConfirmationParams;
+  SRPRevealQuiz: SRPQuizRouteParams | undefined;
   WalletActions: undefined;
   TradeWalletActions: undefined;
   FundActionMenu: undefined;
@@ -344,6 +373,9 @@ export interface RootStackParamList extends ParamListBase {
   OnboardingRootNav: undefined;
   OnboardingSuccessFlow: undefined;
   OnboardingSuccess: undefined;
+  AccountStatus: AccountStatusParams | undefined;
+  AccountAlreadyExists: AccountStatusParams | undefined;
+  AccountNotFound: AccountStatusParams | undefined;
   DefaultSettings: undefined;
   GeneralSettings: undefined;
   AssetsSettings: undefined;
@@ -360,7 +392,14 @@ export interface RootStackParamList extends ParamListBase {
   ChoosePassword: ChoosePasswordRouteParams | undefined;
   OptinMetrics: OptinMetricsRouteParams | undefined;
   SocialLoginSuccessExistingUser: undefined;
-  Rehydrate: undefined;
+  Rehydrate:
+    | {
+        previous_screen?: string;
+        oauthLoginSuccess?: boolean;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        onboardingTraceCtx?: any;
+      }
+    | undefined;
 
   // Send flow routes
   SendTo: SendFlowParams | undefined;
@@ -385,9 +424,9 @@ export interface RootStackParamList extends ParamListBase {
   // Sheet routes
   AccountSelector: AccountSelectorParams | undefined;
   AddressSelector: AddressSelectorParams | undefined;
-  AddAccount: AddAccountParams | undefined;
+  AddAccount: AddNewAccountRouteParams | undefined;
   AmbiguousAddress: AmbiguousAddressParams | undefined;
-  BasicFunctionality: undefined;
+  BasicFunctionality: BasicFunctionalityModalParams | undefined;
   ConfirmTurnOnBackupAndSync: undefined;
   SDKLoading: SDKLoadingParams | undefined;
   SDKFeedback: SDKFeedbackParams | undefined;
@@ -406,16 +445,17 @@ export interface RootStackParamList extends ParamListBase {
   ShowIpfs: ShowIpfsGatewaySheetParams | undefined;
   ShowNftDisplayMedia: ShowNftDisplayMediaParams | undefined;
   ShowTokenId: ShowTokenIdSheetParams | undefined;
-  OriginSpamModal: OriginSpamModalParams | undefined;
+  OriginSpamModal: OriginSpamModalRouteParams | undefined;
   tooltipModal: TooltipModalRouteParams | undefined;
   TokenSort: undefined;
   NetworkManager: undefined;
-  ChangeInSimulationModal: undefined;
+  ChangeInSimulationModal: ChangeInSimulationModalParams | undefined;
   SelectSRP: SelectSRPParams | undefined;
-  OnboardingSheet: undefined;
-  SeedphraseModal: SeedphraseModalParams | undefined;
+  OnboardingSheet: OnboardingSheetParams | undefined;
+  SeedphraseModal: undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
+  NftOptions: NftOptionsParams;
   EligibilityFailedModal: undefined;
   UnsupportedRegionModal: undefined;
   MultichainTransactionDetails: MultichainTransactionDetailsParams | undefined;
@@ -431,7 +471,7 @@ export interface RootStackParamList extends ParamListBase {
   DeleteAccount: DeleteAccountParams | undefined;
   RevealPrivateCredential: RevealPrivateCredentialParams | undefined;
   RevealSRPCredential: RevealSRPCredentialParams | undefined;
-  SRPRevealQuizInMultichainAccountDetails: SRPRevealQuizParams | undefined;
+  SRPRevealQuizInMultichainAccountDetails: SRPQuizRouteParams | undefined;
   SmartAccount: SmartAccountParams | undefined;
 
   // Browser routes
@@ -439,12 +479,12 @@ export interface RootStackParamList extends ParamListBase {
   AssetView: AssetViewParams | undefined;
 
   // Webview routes
-  Webview: WebviewParams | undefined;
+  Webview: WebviewParams | NestedNavigationParams | undefined;
   SimpleWebview: SimpleWebviewParams | undefined;
 
   // Wallet routes
-  WalletTabHome: undefined;
-  WalletTabStackFlow: undefined;
+  WalletTabHome: NestedNavigationParams | undefined;
+  WalletTabStackFlow: NestedNavigationParams | undefined;
   WalletConnectSessionsView: undefined;
   NftFullView: undefined;
   TokensFullView: undefined;
@@ -553,7 +593,7 @@ export interface RootStackParamList extends ParamListBase {
     | LendingWithdrawalConfirmationParams
     | undefined;
   EarnMusdConversionEducation: undefined;
-  EarnModals: undefined;
+  EarnModals: NestedNavigationParams | undefined;
   EarnLendingMaxWithdrawalModal: LendingMaxWithdrawalModalParams | undefined;
   EarnLendingLearnMoreModal: undefined;
 
@@ -584,7 +624,7 @@ export interface RootStackParamList extends ParamListBase {
 
   // Misc routes
   FoxLoader: FoxLoaderParams | undefined;
-  SetPasswordFlow: undefined;
+  SetPasswordFlow: NestedNavigationParams | undefined;
   EditAccountName: EditAccountNameParams | undefined;
 
   ///: BEGIN:ONLY_INCLUDE_IF(sample-feature)
@@ -604,7 +644,13 @@ export interface RootStackParamList extends ParamListBase {
   VerifyingRegistration: undefined;
   ChooseYourCard: undefined;
   ReviewOrder: undefined;
-  OrderCompleted: undefined;
+  OrderCompleted:
+    | {
+        paymentMethod?: string;
+        transactionHash?: string;
+        fromUpgrade?: boolean;
+      }
+    | undefined;
   CardOnboarding: undefined;
   CardOnboardingSignUp: undefined;
   CardOnboardingConfirmEmail: undefined;
@@ -629,11 +675,11 @@ export interface RootStackParamList extends ParamListBase {
 
   // Send routes
   Recipient: SendRecipientParams | undefined;
-  Asset: SendAssetParams | undefined;
+  Asset: AssetViewParams | SendAssetParams | undefined;
   Send: SendParams | undefined;
 
   // SDK routes
-  ReturnToDappToast: ReturnToDappNotificationParams | undefined;
+  ReturnToDappToast: ReturnToAppNotificationRouteParams | undefined;
 
   // Feature flag route
   FeatureFlagOverride: undefined;
@@ -645,3 +691,16 @@ declare global {
     interface RootParamList extends RootStackParamList {}
   }
 }
+
+/**
+ * Type for the navigation object returned from useNavigation().
+ * This type accounts for getState() potentially returning undefined
+ * when the navigator is not mounted.
+ * Uses ReactNavigation.RootParamList to match the global declaration.
+ */
+export type AppNavigationProp = Omit<
+  NavigationProp<ReactNavigation.RootParamList>,
+  'getState'
+> & {
+  getState(): NavigationState<ReactNavigation.RootParamList> | undefined;
+};

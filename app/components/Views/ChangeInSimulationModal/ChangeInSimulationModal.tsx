@@ -1,5 +1,7 @@
 import React, { useCallback, useRef } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { strings } from '../../../../locales/i18n';
 import BottomSheet, {
   BottomSheetRef,
@@ -38,11 +40,14 @@ const createStyles = () =>
     },
   });
 
-const ChangeInSimulationModal = ({
-  route,
-}: {
-  route: { params: { onProceed: () => void; onReject: () => void } };
-}) => {
+export interface ChangeInSimulationModalParams {
+  onProceed: () => void;
+  onReject: () => void;
+}
+
+type Props = StackScreenProps<RootStackParamList, 'ChangeInSimulationModal'>;
+
+const ChangeInSimulationModal = ({ route }: Props) => {
   const styles = createStyles();
   const sheetRef = useRef<BottomSheetRef>(null);
   const { onProceed, onReject } = route.params;

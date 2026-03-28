@@ -1,10 +1,12 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import { StackScreenProps } from '@react-navigation/stack';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
 import { strings } from '../../../../locales/i18n';
 import { useTheme } from '../../../util/theme';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 
 // TODO: Replace "any" with type
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -53,14 +55,12 @@ const createStyles = (colors: any) =>
     },
   });
 
-interface Props {
-  route: {
-    params: {
-      isHidingAll?: boolean;
-      onConfirm: () => void;
-    };
-  };
+export interface DetectedTokensConfirmationParams {
+  isHidingAll?: boolean;
+  onConfirm: () => void;
 }
+
+type Props = StackScreenProps<RootStackParamList, 'DetectedTokensConfirmation'>;
 
 const DetectedTokensConfirmation = ({ route }: Props) => {
   const { onConfirm, isHidingAll } = route.params;

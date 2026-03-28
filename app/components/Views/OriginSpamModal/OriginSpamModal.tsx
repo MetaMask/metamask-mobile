@@ -1,5 +1,7 @@
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { ImageSourcePropType, StyleSheet, View } from 'react-native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import { useDispatch } from 'react-redux';
 import { getUrlObj, prefixUrlWithProtocol } from '../../../util/browser';
 import { strings } from '../../../../locales/i18n';
@@ -160,11 +162,13 @@ const SiteBlockedContent = ({ onCloseModal }: { onCloseModal: () => void }) => {
   );
 };
 
-const OriginSpamModal = ({
-  route,
-}: {
-  route: { params: { origin: string } };
-}) => {
+export interface OriginSpamModalRouteParams {
+  origin: string;
+}
+
+type Props = StackScreenProps<RootStackParamList, 'OriginSpamModal'>;
+
+const OriginSpamModal = ({ route }: Props) => {
   const dispatch = useDispatch();
   const { origin } = route.params;
   const styles = createStyles();
