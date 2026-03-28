@@ -35,7 +35,7 @@ export const ResetNavigationToHome = CommonActions.reset({
   routes: [{ name: 'HomeNav' }],
 });
 
-interface OnboardingSuccessRouteParams {
+export interface OnboardingSuccessRouteParams {
   successFlow?: ONBOARDING_SUCCESS_FLOW;
 }
 
