@@ -36,7 +36,8 @@ export const usePredictBuyActions = ({
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
-  const { onConfirm: onApprovalConfirm } = useApprovalRequest();
+  const { onConfirm: onApprovalConfirm, approvalRequest } =
+    useApprovalRequest();
   const { onReject } = useConfirmActions();
   const { activeOrder } = usePredictActiveOrder();
   const { placeOrder, initiPayWithAnyToken } = usePredictTrading();
@@ -107,6 +108,10 @@ export const usePredictBuyActions = ({
 
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
+
+    // Capture transactionId BEFORE approving (approval clears the request)
+    const transactionId = approvalRequest?.id;
+
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
       onApprovalConfirm({
         deleteAfterResult: true,
@@ -121,9 +126,14 @@ export const usePredictBuyActions = ({
       };
     }
 
-    return handlePlaceOrder({ analyticsProperties, preview });
+    return handlePlaceOrder({
+      analyticsProperties,
+      preview,
+      transactionId,
+    });
   }, [
     setIsConfirming,
+    approvalRequest,
     currentState,
     handlePlaceOrder,
     analyticsProperties,

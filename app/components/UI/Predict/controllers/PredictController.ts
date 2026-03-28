@@ -151,14 +151,11 @@ export type PredictControllerState = {
   // TODO: change to be per-account basis
   withdrawTransaction: PredictWithdraw | null;
 
-  activeOrders: {
-    [address: string]: {
-      batchId?: string;
-      state: ActiveOrderState;
-      error?: string;
-      analyticsProperties?: PlaceOrderParams['analyticsProperties'];
-    };
-  };
+  activeBuyOrder: {
+    transactionId?: string;
+    state: ActiveOrderState;
+    error?: string;
+  } | null;
 
   selectedPaymentToken: {
     address: string;
@@ -184,7 +181,7 @@ export const getDefaultPredictControllerState = (): PredictControllerState => ({
   pendingDeposits: {},
   pendingClaims: {},
   withdrawTransaction: null,
-  activeOrders: {},
+  activeBuyOrder: null,
   selectedPaymentToken: null,
   accountMeta: {},
 });
@@ -247,7 +244,7 @@ const metadata: StateMetadata<PredictControllerState> = {
     includeInStateLogs: false,
     usedInUi: true,
   },
-  activeOrders: {
+  activeBuyOrder: {
     persist: false,
     includeInDebugSnapshot: false,
     includeInStateLogs: false,
@@ -367,7 +364,13 @@ export class PredictController extends BaseController<
 > {
   private provider: PolymarketProvider;
 
-  private depositPreview: { [address: string]: OrderPreview } = {};
+  private pendingOrderPreviews: {
+    [transactionId: string]: {
+      preview: OrderPreview;
+      signerAddress: string;
+      analyticsProperties?: PlaceOrderParams['analyticsProperties'];
+    };
+  } = {};
 
   constructor({ messenger, state = {} }: PredictControllerOptions) {
     super({
@@ -519,6 +522,13 @@ export class PredictController extends BaseController<
       fakOrdersEnabled,
       predictWithAnyTokenEnabled,
     };
+  }
+
+  private isCurrentActiveBuyOrder(transactionId?: string): boolean {
+    if (!this.state.activeBuyOrder) return false;
+    if (!transactionId) return true;
+    if (!this.state.activeBuyOrder.transactionId) return true;
+    return this.state.activeBuyOrder.transactionId === transactionId;
   }
 
   private getEvmAccountAddress(): string {
@@ -1465,40 +1475,51 @@ export class PredictController extends BaseController<
   async placeOrder(params: PlaceOrderParams): Promise<Result> {
     const activeOrderAddress = params.address ?? this.getEvmAccountAddress();
     const { predictWithAnyTokenEnabled } = this.resolveFeatureFlags();
+    const canUpdateActiveBuyOrder = this.isCurrentActiveBuyOrder(
+      params.transactionId,
+    );
 
     if (
       predictWithAnyTokenEnabled &&
-      this.state.activeOrders[activeOrderAddress]?.state ===
-        ActiveOrderState.PAY_WITH_ANY_TOKEN
+      canUpdateActiveBuyOrder &&
+      this.state.activeBuyOrder?.state === ActiveOrderState.PAY_WITH_ANY_TOKEN
     ) {
-      this.update((state) => {
-        state.activeOrders[activeOrderAddress] = {
-          ...state.activeOrders[activeOrderAddress],
-          state: ActiveOrderState.DEPOSITING,
+      const transactionId = params.transactionId;
+      if (transactionId) {
+        this.pendingOrderPreviews[transactionId] = {
+          preview: params.preview,
+          signerAddress: activeOrderAddress,
           analyticsProperties: params.analyticsProperties,
         };
+      }
+      this.update((state) => {
+        if (state.activeBuyOrder) {
+          state.activeBuyOrder.state = ActiveOrderState.DEPOSITING;
+          state.activeBuyOrder.transactionId = transactionId;
+        }
       });
-      this.depositPreview[activeOrderAddress] = params.preview;
       return {
         success: false,
         response: { status: 'deposit_in_progress' },
       } as unknown as Result;
     }
 
-    if (predictWithAnyTokenEnabled && params.preview.side === Side.BUY) {
+    if (
+      predictWithAnyTokenEnabled &&
+      params.preview.side === Side.BUY &&
+      canUpdateActiveBuyOrder
+    ) {
       this.update((state) => {
-        state.activeOrders[activeOrderAddress] = {
-          ...state.activeOrders[activeOrderAddress],
-          state: ActiveOrderState.PLACING_ORDER,
-        };
+        if (state.activeBuyOrder) {
+          state.activeBuyOrder.state = ActiveOrderState.PLACING_ORDER;
+        }
       });
     }
 
     const startTime = performance.now();
     const { analyticsProperties, preview: previewParam } = params;
 
-    const preview = this.depositPreview[activeOrderAddress] ?? previewParam;
-    delete this.depositPreview[activeOrderAddress];
+    const preview = previewParam;
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
@@ -1531,7 +1552,7 @@ export class PredictController extends BaseController<
     try {
       const provider = this.provider;
 
-      const signer = this.getSigner();
+      const signer = this.getSigner(activeOrderAddress);
 
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
@@ -1557,11 +1578,15 @@ export class PredictController extends BaseController<
         throw new Error(result.error);
       }
 
-      if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
+      if (
+        predictWithAnyTokenEnabled &&
+        preview.side === Side.BUY &&
+        canUpdateActiveBuyOrder
+      ) {
         this.update((state) => {
-          state.activeOrders[activeOrderAddress] = {
-            state: ActiveOrderState.SUCCESS,
-          };
+          if (state.activeBuyOrder) {
+            state.activeBuyOrder.state = ActiveOrderState.SUCCESS;
+          }
         });
       }
 
@@ -1635,14 +1660,18 @@ export class PredictController extends BaseController<
       this.update((state) => {
         state.lastError = errorMessage;
         state.lastUpdateTimestamp = Date.now();
-        if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
-          state.activeOrders[activeOrderAddress] = {
-            ...state.activeOrders[activeOrderAddress],
-            state: ActiveOrderState.PREVIEW,
-            error: errorMessage,
-          };
+        if (
+          predictWithAnyTokenEnabled &&
+          preview.side === Side.BUY &&
+          canUpdateActiveBuyOrder &&
+          state.activeBuyOrder
+        ) {
+          state.activeBuyOrder.state = ActiveOrderState.PREVIEW;
+          state.activeBuyOrder.error = errorMessage;
         }
-        state.selectedPaymentToken = null;
+        if (canUpdateActiveBuyOrder) {
+          state.selectedPaymentToken = null;
+        }
       });
 
       traceData = { success: false, error: errorMessage };
@@ -1662,15 +1691,15 @@ export class PredictController extends BaseController<
 
       if (
         predictWithAnyTokenEnabled &&
-        this.state.activeOrders[activeOrderAddress]?.batchId
+        canUpdateActiveBuyOrder &&
+        this.state.activeBuyOrder?.transactionId
       ) {
         this.update((state) => {
-          state.activeOrders[activeOrderAddress] = {
-            ...state.activeOrders[activeOrderAddress],
-            batchId: undefined,
-          };
+          if (state.activeBuyOrder) {
+            state.activeBuyOrder.transactionId = undefined;
+          }
         });
-        this.initPayWithAnyToken(activeOrderAddress).catch((err) => {
+        this.initPayWithAnyToken().catch((err) => {
           Logger.error(
             ensureError(err),
             this.getErrorContext('placeOrder', {
@@ -2014,19 +2043,18 @@ export class PredictController extends BaseController<
   }
 
   public clearOrderError(): void {
-    const address = this.getEvmAccountAddress();
     this.update((state) => {
-      if (state.activeOrders[address]) {
-        delete state.activeOrders[address].error;
+      if (state.activeBuyOrder) {
+        delete state.activeBuyOrder.error;
       }
     });
   }
 
-  public onPlaceOrderEnd(address?: string): void {
-    const resolvedAddress = address ?? this.getEvmAccountAddress();
-    this.clearActiveOrder(resolvedAddress);
+  public onPlaceOrderEnd(): void {
+    this.update((state) => {
+      state.activeBuyOrder = null;
+    });
     this.setSelectedPaymentToken(null);
-    delete this.depositPreview[resolvedAddress];
   }
 
   public selectPaymentToken(token: AssetType | null): void {
@@ -2047,8 +2075,7 @@ export class PredictController extends BaseController<
           },
     );
 
-    const activeOrderAddress = this.getEvmAccountAddress();
-    const activeOrder = this.state.activeOrders[activeOrderAddress];
+    const activeOrder = this.state.activeBuyOrder;
     if (!activeOrder) {
       return;
     }
@@ -2060,9 +2087,8 @@ export class PredictController extends BaseController<
         return;
       }
       this.update((state) => {
-        if (state.activeOrders[activeOrderAddress]) {
-          state.activeOrders[activeOrderAddress].state =
-            ActiveOrderState.PREVIEW;
+        if (state.activeBuyOrder) {
+          state.activeBuyOrder.state = ActiveOrderState.PREVIEW;
         }
       });
       return;
@@ -2073,18 +2099,16 @@ export class PredictController extends BaseController<
         return;
       }
       this.update((state) => {
-        if (state.activeOrders[activeOrderAddress]) {
-          state.activeOrders[activeOrderAddress].state =
-            ActiveOrderState.PAY_WITH_ANY_TOKEN;
+        if (state.activeBuyOrder) {
+          state.activeBuyOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
         }
       });
     }
   }
 
-  public clearActiveOrder(address?: string): void {
-    const resolvedAddress = address ?? this.getEvmAccountAddress();
+  public clearActiveOrder(): void {
     this.update((state) => {
-      delete state.activeOrders[resolvedAddress];
+      state.activeBuyOrder = null;
     });
   }
 
@@ -2227,40 +2251,27 @@ export class PredictController extends BaseController<
    * `PredictPayWithAnyTokenInfo`.
    *
    */
-  public async initPayWithAnyToken(
-    address?: string,
-  ): Promise<Result<{ batchId: string }>> {
+  public async initPayWithAnyToken(): Promise<Result<{ batchId: string }>> {
     const provider = this.provider;
-    const activeOrderAddress = address ?? this.getEvmAccountAddress();
 
-    if (!this.state.activeOrders[activeOrderAddress]) {
+    if (!this.state.activeBuyOrder) {
       this.update((state) => {
         state.selectedPaymentToken = null;
-        state.activeOrders[activeOrderAddress] = {
+        state.activeBuyOrder = {
           state: ActiveOrderState.PREVIEW,
         };
       });
     }
 
-    const activeOrder = this.state.activeOrders[activeOrderAddress];
+    const activeOrder = this.state.activeBuyOrder;
     if (!activeOrder) {
       throw new Error(
         'Active order is required for pay-with-any-token confirmation',
       );
     }
 
-    if (activeOrder.batchId) {
-      throw new Error('Pay-with-any-token confirmation is already in progress');
-    }
-
     try {
       const signer = this.getSigner();
-
-      this.update((state) => {
-        if (state.activeOrders[activeOrderAddress]) {
-          delete state.activeOrders[activeOrderAddress].batchId;
-        }
-      });
 
       const depositPreparation = await provider.prepareDeposit({
         signer,
@@ -2333,9 +2344,8 @@ export class PredictController extends BaseController<
       const { batchId } = batchResult;
 
       this.update((state) => {
-        if (state.activeOrders[activeOrderAddress]) {
-          state.activeOrders[activeOrderAddress].batchId = batchId;
-          delete state.activeOrders[activeOrderAddress].error;
+        if (state.activeBuyOrder) {
+          delete state.activeBuyOrder.error;
         }
       });
 
@@ -2480,20 +2490,27 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'depositAndOrder' && status === 'confirmed') {
-      if (!this.depositPreview[address]) {
-        this.update((state) => {
-          state.activeOrders[address] = {
-            state: ActiveOrderState.PREVIEW,
-            error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
-          };
-        });
+      const transactionId = transactionMeta.id;
+      const pendingOrder = transactionId
+        ? this.pendingOrderPreviews[transactionId]
+        : null;
+
+      if (!pendingOrder) {
         return;
       }
+
+      const {
+        preview,
+        signerAddress,
+        analyticsProperties: pendingAnalytics,
+      } = pendingOrder;
+      delete this.pendingOrderPreviews[transactionId];
+
       this.placeOrder({
-        analyticsProperties:
-          this.state.activeOrders[address]?.analyticsProperties,
-        preview: this.depositPreview[address],
-        address,
+        analyticsProperties: pendingAnalytics,
+        preview,
+        address: signerAddress,
+        transactionId,
       }).catch((error) => {
         Logger.error(
           ensureError(error),
@@ -2505,28 +2522,44 @@ export class PredictController extends BaseController<
     }
 
     if (type === 'depositAndOrder' && status === 'failed') {
-      const errorMessage =
-        transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      const transactionId = transactionMeta.id;
+      if (transactionId) {
+        delete this.pendingOrderPreviews[transactionId];
+      }
 
-      this.update((state) => {
-        if (state.activeOrders[address]) {
-          state.activeOrders[address].state = ActiveOrderState.PREVIEW;
-          state.activeOrders[address].error = errorMessage;
-          delete state.activeOrders[address].batchId;
-        }
-      });
-      this.initPayWithAnyToken(address).catch((error) => {
-        Logger.error(
-          ensureError(error),
-          this.getErrorContext('handleTransactionSideEffects', {
-            operation: 'initPayWithAnyToken',
-          }),
-        );
-      });
+      const canUpdateActiveBuyOrder =
+        this.isCurrentActiveBuyOrder(transactionId);
+      if (canUpdateActiveBuyOrder) {
+        const errorMessage =
+          transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+
+        this.update((state) => {
+          if (state.activeBuyOrder) {
+            state.activeBuyOrder.state = ActiveOrderState.PREVIEW;
+            state.activeBuyOrder.error = errorMessage;
+            state.activeBuyOrder.transactionId = undefined;
+          }
+        });
+        this.initPayWithAnyToken().catch((error) => {
+          Logger.error(
+            ensureError(error),
+            this.getErrorContext('handleTransactionSideEffects', {
+              operation: 'initPayWithAnyToken',
+            }),
+          );
+        });
+      }
     }
 
     if (type === 'depositAndOrder' && status === 'rejected') {
-      this.onPlaceOrderEnd(address);
+      const transactionId = transactionMeta.id;
+      if (transactionId) {
+        delete this.pendingOrderPreviews[transactionId];
+      }
+
+      if (this.isCurrentActiveBuyOrder(transactionId)) {
+        this.onPlaceOrderEnd();
+      }
     }
 
     if (type === 'claim' && isTerminal) {

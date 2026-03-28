@@ -10,8 +10,7 @@ import {
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
   selectPredictWithdrawTransaction,
-  selectPredictActiveOrders,
-  selectPredictActiveOrderByAddress,
+  selectPredictActiveBuyOrder,
   selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
@@ -142,73 +141,57 @@ describe('Predict Controller Selectors', () => {
     });
   });
 
-  describe('selectPredictActiveOrders', () => {
-    it('returns active orders when they exist', () => {
-      const activeOrders = {
-        '0x123': {
-          state: 'preview',
-          batchId: 'batch-1',
-        },
+  describe('selectPredictActiveBuyOrder', () => {
+    it('returns active buy order when it exists', () => {
+      const activeBuyOrder = {
+        state: 'preview',
+        transactionId: 'tx-1',
       };
 
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              activeOrders,
+              activeBuyOrder,
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictActiveOrders(mockState as any);
+      const result = selectPredictActiveBuyOrder(mockState as any);
 
-      expect(result).toEqual(activeOrders);
+      expect(result).toEqual(activeBuyOrder);
     });
 
-    it('returns the active order for a specific address', () => {
-      const activeOrder = {
-        state: 'placing_order',
-        batchId: 'batch-2',
-      };
+    it('returns null when active buy order is null', () => {
       const mockState = {
         engine: {
           backgroundState: {
             PredictController: {
-              activeOrders: {
-                '0x123': activeOrder,
-              },
+              activeBuyOrder: null,
             },
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictActiveOrderByAddress({ address: '0x123' })(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockState as any,
-      );
+      const result = selectPredictActiveBuyOrder(mockState as any);
 
-      expect(result).toEqual(activeOrder);
+      expect(result).toBeNull();
     });
 
-    it('returns null when the active order for an address does not exist', () => {
+    it('returns null when PredictController state is undefined', () => {
       const mockState = {
         engine: {
           backgroundState: {
-            PredictController: {
-              activeOrders: {},
-            },
+            PredictController: undefined,
           },
         },
       };
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      const result = selectPredictActiveOrderByAddress({ address: '0xabc' })(
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        mockState as any,
-      );
+      const result = selectPredictActiveBuyOrder(mockState as any);
 
       expect(result).toBeNull();
     });

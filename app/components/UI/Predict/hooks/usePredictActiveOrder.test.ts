@@ -18,19 +18,6 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
-jest.mock(
-  '../../../../selectors/multichainAccounts/accountTreeController',
-  () => ({
-    selectSelectedAccountGroupId: jest.fn(() => 'selected-account-group-id'),
-  }),
-);
-
-jest.mock('../utils/accounts', () => ({
-  getEvmAccountFromSelectedAccountGroup: jest.fn(() => ({
-    address: '0x123',
-  })),
-}));
-
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('usePredictActiveOrder', () => {
@@ -42,10 +29,8 @@ describe('usePredictActiveOrder', () => {
           engine: {
             backgroundState: {
               PredictController: {
-                activeOrders: {
-                  '0x123': {
-                    state: ActiveOrderState.PREVIEW,
-                  },
+                activeBuyOrder: {
+                  state: ActiveOrderState.PREVIEW,
                 },
               },
             },
@@ -82,9 +67,7 @@ describe('usePredictActiveOrder', () => {
             engine: {
               backgroundState: {
                 PredictController: {
-                  activeOrders: {
-                    '0x123': mockActiveOrder,
-                  },
+                  activeBuyOrder: mockActiveOrder,
                 },
               },
             },
@@ -106,10 +89,8 @@ describe('usePredictActiveOrder', () => {
             engine: {
               backgroundState: {
                 PredictController: {
-                  activeOrders: {
-                    '0x123': {
-                      state: ActiveOrderState.DEPOSITING,
-                    },
+                  activeBuyOrder: {
+                    state: ActiveOrderState.DEPOSITING,
                   },
                 },
               },
@@ -133,10 +114,8 @@ describe('usePredictActiveOrder', () => {
             engine: {
               backgroundState: {
                 PredictController: {
-                  activeOrders: {
-                    '0x123': {
-                      state: ActiveOrderState.PLACING_ORDER,
-                    },
+                  activeBuyOrder: {
+                    state: ActiveOrderState.PLACING_ORDER,
                   },
                 },
               },
@@ -153,14 +132,14 @@ describe('usePredictActiveOrder', () => {
       expect(result.current.isPlacingOrder).toBe(true);
     });
 
-    it('returns false flags when there is no active order for the address', () => {
+    it('returns false flags when there is no active buy order', () => {
       mockUseSelector.mockImplementation((selector) => {
         if (typeof selector === 'function') {
           return selector({
             engine: {
               backgroundState: {
                 PredictController: {
-                  activeOrders: {},
+                  activeBuyOrder: null,
                 },
               },
             },

@@ -494,6 +494,7 @@ export type OrderResult = Result<{
 export interface PlaceOrderParams {
   preview: OrderPreview;
   address?: string;
+  transactionId?: string;
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;
