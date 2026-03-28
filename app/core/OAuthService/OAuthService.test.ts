@@ -71,7 +71,12 @@ jest.mock('../../util/analytics/analytics', () => ({
   },
 }));
 
+jest.mock('../../util/e2eSeedlessMockOAuthDeepLink', () => ({}));
+
 const mockIsE2EMockOAuth = jest.fn().mockReturnValue(false);
+const mockIsE2EMockOAuthExistingUserScenario = jest
+  .fn<boolean, []>()
+  .mockReturnValue(false);
 const mockGetE2EByoaAuthSecret = jest.fn<string | undefined, []>(
   () => undefined,
 );
@@ -80,6 +85,9 @@ jest.mock('../../util/environment', () => ({
   ...jest.requireActual('../../util/environment'),
   isE2EMockOAuth: () => mockIsE2EMockOAuth(),
   getE2EByoaAuthSecret: () => mockGetE2EByoaAuthSecret(),
+  isE2EMockOAuthExistingUserScenario: () =>
+    mockIsE2EMockOAuthExistingUserScenario(),
+  // QAMockOAuthService calls with optional email; ignore args in mock.
 }));
 
 import OAuthLoginService from './OAuthService';
@@ -506,6 +514,7 @@ describe('OAuth login service', () => {
     afterEach(() => {
       fetchSpy.mockRestore();
       mockIsE2EMockOAuth.mockReturnValue(false);
+      mockIsE2EMockOAuthExistingUserScenario.mockReturnValue(false);
       mockGetE2EByoaAuthSecret.mockReturnValue(undefined);
       delete process.env.E2E_MOCK_OAUTH_EMAIL;
     });
@@ -556,6 +565,20 @@ describe('OAuth login service', () => {
         (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
       );
       expect(body.email_id).toBe('custom+e2e@web3auth.io');
+    });
+
+    it('returns existingUser true when isE2EMockOAuthExistingUserScenario is true', async () => {
+      mockIsE2EMockOAuthExistingUserScenario.mockReturnValue(true);
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result.type).toBe('success');
+      expect(result.existingUser).toBe(true);
+      expect(result.accountName).toBe('swnam909@gmail.com');
     });
 
     it('rejects when QA mock token response is non-OK', async () => {

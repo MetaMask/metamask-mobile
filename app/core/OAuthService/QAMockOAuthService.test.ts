@@ -28,7 +28,11 @@ jest.mock('./OAuthLoginHandlers/constants', () => {
   };
 });
 
+import { resetE2EMockOAuthExistingUserRuntimeOverride } from '../../util/e2eMockOAuthExistingUserScenario';
 import { QAMockOAuthService } from './QAMockOAuthService';
+
+const originalExistingUserEnv = process.env.E2E_MOCK_OAUTH_EXISTING_USER;
+const originalMockOAuthEnv = process.env.E2E_MOCK_OAUTH;
 
 const createStubLoginHandler = (): BaseLoginHandler =>
   ({
@@ -55,6 +59,22 @@ describe('QAMockOAuthService', () => {
     jest.clearAllMocks();
     mockGetE2EByoaAuthSecret.mockReturnValue('test-byoa-secret');
     mockGetE2EMockOAuthEmailForQaMock.mockReturnValue(undefined);
+    delete process.env.E2E_MOCK_OAUTH_EXISTING_USER;
+    delete process.env.E2E_MOCK_OAUTH;
+    resetE2EMockOAuthExistingUserRuntimeOverride();
+  });
+
+  afterAll(() => {
+    if (originalExistingUserEnv === undefined) {
+      delete process.env.E2E_MOCK_OAUTH_EXISTING_USER;
+    } else {
+      process.env.E2E_MOCK_OAUTH_EXISTING_USER = originalExistingUserEnv;
+    }
+    if (originalMockOAuthEnv === undefined) {
+      delete process.env.E2E_MOCK_OAUTH;
+    } else {
+      process.env.E2E_MOCK_OAUTH = originalMockOAuthEnv;
+    }
   });
 
   describe('parseAuthServiceResponse', () => {
@@ -102,13 +122,47 @@ describe('QAMockOAuthService', () => {
   });
 
   describe('mockSeedlessHandleResult', () => {
-    it('returns success with existingUser false and accountName', () => {
+    it('returns success with existingUser false when accountName has no existing-user marker', () => {
       const result =
         QAMockOAuthService.mockSeedlessHandleResult('user@example.com');
 
       expect(result.type).toBe(OAuthLoginResultType.SUCCESS);
       expect(result.existingUser).toBe(false);
       expect(result.accountName).toBe('user@example.com');
+    });
+
+    it('returns existingUser true when accountName contains existinguser (case-insensitive)', () => {
+      const result = QAMockOAuthService.mockSeedlessHandleResult(
+        'existinguser+e2e@web3auth.io',
+      );
+
+      expect(result.type).toBe(OAuthLoginResultType.SUCCESS);
+      expect(result.existingUser).toBe(true);
+      expect(result.accountName).toBe('existinguser+e2e@web3auth.io');
+    });
+
+    it('returns existingUser false when accountName is undefined', () => {
+      const result = QAMockOAuthService.mockSeedlessHandleResult(undefined);
+
+      expect(result.existingUser).toBe(false);
+      expect(result.accountName).toBeUndefined();
+    });
+
+    it('returns existingUser true when E2E_MOCK_OAUTH_EXISTING_USER is true without email marker', () => {
+      process.env.E2E_MOCK_OAUTH_EXISTING_USER = 'true';
+      const result =
+        QAMockOAuthService.mockSeedlessHandleResult('user@example.com');
+
+      expect(result.existingUser).toBe(true);
+      expect(result.accountName).toBe('user@example.com');
+    });
+
+    it('returns existingUser true when E2E_MOCK_OAUTH_EXISTING_USER is true and accountName is undefined', () => {
+      process.env.E2E_MOCK_OAUTH_EXISTING_USER = 'true';
+      const result = QAMockOAuthService.mockSeedlessHandleResult(undefined);
+
+      expect(result.existingUser).toBe(true);
+      expect(result.accountName).toBeUndefined();
     });
   });
 
@@ -192,6 +246,102 @@ describe('QAMockOAuthService', () => {
       expect(result.userId).toBe('swnam909@gmail.com');
       expect(result.accountName).toBe('swnam909@gmail.com');
       expect(result.data.id_token).toBe(MOCK_JWT_TOKEN);
+    });
+
+    it('uses provider-prefixed existinguser+e2e fallback when E2E mock email indicates existing user', async () => {
+      mockGetE2EMockOAuthEmailForQaMock.mockReturnValue(
+        'google.existinguser+e2e@web3auth.io',
+      );
+
+      const jwtWithoutEmail =
+        'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdWItb25seSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImV4cCI6MTc0NTIwNzg2Nn0.fake';
+
+      const handlerWithBareJwt = {
+        ...createStubLoginHandler(),
+        decodeIdToken: () =>
+          JSON.stringify({
+            sub: 'sub-only',
+            iss: 'metamask',
+            aud: 'metamask',
+            iat: 1745207566,
+            exp: 1745207866,
+          }),
+      } as unknown as BaseLoginHandler;
+
+      const envelope = {
+        success: true,
+        data: {
+          tokens: {
+            jwt_token: jwtWithoutEmail,
+            access_token: 'mock-access-token',
+            metadata_access_token: 'mock-metadata-access-token',
+          },
+        },
+      };
+      const fetchImpl = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(envelope),
+      });
+
+      const result = await QAMockOAuthService.exchangeTokens(
+        handlerWithBareJwt,
+        fetchImpl as unknown as typeof fetch,
+      );
+
+      const body = JSON.parse(
+        (fetchImpl.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body.email_id).toBe('google.existinguser+e2e@web3auth.io');
+      expect(result.accountName).toBe('google.existinguser+e2e@web3auth.io');
+      expect(result.userId).toBe('sub-only');
+    });
+
+    it('uses provider-prefixed existinguser+e2e fallback when E2E_MOCK_OAUTH_EXISTING_USER is true', async () => {
+      process.env.E2E_MOCK_OAUTH_EXISTING_USER = 'true';
+
+      const jwtWithoutEmail =
+        'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJzdWItb25seSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImV4cCI6MTc0NTIwNzg2Nn0.fake';
+
+      const handlerWithBareJwt = {
+        ...createStubLoginHandler(),
+        decodeIdToken: () =>
+          JSON.stringify({
+            sub: 'sub-only',
+            iss: 'metamask',
+            aud: 'metamask',
+            iat: 1745207566,
+            exp: 1745207866,
+          }),
+      } as unknown as BaseLoginHandler;
+
+      const envelope = {
+        success: true,
+        data: {
+          tokens: {
+            jwt_token: jwtWithoutEmail,
+            access_token: 'mock-access-token',
+            metadata_access_token: 'mock-metadata-access-token',
+          },
+        },
+      };
+      const fetchImpl = jest.fn().mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(envelope),
+      });
+
+      const result = await QAMockOAuthService.exchangeTokens(
+        handlerWithBareJwt,
+        fetchImpl as unknown as typeof fetch,
+      );
+
+      const body = JSON.parse(
+        (fetchImpl.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body.email_id).toBe('newuser+e2e@web3auth.io');
+      expect(result.accountName).toBe('google.existinguser+e2e@web3auth.io');
+      expect(result.userId).toBe('sub-only');
     });
 
     it('throws OAuthError when response is not ok', async () => {

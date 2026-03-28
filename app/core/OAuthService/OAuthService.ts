@@ -3,6 +3,7 @@ import Logger from '../../util/Logger';
 import { trace, endTrace, TraceName, TraceOperation } from '../../util/trace';
 import { whenEngineReady } from '../../util/analytics/whenEngineReady';
 import { isE2EMockOAuth } from '../../util/environment';
+import '../../util/e2eSeedlessMockOAuthDeepLink';
 
 import {
   HandleOAuthLoginResult,

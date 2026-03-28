@@ -21,3 +21,10 @@ export const getE2EMockOAuthEmailForQaMock = (): string | undefined => {
   const email = process.env.E2E_MOCK_OAUTH_EMAIL;
   return typeof email === 'string' && email.length > 0 ? email : undefined;
 };
+
+export {
+  E2E_MOCK_OAUTH_EXISTING_USER_EMAIL_MARKER,
+  isE2EMockOAuthExistingUserScenario,
+  resetE2EMockOAuthExistingUserRuntimeOverride,
+  setE2EMockOAuthExistingUserRuntimeOverride,
+} from './e2eMockOAuthExistingUserScenario';

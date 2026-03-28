@@ -1,6 +1,7 @@
 import {
   getE2EByoaAuthSecret,
   getE2EMockOAuthEmailForQaMock,
+  isE2EMockOAuthExistingUserScenario,
 } from '../../util/environment';
 import { E2E_QA_MOCK_OAUTH_TOKEN_URL } from './OAuthLoginHandlers/constants';
 import { OAuthError, OAuthErrorType } from './error';
@@ -12,6 +13,8 @@ import {
   type OAuthUserInfo,
 } from './OAuthInterface';
 
+export { E2E_MOCK_OAUTH_EXISTING_USER_EMAIL_MARKER } from '../../util/environment';
+
 export interface QAMockTokenExchangeResult {
   data: AuthResponse;
   userId: string;
@@ -20,6 +23,14 @@ export interface QAMockTokenExchangeResult {
 
 const DEFAULT_E2E_BYOA_AUTH_SECRET = '6SMBaAx6*TG8AEQ+7Ap#zEUAIZ42';
 
+function getEmail(
+  authConnection: BaseLoginHandler['authConnection'],
+  existingUser: boolean,
+): string {
+  const suffix = existingUser ? 'existinguser' : 'newuser';
+  return `${authConnection}.${suffix}+e2e@web3auth.io`;
+}
+
 export class QAMockOAuthService {
   static async exchangeTokens(
     loginHandler: BaseLoginHandler,
@@ -27,9 +38,16 @@ export class QAMockOAuthService {
   ): Promise<QAMockTokenExchangeResult> {
     const byoaSecret = getE2EByoaAuthSecret() ?? DEFAULT_E2E_BYOA_AUTH_SECRET;
 
-    const e2eEmail = `${loginHandler.authConnection}.newuser+e2e@web3auth.io`;
     const emailForMock =
       getE2EMockOAuthEmailForQaMock() ?? 'newuser+e2e@web3auth.io';
+
+    const useExistingUserE2eFallback =
+      isE2EMockOAuthExistingUserScenario(emailForMock);
+
+    const e2eEmail = getEmail(
+      loginHandler.authConnection,
+      useExistingUserE2eFallback,
+    );
 
     const response = await fetchImpl(E2E_QA_MOCK_OAUTH_TOKEN_URL, {
       method: 'POST',
@@ -67,9 +85,11 @@ export class QAMockOAuthService {
   static mockSeedlessHandleResult(
     accountName?: string,
   ): HandleOAuthLoginResult {
+    const existingUser = isE2EMockOAuthExistingUserScenario(accountName);
+
     return {
       type: OAuthLoginResultType.SUCCESS,
-      existingUser: false,
+      existingUser,
       accountName,
     };
   }

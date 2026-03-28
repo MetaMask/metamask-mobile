@@ -43,6 +43,8 @@ const newOverrides = [
       'app/selectors/featureFlagController/legacyIosGoogleConfig/index.test.ts',
       'app/util/environment.ts',
       'app/util/environment.test.ts',
+      'app/util/e2eMockOAuthExistingUserScenario.ts',
+      'app/util/e2eMockOAuthExistingUserScenario.test.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.ts',
       'app/core/Engine/controllers/rewards-controller/utils/rewards-api-url.test.ts',
       'app/components/UI/Card/util/mapBaanxApiUrl.ts',
