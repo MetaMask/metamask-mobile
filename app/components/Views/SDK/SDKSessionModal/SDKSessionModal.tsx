@@ -4,6 +4,8 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 // External dependencies
 import type { ThemeColors, ThemeTypography } from '@metamask/design-tokens';
 import { useNavigation } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import { StyleSheet, View } from 'react-native';
 import { EdgeInsets, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
@@ -69,20 +71,18 @@ const createStyles = (
       justifyContent: 'center',
     },
   });
-interface SDKSEssionMoodalProps {
-  route: {
-    params: {
-      channelId?: string;
-      icon?: string;
-      urlOrTitle: string;
-      version?: string;
-      platform?: string;
-      isV2?: boolean;
-    };
-  };
+export interface SDKSessionModalParams {
+  channelId?: string;
+  icon?: string;
+  urlOrTitle: string;
+  version?: string;
+  platform?: string;
+  isV2?: boolean;
 }
 
-const SDKSessionModal = ({ route }: SDKSEssionMoodalProps) => {
+type Props = StackScreenProps<RootStackParamList, 'SDKManageConnections'>;
+
+const SDKSessionModal = ({ route }: Props) => {
   const { params } = route;
   const { channelId, icon, urlOrTitle, version, platform, isV2 } = params;
 

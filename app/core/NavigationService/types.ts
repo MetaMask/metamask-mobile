@@ -199,6 +199,8 @@ import type {
 } from '../../components/Views/Webview/Webview.types';
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
+import type { SDKSessionModalParams } from '../../components/Views/SDK/SDKSessionModal/SDKSessionModal';
+
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -393,7 +395,7 @@ export interface RootStackParamList extends ParamListBase {
   SDKFeedback: SDKFeedbackParams | undefined;
   DataCollection: undefined;
   ExperienceEnhancer: undefined;
-  SDKManageConnections: undefined;
+  SDKManageConnections: SDKSessionModalParams | undefined;
   SDKDisconnect: SDKDisconnectParams | undefined;
   AccountConnect: AccountConnectParams | undefined;
   AccountPermissions: AccountPermissionsParams | undefined;
