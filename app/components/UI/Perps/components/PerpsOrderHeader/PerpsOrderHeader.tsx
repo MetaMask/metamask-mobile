@@ -71,11 +71,6 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [onOrderTypePress]);
 
   // Format price display with edge case handling
-  // eslint-disable-next-line no-console
-  console.log(
-    '[PR-28072] BUG_MARKER: Arrow2Left used instead of ArrowLeft in PerpsOrderHeader',
-  );
-
   const formattedPrice = useMemo(() => {
     // Handle invalid or edge case values
     if (!price || price <= 0 || !Number.isFinite(price)) {
