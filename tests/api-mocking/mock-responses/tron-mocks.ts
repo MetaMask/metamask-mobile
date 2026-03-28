@@ -10,14 +10,29 @@ export const TRX_BALANCE = 6072392; // in SUN (~6.07 TRX)
 export const TRX_TO_USD_RATE = 0.29469;
 export const SUN_PER_TRX = 1_000_000;
 
+export async function mockTronFeatureFlags(mockServer: Mockttp) {
+  return await mockServer
+    .forGet(/client-config\.api\.cx\.metamask\.io\/v1\/flags/)
+    .thenJson(200, [
+      {
+        feature: 'tronAccounts',
+        value: { enabled: true, minimumVersion: '0.0.0' },
+      },
+    ]);
+}
+
 export async function mockTronGetAccount(
   mockServer: Mockttp,
   mockZeroBalance = false,
   address = TRON_ACCOUNT_ADDRESS,
   balance = TRX_BALANCE,
 ) {
+  const accountEndpointPattern = new RegExp(
+    `/v1/accounts/${address.replace(/[.*+?^${}()|[\\]\\\\]/g, '\\\\$&')}(?:\\?.*)?$`,
+  );
+
   return await mockServer
-    .forGet(new RegExp(`/v1/accounts/${address}(?:\\?.*)?$`))
+    .forGet(accountEndpointPattern)
     .thenJson(200, {
       data: [
         {
@@ -132,24 +147,10 @@ export async function mockBroadcastTransaction(mockServer: Mockttp) {
     });
 }
 
-export async function mockTronFeatureFlags(mockServer: Mockttp) {
-  return await mockServer
-    .forGet(/client-config\.api\.cx\.metamask\.io\/v1\/flags/)
-    .thenJson(200, [
-      {
-        feature: 'tronAccounts',
-        value: { enabled: true, minimumVersion: '0.0.0' },
-      },
-    ]);
-}
-
-export async function mockTronApis(
-  mockServer: Mockttp,
-  mockZeroBalance = false,
-) {
+export async function mockTronApis(mockServer: Mockttp) {
   return [
     await mockTronFeatureFlags(mockServer),
-    await mockTronGetAccount(mockServer, mockZeroBalance),
+    await mockTronGetAccount(mockServer),
     await mockTronGetAccountResource(mockServer),
     await mockTronGetTransactions(mockServer),
     await mockTronGetTrc20Transactions(mockServer),
