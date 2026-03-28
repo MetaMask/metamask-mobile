@@ -110,7 +110,10 @@ import {
 } from '@metamask/design-system-twrnc-preset';
 
 import { getBuildNumber, getVersion } from 'react-native-device-info';
-import { navigateToSuccessErrorSheetPromise } from '../SuccessErrorSheet/utils';
+import {
+  navigateToSuccessErrorSheet,
+  navigateToSuccessErrorSheetPromise,
+} from '../SuccessErrorSheet/utils';
 import {
   IconColor,
   IconName,
@@ -678,15 +681,13 @@ const Onboarding = () => {
         socialLoginTraceCtx.current = undefined;
       }
 
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings(`error_sheet.${errorMessage}_title`),
-          description: strings(`error_sheet.${errorMessage}_description`),
-          descriptionAlign: 'center',
-          buttonLabel: strings(`error_sheet.${errorMessage}_button`),
-          type: 'error',
-        },
+      navigateToSuccessErrorSheet(navigation, {
+        title: strings(`error_sheet.${errorMessage}_title`),
+        description: strings(`error_sheet.${errorMessage}_description`),
+        descriptionAlign: 'center',
+        primaryButtonLabel: strings(`error_sheet.${errorMessage}_button`),
+        closeOnPrimaryButtonPress: true,
+        type: 'error',
       });
     },
     [

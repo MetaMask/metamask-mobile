@@ -1234,7 +1234,7 @@ describe('Onboarding', () => {
             title: strings('error_sheet.user_cancelled_title'),
             description: strings('error_sheet.user_cancelled_description'),
             descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.user_cancelled_button'),
+            primaryButtonLabel: strings('error_sheet.user_cancelled_button'),
             type: 'error',
           }),
         }),
@@ -1281,7 +1281,56 @@ describe('Onboarding', () => {
             title: strings('error_sheet.oauth_error_title'),
             description: strings('error_sheet.oauth_error_description'),
             descriptionAlign: 'center',
-            buttonLabel: strings('error_sheet.oauth_error_button'),
+            primaryButtonLabel: strings('error_sheet.oauth_error_button'),
+            type: 'error',
+          }),
+        }),
+      );
+    });
+
+    it('shows oauth_error sheet for unexpected non-OAuthError with primaryButtonLabel and closeOnPrimaryButtonPress', async () => {
+      const unexpectedError = new Error('Unexpected network failure');
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockRejectedValue(unexpectedError);
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            title: strings('error_sheet.oauth_error_title'),
+            description: strings('error_sheet.oauth_error_description'),
+            descriptionAlign: 'center',
+            primaryButtonLabel: strings('error_sheet.oauth_error_button'),
+            closeOnPrimaryButtonPress: true,
             type: 'error',
           }),
         }),

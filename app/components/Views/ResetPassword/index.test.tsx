@@ -494,6 +494,47 @@ describe('ResetPassword', () => {
     });
   });
 
+  it('handleConfirmAction does not throw when NavigationService.navigation is null', async () => {
+    const component = await renderConfirmPasswordView();
+
+    const newPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(newPasswordInput, 'NewPassword123');
+    });
+
+    const confirmPasswordInput = component.getByTestId(
+      ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+    );
+
+    await act(async () => {
+      fireEvent.changeText(confirmPasswordInput, 'NewPassword123');
+    });
+
+    const submitButton = component.getByTestId(
+      ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
+    );
+
+    const originalNavigation = NavigationService.navigation;
+    NavigationService.navigation =
+      null as unknown as typeof NavigationService.navigation;
+
+    await expect(
+      act(async () => {
+        fireEvent.press(submitButton);
+      }),
+    ).resolves.not.toThrow();
+
+    expect(NavigationService.navigation).toBeNull();
+    expect((originalNavigation.navigate as jest.Mock).mock.calls.length).toBe(
+      0,
+    );
+
+    NavigationService.navigation = originalNavigation;
+  });
+
   it('open webview on learnMore click for seedless onboarding login flow', async () => {
     const component = await renderConfirmPasswordView();
 

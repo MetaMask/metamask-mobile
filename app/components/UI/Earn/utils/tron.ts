@@ -14,6 +14,7 @@ import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
 import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
+import { navigateToSuccessErrorSheet } from '../../../Views/SuccessErrorSheet/utils';
 
 /**
  * Returns the total staked TRX (sTRX) amount from Tron special assets.
@@ -163,24 +164,18 @@ export const handleTronStakingNavigationResult = (
 
     navigation.goBack();
     requestAnimationFrame(() => {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings(copy.successTitleKey),
-          description: strings(copy.successDescriptionKey),
-          type: 'success',
-          closeOnPrimaryButtonPress: true,
-        },
+      navigateToSuccessErrorSheet(navigation, {
+        title: strings(copy.successTitleKey),
+        description: strings(copy.successDescriptionKey),
+        type: 'success',
+        closeOnPrimaryButtonPress: true,
       });
     });
   } else {
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings(copy.errorTitleKey),
-        description: getLocalizedErrorMessage(result?.errors),
-        type: 'error',
-      },
+    navigateToSuccessErrorSheet(navigation, {
+      title: strings(copy.errorTitleKey),
+      description: getLocalizedErrorMessage(result?.errors),
+      type: 'error',
     });
   }
 };

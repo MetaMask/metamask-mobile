@@ -4462,6 +4462,39 @@ describe('Authentication', () => {
       expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
+    it('does not call navigate when NavigationService.navigation is null', async () => {
+      // Arrange
+      mockIsOutdated = true;
+      mockCheckIsSeedlessPasswordOutdated.mockResolvedValue(true);
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      const NavigationService = jest.requireMock('../NavigationService');
+      jest
+        .spyOn(NavigationService.default, 'navigation', 'get')
+        .mockReturnValue(null);
+
+      // Act
+      await expect(
+        Authentication.checkAndShowSeedlessPasswordOutdatedModal(true),
+      ).resolves.not.toThrow();
+
+      // Assert
+      expect(mockNavigate).not.toHaveBeenCalled();
+    });
+
     it('navigates to modal when password is outdated', async () => {
       // Arrange
       mockIsOutdated = true;

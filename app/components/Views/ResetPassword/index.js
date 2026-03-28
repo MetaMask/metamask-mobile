@@ -66,6 +66,7 @@ import NavigationService from '../../../core/NavigationService';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 import { analytics } from '../../../util/analytics/analytics';
+import { navigateToSuccessErrorSheet } from '../SuccessErrorSheet/utils';
 import Checkbox from '../../../component-library/components/Checkbox';
 import fox from '../../../animations/Searching_Fox.json';
 import LottieView from 'lottie-react-native';
@@ -425,50 +426,44 @@ class ResetPassword extends PureComponent {
 
   handleSeedlessChangePasswordError = () => {
     // show seedless password error modal and redirect to security settings screen
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings(
-          'reset_password.seedless_change_password_error_modal_title',
-        ),
-        description: strings(
-          'reset_password.seedless_change_password_error_modal_content',
-        ),
-        primaryButtonLabel: strings(
-          'reset_password.seedless_change_password_error_modal_confirm',
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          this.props.navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
-        },
-        closeOnPrimaryButtonPress: true,
+    navigateToSuccessErrorSheet(this.props.navigation, {
+      title: strings(
+        'reset_password.seedless_change_password_error_modal_title',
+      ),
+      description: strings(
+        'reset_password.seedless_change_password_error_modal_content',
+      ),
+      primaryButtonLabel: strings(
+        'reset_password.seedless_change_password_error_modal_confirm',
+      ),
+      type: 'error',
+      icon: IconName.Danger,
+      isInteractable: false,
+      onPrimaryButtonPress: async () => {
+        this.props.navigation.replace(Routes.SETTINGS.SECURITY_SETTINGS);
       },
+      closeOnPrimaryButtonPress: true,
     });
   };
 
   handleSeedlessPasswordOutdated = () => {
     // show seedless password outdated modal and force user to lock app
-    this.props.navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('login.seedless_password_outdated_modal_title'),
-        description: strings('login.seedless_password_outdated_modal_content'),
-        primaryButtonLabel: strings(
-          'login.seedless_password_outdated_modal_confirm',
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          await Authentication.lockApp({ locked: true }).catch((error) => {
-            Logger.error(error);
-            this.handleSeedlessChangePasswordError();
-          });
-        },
-        closeOnPrimaryButtonPress: true,
+    navigateToSuccessErrorSheet(this.props.navigation, {
+      title: strings('login.seedless_password_outdated_modal_title'),
+      description: strings('login.seedless_password_outdated_modal_content'),
+      primaryButtonLabel: strings(
+        'login.seedless_password_outdated_modal_confirm',
+      ),
+      type: 'error',
+      icon: IconName.Danger,
+      isInteractable: false,
+      onPrimaryButtonPress: async () => {
+        await Authentication.lockApp({ locked: true }).catch((error) => {
+          Logger.error(error);
+          this.handleSeedlessChangePasswordError();
+        });
       },
+      closeOnPrimaryButtonPress: true,
     });
   };
 
@@ -831,35 +826,39 @@ class ResetPassword extends PureComponent {
   };
 
   handleConfirmAction = () => {
-    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('reset_password.warning_password_change_title'),
-        description: this.props.isSeedlessOnboardingLoginFlow ? (
-          <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
-            {strings('reset_password.warning_password_change_description')}{' '}
-            <Text
-              variant={TextVariant.BodyMD}
-              color={TextColor.Primary}
-              onPress={this.learnMoreSocialLogin}
-            >
-              {strings('reset_password.learn_more')}
-            </Text>
+    let navigation;
+    try {
+      navigation = NavigationService.navigation;
+    } catch {
+      return;
+    }
+
+    navigateToSuccessErrorSheet(navigation, {
+      title: strings('reset_password.warning_password_change_title'),
+      description: this.props.isSeedlessOnboardingLoginFlow ? (
+        <Text variant={TextVariant.BodyMD} color={TextColor.Default}>
+          {strings('reset_password.warning_password_change_description')}{' '}
+          <Text
+            variant={TextVariant.BodyMD}
+            color={TextColor.Primary}
+            onPress={this.learnMoreSocialLogin}
+          >
+            {strings('reset_password.learn_more')}
           </Text>
-        ) : (
-          `${strings('reset_password.warning_password_change_description')}.`
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        secondaryButtonLabel: strings(
-          'reset_password.warning_password_cancel_button',
-        ),
-        primaryButtonLabel: strings(
-          'reset_password.warning_password_change_button',
-        ),
-        onPrimaryButtonPress: this.onPressCreate,
-        closeOnPrimaryButtonPress: true,
-      },
+        </Text>
+      ) : (
+        `${strings('reset_password.warning_password_change_description')}.`
+      ),
+      type: 'error',
+      icon: IconName.Danger,
+      secondaryButtonLabel: strings(
+        'reset_password.warning_password_cancel_button',
+      ),
+      primaryButtonLabel: strings(
+        'reset_password.warning_password_change_button',
+      ),
+      onPrimaryButtonPress: this.onPressCreate,
+      closeOnPrimaryButtonPress: true,
     });
   };
 

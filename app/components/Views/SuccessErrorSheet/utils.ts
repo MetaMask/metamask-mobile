@@ -1,9 +1,11 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from './interface';
 import Routes from '../../../constants/navigation/Routes';
 
+type SuccessErrorSheetNavigation = Pick<NavigationContainerRef, 'navigate'>;
+
 export const navigateToSuccessErrorSheet = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: SuccessErrorSheetNavigation,
   params: SuccessErrorSheetParams,
 ) => {
   navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
@@ -15,7 +17,7 @@ export const navigateToSuccessErrorSheet = (
 };
 
 export const navigateToSuccessErrorSheetPromise = async (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: SuccessErrorSheetNavigation,
   params: SuccessErrorSheetParams,
 ) =>
   new Promise<void>((resolve) => {

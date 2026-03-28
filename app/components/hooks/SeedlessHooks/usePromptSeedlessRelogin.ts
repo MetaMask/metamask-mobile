@@ -6,6 +6,7 @@ import { useSignOut } from '../../../util/identity/hooks/useAuthentication';
 import Routes from '../../../constants/navigation/Routes';
 import { useNavigation } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from '../../Views/SuccessErrorSheet/interface';
+import { navigateToSuccessErrorSheet } from '../../Views/SuccessErrorSheet/utils';
 import { clearHistory } from '../../../actions/browser';
 import { strings } from '../../../../locales/i18n';
 import { Authentication } from '../../../core';
@@ -89,10 +90,7 @@ const usePromptSeedlessRelogin = () => {
       },
       closeOnPrimaryButtonPress: true,
     };
-    navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: errorSheetParams,
-    });
+    navigateToSuccessErrorSheet(navigation, errorSheetParams);
   }, [navigation, deleteWallet]);
 
   return { isDeletingInProgress, deleteWalletError, promptSeedlessRelogin };

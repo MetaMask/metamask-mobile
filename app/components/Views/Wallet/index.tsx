@@ -88,6 +88,7 @@ import {
 } from '../../../component-library/components/Toast';
 import { useAnalytics } from '../../../components/hooks/useAnalytics/useAnalytics';
 import Routes from '../../../constants/navigation/Routes';
+import { navigateToSuccessErrorSheet } from '../SuccessErrorSheet/utils';
 import { MetaMetricsEvents } from '../../../core/Analytics';
 import {
   trackActionButtonClick,
@@ -898,20 +899,17 @@ const Wallet = ({
 
   useEffect(() => {
     if (isConnectionRemoved && isSocialLogin) {
-      navigation.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-        params: {
-          title: strings('connection_removed_modal.title'),
-          description: strings('connection_removed_modal.content'),
-          primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
-          type: 'error',
-          icon: IconName.Danger,
-          iconColor: IconColor.Warning,
-          isInteractable: false,
-          closeOnPrimaryButtonPress: true,
-          onPrimaryButtonPress: () => {
-            dispatch(setIsConnectionRemoved(false));
-          },
+      navigateToSuccessErrorSheet(navigation, {
+        title: strings('connection_removed_modal.title'),
+        description: strings('connection_removed_modal.content'),
+        primaryButtonLabel: strings('connection_removed_modal.tryAgain'),
+        type: 'error',
+        icon: IconName.Danger,
+        iconColor: IconColor.Warning,
+        isInteractable: false,
+        closeOnPrimaryButtonPress: true,
+        onPrimaryButtonPress: () => {
+          dispatch(setIsConnectionRemoved(false));
         },
       });
     }

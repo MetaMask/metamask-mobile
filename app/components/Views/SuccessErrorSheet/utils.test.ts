@@ -1,4 +1,4 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
+import { NavigationContainerRef } from '@react-navigation/native';
 import Routes from '../../../constants/navigation/Routes';
 import {
   navigateToSuccessErrorSheet,
@@ -8,7 +8,7 @@ import {
 const mockNavigate = jest.fn();
 const mockNavigation = {
   navigate: mockNavigate,
-} as unknown as NavigationProp<ParamListBase>;
+} as unknown as NavigationContainerRef;
 
 const baseParams = {
   type: 'error' as const,

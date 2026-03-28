@@ -33,6 +33,7 @@ import {
 import StorageWrapper from '../../store/storage-wrapper';
 import NavigationService from '../NavigationService';
 import Routes from '../../constants/navigation/Routes';
+import { navigateToSuccessErrorSheet } from '../../components/Views/SuccessErrorSheet/utils';
 import { TraceName, TraceOperation, trace, endTrace } from '../../util/trace';
 import { discoverAccounts } from '../../multichain-accounts/discovery';
 import ReduxService from '../redux';
@@ -87,6 +88,7 @@ import {
 } from 'expo-local-authentication';
 import { getAuthIcon, getAuthLabel, getAuthType } from './utils';
 import { IconName } from '@metamask/design-system-react-native';
+import { IconName as OldIconName } from '../../component-library/components/Icons/Icon';
 import { containsErrorMessage } from '../../util/errorHandling';
 import { ensureError } from '../../util/errorUtils';
 
@@ -1493,22 +1495,26 @@ class AuthenticationService {
     );
 
     // show seedless password outdated modal and force user to lock app
-    NavigationService.navigation?.navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
-      params: {
-        title: strings('login.seedless_password_outdated_modal_title'),
-        description: strings('login.seedless_password_outdated_modal_content'),
-        primaryButtonLabel: strings(
-          'login.seedless_password_outdated_modal_confirm',
-        ),
-        type: 'error',
-        icon: IconName.Danger,
-        isInteractable: false,
-        onPrimaryButtonPress: async () => {
-          await this.lockApp({ locked: true });
-        },
-        closeOnPrimaryButtonPress: true,
+    let navigation;
+    try {
+      navigation = NavigationService.navigation;
+    } catch {
+      return;
+    }
+
+    navigateToSuccessErrorSheet(navigation, {
+      title: strings('login.seedless_password_outdated_modal_title'),
+      description: strings('login.seedless_password_outdated_modal_content'),
+      primaryButtonLabel: strings(
+        'login.seedless_password_outdated_modal_confirm',
+      ),
+      type: 'error',
+      icon: OldIconName.Danger,
+      isInteractable: false,
+      onPrimaryButtonPress: async () => {
+        await this.lockApp({ locked: true });
       },
+      closeOnPrimaryButtonPress: true,
     });
   };
 

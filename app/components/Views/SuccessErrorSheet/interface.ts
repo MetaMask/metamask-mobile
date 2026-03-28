@@ -5,7 +5,6 @@ import {
 
 export interface SuccessErrorSheetParams {
   onClose?: () => void;
-  onButtonPress?: () => void;
   title: string | React.ReactNode;
   description: string | React.ReactNode;
   customButton?: React.ReactNode;
