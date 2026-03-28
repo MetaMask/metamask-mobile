@@ -4339,16 +4339,20 @@ export class HyperLiquidProvider implements PerpsProvider {
           { cachedOrdersCount: cachedOrders.length },
         );
 
-        // Filter using normalized Order type properties
-        // Note: Cached orders don't have isPositionTpsl, but we identify TP/SL orders by:
+        // Filter using normalized Order type properties, matching the REST fallback criteria:
+        // - symbol matches
         // - isTrigger === true
         // - reduceOnly === true
+        // - isPositionTpsl matches the configured mode (only cancel position-bound TP/SL,
+        //   not normalTpsl children that belong to pending limit orders)
         // - detailedOrderType contains 'Take Profit' or 'Stop'
         const tpslOrders = cachedOrders.filter(
           (order) =>
             order.symbol === symbol &&
             order.reduceOnly === true &&
             order.isTrigger === true &&
+            order.isPositionTpsl ===
+              Boolean(TP_SL_CONFIG.UsePositionBoundTpsl) &&
             order.detailedOrderType &&
             (order.detailedOrderType.includes('Take Profit') ||
               order.detailedOrderType.includes('Stop')),
