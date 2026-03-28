@@ -1520,9 +1520,7 @@ export class PredictController extends BaseController<
     }
 
     const startTime = performance.now();
-    const { analyticsProperties, preview: previewParam } = params;
-
-    const preview = previewParam;
+    const { analyticsProperties, preview } = params;
 
     const sharePrice = preview?.sharePrice;
     const amountUsd =
