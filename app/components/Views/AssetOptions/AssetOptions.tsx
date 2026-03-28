@@ -1,4 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import React, { useMemo, useRef } from 'react';
 import { TouchableOpacity, View } from 'react-native';
 import {
@@ -78,16 +80,14 @@ interface Option {
   icon: IconName;
 }
 
-interface Props {
-  route: {
-    params: {
-      address: string;
-      isNativeCurrency: boolean;
-      chainId: string;
-      asset: TokenI;
-    };
-  };
+export interface AssetOptionsParams {
+  address: string;
+  isNativeCurrency: boolean;
+  chainId: string;
+  asset: TokenI;
 }
+
+type Props = StackScreenProps<RootStackParamList, 'AssetOptions'>;
 
 const AssetOptions = (props: Props) => {
   const {

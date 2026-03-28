@@ -199,6 +199,9 @@ import type {
 } from '../../components/Views/Webview/Webview.types';
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
+import type { AssetHideConfirmationParams } from '../../components/Views/AssetHideConfirmation';
+import type { AssetOptionsParams } from '../../components/Views/AssetOptions/AssetOptions';
+
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -416,6 +419,8 @@ export interface RootStackParamList extends ParamListBase {
   SeedphraseModal: SeedphraseModalParams | undefined;
   SkipAccountSecurityModal: undefined;
   SuccessErrorSheet: SuccessErrorSheetParams | undefined;
+  AssetHideConfirmation: AssetHideConfirmationParams;
+  AssetOptions: AssetOptionsParams;
   EligibilityFailedModal: undefined;
   UnsupportedRegionModal: undefined;
   MultichainTransactionDetails: MultichainTransactionDetailsParams | undefined;

@@ -1,5 +1,7 @@
 import React, { useRef } from 'react';
 import { StyleSheet, View, Text } from 'react-native';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../core/NavigationService/types';
 import ReusableModal, { ReusableModalRef } from '../../UI/ReusableModal';
 import { fontStyles } from '../../../styles/common';
 import StyledButton from '../../UI/StyledButton';
@@ -53,13 +55,11 @@ const createStyles = (colors: any) =>
     },
   });
 
-interface Props {
-  route: {
-    params: {
-      onConfirm: () => void;
-    };
-  };
+export interface AssetHideConfirmationParams {
+  onConfirm: () => void;
 }
+
+type Props = StackScreenProps<RootStackParamList, 'AssetHideConfirmation'>;
 
 const AssetHideConfirmation = ({ route }: Props) => {
   const { onConfirm } = route.params;
