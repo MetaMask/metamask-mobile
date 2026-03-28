@@ -120,7 +120,6 @@ import {
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { predictQueries } from '../queries';
 import { ensureError } from '../utils/predictErrorHandler';
-import { showOrderFailedToast, showOrderPlacedToast } from '../utils/toasts';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import reactQueryService from '../../../../core/ReactQueryService';
 
@@ -268,7 +267,8 @@ export type PredictTransactionEventType =
   | 'deposit'
   | 'depositAndOrder'
   | 'claim'
-  | 'withdraw';
+  | 'withdraw'
+  | 'order';
 
 export type PredictTransactionEventStatus =
   | 'approved'
@@ -1631,7 +1631,11 @@ export class PredictController extends BaseController<
 
       if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
         this.invalidateOrderQueries();
-        showOrderPlacedToast();
+        this.messenger.publish('PredictController:transactionStatusChanged', {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: signer.address,
+        });
       }
 
       // Track Predict Trade Transaction with succeeded status (fire and forget)
@@ -1685,7 +1689,11 @@ export class PredictController extends BaseController<
       traceData = { success: false, error: errorMessage };
 
       if (!this.state.activeBuyOrder) {
-        showOrderFailedToast();
+        this.messenger.publish('PredictController:transactionStatusChanged', {
+          type: 'order',
+          status: 'failed',
+          senderAddress: activeOrderAddress,
+        });
       }
 
       // Log to Sentry with order context (excluding sensitive data like amounts)
@@ -2582,6 +2590,12 @@ export class PredictController extends BaseController<
               operation: 'initPayWithAnyToken',
             }),
           );
+        });
+      } else {
+        this.messenger.publish('PredictController:transactionStatusChanged', {
+          type: 'order',
+          status: 'failed',
+          senderAddress: address,
         });
       }
     }

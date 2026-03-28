@@ -753,4 +753,48 @@ describe('usePredictToastRegistrations', () => {
       expect(showToast).not.toHaveBeenCalled();
     });
   });
+
+  describe('order transactions', () => {
+    it('shows prediction placed toast on confirmed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'confirmed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Check',
+          hasNoTimeout: false,
+        }),
+      );
+    });
+
+    it('shows error toast on failed status', () => {
+      const handler = getHandler();
+
+      handler(
+        {
+          type: 'order',
+          status: 'failed',
+          senderAddress: selectedAddress,
+        },
+        showToast,
+      );
+
+      expect(showToast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          variant: 'Icon',
+          iconName: 'Error',
+          hasNoTimeout: false,
+        }),
+      );
+    });
+  });
 });

@@ -147,14 +147,6 @@ jest.mock('../../../../core/ReactQueryService', () => ({
   },
 }));
 
-const mockShowToast = jest.fn();
-jest.mock('../../../../core/ToastService/ToastService', () => ({
-  __esModule: true,
-  default: {
-    showToast: (...args: unknown[]) => mockShowToast(...args),
-  },
-}));
-
 type AllPredictControllerMessengerActions =
   MessengerActions<PredictControllerMessenger>;
 
@@ -1194,7 +1186,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('shows order placed toast on successful buy order when predictWithAnyToken is enabled', async () => {
+    it('publishes order confirmed event on successful buy order when predictWithAnyToken is enabled', async () => {
       const mockResult = {
         success: true as const,
         response: {
@@ -1204,20 +1196,22 @@ describe('PredictController', () => {
         },
       };
       await withController(
-        async ({ controller }) => {
+        async ({ controller, messenger }) => {
           mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
-          mockShowToast.mockClear();
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
 
           const preview = createMockOrderPreview({ side: Side.BUY });
 
           await controller.placeOrder({ preview });
 
-          expect(mockShowToast).toHaveBeenCalledTimes(1);
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(handler).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Icon',
-              iconName: expect.any(String),
-              hasNoTimeout: false,
+              type: 'order',
+              status: 'confirmed',
             }),
           );
         },
@@ -1231,7 +1225,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not show toast on successful sell order even when predictWithAnyToken is enabled', async () => {
+    it('does not publish order event on successful sell order even when predictWithAnyToken is enabled', async () => {
       const mockResult = {
         success: true as const,
         response: {
@@ -1241,15 +1235,21 @@ describe('PredictController', () => {
         },
       };
       await withController(
-        async ({ controller }) => {
+        async ({ controller, messenger }) => {
           mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
-          mockShowToast.mockClear();
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
 
           const preview = createMockOrderPreview({ side: Side.SELL });
 
           await controller.placeOrder({ preview });
 
-          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(handler).not.toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'order' }),
+          );
         },
         {
           mocks: {
@@ -1261,7 +1261,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not show toast on successful buy order when predictWithAnyToken is disabled', async () => {
+    it('does not publish order event on successful buy order when predictWithAnyToken is disabled', async () => {
       const mockResult = {
         success: true as const,
         response: {
@@ -1270,25 +1270,35 @@ describe('PredictController', () => {
           receivedAmount: '200',
         },
       };
-      await withController(async ({ controller }) => {
+      await withController(async ({ controller, messenger }) => {
         mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
-        mockShowToast.mockClear();
+        const handler = jest.fn();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          handler,
+        );
 
         const preview = createMockOrderPreview({ side: Side.BUY });
 
         await controller.placeOrder({ preview });
 
-        expect(mockShowToast).not.toHaveBeenCalled();
+        expect(handler).not.toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'order' }),
+        );
       });
     });
 
-    it('shows failed toast when buy order fails and there is no active buy order', async () => {
+    it('publishes order failed event when buy order fails and there is no active buy order', async () => {
       await withController(
-        async ({ controller }) => {
+        async ({ controller, messenger }) => {
           mockPolymarketProvider.placeOrder.mockRejectedValue(
             new Error('Order placement failed'),
           );
-          mockShowToast.mockClear();
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
 
           const preview = createMockOrderPreview({ side: Side.BUY });
 
@@ -1296,12 +1306,10 @@ describe('PredictController', () => {
             'Order placement failed',
           );
 
-          expect(mockShowToast).toHaveBeenCalledTimes(1);
-          expect(mockShowToast).toHaveBeenCalledWith(
+          expect(handler).toHaveBeenCalledWith(
             expect.objectContaining({
-              variant: 'Icon',
-              iconName: expect.any(String),
-              hasNoTimeout: false,
+              type: 'order',
+              status: 'failed',
             }),
           );
         },
@@ -1315,13 +1323,17 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not show failed toast when buy order fails and there is an active buy order', async () => {
+    it('does not publish order failed event when buy order fails and there is an active buy order', async () => {
       await withController(
-        async ({ controller }) => {
+        async ({ controller, messenger }) => {
           mockPolymarketProvider.placeOrder.mockRejectedValue(
             new Error('Order placement failed'),
           );
-          mockShowToast.mockClear();
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
           setActiveOrderForTest(controller, {
             state: ActiveOrderState.PLACING_ORDER,
           });
@@ -1332,7 +1344,9 @@ describe('PredictController', () => {
             'Order placement failed',
           );
 
-          expect(mockShowToast).not.toHaveBeenCalled();
+          expect(handler).not.toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'order' }),
+          );
         },
         {
           mocks: {
@@ -7970,6 +7984,78 @@ describe('PredictController', () => {
 
         expect(controller.state.activeBuyOrder?.error).toBeDefined();
         expect(retrySpy).toHaveBeenCalledTimes(1);
+      });
+    });
+
+    it('publishes order failed event when depositAndOrder fails and there is no active buy order', () => {
+      withController(({ controller, messenger }) => {
+        const handler = jest.fn();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          handler,
+        );
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Transaction reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(handler).toHaveBeenCalledWith(
+          expect.objectContaining({
+            type: 'order',
+            status: 'failed',
+          }),
+        );
+      });
+    });
+
+    it('does not publish order failed event when depositAndOrder fails and there is an active buy order', () => {
+      withController(({ controller, messenger }) => {
+        setActiveOrderForTest(controller, {
+          state: ActiveOrderState.DEPOSITING,
+          transactionId: 'tx-1',
+        });
+
+        jest
+          .spyOn(controller, 'initPayWithAnyToken')
+          .mockResolvedValue(undefined as never);
+
+        const handler = jest.fn();
+        messenger.subscribe(
+          'PredictController:transactionStatusChanged',
+          handler,
+        );
+
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.failed,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+            error: { message: 'Transaction reverted' },
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(handler).not.toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'order' }),
+        );
       });
     });
 

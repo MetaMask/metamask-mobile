@@ -335,6 +335,34 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           return;
         }
       }
+
+      if (type === 'order') {
+        if (status === 'confirmed') {
+          showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Check,
+            labelOptions: [
+              {
+                label: strings('predict.order.prediction_placed'),
+                isBold: true,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return;
+        }
+
+        if (status === 'failed') {
+          showErrorToast({
+            showToast,
+            title: strings('predict.order.prediction_failed'),
+            description: strings('predict.order.order_failed_generic'),
+            backgroundColor: theme.colors.accent04.normal,
+            iconColor: theme.colors.error.default,
+          });
+          return;
+        }
+      }
     },
     [
       claim,
