@@ -1,4 +1,6 @@
 import React, { useCallback, useEffect, useMemo } from 'react';
+import { StackScreenProps } from '@react-navigation/stack';
+import type { RootStackParamList } from '../../../../core/NavigationService/types';
 import {
   BackHandler,
   SafeAreaView,
@@ -60,17 +62,19 @@ import {
 import Routes from '../../../../constants/navigation/Routes';
 import { selectAvatarAccountType } from '../../../../selectors/settings';
 
-interface AccountGroupDetailsProps {
-  route: {
-    params: {
-      accountGroup: AccountGroupObject;
-    };
-  };
+export interface AccountGroupDetailsRouteParams {
+  accountGroup: AccountGroupObject;
 }
+
+type AccountGroupDetailsProps = StackScreenProps<
+  RootStackParamList,
+  'MultichainAccountGroupDetails'
+>;
 
 export const AccountGroupDetails = (props: AccountGroupDetailsProps) => {
   const navigation = useNavigation();
-  const { accountGroup: initialAccountGroup } = props.route.params;
+  const { accountGroup: initialAccountGroup } =
+    props.route.params ?? ({} as AccountGroupDetailsRouteParams);
   const { id } = initialAccountGroup;
 
   // Use selector to get current account group data from Redux store

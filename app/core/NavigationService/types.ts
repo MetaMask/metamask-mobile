@@ -156,9 +156,6 @@ import type {
   ShareAddressQRParams,
   DeleteAccountParams,
   SmartAccountParams,
-  MultichainAccountDetailsParams,
-  MultichainAccountGroupDetailsParams,
-  MultichainWalletDetailsParams,
   MultichainAddressListParams,
   PrivateKeyListParams,
 } from '../../components/Views/MultichainAccounts/MultichainAccounts.types';
@@ -198,6 +195,11 @@ import type {
   SimpleWebviewParams,
 } from '../../components/Views/Webview/Webview.types';
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
+
+import type { LearnMoreBottomSheetParams } from '../../components/Views/MultichainAccounts/IntroModal/LearnMoreBottomSheet';
+import type { AccountDetailsRouteParams } from '../../components/Views/MultichainAccounts/AccountDetails/AccountDetails';
+import type { AccountGroupDetailsRouteParams } from '../../components/Views/MultichainAccounts/AccountGroupDetails/AccountGroupDetails';
+import type { WalletDetailsRouteParams } from '../../components/Views/MultichainAccounts/WalletDetails/WalletDetails';
 
 /**
  * Flattened param list for React Navigation compatibility.
@@ -331,7 +333,9 @@ export interface RootStackParamList extends ParamListBase {
     | MultichainAccountDetailActionsParams
     | undefined;
   MultichainAccountsIntroModal: undefined;
-  MultichainAccountsLearnMoreBottomSheet: undefined;
+  MultichainAccountsLearnMoreBottomSheet:
+    | LearnMoreBottomSheetParams
+    | undefined;
   Pna25BottomSheet: undefined;
   RewardsBottomSheetModal: undefined;
   RewardsClaimBottomSheetModal: undefined;
@@ -568,11 +572,9 @@ export interface RootStackParamList extends ParamListBase {
   ImportSRPView: undefined;
 
   // Multichain accounts routes
-  MultichainAccountDetails: MultichainAccountDetailsParams | undefined;
-  MultichainAccountGroupDetails:
-    | MultichainAccountGroupDetailsParams
-    | undefined;
-  MultichainWalletDetails: MultichainWalletDetailsParams | undefined;
+  MultichainAccountDetails: AccountDetailsRouteParams | undefined;
+  MultichainAccountGroupDetails: AccountGroupDetailsRouteParams | undefined;
+  MultichainWalletDetails: WalletDetailsRouteParams | undefined;
   MultichainAddressList: MultichainAddressListParams | undefined;
   MultichainPrivateKeyList: PrivateKeyListParams | undefined;
 
