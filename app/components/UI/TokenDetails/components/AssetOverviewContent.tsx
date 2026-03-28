@@ -62,7 +62,7 @@ import {
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
-import { isCaipAssetType, type CaipChainId, type Hex } from '@metamask/utils';
+import { isCaipAssetType, type Hex } from '@metamask/utils';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import type { TokenSecurityData } from '@metamask/assets-controllers';
 import SecurityTrustEntryCard from '../../SecurityTrust/components/SecurityTrustEntryCard/SecurityTrustEntryCard';
@@ -91,11 +91,9 @@ import AssetLogo from '../../Assets/components/AssetLogo/AssetLogo';
 import { NetworkBadgeSource } from '../../AssetOverview/Balance/Balance';
 ///: BEGIN:ONLY_INCLUDE_IF(tron)
 import TronEnergyBandwidthDetail from '../../AssetOverview/TronEnergyBandwidthDetail/TronEnergyBandwidthDetail';
-import TronUnstakingBanner from '../../Earn/components/Tron/TronUnstakingBanner/TronUnstakingBanner';
-import TronUnstakedBanner from '../../Earn/components/Tron/TronUnstakedBanner/TronUnstakedBanner';
-import TronStakingButtons from '../../Earn/components/Tron/TronStakingButtons/TronStakingButtons';
-import TronStakingCta from '../../Earn/components/Tron/TronStakingCta/TronStakingCta';
-import useTronStakeApy from '../../Earn/hooks/useTronStakeApy';
+import TronAssetOverviewSection, {
+  isTronNativeToken,
+} from './TronAssetOverviewSection';
 ///: END:ONLY_INCLUDE_IF
 import MarketClosedActionButton from '../../AssetOverview/MarketClosedActionButton';
 import { IconName as ComponentLibraryIconName } from '../../../../component-library/components/Icons/Icon';
@@ -199,7 +197,6 @@ export interface AssetOverviewContentProps {
   goToSwaps: () => void;
 
   // Tron-specific
-  isTronNative?: boolean;
   stakedTrxAsset?: TokenI;
   inLockPeriodBalance?: string;
   readyForWithdrawalBalance?: string;
@@ -246,7 +243,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   onSend,
   onReceive,
   goToSwaps,
-  isTronNative,
   stakedTrxAsset,
   inLockPeriodBalance,
   readyForWithdrawalBalance,
@@ -260,6 +256,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
   const resetNavigationLockRef = useRef<(() => void) | null>(null);
   const { isTokenTradingOpen, isStockToken } = useRWAToken();
   const { trackEvent, createEventBuilder } = useAnalytics();
+  const tronNativeToken = isTronNativeToken(token) ? token : null;
 
   // A/B test hook for layout selection (must be called before usePerpsActions to pass ab_tests)
   const { useNewLayout, isTestActive, variantName } = useTokenDetailsABTest();
@@ -520,10 +517,6 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
       id: marketInsightsCaip19Id,
     });
   }
-
-  ///: BEGIN:ONLY_INCLUDE_IF(tron)
-  const { apyPercent: tronApyPercent } = useTronStakeApy();
-  ///: END:ONLY_INCLUDE_IF
 
   const goToBrowserUrl = (url: string) => {
     const [screen, params] = createWebviewNavDetails({
@@ -864,7 +857,7 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           ) : null}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && <TronEnergyBandwidthDetail />
+            tronNativeToken && <TronEnergyBandwidthDetail />
             ///: END:ONLY_INCLUDE_IF
           }
           {balance != null && (
@@ -879,56 +872,13 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
           )}
           {
             ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && stakedTrxAsset && (
-              <Balance
-                asset={stakedTrxAsset}
-                mainBalance={stakedTrxAsset.balance ?? ''}
-                secondaryBalance={`${stakedTrxAsset.balance} ${stakedTrxAsset.symbol}`}
-                hideTitleHeading
-                hidePercentageChange
+            tronNativeToken && (
+              <TronAssetOverviewSection
+                token={tronNativeToken}
+                stakedTrxAsset={stakedTrxAsset}
+                inLockPeriodBalance={inLockPeriodBalance}
+                readyForWithdrawalBalance={readyForWithdrawalBalance}
               />
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && readyForWithdrawalBalance && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronUnstakedBanner
-                  amount={readyForWithdrawalBalance}
-                  chainId={String(token.chainId) as CaipChainId}
-                />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && inLockPeriodBalance && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronUnstakingBanner amount={inLockPeriodBalance} />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && stakedTrxAsset && (
-              <Box paddingTop={4} paddingHorizontal={4}>
-                <TronStakingButtons asset={stakedTrxAsset} />
-              </Box>
-            )
-            ///: END:ONLY_INCLUDE_IF
-          }
-          {
-            ///: BEGIN:ONLY_INCLUDE_IF(tron)
-            isTronNative && !stakedTrxAsset && (
-              <Box paddingTop={3} paddingHorizontal={4}>
-                <TronStakingCta
-                  asset={token}
-                  aprText={tronApyPercent ?? undefined}
-                />
-              </Box>
             )
             ///: END:ONLY_INCLUDE_IF
           }
