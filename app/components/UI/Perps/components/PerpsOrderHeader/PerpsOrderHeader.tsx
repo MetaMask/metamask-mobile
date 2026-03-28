@@ -1,7 +1,6 @@
 import { useNavigation } from '@react-navigation/native';
 import React, { useCallback, useMemo } from 'react';
 import { TouchableOpacity, View } from 'react-native';
-import DevLogger from '../../../../../core/SDKConnect/utils/DevLogger';
 import { PerpsOrderHeaderSelectorsIDs } from '../../Perps.testIds';
 import ButtonIcon, {
   ButtonIconSizes,
@@ -72,7 +71,8 @@ const PerpsOrderHeader: React.FC<PerpsOrderHeaderProps> = ({
   }, [onOrderTypePress]);
 
   // Format price display with edge case handling
-  DevLogger.log(
+  // eslint-disable-next-line no-console
+  console.log(
     '[PR-28072] BUG_MARKER: Arrow2Left used instead of ArrowLeft in PerpsOrderHeader',
   );
 
