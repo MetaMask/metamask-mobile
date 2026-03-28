@@ -653,6 +653,32 @@ describe('usePredictBuyConditions', () => {
 
       expect(result.current.canSelectToken).toBe(false);
     });
+
+    it('returns true when predict balance is below the minimum bet', () => {
+      mockPredictBalance = 0.5;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          totalPayForPredictBalance: 0,
+        }),
+      );
+
+      expect(result.current.canSelectToken).toBe(true);
+    });
+
+    it('returns false when predict balance equals the minimum bet and covers the total', () => {
+      mockPredictBalance = 1;
+
+      const { result } = renderHook(() =>
+        usePredictBuyConditions({
+          ...defaultParams,
+          totalPayForPredictBalance: 1,
+        }),
+      );
+
+      expect(result.current.canSelectToken).toBe(false);
+    });
   });
 
   describe('selected payment token reset effect', () => {

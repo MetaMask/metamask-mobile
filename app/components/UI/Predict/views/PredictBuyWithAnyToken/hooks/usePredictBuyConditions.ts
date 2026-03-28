@@ -208,7 +208,9 @@ export const usePredictBuyConditions = ({
   );
 
   const canSelectToken = useMemo(
-    () => totalPayForPredictBalance > predictBalance,
+    () =>
+      totalPayForPredictBalance > predictBalance ||
+      predictBalance < MINIMUM_BET,
     [predictBalance, totalPayForPredictBalance],
   );
 
