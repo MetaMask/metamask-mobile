@@ -230,7 +230,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: always() && !cancelled() && needs.determine-branch-name.result != 'failure' && needs.read-device-matrix.result != 'failure' && needs.set-build-names.result != 'failure' && (needs.trigger-android-dual-versions.result == 'skipped' || needs.trigger-android-dual-versions.result == 'success') && (inputs.browserstack_app_url_android_onboarding != '' || needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: android
       build_type: onboarding
@@ -253,7 +253,7 @@ jobs:
         set-build-names,
         determine-branch-name,
       ]
-    if: always() && !failure() && !cancelled() && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
+    if: always() && !cancelled() && needs.determine-branch-name.result != 'failure' && needs.read-device-matrix.result != 'failure' && needs.set-build-names.result != 'failure' && (needs.trigger-ios-dual-versions.result == 'skipped' || needs.trigger-ios-dual-versions.result == 'success') && (inputs.browserstack_app_url_ios_onboarding != '' || needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url != '')
     with:
       platform: ios
       build_type: onboarding

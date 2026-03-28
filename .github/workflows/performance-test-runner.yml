@@ -223,9 +223,9 @@ jobs:
             echo "E2E_PERFORMANCE_SENTRY_RELEASE=${{ github.sha }}"
             echo "E2E_PERFORMANCE_BUILD_VARIANT=$BUILD_VARIANT"
             echo "DISABLE_VIDEO_DOWNLOAD=true"
-            # Seedless existing-user perf needs E2E_MOCK_OAUTH_EMAIL containing "existinguser" in the app build.
-            # Skip that Appwright project until a matching BrowserStack artifact is wired (set to false to enable).
-            echo "METAMASK_SKIP_SEEDLESS_EXISTING_USER_PERF=true"
+            # Run seedless existing-user perf in CI (same without-SRP app URL as other onboarding seedless tests via appwright fallbacks).
+            # Optional: set BROWSERSTACK_*_SEEDLESS_EXISTING_USER_PERF_APP_URL in env if you use a dedicated existing-user build.
+            echo "METAMASK_SKIP_SEEDLESS_EXISTING_USER_PERF=false"
           } >> "$GITHUB_ENV"
 
       - name: Run Tests
