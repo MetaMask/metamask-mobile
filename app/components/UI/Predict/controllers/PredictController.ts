@@ -120,6 +120,7 @@ import {
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { predictQueries } from '../queries';
 import { ensureError } from '../utils/predictErrorHandler';
+import { showOrderPlacedToast } from '../utils/toasts';
 import { validateDepositTransactions } from '../utils/validateTransactions';
 import reactQueryService from '../../../../core/ReactQueryService';
 
@@ -1630,6 +1631,7 @@ export class PredictController extends BaseController<
 
       if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
         this.invalidateOrderQueries();
+        showOrderPlacedToast();
       }
 
       // Track Predict Trade Transaction with succeeded status (fire and forget)

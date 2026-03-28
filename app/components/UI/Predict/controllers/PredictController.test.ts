@@ -147,6 +147,14 @@ jest.mock('../../../../core/ReactQueryService', () => ({
   },
 }));
 
+const mockShowToast = jest.fn();
+jest.mock('../../../../core/ToastService/ToastService', () => ({
+  __esModule: true,
+  default: {
+    showToast: (...args: unknown[]) => mockShowToast(...args),
+  },
+}));
+
 type AllPredictControllerMessengerActions =
   MessengerActions<PredictControllerMessenger>;
 
@@ -1175,6 +1183,120 @@ describe('PredictController', () => {
           );
 
           expect(mockInvalidateQueries).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('shows order placed toast on successful buy order when predictWithAnyToken is enabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+          mockShowToast.mockClear();
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({ preview });
+
+          expect(mockShowToast).toHaveBeenCalledTimes(1);
+          expect(mockShowToast).toHaveBeenCalledWith(
+            expect.objectContaining({
+              variant: 'Icon',
+              iconName: expect.any(String),
+              hasNoTimeout: false,
+            }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not show toast on successful sell order even when predictWithAnyToken is enabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '200',
+          receivedAmount: '100',
+        },
+      };
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+          mockShowToast.mockClear();
+
+          const preview = createMockOrderPreview({ side: Side.SELL });
+
+          await controller.placeOrder({ preview });
+
+          expect(mockShowToast).not.toHaveBeenCalled();
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
+    it('does not show toast on successful buy order when predictWithAnyToken is disabled', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(async ({ controller }) => {
+        mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+        mockShowToast.mockClear();
+
+        const preview = createMockOrderPreview({ side: Side.BUY });
+
+        await controller.placeOrder({ preview });
+
+        expect(mockShowToast).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not show toast when buy order fails', async () => {
+      await withController(
+        async ({ controller }) => {
+          mockPolymarketProvider.placeOrder.mockRejectedValue(
+            new Error('Order placement failed'),
+          );
+          mockShowToast.mockClear();
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await expect(controller.placeOrder({ preview })).rejects.toThrow(
+            'Order placement failed',
+          );
+
+          expect(mockShowToast).not.toHaveBeenCalled();
         },
         {
           mocks: {

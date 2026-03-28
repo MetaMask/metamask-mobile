@@ -13,7 +13,6 @@ import Engine from '../../../../../../core/Engine';
 import { useSelector } from 'react-redux';
 import { selectPredictWithAnyTokenEnabledFlag } from '../../../selectors/featureFlags';
 import { PredictTradeStatus } from '../../../constants/eventNames';
-import { useQueryClient } from '@tanstack/react-query';
 import { usePredictTrading } from '../../../hooks/usePredictTrading';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import { PREDICT_ERROR_CODES } from '../../../constants/errors';
@@ -23,14 +22,12 @@ interface UsePredictBuyActionsParams {
   preview?: OrderPreview | null;
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   setIsConfirming: (value: boolean) => void;
-  showOrderPlacedToast: () => void;
 }
 
 export const usePredictBuyActions = ({
   preview,
   analyticsProperties,
   setIsConfirming,
-  showOrderPlacedToast,
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
@@ -156,17 +153,10 @@ export const usePredictBuyActions = ({
 
   useEffect(() => {
     if (currentState === ActiveOrderState.SUCCESS) {
-      showOrderPlacedToast();
       PredictController.onPlaceOrderEnd();
       navigation.dispatch(StackActions.pop());
     }
-  }, [
-    PredictController,
-    currentState,
-    navigation,
-    setIsConfirming,
-    showOrderPlacedToast,
-  ]);
+  }, [PredictController, currentState, navigation, setIsConfirming]);
 
   return {
     handleConfirm,
