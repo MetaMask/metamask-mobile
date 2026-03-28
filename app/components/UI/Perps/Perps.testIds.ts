@@ -170,6 +170,7 @@ export const getPerpsMarketRowItemSelector = {
 
 export const PerpsOrderHeaderSelectorsIDs = {
   HEADER: 'perps-order-header',
+  BACK_BUTTON: 'perps-order-header-back-button',
   ASSET_TITLE: 'perps-order-header-asset-title',
   ORDER_TYPE_BUTTON: 'perps-order-header-order-type-button',
 };
