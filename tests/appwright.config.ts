@@ -2,6 +2,10 @@
 import dotenv from 'dotenv';
 dotenv.config({ path: '.e2e.env' });
 import { defineConfig, Platform } from 'appwright';
+
+const skipSeedlessExistingUserPerf =
+  process.env.METAMASK_SKIP_SEEDLESS_EXISTING_USER_PERF === 'true';
+
 export default defineConfig({
   testDir: './',
   timeout: 7 * 60 * 1000, //7 minutes until we introduce fixtures
@@ -113,6 +117,8 @@ export default defineConfig({
     {
       name: 'android-onboarding-seedless',
       testMatch: '**/performance/onboarding/seedless-*.spec.js',
+      testIgnore:
+        '**/performance/onboarding/seedless-*-existing-user-onboarding.spec.js',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -129,6 +135,8 @@ export default defineConfig({
     {
       name: 'ios-onboarding-seedless',
       testMatch: '**/performance/onboarding/seedless-*.spec.js',
+      testIgnore:
+        '**/performance/onboarding/seedless-*-existing-user-onboarding.spec.js',
       use: {
         platform: Platform.IOS,
         device: {
@@ -137,6 +145,45 @@ export default defineConfig({
           osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
         },
         buildPath:
+          process.env.BROWSERSTACK_IOS_SEEDLESS_PERF_APP_URL ??
+          process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000,
+      },
+    },
+    {
+      name: 'android-onboarding-seedless-existing-user',
+      testMatch:
+        '**/performance/onboarding/seedless-*-existing-user-onboarding.spec.js',
+      ...(skipSeedlessExistingUserPerf ? { testIgnore: ['**/*'] } : {}),
+      use: {
+        platform: Platform.ANDROID,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'Samsung Galaxy S23 Ultra',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '13.0',
+        },
+        buildPath:
+          process.env
+            .BROWSERSTACK_ANDROID_SEEDLESS_EXISTING_USER_PERF_APP_URL ??
+          process.env.BROWSERSTACK_ANDROID_SEEDLESS_PERF_APP_URL ??
+          process.env.BROWSERSTACK_ANDROID_CLEAN_APP_URL,
+        expectTimeout: 30 * 1000,
+      },
+    },
+    {
+      name: 'ios-onboarding-seedless-existing-user',
+      testMatch:
+        '**/performance/onboarding/seedless-*-existing-user-onboarding.spec.js',
+      ...(skipSeedlessExistingUserPerf ? { testIgnore: ['**/*'] } : {}),
+      use: {
+        platform: Platform.IOS,
+        device: {
+          provider: 'browserstack',
+          name: process.env.BROWSERSTACK_DEVICE || 'iPhone 14 Pro Max',
+          osVersion: process.env.BROWSERSTACK_OS_VERSION || '16.0',
+        },
+        buildPath:
+          process.env.BROWSERSTACK_IOS_SEEDLESS_EXISTING_USER_PERF_APP_URL ??
           process.env.BROWSERSTACK_IOS_SEEDLESS_PERF_APP_URL ??
           process.env.BROWSERSTACK_IOS_CLEAN_APP_URL,
         expectTimeout: 30 * 1000,
