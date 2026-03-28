@@ -199,6 +199,8 @@ import type {
 } from '../../components/Views/Webview/Webview.types';
 import { SectionId } from '../../components/Views/TrendingView/sections.config';
 
+import type { SwitchAccountTypeModalRouteParams } from '../../components/Views/confirmations/components/modals/switch-account-type-modal/switch-account-type-modal';
+
 /**
  * Flattened param list for React Navigation compatibility.
  * Maps actual route name strings to their parameter types.
@@ -522,7 +524,7 @@ export interface RootStackParamList extends ParamListBase {
   // Misc routes
   LockScreen: undefined;
   ConfirmationRequestModal: undefined;
-  ConfirmationSwitchAccountType: undefined;
+  ConfirmationSwitchAccountType: SwitchAccountTypeModalRouteParams | undefined;
   ConfirmationPayWithModal: undefined;
   ConfirmationPayWithNetworkModal: undefined;
   SmartAccountOptIn: undefined;
