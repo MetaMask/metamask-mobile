@@ -1225,6 +1225,45 @@ describe('PredictController', () => {
       );
     });
 
+    it('does not publish order confirmed event when there is an active buy order', async () => {
+      const mockResult = {
+        success: true as const,
+        response: {
+          id: 'order-123',
+          spentAmount: '100',
+          receivedAmount: '200',
+        },
+      };
+      await withController(
+        async ({ controller, messenger }) => {
+          mockPolymarketProvider.placeOrder.mockResolvedValue(mockResult);
+          setActiveOrderForTest(controller, {
+            state: ActiveOrderState.PLACING_ORDER,
+          });
+          const handler = jest.fn();
+          messenger.subscribe(
+            'PredictController:transactionStatusChanged',
+            handler,
+          );
+
+          const preview = createMockOrderPreview({ side: Side.BUY });
+
+          await controller.placeOrder({ preview });
+
+          expect(handler).not.toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'order' }),
+          );
+        },
+        {
+          mocks: {
+            getRemoteFeatureFlagState: jest
+              .fn()
+              .mockReturnValue(REMOTE_FEATURE_FLAG_STATE_WITH_PAY_ANY_TOKEN),
+          },
+        },
+      );
+    });
+
     it('does not publish order event on successful sell order even when predictWithAnyToken is enabled', async () => {
       const mockResult = {
         success: true as const,

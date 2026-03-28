@@ -1631,11 +1631,13 @@ export class PredictController extends BaseController<
 
       if (predictWithAnyTokenEnabled && preview.side === Side.BUY) {
         this.invalidateOrderQueries();
-        this.messenger.publish('PredictController:transactionStatusChanged', {
-          type: 'order',
-          status: 'confirmed',
-          senderAddress: signer.address,
-        });
+        if (!this.state.activeBuyOrder) {
+          this.messenger.publish('PredictController:transactionStatusChanged', {
+            type: 'order',
+            status: 'confirmed',
+            senderAddress: signer.address,
+          });
+        }
       }
 
       // Track Predict Trade Transaction with succeeded status (fire and forget)

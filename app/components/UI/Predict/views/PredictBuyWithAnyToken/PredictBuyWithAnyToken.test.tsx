@@ -6,6 +6,7 @@ import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
 
 const mockHandleConfirm = jest.fn();
 const mockPlaceOrder = jest.fn();
+const mockShowOrderPlacedToast = jest.fn();
 const mockResetOrderNotFilled = jest.fn();
 const mockSetCurrentValue = jest.fn();
 const mockSetCurrentValueUSDString = jest.fn();
@@ -89,6 +90,12 @@ jest.mock('../../hooks/usePredictOrderRetry', () => ({
     retrySheetVariant: 'busy',
     isRetrying: false,
     handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
+  }),
+}));
+
+jest.mock('../../hooks/usePredictPlaceOrder', () => ({
+  usePredictPlaceOrder: () => ({
+    showOrderPlacedToast: mockShowOrderPlacedToast,
   }),
 }));
 
