@@ -1068,7 +1068,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('invalidates order-related queries on successful buy order when predictWithAnyToken is enabled', async () => {
+    it('does not invalidate queries directly on successful buy order when predictWithAnyToken is enabled', async () => {
       const mockResult = {
         success: true as const,
         response: {
@@ -1086,18 +1086,7 @@ describe('PredictController', () => {
 
           await controller.placeOrder({ preview });
 
-          expect(mockInvalidateQueries).toHaveBeenCalledWith({
-            queryKey: ['predict', 'balance'],
-          });
-          expect(mockInvalidateQueries).toHaveBeenCalledWith({
-            queryKey: ['predict', 'positions'],
-          });
-          expect(mockInvalidateQueries).toHaveBeenCalledWith({
-            queryKey: ['predict', 'activity'],
-          });
-          expect(mockInvalidateQueries).toHaveBeenCalledWith({
-            queryKey: ['predict', 'unrealizedPnL'],
-          });
+          expect(mockInvalidateQueries).not.toHaveBeenCalled();
         },
         {
           mocks: {
@@ -4618,6 +4607,7 @@ describe('PredictController', () => {
           }),
           createMockPosition({
             id: 'position-lost',
+
             status: PredictPositionStatus.LOST,
             currentValue: 999,
             cashPnl: -999,

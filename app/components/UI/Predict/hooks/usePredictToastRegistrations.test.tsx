@@ -774,6 +774,26 @@ describe('usePredictToastRegistrations', () => {
           hasNoTimeout: false,
         }),
       );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'activity'],
+        }),
+      );
+      expect(mockInvalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
+        }),
+      );
     });
 
     it('shows error toast on failed status', () => {

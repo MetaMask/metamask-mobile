@@ -229,22 +229,22 @@ Notes:
 - The `transitionEnd` listener in `usePredictBuyActions` triggers `initPayWithAnyToken()` once on initial mount to prepare the deposit-and-order batch when an external token is selected.
 - Transaction status events (`TransactionController:transactionStatusUpdated`) for `predictDepositAndOrder` are handled by `handleTransactionSideEffects()` in the controller, which chains deposit confirmation into `placeOrder()` automatically using the preview stored in `pendingOrderPreviews`.
 - When `placeOrder()` is called while the active order state is `PAY_WITH_ANY_TOKEN`, it transitions to `DEPOSITING`, stores the preview in `pendingOrderPreviews[transactionId]`, and returns early. The actual order placement happens when the deposit transaction confirms.
-- On successful order placement, the controller invalidates order-related queries directly and publishes `PredictController:transactionStatusChanged` events for background toast notifications.
+- On successful order placement, foreground flows invalidate order-related queries in Predict hooks, while background flows publish `PredictController:transactionStatusChanged` events that trigger app-level query invalidation and toast notifications.
 - State transitions are gated behind the `predictWithAnyToken` feature flag — when disabled, `placeOrder()` behaves as a direct order without active order state management.
 
 ### Controller Methods (State Transitions)
 
-| Method                      | Transition                           | Notes                                                                                                                           |
-| --------------------------- | ------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------- |
-| `initPayWithAnyToken()`     | Sets `transactionId` on active order | Prepares deposit-and-order batch via provider; initializes to `PREVIEW` if no active order exists; guards against duplicates    |
-| `selectPaymentToken()`      | `PREVIEW ↔ PAY_WITH_ANY_TOKEN`      | Toggles between balance and external token; sets/clears `selectedPaymentToken` and clears error                                 |
-| `placeOrder()`              | `PAY_WITH_ANY_TOKEN -> DEPOSITING`   | When external token selected: stores preview in `pendingOrderPreviews`, transitions to `DEPOSITING`, returns early              |
-| `placeOrder()`              | `PREVIEW -> PLACING_ORDER`           | When balance selected: submits order directly to provider                                                                       |
-| `placeOrder()`              | `PLACING_ORDER -> SUCCESS`           | On successful order completion; optimistically updates balance; invalidates queries; publishes order confirmed event            |
-| `placeOrder()`              | `PLACING_ORDER -> PREVIEW`           | On order failure; stores error, clears payment token; if `transactionId` present, clears it and retries `initPayWithAnyToken()` |
-| `onPlaceOrderEnd()`         | `-> null`                            | Clears active order, payment token, and deposit preview                                                                         |
-| `clearOrderError()`         | (no state change)                    | Removes error from active order                                                                                                 |
-| `setSelectedPaymentToken()` | (no state change)                    | Directly sets or clears the selected payment token in state                                                                     |
+| Method                      | Transition                           | Notes                                                                                                                                                      |
+| --------------------------- | ------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `initPayWithAnyToken()`     | Sets `transactionId` on active order | Prepares deposit-and-order batch via provider; initializes to `PREVIEW` if no active order exists; guards against duplicates                               |
+| `selectPaymentToken()`      | `PREVIEW ↔ PAY_WITH_ANY_TOKEN`      | Toggles between balance and external token; sets/clears `selectedPaymentToken` and clears error                                                            |
+| `placeOrder()`              | `PAY_WITH_ANY_TOKEN -> DEPOSITING`   | When external token selected: stores preview in `pendingOrderPreviews`, transitions to `DEPOSITING`, returns early                                         |
+| `placeOrder()`              | `PREVIEW -> PLACING_ORDER`           | When balance selected: submits order directly to provider                                                                                                  |
+| `placeOrder()`              | `PLACING_ORDER -> SUCCESS`           | On successful order completion; optimistically updates balance; foreground hooks invalidate queries, and background flows publish an order confirmed event |
+| `placeOrder()`              | `PLACING_ORDER -> PREVIEW`           | On order failure; stores error, clears payment token; if `transactionId` present, clears it and retries `initPayWithAnyToken()`                            |
+| `onPlaceOrderEnd()`         | `-> null`                            | Clears active order, payment token, and deposit preview                                                                                                    |
+| `clearOrderError()`         | (no state change)                    | Removes error from active order                                                                                                                            |
+| `setSelectedPaymentToken()` | (no state change)                    | Directly sets or clears the selected payment token in state                                                                                                |
 
 ## Core Types and Utilities
 

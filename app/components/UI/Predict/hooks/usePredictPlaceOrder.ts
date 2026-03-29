@@ -42,6 +42,7 @@ interface UsePredictPlaceOrderReturn {
   isOrderNotFilled: boolean;
   resetOrderNotFilled: () => void;
   showOrderPlacedToast: () => void;
+  invalidateOrderQueries: () => void;
 }
 
 export type PlaceOrderOutcome =
@@ -151,6 +152,21 @@ export function usePredictPlaceOrder(
     });
   }, [toastRef]);
 
+  const invalidateOrderQueries = useCallback(() => {
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.balance.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.positions.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.activity.keys.all(),
+    });
+    queryClient.invalidateQueries({
+      queryKey: predictQueries.unrealizedPnL.keys.all(),
+    });
+  }, [queryClient]);
+
   const placeOrder = useCallback(
     async (orderParams: PlaceOrderParams): Promise<PlaceOrderOutcome> => {
       const {
@@ -218,21 +234,7 @@ export function usePredictPlaceOrder(
 
         setResult(orderResult);
 
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.balance.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.positions.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.activity.keys.all(),
-        });
-
-        queryClient.invalidateQueries({
-          queryKey: predictQueries.unrealizedPnL.keys.all(),
-        });
+        invalidateOrderQueries();
 
         if (side === Side.BUY) {
           showOrderPlacedToast();
@@ -266,7 +268,7 @@ export function usePredictPlaceOrder(
       toastRef,
       controllerPlaceOrder,
       onComplete,
-      queryClient,
+      invalidateOrderQueries,
       showOrderPlacedToast,
       showCashedOutToast,
       onError,
@@ -286,5 +288,6 @@ export function usePredictPlaceOrder(
     isOrderNotFilled,
     resetOrderNotFilled,
     showOrderPlacedToast,
+    invalidateOrderQueries,
   };
 }

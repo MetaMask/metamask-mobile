@@ -23,6 +23,7 @@ interface UsePredictBuyActionsParams {
   analyticsProperties: PlaceOrderParams['analyticsProperties'];
   setIsConfirming: (value: boolean) => void;
   showOrderPlacedToast: () => void;
+  invalidateOrderQueries: () => void;
 }
 
 export const usePredictBuyActions = ({
@@ -30,6 +31,7 @@ export const usePredictBuyActions = ({
   analyticsProperties,
   setIsConfirming,
   showOrderPlacedToast,
+  invalidateOrderQueries,
 }: UsePredictBuyActionsParams) => {
   const navigation =
     useNavigation<StackNavigationProp<PredictNavigationParamList>>();
@@ -155,6 +157,7 @@ export const usePredictBuyActions = ({
 
   useEffect(() => {
     if (currentState === ActiveOrderState.SUCCESS) {
+      invalidateOrderQueries();
       showOrderPlacedToast();
       PredictController.onPlaceOrderEnd();
       navigation.dispatch(StackActions.pop());
@@ -162,6 +165,7 @@ export const usePredictBuyActions = ({
   }, [
     PredictController,
     currentState,
+    invalidateOrderQueries,
     navigation,
     setIsConfirming,
     showOrderPlacedToast,

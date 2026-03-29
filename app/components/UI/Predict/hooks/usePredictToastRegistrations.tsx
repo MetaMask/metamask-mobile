@@ -163,7 +163,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         });
 
         // Deposit/Withdraw should not invalidate positions/activity
-        if (type === 'claim') {
+        if (type === 'claim' || type === 'order') {
           queryClient.invalidateQueries({
             queryKey: predictQueries.positions.keys.all(),
           });

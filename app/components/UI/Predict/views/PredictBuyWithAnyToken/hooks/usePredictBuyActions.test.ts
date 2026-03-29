@@ -14,6 +14,7 @@ const mockOnConfirmActionsReject = jest.fn();
 const mockOnApprovalConfirm = jest.fn();
 const mockUnsubscribe = jest.fn();
 const mockShowOrderPlacedToast = jest.fn();
+const mockInvalidateOrderQueries = jest.fn();
 const mockTrackPredictOrderEvent = jest.fn();
 const mockPlaceOrder = jest.fn<Promise<unknown>, [PlaceOrderParams]>();
 const mockOnPlaceOrderEnd = jest.fn();
@@ -130,6 +131,7 @@ const createDefaultParams = (): Parameters<typeof usePredictBuyActions>[0] => ({
   analyticsProperties: { marketId: 'market-1' },
   setIsConfirming: mockSetIsConfirming,
   showOrderPlacedToast: mockShowOrderPlacedToast,
+  invalidateOrderQueries: mockInvalidateOrderQueries,
 });
 
 describe('usePredictBuyActions', () => {
@@ -412,6 +414,7 @@ describe('usePredictBuyActions', () => {
 
       renderHook(() => usePredictBuyActions(createDefaultParams()));
 
+      expect(mockInvalidateOrderQueries).toHaveBeenCalledTimes(1);
       expect(mockShowOrderPlacedToast).toHaveBeenCalledTimes(1);
       expect(mockOnPlaceOrderEnd).toHaveBeenCalledTimes(1);
       expect(mockDispatch).toHaveBeenCalledWith(StackActions.pop());
