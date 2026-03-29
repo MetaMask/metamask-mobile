@@ -21,6 +21,7 @@ import {
   ChartType,
   DEFAULT_DISABLED_FEATURES,
   parseWebViewMessage,
+  resolveLineChromeOptions,
   type AdvancedChartProps,
   type AdvancedChartRef,
   type IndicatorType,
@@ -39,10 +40,15 @@ import {
  * TradingView Advanced Charts (TM)
  * Copyright (c) 2025 TradingView, Inc. https://www.tradingview.com/
  */
+
+/** Hide layout skeleton if WebView never sends `CHART_LAYOUT_SETTLED` (e.g. older HTML). */
+const LAYOUT_SETTLE_FALLBACK_MS = 2500;
+
 const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
   (
     {
       ohlcvData,
+      ohlcvSeriesKey,
       height = DEFAULT_CHART_HEIGHT,
       realtimeBar,
       onRequestMoreHistory,
@@ -68,12 +74,23 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
     const [chartReadyCount, setChartReadyCount] = useState(0);
     const isChartReady = chartReadyCount > 0;
     const [webViewError, setWebViewError] = useState<string | null>(null);
+    /**
+     * After `CHART_READY`, a full `SET_OHLCV_DATA` (new series key, first bars, or large length
+     * change) still leaves TradingView applying scale/layout asynchronously. We keep the skeleton
+     * until the WebView posts `CHART_LAYOUT_SETTLED` (see deferred settle in chartLogic) or the
+     * `LAYOUT_SETTLE_FALLBACK_MS` timer, so the canvas does not flash empty or half-drawn.
+     */
+    const [layoutSettling, setLayoutSettling] = useState(false);
+    const layoutSettleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+      null,
+    );
 
     const activeIndicatorsRef = useRef<Set<IndicatorType>>(new Set());
     const [webViewLoaded, setWebViewLoaded] = useState(false);
     const prevPositionLinesRef = useRef(positionLines);
     const prevChartTypeRef = useRef(chartType);
     const prevOhlcvDataRef = useRef<OHLCVBar[]>([]);
+    const prevOhlcvSeriesKeyRef = useRef<string | undefined>(undefined);
 
     const htmlContent = useMemo(
       () =>
@@ -92,6 +109,8 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       activeIndicatorsRef.current.clear();
       prevPositionLinesRef.current = undefined;
       prevChartTypeRef.current = undefined;
+      prevOhlcvDataRef.current = [];
+      prevOhlcvSeriesKeyRef.current = undefined;
     }, [htmlContent]); // eslint-disable-line react-hooks/exhaustive-deps
 
     // ---- Helpers ----
@@ -101,6 +120,33 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         webViewRef.current.postMessage(JSON.stringify(message));
       }
     }, []);
+
+    const clearLayoutSettleTimeout = useCallback(() => {
+      const t = layoutSettleTimeoutRef.current;
+      if (t !== null) {
+        clearTimeout(t);
+        layoutSettleTimeoutRef.current = null;
+      }
+    }, []);
+
+    const beginFullOhlcvLayoutSettle = useCallback(() => {
+      if (!isChartReady) {
+        return;
+      }
+      setLayoutSettling(true);
+      clearLayoutSettleTimeout();
+      layoutSettleTimeoutRef.current = setTimeout(() => {
+        layoutSettleTimeoutRef.current = null;
+        setLayoutSettling(false);
+      }, LAYOUT_SETTLE_FALLBACK_MS);
+    }, [isChartReady, clearLayoutSettleTimeout]);
+
+    useEffect(
+      () => () => {
+        clearLayoutSettleTimeout();
+      },
+      [clearLayoutSettleTimeout],
+    );
 
     const sendOHLCVData = useCallback(
       (data: OHLCVBar[]) => {
@@ -164,9 +210,16 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             activeIndicatorsRef.current.clear();
             prevPositionLinesRef.current = undefined;
             prevChartTypeRef.current = undefined;
+            clearLayoutSettleTimeout();
+            setLayoutSettling(false);
             setChartReadyCount((c) => c + 1);
             setWebViewError(null);
             onChartReady?.();
+            break;
+
+          case 'CHART_LAYOUT_SETTLED':
+            clearLayoutSettleTimeout();
+            setLayoutSettling(false);
             break;
 
           case 'INDICATOR_ADDED':
@@ -193,6 +246,11 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             break;
 
           case 'DEBUG':
+            if (__DEV__) {
+              // WebView console is not the Metro / Xcode log; chartLogic mirrors here via DEBUG.
+              // eslint-disable-next-line no-console -- intentional dev bridge from WebView
+              console.log(message.payload.message);
+            }
             break;
 
           default:
@@ -201,6 +259,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       },
       [
         isChartReady,
+        clearLayoutSettleTimeout,
         onChartReady,
         onError,
         onCrosshairMove,
@@ -230,16 +289,25 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
         removeIndicator,
         setChartType: setChartTypeInternal,
         reset: () => {
+          clearLayoutSettleTimeout();
+          setLayoutSettling(false);
           setChartReadyCount(0);
           setWebViewLoaded(false);
           setWebViewError(null);
           activeIndicatorsRef.current.clear();
           prevPositionLinesRef.current = undefined;
           prevChartTypeRef.current = undefined;
+          prevOhlcvDataRef.current = [];
+          prevOhlcvSeriesKeyRef.current = undefined;
           webViewRef.current?.reload();
         },
       }),
-      [addIndicator, removeIndicator, setChartTypeInternal],
+      [
+        addIndicator,
+        removeIndicator,
+        setChartTypeInternal,
+        clearLayoutSettleTimeout,
+      ],
     );
 
     // ---- Declarative prop syncing ----
@@ -249,13 +317,28 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
 
       const prevData = prevOhlcvDataRef.current;
 
+      if (
+        ohlcvSeriesKey !== undefined &&
+        ohlcvSeriesKey !== prevOhlcvSeriesKeyRef.current
+      ) {
+        beginFullOhlcvLayoutSettle();
+        sendOHLCVData(ohlcvData);
+        prevOhlcvDataRef.current = ohlcvData;
+        prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+        return;
+      }
+
       // If this is the first load or data length changed significantly, send full dataset
       if (
         prevData.length === 0 ||
         Math.abs(ohlcvData.length - prevData.length) > 1
       ) {
+        beginFullOhlcvLayoutSettle();
         sendOHLCVData(ohlcvData);
         prevOhlcvDataRef.current = ohlcvData;
+        if (ohlcvSeriesKey !== undefined) {
+          prevOhlcvSeriesKeyRef.current = ohlcvSeriesKey;
+        }
         return;
       }
 
@@ -281,7 +364,14 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       }
 
       prevOhlcvDataRef.current = ohlcvData;
-    }, [ohlcvData, webViewLoaded, sendOHLCVData, postMessage]);
+    }, [
+      ohlcvData,
+      ohlcvSeriesKey,
+      webViewLoaded,
+      sendOHLCVData,
+      postMessage,
+      beginFullOhlcvLayoutSettle,
+    ]);
 
     // Send initial chartType as soon as WebView loads (before chart is ready)
     // This prevents the flash of default chart type during initialization
@@ -353,12 +443,12 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
       });
     }, [showVolume, volumeOverlay, chartReadyCount, postMessage]);
 
-    // Line chart chrome presets (time axis / last-price line); merges in WebView without requiring HTML edits
+    // Line / chart chrome: always send resolved payload after CHART_READY (matches inline CONFIG).
     useEffect(() => {
-      if (chartReadyCount === 0 || lineChrome === undefined) return;
+      if (chartReadyCount === 0) return;
       postMessage({
         type: 'SET_LINE_CHROME',
-        payload: lineChrome,
+        payload: resolveLineChromeOptions(lineChrome),
       });
     }, [lineChrome, chartReadyCount, postMessage]);
 
@@ -396,7 +486,7 @@ const AdvancedChart = forwardRef<AdvancedChartRef, AdvancedChartProps>(
             androidLayerType="hardware"
             mixedContentMode="always"
           />
-          {(isLoading || !isChartReady) && (
+          {(isLoading || !isChartReady || layoutSettling) && (
             <Skeleton
               height={height}
               width="100%"

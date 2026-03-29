@@ -3,6 +3,7 @@ import { render, act } from '@testing-library/react-native';
 import AdvancedChart from '../AdvancedChart';
 import {
   ChartType,
+  resolveLineChromeOptions,
   type OHLCVBar,
   type AdvancedChartRef,
   type PositionLines,
@@ -69,6 +70,46 @@ describe('AdvancedChart', () => {
     expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
   });
 
+  it('shows skeleton until CHART_LAYOUT_SETTLED after full SET_OHLCV when chart is ready', () => {
+    const altBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+
+    const { getByTestId, queryByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} ohlcvSeriesKey="range-a" />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+
+    rerender(<AdvancedChart ohlcvData={altBars} ohlcvSeriesKey="range-b" />);
+
+    expect(getByTestId('advanced-chart-skeleton')).toBeOnTheScreen();
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_LAYOUT_SETTLED', payload: {} }),
+        },
+      });
+    });
+
+    expect(queryByTestId('advanced-chart-skeleton')).not.toBeOnTheScreen();
+  });
+
   it('sends OHLCV data on WebView load end', () => {
     const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
 
@@ -83,6 +124,42 @@ describe('AdvancedChart', () => {
         payload: { data: MOCK_BARS },
       }),
     );
+  });
+
+  it('sends SET_OHLCV_DATA when ohlcvSeriesKey changes even if bar count matches', () => {
+    const altBars: OHLCVBar[] = [
+      { time: 2000000, open: 20, high: 22, low: 19, close: 21, volume: 400 },
+      { time: 2000300, open: 21, high: 23, low: 20, close: 22, volume: 500 },
+    ];
+
+    const { getByTestId, rerender } = render(
+      <AdvancedChart ohlcvData={MOCK_BARS} ohlcvSeriesKey="range-a" />,
+    );
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    mockPostMessage.mockClear();
+
+    rerender(<AdvancedChart ohlcvData={altBars} ohlcvSeriesKey="range-b" />);
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_OHLCV_DATA',
+        payload: { data: altBars },
+      }),
+    );
+
+    const realtimeCalls = mockPostMessage.mock.calls.filter((call) => {
+      try {
+        return JSON.parse(call[0] as string).type === 'REALTIME_UPDATE';
+      } catch {
+        return false;
+      }
+    });
+    expect(realtimeCalls).toHaveLength(0);
   });
 
   it('exposes addIndicator via ref', () => {
@@ -318,6 +395,30 @@ describe('AdvancedChart', () => {
       JSON.stringify({
         type: 'REALTIME_UPDATE',
         payload: { bar: newBar },
+      }),
+    );
+  });
+
+  it('sends SET_LINE_CHROME with resolved defaults after onLoadEnd and CHART_READY', () => {
+    const { getByTestId } = render(<AdvancedChart ohlcvData={MOCK_BARS} />);
+
+    const webView = getByTestId('mock-webview');
+    act(() => {
+      webView.props.onLoadEnd();
+    });
+
+    act(() => {
+      webView.props.onMessage({
+        nativeEvent: {
+          data: JSON.stringify({ type: 'CHART_READY', payload: {} }),
+        },
+      });
+    });
+
+    expect(mockPostMessage).toHaveBeenCalledWith(
+      JSON.stringify({
+        type: 'SET_LINE_CHROME',
+        payload: resolveLineChromeOptions(),
       }),
     );
   });

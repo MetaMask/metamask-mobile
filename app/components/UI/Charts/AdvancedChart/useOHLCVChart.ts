@@ -182,7 +182,7 @@ export const useOHLCVChart = ({
         // Fetch a small window (1h) to get just the latest candle
         // This minimizes data transfer while ensuring we get the current forming candle
         const result = await fetchOHLCV(assetId, {
-          timePeriod: '1h',
+          timePeriod,
           interval,
           vsCurrency,
         });

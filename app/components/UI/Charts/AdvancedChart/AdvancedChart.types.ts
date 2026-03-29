@@ -115,13 +115,56 @@ export type ChartType = (typeof ChartType)[keyof typeof ChartType];
 // ============================================
 
 /**
- * Line-chart-only chrome (TradingView WebView). Candlestick behavior is unchanged.
+ * Line / chart chrome for the TradingView WebView.
+ *
+ * When a `useCustom*` flag is **false**, TradingView built-ins apply where relevant
+ * (`showSeriesLastValue`, `showPriceLine`, scale crosshair labels). When **true**, MetaMask uses
+ * custom drawings/DOM instead and disables the TV equivalent to avoid duplicates.
  */
 export interface LineChromeOptions {
   /** When true, hide the time-axis row (line chart only). */
   hideTimeScale?: boolean;
-  /** When true, draw last-close dashed horizontal_line + right-axis price tag (line chart only). */
-  showLastPriceLine?: boolean;
+  /** When true, draw the line-end marker via the Drawing API (line chart only). */
+  useCustomLineEndMarker?: boolean;
+  /** When true, draw the dashed last-price guide with `horizontal_line` shapes (candles + line). */
+  useCustomDashedLastPriceLine?: boolean;
+  /**
+   * When true, custom DOM for last-close pill, visible-edge outline pill, and crosshair price/time
+   * labels. When false, TV scale last value and crosshair labels are enabled.
+   */
+  useCustomPriceLabels?: boolean;
+}
+
+/** Default `lineChrome` when props omit fields; merged by `resolveLineChromeOptions`. */
+export const DEFAULT_LINE_CHROME = {
+  hideTimeScale: false,
+  useCustomLineEndMarker: true,
+  useCustomDashedLastPriceLine: true,
+  useCustomPriceLabels: true,
+} as const;
+
+export type ResolvedLineChromeOptions = {
+  [K in keyof typeof DEFAULT_LINE_CHROME]: boolean;
+};
+
+/**
+ * Fills omitted `lineChrome` fields with `DEFAULT_LINE_CHROME`. Used for inline CONFIG and for
+ * `SET_LINE_CHROME` payloads (always the full resolved object).
+ */
+export function resolveLineChromeOptions(
+  partial?: LineChromeOptions | null,
+): ResolvedLineChromeOptions {
+  return {
+    hideTimeScale: partial?.hideTimeScale ?? DEFAULT_LINE_CHROME.hideTimeScale,
+    useCustomLineEndMarker:
+      partial?.useCustomLineEndMarker ??
+      DEFAULT_LINE_CHROME.useCustomLineEndMarker,
+    useCustomDashedLastPriceLine:
+      partial?.useCustomDashedLastPriceLine ??
+      DEFAULT_LINE_CHROME.useCustomDashedLastPriceLine,
+    useCustomPriceLabels:
+      partial?.useCustomPriceLabels ?? DEFAULT_LINE_CHROME.useCustomPriceLabels,
+  };
 }
 
 export type RNToWebViewMessageType =
@@ -136,6 +179,7 @@ export type RNToWebViewMessageType =
 
 export type WebViewToRNMessageType =
   | 'CHART_READY'
+  | 'CHART_LAYOUT_SETTLED'
   | 'INDICATOR_ADDED'
   | 'INDICATOR_REMOVED'
   | 'CROSSHAIR_MOVE'
@@ -175,7 +219,7 @@ export interface ToggleVolumePayload {
   volumeOverlay?: boolean;
 }
 
-export interface SetLineChromePayload extends LineChromeOptions {}
+export type SetLineChromePayload = ResolvedLineChromeOptions;
 
 export type RNToWebViewMessage =
   | { type: 'SET_OHLCV_DATA'; payload: SetOHLCVDataPayload }
@@ -211,6 +255,7 @@ export interface ErrorPayload {
 
 export type WebViewToRNMessage =
   | { type: 'CHART_READY' }
+  | { type: 'CHART_LAYOUT_SETTLED' }
   | { type: 'INDICATOR_ADDED'; payload: IndicatorAddedPayload }
   | { type: 'INDICATOR_REMOVED'; payload: IndicatorRemovedPayload }
   | { type: 'CROSSHAIR_MOVE'; payload: CrosshairMovePayload }
@@ -242,6 +287,9 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 
   switch (type) {
     case 'CHART_READY':
+      return { type };
+
+    case 'CHART_LAYOUT_SETTLED':
       return { type };
 
     case 'DEBUG':
@@ -315,6 +363,12 @@ export function parseWebViewMessage(raw: unknown): WebViewToRNMessage | null {
 export interface AdvancedChartProps {
   /** OHLCV data to display (required) */
   ohlcvData: OHLCVBar[];
+  /**
+   * When set, any change forces a full `SET_OHLCV_DATA` sync instead of the length/last-bar
+   * heuristic (which can mis-classify a new range as `REALTIME_UPDATE` when bar counts match).
+   * Example: `${assetId}|${timePeriod}|${interval}|${currency}`.
+   */
+  ohlcvSeriesKey?: string;
   /** Chart height in pixels */
   height?: number;
 
@@ -352,8 +406,9 @@ export interface AdvancedChartProps {
   disabledFeatures?: string[];
 
   /**
-   * Line chart only: hide time axis and/or show last-close price line + Y-axis tag.
-   * Merged at runtime via SET_LINE_CHROME after CHART_READY.
+   * Line / chart chrome: time axis, custom line-end marker, dashed last-price drawing, custom
+   * price/crosshair labels vs TV built-ins. Omitted fields use `DEFAULT_LINE_CHROME`. After
+   * `CHART_READY`, RN sends `SET_LINE_CHROME` with `resolveLineChromeOptions(lineChrome)`.
    */
   lineChrome?: LineChromeOptions;
 

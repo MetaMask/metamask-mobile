@@ -1,5 +1,8 @@
 import type { Theme } from '../../../../util/theme/models';
-import type { LineChromeOptions } from './AdvancedChart.types';
+import {
+  type LineChromeOptions,
+  resolveLineChromeOptions,
+} from './AdvancedChart.types';
 import { chartLogicScript } from './webview';
 
 /**
@@ -46,25 +49,12 @@ interface ChartFeatures {
   lineChrome?: LineChromeOptions;
 }
 
-const defaultLineChrome = (): Required<LineChromeOptions> => ({
-  hideTimeScale: false,
-  showLastPriceLine: true,
-});
-
-const serializeLineChrome = (lineChrome?: LineChromeOptions) => {
-  const d = defaultLineChrome();
-  return {
-    hideTimeScale: lineChrome?.hideTimeScale ?? d.hideTimeScale,
-    showLastPriceLine: lineChrome?.showLastPriceLine ?? d.showLastPriceLine,
-  };
-};
-
 const createConfigScript = (
   libraryUrl: string,
   theme: Theme,
   features: ChartFeatures,
 ): string => {
-  const lc = serializeLineChrome(features.lineChrome);
+  const lc = resolveLineChromeOptions(features.lineChrome);
   return `
 window.CONFIG = {
   libraryUrl: '${libraryUrl}',
@@ -82,7 +72,9 @@ window.CONFIG = {
   },
   lineChrome: {
     hideTimeScale: ${lc.hideTimeScale ? 'true' : 'false'},
-    showLastPriceLine: ${lc.showLastPriceLine ? 'true' : 'false'}
+    useCustomLineEndMarker: ${lc.useCustomLineEndMarker ? 'true' : 'false'},
+    useCustomDashedLastPriceLine: ${lc.useCustomDashedLastPriceLine ? 'true' : 'false'},
+    useCustomPriceLabels: ${lc.useCustomPriceLabels ? 'true' : 'false'}
   }
 };
 `;
@@ -222,6 +214,18 @@ export const createAdvancedChartTemplate = (
             color: ${stripHexAlpha(theme.colors.success.inverse)};
         }
         /*
+         * Visible-edge outline pill: same pill metrics as .crosshair-label + .crosshair-price-label
+         * as the filled last-close label, but transparent fill + success border and success (green)
+         * text for readability on the chart background. Shown only when the series tail is off-screen
+         * and lineChrome.useCustomPriceLabels is true (chartLogic.js).
+         */
+        #custom-series-last-value-label {
+            z-index: 55;
+            background: transparent;
+            border: 1px solid ${stripHexAlpha(theme.colors.success.default)};
+            color: ${stripHexAlpha(theme.colors.success.default)};
+        }
+        /*
          * Crosshair price pill draws above last-close when both share the same Y so text stays readable.
          */
         #crosshair-price-label {
@@ -256,6 +260,7 @@ export const createAdvancedChartTemplate = (
         <div id="tv_chart_container"></div>
         <div id="custom-crosshair-overlay" aria-hidden="true">
             <div id="last-close-price-label" class="crosshair-label crosshair-price-label" style="display: none;"></div>
+            <div id="custom-series-last-value-label" class="crosshair-label crosshair-price-label" style="display: none;" aria-hidden="true"></div>
             <div id="crosshair-price-label" class="crosshair-label crosshair-price-label"></div>
             <div id="crosshair-time-label" class="crosshair-label crosshair-time-label"></div>
         </div>

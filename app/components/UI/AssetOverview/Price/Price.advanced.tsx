@@ -13,6 +13,7 @@ import { TokenI } from '../../Tokens/types';
 import { formatAddressToAssetId } from '@metamask/bridge-controller';
 import { Hex } from '@metamask/utils';
 import AdvancedChart from '../../Charts/AdvancedChart/AdvancedChart';
+import { advancedChartLineChromePresets } from '../../Charts/AdvancedChart/advancedChartLineChrome.presets';
 import {
   ChartType,
   type CrosshairData,
@@ -139,6 +140,15 @@ const PriceAdvanced = ({
   );
   const config = TIME_RANGE_CONFIGS[timeRange];
 
+  /**
+   * Used to make sure changing time range always sends a full SET_OHLCV_DATA
+   */
+  const ohlcvSeriesKey = useMemo(
+    () =>
+      `${assetId}|${config.timePeriod}|${config.interval}|${currentCurrency}`,
+    [assetId, config.timePeriod, config.interval, currentCurrency],
+  );
+
   const {
     ohlcvData,
     isLoading: chartLoading,
@@ -246,11 +256,13 @@ const PriceAdvanced = ({
           ) : (
             <AdvancedChart
               ohlcvData={ohlcvData}
+              ohlcvSeriesKey={ohlcvSeriesKey}
               height={CHART_HEIGHT}
               showVolume={chartType === ChartType.Candles}
               volumeOverlay
               chartType={chartType}
               indicators={indicators}
+              lineChrome={advancedChartLineChromePresets.tokenOverview}
               isLoading={chartLoading}
               onRequestMoreHistory={fetchMoreHistory}
               onCrosshairMove={handleCrosshairMove}
