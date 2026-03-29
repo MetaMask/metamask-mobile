@@ -95,15 +95,14 @@ class LoginScreen {
   }
 
   async isLoginScreenVisible() {
-
     if (!this._device) {
       const element = await this.title;
       await element.waitForDisplayed();
-    } else {
-      const element = await this.title;
-      await appwrightExpect(element).toBeVisible();
-
+      return;
     }
+
+    const passwordElement = await this.getPasswordInputElement;
+    await appwrightExpect(passwordElement).toBeVisible();
   }
 
   // Migrated to LoginView.ts (tests/page-objects/wallet/LoginView.ts)

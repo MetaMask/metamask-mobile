@@ -54,7 +54,9 @@ test.describe(`${PerformanceOnboarding} seedless existing user`, () => {
         async () => await LoginScreen.isLoginScreenVisible(),
       );
 
-      await LoginScreen.typePassword(getPasswordForScenario('onboarding'));
+      const unlockPassword =
+        getPasswordForScenario('login') || getPasswordForScenario('onboarding');
+      await LoginScreen.typePassword(unlockPassword);
       await LoginScreen.tapUnlockButton();
 
       await timer4.measure(
