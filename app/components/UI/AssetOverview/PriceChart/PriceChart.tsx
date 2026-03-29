@@ -348,6 +348,7 @@ const PriceChart = ({
     return (
       <Circle
         key="end-dot"
+        testID="price-chart-end-dot"
         cx={cx}
         cy={cy}
         r={endDotRadius}
