@@ -402,10 +402,9 @@ export const useTokenActions = ({
       };
     }
 
-    // Priority 2: Find highest USD value token on any chain (with positive balance)
-    // Only exclude if BOTH address AND chainId match (same exact token)
+    // Eligible cross-chain assets: exclude exact same token (address + chain match)
     // This allows cross-chain bridging of native tokens that share the zero address
-    const allAssets = userAssets
+    const crossChainAssets = userAssets
       .filter(
         (a) =>
           !(
@@ -415,8 +414,25 @@ export const useTokenActions = ({
       )
       .sort((a, b) => (b.fiat?.balance ?? 0) - (a.fiat?.balance ?? 0));
 
-    if (allAssets.length > 0) {
-      const asset = allAssets[0];
+    // Priority 2: Prefer native tokens (ETH, POL, etc.) with highest fiat balance
+    const nativeAsset = crossChainAssets.find((a) => a.isNative);
+    if (nativeAsset) {
+      return {
+        address: nativeAsset.assetId,
+        chainId: nativeAsset.chainId as Hex | CaipChainId,
+        decimals: nativeAsset.decimals,
+        symbol: nativeAsset.symbol,
+        name: nativeAsset.name,
+        image: nativeAsset.image,
+      };
+    }
+
+    // Priority 3 – Last swapped token (needs selector/data source)
+    // Priority 4 – Most used token (needs selector/data source)
+
+    // Fallback: highest USD value token on any chain
+    if (crossChainAssets.length > 0) {
+      const asset = crossChainAssets[0];
       return {
         address: asset.assetId,
         chainId: asset.chainId as Hex | CaipChainId,
