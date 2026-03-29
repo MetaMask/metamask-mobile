@@ -1,6 +1,7 @@
-# This workflow creates two non E2E Android Builds and uploads to BrowserStack
-# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) using build_android_main_rc
-# Build 2: Without these environment variables (fresh wallet) using build_android_main_rc
+# This workflow creates Android builds and uploads to BrowserStack:
+# 1) With-SRP (pre-imported wallet) — imported-wallet perf
+# 2) Without-SRP + E2E_MOCK_OAUTH — seedless new-user onboarding perf
+# 3) Without-SRP + E2E_MOCK_OAUTH + E2E_MOCK_OAUTH_EXISTING_USER — seedless existing-user onboarding perf
 
 name: Build Android Dual Versions and Upload to BrowserStack
 
@@ -43,6 +44,15 @@ on:
       without-srp-version:
         description: 'App version for without-SRP build'
         value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-version }}
+      without-srp-existing-user-browserstack-url:
+        description: 'BrowserStack URL for without-SRP seedless existing-user build (E2E_MOCK_OAUTH_EXISTING_USER)'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-existing-user-browserstack-url }}
+      without-srp-existing-user-app-id:
+        description: 'BrowserStack App ID for without-SRP seedless existing-user build'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-existing-user-app-id }}
+      without-srp-existing-user-version:
+        description: 'App version label for without-SRP seedless existing-user build'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-existing-user-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -342,18 +352,142 @@ jobs:
             echo "build-slug=$BUILD_SLUG"
           } >> "$GITHUB_OUTPUT"
 
+  trigger-android-without-srp-existing-user-build:
+    name: Trigger Android without-SRP Seedless Existing-User Build on Bitrise
+    runs-on: ubuntu-latest
+    needs: [check-builds-needed]
+    env:
+      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_android_main_exp' || 'build_android_main_rc' }}
+    outputs:
+      build-id: ${{ steps.trigger-build.outputs.build-id }}
+      build-slug: ${{ steps.trigger-build.outputs.build-slug }}
+
+    steps:
+      - name: Trigger Android without-SRP seedless existing-user build on Bitrise
+        id: trigger-build
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
+        run: |
+          echo "Triggering Android without-SRP seedless existing-user build on Bitrise..."
+          echo "Workflow: $METAMASK_WORKFLOW"
+          echo "BITRISE_APP_ID: $BITRISE_APP_ID"
+          echo "Current branch: ${{ inputs.branch_name || github.ref_name }}"
+
+          if [[ -z "$BITRISE_APP_ID" ]]; then
+            echo "Error: BITRISE_APP_ID is not set"
+            exit 1
+          fi
+          if [[ -z "$BITRISE_BUILD_TRIGGER_TOKEN" ]]; then
+            echo "Error: BITRISE_BUILD_TRIGGER_TOKEN is not set"
+            exit 1
+          fi
+          if [[ -z "$BITRISE_API_TOKEN" ]]; then
+            echo "Error: BITRISE_API_TOKEN is not set"
+            exit 1
+          fi
+
+          # Same as without-SRP seedless, plus E2E_MOCK_OAUTH_EXISTING_USER for existing-user perf.
+          ENV_VARS=$(jq -n \
+            --arg byoa "${{ secrets.E2E_BYOA_AUTH_SECRET }}" \
+            --arg email "${{ secrets.E2E_MOCK_OAUTH_EMAIL }}" \
+            '[{"mapped_to":"DISABLE_NOTIFICATION_PROMPT","value":"true","is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH","value":"true","is_expand":true},{"mapped_to":"E2E_BYOA_AUTH_SECRET","value":$byoa,"is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH_EMAIL","value":$email,"is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH_EXISTING_USER","value":"true","is_expand":true}]')
+          CUSTOM_ID="MetaMask-Android-Without-SRP-SeedlessExistingUser-${{ github.run_id }}"
+
+          BUILD_RESPONSE=$(curl -s -X POST \
+            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_params": {
+                "branch": "${{ inputs.branch_name || github.ref_name }}",
+                "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
+                "commit_message": "Triggered by Android Dual Versions workflow - Build without-SRP seedless existing-user",
+                "environments": '"$ENV_VARS"',
+                "custom_id": "'"$CUSTOM_ID"'"
+              },
+              "hook_info": {
+                "type": "bitrise",
+                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
+              },
+              "triggered_by": "GitHub Actions Android Dual Versions - Without-SRP Seedless Existing-User"
+            }')
+
+          echo "Build response: $BUILD_RESPONSE"
+          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
+          echo "Build slug: $BUILD_SLUG"
+
+          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+            echo "Error: Failed to get build slug"
+            echo "Full response: $BUILD_RESPONSE"
+            exit 1
+          fi
+
+          echo "Waiting for $METAMASK_WORKFLOW to complete..."
+          TIMEOUT=1800
+          ELAPSED=0
+
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
+
+            BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
+            echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
+
+            if [ "$BUILD_STATUS" = "1" ] || [ "$BUILD_STATUS" = "success" ] || [ "$BUILD_STATUS" = "succeeded" ]; then
+              echo "Build completed successfully"
+              break
+            elif [ "$BUILD_STATUS" = "0" ] || [ "$BUILD_STATUS" = "in_progress" ] || [ "$BUILD_STATUS" = "running" ]; then
+              echo "Build is in progress..."
+            elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
+              echo "Build failed with status: $BUILD_STATUS"
+              exit 1
+            else
+              echo "Unknown build status: $BUILD_STATUS"
+            fi
+
+            sleep 30
+            ELAPSED=$((ELAPSED + 30))
+          done
+
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+            echo "Timeout waiting for build to complete"
+            exit 1
+          fi
+
+          BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
+
+          if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get build ID"
+            exit 1
+          fi
+
+          echo "Build ID: $BUILD_ID"
+          echo "Build Slug: $BUILD_SLUG"
+
+          {
+            echo "build-id=$BUILD_ID"
+            echo "build-slug=$BUILD_SLUG"
+          } >> "$GITHUB_OUTPUT"
+
   download-and-upload-to-browserstack:
     name: Download APKs and Upload to BrowserStack
     runs-on: ubuntu-latest
-    needs: [check-builds-needed, trigger-android-with-srp-build, trigger-android-without-srp-build]
-    if: (needs.trigger-android-with-srp-build.result == 'success' || needs.trigger-android-with-srp-build.result == 'partial_success') && (needs.trigger-android-without-srp-build.result == 'success' || needs.trigger-android-without-srp-build.result == 'partial_success')
+    needs:
+      [
+        check-builds-needed,
+        trigger-android-with-srp-build,
+        trigger-android-without-srp-build,
+        trigger-android-without-srp-existing-user-build,
+      ]
+    if: (needs.trigger-android-with-srp-build.result == 'success' || needs.trigger-android-with-srp-build.result == 'partial_success') && (needs.trigger-android-without-srp-build.result == 'success' || needs.trigger-android-without-srp-build.result == 'partial_success') && (needs.trigger-android-without-srp-existing-user-build.result == 'success' || needs.trigger-android-without-srp-existing-user-build.result == 'partial_success')
     outputs:
       with-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-browserstack-url }}
+      without-srp-existing-user-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-existing-user-browserstack-url }}
       with-srp-app-id: ${{ steps.browserstack-upload.outputs.with-srp-app-id }}
       without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
+      without-srp-existing-user-app-id: ${{ steps.browserstack-upload.outputs.without-srp-existing-user-app-id }}
       with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
+      without-srp-existing-user-version: ${{ steps.browserstack-upload.outputs.without-srp-existing-user-version }}
     
     steps:
       - name: Checkout code
@@ -375,13 +509,17 @@ jobs:
           # Initialize variables to avoid undefined references
           WITH_SRP_APP_URL=""
           WITHOUT_SRP_APP_URL=""
+          WITHOUT_SRP_EXISTING_USER_APP_URL=""
           WITH_SRP_ERROR=""
           WITHOUT_SRP_ERROR=""
-          
+          WITHOUT_SRP_EXISTING_USER_ERROR=""
+          BUILD_NEEDED="${{ needs.check-builds-needed.outputs.builds-needed }}"
+
           # Initialize upload status outputs
           {
             echo "with-srp-apk-uploaded=false"
             echo "without-srp-apk-uploaded=false"
+            echo "without-srp-existing-user-apk-uploaded=false"
           } >> "$GITHUB_OUTPUT"
           
           # Determine APK name pattern based on build variant (rc or exp)
@@ -391,9 +529,11 @@ jobs:
           # Get build IDs from job outputs
           WITH_SRP_BUILD_ID="${{ needs.trigger-android-with-srp-build.outputs.build-id }}"
           WITHOUT_SRP_BUILD_ID="${{ needs.trigger-android-without-srp-build.outputs.build-id }}"
-          
+          WITHOUT_SRP_EXISTING_USER_BUILD_ID="${{ needs.trigger-android-without-srp-existing-user-build.outputs.build-id }}"
+
           echo "With-SRP build ID: $WITH_SRP_BUILD_ID"
           echo "Without-SRP build ID: $WITHOUT_SRP_BUILD_ID"
+          echo "Without-SRP seedless existing-user build ID: $WITHOUT_SRP_EXISTING_USER_BUILD_ID"
           
           # Download with-SRP APK
           if [ -n "$WITH_SRP_BUILD_ID" ]; then
@@ -624,7 +764,106 @@ jobs:
             WITHOUT_SRP_ERROR="Build ID not available"
             echo "❌ Without-SRP: $WITHOUT_SRP_ERROR"
           fi
-          
+
+          # Download without-SRP seedless existing-user APK (third Bitrise build)
+          if [ -n "$WITHOUT_SRP_EXISTING_USER_BUILD_ID" ]; then
+            echo "Downloading without-SRP seedless existing-user APK..."
+            echo "Build ID: $WITHOUT_SRP_EXISTING_USER_BUILD_ID"
+
+            EXISTING_ARTIFACTS=$(curl -s -w "\nHTTP_STATUS:%{http_code}" -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_EXISTING_USER_BUILD_ID/artifacts")
+
+            HTTP_STATUS=$(echo "$EXISTING_ARTIFACTS" | grep "HTTP_STATUS:" | cut -d: -f2)
+            EXISTING_ARTIFACTS=$(echo "$EXISTING_ARTIFACTS" | sed '/HTTP_STATUS:/d')
+
+            echo "HTTP Status: $HTTP_STATUS"
+
+            if ! echo "$EXISTING_ARTIFACTS" | jq empty 2>/dev/null; then
+              echo "❌ Without-SRP existing-user: Invalid JSON from Bitrise API (HTTP $HTTP_STATUS)"
+              WITHOUT_SRP_EXISTING_USER_ERROR="Invalid JSON response from Bitrise API"
+            fi
+
+            if [ -z "$WITHOUT_SRP_EXISTING_USER_ERROR" ]; then
+              echo "All artifact titles (existing-user build):"
+              echo "$EXISTING_ARTIFACTS" | jq -r '.data[]?.title // empty' 2>/dev/null || true
+
+              EXISTING_APK_ARTIFACT=$(echo "$EXISTING_ARTIFACTS" | jq --arg variant "$BUILD_VARIANT" '.data[] |
+                select((.artifact_type == "android-apk") or (.artifact_type | not)) |
+                select(.title | endswith(".apk")) |
+                select(.title | test("metamask-main-" + $variant + "-[0-9]+\\.apk"))')
+
+              if [[ -n "$EXISTING_APK_ARTIFACT" && "$EXISTING_APK_ARTIFACT" != "null" && "$EXISTING_APK_ARTIFACT" != "" ]]; then
+                EXISTING_APK_SLUG=$(echo "$EXISTING_APK_ARTIFACT" | jq -r '.slug')
+                if [[ -z "$EXISTING_APK_SLUG" || "$EXISTING_APK_SLUG" == "null" ]]; then
+                  WITHOUT_SRP_EXISTING_USER_ERROR="Failed to extract APK slug from artifact"
+                  echo "❌ Without-SRP existing-user: $WITHOUT_SRP_EXISTING_USER_ERROR"
+                fi
+              else
+                WITHOUT_SRP_EXISTING_USER_ERROR="APK artifact not found (looking for metamask-main-${BUILD_VARIANT}-*.apk)"
+                echo "❌ Without-SRP existing-user: $WITHOUT_SRP_EXISTING_USER_ERROR"
+              fi
+            fi
+
+            if [ -z "$WITHOUT_SRP_EXISTING_USER_ERROR" ]; then
+              EXISTING_DOWNLOAD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_EXISTING_USER_BUILD_ID/artifacts/$EXISTING_APK_SLUG")
+
+              if ! echo "$EXISTING_DOWNLOAD_RESPONSE" | jq empty 2>/dev/null; then
+                WITHOUT_SRP_EXISTING_USER_ERROR="Invalid JSON response from Bitrise API for download URL"
+                echo "❌ Without-SRP existing-user: $WITHOUT_SRP_EXISTING_USER_ERROR"
+              else
+                EXISTING_DOWNLOAD_URL=$(echo "$EXISTING_DOWNLOAD_RESPONSE" | jq -r '.data.expiring_download_url // empty')
+
+                if [[ -n "$EXISTING_DOWNLOAD_URL" && "$EXISTING_DOWNLOAD_URL" != "null" ]]; then
+                  echo "Downloading without-SRP seedless existing-user APK..."
+                  DOWNLOAD_SUCCESS=false
+                  if command -v wget >/dev/null 2>&1; then
+                    if wget -O "metamask-android-without-srp-seedless-existing-user.apk" "$EXISTING_DOWNLOAD_URL" 2>&1; then
+                      DOWNLOAD_SUCCESS=true
+                    elif curl -L -f -o "metamask-android-without-srp-seedless-existing-user.apk" "$EXISTING_DOWNLOAD_URL" 2>&1; then
+                      DOWNLOAD_SUCCESS=true
+                    fi
+                  else
+                    if curl -L -f -o "metamask-android-without-srp-seedless-existing-user.apk" "$EXISTING_DOWNLOAD_URL" 2>&1; then
+                      DOWNLOAD_SUCCESS=true
+                    fi
+                  fi
+
+                  if [[ "$DOWNLOAD_SUCCESS" != "true" ]] || [[ ! -f "metamask-android-without-srp-seedless-existing-user.apk" ]]; then
+                    WITHOUT_SRP_EXISTING_USER_ERROR="Failed to download APK"
+                    echo "❌ Without-SRP existing-user: $WITHOUT_SRP_EXISTING_USER_ERROR"
+                  else
+                    echo "APK downloaded. Size: $(du -h metamask-android-without-srp-seedless-existing-user.apk | cut -f1)"
+                    echo "Uploading to BrowserStack..."
+                    EXISTING_BS_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                      -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                      -F "file=@metamask-android-without-srp-seedless-existing-user.apk" \
+                      -F "custom_id=MetaMask-Android-Without-SRP-SeedlessExistingUser-${{ github.run_id }}")
+
+                    WITHOUT_SRP_EXISTING_USER_APP_URL=$(echo "$EXISTING_BS_RESPONSE" | jq -r '.app_url')
+                    WITHOUT_SRP_EXISTING_USER_APP_ID=$(echo "$EXISTING_BS_RESPONSE" | jq -r '.app_id')
+
+                    echo "Without-SRP seedless existing-user APK uploaded"
+                    echo "  App URL: $WITHOUT_SRP_EXISTING_USER_APP_URL"
+
+                    {
+                      echo "without-srp-existing-user-browserstack-url=$WITHOUT_SRP_EXISTING_USER_APP_URL"
+                      echo "without-srp-existing-user-app-id=$WITHOUT_SRP_EXISTING_USER_APP_ID"
+                      echo "without-srp-existing-user-version=Bitrise-Build"
+                      echo "without-srp-existing-user-apk-uploaded=true"
+                    } >> "$GITHUB_OUTPUT"
+                  fi
+                else
+                  WITHOUT_SRP_EXISTING_USER_ERROR="Failed to get APK download URL"
+                  echo "❌ Without-SRP existing-user: $WITHOUT_SRP_EXISTING_USER_ERROR"
+                fi
+              fi
+            fi
+          else
+            WITHOUT_SRP_EXISTING_USER_ERROR="Build ID not available"
+            echo "❌ Without-SRP existing-user: $WITHOUT_SRP_EXISTING_USER_ERROR"
+          fi
+
           # Summary
           echo ""
           echo "=== BrowserStack Upload Summary ==="
@@ -638,10 +877,20 @@ jobs:
           else
             echo "❌ Without-SRP: FAILED - ${WITHOUT_SRP_ERROR:-unknown error}"
           fi
-          
-          # Fail the step only if BOTH uploads failed
+          if [[ -n "$WITHOUT_SRP_EXISTING_USER_APP_URL" ]]; then
+            echo "✅ Without-SRP seedless existing-user URL: $WITHOUT_SRP_EXISTING_USER_APP_URL"
+          else
+            echo "❌ Without-SRP seedless existing-user: FAILED - ${WITHOUT_SRP_EXISTING_USER_ERROR:-unknown error}"
+          fi
+
           if [[ -z "$WITH_SRP_APP_URL" && -z "$WITHOUT_SRP_APP_URL" ]]; then
             echo ""
-            echo "❌ Both APK uploads failed. Failing step."
+            echo "❌ With-SRP and without-SRP APK uploads both failed. Failing step."
+            exit 1
+          fi
+
+          if [[ "$BUILD_NEEDED" == "true" && -z "$WITHOUT_SRP_EXISTING_USER_APP_URL" ]]; then
+            echo ""
+            echo "❌ Without-SRP seedless existing-user APK upload failed (required when Bitrise builds run)."
             exit 1
           fi

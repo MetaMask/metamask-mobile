@@ -1,6 +1,7 @@
-# This workflow creates two non E2E iOS Builds and uploads to BrowserStack
-# Build 1: With ADDITIONAL_SRP_1 and PREDEFINED_PASSWORD (pre-imported wallet) using build_ios_main_prod
-# Build 2: Without these environment variables (fresh wallet) using build_ios_qa_prod
+# This workflow creates iOS builds and uploads to BrowserStack:
+# 1) With-SRP — imported-wallet perf
+# 2) Without-SRP + E2E_MOCK_OAUTH — seedless new-user onboarding perf
+# 3) Without-SRP + E2E_MOCK_OAUTH + E2E_MOCK_OAUTH_EXISTING_USER — seedless existing-user onboarding perf
 
 name: Build iOS Dual Versions and Upload to BrowserStack
 
@@ -43,6 +44,15 @@ on:
       without-srp-version:
         description: 'App version for without-SRP build'
         value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-version }}
+      without-srp-existing-user-browserstack-url:
+        description: 'BrowserStack URL for without-SRP seedless existing-user build'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-existing-user-browserstack-url }}
+      without-srp-existing-user-app-id:
+        description: 'BrowserStack App ID for without-SRP seedless existing-user build'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-existing-user-app-id }}
+      without-srp-existing-user-version:
+        description: 'App version label for without-SRP seedless existing-user build'
+        value: ${{ jobs.download-and-upload-to-browserstack.outputs.without-srp-existing-user-version }}
   workflow_dispatch:
     inputs:
       description:
@@ -343,20 +353,116 @@ jobs:
             echo "build-slug=$BUILD_SLUG"
           } >> "$GITHUB_OUTPUT"
 
+  trigger-ios-without-srp-existing-user-build:
+    name: Trigger iOS without-SRP Seedless Existing-User Build on Bitrise
+    runs-on: ubuntu-latest
+    needs: [check-builds-needed]
+    env:
+      METAMASK_WORKFLOW: ${{ inputs.build_variant == 'exp' && 'build_ios_main_exp' || 'build_ios_main_rc' }}
+    outputs:
+      build-id: ${{ steps.trigger-build.outputs.build-id }}
+      build-slug: ${{ steps.trigger-build.outputs.build-slug }}
+
+    steps:
+      - name: Trigger iOS without-SRP seedless existing-user build on Bitrise
+        id: trigger-build
+        if: needs.check-builds-needed.outputs.builds-needed == 'true'
+        run: |
+          echo "Triggering iOS without-SRP seedless existing-user build on Bitrise..."
+          echo "Workflow: $METAMASK_WORKFLOW"
+
+          if [[ -z "$BITRISE_APP_ID" ]] || [[ -z "$BITRISE_BUILD_TRIGGER_TOKEN" ]] || [[ -z "$BITRISE_API_TOKEN" ]]; then
+            echo "Error: Bitrise credentials not set"
+            exit 1
+          fi
+
+          ENV_VARS=$(jq -n \
+            --arg byoa "${{ secrets.E2E_BYOA_AUTH_SECRET }}" \
+            --arg email "${{ secrets.E2E_MOCK_OAUTH_EMAIL }}" \
+            '[{"mapped_to":"DISABLE_NOTIFICATION_PROMPT","value":"true","is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH","value":"true","is_expand":true},{"mapped_to":"E2E_BYOA_AUTH_SECRET","value":$byoa,"is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH_EMAIL","value":$email,"is_expand":true},{"mapped_to":"E2E_MOCK_OAUTH_EXISTING_USER","value":"true","is_expand":true}]')
+          CUSTOM_ID="MetaMask-iOS-Without-SRP-SeedlessExistingUser-${{ github.run_id }}"
+
+          BUILD_RESPONSE=$(curl -s -X POST \
+            "https://app.bitrise.io/app/$BITRISE_APP_ID/build/start.json" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "build_params": {
+                "branch": "${{ inputs.branch_name || github.ref_name }}",
+                "workflow_id": "${{ env.METAMASK_WORKFLOW }}",
+                "commit_message": "Triggered by iOS Dual Versions workflow - Without-SRP seedless existing-user",
+                "environments": '"$ENV_VARS"',
+                "custom_id": "'"$CUSTOM_ID"'"
+              },
+              "hook_info": {
+                "type": "bitrise",
+                "build_trigger_token": "'"$BITRISE_BUILD_TRIGGER_TOKEN"'"
+              },
+              "triggered_by": "GitHub Actions iOS Dual Versions - Without-SRP Seedless Existing-User"
+            }')
+
+          BUILD_SLUG=$(echo "$BUILD_RESPONSE" | jq -r '.build_slug')
+          if [[ -z "$BUILD_SLUG" || "$BUILD_SLUG" == "null" ]]; then
+            echo "Error: Failed to get build slug"
+            exit 1
+          fi
+
+          TIMEOUT=1800
+          ELAPSED=0
+          while [ $ELAPSED -lt $TIMEOUT ]; do
+            BUILD_RESPONSE=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$BUILD_SLUG")
+            BUILD_STATUS=$(echo "$BUILD_RESPONSE" | jq -r '.data.status')
+            echo "Build status: $BUILD_STATUS (elapsed: ${ELAPSED}s)"
+            if [ "$BUILD_STATUS" = "1" ] || [ "$BUILD_STATUS" = "success" ] || [ "$BUILD_STATUS" = "succeeded" ]; then
+              break
+            elif [ "$BUILD_STATUS" = "2" ] || [ "$BUILD_STATUS" = "failed" ] || [ "$BUILD_STATUS" = "aborted" ]; then
+              echo "Build failed with status: $BUILD_STATUS"
+              exit 1
+            fi
+            sleep 30
+            ELAPSED=$((ELAPSED + 30))
+          done
+
+          if [ "$ELAPSED" -ge "$TIMEOUT" ]; then
+            echo "Timeout waiting for build"
+            exit 1
+          fi
+
+          BUILD_ID=$(echo "$BUILD_RESPONSE" | jq -r '.data.slug')
+          if [[ -z "$BUILD_ID" || "$BUILD_ID" == "null" ]]; then
+            echo "Error: Failed to get build ID"
+            exit 1
+          fi
+
+          {
+            echo "build-id=$BUILD_ID"
+            echo "build-slug=$BUILD_SLUG"
+          } >> "$GITHUB_OUTPUT"
+
   download-and-upload-to-browserstack:
     name: Download IPAs and Upload to BrowserStack
     runs-on: ubuntu-latest
-    needs: [check-builds-needed, trigger-ios-with-srp-build, trigger-ios-without-srp-build]
-    if: (needs.trigger-ios-with-srp-build.result == 'success' || needs.trigger-ios-with-srp-build.result == 'partial_success') && (needs.trigger-ios-without-srp-build.result == 'success' || needs.trigger-ios-without-srp-build.result == 'partial_success')
+    needs:
+      [
+        check-builds-needed,
+        trigger-ios-with-srp-build,
+        trigger-ios-without-srp-build,
+        trigger-ios-without-srp-existing-user-build,
+      ]
+    if: (needs.trigger-ios-with-srp-build.result == 'success' || needs.trigger-ios-with-srp-build.result == 'partial_success') && (needs.trigger-ios-without-srp-build.result == 'success' || needs.trigger-ios-without-srp-build.result == 'partial_success') && (needs.trigger-ios-without-srp-existing-user-build.result == 'success' || needs.trigger-ios-without-srp-existing-user-build.result == 'partial_success')
     outputs:
       with-srp-ipa-uploaded: ${{ steps.browserstack-upload.outputs.with-srp-ipa-uploaded }}
       without-srp-ipa-uploaded: ${{ steps.browserstack-upload.outputs.without-srp-ipa-uploaded }}
+      without-srp-existing-user-ipa-uploaded: ${{ steps.browserstack-upload.outputs.without-srp-existing-user-ipa-uploaded }}
       with-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.with-srp-browserstack-url }}
       without-srp-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-browserstack-url }}
+      without-srp-existing-user-browserstack-url: ${{ steps.browserstack-upload.outputs.without-srp-existing-user-browserstack-url }}
       with-srp-app-id: ${{ steps.browserstack-upload.outputs.with-srp-app-id }}
       without-srp-app-id: ${{ steps.browserstack-upload.outputs.without-srp-app-id }}
+      without-srp-existing-user-app-id: ${{ steps.browserstack-upload.outputs.without-srp-existing-user-app-id }}
       with-srp-version: ${{ steps.browserstack-upload.outputs.with-srp-version }}
       without-srp-version: ${{ steps.browserstack-upload.outputs.without-srp-version }}
+      without-srp-existing-user-version: ${{ steps.browserstack-upload.outputs.without-srp-existing-user-version }}
     
     steps:
       - name: Checkout code
@@ -368,19 +474,27 @@ jobs:
         id: browserstack-upload
         run: |
           echo "Downloading IPAs from Bitrise and uploading to BrowserStack..."
-          
+
+          WITH_SRP_APP_URL=""
+          WITHOUT_SRP_APP_URL=""
+          WITHOUT_SRP_EXISTING_USER_APP_URL=""
+          BUILD_NEEDED="${{ needs.check-builds-needed.outputs.builds-needed }}"
+
           # Initialize upload status outputs
           {
             echo "with-srp-ipa-uploaded=false"
             echo "without-srp-ipa-uploaded=false"
+            echo "without-srp-existing-user-ipa-uploaded=false"
           } >> "$GITHUB_OUTPUT"
-          
+
           # Get build IDs from job outputs
           WITH_SRP_BUILD_ID="${{ needs.trigger-ios-with-srp-build.outputs.build-id }}"
           WITHOUT_SRP_BUILD_ID="${{ needs.trigger-ios-without-srp-build.outputs.build-id }}"
-          
+          WITHOUT_SRP_EXISTING_USER_BUILD_ID="${{ needs.trigger-ios-without-srp-existing-user-build.outputs.build-id }}"
+
           echo "With-SRP build ID: $WITH_SRP_BUILD_ID"
           echo "Without-SRP build ID: $WITHOUT_SRP_BUILD_ID"
+          echo "Without-SRP seedless existing-user build ID: $WITHOUT_SRP_EXISTING_USER_BUILD_ID"
           
           # Download with-SRP IPA
           if [ -n "$WITH_SRP_BUILD_ID" ]; then
@@ -483,7 +597,61 @@ jobs:
           else
             echo "Without-SRP build ID not available"
           fi
-          
+
+          # Download without-SRP seedless existing-user IPA
+          if [ -n "$WITHOUT_SRP_EXISTING_USER_BUILD_ID" ]; then
+            echo "Downloading without-SRP seedless existing-user IPA..."
+            EXISTING_ARTIFACTS=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+              "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_EXISTING_USER_BUILD_ID/artifacts")
+
+            EXISTING_IPA_ARTIFACT=$(echo "$EXISTING_ARTIFACTS" | jq -r '.data[] |
+              select(.title | endswith(".ipa")) |
+              select(.title | test("metamask-device-main-[a-zA-Z0-9-]+-[0-9]+\\.ipa"))')
+
+            if [[ -n "$EXISTING_IPA_ARTIFACT" ]]; then
+              EXISTING_IPA_SLUG=$(echo "$EXISTING_IPA_ARTIFACT" | jq -r '.slug')
+              EXISTING_DOWNLOAD_URL=$(curl -s -H "Authorization: $BITRISE_API_TOKEN" \
+                "https://api.bitrise.io/v0.1/apps/$BITRISE_APP_ID/builds/$WITHOUT_SRP_EXISTING_USER_BUILD_ID/artifacts/$EXISTING_IPA_SLUG" | \
+                jq -r '.data.expiring_download_url')
+
+              if [[ -n "$EXISTING_DOWNLOAD_URL" && "$EXISTING_DOWNLOAD_URL" != "null" ]]; then
+                wget -O "metamask-ios-without-srp-seedless-existing-user.ipa" "$EXISTING_DOWNLOAD_URL"
+                echo "Uploading without-SRP seedless existing-user IPA to BrowserStack..."
+                EXISTING_RESPONSE=$(curl -u "$BROWSERSTACK_USERNAME:$BROWSERSTACK_ACCESS_KEY" \
+                  -X POST "https://api-cloud.browserstack.com/app-automate/upload" \
+                  -F "file=@metamask-ios-without-srp-seedless-existing-user.ipa" \
+                  -F "custom_id=MetaMask-iOS-Without-SRP-SeedlessExistingUser-${{ github.run_id }}")
+
+                WITHOUT_SRP_EXISTING_USER_APP_URL=$(echo "$EXISTING_RESPONSE" | jq -r '.app_url')
+                EXISTING_APP_ID=$(echo "$EXISTING_RESPONSE" | jq -r '.app_id')
+
+                {
+                  echo "without-srp-existing-user-browserstack-url=$WITHOUT_SRP_EXISTING_USER_APP_URL"
+                  echo "without-srp-existing-user-app-id=$EXISTING_APP_ID"
+                  echo "without-srp-existing-user-version=Bitrise-Build"
+                  echo "without-srp-existing-user-ipa-uploaded=true"
+                } >> "$GITHUB_OUTPUT"
+              else
+                echo "Failed to get without-SRP seedless existing-user IPA download URL"
+              fi
+            else
+              echo "Without-SRP seedless existing-user IPA artifact not found"
+            fi
+          else
+            echo "Without-SRP seedless existing-user build ID not available"
+          fi
+
           echo "BrowserStack upload process completed!"
           echo "With-SRP URL: $WITH_SRP_APP_URL"
           echo "Without-SRP URL: $WITHOUT_SRP_APP_URL"
+          echo "Without-SRP seedless existing-user URL: $WITHOUT_SRP_EXISTING_USER_APP_URL"
+
+          if [[ -z "$WITH_SRP_APP_URL" && -z "$WITHOUT_SRP_APP_URL" ]]; then
+            echo "❌ With-SRP and without-SRP IPA uploads both failed."
+            exit 1
+          fi
+
+          if [[ "$BUILD_NEEDED" == "true" && -z "$WITHOUT_SRP_EXISTING_USER_APP_URL" ]]; then
+            echo "❌ Without-SRP seedless existing-user IPA upload failed (required when Bitrise builds run)."
+            exit 1
+          fi

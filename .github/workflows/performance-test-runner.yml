@@ -35,6 +35,11 @@ on:
         required: false
         type: string
         description: 'BrowserStack URL for the RN playground APK (mm-connect tests only)'
+      browserstack_seedless_existing_user_app_url:
+        required: false
+        type: string
+        default: ''
+        description: 'BrowserStack bs:// app built with E2E_MOCK_OAUTH_EXISTING_USER (seedless existing-user perf)'
       sentry_target:
         required: false
         type: string
@@ -227,6 +232,16 @@ jobs:
             # Optional: set BROWSERSTACK_*_SEEDLESS_EXISTING_USER_PERF_APP_URL in env if you use a dedicated existing-user build.
             echo "METAMASK_SKIP_SEEDLESS_EXISTING_USER_PERF=false"
           } >> "$GITHUB_ENV"
+
+          SEEDLESS_EXISTING='${{ inputs.browserstack_seedless_existing_user_app_url }}'
+          if [ -n "$SEEDLESS_EXISTING" ]; then
+            if [ "${{ inputs.platform }}" = "android" ]; then
+              echo "BROWSERSTACK_ANDROID_SEEDLESS_EXISTING_USER_PERF_APP_URL=$SEEDLESS_EXISTING" >> "$GITHUB_ENV"
+            else
+              echo "BROWSERSTACK_IOS_SEEDLESS_EXISTING_USER_PERF_APP_URL=$SEEDLESS_EXISTING" >> "$GITHUB_ENV"
+            fi
+            echo "Set seedless existing-user BrowserStack app URL for ${{ inputs.platform }}"
+          fi
 
       - name: Run Tests
         env:

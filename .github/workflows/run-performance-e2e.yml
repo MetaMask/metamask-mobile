@@ -40,6 +40,14 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
+      browserstack_app_url_android_seedless_existing_user:
+        description: 'Optional bs:// for Android seedless existing-user perf (when skipping Bitrise; otherwise from build job output)'
+        required: false
+        type: string
+      browserstack_app_url_ios_seedless_existing_user:
+        description: 'Optional bs:// for iOS seedless existing-user perf (when skipping Bitrise)'
+        required: false
+        type: string
   workflow_call:
     inputs:
       description:
@@ -68,6 +76,16 @@ on:
         description: 'BrowserStack iOS Imported Wallet App URL (bs://...)'
         required: false
         type: string
+      browserstack_app_url_android_seedless_existing_user:
+        description: 'Optional bs:// for Android seedless existing-user perf when Bitrise is skipped'
+        required: false
+        type: string
+        default: ''
+      browserstack_app_url_ios_seedless_existing_user:
+        description: 'Optional bs:// for iOS seedless existing-user perf when Bitrise is skipped'
+        required: false
+        type: string
+        default: ''
       branch_name:
         description: 'Branch name to use for build names (defaults to auto-detection)'
         required: false
@@ -238,6 +256,7 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.android_matrix }}
       browserstack_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_android_onboarding }}
+      browserstack_seedless_existing_user_app_url: ${{ needs.trigger-android-dual-versions.outputs.without-srp-existing-user-browserstack-url || inputs.browserstack_app_url_android_seedless_existing_user }}
       app_version: ${{ needs.trigger-android-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.android_build_name }}
@@ -261,6 +280,7 @@ jobs:
       build_variant: ${{ inputs.build_variant || 'rc' }}
       device_matrix: ${{ needs.read-device-matrix.outputs.ios_matrix }}
       browserstack_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-browserstack-url || inputs.browserstack_app_url_ios_onboarding }}
+      browserstack_seedless_existing_user_app_url: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-existing-user-browserstack-url || inputs.browserstack_app_url_ios_seedless_existing_user }}
       app_version: ${{ needs.trigger-ios-dual-versions.outputs.without-srp-version || 'Manual-Input' }}
       branch_name: ${{ needs.determine-branch-name.outputs.branch_name }}
       browserstack_build_name: ${{ needs.set-build-names.outputs.ios_build_name }}
