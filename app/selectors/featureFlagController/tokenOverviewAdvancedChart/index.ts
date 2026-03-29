@@ -20,11 +20,6 @@ export const TOKEN_DETAILS_ADVANCED_CHARTS_FLAG_KEY =
 export const selectTokenOverviewAdvancedChartEnabled = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags): boolean => {
-    // TODO: Remove this block — temporary override for manual testing; restore
-    // `validatedVersionGatedFeatureFlag` below and un-skip tests in
-    // `tokenOverviewAdvancedChart/index.test.ts` that assert `false`.
-    return true;
-
     const remoteFlag =
       remoteFeatureFlags?.[TOKEN_DETAILS_ADVANCED_CHARTS_FLAG_KEY];
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;

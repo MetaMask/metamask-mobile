@@ -57,8 +57,7 @@ describe('selectTokenOverviewAdvancedChartEnabled', () => {
     expect(result).toBe(true);
   });
 
-  // Skipped while selector hardcodes `true` — see TODO in index.ts
-  it.skip('returns false when enabled is false', () => {
+  it('returns false when enabled is false', () => {
     const result = selectTokenOverviewAdvancedChartEnabled.resultFunc({
       [TOKEN_DETAILS_ADVANCED_CHARTS_FLAG_KEY]: {
         value: { enabled: false, minimumVersion: '7.73' },
@@ -67,7 +66,7 @@ describe('selectTokenOverviewAdvancedChartEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it.skip('returns false when minimum version requirement fails', () => {
+  it('returns false when minimum version requirement fails', () => {
     mockHasMinimumRequiredVersion.mockReturnValue(false);
     const result = selectTokenOverviewAdvancedChartEnabled.resultFunc({
       [TOKEN_DETAILS_ADVANCED_CHARTS_FLAG_KEY]: {
@@ -77,11 +76,11 @@ describe('selectTokenOverviewAdvancedChartEnabled', () => {
     expect(result).toBe(false);
   });
 
-  it.skip('returns false when flag is missing', () => {
+  it('returns false when flag is missing', () => {
     expect(selectTokenOverviewAdvancedChartEnabled.resultFunc({})).toBe(false);
   });
 
-  it.skip('returns false for malformed payload', () => {
+  it('returns false for malformed payload', () => {
     const result = selectTokenOverviewAdvancedChartEnabled.resultFunc({
       [TOKEN_DETAILS_ADVANCED_CHARTS_FLAG_KEY]: {
         value: { variant: 'enabled', minimumVersion: '7.73' },
