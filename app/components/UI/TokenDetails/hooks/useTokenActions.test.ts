@@ -789,6 +789,23 @@ describe('useTokenActions', () => {
     });
   });
 
+  /**
+   * Swap entry from Token Details sticky CTA (`handleStickySwapPress`):
+   * - Has Balance:
+   * -- from: current token
+   * -- to: undefined (swap UI picks default dest -- e.g. mUSD / last used)
+   *
+   * - No Balance:
+   * -- from: `buySourceToken` (best available)
+   * -- to: current token
+   *
+   * `buySourceToken` priority:
+   * 1. Same chain token (not current) with highest fiat balance
+   * 2. Native token (ETH, POL, etc.) on any chain with highest fiat balance
+   * 3. Last swapped token (Not supported — needs data source)
+   * 4. Most used token (Not supported — needs data source)
+   * 5. Fallback: any token on any chain with highest fiat balance
+   */
   describe('handleStickySwapPress', () => {
     const WETH_ADDRESS = '0xC02aaA39b223FE8D0A0e5C4F27eAD9083C756Cc2';
     const USDC_ADDRESS = '0xA0b86991c6218b36c1d19D4a2e9Eb0cE3606eB48';
@@ -834,24 +851,11 @@ describe('useTokenActions', () => {
         : {}),
     });
 
-    /**
-     * Swap entry from Token Details sticky CTA (`handleStickySwapPress`):
-     * - Has balance → from = current token, to = undefined (swap UI picks default dest e.g. mUSD / last used).
-     * - No balance → from = `buySourceToken` (best available), to = current token.
-     *
-     * `buySourceToken` priority:
-     * 1. Same chain token (not current) with highest fiat balance
-     * 2. Native token (ETH, POL, etc.) on any chain with highest fiat balance
-     * 3. Last swapped token (TODO — needs data source)
-     * 4. Most used token (TODO — needs data source)
-     * Fallback: any token on any chain with highest fiat balance
-     */
     const hasBalanceCases = [
       {
         name: 'from current token, to default (undefined dest for swap UI)',
         token: arrangeToken('1'),
         userAssets: arrangeUserAssets(),
-        expectedSourceAddress: defaultToken.address,
         expectedDestinationAddress: undefined,
       },
       {
@@ -867,7 +871,6 @@ describe('useTokenActions', () => {
             }),
           ],
         }),
-        expectedSourceAddress: defaultToken.address,
         expectedDestinationAddress: undefined,
       },
     ];
@@ -878,7 +881,6 @@ describe('useTokenActions', () => {
         token,
         currentTokenBalance,
         userAssets,
-        expectedSourceAddress,
         expectedDestinationAddress,
       }) => {
         selectorMocks.mockSelectAssetsBySelectedAccountGroup.mockReturnValue(
@@ -897,7 +899,7 @@ describe('useTokenActions', () => {
 
         expect(mockGoToSwaps).toHaveBeenCalledTimes(1);
         expect(mockGoToSwaps).toHaveBeenCalledWith(
-          expect.objectContaining({ address: expectedSourceAddress }),
+          expect.objectContaining({ address: defaultToken.address }),
           expectedDestinationAddress !== undefined
             ? expect.objectContaining({ address: expectedDestinationAddress })
             : undefined,
