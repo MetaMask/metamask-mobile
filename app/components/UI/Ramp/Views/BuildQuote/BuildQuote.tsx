@@ -261,6 +261,31 @@ function BuildQuote() {
     }, []),
   );
 
+  // When no provider is selected (e.g. first-time user in a region without
+  // Transak), pick the first provider that supports the selected token.
+  useEffect(() => {
+    if (
+      !isOnBuildQuoteScreen ||
+      selectedProvider ||
+      !effectiveAssetId ||
+      providers.length === 0
+    ) {
+      return;
+    }
+    const supportingProvider = providers.find(
+      (p) => p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
+    );
+    if (supportingProvider) {
+      setSelectedProvider(supportingProvider, { autoSelected: true });
+    }
+  }, [
+    isOnBuildQuoteScreen,
+    selectedProvider,
+    effectiveAssetId,
+    providers,
+    setSelectedProvider,
+  ]);
+
   // When the selected token is unavailable for the current provider:
   // - If the provider was auto-selected (soft), silently switch to the best
   //   provider that supports the token.
@@ -278,7 +303,7 @@ function BuildQuote() {
           p.supportedCryptoCurrencies?.[effectiveAssetId] === true,
       );
       if (supportingProvider) {
-        setSelectedProvider(supportingProvider);
+        setSelectedProvider(supportingProvider, { autoSelected: true });
         return;
       }
     }

@@ -1144,7 +1144,9 @@ describe('BuildQuote', () => {
           jest.advanceTimersByTime(650);
         });
 
-        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider);
+        expect(mockSetSelectedProvider).toHaveBeenCalledWith(coinbaseProvider, {
+          autoSelected: true,
+        });
         expect(mockNavigate).not.toHaveBeenCalledWith(
           'RampModals',
           expect.objectContaining({

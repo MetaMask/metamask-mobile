@@ -31,8 +31,13 @@ export interface UseRampsProvidersResult {
   /**
    * Sets the selected provider by ID.
    * @param provider - The provider to select, or null to clear selection.
+   * @param options - Optional settings forwarded to the controller.
+   * @param options.autoSelected - When true the selection is treated as a system guess rather than an explicit user choice.
    */
-  setSelectedProvider: (provider: Provider | null) => void;
+  setSelectedProvider: (
+    provider: Provider | null,
+    options?: { autoSelected?: boolean },
+  ) => void;
   /**
    * Whether the providers request is currently loading.
    */
@@ -83,8 +88,11 @@ export function useRampsProviders(): UseRampsProvidersResult {
   );
 
   const setSelectedProvider = useCallback(
-    (provider: Provider | null) =>
-      Engine.context.RampsController.setSelectedProvider(provider?.id ?? null),
+    (provider: Provider | null, options?: { autoSelected?: boolean }) =>
+      Engine.context.RampsController.setSelectedProvider(
+        provider?.id ?? null,
+        options,
+      ),
     [],
   );
 

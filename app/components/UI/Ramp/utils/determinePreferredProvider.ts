@@ -77,11 +77,13 @@ export interface PreferredProviderResult {
  * Fallback order:
  * 1. Provider from most recent completed order (autoSelected: false)
  * 2. Transak (autoSelected: false)
- * 3. First available provider (autoSelected: true — system guess, soft selection)
+ * 3. null — no preselection; wait for the user to pick a token, then
+ * choose the first provider that supports it.
  *
  * @param completedOrders - Completed orders from any source (legacy + controller)
  * @param availableProviders - Available providers from RampsController
- * @returns The preferred provider with its selection source, or null if no providers are available
+ * @returns The preferred provider with its selection source, or null if no
+ * providers are available or no signal exists to pick one.
  */
 export function determinePreferredProvider(
   completedOrders: CompletedOrderInfo[],
@@ -117,5 +119,5 @@ export function determinePreferredProvider(
     return { provider: transakProvider, autoSelected: false };
   }
 
-  return { provider: availableProviders[0], autoSelected: true };
+  return null;
 }

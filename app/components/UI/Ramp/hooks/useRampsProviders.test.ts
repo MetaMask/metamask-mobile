@@ -222,7 +222,7 @@ describe('useRampsProviders', () => {
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[0].id);
+      ).toHaveBeenCalledWith(mockProviders[0].id, undefined);
     });
 
     it('calls Engine.context.RampsController.setSelectedProvider with null when provider is null', () => {
@@ -237,7 +237,24 @@ describe('useRampsProviders', () => {
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(null);
+      ).toHaveBeenCalledWith(null, undefined);
+    });
+
+    it('forwards options to the controller', () => {
+      const store = createMockStore();
+      const { result } = renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      act(() => {
+        result.current.setSelectedProvider(mockProviders[0], {
+          autoSelected: true,
+        });
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).toHaveBeenCalledWith(mockProviders[0].id, { autoSelected: true });
     });
   });
 
@@ -271,7 +288,7 @@ describe('useRampsProviders', () => {
       mockGetOrders.mockReturnValue(emptyOrders);
       mockDeterminePreferredProvider.mockReturnValue({
         provider: mockProviders[1],
-        autoSelected: true,
+        autoSelected: false,
       });
 
       renderHook(() => useRampsProviders(), {
@@ -280,7 +297,21 @@ describe('useRampsProviders', () => {
 
       expect(
         Engine.context.RampsController.setSelectedProvider,
-      ).toHaveBeenCalledWith(mockProviders[1].id, { autoSelected: true });
+      ).toHaveBeenCalledWith(mockProviders[1].id, { autoSelected: false });
+    });
+
+    it('does not call setSelectedProvider when determinePreferredProvider returns null', () => {
+      const store = createMockStore({ data: mockProviders });
+      mockGetOrders.mockReturnValue(emptyOrders);
+      mockDeterminePreferredProvider.mockReturnValue(null);
+
+      renderHook(() => useRampsProviders(), {
+        wrapper: wrapper(store),
+      });
+
+      expect(
+        Engine.context.RampsController.setSelectedProvider,
+      ).not.toHaveBeenCalled();
     });
 
     it('does not call determinePreferredProvider when providers is empty', () => {

@@ -221,15 +221,12 @@ describe('determinePreferredProvider', () => {
       });
     });
 
-    it('returns first provider with autoSelected true if Transak is not available', () => {
+    it('returns null if Transak is not available (no preselection without signal)', () => {
       const providers = [mockProvider1, mockProvider2];
 
       const result = determinePreferredProvider([], providers);
 
-      expect(result).toEqual({
-        provider: mockProvider1,
-        autoSelected: true,
-      });
+      expect(result).toBeNull();
     });
   });
 
