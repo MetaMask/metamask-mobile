@@ -255,8 +255,8 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
         </Text>
       )}
 
-      {/* Tier selector + last updated on same row */}
-      {tabs.length > 1 && (
+      {/* Tier selector + last updated */}
+      {tabs.length > 1 ? (
         <Box
           flexDirection={BoxFlexDirection.Row}
           alignItems={BoxAlignItems.Center}
@@ -283,7 +283,18 @@ const OndoLeaderboard: React.FC<CampaignLeaderboardProps> = ({
             </Text>
           ) : null}
         </Box>
-      )}
+      ) : computedAt ? (
+        <Text
+          variant={TextVariant.BodyXs}
+          color={TextColor.TextAlternative}
+          twClassName="mb-4"
+          testID={CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT}
+        >
+          {strings('rewards.ondo_campaign_leaderboard.updated_at', {
+            time: formatComputedAt(computedAt),
+          })}
+        </Text>
+      ) : null}
 
       {/* Error banner when has error but no data to display */}
       {hasError && !isLoading && entries.length === 0 && (

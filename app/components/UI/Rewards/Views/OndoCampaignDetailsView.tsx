@@ -70,7 +70,10 @@ const OndoCampaignDetailsView: React.FC = () => {
     [campaigns, campaignId],
   );
 
-  const participantStatus = useGetCampaignParticipantStatus(campaignId);
+  const {
+    status: participantStatusData,
+    isLoading: isParticipantStatusLoading,
+  } = useGetCampaignParticipantStatus(campaignId);
 
   useEffect(() => {
     if (campaign && getCampaignStatus(campaign) === 'upcoming') {
@@ -78,7 +81,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     }
   }, [campaign, navigation]);
 
-  const isOptedIn = participantStatus?.status?.optedIn === true;
+  const isOptedIn = participantStatusData?.optedIn === true;
 
   // Campaign is active but the deposit cutoff date has passed — user can no longer opt in
   const areEntriesClosed = useMemo(
@@ -144,7 +147,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
     const showCompetitionEndedBanner =
       getCampaignStatus(campaign) === 'complete' ||
-      (Boolean(participantStatus) &&
+      (!isParticipantStatusLoading &&
         isOptinClosed &&
         (!isOptedIn ||
           (portfolioHasFetched && !hasPositions && !hasPortfolioError)));
@@ -160,7 +163,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     return {
       showHowItWorksSection:
         Boolean(campaign.details?.howItWorks) &&
-        Boolean(participantStatus) &&
+        !isParticipantStatusLoading &&
         !isOptedIn &&
         !areEntriesClosed &&
         getCampaignStatus(campaign) === 'active',
@@ -182,7 +185,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     isOptedIn,
     hasPositions,
     areEntriesClosed,
-    participantStatus,
+    isParticipantStatusLoading,
     isOptinClosed,
     portfolioHasFetched,
     hasPortfolioError,
@@ -408,7 +411,10 @@ const OndoCampaignDetailsView: React.FC = () => {
         {campaign && (
           <CampaignJoinCTA
             campaign={campaign}
-            participantStatus={participantStatus}
+            participantStatus={{
+              status: participantStatusData,
+              isLoading: isParticipantStatusLoading,
+            }}
           />
         )}
       </SafeAreaView>

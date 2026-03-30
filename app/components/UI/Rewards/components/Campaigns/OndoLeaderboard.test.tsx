@@ -292,6 +292,16 @@ describe('OndoLeaderboard', () => {
       ).toBeNull();
     });
 
+    it('renders computed at timestamp for single-tier leaderboard', () => {
+      const { getByTestId } = render(
+        <OndoLeaderboard {...defaultProps} tierNames={['STARTER']} />,
+      );
+
+      expect(
+        getByTestId(CAMPAIGN_LEADERBOARD_TEST_IDS.COMPUTED_AT),
+      ).toBeDefined();
+    });
+
     it('calls onTierChange when tab is pressed', () => {
       const onTierChange = jest.fn();
       const { getByTestId } = render(
