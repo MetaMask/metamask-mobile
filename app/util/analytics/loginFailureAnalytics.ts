@@ -65,6 +65,8 @@ export function getRehydrationErrorTypeForSeedlessControllerCode(
       return 'seedless_change_password_error';
     case SeedlessOnboardingControllerErrorType.UnknownError:
       return 'seedless_unknown_error';
+    default:
+      return `seedless_error_${String(code)}`;
   }
 }
 
