@@ -1,0 +1,28 @@
+import { StyleSheet } from 'react-native';
+import { Theme } from '@metamask/design-tokens';
+
+const stylesheet = (params: { theme: Theme }) => {
+  const { theme } = params;
+
+  return StyleSheet.create({
+    selector: {
+      flexDirection: 'row',
+      justifyContent: 'space-between',
+      gap: 10,
+      alignItems: 'center',
+      backgroundColor: theme.colors.background.muted,
+      borderRadius: 12,
+      padding: 8,
+      alignSelf: 'flex-start',
+      flexShrink: 1,
+    },
+    accountText: {
+      flexShrink: 1,
+    },
+    placeholderText: {
+      color: theme.colors.text.alternative,
+    },
+  });
+};
+
+export default stylesheet;
