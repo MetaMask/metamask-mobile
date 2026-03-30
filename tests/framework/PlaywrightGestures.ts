@@ -35,6 +35,37 @@ export default class PlaywrightGestures {
    * @param elem - The element to tap
    * @returns A promise that resolves when the tap is complete
    */
+  /**
+   * Waits until an element's position stops changing (i.e. animations have settled).
+   * Polls the element's location and requires `stableCount` consecutive checks
+   * with the same position before resolving.
+   */
+  static async waitForElementStable(
+    elem: PlaywrightElement,
+    options?: { timeout?: number; interval?: number; stableCount?: number },
+  ): Promise<void> {
+    const { timeout = 3000, interval = 150, stableCount = 6 } = options || {};
+    const start = Date.now();
+    let lastLocation: { x: number; y: number } | null = null;
+    let stable = 0;
+
+    while (Date.now() - start < timeout) {
+      const loc = await elem.unwrap().getLocation();
+      if (
+        lastLocation &&
+        loc.x === lastLocation.x &&
+        loc.y === lastLocation.y
+      ) {
+        stable++;
+        if (stable >= stableCount) return;
+      } else {
+        stable = 1;
+        lastLocation = loc;
+      }
+      await new Promise((resolve) => setTimeout(resolve, interval));
+    }
+  }
+
   @boxedStep
   static async waitAndTap(
     elem: PlaywrightElement,
@@ -42,12 +73,14 @@ export default class PlaywrightGestures {
       delay?: number;
       checkForDisplayed?: boolean;
       checkForEnabled?: boolean;
+      checkForStable?: boolean;
     },
   ): Promise<void> {
     const {
       delay = 500,
       checkForDisplayed = true,
       checkForEnabled = true,
+      checkForStable = false,
     } = options || {};
 
     if (checkForDisplayed) {
@@ -56,6 +89,10 @@ export default class PlaywrightGestures {
 
     if (checkForEnabled) {
       await elem.unwrap().waitForEnabled({ timeout: 5000 });
+    }
+
+    if (checkForStable) {
+      await this.waitForElementStable(elem);
     }
 
     if (delay) {

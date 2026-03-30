@@ -800,9 +800,12 @@ class WalletView {
         });
       },
       appium: async () => {
-        await PlaywrightGestures.waitAndTap(
-          await asPlaywrightElement(this.tokensSection),
-        );
+        const elem = await asPlaywrightElement(this.tokensSection);
+        await PlaywrightGestures.waitForElementStable(elem);
+
+        // Re-fetch to avoid stale reference after stability wait
+        const freshElem = await asPlaywrightElement(this.tokensSection);
+        await freshElem.unwrap().click();
       },
     });
   }

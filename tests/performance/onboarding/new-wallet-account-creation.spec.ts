@@ -19,6 +19,10 @@ import OnboardingSuccessView from '../../page-objects/Onboarding/OnboardingSucce
 import { dismisspredictionsModalPlaywright } from '../../flows/wallet.flow.js';
 import WalletView from '../../page-objects/wallet/WalletView.js';
 import AccountListBottomSheet from '../../page-objects/wallet/AccountListBottomSheet.js';
+import { fetchProductionFeatureFlags } from '../feature-flag-helper';
+import PredictModalView from '../../page-objects/Predict/PredictModalView.js';
+
+const testEnvironment = process.env.BUILD_VARIANT || '';
 
 /* Scenario 2: Account creation after fresh install */
 test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
@@ -55,7 +59,25 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       );
       await OnboardingSuccessView.tapDone();
 
-      await dismisspredictionsModalPlaywright();
+      const productionFeatureFlags = await fetchProductionFeatureFlags(
+        'main',
+        testEnvironment,
+      );
+
+      const predictGtmOnboardingModalEnabled = (
+        productionFeatureFlags?.predictGtmOnboardingModalEnabled as {
+          enabled?: boolean;
+        }
+      )?.enabled;
+      if (
+        predictGtmOnboardingModalEnabled &&
+        predictGtmOnboardingModalEnabled === true
+      ) {
+        await PlaywrightAssertions.expectElementToBeVisible(
+          await asPlaywrightElement(PredictModalView.notNowButton),
+        );
+        await dismisspredictionsModalPlaywright();
+      }
 
       await PlaywrightAssertions.expectElementToBeVisible(
         await asPlaywrightElement(WalletView.container),
