@@ -40,40 +40,37 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
   const isGameMarket = Boolean(market.game);
   const isMarketOpen = market.status === PredictMarketStatus.OPEN;
 
-  const tokenIds = useMemo(() => {
-    if (
-      isGameMarket &&
-      market.game &&
-      isDrawCapableLeague(market.game.league) &&
-      market.outcomes.length >= 3
-    ) {
-      const sortedOutcomes = [...market.outcomes].sort(
-        (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-      );
+  const isDrawCapable =
+    isGameMarket &&
+    market.game &&
+    isDrawCapableLeague(market.game.league) &&
+    market.outcomes.length >= 3;
 
+  const sortedOutcomes = useMemo(() => {
+    if (!isDrawCapable) {
+      return null;
+    }
+    return [...market.outcomes].sort(
+      (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
+    );
+  }, [isDrawCapable, market.outcomes]);
+
+  const tokenIds = useMemo(() => {
+    if (sortedOutcomes) {
       return sortedOutcomes
         .map((marketOutcome) => marketOutcome.tokens[0]?.id)
         .filter((tokenId): tokenId is string => Boolean(tokenId));
     }
 
     return outcome.tokens.map((token) => token.id);
-  }, [isGameMarket, market.game, market.outcomes, outcome.tokens]);
+  }, [sortedOutcomes, outcome.tokens]);
 
   const { getPrice } = useLiveMarketPrices(tokenIds, {
     enabled: isMarketOpen && !isLoading,
   });
 
   const buttonConfig = useMemo<ButtonConfig | null>(() => {
-    if (
-      isGameMarket &&
-      market.game &&
-      isDrawCapableLeague(market.game.league) &&
-      market.outcomes.length >= 3
-    ) {
-      const sortedOutcomes = [...market.outcomes].sort(
-        (a, b) => (a.groupItemThreshold ?? 0) - (b.groupItemThreshold ?? 0),
-      );
-
+    if (sortedOutcomes && market.game) {
       const homeOutcome = sortedOutcomes[0];
       const drawOutcome = sortedOutcomes[1];
       const awayOutcome = sortedOutcomes[2];
@@ -145,7 +142,7 @@ const PredictActionButtons: React.FC<PredictActionButtonsProps> = ({
       noTeamColor: undefined,
       noToken,
     };
-  }, [outcome.tokens, isGameMarket, market.game, market.outcomes, getPrice]);
+  }, [outcome.tokens, isGameMarket, market.game, sortedOutcomes, getPrice]);
 
   if (isLoading) {
     return (

@@ -65,6 +65,15 @@ export const getSeparatedLabelYPositions = (
     }
   }
 
+  // Shift group upward if bottom label overflows chart bounds
+  const maxY = CHART_HEIGHT - LABEL_HEIGHT;
+  const overflow = positions[positions.length - 1].y - maxY;
+  if (overflow > 0) {
+    for (const pos of positions) {
+      pos.y = Math.max(0, pos.y - overflow);
+    }
+  }
+
   const result = new Array<number>(dotPositions.length);
   for (const pos of positions) {
     result[pos.index] = pos.y;
