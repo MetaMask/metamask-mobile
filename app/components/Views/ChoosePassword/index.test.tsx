@@ -887,9 +887,7 @@ describe('ChoosePassword', () => {
       await act(async () => {
         fireEvent.changeText(passwordInput, '');
       });
-      expect(
-        component.queryByDisplayValue('StrongPassword123!@#'),
-      ).toBeNull();
+      expect(component.queryByDisplayValue('StrongPassword123!@#')).toBeNull();
     });
   });
 
