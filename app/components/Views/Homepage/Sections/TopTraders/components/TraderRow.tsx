@@ -14,8 +14,6 @@ import {
   Button,
   ButtonVariant,
   ButtonSize,
-  ButtonBase,
-  ButtonBaseSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../../locales/i18n';
@@ -111,31 +109,20 @@ const TraderRow: React.FC<TraderRowProps> = ({
         </Box>
       </Box>
 
-      {/* Follow / Following button */}
-      {trader.isFollowing ? (
-        <ButtonBase
-          size={ButtonBaseSize.Sm}
-          onPress={() => onFollowPress(trader.id)}
-          twClassName="bg-muted rounded-xl"
-          accessibilityLabel={strings('social_leaderboard.following')}
-        >
-          <Text
-            variant={TextVariant.BodySm}
-            fontWeight={FontWeight.Medium}
-            color={TextColor.TextDefault}
-          >
-            {strings('social_leaderboard.following')}
-          </Text>
-        </ButtonBase>
-      ) : (
-        <Button
-          variant={ButtonVariant.Secondary}
-          size={ButtonSize.Sm}
-          onPress={() => onFollowPress(trader.id)}
-        >
-          {strings('social_leaderboard.follow')}
-        </Button>
-      )}
+      {/* Follow / Following button.
+           Follow   = Secondary (muted/outlined) — not yet following.
+           Following = Primary (filled, branded) — active following state. */}
+      <Button
+        variant={
+          trader.isFollowing ? ButtonVariant.Primary : ButtonVariant.Secondary
+        }
+        size={ButtonSize.Sm}
+        onPress={() => onFollowPress(trader.id)}
+      >
+        {trader.isFollowing
+          ? strings('social_leaderboard.following')
+          : strings('social_leaderboard.follow')}
+      </Button>
     </Box>
   );
 };
