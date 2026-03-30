@@ -2323,6 +2323,7 @@
       "order_failed_title": "Order failed",
       "order_failed_body": "There wasn't enough liquidity at this price. Want to try again?",
       "try_again": "Try again",
+      "view": "View",
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell"
     },

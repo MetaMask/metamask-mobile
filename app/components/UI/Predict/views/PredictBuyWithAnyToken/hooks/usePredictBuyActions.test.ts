@@ -33,6 +33,7 @@ let mockActiveOrder: {
   state?: ActiveOrderState;
 } | null = null;
 let mockPayWithAnyTokenEnabled = true;
+let mockApprovalRequest: { id: string } | undefined;
 
 const createAddListenerMock =
   () =>
@@ -76,6 +77,7 @@ jest.mock(
     __esModule: true,
     default: () => ({
       onConfirm: mockOnApprovalConfirm,
+      approvalRequest: mockApprovalRequest,
     }),
   }),
 );
@@ -139,6 +141,7 @@ describe('usePredictBuyActions', () => {
     jest.clearAllMocks();
     mockActiveOrder = null;
     mockPayWithAnyTokenEnabled = true;
+    mockApprovalRequest = undefined;
     mockInitPayWithAnyToken.mockResolvedValue(undefined);
     mockTransitionEndCallbacks.length = 0;
     mockBeforeRemoveCallbacks.length = 0;
@@ -318,6 +321,54 @@ describe('usePredictBuyActions', () => {
         status: 'error',
         error: PREDICT_ERROR_CODES.PREVIEW_NOT_AVAILABLE,
       });
+    });
+
+    it('passes transactionId from approvalRequest when state is PAY_WITH_ANY_TOKEN', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = { id: 'approval-tx-123' };
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ transactionId: 'approval-tx-123' }),
+      );
+    });
+
+    it('passes undefined transactionId when state is PREVIEW (balance flow)', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PREVIEW };
+      mockApprovalRequest = { id: 'approval-tx-456' };
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ transactionId: undefined }),
+      );
+    });
+
+    it('passes undefined transactionId when approvalRequest is undefined', async () => {
+      mockActiveOrder = { state: ActiveOrderState.PAY_WITH_ANY_TOKEN };
+      mockApprovalRequest = undefined;
+      const { result } = renderHook(() =>
+        usePredictBuyActions(createDefaultParams()),
+      );
+
+      await act(async () => {
+        await result.current.handleConfirm();
+      });
+
+      expect(mockPlaceOrder).toHaveBeenCalledWith(
+        expect.objectContaining({ transactionId: undefined }),
+      );
     });
   });
 

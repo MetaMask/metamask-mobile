@@ -107,8 +107,13 @@ export const usePredictBuyActions = ({
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
 
-    // Capture transactionId BEFORE approving (approval clears the request)
-    const transactionId = approvalRequest?.id;
+    // Only capture transactionId for PAY_WITH_ANY_TOKEN flow (deposit-order linking).
+    // Balance flow doesn't need it — passing undefined lets isCurrentActiveBuyOrder
+    // match without a strict transactionId check.
+    const transactionId =
+      currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN
+        ? approvalRequest?.id
+        : undefined;
 
     if (currentState === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
       onApprovalConfirm({

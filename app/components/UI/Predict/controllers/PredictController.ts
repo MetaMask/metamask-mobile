@@ -529,7 +529,7 @@ export class PredictController extends BaseController<
   private isCurrentActiveBuyOrder(transactionId?: string): boolean {
     if (!this.state.activeBuyOrder) return false;
     if (!transactionId) return true;
-    if (!this.state.activeBuyOrder.transactionId) return true;
+    if (!this.state.activeBuyOrder.transactionId) return false;
     return this.state.activeBuyOrder.transactionId === transactionId;
   }
 
@@ -1481,10 +1481,15 @@ export class PredictController extends BaseController<
       params.transactionId,
     );
 
+    const isExistingPendingOrder =
+      !!params.transactionId &&
+      !!this.pendingOrderPreviews[params.transactionId];
+
     if (
       predictWithAnyTokenEnabled &&
-      canUpdateActiveBuyOrder &&
-      this.state.activeBuyOrder?.state === ActiveOrderState.PAY_WITH_ANY_TOKEN
+      this.state.activeBuyOrder?.state ===
+        ActiveOrderState.PAY_WITH_ANY_TOKEN &&
+      !isExistingPendingOrder
     ) {
       const transactionId = params.transactionId;
       if (transactionId) {
@@ -1632,7 +1637,7 @@ export class PredictController extends BaseController<
       if (
         predictWithAnyTokenEnabled &&
         preview.side === Side.BUY &&
-        !this.state.activeBuyOrder
+        !canUpdateActiveBuyOrder
       ) {
         this.messenger.publish('PredictController:transactionStatusChanged', {
           type: 'order',
@@ -1692,7 +1697,7 @@ export class PredictController extends BaseController<
 
       traceData = { success: false, error: errorMessage };
 
-      if (!this.state.activeBuyOrder) {
+      if (!canUpdateActiveBuyOrder) {
         this.messenger.publish('PredictController:transactionStatusChanged', {
           type: 'order',
           status: 'failed',
@@ -1745,6 +1750,12 @@ export class PredictController extends BaseController<
 
       throw new Error(errorMessage);
     } finally {
+      if (
+        params.transactionId &&
+        this.pendingOrderPreviews[params.transactionId]
+      ) {
+        delete this.pendingOrderPreviews[params.transactionId];
+      }
       endTrace({
         name: TraceName.PredictPlaceOrder,
         id: traceId,
@@ -2529,7 +2540,6 @@ export class PredictController extends BaseController<
         signerAddress,
         analyticsProperties: pendingAnalytics,
       } = pendingOrder;
-      delete this.pendingOrderPreviews[transactionId];
 
       this.placeOrder({
         analyticsProperties: pendingAnalytics,
