@@ -135,6 +135,7 @@ describe('ramps controller init', () => {
         isLoading: false,
         error: null,
       },
+      providerAutoSelected: false,
       providers: {
         data: [],
         selected: null,
