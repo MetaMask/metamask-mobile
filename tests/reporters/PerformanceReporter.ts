@@ -402,7 +402,9 @@ class PerformanceReporter {
       .filter(Boolean);
     const isBrowserStackRun =
       this.sessions.length > 0 &&
-      projectNames.some((name) => (name ?? '').includes('browserstack-'));
+      projectNames.some((name) =>
+        (name ?? '').toLowerCase().includes('browserstack'),
+      );
 
     logger.info(
       `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}`,
