@@ -30,6 +30,7 @@ describe('useMarketInsights', () => {
 
     expect(mockFetchMarketInsights).not.toHaveBeenCalled();
     expect(result.current.report).toBeNull();
+    expect(result.current.reportAssetId).toBeNull();
     expect(result.current.error).toBeNull();
     expect(result.current.isLoading).toBe(false);
   });
@@ -41,6 +42,7 @@ describe('useMarketInsights', () => {
 
     expect(mockFetchMarketInsights).not.toHaveBeenCalled();
     expect(result.current.report).toBeNull();
+    expect(result.current.reportAssetId).toBeNull();
     expect(result.current.error).toBeNull();
     expect(result.current.isLoading).toBe(false);
   });
@@ -68,6 +70,7 @@ describe('useMarketInsights', () => {
       'eip155:1/erc20:0x123',
     );
     expect(result.current.report).toEqual(report);
+    expect(result.current.reportAssetId).toBe('eip155:1/erc20:0x123');
     expect(result.current.error).toBeNull();
     expect(result.current.timeAgo).toBe('5m ago');
   });
@@ -82,6 +85,7 @@ describe('useMarketInsights', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.report).toBeNull();
+    expect(result.current.reportAssetId).toBeNull();
     expect(result.current.error).toBeNull();
     expect(result.current.timeAgo).toBe('');
   });
@@ -96,6 +100,7 @@ describe('useMarketInsights', () => {
     await waitFor(() => expect(result.current.isLoading).toBe(false));
 
     expect(result.current.report).toBeNull();
+    expect(result.current.reportAssetId).toBeNull();
     expect(result.current.error).toBe('fetch failed');
     expect(result.current.timeAgo).toBe('');
   });
@@ -119,6 +124,53 @@ describe('useMarketInsights', () => {
 
     expect(mockFetchMarketInsights).toHaveBeenCalledWith('ETH');
     expect(result.current.report).toEqual(report);
+    expect(result.current.reportAssetId).toBe('ETH');
     expect(result.current.error).toBeNull();
+  });
+
+  it('clears report and reportAssetId when assetIdentifier changes', async () => {
+    const ethReport = {
+      version: '1.0',
+      asset: 'eth',
+      generatedAt: '2026-02-17T11:55:00.000Z',
+      headline: 'ETH advances',
+      summary: 'ETF headlines support demand',
+      trends: [],
+      sources: [],
+    };
+
+    const usdcReport = {
+      version: '1.0',
+      asset: 'usdc',
+      generatedAt: '2026-02-17T12:00:00.000Z',
+      headline: 'USDC stable',
+      summary: 'Stablecoin demand steady',
+      trends: [],
+      sources: [],
+    };
+
+    mockFetchMarketInsights.mockResolvedValueOnce(ethReport);
+
+    const { result, rerender } = renderHook(
+      ({ id }) => useMarketInsights(id, true),
+      { initialProps: { id: 'eip155:1/erc20:0x123' } },
+    );
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.report).toEqual(ethReport);
+    expect(result.current.reportAssetId).toBe('eip155:1/erc20:0x123');
+
+    mockFetchMarketInsights.mockResolvedValueOnce(usdcReport);
+
+    rerender({ id: 'eip155:1/erc20:0x456' });
+
+    expect(result.current.report).toBeNull();
+    expect(result.current.reportAssetId).toBeNull();
+
+    await waitFor(() => expect(result.current.isLoading).toBe(false));
+
+    expect(result.current.report).toEqual(usdcReport);
+    expect(result.current.reportAssetId).toBe('eip155:1/erc20:0x456');
   });
 });
