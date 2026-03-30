@@ -12,6 +12,7 @@ import {
   LoginHandlerResult,
 } from './OAuthInterface';
 import { getSocialAccountType } from '../../constants/onboarding';
+import { getSocialLoginFailureAnalyticsProperties } from '../../util/analytics/loginFailureAnalytics';
 import {
   Web3AuthNetwork,
   AuthConnection as SeedlessAuthConnection,
@@ -195,6 +196,8 @@ export class OAuthService {
         : 'false';
     }
 
+    const failureDetailProps = getSocialLoginFailureAnalyticsProperties(error);
+
     analytics.trackEvent(
       AnalyticsEventBuilder.createEventBuilder(
         MetaMetricsEvents.SOCIAL_LOGIN_FAILED,
@@ -204,6 +207,7 @@ export class OAuthService {
           is_rehydration: userClickedRehydration,
           failure_type: isUserCancelled ? 'user_cancelled' : 'error',
           error_category: errorCategory,
+          ...failureDetailProps,
         })
         .build(),
     );

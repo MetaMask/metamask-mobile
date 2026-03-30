@@ -28,6 +28,7 @@ import {
   SeedlessOnboardingControllerErrorType,
 } from '../../../core/Engine/controllers/seedless-onboarding-controller/error';
 import { MetaMetricsEvents } from '../../../core/Analytics';
+import { LoginMethod } from '../../../constants/onboarding';
 import {
   PASSCODE_NOT_SET_ERROR,
   JSON_PARSE_ERROR_UNEXPECTED_TOKEN,
@@ -1204,10 +1205,13 @@ describe('Login', () => {
   });
 
   describe('Analytics tracking', () => {
-    it('tracks LOGIN_SCREEN_VIEWED on mount', () => {
+    it('tracks LOGIN_SCREEN_VIEWED on mount with login_type srp', () => {
       renderWithProvider(<Login />);
       expect(mockTrackOnboarding).toHaveBeenCalledWith(
-        MetaMetricsEvents.LOGIN_SCREEN_VIEWED,
+        expect.objectContaining({
+          name: 'Login Screen Viewed',
+          properties: expect.objectContaining({ login_type: LoginMethod.Srp }),
+        }),
         expect.any(Function),
       );
     });

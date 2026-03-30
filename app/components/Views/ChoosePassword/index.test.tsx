@@ -547,7 +547,7 @@ describe('ChoosePassword', () => {
         .calls[0][0] as AnalyticsTrackingEvent;
       expect(trackingEvent.name).toBe(EVENT_NAME.WALLET_SETUP_FAILURE);
       expect(trackingEvent.properties).toEqual({
-        wallet_setup_type: 'import',
+        wallet_setup_type: 'new',
         error_type: strings('choose_password.password_length_error'),
       });
     });
@@ -845,6 +845,49 @@ describe('ChoosePassword', () => {
         currentAuthType: 'passcode',
         availableBiometryType: 'faceID',
       });
+    });
+  });
+
+  describe('Password confirmation and wallet setup analytics', () => {
+    it('confirm password input is cleared when password input is cleared', async () => {
+      mockRoute.params = { [ONBOARDING]: true };
+
+      const component = renderWithProviders(<ChoosePassword />);
+      await waitForInit();
+
+      const passwordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPassword123!@#');
+      });
+      expect(
+        component.getByDisplayValue('StrongPassword123!@#'),
+      ).toBeOnTheScreen();
+
+      const confirmPasswordInput = component.getByTestId(
+        ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID,
+      );
+
+      await act(async () => {
+        fireEvent.changeText(confirmPasswordInput, 'StrongPassword123!@#');
+      });
+      expect(
+        component.getAllByDisplayValue('StrongPassword123!@#'),
+      ).toHaveLength(2);
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, 'StrongPassword123!@');
+      });
+      expect(
+        component.getByDisplayValue('StrongPassword123!@#'),
+      ).toBeOnTheScreen();
+
+      await act(async () => {
+        fireEvent.changeText(passwordInput, '');
+      });
+      expect(component.queryByDisplayValue('StrongPassword123!@#')).toBeNull();
     });
   });
 

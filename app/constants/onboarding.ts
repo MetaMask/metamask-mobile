@@ -53,6 +53,11 @@ export function getSocialAccountType(
   return existingUser ? mapping.existing : mapping.new;
 }
 
+export enum LoginMethod {
+  Social = 'social',
+  Srp = 'srp',
+}
+
 export enum ONBOARDING_SUCCESS_FLOW {
   BACKED_UP_SRP = 'backedUpSRP',
   NO_BACKED_UP_SRP = 'noBackedUpSRP',

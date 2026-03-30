@@ -86,7 +86,11 @@ import {
 } from '@react-navigation/native';
 import ReduxService from '../../../core/redux';
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
-import type { AnalyticsTrackingEvent } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  AnalyticsEventBuilder,
+  type AnalyticsTrackingEvent,
+} from '../../../util/analytics/AnalyticsEventBuilder';
+import { LoginMethod } from '../../../constants/onboarding';
 import FoxAnimation from '../../UI/FoxAnimation/FoxAnimation';
 import { isE2E } from '../../../util/test/utils';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
@@ -139,7 +143,14 @@ const Login: React.FC<LoginProps> = ({ saveOnboardingEvent }) => {
       name: TraceName.LoginUserInteraction,
       op: TraceOperation.Login,
     });
-    trackOnboarding(MetaMetricsEvents.LOGIN_SCREEN_VIEWED, saveOnboardingEvent);
+    trackOnboarding(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.LOGIN_SCREEN_VIEWED,
+      )
+        .addProperties({ login_type: LoginMethod.Srp })
+        .build(),
+      saveOnboardingEvent,
+    );
     BackHandler.addEventListener('hardwareBackPress', handleBackPress);
 
     setStartFoxAnimation('Start');

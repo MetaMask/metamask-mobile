@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import {
@@ -23,6 +23,9 @@ import CelebratingFox from '../../../animations/Celebrating_Fox.json';
 import styles from './index.styles';
 import Device from '../../../util/device';
 import { OnboardingSelectorIDs } from '../Onboarding/Onboarding.testIds';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { MetaMetricsEvents } from '../../../core/Analytics/MetaMetrics.events';
+import { AuthConnection } from '../../../core/OAuthService/OAuthInterface';
 
 interface SocialLoginIosUserProps {
   type: 'new' | 'existing';
@@ -31,16 +34,41 @@ interface SocialLoginIosUserProps {
 const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   const navigation = useNavigation();
   const route = useRoute();
+  const { trackEvent, createEventBuilder } = useAnalytics();
 
   const { accountName, oauthLoginSuccess, onboardingTraceCtx, provider } =
     (route.params as {
       accountName?: string;
       oauthLoginSuccess?: boolean;
       onboardingTraceCtx?: unknown;
-      provider?: string;
+      provider?: AuthConnection;
     }) || {};
 
+  const isUserTypeNew = type === 'new';
+
+  useEffect(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.SOCIAL_LOGIN_IOS_INTERSTITIAL_VIEWED)
+        .addProperties({
+          is_new_user: isUserTypeNew,
+          social_provider: provider,
+        })
+        .build(),
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const handleSetMetaMaskPin = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SOCIAL_LOGIN_IOS_INTERSTITIAL_CTA_CLICKED,
+      )
+        .addProperties({
+          is_new_user: true,
+          social_provider: provider,
+        })
+        .build(),
+    );
     navigation.dispatch(
       StackActions.replace(Routes.ONBOARDING.CHOOSE_PASSWORD, {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -53,6 +81,16 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
   };
 
   const handleSecureWallet = () => {
+    trackEvent(
+      createEventBuilder(
+        MetaMetricsEvents.SOCIAL_LOGIN_IOS_INTERSTITIAL_CTA_CLICKED,
+      )
+        .addProperties({
+          is_new_user: false,
+          social_provider: provider,
+        })
+        .build(),
+    );
     navigation.dispatch(
       StackActions.replace('Rehydrate', {
         [PREVIOUS_SCREEN]: ONBOARDING,
@@ -61,8 +99,6 @@ const SocialLoginIosUser: React.FC<SocialLoginIosUserProps> = ({ type }) => {
       }),
     );
   };
-
-  const isUserTypeNew = type === 'new';
 
   return (
     <SafeAreaView edges={['bottom', 'left', 'right']} style={styles.wrapper}>

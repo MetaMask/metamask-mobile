@@ -31,6 +31,7 @@ import {
 import {
   AccountType,
   getSocialAccountType,
+  LoginMethod,
 } from '../../../constants/onboarding';
 import {
   storePrivacyPolicyClickedOrClosed as storePrivacyPolicyClickedOrClosedAction,
@@ -444,7 +445,7 @@ const Onboarding = () => {
     (
       result: OAuthLoginResult,
       createWallet: boolean,
-      provider: string,
+      provider: AuthConnection,
     ): void => {
       const isIOS = Platform.OS === 'ios';
       if (socialLoginTraceCtx.current) {
@@ -466,6 +467,12 @@ const Onboarding = () => {
       track(MetaMetricsEvents.SOCIAL_LOGIN_COMPLETED, {
         account_type: accountType,
       });
+
+      metrics.identify({
+        login_method: LoginMethod.Social,
+        social_provider: provider,
+      });
+
       if (createWallet) {
         if (result.existingUser) {
           navigation.navigate('AccountAlreadyExists', {
@@ -533,7 +540,7 @@ const Onboarding = () => {
         });
       }
     },
-    [navigation, track, dispatch, onboardingVersion],
+    [navigation, track, dispatch, onboardingVersion, metrics],
   );
 
   const handleOAuthLoginError = useCallback(
@@ -567,7 +574,7 @@ const Onboarding = () => {
   const handleLoginError = useCallback(
     async (
       error: Error,
-      socialConnectionType: string,
+      socialConnectionType: AuthConnection,
       createWallet: boolean,
     ): Promise<void> => {
       if (error instanceof OAuthError) {
