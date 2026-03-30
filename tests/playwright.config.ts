@@ -91,8 +91,9 @@ export default defineConfig({
 
     {
       name: 'android-onboarding',
-      testMatch: '**/performance/onboarding/**/*.spec.js',
-      testIgnore: '**/performance/onboarding/seedless-*.spec.js',
+      testMatch: '**/performance/onboarding/**/*.spec.ts',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
+
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -111,8 +112,8 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding',
-      testMatch: '**/performance/onboarding/**/*.spec.js',
-      testIgnore: '**/performance/onboarding/seedless-*.spec.js',
+      testMatch: '**/performance/onboarding/**/*.spec.ts',
+      testIgnore: '**/performance/onboarding/seedless-*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
