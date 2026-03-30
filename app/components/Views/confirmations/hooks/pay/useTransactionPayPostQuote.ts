@@ -1,11 +1,9 @@
 import { useEffect, useRef } from 'react';
 import Engine from '../../../../../core/Engine';
 import { createProjectLogger, type Hex } from '@metamask/utils';
-import { TransactionType } from '@metamask/transaction-controller';
 import { useTransactionPayWithdraw } from './useTransactionPayWithdraw';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
 import { computeProxyAddress } from '../../../../UI/Predict/providers/polymarket/safe/utils';
-import { hasTransactionType } from '../../utils/transaction';
 
 const log = createProjectLogger('transaction-pay-post-quote');
 
@@ -27,9 +25,6 @@ export function useTransactionPayPostQuote(): void {
   const { canSelectWithdrawToken } = useTransactionPayWithdraw();
   const transactionMeta = useTransactionMetadataRequest();
   const transactionId = transactionMeta?.id;
-  const isPerpsWithdraw = hasTransactionType(transactionMeta, [
-    TransactionType.perpsWithdraw,
-  ]);
 
   useEffect(() => {
     if (
@@ -43,44 +38,21 @@ export function useTransactionPayPostQuote(): void {
     try {
       const { TransactionPayController } = Engine.context;
       const from = transactionMeta?.txParams?.from as Hex | undefined;
-
-      // Predict withdrawals refund to the Safe proxy address.
-      // Perps withdrawals don't use refundTo -- funds go HyperCore -> Relay directly.
-      const refundTo = isPerpsWithdraw
-        ? undefined
-        : from
-          ? computeProxyAddress(from)
-          : undefined;
+      const refundTo = from ? computeProxyAddress(from) : undefined;
 
       TransactionPayController.setTransactionConfig(transactionId, (config) => {
         config.isPostQuote = true;
-
-        if (refundTo) {
-          config.refundTo = refundTo;
-        }
-
-        if (isPerpsWithdraw) {
-          config.isHyperliquidSource = true;
-        }
+        config.refundTo = refundTo;
       });
 
       isSet.current = transactionId;
 
-      log('Initialized post-quote transaction', {
-        transactionId,
-        refundTo,
-        isPerpsWithdraw,
-      });
+      log('Initialized post-quote transaction', { transactionId, refundTo });
     } catch (error) {
       log('Error initializing post-quote transaction', {
         error,
         transactionId,
       });
     }
-  }, [
-    canSelectWithdrawToken,
-    isPerpsWithdraw,
-    transactionId,
-    transactionMeta?.txParams?.from,
-  ]);
+  }, [canSelectWithdrawToken, transactionId, transactionMeta?.txParams?.from]);
 }
