@@ -286,11 +286,13 @@ const AccountConnect = (props: AccountConnectProps) => {
 
   const dappUrl = sdkConnection?.originatorInfo?.url ?? '';
 
-  const selfReportedDappUrl = isOriginMMSDKRemoteConn
+  // Should be the self reported dapp url if SDK or WC connection, null if no self reported dapp url.
+  // If not SDK or WC connection, i.e. a regular external connection, it should be the hostname.
+  const referrer = isOriginMMSDKRemoteConn
     ? dappUrl
     : isOriginWalletConnect
       ? wc2Metadata?.url
-      : undefined;
+      : channelIdOrHostname;
 
   // If it is undefined, it will enter the regular eth account creation flow.
   const [multichainAccountOptions, setMultichainAccountOptions] = useState<
@@ -517,8 +519,7 @@ const AccountConnect = (props: AccountConnectProps) => {
             account_type: getAddressAccountType(activeAddress),
             source: eventSource,
             chain_id_list: selectedChainIds,
-            referrer: request.metadata.origin,
-            self_reported_dapp_url: selfReportedDappUrl,
+            referrer,
             ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),
