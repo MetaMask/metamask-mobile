@@ -4,6 +4,7 @@ import { setBrazeUser } from './index';
 const mockGetSessionProfile = jest.fn();
 
 jest.mock('../Engine/Engine', () => ({
+  __esModule: true,
   default: {
     context: {
       AuthenticationController: {
