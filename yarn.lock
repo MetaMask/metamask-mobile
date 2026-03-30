@@ -8251,16 +8251,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/error-reporting-service@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/error-reporting-service@npm:3.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/f62921c4b185ae2d7524230da35e8f6e9d18554931fc1c72da2c0e59a27c8b7ceaa12d5a94f6fda4a9a313abce71fa59c76954615a13e28df7830b7e716664e5
-  languageName: node
-  linkType: hard
-
 "@metamask/eslint-config-typescript@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/eslint-config-typescript@npm:13.0.0"
@@ -8893,13 +8883,6 @@ __metadata:
   version: 1.1.2
   resolution: "@metamask/message-signing-snap@npm:1.1.2"
   checksum: 10/99970642e6bbcb4dbfeb9defbc286ce92f992d11c542000ea761c5c892b2fbac5fdee9d5c6c8f8df05666322848ab7bb510289780959a14fbb390d556fd63f19
-  languageName: node
-  linkType: hard
-
-"@metamask/messenger@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/messenger@npm:0.3.0"
-  checksum: 10/84e9f4193646d749c7260a4958b13974b3c8738cc2e414116279ed31734e1edba687ff56ddbfdb75033bce30aaa9eeb7c391bccb87a66dbc99a902882271f673
   languageName: node
   linkType: hard
 
@@ -35594,7 +35577,6 @@ __metadata:
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.1.0"
-    "@metamask/error-reporting-service": "npm:^3.0.0"
     "@metamask/eslint-config-typescript": "npm:^13.0.0"
     "@metamask/eslint-plugin-design-tokens": "npm:^1.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
@@ -35624,7 +35606,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^3.2.0"
     "@metamask/logging-controller": "npm:^8.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
-    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/messenger": "npm:^1.0.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
