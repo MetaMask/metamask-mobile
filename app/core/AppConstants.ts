@@ -216,8 +216,7 @@ export default {
     process.env.DECODING_API_URL ||
     'https://signature-insights.api.cx.metamask.io/v1',
   DIGEST_API_URL:
-    process.env.DIGEST_API_URL ||
-    'https://digest.api.cx.metamask.io/api/v1',
+    process.env.DIGEST_API_URL || 'https://digest.api.cx.metamask.io/api/v1',
   // Rewards/Baanx: GH Actions use builds.yml (env set per build). Fallback mapping for local when env not set.
   REWARDS_API_URL: {
     DEV: 'https://rewards.dev-api.cx.metamask.io',
