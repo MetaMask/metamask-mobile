@@ -8,13 +8,15 @@ import {
   formatChainIdToHex,
   isNonEvmChainId,
 } from '@metamask/bridge-controller';
+import { useIsHardwareWalletForBridge } from '../useIsHardwareWalletForBridge';
 
 /**
  * Hook that determines if 7702 gasless support is available for bridge/swap.
  * Should be used at the page level (e.g., BridgeView) to avoid repeated calculations.
  *
- * Requirement for 7702:
+ * Requirements for 7702:
  * - Relay must be supported (for 7702 delegation)
+ * - Source wallet must not be a hardware wallet
  *
  * @param chainId - The chain ID to check (can be Hex, CAIP, or other format) - only EVM chains are supported
  */
@@ -40,9 +42,11 @@ export const useIsGasIncluded7702Supported = (
     return isRelaySupported(evmChainId as Hex);
   }, [evmChainId]);
 
+  const isHardwareWallet = useIsHardwareWalletForBridge();
+
   // 7702 is available when ALL conditions are met
   const isGasIncluded7702Supported = Boolean(
-    evmChainId && !!isRelaySupportedForChain,
+    evmChainId && !!isRelaySupportedForChain && !isHardwareWallet,
   );
 
   useEffect(() => {

@@ -155,14 +155,40 @@ jest.mock('@metamask/design-system-react-native', () => {
   }: React.PropsWithChildren<Record<string, unknown>>) =>
     React.createElement(RNText, props, children);
 
+  const { TouchableOpacity } = jest.requireActual('react-native');
+
+  const Button = ({
+    children,
+    testID,
+    onPress,
+    isDisabled,
+    ...props
+  }: React.PropsWithChildren<Record<string, unknown>>) =>
+    React.createElement(
+      TouchableOpacity,
+      { testID, onPress, disabled: isDisabled, ...props },
+      React.createElement(RNText, {}, children),
+    );
+
   return {
     Box,
     Label,
     Text,
     Icon,
+    Button,
     TextVariant: {
       BodySm: 'BodySm',
       BodyMd: 'BodyMd',
+    },
+    ButtonVariant: {
+      Primary: 'Primary',
+      Secondary: 'Secondary',
+      Link: 'Link',
+    },
+    ButtonSize: {
+      Sm: 'Sm',
+      Md: 'Md',
+      Lg: 'Lg',
     },
     IconName: {
       ArrowDown: 'arrow-down',
@@ -1786,7 +1812,7 @@ describe('PhysicalAddress Component', () => {
     });
 
     it('displays translated text correctly', () => {
-      const { getByTestId } = render(
+      const { getByTestId, getByText } = render(
         <Provider store={store}>
           <PhysicalAddress />
         </Provider>,
@@ -1794,13 +1820,12 @@ describe('PhysicalAddress Component', () => {
 
       const title = getByTestId('onboarding-step-title');
       const description = getByTestId('onboarding-step-description');
-      const buttonText = getByTestId('button-text');
 
       expect(title.props.children).toBe('Physical Address');
       expect(description.props.children).toBe(
         'Enter your physical address information',
       );
-      expect(buttonText.props.children).toBe('Continue');
+      expect(getByText('Continue')).toBeTruthy();
     });
   });
 

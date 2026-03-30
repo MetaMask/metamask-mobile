@@ -252,6 +252,7 @@ jest.mock('../BackupVault/backupVault', () => ({
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     isEnabled: jest.fn().mockReturnValue(true),
+    trackEvent: jest.fn(),
   },
 }));
 
@@ -2630,7 +2631,10 @@ describe('Authentication', () => {
         getState: jest.fn(() => mockState),
       } as unknown as ReduxStore);
 
-      const result = await Authentication.checkIsSeedlessPasswordOutdated(true);
+      const result = await Authentication.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: false,
+      });
 
       expect(result).toBe(mockIsOutdated);
       expect(
@@ -2673,6 +2677,49 @@ describe('Authentication', () => {
       ).toHaveBeenCalledWith({ skipCache: true });
     });
 
+    it('calls Logger.error when captureSentryError is true and the controller throws', async () => {
+      mockIsOutdated = true;
+      const mockState: RecursivePartial<RootState> = {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: {
+              vault: 'existing vault data' as string,
+              socialBackupsMetadata: [],
+              passwordOutdatedCache: {
+                isExpiredPwd: mockIsOutdated,
+                timestamp: Date.now(),
+              },
+            },
+          },
+        },
+      };
+
+      jest.spyOn(ReduxService, 'store', 'get').mockReturnValue({
+        dispatch: jest.fn(),
+        getState: jest.fn(() => mockState),
+      } as unknown as ReduxStore);
+
+      const err = new Error('controller failed');
+      Engine.context.SeedlessOnboardingController = {
+        state: { vault: {} },
+        checkIsPasswordOutdated: jest.fn().mockRejectedValue(err),
+      } as unknown as SeedlessOnboardingController<EncryptionKey>;
+
+      jest.clearAllMocks();
+
+      const result = await Authentication.checkIsSeedlessPasswordOutdated({
+        skipCache: true,
+        captureSentryError: true,
+      });
+
+      expect(result).toBe(false);
+      expect(Logger.error).toHaveBeenCalledWith(
+        err,
+        'Error in checkIsSeedlessPasswordOutdated',
+      );
+      expect(Logger.log).not.toHaveBeenCalled();
+    });
+
     it('return false when seedless controller checkAuthenticationMethod throw error', async () => {
       mockIsOutdated = true;
       const mockState: RecursivePartial<RootState> = {
@@ -2700,12 +2747,16 @@ describe('Authentication', () => {
         checkIsPasswordOutdated: jest.fn().mockRejectedValue(mockIsOutdated),
       } as unknown as SeedlessOnboardingController<EncryptionKey>;
 
+      jest.clearAllMocks();
+
       const result = await Authentication.checkIsSeedlessPasswordOutdated();
 
       expect(result).toBe(false);
       expect(
         Engine.context.SeedlessOnboardingController.checkIsPasswordOutdated,
       ).toHaveBeenCalledWith({ skipCache: true });
+      expect(Logger.log).toHaveBeenCalled();
+      expect(Logger.error).not.toHaveBeenCalled();
     });
   });
 
@@ -2965,7 +3016,10 @@ describe('Authentication', () => {
         await Authentication.importAccountFromPrivateKey(mockPrivateKey);
 
       // Assert
-      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith(true);
+      expect(checkIsSeedlessPasswordOutdatedSpy).toHaveBeenCalledWith({
+        skipCache: true,
+        captureSentryError: true,
+      });
       expect(result).toBe(false);
       expect(
         Engine.context.KeyringController.importAccountWithStrategy,
@@ -4342,6 +4396,7 @@ describe('Authentication', () => {
       // Assert
       expect(mockCheckIsSeedlessPasswordOutdated).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
     it('returns early when checkIsSeedlessPasswordOutdated returns false', async () => {
@@ -4367,8 +4422,12 @@ describe('Authentication', () => {
       await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
 
       // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
       expect(mockNavigate).not.toHaveBeenCalled();
+      expect(analytics.trackEvent).not.toHaveBeenCalled();
     });
 
     it('navigates to modal when password is outdated', async () => {
@@ -4394,7 +4453,17 @@ describe('Authentication', () => {
       await Authentication.checkAndShowSeedlessPasswordOutdatedModal(true);
 
       // Assert
-      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith(false);
+      expect(mockCheckIsSeedlessPasswordOutdated).toHaveBeenCalledWith({
+        skipCache: false,
+        captureSentryError: true,
+      });
+      expect(analytics.trackEvent).toHaveBeenCalledTimes(1);
+      expect(analytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Password Outdated Modal Viewed',
+          properties: expect.objectContaining({ category: 'App' }),
+        }),
+      );
       expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
         params: {

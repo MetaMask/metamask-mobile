@@ -96,6 +96,8 @@ import { AccountPermissionsScreens } from '../../../components/Views/AccountPerm
 import { StakeModalStack, StakeScreenStack } from '../../UI/Stake/routes';
 import { AssetLoader } from '../../Views/AssetLoader';
 import { EarnScreenStack, EarnModalStack } from '../../UI/Earn/routes';
+import { MoneyScreenStack } from '../../UI/Money/routes';
+import { selectMoneyHomeScreenEnabledFlag } from '../../UI/Money/selectors/featureFlags';
 import { BridgeTransactionDetails } from '../../UI/Bridge/components/TransactionDetails/TransactionDetails';
 import { BridgeModalStack, BridgeScreenStack } from '../../UI/Bridge/routes';
 import {
@@ -928,6 +930,10 @@ const SampleFeatureFlow = () => (
 ///: END:ONLY_INCLUDE_IF
 
 const MainNavigator = () => {
+  // Get feature flag state for conditional Money home screen registration
+  const isMoneyHomeScreenEnabled = useSelector(
+    selectMoneyHomeScreenEnabledFlag,
+  );
   // Get feature flag state for conditional Perps screen registration
   const perpsEnabledFlag = useSelector(selectPerpsEnabledFlag);
   const isPerpsEnabled = useMemo(() => perpsEnabledFlag, [perpsEnabledFlag]);
@@ -1082,6 +1088,13 @@ const MainNavigator = () => {
         component={EarnModalStack}
         options={clearStackNavigatorOptions}
       />
+      {isMoneyHomeScreenEnabled && (
+        <Stack.Screen
+          name={Routes.MONEY.ROOT}
+          component={MoneyScreenStack}
+          options={{ headerShown: false, ...slideFromRightAnimation }}
+        />
+      )}
       <Stack.Screen
         name="StakeModals"
         component={StakeModalStack}
