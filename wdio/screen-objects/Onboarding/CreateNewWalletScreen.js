@@ -10,8 +10,10 @@ import {
 import Gestures from "../../helpers/Gestures";
 import Selectors from "../../helpers/Selectors";
 import AppwrightSelectors from '../../../tests/framework/AppwrightSelectors';
+import AppwrightGestures from '../../../tests/framework/AppwrightGestures';
 import { expect } from "appwright";
 import { ChoosePasswordSelectorsIDs } from "../../../app/components/Views/ChoosePassword/ChoosePassword.testIds";
+import { iosPasswordInputXpath } from './iosPasswordInputXpath.js';
 
 class CreateNewWalletScreen {
   get device() {
@@ -52,14 +54,10 @@ class CreateNewWalletScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(REMIND_LATER_BUTTON_ID);
     } else {
-      if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByID(
-          this._device,
-          REMIND_LATER_BUTTON_ID,
-        );
-      } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeStaticText[@name="Remind me later"])[2]');
-      }
+      return AppwrightSelectors.getElementByID(
+        this._device,
+        REMIND_LATER_BUTTON_ID,
+      );
     }
   }
 
@@ -70,12 +68,15 @@ class CreateNewWalletScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByID(
+        return AppwrightSelectors.getElementByXpath(
           this._device,
-          CREATE_PASSWORD_INPUT_FIRST_FIELD,
+          `//android.widget.EditText[contains(@resource-id,'${CREATE_PASSWORD_INPUT_FIRST_FIELD}') or ancestor::*[contains(@resource-id,'${CREATE_PASSWORD_INPUT_FIRST_FIELD}')]]`,
         );
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="create-password-first-input-field"])[1]');
+        return AppwrightSelectors.getElementByXpath(
+          this._device,
+          iosPasswordInputXpath(CREATE_PASSWORD_INPUT_FIRST_FIELD, 1),
+        );
       }
     }
   }
@@ -87,12 +88,15 @@ class CreateNewWalletScreen {
       );
     } else {
       if (AppwrightSelectors.isAndroid(this._device)) {
-        return AppwrightSelectors.getElementByID(
+        return AppwrightSelectors.getElementByXpath(
           this._device,
-          CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
+          `//android.widget.EditText[contains(@resource-id,'${CONFIRM_PASSWORD_INPUT_FIRST_FIELD}') or ancestor::*[contains(@resource-id,'${CONFIRM_PASSWORD_INPUT_FIRST_FIELD}')]]`,
         );
       } else {
-        return  AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="create-password-second-input-field"])[1]');
+        return AppwrightSelectors.getElementByXpath(
+          this._device,
+          iosPasswordInputXpath(CONFIRM_PASSWORD_INPUT_FIRST_FIELD, 2),
+        );
       }
     }
   }
@@ -121,7 +125,11 @@ class CreateNewWalletScreen {
       await Gestures.typeText(this.newWalletPasswordField, firstPassword);
     } else {
       const field = await this.newWalletPasswordField;
-      await field.fill(firstPassword);
+      await AppwrightGestures.typeText(field, firstPassword, {
+        tapBeforeFill: AppwrightSelectors.isAndroid(this._device),
+        maxRetries: 2,
+        retryDelay: 500,
+      });
     }
   }
 
@@ -135,7 +143,11 @@ class CreateNewWalletScreen {
       // await Gestures.tap('Create password');
     } else {
       const field = await this.newWalletPasswordConfirm;
-      await field.fill(secondPassword);
+      await AppwrightGestures.typeText(field, secondPassword, {
+        tapBeforeFill: AppwrightSelectors.isAndroid(this._device),
+        maxRetries: 2,
+        retryDelay: 500,
+      });
     }
   }
 
