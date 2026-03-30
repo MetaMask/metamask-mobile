@@ -63,9 +63,9 @@ const BenefitListView = () => {
     if (isLoading || benefits?.length === 0) return null;
     return (
       <Box twClassName="items-center justify-center">
-        <Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>
-          Powered by The Miracle
-        </Text>
+        {/*<Text variant={TextVariant.BodyXs} color={TextColor.TextAlternative}>*/}
+        {/*  Powered by The Miracle*/}
+        {/*</Text>*/}
       </Box>
     );
   }, [isLoading, benefits?.length]);
