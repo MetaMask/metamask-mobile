@@ -199,7 +199,8 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       [watchlistMarkets],
     );
 
-    const shouldShowCarousel = showTrending || isTrendingOnly;
+    const shouldShowCarousel =
+      (showTrending && !isPositionsOnly) || isTrendingOnly;
     const carouselSymbols = useMemo(
       () =>
         shouldShowCarousel

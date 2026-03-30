@@ -184,6 +184,10 @@ const {
   usePerpsLiveAccount,
 } = jest.requireMock('../../../../UI/Perps/hooks');
 
+const mockUseHomepageSparklines = jest.requireMock(
+  './hooks/useHomepageSparklines',
+).useHomepageSparklines as jest.Mock;
+
 const makePosition = (overrides: Record<string, unknown> = {}) => ({
   symbol: 'BTC',
   size: '-0.0015',
@@ -1447,6 +1451,45 @@ describe('PerpsSection', () => {
       );
 
       expect(toJSON()).toBeNull();
+    });
+
+    it('does not pass market symbols to sparklines when empty despite loaded markets', () => {
+      mockUseHomepageSparklines.mockClear();
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [makeTrendingMarket({ symbol: 'BTC' })],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsLivePositions.mockReturnValue({
+          positions: [],
+          isInitialLoading: false,
+        });
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsLiveOrders.mockReturnValue({
+          orders: [],
+          isInitialLoading: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="positions-only"
+        />,
+      );
+
+      expect(
+        mockUseHomepageSparklines.mock.calls.every(
+          ([symbols]) => Array.isArray(symbols) && symbols.length === 0,
+        ),
+      ).toBe(true);
     });
 
     it('returns null when empty even if WebSocket connection errors', () => {
