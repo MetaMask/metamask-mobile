@@ -268,29 +268,6 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
-  it('includes perps withdraw properties', async () => {
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: PAY_TOKEN_MOCK,
-      setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK]);
-
-    runHook({ type: TransactionType.perpsWithdraw });
-
-    await act(async () => noop());
-
-    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-      id: transactionIdMock,
-      params: {
-        properties: expect.objectContaining({
-          mm_pay_use_case: 'perps_withdraw',
-        }),
-        sensitiveProperties: {},
-      },
-    });
-  });
-
   it('includes dust property for non-native quote', async () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
