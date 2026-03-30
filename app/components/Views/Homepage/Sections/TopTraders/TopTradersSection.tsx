@@ -3,11 +3,11 @@ import React, {
   useCallback,
   useImperativeHandle,
   useRef,
+  useState,
 } from 'react';
-import { ScrollView, View } from 'react-native';
+import { View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
-import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
 import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import { SectionRefreshHandle } from '../../types';
@@ -17,49 +17,83 @@ import Routes from '../../../../../constants/navigation/Routes';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import {
+  TrendingTokenNetworkBottomSheet,
+  NetworkOption,
+} from '../../../../UI/Trending/components/TrendingTokensBottomSheet';
+import {
+  TraderRow,
+  TraderRowSkeleton,
+  NetworkFilterButton,
+} from './components';
+import { useTopTraders } from './hooks';
+import type { NetworkFilterSelection } from './types';
+import type { CaipChainId } from '@metamask/utils';
 
 interface TopTradersSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
 }
 
+const SKELETON_COUNT = 3;
+const SKELETON_KEYS = Array.from(
+  { length: SKELETON_COUNT },
+  (_, i) => `top-trader-skeleton-${i}`,
+);
+
 /**
  * TopTradersSection — Social leaderboard section on the homepage.
  *
- * Shows a horizontal carousel of top-performing traders.
- * Currently renders an empty placeholder carousel while the data layer is being built.
+ * Shows a vertical list of top-performing traders with rank, avatar,
+ * username, performance stats, and a Follow / Following toggle.
+ * Includes an "All networks" filter dropdown with a bottom sheet picker.
  */
 const TopTradersSection = forwardRef<
   SectionRefreshHandle,
   TopTradersSectionProps
 >(({ sectionIndex, totalSectionsLoaded }, ref) => {
   const sectionViewRef = useRef<View>(null);
-  const tw = useTailwind();
   const navigation = useNavigation();
   const isEnabled = useSelector(selectSocialLeaderboardEnabled);
   const title = strings('homepage.sections.top_traders');
 
-  useImperativeHandle(
-    ref,
-    () => ({
-      refresh: async () => undefined,
-    }),
-    [],
-  );
+  const { traders, isLoading, refresh, toggleFollow } = useTopTraders();
+
+  const [showNetworkBottomSheet, setShowNetworkBottomSheet] = useState(false);
+  const [selectedNetwork, setSelectedNetwork] =
+    useState<NetworkFilterSelection>(null);
+
+  useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
   const { onLayout } = useHomeViewedEvent({
     sectionRef: sectionViewRef,
-    isLoading: false,
+    isLoading,
     sectionName: HomeSectionNames.TOP_TRADERS,
     sectionIndex,
     totalSectionsLoaded,
-    isEmpty: true,
-    itemCount: 0,
+    isEmpty: traders.length === 0,
+    itemCount: traders.length,
   });
 
   const handleViewAll = useCallback(() => {
     navigation.navigate(Routes.SOCIAL_LEADERBOARD.VIEW as never);
   }, [navigation]);
+
+  const handleNetworkPress = useCallback(() => {
+    setShowNetworkBottomSheet(true);
+  }, []);
+
+  const handleNetworkSelect = useCallback((chainIds: CaipChainId[] | null) => {
+    setSelectedNetwork(chainIds ? chainIds[0] : null);
+  }, []);
+
+  const handleNetworkBottomSheetClose = useCallback(() => {
+    setShowNetworkBottomSheet(false);
+  }, []);
+
+  const selectedNetworkCaip = selectedNetwork
+    ? ([selectedNetwork] as CaipChainId[])
+    : null;
 
   if (!isEnabled) {
     return null;
@@ -73,13 +107,38 @@ const TopTradersSection = forwardRef<
     >
       <Box gap={3}>
         <SectionHeader title={title} onPress={handleViewAll} />
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={tw.style('px-4 gap-2.5')}
-          testID="homepage-top-traders-carousel"
-        />
+
+        {/* Network filter button */}
+        <Box twClassName="px-4">
+          <NetworkFilterButton
+            selectedNetwork={selectedNetwork}
+            onPress={handleNetworkPress}
+            testID="top-traders-network-filter"
+          />
+        </Box>
+
+        {/* Trader list */}
+        <Box>
+          {isLoading
+            ? SKELETON_KEYS.map((key) => <TraderRowSkeleton key={key} />)
+            : traders.map((trader) => (
+                <TraderRow
+                  key={trader.id}
+                  trader={trader}
+                  onFollowPress={toggleFollow}
+                />
+              ))}
+        </Box>
       </Box>
+
+      {/* Network filter bottom sheet */}
+      <TrendingTokenNetworkBottomSheet
+        isVisible={showNetworkBottomSheet}
+        onClose={handleNetworkBottomSheetClose}
+        onNetworkSelect={handleNetworkSelect}
+        selectedNetwork={selectedNetworkCaip}
+        networks={[]}
+      />
     </View>
   );
 });
