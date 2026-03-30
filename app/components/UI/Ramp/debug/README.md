@@ -43,14 +43,14 @@ Then you can keep the default `ws://localhost:8099` from the app’s point of vi
 From the **repository root**:
 
 ```bash
-cd ramps-debug-dashboard && node server.mjs
+cd ramps-debug-dashboard && npm ci && node server.mjs
 ```
 
 - UI: <http://localhost:8099>
 - WebSocket: `ws://localhost:8099`
 - Optional: `RAMPS_DEBUG_PORT=8100 node server.mjs` to change the port (set `RAMPS_DEBUG_DASHBOARD_URL` to match).
 
-`yarn start` in that folder may fail under the root Yarn workspace; **`node server.mjs`** is the supported command.
+`yarn start` in that folder may fail under the root Yarn workspace; use **`npm ci`** (once) then **`node server.mjs`**.
 
 Session log (JSON Lines, useful for agents / offline review):
 
