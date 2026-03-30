@@ -182,20 +182,28 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
   }
 
   /**
-   * Checks if camera permission is granted.
-   * Returns true if camera is available for scanning.
+   * QR wallets do not use persistent transport monitoring, but this still
+   * exposes the current camera permission state for informational callers.
+   * It never requests permission or drives QR flow gating.
    */
   async isTransportAvailable(): Promise<boolean> {
-    const status = Camera.getCameraPermissionStatus();
-    return status === 'granted';
+    try {
+      return Camera.getCameraPermissionStatus() === 'granted';
+    } catch (error) {
+      DevLogger.log(
+        '[QRWalletAdapter] Error checking transport availability:',
+        error,
+      );
+      return false;
+    }
   }
 
   /**
-   * Returns the error code for when camera permission is denied.
-   * This triggers the permission error content in the bottom sheet.
+   * QR wallets opt out of persistent transport monitoring because camera
+   * permission is enforced only when scanning is attempted.
    */
   getTransportDisabledErrorCode(): ErrorCode | null {
-    return ErrorCode.PermissionNearbyDevicesDenied;
+    return null;
   }
 
   /**
@@ -259,20 +267,17 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
           '[QRWalletAdapter] Camera permission after request:',
           newStatus,
         );
-        return newStatus === 'granted';
+
+        if (newStatus === 'granted') {
+          return true;
+        }
+
+        this.#emitCameraPermissionDenied();
+        return false;
       }
 
       // status === 'denied' - emit error event
-      DevLogger.log(
-        '[QRWalletAdapter] Camera permission denied, emitting error',
-      );
-      this.#emitEvent({
-        event: DeviceEvent.ConnectionFailed,
-        error: {
-          name: 'CameraPermissionDenied',
-          message: 'Camera permission is required to scan QR codes',
-        },
-      });
+      this.#emitCameraPermissionDenied();
       return false;
     } catch (error) {
       DevLogger.log(
@@ -291,5 +296,16 @@ export class QRWalletAdapter implements HardwareWalletAdapter {
       });
       return false;
     }
+  }
+
+  #emitCameraPermissionDenied(): void {
+    DevLogger.log('[QRWalletAdapter] Camera permission denied, emitting error');
+    this.#emitEvent({
+      event: DeviceEvent.ConnectionFailed,
+      error: {
+        name: 'CameraPermissionDenied',
+        message: 'Camera permission is required to scan QR codes',
+      },
+    });
   }
 }

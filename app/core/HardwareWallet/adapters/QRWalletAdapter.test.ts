@@ -1,9 +1,5 @@
 import { QRWalletAdapter } from './QRWalletAdapter';
-import {
-  HardwareWalletType,
-  DeviceEvent,
-  ErrorCode,
-} from '@metamask/hw-wallet-sdk';
+import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 
 const mockGetCameraPermissionStatus = jest.fn();
@@ -147,6 +143,41 @@ describe('QRWalletAdapter', () => {
       expect(adapter.getConnectedDeviceId()).toBe('qr-account-address');
       expect(adapter.isConnected()).toBe(true);
     });
+
+    it('emits ConnectionFailed when camera permission is denied', async () => {
+      mockGetCameraPermissionStatus.mockReturnValueOnce('denied');
+
+      const result = await adapter.ensureDeviceReady('qr-account-address');
+
+      expect(result).toBe(false);
+      expect(adapter.getConnectedDeviceId()).toBeNull();
+      expect(adapter.isConnected()).toBe(false);
+      expect(onDeviceEvent).toHaveBeenCalledWith({
+        event: DeviceEvent.ConnectionFailed,
+        error: {
+          name: 'CameraPermissionDenied',
+          message: 'Camera permission is required to scan QR codes',
+        },
+      });
+    });
+
+    it('emits ConnectionFailed when camera permission prompt is denied', async () => {
+      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
+      mockRequestCameraPermission.mockResolvedValueOnce('denied');
+
+      const result = await adapter.ensureDeviceReady('qr-account-address');
+
+      expect(result).toBe(false);
+      expect(adapter.getConnectedDeviceId()).toBeNull();
+      expect(adapter.isConnected()).toBe(false);
+      expect(onDeviceEvent).toHaveBeenCalledWith({
+        event: DeviceEvent.ConnectionFailed,
+        error: {
+          name: 'CameraPermissionDenied',
+          message: 'Camera permission is required to scan QR codes',
+        },
+      });
+    });
   });
 
   describe('reset', () => {
@@ -231,6 +262,22 @@ describe('QRWalletAdapter', () => {
       expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
     });
+
+    it('emits ConnectionFailed when the permission prompt is denied', async () => {
+      mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
+      mockRequestCameraPermission.mockResolvedValueOnce('denied');
+
+      const result = await adapter.ensurePermissions();
+
+      expect(result).toBe(false);
+      expect(onDeviceEvent).toHaveBeenCalledWith({
+        event: DeviceEvent.ConnectionFailed,
+        error: {
+          name: 'CameraPermissionDenied',
+          message: 'Camera permission is required to scan QR codes',
+        },
+      });
+    });
   });
 
   describe('isTransportAvailable', () => {
@@ -240,9 +287,10 @@ describe('QRWalletAdapter', () => {
       expect(result).toBe(true);
       expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+      expect(onDeviceEvent).not.toHaveBeenCalled();
     });
 
-    it('returns false when permission status is not determined', async () => {
+    it('returns false when camera permission is not determined', async () => {
       mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
       mockRequestCameraPermission.mockResolvedValueOnce('granted');
 
@@ -251,6 +299,7 @@ describe('QRWalletAdapter', () => {
       expect(result).toBe(false);
       expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+      expect(onDeviceEvent).not.toHaveBeenCalled();
     });
 
     it('returns false when camera permission is denied', async () => {
@@ -261,6 +310,7 @@ describe('QRWalletAdapter', () => {
       expect(result).toBe(false);
       expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+      expect(onDeviceEvent).not.toHaveBeenCalled();
     });
 
     it('does not request camera permission when transport is checked', async () => {
@@ -272,17 +322,18 @@ describe('QRWalletAdapter', () => {
       expect(result).toBe(false);
       expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+      expect(onDeviceEvent).not.toHaveBeenCalled();
     });
 
-    it('rejects when camera permission status lookup throws', async () => {
+    it('returns false when camera permission status lookup fails', async () => {
       mockGetCameraPermissionStatus.mockImplementationOnce(() => {
         throw new Error('permission check failed');
       });
 
-      await expect(adapter.isTransportAvailable()).rejects.toThrow(
-        'permission check failed',
-      );
+      await expect(adapter.isTransportAvailable()).resolves.toBe(false);
       expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
+      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+      expect(onDeviceEvent).not.toHaveBeenCalled();
     });
   });
 
@@ -315,10 +366,8 @@ describe('QRWalletAdapter', () => {
   });
 
   describe('getTransportDisabledErrorCode', () => {
-    it('returns camera-permission-disabled error code', () => {
-      expect(adapter.getTransportDisabledErrorCode()).toBe(
-        ErrorCode.PermissionNearbyDevicesDenied,
-      );
+    it('returns null because QR does not participate in transport monitoring', () => {
+      expect(adapter.getTransportDisabledErrorCode()).toBeNull();
     });
   });
 
@@ -352,10 +401,8 @@ describe('QRWalletAdapter', () => {
       expect(adapter.requiresDeviceDiscovery).toBe(false);
     });
 
-    it('returns camera permission error code for transport disabled state', () => {
-      expect(adapter.getTransportDisabledErrorCode()).toBe(
-        ErrorCode.PermissionNearbyDevicesDenied,
-      );
+    it('opts out of transport disabled error monitoring', () => {
+      expect(adapter.getTransportDisabledErrorCode()).toBeNull();
     });
 
     it('does NOT call transport state callback immediately', () => {
