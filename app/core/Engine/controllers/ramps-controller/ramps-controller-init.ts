@@ -78,6 +78,7 @@ export const rampsControllerInit: ControllerInitFunction<
     controller
       .init()
       .then(() => {
+        controller.subscribeToTransakOrderUpdates();
         controller.startOrderPolling();
       })
       .catch(() => {
