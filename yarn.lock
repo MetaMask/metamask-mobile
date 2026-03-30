@@ -7883,6 +7883,17 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@metamask/base-controller@npm:^9.0.1":
+  version: 9.0.1
+  resolution: "@metamask/base-controller@npm:9.0.1"
+  dependencies:
+    "@metamask/messenger": "npm:^1.0.0"
+    "@metamask/utils": "npm:^11.9.0"
+    immer: "npm:^9.0.6"
+  checksum: 10/bc5052c9a38c21a52003e9a79de1f609ff127d939c87eb7b9ebe01cdf05ce2a9ee8e4635dd96f193e9951983e9554d9381af303fbadaae740445ffb2424698e8
+  languageName: node
+  linkType: hard
+
 "@metamask/base-data-service@npm:^0.1.0":
   version: 0.1.1
   resolution: "@metamask/base-data-service@npm:0.1.1"
@@ -9425,14 +9436,14 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/ramps-controller@npm:^12.0.1":
-  version: 12.0.1
-  resolution: "@metamask/ramps-controller@npm:12.0.1"
+"@metamask/ramps-controller@npm:@metamask-previews/ramps-controller@12.1.0-preview-a560ee403":
+  version: 12.1.0-preview-a560ee403
+  resolution: "@metamask-previews/ramps-controller@npm:12.1.0-preview-a560ee403"
   dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
+    "@metamask/base-controller": "npm:^9.0.1"
     "@metamask/controller-utils": "npm:^11.19.0"
-    "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/a7f9428cb824bd0175ee1cc603d77c650fa7a23c7183e2cc0a0f21ee9b6378d80bbd1e496654e40d2edcfc840e60dd4a09d80feacb1746087a67b66761e1e6c7
+    "@metamask/messenger": "npm:^1.0.0"
+  checksum: 10/7da0fb47e1d260a6ca2febd3d3ab62a884ada869864f2de5120117c28dc531a3d46b22eef7eb10275dbfd55a0054c5933c05f8e05e0d765d608eea6e476dacab
   languageName: node
   linkType: hard
 
