@@ -117,6 +117,7 @@ import {
   IconColor,
   IconName,
 } from '../../../component-library/components/Icons/Icon';
+import { AppNavigationProp } from '../../../core/NavigationService/types';
 interface OnboardingState {
   warningModalVisible: boolean;
   loading: boolean;
@@ -144,7 +145,7 @@ interface OnboardingRouteParams {
 }
 
 const Onboarding = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<AppNavigationProp>();
   const onboardingVersion = useMemo(
     () => `${getVersion()} (${getBuildNumber()})`,
     [],
@@ -798,19 +799,16 @@ const Onboarding = () => {
             </>
           );
 
-          await navigateToSuccessErrorSheetPromise(
-            navigation as NavigationProp<ParamListBase>,
-            {
-              type: 'error',
-              icon: IconName.Warning,
-              iconColor: IconColor.Warning,
-              title: strings(`error_sheet.ios_need_update_title`),
-              description: description(),
-              primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
-              closeOnPrimaryButtonPress: true,
-              isInteractable: false,
-            },
-          );
+          await navigateToSuccessErrorSheetPromise(navigation, {
+            type: 'error',
+            icon: IconName.Warning,
+            iconColor: IconColor.Warning,
+            title: strings(`error_sheet.ios_need_update_title`),
+            description: description(),
+            primaryButtonLabel: strings(`error_sheet.ios_need_update_button`),
+            closeOnPrimaryButtonPress: true,
+            isInteractable: false,
+          });
           track(MetaMetricsEvents.WALLET_GOOGLE_IOS_WARNING_VIEWED, {
             account_type: accountType,
           });
