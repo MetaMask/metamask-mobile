@@ -331,6 +331,32 @@ describe('PayWithModal', () => {
         }),
       );
     });
+
+    it('calls onPredictPaymentTokenChange via close callback when type is predictDepositAndOrder', async () => {
+      useTransactionMetadataRequestMock.mockReturnValue({
+        id: transactionIdMock,
+        chainId: CHAIN_ID_1_MOCK,
+        networkClientId: '',
+        status: TransactionStatus.unapproved,
+        time: 0,
+        txParams: { from: EMPTY_ADDRESS },
+        type: TransactionType.predictDepositAndOrder,
+      } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+      const { getByText } = render();
+
+      await waitFor(() => {
+        fireEvent.press(getByText('Test Token 1'));
+      });
+
+      expect(onPredictPaymentTokenChangeMock).toHaveBeenCalledWith(
+        expect.objectContaining({
+          address: TOKENS_MOCK[1].address,
+          chainId: TOKENS_MOCK[1].chainId,
+        }),
+      );
+      expect(setPayTokenMock).not.toHaveBeenCalled();
+    });
   });
 
   it('uses perpsBalanceTokenFilter when transaction type is perpsDepositAndOrder', () => {
@@ -350,6 +376,25 @@ describe('PayWithModal', () => {
     render();
 
     expect(perpsFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
+  });
+
+  it('uses predictBalanceTokenFilter when transaction type is predictDepositAndOrder', () => {
+    const predictFilterFn = jest.fn((tokens: AssetType[]) => tokens);
+    usePredictBalanceTokenFilterMock.mockReturnValue(predictFilterFn);
+
+    useTransactionMetadataRequestMock.mockReturnValue({
+      id: transactionIdMock,
+      chainId: CHAIN_ID_1_MOCK,
+      networkClientId: '',
+      status: TransactionStatus.unapproved,
+      time: 0,
+      txParams: { from: EMPTY_ADDRESS },
+      type: TransactionType.predictDepositAndOrder,
+    } as unknown as ReturnType<typeof useTransactionMetadataRequest>);
+
+    render();
+
+    expect(predictFilterFn).toHaveBeenCalledWith(TOKENS_MOCK);
   });
 
   describe('withdraw mode', () => {

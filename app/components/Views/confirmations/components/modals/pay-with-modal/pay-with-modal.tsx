@@ -146,11 +146,6 @@ export function PayWithModal() {
           }
         }
 
-        if (isPredictContext) {
-          onPredictPaymentTokenChange(token);
-          return;
-        }
-
         setPayToken({
           address: token.address as Hex,
           chainId: token.chainId as Hex,
