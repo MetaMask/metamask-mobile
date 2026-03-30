@@ -624,7 +624,8 @@
     "quotesInitialLoadTime": null,
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
-    "quotesRefreshCount": 0
+    "quotesRefreshCount": 0,
+    "tokenWarnings": []
   },
   "BridgeStatusController": {
     "txHistory": {}
@@ -748,6 +749,7 @@
       "isLoading": false,
       "error": null
     },
+    "providerAutoSelected": false,
     "providers": {
       "data": [],
       "selected": null,
