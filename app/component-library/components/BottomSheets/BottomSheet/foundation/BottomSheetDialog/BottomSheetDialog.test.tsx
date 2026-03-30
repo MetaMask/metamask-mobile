@@ -111,45 +111,25 @@ describe('BottomSheetDialog', () => {
   });
   //   Note: Add Gesture tests when react-native-gesture-handler gets updated
 
-  describe('simultaneousHandlers', () => {
-    it('accepts a single ref as simultaneousHandlers without error', () => {
-      const handler = React.createRef<unknown>();
-      const { getByText } = render(
-        <BottomSheetDialog simultaneousHandlers={handler}>
+  describe('panGestureHandlerProps', () => {
+    it('passes props to the PanGestureHandler via panGestureHandlerProps', () => {
+      const { getByTestId } = render(
+        <BottomSheetDialog
+          panGestureHandlerProps={{ testID: 'pan-gesture-handler' }}
+        >
           <Text>Test Child</Text>
         </BottomSheetDialog>,
       );
-      expect(getByText('Test Child')).toBeOnTheScreen();
+      expect(getByTestId('pan-gesture-handler')).toBeOnTheScreen();
     });
 
-    it('accepts an array of refs as simultaneousHandlers without error', () => {
-      const handler1 = React.createRef<unknown>();
-      const handler2 = React.createRef<unknown>();
+    it('renders normally when panGestureHandlerProps is undefined', () => {
       const { getByText } = render(
-        <BottomSheetDialog simultaneousHandlers={[handler1, handler2]}>
-          <Text>Test Child</Text>
+        <BottomSheetDialog panGestureHandlerProps={undefined}>
+          <Text>No Handler Props</Text>
         </BottomSheetDialog>,
       );
-      expect(getByText('Test Child')).toBeOnTheScreen();
-    });
-
-    it('renders children correctly when simultaneousHandlers is provided', () => {
-      const handler = React.createRef<unknown>();
-      const { getByText } = render(
-        <BottomSheetDialog simultaneousHandlers={handler}>
-          <Text>Scrollable Content</Text>
-        </BottomSheetDialog>,
-      );
-      expect(getByText('Scrollable Content')).toBeOnTheScreen();
-    });
-
-    it('renders normally when simultaneousHandlers is undefined', () => {
-      const { getByText } = render(
-        <BottomSheetDialog simultaneousHandlers={undefined}>
-          <Text>No Handler</Text>
-        </BottomSheetDialog>,
-      );
-      expect(getByText('No Handler')).toBeOnTheScreen();
+      expect(getByText('No Handler Props')).toBeOnTheScreen();
     });
   });
 });

@@ -76,7 +76,7 @@ export const createPrivateKeyListNavigationDetails =
 /**
  * Shared context that lets the module-level GestureScrollComponent write back
  * the RNGH ScrollView ref to its PrivateKeyList ancestor, which then passes it
- * to BottomSheet's simultaneousHandlers on Android.
+ * to BottomSheet via `panGestureHandlerProps.simultaneousHandlers` on Android.
  */
 const GestureScrollRefContext = React.createContext<
   React.MutableRefObject<React.ComponentRef<typeof ScrollView> | null>
@@ -90,7 +90,7 @@ const GestureScrollRefContext = React.createContext<
  * properly forward its internal scroll ref — plain function components have
  * their ref prop stripped by React 18's reconciler. Also reads
  * GestureScrollRefContext to populate the parent's flashListScrollGestureRef,
- * which BottomSheet uses for simultaneousHandlers on Android so that scroll
+ * which BottomSheet uses via panGestureHandlerProps on Android so that scroll
  * gestures are not captured as dismiss-sheet pans.
  */
 const GestureScrollComponent = forwardRef<
@@ -137,8 +137,8 @@ export const PrivateKeyList = () => {
   const { toastRef } = useContext(ToastContext);
   const sheetRef = useRef<BottomSheetRef>(null);
   /**
-   * Ref to FlashList's RNGH ScrollView; linked to the sheet pan via
-   * `simultaneousHandlers` on Android so list scrolling is not captured by dismiss.
+   * Ref to FlashList's RNGH ScrollView; passed via `panGestureHandlerProps.simultaneousHandlers`
+   * on Android so list scrolling is not captured by the sheet dismiss pan.
    */
   const flashListScrollGestureRef = useRef<React.ComponentRef<
     typeof ScrollView
@@ -361,8 +361,10 @@ export const PrivateKeyList = () => {
       <BottomSheet
         style={styles.bottomSheetContent}
         ref={sheetRef}
-        simultaneousHandlers={
-          Platform.OS === 'android' ? flashListScrollGestureRef : undefined
+        panGestureHandlerProps={
+          Platform.OS === 'android'
+            ? { simultaneousHandlers: flashListScrollGestureRef }
+            : undefined
         }
       >
         <Fragment>

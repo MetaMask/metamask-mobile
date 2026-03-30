@@ -1,5 +1,6 @@
 // Third party dependencies.
 import { StyleProp, ViewProps, ViewStyle } from 'react-native';
+import { PanGestureHandlerProps } from 'react-native-gesture-handler';
 
 /**
  * BottomSheetDialog component props.
@@ -33,11 +34,15 @@ export interface BottomSheetDialogProps extends ViewProps {
    */
   onOpen?: (hasPendingAction?: boolean) => void;
   /**
-   * Ref(s) to native views or gesture-handler-wrapped scroll views that should
-   * recognize touches simultaneously with the sheet dismiss pan (e.g. FlashList
-   * using `ScrollView` from `react-native-gesture-handler` on Android).
+   * Optional props forwarded directly to the underlying `PanGestureHandler`.
+   * Provides access to all `PanGestureHandler` configuration (e.g.
+   * `simultaneousHandlers`, `activeOffsetY`, `failOffsetX`) so consumers are
+   * not limited to a single prop subset.
    */
-  simultaneousHandlers?: React.Ref<unknown> | React.Ref<unknown>[];
+  panGestureHandlerProps?: Omit<
+    PanGestureHandlerProps,
+    'onGestureEvent' | 'enabled'
+  >;
 }
 
 export interface BottomSheetDialogRef {
