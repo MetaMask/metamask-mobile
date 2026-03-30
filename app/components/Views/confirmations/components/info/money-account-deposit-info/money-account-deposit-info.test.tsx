@@ -48,22 +48,22 @@ jest.mock('../../../../../../util/transaction-controller', () => ({
 }));
 
 jest.mock('../../MoneyAccountSelector', () => {
-  const { TextInput } = jest.requireActual('react-native');
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: ({
       onAccountSelected,
-      selectedAddress,
     }: {
       onAccountSelected: (address: string) => void;
       chainId?: string;
       selectedAddress?: string;
     }) => (
-      <TextInput
-        testID="money-account-selector-input"
-        value={selectedAddress ?? ''}
-        onChangeText={onAccountSelected}
-      />
+      <TouchableOpacity
+        testID="money-account-selector-pill"
+        onPress={() => onAccountSelected('0xTestAddress')}
+      >
+        <Text>Select recipient</Text>
+      </TouchableOpacity>
     ),
   };
 });
@@ -92,22 +92,19 @@ describe('MoneyAccountDepositInfo', () => {
     expect(MONEY_ACCOUNT_CURRENCY).toBe('usd');
   });
 
-  it('renders MoneyAccountSelector for recipient account to be updated', () => {
+  it('renders MoneyAccountSelector', () => {
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
 
-    expect(getByTestId('money-account-selector-input')).toBeOnTheScreen();
+    expect(getByTestId('money-account-selector-pill')).toBeOnTheScreen();
   });
 
-  it('calls updateEditableParams with typed address', () => {
+  it('calls updateEditableParams with selected address', () => {
     const { updateEditableParams } = jest.requireMock(
       '../../../../../../util/transaction-controller',
     );
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
 
-    fireEvent.changeText(
-      getByTestId('money-account-selector-input'),
-      '0xTestAddress',
-    );
+    fireEvent.press(getByTestId('money-account-selector-pill'));
 
     expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
       to: '0xTestAddress',
