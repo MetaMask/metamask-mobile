@@ -137,6 +137,9 @@ export const SUPPORTED_ACTIONS = [
   ACTIONS.CARD_HOME,
   ACTIONS.SHIELD,
   ACTIONS.NFT,
+  ACTIONS.CONNECT,
+  ACTIONS.MMSDK,
+  ACTIONS.ANDROID_SDK,
 ] as const satisfies readonly ACTIONS[];
 
 export type SupportedAction = (typeof SUPPORTED_ACTIONS)[number];

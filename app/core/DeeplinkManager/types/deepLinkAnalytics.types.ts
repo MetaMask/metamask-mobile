@@ -55,6 +55,8 @@ export enum DeepLinkRoute {
   CARD_ONBOARDING = 'card-onboarding',
   CARD_HOME = 'card-home',
   NFT = 'nft',
+  SDK_CONNECT = 'sdk_connect',
+  SDK_MMSDK = 'sdk_mmsdk',
   INVALID = 'invalid',
 }
 
