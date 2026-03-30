@@ -220,6 +220,31 @@ describe('ExportCredentials', () => {
     );
   });
 
+  it('does not navigate when export mnemonic is pressed but entropySource is missing', () => {
+    const accountWithoutEntropy = {
+      ...createMockInternalAccount('0x123', 'Test Account'),
+      options: {},
+    };
+    mockHdKeyringsWithSnapAccounts.mockReturnValue([
+      {
+        accounts: [accountWithoutEntropy.address],
+        metadata: { id: mockKeyringId },
+      },
+    ]);
+    mockIsHDOrFirstPartySnapAccount.mockReturnValue(true);
+    mockIsPrivateKeyAccount.mockReturnValue(false);
+
+    const { getByText } = render(
+      <ExportCredentials account={accountWithoutEntropy} />,
+    );
+
+    fireEvent.press(
+      getByText(`${strings('accounts.secret_recovery_phrase')} 1`),
+    );
+
+    expect(mockNavigate).not.toHaveBeenCalled();
+  });
+
   it('navigates to reveal private credential when export private key is pressed', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       {
