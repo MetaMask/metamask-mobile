@@ -12,9 +12,15 @@ import AppConstants from '../../AppConstants';
 import { DappClient } from '../dapp-sdk-types';
 import { createMockInternalAccount } from '../../../util/test/accountsControllerTestUtils';
 import { toChecksumHexAddress } from '@metamask/controller-utils';
+import { analytics } from '@metamask/sdk-analytics';
 
 jest.mock('../SDKConnect');
 jest.mock('react-native');
+jest.mock('@metamask/sdk-analytics', () => ({
+  analytics: {
+    track: jest.fn(),
+  },
+}));
 jest.mock('../../BackgroundBridge/BackgroundBridge');
 jest.mock('../utils/DevLogger');
 jest.mock('../../../util/Logger');
@@ -592,6 +598,104 @@ describe('DeeplinkProtocolService', () => {
       service.connections.channel1 = {} as any;
       service.removeConnection('channel1');
       expect(service.connections.channel1).toBeUndefined();
+    });
+  });
+
+  describe('handleConnection analytics', () => {
+    const originatorInfoPayload = {
+      originatorInfo: {
+        url: 'https://test-dapp.com',
+        title: 'Test Dapp',
+        platform: 'web',
+        dappId: 'test',
+        anonId: 'test-anon-id-123',
+      },
+    };
+    const base64OriginatorInfo = Buffer.from(
+      JSON.stringify(originatorInfoPayload),
+    ).toString('base64');
+
+    it('tracks wallet_connection_request_received with new_session for new connections', async () => {
+      await service.init();
+
+      await service.handleConnection({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'new-channel-123',
+        originatorInfo: base64OriginatorInfo,
+      });
+
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_connection_request_received',
+        expect.objectContaining({
+          anon_id: 'test-anon-id-123',
+          transport: 'deeplink_protocol',
+          connection_type: 'new_session',
+        }),
+      );
+    });
+
+    it('tracks wallet_connection_request_received with reconnect for existing connections', async () => {
+      await service.init();
+
+      // Pre-seed the connection to simulate an existing session (handleConnectionEventAsync is
+      // fire-and-forget, so connections are not populated synchronously by the first call)
+      service.connections['reconnect-channel-456'] = {
+        clientId: 'reconnect-channel-456',
+        originatorInfo: originatorInfoPayload.originatorInfo,
+        connected: true,
+        validUntil: Date.now(),
+        scheme: 'testapp',
+      };
+
+      // Second connection = reconnect
+      await service.handleConnection({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'reconnect-channel-456',
+        originatorInfo: base64OriginatorInfo,
+      });
+
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_connection_request_received',
+        expect.objectContaining({
+          anon_id: 'test-anon-id-123',
+          transport: 'deeplink_protocol',
+          connection_type: 'reconnect',
+        }),
+      );
+    });
+
+    it('does not track when anonId is absent from originatorInfo', async () => {
+      const noAnonPayload = {
+        originatorInfo: {
+          url: 'https://test-dapp.com',
+          title: 'Test Dapp',
+          platform: 'web',
+          dappId: 'test',
+          // no anonId
+        },
+      };
+      const base64NoAnon = Buffer.from(JSON.stringify(noAnonPayload)).toString(
+        'base64',
+      );
+
+      await service.init();
+
+      await service.handleConnection({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        scheme: 'testapp',
+        channelId: 'no-anon-channel-789',
+        originatorInfo: base64NoAnon,
+      });
+
+      expect(analytics.track).not.toHaveBeenCalledWith(
+        'wallet_connection_request_received',
+        expect.anything(),
+      );
     });
   });
 });

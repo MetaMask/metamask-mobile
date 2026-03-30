@@ -1,3 +1,4 @@
+import { analytics } from '@metamask/sdk-analytics';
 import { KeyringController } from '@metamask/keyring-controller';
 import { NetworkController } from '@metamask/network-controller';
 import { PermissionController } from '@metamask/permission-controller';
@@ -477,6 +478,15 @@ export default class DeeplinkProtocolService {
     this.currentClientId = params.channelId;
 
     const isSessionExists = this.connections?.[clientInfo.clientId];
+
+    const anonId = originatorInfo?.anonId;
+    if (anonId) {
+      analytics.track('wallet_connection_request_received', {
+        anon_id: anonId,
+        transport: 'deeplink_protocol',
+        connection_type: isSessionExists ? 'reconnect' : 'new_session',
+      });
+    }
 
     if (isSessionExists) {
       // Skip existing client -- bridge has been setup
