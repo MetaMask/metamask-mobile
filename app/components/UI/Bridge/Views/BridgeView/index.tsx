@@ -33,6 +33,7 @@ import {
   setBridgeViewMode,
   selectIsNonEvmNonEvmBridge,
   selectDestTokenWarning,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { TokenFeatureType } from '@metamask/bridge-controller';
 import Icon, {
@@ -98,6 +99,7 @@ import type { RootState } from '../../../../../reducers';
 import { useTrackSwapPageViewed } from '../../hooks/useTrackSwapPageViewed/index.ts';
 import { useSourceAmountCursor } from '../../hooks/useSourceAmountCursor.ts';
 import { BridgeViewFooter } from './BridgeViewFooter.tsx';
+import { QUOTE_STREAM_REASON_TO_STRING } from './BridgeView.constants';
 
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
@@ -144,6 +146,7 @@ const BridgeView = () => {
   const isNonEvmNonEvmBridge = useSelector(selectIsNonEvmNonEvmBridge);
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
   const tokenWarning = useSelector(selectDestTokenWarning);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
   const isDestNetworkEnabled = useIsNetworkEnabled(destToken?.chainId);
   const handleSourceAmountChange = useCallback(
     (value: string | undefined) => {
@@ -458,59 +461,91 @@ const BridgeView = () => {
             />
           </Box>
 
-          {contentMode === 'quote' && tokenWarning
-            ? (() => {
-                const isMalicious =
-                  tokenWarning.type === TokenFeatureType.MALICIOUS;
-                const bannerColors = isMalicious
-                  ? colors.error
-                  : colors.warning;
-                const bannerStyle = {
-                  borderLeftWidth: 4,
-                  borderColor: bannerColors.default,
-                  backgroundColor: bannerColors.muted,
-                  paddingLeft: 8,
-                  marginHorizontal: 16,
-                };
-                const navigateToModal = () =>
-                  navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
-                    screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
-                    params: {
-                      warningType: tokenWarning.type,
-                      description: tokenWarning.description,
-                      mode: TokenWarningModalMode.Info,
-                      location,
-                    },
-                  });
-                return (
-                  <Pressable onPress={navigateToModal}>
+          <Box gap={3} twClassName="mx-4">
+            {quoteStreamComplete?.reason
+              ? (() => {
+                  const quoteStreamErrorBannerStyle = {
+                    borderLeftWidth: 4,
+                    borderColor: colors.error.default,
+                    backgroundColor: colors.error.muted,
+                    paddingLeft: 8,
+                  };
+                  return (
                     <BannerBase
-                      style={bannerStyle}
+                      style={quoteStreamErrorBannerStyle}
                       startAccessory={
                         <Icon
-                          name={
-                            isMalicious ? IconName.Danger : IconName.Warning
-                          }
-                          color={bannerColors.default}
+                          name={IconName.Danger}
+                          color={colors.error.default}
                           size={IconSize.Lg}
                         />
                       }
                       description={
-                        isMalicious
-                          ? strings('bridge.token_warning_malicious_banner', {
-                              token: destToken?.symbol,
-                            })
-                          : strings('bridge.token_warning_suspicious_banner', {
-                              token: destToken?.symbol,
-                            })
+                        QUOTE_STREAM_REASON_TO_STRING[
+                          quoteStreamComplete.reason
+                        ]
                       }
-                      onClose={navigateToModal}
-                      closeButtonProps={{ iconName: IconName.ArrowRight }}
                     />
-                  </Pressable>
-                );
-              })()
-            : null}
+                  );
+                })()
+              : null}
+
+            {contentMode === 'quote' && tokenWarning
+              ? (() => {
+                  const isMalicious =
+                    tokenWarning.type === TokenFeatureType.MALICIOUS;
+                  const bannerColors = isMalicious
+                    ? colors.error
+                    : colors.warning;
+                  const bannerStyle = {
+                    borderLeftWidth: 4,
+                    borderColor: bannerColors.default,
+                    backgroundColor: bannerColors.muted,
+                    paddingLeft: 8,
+                  };
+                  const navigateToModal = () =>
+                    navigation.navigate(Routes.BRIDGE.MODALS.ROOT, {
+                      screen: Routes.BRIDGE.MODALS.TOKEN_WARNING_MODAL,
+                      params: {
+                        warningType: tokenWarning.type,
+                        description: tokenWarning.description,
+                        mode: TokenWarningModalMode.Info,
+                        location,
+                      },
+                    });
+                  return (
+                    <Pressable onPress={navigateToModal}>
+                      <BannerBase
+                        style={bannerStyle}
+                        startAccessory={
+                          <Icon
+                            name={
+                              isMalicious ? IconName.Danger : IconName.Warning
+                            }
+                            color={bannerColors.default}
+                            size={IconSize.Lg}
+                          />
+                        }
+                        description={
+                          isMalicious
+                            ? strings('bridge.token_warning_malicious_banner', {
+                                token: destToken?.symbol,
+                              })
+                            : strings(
+                                'bridge.token_warning_suspicious_banner',
+                                {
+                                  token: destToken?.symbol,
+                                },
+                              )
+                        }
+                        onClose={navigateToModal}
+                        closeButtonProps={{ iconName: IconName.ArrowRight }}
+                      />
+                    </Pressable>
+                  );
+                })()
+              : null}
+          </Box>
 
           <Box style={styles.dynamicContent}>
             {contentMode === 'loading' ? (
