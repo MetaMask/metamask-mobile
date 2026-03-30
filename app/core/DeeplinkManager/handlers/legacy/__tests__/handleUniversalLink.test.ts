@@ -146,6 +146,36 @@ describe('handleUniversalLink', () => {
     url = 'https://metamask.app.link';
   });
 
+  describe('SDK action analytics', () => {
+    it('fires DEEP_LINK_USED for connect deeplink before handleMetaMaskDeeplink', async () => {
+      const { createDeepLinkUsedEventBuilder: mockCreateBuilder } =
+        jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+          createDeepLinkUsedEventBuilder: jest.Mock;
+        };
+
+      const mockBuild = jest.fn().mockReturnValue({});
+      const mockAddProperties = jest.fn().mockReturnThis();
+      mockCreateBuilder.mockResolvedValueOnce({
+        addProperties: mockAddProperties,
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        build: mockBuild,
+      });
+
+      const url = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.CONNECT}?channelId=test123&comm=deeplinking&pubkey=abc&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(url).urlObj,
+        url,
+        source: 'test',
+      });
+
+      expect(mockCreateBuilder).toHaveBeenCalled();
+      expect(mockHandleMetaMaskDeeplink).toHaveBeenCalled();
+    });
+  });
+
   describe('SDK Actions', () => {
     const testCases = [
       { action: ACTIONS.CONNECT },
