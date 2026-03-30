@@ -101,7 +101,7 @@ const OndoCampaignDetailsView: React.FC = () => {
 
   const hasPositions = Boolean(portfolioData?.positions.length);
 
-  const optinAllowed = campaign !== null && !isOptinAllowed(campaign);
+  const isOptinClosed = campaign !== null && !isOptinAllowed(campaign);
 
   const {
     tierNames,
@@ -145,7 +145,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     const showCompetitionEndedBanner =
       getCampaignStatus(campaign) === 'complete' ||
       (Boolean(participantStatus) &&
-        optinAllowed &&
+        isOptinClosed &&
         (!isOptedIn ||
           (portfolioHasFetched && !hasPositions && !hasPortfolioError)));
 
@@ -183,7 +183,7 @@ const OndoCampaignDetailsView: React.FC = () => {
     hasPositions,
     areEntriesClosed,
     participantStatus,
-    optinAllowed,
+    isOptinClosed,
     portfolioHasFetched,
     hasPortfolioError,
     isPortfolioLoading,

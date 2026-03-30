@@ -72,23 +72,11 @@ export const useRewardCampaigns = (): UseRewardCampaignsReturn => {
         dispatch(setCampaignsLoading(true));
       }
       dispatch(setCampaignsError(false));
-
       const campaignsData = await Engine.controllerMessenger.call(
         'RewardsController:getCampaigns',
         subscriptionId,
       );
-
-      // TODO: REMOVE — force campaign to be over for UI development
-      const yesterday = new Date();
-      yesterday.setDate(yesterday.getDate() - 1);
-      const mockedCampaigns = campaignsData.map((c) => ({
-        ...c,
-        details: c.details
-          ? { ...c.details, depositCutoffDate: yesterday.toISOString() }
-          : c.details,
-      }));
-
-      dispatch(setCampaigns(mockedCampaigns));
+      dispatch(setCampaigns(campaignsData));
     } catch {
       dispatch(setCampaignsError(true));
     } finally {

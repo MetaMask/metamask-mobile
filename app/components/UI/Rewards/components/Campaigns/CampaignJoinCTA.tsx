@@ -35,8 +35,8 @@ const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
   const [isOptInSheetOpen, setIsOptInSheetOpen] = useState(false);
 
   if (
-    participantStatus.isLoading ||
     !participantStatus ||
+    participantStatus.isLoading ||
     participantStatus.status?.optedIn === true ||
     getCampaignStatus(campaign) !== 'active' ||
     !isOptinAllowed(campaign)
