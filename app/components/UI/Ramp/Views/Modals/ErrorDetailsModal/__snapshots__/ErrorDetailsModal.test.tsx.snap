@@ -358,17 +358,18 @@ exports[`ErrorDetailsModal renders correctly and matches snapshot 1`] = `
                           }
                         >
                           <SvgMock
-                            color="#ca3542"
                             fill="currentColor"
-                            height={20}
                             name="Danger"
                             style={
-                              {
-                                "height": 20,
-                                "width": 20,
-                              }
+                              [
+                                {
+                                  "color": "#ca3542",
+                                  "height": 20,
+                                  "width": 20,
+                                },
+                                undefined,
+                              ]
                             }
-                            width={20}
                           />
                           <Text
                             accessibilityRole="text"
@@ -971,17 +972,18 @@ exports[`ErrorDetailsModal renders with a multiline error message 1`] = `
                           }
                         >
                           <SvgMock
-                            color="#ca3542"
                             fill="currentColor"
-                            height={20}
                             name="Danger"
                             style={
-                              {
-                                "height": 20,
-                                "width": 20,
-                              }
+                              [
+                                {
+                                  "color": "#ca3542",
+                                  "height": 20,
+                                  "width": 20,
+                                },
+                                undefined,
+                              ]
                             }
-                            width={20}
                           />
                           <Text
                             accessibilityRole="text"
@@ -1586,17 +1588,18 @@ exports[`ErrorDetailsModal renders with an empty error message 1`] = `
                           }
                         >
                           <SvgMock
-                            color="#ca3542"
                             fill="currentColor"
-                            height={20}
                             name="Danger"
                             style={
-                              {
-                                "height": 20,
-                                "width": 20,
-                              }
+                              [
+                                {
+                                  "color": "#ca3542",
+                                  "height": 20,
+                                  "width": 20,
+                                },
+                                undefined,
+                              ]
                             }
-                            width={20}
                           />
                           <Text
                             accessibilityRole="text"
@@ -2197,17 +2200,18 @@ exports[`ErrorDetailsModal renders with change provider button and matches snaps
                           }
                         >
                           <SvgMock
-                            color="#ca3542"
                             fill="currentColor"
-                            height={20}
                             name="Danger"
                             style={
-                              {
-                                "height": 20,
-                                "width": 20,
-                              }
+                              [
+                                {
+                                  "color": "#ca3542",
+                                  "height": 20,
+                                  "width": 20,
+                                },
+                                undefined,
+                              ]
                             }
-                            width={20}
                           />
                           <Text
                             accessibilityRole="text"
@@ -2899,17 +2903,18 @@ exports[`ErrorDetailsModal renders with provider support info and matches snapsh
                           }
                         >
                           <SvgMock
-                            color="#ca3542"
                             fill="currentColor"
-                            height={20}
                             name="Danger"
                             style={
-                              {
-                                "height": 20,
-                                "width": 20,
-                              }
+                              [
+                                {
+                                  "color": "#ca3542",
+                                  "height": 20,
+                                  "width": 20,
+                                },
+                                undefined,
+                              ]
                             }
-                            width={20}
                           />
                           <Text
                             accessibilityRole="text"
