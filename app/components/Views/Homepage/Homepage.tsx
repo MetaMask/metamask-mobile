@@ -33,7 +33,6 @@ import { useABTest } from '../../../hooks';
 import {
   HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
   HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-  HomepageTrendingSectionsVariant,
 } from './abTestConfig';
 import { useOwnedNfts } from './Sections/NFTs/hooks';
 import { strings } from '../../../../locales/i18n';
@@ -70,14 +69,10 @@ const Homepage = forwardRef<SectionRefreshHandle>((_, ref) => {
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
 
-  // const { variant: abVariant } = useABTest(
-  //   HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
-  //   HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
-  // );
-  const abVariant =
-    HOMEPAGE_TRENDING_SECTIONS_VARIANTS[
-      HomepageTrendingSectionsVariant.TrendingSections
-    ];
+  const { variant: abVariant } = useABTest(
+    HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+    HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
+  );
   const separateTrending = abVariant.separateTrending;
 
   const ownedNfts = useOwnedNfts();
