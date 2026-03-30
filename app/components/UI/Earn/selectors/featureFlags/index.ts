@@ -9,6 +9,7 @@ import {
   WildcardTokenList,
 } from '../../utils/wildcardTokenList';
 import { DEFAULT_MUSD_BLOCKED_COUNTRIES } from '../../constants/musd';
+import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 export const selectPooledStakingEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
@@ -347,6 +348,38 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
     const localValue = Number.isFinite(local) ? local : undefined;
 
     return remoteValue ?? localValue ?? FALLBACK_MIN_ASSET_BALANCE_REQUIRED;
+  },
+);
+
+/**
+ * The chain IDs on which mUSD token registration is attempted at app mount.
+ * Used as the fallback when the remote flag is unavailable.
+ */
+export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
+  CHAIN_IDS.MAINNET, // Ethereum mainnet
+  CHAIN_IDS.LINEA_MAINNET, // Linea mainnet
+] as const;
+
+/**
+ * Selects the chain IDs on which the mUSD token should be eagerly registered
+ * in TokensController at app mount (via useEnsureMusdTokenRegistered).
+ *
+ * Remote flag takes precedence over the local fallback.
+ * If both are unavailable or invalid, defaults to mainnet and Linea.
+ */
+// TODO: Test me
+export const selectMusdTokenRegistrationChainIds = createSelector(
+  selectRemoteFeatureFlags,
+  (remoteFeatureFlags): string[] => {
+    const remoteFlag = remoteFeatureFlags?.earnMusdTokenRegistrationChainIds as
+      | { chainIds?: string[] }
+      | undefined;
+
+    if (Array.isArray(remoteFlag?.chainIds) && remoteFlag.chainIds.length > 0) {
+      return remoteFlag.chainIds;
+    }
+
+    return [...MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK];
   },
 );
 

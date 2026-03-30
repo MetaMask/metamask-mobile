@@ -1,21 +1,22 @@
 import { useEffect } from 'react';
+import { useSelector } from 'react-redux';
+import { Hex } from '@metamask/utils';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
+import { selectMusdTokenRegistrationChainIds } from '../selectors/featureFlags';
 import { ensureMusdTokenRegistered } from '../utils/musdConversionTransaction';
-import { CHAIN_IDS } from '@metamask/transaction-controller';
 
 /**
  * Registers the mUSD token in TokensController for all supported chains on mount.
  * mUSD being registered in the TokensController is necessary for the "Max" conversion flow.
  */
-// TODO: Consider creating a remote feature flag for this.
-const CHAIN_IDS_TO_REGISTER = [CHAIN_IDS.MAINNET, CHAIN_IDS.LINEA_MAINNET];
-
 export function useEnsureMusdTokenRegistered(): void {
+  const chainIdsToRegister = useSelector(selectMusdTokenRegistrationChainIds);
+
   useEffect(() => {
     const registerMusdTokens = async () => {
-      for (const chainId of CHAIN_IDS_TO_REGISTER) {
+      for (const chainId of chainIdsToRegister as Hex[]) {
         const networkClientId =
           Engine.context.NetworkController.findNetworkClientIdByChainId(
             chainId,
@@ -40,5 +41,5 @@ export function useEnsureMusdTokenRegistered(): void {
     };
 
     registerMusdTokens();
-  }, []);
+  }, [chainIdsToRegister]);
 }
