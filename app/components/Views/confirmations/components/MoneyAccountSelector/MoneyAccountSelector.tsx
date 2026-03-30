@@ -1,32 +1,32 @@
 import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
+import { AccountGroupObject } from '@metamask/account-tree-controller';
+import { AccountId } from '@metamask/accounts-controller';
+import { formatChainIdToCaip } from '@metamask/bridge-controller';
+import { EthScope } from '@metamask/keyring-api';
+import { KnownCaipNamespace } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarSize,
   AvatarVariant,
 } from '../../../../../component-library/components/Avatars/Avatar';
-import Text, {
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
 import Icon, {
   IconName,
   IconSize,
 } from '../../../../../component-library/components/Icons/Icon';
+import Text, {
+  TextVariant,
+} from '../../../../../component-library/components/Texts/Text';
 import MultichainAccountSelectorList from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
-import { AccountGroupObject } from '@metamask/account-tree-controller';
-import { AccountId } from '@metamask/accounts-controller';
-import { EthScope } from '@metamask/keyring-api';
-import { KnownCaipNamespace } from '@metamask/utils';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
-import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
-import {
-  selectAccountToGroupMap,
-  selectAccountGroupsByWallet,
-} from '../../../../../selectors/multichainAccounts/accountTreeController';
-import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import { useStyles } from '../../../../../component-library/hooks/useStyles';
 import { strings } from '../../../../../../locales/i18n';
+import { selectInternalAccountsById } from '../../../../../selectors/accountsController';
+import {
+  selectAccountGroupsByWallet,
+  selectAccountToGroupMap,
+} from '../../../../../selectors/multichainAccounts/accountTreeController';
+import { selectAvatarAccountType } from '../../../../../selectors/settings';
 import stylesheet from './MoneyAccountSelector.styles';
 
 export const MONEY_ACCOUNT_SELECTOR_TEST_IDS = {
