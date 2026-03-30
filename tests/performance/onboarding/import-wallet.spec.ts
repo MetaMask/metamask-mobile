@@ -124,6 +124,9 @@ test.describe(PerformanceOnboarding, () => {
           enabled?: boolean;
         }
       )?.enabled;
+      console.log(
+        `Predict GTM Onboarding Modal Enabled: ${predictGtmOnboardingModalEnabled}`,
+      );
       if (
         predictGtmOnboardingModalEnabled &&
         predictGtmOnboardingModalEnabled === true
@@ -135,6 +138,10 @@ test.describe(PerformanceOnboarding, () => {
         });
         await dismisspredictionsModalPlaywright();
       }
+
+      await PlaywrightAssertions.expectElementToBeVisible(
+        await asPlaywrightElement(WalletView.tokensSection),
+      );
       await WalletView.tapOnTokensSection();
       await timer7.measure(async () => {
         await PlaywrightAssertions.expectElementToBeVisible(

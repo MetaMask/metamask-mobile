@@ -21,8 +21,8 @@ class ProtectYourWalletView {
           ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
         ),
       appium: () =>
-        PlaywrightMatchers.getElementById(
-          ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
+        PlaywrightMatchers.getElementByXPath(
+          '(//XCUIElementTypeStaticText[@name="Remind me later"])[2]',
           {
             exact: true,
           },
