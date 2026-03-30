@@ -10,12 +10,23 @@ import { Platform } from 'react-native';
 const mockOnConfirm = jest.fn();
 const mockOnCancel = jest.fn();
 
+/** Mutable `params` for `useRoute()` mock; reset in `beforeEach`. */
+let mockRouteParams:
+  | { onConfirm?: jest.Mock; onCancel?: jest.Mock }
+  | Record<string, never>
+  | undefined;
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
     ...actualNav,
     useNavigation: jest.fn(),
     useFocusEffect: jest.fn(),
+    useRoute: jest.fn(() => ({
+      key: 'SkipAccountSecurityModal',
+      name: 'SkipAccountSecurityModal',
+      params: mockRouteParams,
+    })),
   };
 });
 
@@ -47,10 +58,16 @@ jest.mock(
 describe('SkipAccountSecurityModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockRouteParams = undefined;
   });
 
   describe('with route params', () => {
     const setupTest = () => {
+      mockRouteParams = {
+        onConfirm: mockOnConfirm,
+        onCancel: mockOnCancel,
+      };
+
       const mockNavigate = jest.fn();
       const mockGoBack = jest.fn();
       const mockSetOptions = jest.fn();
@@ -65,16 +82,7 @@ describe('SkipAccountSecurityModal', () => {
         reset: jest.fn(),
       });
 
-      const wrapper = renderWithProvider(
-        <SkipAccountSecurityModal
-          route={{
-            params: {
-              onConfirm: mockOnConfirm,
-              onCancel: mockOnCancel,
-            },
-          }}
-        />,
-      );
+      const wrapper = renderWithProvider(<SkipAccountSecurityModal />);
 
       return {
         wrapper,
@@ -155,6 +163,8 @@ describe('SkipAccountSecurityModal', () => {
 
   describe('with empty route params', () => {
     const setupTest = () => {
+      mockRouteParams = {};
+
       const mockNavigate = jest.fn();
       const mockGoBack = jest.fn();
       const mockSetOptions = jest.fn();
@@ -169,9 +179,7 @@ describe('SkipAccountSecurityModal', () => {
         reset: jest.fn(),
       });
 
-      const wrapper = renderWithProvider(
-        <SkipAccountSecurityModal route={{}} />,
-      );
+      const wrapper = renderWithProvider(<SkipAccountSecurityModal />);
 
       return {
         wrapper,

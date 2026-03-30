@@ -19,14 +19,12 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../component-library/components/Icons/Icon';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from './interface';
 
-export interface SuccessErrorSheetProps {
-  route: { params: SuccessErrorSheetParams };
-}
-
-const SuccessErrorSheet = ({ route }: SuccessErrorSheetProps) => {
+const SuccessErrorSheet = () => {
+  const route =
+    useRoute<RouteProp<{ params: SuccessErrorSheetParams }, 'params'>>();
   const {
     onClose,
     title,

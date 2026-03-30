@@ -1,6 +1,6 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
-import OnboardingSheet from '.';
+import OnboardingSheet, { type OnboardingSheetParams } from '.';
 import { strings } from '../../../../locales/i18n';
 import AppConstants from '../../../core/AppConstants';
 
@@ -11,6 +11,19 @@ const mockOnPressContinueWithGoogle = jest.fn();
 const mockOnPressContinueWithApple = jest.fn();
 
 const mockNavigate = jest.fn();
+
+function getDefaultRouteParams(): OnboardingSheetParams {
+  return {
+    onPressCreate: mockOnPressCreate,
+    onPressImport: mockOnPressImport,
+    onPressContinueWithGoogle: mockOnPressContinueWithGoogle,
+    onPressContinueWithApple: mockOnPressContinueWithApple,
+    createWallet: false,
+  };
+}
+
+let mockRouteParams: OnboardingSheetParams | undefined =
+  getDefaultRouteParams();
 
 jest.mock('react-native-safe-area-context', () => {
   const inset = { top: 0, right: 0, bottom: 0, left: 0 };
@@ -34,55 +47,39 @@ jest.mock('@react-navigation/native', () => {
       goBack: jest.fn(),
       setOptions: jest.fn(),
     }),
+    useRoute: () => ({
+      params: mockRouteParams,
+    }),
   };
 });
 
 describe('OnboardingSheet', () => {
-  const defaultProps = {
-    route: {
-      params: {
-        onPressCreate: mockOnPressCreate,
-        onPressImport: mockOnPressImport,
-        onPressContinueWithGoogle: mockOnPressContinueWithGoogle,
-        onPressContinueWithApple: mockOnPressContinueWithApple,
-        createWallet: false,
-      },
-    },
-  };
-
   beforeEach(() => {
+    mockRouteParams = getDefaultRouteParams();
     jest.clearAllMocks();
   });
 
   describe('Snapshots', () => {
     it('renders correctly with createWallet=false (import mode)', () => {
-      const { toJSON } = render(<OnboardingSheet {...defaultProps} />);
+      const { toJSON } = render(<OnboardingSheet />);
       expect(toJSON()).toMatchSnapshot();
     });
 
     it('renders correctly with createWallet=true (create mode)', () => {
-      const propsWithCreateWallet = {
-        route: {
-          params: {
-            ...defaultProps.route.params,
-            createWallet: true,
-          },
-        },
+      mockRouteParams = {
+        ...getDefaultRouteParams(),
+        createWallet: true,
       };
-      const { toJSON } = render(<OnboardingSheet {...propsWithCreateWallet} />);
+      const { toJSON } = render(<OnboardingSheet />);
       expect(toJSON()).toMatchSnapshot();
     });
   });
 
   describe('Behavior Tests', () => {
     it('renders with undefined route params and safely handles button presses', () => {
-      const propsWithUndefinedParams = {
-        route: { params: undefined },
-      } as unknown as typeof defaultProps;
+      mockRouteParams = undefined;
 
-      const { getByText } = render(
-        <OnboardingSheet {...propsWithUndefinedParams} />,
-      );
+      const { getByText } = render(<OnboardingSheet />);
 
       fireEvent.press(getByText(strings('onboarding.sign_in_with_google')));
       fireEvent.press(getByText(strings('onboarding.sign_in_with_apple')));
@@ -96,7 +93,7 @@ describe('OnboardingSheet', () => {
 
     describe('Google button interactions', () => {
       it('calls onPressContinueWithGoogle with createWallet=false when import mode', () => {
-        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByText } = render(<OnboardingSheet />);
         const googleButton = getByText(
           strings('onboarding.sign_in_with_google'),
         );
@@ -106,7 +103,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithApple with createWallet=false when import mode', () => {
-        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByText } = render(<OnboardingSheet />);
         const appleButton = getByText(strings('onboarding.sign_in_with_apple'));
         fireEvent.press(appleButton);
         expect(mockOnPressContinueWithApple).toHaveBeenCalledWith(false);
@@ -114,17 +111,11 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithGoogle with createWallet=true when create mode', () => {
-        const propsWithCreateWallet = {
-          route: {
-            params: {
-              ...defaultProps.route.params,
-              createWallet: true,
-            },
-          },
+        mockRouteParams = {
+          ...getDefaultRouteParams(),
+          createWallet: true,
         };
-        const { getByText } = render(
-          <OnboardingSheet {...propsWithCreateWallet} />,
-        );
+        const { getByText } = render(<OnboardingSheet />);
         const googleButton = getByText(
           strings('onboarding.continue_with_google'),
         );
@@ -134,17 +125,11 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressContinueWithApple with createWallet=true when create mode', () => {
-        const propsWithCreateWallet = {
-          route: {
-            params: {
-              ...defaultProps.route.params,
-              createWallet: true,
-            },
-          },
+        mockRouteParams = {
+          ...getDefaultRouteParams(),
+          createWallet: true,
         };
-        const { getByText } = render(
-          <OnboardingSheet {...propsWithCreateWallet} />,
-        );
+        const { getByText } = render(<OnboardingSheet />);
         const appleButton = getByText(
           strings('onboarding.continue_with_apple'),
         );
@@ -156,7 +141,7 @@ describe('OnboardingSheet', () => {
 
     describe('SRP button interactions', () => {
       it('calls onPressImport when createWallet=false and SRP button is pressed', () => {
-        const { getByText } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByText } = render(<OnboardingSheet />);
         const srpButton = getByText(strings('onboarding.import_srp'));
 
         fireEvent.press(srpButton);
@@ -166,17 +151,11 @@ describe('OnboardingSheet', () => {
       });
 
       it('calls onPressCreate when createWallet=true and SRP button is pressed', () => {
-        const propsWithCreateWallet = {
-          route: {
-            params: {
-              ...defaultProps.route.params,
-              createWallet: true,
-            },
-          },
+        mockRouteParams = {
+          ...getDefaultRouteParams(),
+          createWallet: true,
         };
-        const { getByText } = render(
-          <OnboardingSheet {...propsWithCreateWallet} />,
-        );
+        const { getByText } = render(<OnboardingSheet />);
         const srpButton = getByText(strings('onboarding.continue_with_srp'));
 
         fireEvent.press(srpButton);
@@ -192,7 +171,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('navigates to Terms of Use when terms link is pressed', () => {
-        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByTestId } = render(<OnboardingSheet />);
 
         const termsLink = getByTestId('terms-of-use-link');
         fireEvent.press(termsLink);
@@ -207,7 +186,7 @@ describe('OnboardingSheet', () => {
       });
 
       it('navigates to Privacy Notice when privacy link is pressed', () => {
-        const { getByTestId } = render(<OnboardingSheet {...defaultProps} />);
+        const { getByTestId } = render(<OnboardingSheet />);
 
         const privacyLink = getByTestId('privacy-notice-link');
         fireEvent.press(privacyLink);

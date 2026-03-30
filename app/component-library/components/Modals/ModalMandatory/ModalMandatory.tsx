@@ -32,15 +32,17 @@ import {
 import {
   BodyWebView,
   BodyWebViewUri,
-  MandatoryModalProps,
+  MandatoryModalParams,
 } from './ModalMandatory.types';
 import stylesheet from './ModalMandatory.styles';
 import { TermsOfUseModalSelectorsIDs } from '../../../../util/termsOfUse/TermsOfUseModal.testIds';
 import BottomSheet, { BottomSheetRef } from '../../BottomSheets/BottomSheet';
-import { useNavigation } from '@react-navigation/native';
+import { RouteProp, useNavigation, useRoute } from '@react-navigation/native';
 import { throttle } from 'lodash';
 
-const ModalMandatory = ({ route }: MandatoryModalProps) => {
+const ModalMandatory = () => {
+  const route =
+    useRoute<RouteProp<{ params: MandatoryModalParams['params'] }, 'params'>>();
   const { colors } = useTheme();
   const { styles } = useStyles(stylesheet, {});
   const webViewRef = useRef<WebView>(null);

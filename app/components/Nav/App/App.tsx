@@ -405,27 +405,27 @@ const RootModalFlow = (props: RootModalFlowProps) => (
     />
     <Stack.Screen
       name={Routes.MODAL.MODAL_CONFIRMATION}
-      component={ModalConfirmation as ScreenComponent}
+      component={ModalConfirmation}
     />
     <Stack.Screen
       name={Routes.MODAL.MODAL_MANDATORY}
-      component={ModalMandatory as ScreenComponent}
+      component={ModalMandatory}
     />
     <Stack.Screen
       name={Routes.SHEET.ONBOARDING_SHEET}
-      component={OnboardingSheet as ScreenComponent}
+      component={OnboardingSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.SEEDPHRASE_MODAL}
-      component={SeedphraseModal as ScreenComponent}
+      component={SeedphraseModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SKIP_ACCOUNT_SECURITY_MODAL}
-      component={SkipAccountSecurityModal as ScreenComponent}
+      component={SkipAccountSecurityModal}
     />
     <Stack.Screen
       name={Routes.SHEET.SUCCESS_ERROR_SHEET}
-      component={SuccessErrorSheet as ScreenComponent}
+      component={SuccessErrorSheet}
     />
     <Stack.Screen
       name={Routes.SHEET.ELIGIBILITY_FAILED_MODAL}

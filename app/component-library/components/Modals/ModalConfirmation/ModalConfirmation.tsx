@@ -3,6 +3,7 @@ import React, { useRef } from 'react';
 import { View } from 'react-native';
 
 // External dependencies.
+import { RouteProp, useRoute } from '@react-navigation/native';
 import ReusableModal, {
   ReusableModalRef,
 } from '../../../../components/UI/ReusableModal';
@@ -12,14 +13,18 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../hooks';
 
 // Internal dependencies.
-import { ModalConfirmationProps } from './ModalConfirmation.types';
+import { ModalConfirmationRoute } from './ModalConfirmation.types';
 import stylesheet from './ModalConfirmation.styles';
 import {
   MODAL_CONFIRMATION_DANGER_BUTTON_ID,
   MODAL_CONFIRMATION_NORMAL_BUTTON_ID,
 } from './ModalConfirmation.constants';
 
-const ModalConfirmation = ({ route }: ModalConfirmationProps) => {
+const ModalConfirmation = () => {
+  const route =
+    useRoute<
+      RouteProp<{ params: ModalConfirmationRoute['params'] }, 'params'>
+    >();
   const {
     onConfirm,
     onCancel,
