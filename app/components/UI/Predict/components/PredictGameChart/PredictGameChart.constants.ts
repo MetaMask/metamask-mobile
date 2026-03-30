@@ -30,18 +30,24 @@ export const getSeparatedLabelYPositions = (
     return dotPositions.map((pos) => pos.dotY);
   }
 
-  const [first, second] = dotPositions;
-  const gap = Math.abs(first.dotY - second.dotY);
+  const minSpacing = LABEL_HEIGHT + MIN_LABEL_GAP;
+  const positions = dotPositions.map((pos, index) => ({
+    index,
+    y: pos.dotY,
+  }));
 
-  if (gap >= LABEL_HEIGHT + MIN_LABEL_GAP) {
-    return [first.dotY, second.dotY];
+  positions.sort((a, b) => a.y - b.y);
+
+  for (let i = 1; i < positions.length; i++) {
+    const gap = positions[i].y - positions[i - 1].y;
+    if (gap < minSpacing) {
+      positions[i].y = positions[i - 1].y + minSpacing;
+    }
   }
 
-  const midPoint = (first.dotY + second.dotY) / 2;
-  const offset = (LABEL_HEIGHT + MIN_LABEL_GAP) / 2;
-
-  if (first.dotY < second.dotY) {
-    return [midPoint - offset, midPoint + offset];
+  const result = new Array<number>(dotPositions.length);
+  for (const pos of positions) {
+    result[pos.index] = pos.y;
   }
-  return [midPoint + offset, midPoint - offset];
+  return result;
 };
