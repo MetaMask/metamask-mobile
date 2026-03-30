@@ -51,6 +51,7 @@ import {
   forgetQrDevice,
   withQrKeyring,
 } from '../../../core/QrKeyring/QrKeyring';
+import { selectSeedlessOnboardingLoginFlow } from '../../../selectors/seedlessOnboardingController';
 
 interface AccountActionsParams {
   selectedAccount: InternalAccount;
@@ -82,6 +83,7 @@ const AccountActions = () => {
   );
 
   const providerConfig = useSelector(selectProviderConfig);
+  const isSeedlessLoginFlow = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const selectedAddress = selectedAccount?.address;
   const keyring = selectedAccount?.metadata.keyring;
@@ -168,6 +170,13 @@ const AccountActions = () => {
 
   const goToExportSRP = () => {
     sheetRef.current?.onCloseBottomSheet(() => {
+      if (isSeedlessLoginFlow) {
+        navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+          shouldUpdateNav: true,
+          keyringId,
+        });
+        return;
+      }
       navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
         screen: Routes.MODAL.SRP_REVEAL_QUIZ,
         keyringId,

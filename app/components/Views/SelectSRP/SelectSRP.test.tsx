@@ -87,4 +87,31 @@ describe('SelectSRP', () => {
       keyringId: mockKeyring1.metadata.id,
     });
   });
+
+  it('navigates to full-screen reveal SRP for seedless login', () => {
+    const seedlessState = {
+      engine: {
+        backgroundState: {
+          ...initialState.engine.backgroundState,
+          SeedlessOnboardingController: {
+            ...backgroundState.SeedlessOnboardingController,
+            vault: '0xseedlessvault',
+          },
+        },
+      },
+    };
+    const { getByText } = renderWithProvider(<SelectSRP />, {
+      state: seedlessState,
+    });
+    fireEvent.press(
+      getByText(`${strings('accounts.secret_recovery_phrase')} 1`),
+    );
+    expect(mockedNavigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      {
+        shouldUpdateNav: true,
+        keyringId: mockKeyring1.metadata.id,
+      },
+    );
+  });
 });

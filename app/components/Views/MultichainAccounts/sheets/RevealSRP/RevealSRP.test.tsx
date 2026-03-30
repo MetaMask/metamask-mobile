@@ -98,6 +98,30 @@ describe('RevealSRP', () => {
     );
   });
 
+  it('navigates to full-screen reveal SRP when get started is pressed for seedless login', () => {
+    const { getByText } = renderWithProvider(<RevealSRP />, {
+      state: {
+        engine: {
+          backgroundState: {
+            SeedlessOnboardingController: { vault: '0xseedless' },
+          },
+        },
+      },
+    });
+
+    const getStartedButton = getByText(
+      strings('multichain_accounts.reveal_srp.get_started'),
+    );
+    fireEvent.press(getStartedButton);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+      {
+        shouldUpdateNav: true,
+        keyringId: 'test-keyring-id',
+      },
+    );
+  });
+
   it('navigates to webview when learn more button is pressed', () => {
     const { getByText } = render();
 
