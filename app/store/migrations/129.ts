@@ -58,10 +58,10 @@ const migration = (state: unknown): unknown => {
       state.onboarding.seedless = {
         pendingSocialLoginMarketingConsentBackfill: null,
       };
+    } else {
+      state.onboarding.seedless.pendingSocialLoginMarketingConsentBackfill =
+        authConnection;
     }
-
-    state.onboarding.seedless.pendingSocialLoginMarketingConsentBackfill =
-      authConnection;
   } catch (error) {
     captureException(
       new Error(
