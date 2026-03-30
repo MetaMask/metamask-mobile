@@ -142,6 +142,26 @@ describe('BridgeFeeRow', () => {
     expect(getByText('$1.23')).toBeOnTheScreen();
   });
 
+  it('renders tooltip for perps withdraw', async () => {
+    const { getByTestId } = render({
+      type: TransactionType.perpsWithdraw,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByTestId('info-row-tooltip-open-btn'));
+    });
+
+    expect(getByTestId('info-row-tooltip-open-btn')).toBeDefined();
+  });
+
+  it('renders fee for perps withdraw', () => {
+    const { getByText } = render({
+      type: TransactionType.perpsWithdraw,
+    });
+
+    expect(getByText('$1.23')).toBeDefined();
+  });
+
   it('renders metamask fee in tooltip', async () => {
     useTransactionTotalsMock.mockReturnValue({
       fees: {
