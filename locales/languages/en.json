@@ -2391,6 +2391,7 @@
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",
+      "make_your_prediction": "Make your prediction",
       "volume_display": "${{volume}} Vol",
       "read_terms": "Read the full contract terms and conditions"
     },
