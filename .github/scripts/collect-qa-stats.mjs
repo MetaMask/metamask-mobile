@@ -987,7 +987,7 @@ async function collectPerformanceTestCounts() {
 // Requires `yarn install` in the workflow so ts-node is available.
 // ---------------------------------------------------------------------------
 
-const FF_REPORT_PATH = 'tests/feature-flags/feature-flag-coverage-report.json';
+const FF_REPORT_PATH = 'tests/artifacts/feature-flag-coverage-report.json';
 
 async function collectFeatureFlagCoverage() {
   console.log('[feature_flags] running coverage report via ts-node...');

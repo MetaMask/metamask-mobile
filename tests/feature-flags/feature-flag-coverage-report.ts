@@ -8,7 +8,7 @@
  * Usage: yarn test:e2e:feature-flag:coverage
  *
  * Output: Console table with per-flag coverage details + JSON report
- * at tests/feature-flags/feature-flag-coverage-report.json
+ * at tests/artifacts/feature-flag-coverage-report.json
  */
 
 /* eslint-disable import-x/no-nodejs-modules, import-x/no-namespace */
@@ -496,8 +496,13 @@ function main(): void {
   const report = generateReport(repoRoot);
   printReport(report);
 
+  const artifactsDir = path.join(repoRoot, 'tests', 'artifacts');
+  if (!fs.existsSync(artifactsDir)) {
+    fs.mkdirSync(artifactsDir, { recursive: true });
+  }
+
   const jsonOutputPath = path.join(
-    scriptDir,
+    artifactsDir,
     'feature-flag-coverage-report.json',
   );
   writeJsonReport(report, jsonOutputPath);

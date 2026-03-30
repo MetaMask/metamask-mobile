@@ -32,3 +32,10 @@ jobs:
           name: qa-stats
           path: ./qa-stats.json
           if-no-files-found: error
+
+      - name: Upload feature flag coverage report
+        uses: actions/upload-artifact@v6
+        with:
+          name: feature-flag-coverage-report
+          path: ./tests/artifacts/feature-flag-coverage-report.json
+          if-no-files-found: warn
