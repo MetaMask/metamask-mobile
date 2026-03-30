@@ -4,6 +4,28 @@ Opt-in tooling that streams `RampsController` state, method calls, and related f
 
 **Ownership:** Money Movement team (see `.github/CODEOWNERS` for `app/components/UI/Ramp/`).
 
+## Quick start
+
+From the **repository root**:
+
+1. **Install dashboard dependencies** (first time, or after `package-lock.json` changes):
+
+   ```bash
+   yarn ramps:debug-dashboard:install
+   ```
+
+2. **Start the dashboard** (HTTP + WebSocket on port **8099**):
+
+   ```bash
+   yarn ramps:debug-dashboard
+   ```
+
+3. Open **<http://localhost:8099>** in a browser.
+
+4. **In the app:** set `RAMPS_DEBUG_DASHBOARD="true"` in **`.js.env`**, restart Metro (`yarn watch:clean` or your watcher), run a **debug** build. When the app connects, the server logs `Mobile app connected`.
+
+The dashboard folder is **not** part of the root Yarn workspace; **`npm ci`** is used there on purpose (see below). Root scripts wrap that so you do not need to `cd` into `ramps-debug-dashboard/`.
+
 ## Enable in the app
 
 Values are read via **`app/util/environment.ts`** (`isRampsDebugDashboardEnabled`, `getRampsDebugDashboardWebSocketUrl`), same as other dev flags: `process.env` is **inlined at bundle time** by Babel (`transform-inline-environment-variables`) from `.js.env` when Metro runs — there is no separate runtime env loader for these keys.
@@ -40,19 +62,26 @@ adb reverse tcp:8099 tcp:8099
 
 Then you can keep the default `ws://localhost:8099` from the app’s point of view.
 
-## Run the dashboard server
+## Run the dashboard server (manual)
 
-From the **repository root**:
+Equivalent to the root scripts:
 
 ```bash
-cd ramps-debug-dashboard && npm ci && node server.mjs
+yarn ramps:debug-dashboard:install   # once / when lockfile changes
+yarn ramps:debug-dashboard
+```
+
+Or from **`ramps-debug-dashboard/`**:
+
+```bash
+npm ci && node server.mjs
 ```
 
 - UI: <http://localhost:8099>
 - WebSocket: `ws://localhost:8099`
-- Optional: `RAMPS_DEBUG_PORT=8100 node server.mjs` to change the port (set `RAMPS_DEBUG_DASHBOARD_URL` to match).
+- Optional: `RAMPS_DEBUG_PORT=8100 yarn ramps:debug-dashboard` (and set `RAMPS_DEBUG_DASHBOARD_URL` in `.js.env` to match).
 
-`yarn start` in that folder may fail under the root Yarn workspace; use **`npm ci`** (once) then **`node server.mjs`**.
+`yarn start` inside **`ramps-debug-dashboard/`** can fail under the root Yarn workspace; prefer the root **`yarn ramps:debug-dashboard`** commands or **`npm ci` + `node server.mjs`** in that directory.
 
 Session log (JSON Lines, useful for agents / offline review):
 

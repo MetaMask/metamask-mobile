@@ -187,7 +187,9 @@ function createFetchUrlTracker() {
   if (!originalFetch || typeof originalFetch !== 'function') {
     return {
       findUrl: () => null,
-      registerWidgetCallback: (_cb) => undefined,
+      registerWidgetCallback: (
+        _cb: (details: WidgetUrlRequestDetails) => void,
+      ) => undefined,
     };
   }
 
