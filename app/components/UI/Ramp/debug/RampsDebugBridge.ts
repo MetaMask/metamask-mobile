@@ -1,8 +1,8 @@
 import type { RampsController } from '@metamask/ramps-controller';
-import { getRampsDebugDashboardWebSocketUrl } from '../../../../util/environment';
 import Logger from '../../../../util/Logger';
 
-const DASHBOARD_URL = getRampsDebugDashboardWebSocketUrl();
+/** Default dashboard WebSocket; use `adb reverse tcp:8099 tcp:8099` on Android so the app can reach the host. */
+const DASHBOARD_WS_URL = 'ws://localhost:8099';
 const RECONNECT_DELAY_MS = 3000;
 
 const EXCLUDED_PROPS = new Set([
@@ -98,7 +98,7 @@ export function initRampsDebugBridge(
         options: { headers: Record<string, string> },
       ) => WebSocket;
 
-      ws = new RNWebSocket(DASHBOARD_URL, undefined, {
+      ws = new RNWebSocket(DASHBOARD_WS_URL, undefined, {
         headers: { 'X-Ramps-Debug-Source': 'mobile' },
       });
 

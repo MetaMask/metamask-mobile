@@ -21,26 +21,3 @@ export const getE2EMockOAuthEmailForQaMock = (): string | undefined => {
   const email = process.env.E2E_MOCK_OAUTH_EMAIL;
   return typeof email === 'string' && email.length > 0 ? email : undefined;
 };
-
-/**
- * Whether the RAMPS WebSocket debug bridge to the local dashboard is enabled.
- * Set `RAMPS_DEBUG_DASHBOARD=true` in `.js.env` and restart Metro (build-time inline).
- *
- * @see app/components/UI/Ramp/debug/README.md
- */
-export const isRampsDebugDashboardEnabled = (): boolean =>
-  process.env.RAMPS_DEBUG_DASHBOARD === 'true';
-
-/**
- * WebSocket URL for the RAMPS debug dashboard (`scripts/money-movement/debug-dashboard/`, default host loopback).
- * Override with `RAMPS_DEBUG_DASHBOARD_URL` in `.js.env` for devices/emulators.
- *
- * @see app/components/UI/Ramp/debug/README.md
- */
-export const getRampsDebugDashboardWebSocketUrl = (): string => {
-  const url = process.env.RAMPS_DEBUG_DASHBOARD_URL;
-  if (typeof url === 'string' && url.trim().length > 0) {
-    return url.trim();
-  }
-  return 'ws://localhost:8099';
-};

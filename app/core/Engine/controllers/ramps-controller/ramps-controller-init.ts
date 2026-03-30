@@ -7,7 +7,6 @@ import {
 import type { RampsControllerInitMessenger } from '../../messengers/ramps-controller-messenger';
 import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeatureFlag';
 import { RAMPS_UNIFIED_BUY_V2_FLAG_KEY } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
-import { isRampsDebugDashboardEnabled } from '../../../../util/environment';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
 
@@ -99,9 +98,9 @@ export const rampsControllerInit: ControllerInitFunction<
     startUnifiedBuyV2IfEnabled();
   });
 
-  // Opt-in dev tooling: set RAMPS_DEBUG_DASHBOARD=true in .js.env (see Ramp/debug/README.md).
-  // Dynamic import keeps the bridge (and its fetch instrumentation) out of the bundle unless enabled.
-  if (__DEV__ && isRampsDebugDashboardEnabled()) {
+  // Dev-only: streams controller state / traffic to the local dashboard (see Ramp/debug/README.md).
+  // Dynamic import keeps the bridge out of production bundles.
+  if (__DEV__) {
     import('../../../../components/UI/Ramp/debug/RampsDebugBridge')
       .then(({ initRampsDebugBridge }) => {
         initRampsDebugBridge(controller, controllerMessenger);
