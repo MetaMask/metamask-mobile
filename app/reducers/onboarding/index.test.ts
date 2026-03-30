@@ -1,79 +1,33 @@
-import onboardingReducer from '.';
+import onboardingReducer, { initialOnboardingState } from '.';
 import {
-  CLEAR_EVENTS,
-  SAVE_EVENT,
-  SET_COMPLETED_ONBOARDING,
-  SET_ACCOUNT_TYPE,
-  CLEAR_ACCOUNT_TYPE,
+  setPendingSocialLoginMarketingConsentBackfill,
+  setCompletedOnboarding,
 } from '../../actions/onboarding';
-import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
-import { AccountType } from '../../constants/onboarding';
 
 describe('onboardingReducer', () => {
-  const initialState = {
-    events: [],
-    completedOnboarding: false,
-  };
+  it('sets completedOnboarding', () => {
+    const newState = onboardingReducer(
+      initialOnboardingState,
+      setCompletedOnboarding(true),
+    );
 
-  it('returns the initial state when no action is provided', () => {
-    const state = onboardingReducer(undefined, { type: null } as never);
-    expect(state).toEqual(initialState);
-  });
-
-  it('handles the SAVE_EVENT action', () => {
-    const mockEvent = [{ name: 'test_event' }] as [ITrackingEvent];
-    const action = { type: SAVE_EVENT, event: mockEvent } as const;
-    const state = onboardingReducer(initialState, action);
-    expect(state.events).toEqual([mockEvent]);
-  });
-
-  it('handles the CLEAR_EVENTS action', () => {
-    const stateWithEvents = {
-      ...initialState,
-      events: [[{ name: 'test_event' }] as [ITrackingEvent]],
-    };
-    const action = { type: CLEAR_EVENTS } as const;
-    const state = onboardingReducer(stateWithEvents, action);
-    expect(state.events).toEqual([]);
-  });
-
-  it('handle the SET_COMPLETED_ONBOARDING action', () => {
-    const action = {
-      type: SET_COMPLETED_ONBOARDING,
+    expect(newState).toEqual({
+      ...initialOnboardingState,
       completedOnboarding: true,
-    } as const;
-    const state = onboardingReducer(initialState, action);
-    expect(state.completedOnboarding).toBe(true);
+    });
   });
 
-  it('handles the SET_ACCOUNT_TYPE action', () => {
-    const onboardingVersion = '7.0.0 (1234)';
+  it('sets onboarding.seedless pending social login marketing consent backfill', () => {
+    const newState = onboardingReducer(
+      initialOnboardingState,
+      setPendingSocialLoginMarketingConsentBackfill('google'),
+    );
 
-    const action = {
-      type: SET_ACCOUNT_TYPE,
-      accountType: AccountType.MetamaskGoogle,
-      onboardingVersion,
-    } as const;
-
-    const state = onboardingReducer(initialState, action);
-
-    expect(state.accountType).toBe(AccountType.MetamaskGoogle);
-    expect(state.onboardingVersion).toBe(onboardingVersion);
-  });
-
-  it('handles the CLEAR_ACCOUNT_TYPE action', () => {
-    const onboardingVersion = '7.0.0 (1234)';
-
-    const stateWithAccountType = {
-      ...initialState,
-      accountType: AccountType.MetamaskGoogle,
-      onboardingVersion,
-    };
-
-    const action = { type: CLEAR_ACCOUNT_TYPE } as const;
-    const state = onboardingReducer(stateWithAccountType, action);
-
-    expect(state.accountType).toBeUndefined();
-    expect(state.onboardingVersion).toBeUndefined();
+    expect(newState).toEqual({
+      ...initialOnboardingState,
+      seedless: {
+        pendingSocialLoginMarketingConsentBackfill: 'google',
+      },
+    });
   });
 });

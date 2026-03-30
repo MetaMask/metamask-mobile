@@ -7,6 +7,7 @@ import {
   SET_COMPLETED_ONBOARDING,
   SET_ACCOUNT_TYPE,
   CLEAR_ACCOUNT_TYPE,
+  SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL,
 } from '../../actions/onboarding';
 import { ITrackingEvent } from '../../core/Analytics/MetaMetrics.types';
 import { AccountType } from '../../constants/onboarding';
@@ -16,11 +17,17 @@ export interface OnboardingState {
   completedOnboarding: boolean;
   accountType?: AccountType;
   onboardingVersion?: string;
+  seedless: {
+    pendingSocialLoginMarketingConsentBackfill: string | null;
+  };
 }
 
 export const initialOnboardingState: OnboardingState = {
   events: [],
   completedOnboarding: false,
+  seedless: {
+    pendingSocialLoginMarketingConsentBackfill: null,
+  },
 };
 
 /**
@@ -59,6 +66,14 @@ const onboardingReducer = (
         ...state,
         accountType: undefined,
         onboardingVersion: undefined,
+      };
+    case SET_PENDING_SOCIAL_LOGIN_MARKETING_CONSENT_BACKFILL:
+      return {
+        ...state,
+        seedless: {
+          ...state.seedless,
+          pendingSocialLoginMarketingConsentBackfill: action.authConnection,
+        },
       };
     default:
       return state;
