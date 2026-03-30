@@ -1,5 +1,4 @@
 import { test } from '../../framework/fixtures/performance';
-import { expect as appwrightExpect } from 'appwright';
 import TimerHelper from '../../framework/TimerHelper';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
@@ -71,15 +70,13 @@ test.describe(PerformanceOnboarding, () => {
 
       if (AppwrightSelectors.isIOS(device)) {
         await timer2.measure(async () => {
-          const iosNewUserEl = await SocialLoginScreen.iosNewUserTitle;
-          const accountFoundEl = await SocialLoginScreen.accountFoundContainer;
           const result = await Promise.any([
-            appwrightExpect(iosNewUserEl)
-              .toBeVisible({ timeout: 30000 })
-              .then(() => 'new_user'),
-            appwrightExpect(accountFoundEl)
-              .toBeVisible({ timeout: 30000 })
-              .then(() => 'existing_user'),
+            SocialLoginScreen.isIosNewUserScreenVisible().then(
+              () => 'new_user',
+            ),
+            SocialLoginScreen.isAccountFoundScreenVisible().then(
+              () => 'existing_user',
+            ),
           ]);
           isNewUser = result === 'new_user';
         });
@@ -92,15 +89,11 @@ test.describe(PerformanceOnboarding, () => {
         }
       } else {
         await timer2.measure(async () => {
-          const passwordEl = await CreatePasswordScreen.newPasswordInput;
-          const accountFoundEl = await SocialLoginScreen.accountFoundContainer;
           const result = await Promise.any([
-            appwrightExpect(passwordEl)
-              .toBeVisible({ timeout: 30000 })
-              .then(() => 'new_user'),
-            appwrightExpect(accountFoundEl)
-              .toBeVisible({ timeout: 30000 })
-              .then(() => 'existing_user'),
+            CreatePasswordScreen.isVisible().then(() => 'new_user'),
+            SocialLoginScreen.isAccountFoundScreenVisible().then(
+              () => 'existing_user',
+            ),
           ]);
           isNewUser = result === 'new_user';
         });
