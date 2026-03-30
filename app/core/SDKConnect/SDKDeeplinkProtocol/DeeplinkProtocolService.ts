@@ -760,7 +760,7 @@ export default class DeeplinkProtocolService {
         // Track wallet-side RPC action for deeplink protocol
         const actionAnonId =
           this.connections[sessionId]?.originatorInfo?.anonId;
-        if (actionAnonId) {
+        if (actionAnonId && data.method) {
           analytics.track('wallet_action_received', {
             anon_id: actionAnonId,
             transport: 'deeplink_protocol',

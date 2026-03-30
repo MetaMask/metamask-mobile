@@ -177,12 +177,81 @@ describe('handleUniversalLink', () => {
 
       expect(mockCreateBuilder).toHaveBeenCalledWith(
         expect.objectContaining({
+          route: 'test-route',
           signatureStatus: SignatureStatus.MISSING,
           interstitialShown: false,
           interstitialAction: InterstitialState.NOT_SHOWN,
         }),
       );
       expect(mockHandleMetaMaskDeeplink).toHaveBeenCalled();
+    });
+
+    it('fires DEEP_LINK_USED for MMSDK deeplink', async () => {
+      const { createDeepLinkUsedEventBuilder: mockCreateBuilder } =
+        jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+          createDeepLinkUsedEventBuilder: jest.Mock;
+        };
+
+      const mockBuild = jest.fn().mockReturnValue({});
+      const mockAddProperties = jest.fn().mockReturnThis();
+      mockCreateBuilder.mockResolvedValueOnce({
+        addProperties: mockAddProperties,
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        build: mockBuild,
+      });
+
+      const mmsdkUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.MMSDK}?message=test&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(mmsdkUrl).urlObj,
+        url: mmsdkUrl,
+        source: 'test',
+      });
+
+      expect(mockCreateBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: 'test-route',
+          signatureStatus: SignatureStatus.MISSING,
+          interstitialShown: false,
+          interstitialAction: InterstitialState.NOT_SHOWN,
+        }),
+      );
+    });
+
+    it('fires DEEP_LINK_USED for ANDROID_SDK deeplink', async () => {
+      const { createDeepLinkUsedEventBuilder: mockCreateBuilder } =
+        jest.requireMock('../../../util/deeplinks/deepLinkAnalytics') as {
+          createDeepLinkUsedEventBuilder: jest.Mock;
+        };
+
+      const mockBuild = jest.fn().mockReturnValue({});
+      const mockAddProperties = jest.fn().mockReturnThis();
+      mockCreateBuilder.mockResolvedValueOnce({
+        addProperties: mockAddProperties,
+        addSensitiveProperties: jest.fn().mockReturnThis(),
+        build: mockBuild,
+      });
+
+      const androidSdkUrl = `https://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.ANDROID_SDK}?channelId=test&scheme=testapp`;
+
+      await handleUniversalLink({
+        instance,
+        handled: jest.fn(),
+        urlObj: extractURLParams(androidSdkUrl).urlObj,
+        url: androidSdkUrl,
+        source: 'test',
+      });
+
+      expect(mockCreateBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          route: 'test-route',
+          signatureStatus: SignatureStatus.MISSING,
+          interstitialShown: false,
+          interstitialAction: InterstitialState.NOT_SHOWN,
+        }),
+      );
     });
   });
 
