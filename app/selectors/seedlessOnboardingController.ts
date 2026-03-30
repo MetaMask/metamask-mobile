@@ -5,6 +5,9 @@ import { SeedlessOnboardingControllerState } from '@metamask/seedless-onboarding
 const selectSeedlessOnboardingControllerState = (state: RootState) =>
   state.engine?.backgroundState.SeedlessOnboardingController;
 
+const selectOnboardingSeedlessState = (state: RootState) =>
+  state.onboarding?.seedless;
+
 export const selectSeedlessOnboardingUserId = createSelector(
   selectSeedlessOnboardingControllerState,
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
@@ -34,4 +37,10 @@ export const selectIsSeedlessPasswordOutdated = createSelector(
   (seedlessOnboardingControllerState: SeedlessOnboardingControllerState) =>
     seedlessOnboardingControllerState?.passwordOutdatedCache?.isExpiredPwd ===
     true,
+);
+
+export const selectPendingSocialLoginMarketingConsentBackfill = createSelector(
+  selectOnboardingSeedlessState,
+  (seedlessState) =>
+    seedlessState?.pendingSocialLoginMarketingConsentBackfill ?? null,
 );

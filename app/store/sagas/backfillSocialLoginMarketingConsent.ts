@@ -1,6 +1,6 @@
 import { call, put, select } from 'redux-saga/effects';
-import { analytics } from '../../util/analytics/analytics';
 import { AnalyticsEventBuilder } from '../../util/analytics/AnalyticsEventBuilder';
+import { analytics } from '../../util/analytics/analytics';
 import { MetaMetricsEvents } from '../../core/Analytics';
 import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMetaData/UserProfileAnalyticsMetaData.types';
 import { getSocialAccountType } from '../../constants/onboarding';
@@ -8,26 +8,39 @@ import { updateDataRecordingFlag } from '../../util/analytics/analyticsDataDelet
 import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onboarding';
 import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
+import { selectPendingSocialLoginMarketingConsentBackfill } from '../../selectors/seedlessOnboardingController';
+import generateUserProfileAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
+import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 
 export function* backfillSocialLoginMarketingConsent() {
   const authConnection: RootState['onboarding']['seedless']['pendingSocialLoginMarketingConsentBackfill'] =
+    yield select(selectPendingSocialLoginMarketingConsentBackfill);
+  const marketingConsent: RootState['security']['dataCollectionForMarketing'] =
     yield select(
-      (state: RootState) =>
-        state.onboarding?.seedless
-          ?.pendingSocialLoginMarketingConsentBackfill ?? null,
+      (state: RootState) => state.security?.dataCollectionForMarketing,
     );
 
   if (!authConnection) {
     return;
   }
 
+  if (marketingConsent !== true) {
+    yield put(setPendingSocialLoginMarketingConsentBackfill(null));
+    return;
+  }
+
   try {
+    yield call([analytics, analytics.identify], {
+      ...generateUserProfileAnalyticsMetaData(),
+      ...generateDeviceAnalyticsMetaData(),
+    });
+
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
     )
       .setSaveDataRecording(true)
       .addProperties({
-        [UserProfileProperty.HAS_MARKETING_CONSENT]: true,
+        [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
         is_metrics_opted_in: true,
         location: 'onboarding_choosePassword',
         updated_after_onboarding: false,
@@ -36,10 +49,6 @@ export function* backfillSocialLoginMarketingConsent() {
       .build();
 
     yield call([analytics, analytics.trackEvent], event);
-
-    yield call([analytics, analytics.identify], {
-      [UserProfileProperty.HAS_MARKETING_CONSENT]: UserProfileProperty.ON,
-    });
 
     yield call(updateDataRecordingFlag, true);
     yield put(setPendingSocialLoginMarketingConsentBackfill(null));
