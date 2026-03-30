@@ -73,13 +73,17 @@ exports[`MenuItem renders snapshot correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Test Menu Item
@@ -87,13 +91,17 @@ exports[`MenuItem renders snapshot correctly 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#66676a",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 14,
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
+            [
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 14,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              },
+              undefined,
+            ]
           }
         >
           Test description
@@ -177,13 +185,17 @@ exports[`MenuItem renders with different icon 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Test Menu Item
@@ -191,13 +203,17 @@ exports[`MenuItem renders with different icon 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#66676a",
-              "fontFamily": "Geist-Regular",
-              "fontSize": 14,
-              "letterSpacing": 0,
-              "lineHeight": 22,
-            }
+            [
+              {
+                "color": "#66676a",
+                "fontFamily": "Geist-Regular",
+                "fontSize": 14,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 22,
+              },
+              undefined,
+            ]
           }
         >
           Test description
@@ -281,13 +297,17 @@ exports[`MenuItem renders with empty description 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Test Menu Item
@@ -371,13 +391,17 @@ exports[`MenuItem renders with title only 1`] = `
         <Text
           accessibilityRole="text"
           style={
-            {
-              "color": "#131416",
-              "fontFamily": "Geist-Medium",
-              "fontSize": 16,
-              "letterSpacing": 0,
-              "lineHeight": 24,
-            }
+            [
+              {
+                "color": "#131416",
+                "fontFamily": "Geist-Medium",
+                "fontSize": 16,
+                "fontWeight": 400,
+                "letterSpacing": 0,
+                "lineHeight": 24,
+              },
+              undefined,
+            ]
           }
         >
           Test Menu Item

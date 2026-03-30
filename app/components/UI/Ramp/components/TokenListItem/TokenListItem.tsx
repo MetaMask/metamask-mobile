@@ -1,5 +1,14 @@
 import React, { useCallback } from 'react';
 import { DepositCryptoCurrency } from '@consensys/native-ramps-sdk';
+import {
+  ButtonIcon,
+  ButtonIconSize,
+  FontWeight,
+  IconName,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import ListItemSelect from '../../../../../component-library/components/List/ListItemSelect';
 import ListItemColumn, {
@@ -11,15 +20,6 @@ import BadgeNetwork from '../../../../../component-library/components/Badges/Bad
 import BadgeWrapper, {
   BadgePosition,
 } from '../../../../../component-library/components/Badges/BadgeWrapper';
-import Text, {
-  TextColor,
-  TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import {
-  ButtonIcon,
-  ButtonIconSize,
-  IconName,
-} from '@metamask/design-system-react-native';
 
 import { useTokenNetworkInfo } from '../../hooks/useTokenNetworkInfo';
 import { TOKEN_LIST_ITEM_TEST_IDS } from './TokenListItem.testIds';
@@ -28,7 +28,7 @@ interface TokenListItemProps {
   token: DepositCryptoCurrency;
   isSelected?: boolean;
   onPress: () => void;
-  textColor?: string;
+  textColor?: TextColor | string;
   isDisabled?: boolean;
   onInfoPress?: () => void;
 }
@@ -37,7 +37,7 @@ function TokenListItem({
   token,
   isSelected,
   onPress,
-  textColor = TextColor.Alternative,
+  textColor = TextColor.TextAlternative,
   isDisabled = false,
   onInfoPress,
 }: Readonly<TokenListItemProps>) {
@@ -48,6 +48,12 @@ function TokenListItem({
   const handleInfoPress = useCallback(() => {
     onInfoPress?.();
   }, [onInfoPress]);
+
+  const tokenSymbolColor =
+    Object.values(TextColor).includes(textColor as TextColor) &&
+    textColor !== undefined
+      ? (textColor as TextColor)
+      : undefined;
 
   return (
     <ListItemSelect
@@ -78,8 +84,17 @@ function TokenListItem({
         </BadgeWrapper>
       </ListItemColumn>
       <ListItemColumn widthType={WidthType.Fill}>
-        <Text variant={TextVariant.BodyMDMedium}>{token.name}</Text>
-        <Text variant={TextVariant.BodySMMedium} color={textColor}>
+        <Text variant={TextVariant.BodyMd} fontWeight={FontWeight.Medium}>
+          {token.name}
+        </Text>
+        <Text
+          variant={TextVariant.BodySm}
+          fontWeight={FontWeight.Medium}
+          color={tokenSymbolColor}
+          style={
+            !tokenSymbolColor && textColor ? { color: textColor } : undefined
+          }
+        >
           {token.symbol}
         </Text>
       </ListItemColumn>
