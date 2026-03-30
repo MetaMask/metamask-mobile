@@ -35,7 +35,7 @@ export const createBridgeTestState = (
     bridgeControllerOverrides?: BridgeControllerStateOverride;
     bridgeReducerOverrides?: Partial<BridgeState>;
   } = {},
-  state: DeepPartial<RootState> = initialState as unknown as DeepPartial<RootState>,
+  state: DeepPartial<RootState> = initialState,
 ) => {
   const bridgeControllerState = createBridgeControllerState(
     overrides.bridgeControllerOverrides ?? {},
