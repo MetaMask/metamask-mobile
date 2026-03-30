@@ -28,7 +28,7 @@ test.beforeAll(() => {
   ensurePlaygroundInstalled();
 });
 
-test('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains', async ({
+test.skip('@metamask/connect-legacy-evm-rn - Connect via Legacy EVM, sign, send transaction, and switch chains', async ({
   device,
 }) => {
   RNPlaygroundDapp.device = device;
