@@ -283,6 +283,7 @@ export interface PredictControllerTransactionStatusChangedEvent {
       senderAddress: string;
       transactionId?: string;
       amount?: number;
+      marketId?: string;
     },
   ];
 }
@@ -1553,6 +1554,9 @@ export class PredictController extends BaseController<
 
       const signer = this.getSigner(activeOrderAddress);
 
+      //await new Promise((resolve) => setTimeout(resolve, 1000));
+      //throw new Error('Test error');
+
       // Track Predict Trade Transaction with submitted status (fire and forget)
       this.trackPredictOrderEvent({
         status: PredictTradeStatus.SUBMITTED,
@@ -1634,6 +1638,7 @@ export class PredictController extends BaseController<
           type: 'order',
           status: 'confirmed',
           senderAddress: signer.address,
+          marketId: analyticsProperties?.marketId,
         });
       }
 
@@ -1692,6 +1697,7 @@ export class PredictController extends BaseController<
           type: 'order',
           status: 'failed',
           senderAddress: activeOrderAddress,
+          marketId: analyticsProperties?.marketId,
         });
       }
 
@@ -2542,6 +2548,13 @@ export class PredictController extends BaseController<
 
     if (type === 'depositAndOrder' && status === 'failed') {
       const transactionId = transactionMeta.id;
+
+      // Extract market context before deleting the pending order preview
+      const pendingOrder = transactionId
+        ? this.pendingOrderPreviews[transactionId]
+        : null;
+      const marketId = pendingOrder?.analyticsProperties?.marketId;
+
       if (transactionId) {
         delete this.pendingOrderPreviews[transactionId];
       }
@@ -2572,6 +2585,7 @@ export class PredictController extends BaseController<
           type: 'order',
           status: 'failed',
           senderAddress: address,
+          marketId,
         });
       }
     }

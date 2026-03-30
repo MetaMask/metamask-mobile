@@ -148,7 +148,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount } =
+      const { type, status, senderAddress, transactionId, amount, marketId } =
         payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
@@ -341,6 +341,7 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
           showToast({
             variant: ToastVariants.Icon,
             iconName: IconName.Check,
+            iconColor: theme.colors.success.default,
             labelOptions: [
               {
                 label: strings('predict.order.prediction_placed'),
@@ -348,6 +349,19 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
               },
             ],
             hasNoTimeout: false,
+            ...(marketId
+              ? {
+                  linkButtonOptions: {
+                    label: strings('predict.order.view'),
+                    onPress: () => {
+                      navigation.navigate(Routes.PREDICT.ROOT, {
+                        screen: Routes.PREDICT.MARKET_DETAILS,
+                        params: { marketId },
+                      });
+                    },
+                  },
+                }
+              : {}),
           });
           return;
         }
@@ -357,6 +371,17 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
             showToast,
             title: strings('predict.order.prediction_failed'),
             description: strings('predict.order.order_failed_generic'),
+            ...(marketId
+              ? {
+                  retryLabel: strings('predict.order.try_again'),
+                  onRetry: () => {
+                    navigation.navigate(Routes.PREDICT.ROOT, {
+                      screen: Routes.PREDICT.MARKET_DETAILS,
+                      params: { marketId },
+                    });
+                  },
+                }
+              : {}),
             backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });
