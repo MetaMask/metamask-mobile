@@ -49,13 +49,6 @@ jest.mock('../../../selectors/featureFlagController/marketInsights', () => ({
     mockSelectMarketInsightsPerpsEnabled(state),
 }));
 
-jest.mock(
-  '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled',
-  () => ({
-    useAccountMenuEnabled: jest.fn(() => false),
-  }),
-);
-
 describe('MainNavigator', () => {
   const originalEnv = process.env.METAMASK_ENVIRONMENT;
 
