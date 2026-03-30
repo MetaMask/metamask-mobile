@@ -10,13 +10,21 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   Platform,
   RefreshControl,
   ScrollView,
   Switch,
   TouchableOpacity,
 } from 'react-native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import Icon, {
   IconName,
@@ -39,11 +47,6 @@ import { TextVariant as ComponentTextVariant } from '../../../../../component-li
 import Engine from '../../../../../core/Engine';
 import { useTheme } from '../../../../../util/theme';
 import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { strings } from '../../../../../../locales/i18n';
 import { useNavigateToCardPage } from '../../hooks/useNavigateToCardPage';
 import {
@@ -67,6 +70,7 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
+  CARD_SUPPORT_EMAIL,
   DEPOSIT_SUPPORTED_TOKENS,
   SPENDING_LIMIT_UNSUPPORTED_TOKENS,
 } from '../../constants';
@@ -690,6 +694,10 @@ const CardHome = () => {
     );
   }, [logoutFromProvider, navigation]);
 
+  const contactSupportAction = useCallback(() => {
+    Linking.openURL(`mailto:${CARD_SUPPORT_EMAIL}`);
+  }, []);
+
   const userShippingAddress: ShippingAddress | undefined = useMemo(
     () => buildShippingAddress(kycStatus?.userDetails),
     [kycStatus?.userDetails],
@@ -944,6 +952,58 @@ const CardHome = () => {
     [isAuthenticated, kycStatus, warning, externalWalletDetailsData],
   );
 
+  const shouldRedirectToChooseCard = useMemo(
+    () =>
+      !isLoading &&
+      !cardSetupState.isKYCPending &&
+      !isCardProvisioning &&
+      isMetalCardCheckoutEnabled &&
+      isBaanxLoginEnabled &&
+      isAuthenticated &&
+      warning === CardStateWarning.NoCard &&
+      userLocation === 'us' &&
+      !!userShippingAddress,
+    [
+      isLoading,
+      cardSetupState.isKYCPending,
+      isCardProvisioning,
+      isMetalCardCheckoutEnabled,
+      isBaanxLoginEnabled,
+      isAuthenticated,
+      warning,
+      userLocation,
+      userShippingAddress,
+    ],
+  );
+
+  const navigateToChooseYourCard = useCallback(() => {
+    trackEvent(
+      createEventBuilder(MetaMetricsEvents.CARD_BUTTON_CLICKED)
+        .addProperties({
+          action: CardActions.ORDER_METAL_CARD_BUTTON,
+        })
+        .build(),
+    );
+
+    navigation.navigate(Routes.CARD.CHOOSE_YOUR_CARD, {
+      flow: 'home',
+      shippingAddress: userShippingAddress,
+      priorityToken,
+      allTokens,
+      delegationSettings,
+      externalWalletDetailsData,
+    });
+  }, [
+    navigation,
+    trackEvent,
+    createEventBuilder,
+    userShippingAddress,
+    priorityToken,
+    allTokens,
+    delegationSettings,
+    externalWalletDetailsData,
+  ]);
+
   const ButtonsSection = useMemo(() => {
     if (isLoading) {
       return (
@@ -959,13 +1019,14 @@ const CardHome = () => {
     if (!isBaanxLoginEnabled) {
       return (
         <Button
-          variant={ButtonVariants.Primary}
-          label={strings('card.card_home.add_funds')}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
           onPress={addFundsAction}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-        />
+        >
+          {strings('card.card_home.add_funds')}
+        </Button>
       );
     }
 
@@ -980,40 +1041,47 @@ const CardHome = () => {
 
       return (
         <Button
-          variant={ButtonVariants.Primary}
-          label={strings('card.card_home.enable_card_button_label')}
+          variant={ButtonVariant.Primary}
           size={ButtonSize.Lg}
-          onPress={openOnboardingDelegationAction}
-          width={ButtonWidthTypes.Full}
+          onPress={
+            shouldRedirectToChooseCard
+              ? navigateToChooseYourCard
+              : openOnboardingDelegationAction
+          }
+          isFullWidth
           testID={cardSetupState.setupTestId}
-        />
+        >
+          {strings('card.card_home.enable_card_button_label')}
+        </Button>
       );
     }
 
     return (
       <Box twClassName="w-full gap-2 flex-row justify-between items-center">
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={tw.style(
             'w-1/2',
             !isSwapEnabledForPriorityToken && 'opacity-50',
           )}
-          label={strings('card.card_home.add_funds')}
           size={ButtonSize.Lg}
           onPress={addFundsAction}
-          width={ButtonWidthTypes.Full}
-          disabled={!isSwapEnabledForPriorityToken}
+          isFullWidth
+          isDisabled={!isSwapEnabledForPriorityToken}
           testID={CardHomeSelectors.ADD_FUNDS_BUTTON}
-        />
+        >
+          {strings('card.card_home.add_funds')}
+        </Button>
         <Button
-          variant={ButtonVariants.Primary}
+          variant={ButtonVariant.Primary}
           style={tw.style('w-1/2')}
-          label={strings('card.card_home.change_asset')}
           size={ButtonSize.Lg}
           onPress={changeAssetAction}
-          width={ButtonWidthTypes.Full}
+          isFullWidth
           testID={CardHomeSelectors.CHANGE_ASSET_BUTTON}
-        />
+        >
+          {strings('card.card_home.change_asset')}
+        </Button>
       </Box>
     );
   }, [
@@ -1026,6 +1094,8 @@ const CardHome = () => {
     tw,
     openOnboardingDelegationAction,
     isCardProvisioning,
+    shouldRedirectToChooseCard,
+    navigateToChooseYourCard,
   ]);
 
   const isUserEligibleForMetalCard = useMemo(
@@ -1213,15 +1283,16 @@ const CardHome = () => {
         {retries < 3 && !isAuthenticationError(cardError) && (
           <Box twClassName="pt-2">
             <Button
-              variant={ButtonVariants.Primary}
-              label={strings('card.card_home.try_again')}
+              variant={ButtonVariant.Primary}
               size={ButtonSize.Md}
               onPress={() => {
                 setRetries((prevState) => prevState + 1);
                 fetchAllData();
               }}
               testID={CardHomeSelectors.TRY_AGAIN_BUTTON}
-            />
+            >
+              {strings('card.card_home.try_again')}
+            </Button>
           </Box>
         )}
       </Box>
@@ -1507,23 +1578,21 @@ const CardHome = () => {
               testID="freeze-card-list-item"
             />
           )}
-        {isBaanxLoginEnabled &&
-          !isLoading &&
-          !isSolanaChainId(priorityToken?.caipChainId ?? '') && (
-            <ManageCardListItem
-              title={strings(
-                'card.card_home.manage_card_options.manage_spending_limit',
-              )}
-              description={strings(
-                priorityToken?.allowanceState === AllowanceState.Enabled
-                  ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
-                  : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
-              )}
-              rightIcon={IconName.ArrowRight}
-              onPress={manageSpendingLimitAction}
-              testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
-            />
-          )}
+        {isBaanxLoginEnabled && !isLoading && (
+          <ManageCardListItem
+            title={strings(
+              'card.card_home.manage_card_options.manage_spending_limit',
+            )}
+            description={strings(
+              priorityToken?.allowanceState === AllowanceState.Enabled
+                ? 'card.card_home.manage_card_options.manage_spending_limit_description_full'
+                : 'card.card_home.manage_card_options.manage_spending_limit_description_restricted',
+            )}
+            rightIcon={IconName.ArrowRight}
+            onPress={manageSpendingLimitAction}
+            testID={CardHomeSelectors.MANAGE_SPENDING_LIMIT_ITEM}
+          />
+        )}
       </Box>
       {!isLoading &&
         !cardSetupState.isKYCPending &&
@@ -1589,6 +1658,18 @@ const CardHome = () => {
               twClassName="text-text-alternative"
             >
               {strings('card.card_home.manage_card_options.card_tos_title')}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={contactSupportAction}
+            testID={CardHomeSelectors.CONTACT_SUPPORT_ITEM}
+            style={tw.style('py-4 px-4')}
+          >
+            <Text
+              variant={TextVariant.BodyMd}
+              twClassName="text-text-alternative"
+            >
+              {strings('card.card_home.contact_support')}
             </Text>
           </TouchableOpacity>
           <TouchableOpacity

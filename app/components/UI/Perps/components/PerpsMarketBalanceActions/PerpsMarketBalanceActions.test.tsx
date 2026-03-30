@@ -27,7 +27,6 @@ interface MockComponentProps {
 const mockNavigate = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
-const mockEnsureArbitrumNetworkExists = jest.fn();
 const mockStartPulseAnimation = jest.fn();
 const mockGetAnimatedStyle = jest.fn(() => ({}));
 const mockStopAnimation = jest.fn();
@@ -259,7 +258,7 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
   return {
     Skeleton: jest.fn(({ testID, width, height }) => (
@@ -350,16 +349,13 @@ describe('PerpsMarketBalanceActions', () => {
       depositWithConfirmation: mockDepositWithConfirmation,
     });
 
-    mockUsePerpsNetworkManagement.mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
-    });
+    mockUsePerpsNetworkManagement.mockReturnValue({});
 
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     });
 
     mockDepositWithConfirmation.mockResolvedValue({});
-    mockEnsureArbitrumNetworkExists.mockResolvedValue({});
   });
 
   describe('Rendering', () => {

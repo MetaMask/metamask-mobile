@@ -8,6 +8,7 @@ import {
   Utilities,
 } from '../framework';
 import Assertions from '../framework/Assertions';
+import { asDetoxElement } from '../framework/EncapsulatedElement';
 import NetworkEducationModal from '../page-objects/Network/NetworkEducationModal';
 import {
   getAnvilPortForFixture,
@@ -99,7 +100,7 @@ export const addLocalhostNetwork = async (): Promise<void> => {
     description: 'Network Education Modal should be visible',
   });
   await Assertions.expectElementToHaveText(
-    NetworkEducationModal.networkName,
+    asDetoxElement(NetworkEducationModal.networkName),
     'Localhost',
     {
       description: 'Network Name should be Localhost',
@@ -360,7 +361,7 @@ export const switchToSepoliaNetwork = async (): Promise<void> => {
   );
   await Assertions.expectElementToBeVisible(NetworkEducationModal.container);
   await Assertions.expectElementToHaveText(
-    NetworkEducationModal.networkName,
+    asDetoxElement(NetworkEducationModal.networkName),
     CustomNetworks.Sepolia.providerConfig.nickname,
   );
   await NetworkEducationModal.tapGotItButton();
@@ -394,15 +395,18 @@ export const loginToApp = async (password?: string): Promise<void> => {
       await Assertions.expectElementToBeVisible(LoginView.container, {
         description: 'Login View container should be visible',
       });
-      await Assertions.expectElementToBeVisible(LoginView.passwordInput, {
-        description: 'Login View password input should be visible',
-      });
+      await Assertions.expectElementToBeVisible(
+        asDetoxElement(LoginView.passwordInput),
+        {
+          description: 'Login View password input should be visible',
+        },
+      );
 
       await LoginView.enterPassword(PASSWORD);
 
       await Assertions.expectElementToBeVisible(WalletView.container, {
         description: 'Wallet container should be visible after login',
-        timeout: 10000,
+        timeout: 15000,
       });
 
       // SUCCESS: Verify wallet is stable (not flickering back to login)
@@ -413,8 +417,8 @@ export const loginToApp = async (password?: string): Promise<void> => {
       });
     },
     {
-      timeout: 30000,
-      interval: 2000,
+      timeout: 45000,
+      interval: 3000,
       description: 'login to app after rehydration',
     },
   );

@@ -22,6 +22,7 @@ import {
   StyleSheet as RNStyleSheet,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { connect, useDispatch, useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import {
@@ -41,8 +42,25 @@ import {
   PERPS_GTM_MODAL_SHOWN,
   PREDICT_GTM_MODAL_SHOWN,
 } from '../../../constants/storage';
-import { getWalletNavbarOptions } from '../../UI/Navbar';
 import Tokens from '../../UI/Tokens';
+import HeaderRoot from '../../../component-library/components-temp/HeaderRoot';
+import PickerAccount from '../../../component-library/components/Pickers/PickerAccount';
+import AddressCopy from '../../UI/AddressCopy';
+import CardButton from '../../UI/Card/components/CardButton';
+import { createAccountSelectorNavDetails } from '../AccountSelector';
+import { isNotificationsFeatureEnabled } from '../../../util/notifications';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
+import {
+  BadgeStatus,
+  BadgeStatusStatus,
+  BadgeWrapper,
+  BadgeWrapperPosition,
+  BadgeWrapperPositionAnchorShape,
+  ButtonIcon,
+  ButtonIconSize,
+  IconColor as MMDSIconColor,
+  IconName as MMDSIconName,
+} from '@metamask/design-system-react-native';
 
 import {
   NavigationProp,
@@ -78,22 +96,15 @@ import Engine from '../../../core/Engine';
 import { RootState } from '../../../reducers';
 import { selectSelectedInternalAccount } from '../../../selectors/accountsController';
 import { selectAccountBalanceByChainId } from '../../../selectors/accountTrackerController';
-import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
 import {
   selectChainId,
   selectEvmNetworkConfigurationsByChainId,
   selectIsAllNetworks,
   selectIsPopularNetwork,
   selectNetworkClientId,
-  selectNetworkConfigurations,
   selectProviderConfig,
 } from '../../../selectors/networkController';
 import {
-  selectNetworkImageSource,
-  selectNetworkName,
-} from '../../../selectors/networkInfos';
-import {
-  getMetamaskNotificationsReadCount,
   getMetamaskNotificationsUnreadCount,
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
@@ -179,7 +190,6 @@ import { AssetPollingProvider } from '../../hooks/AssetPolling/AssetPollingProvi
 import { selectDisplayCardButton } from '../../../core/redux/slices/card';
 import { usePna25BottomSheet } from '../../hooks/usePna25BottomSheet';
 import { useSafeChains } from '../../hooks/useSafeChains';
-import { useAccountMenuEnabled } from '../../../selectors/featureFlagController/accountMenu/useAccountMenuEnabled';
 import { useNetworkEnablement } from '../../hooks/useNetworkEnablement/useNetworkEnablement';
 
 const createStyles = ({ colors }: Theme) =>
@@ -209,6 +219,16 @@ const createStyles = ({ colors }: Theme) =>
     },
     carousel: {
       overflow: 'hidden', // Allow for smooth height animations
+    },
+    headerEndAccessoryContainer: {
+      alignItems: 'flex-end',
+    },
+    headerActionButtonsContainer: {
+      flexDirection: 'row',
+      gap: 8,
+    },
+    headerAccountPickerStyle: {
+      marginRight: 16,
     },
   });
 
@@ -626,7 +646,6 @@ const Wallet = ({
   const dispatch = useDispatch();
   const { navigateToSendPage } = useSendNavigation();
 
-  const networkConfigurations = useSelector(selectNetworkConfigurations);
   const evmNetworkConfigurations = useSelector(
     selectEvmNetworkConfigurationsByChainId,
   );
@@ -940,19 +959,9 @@ const Wallet = ({
     selectIsMetamaskNotificationsEnabled,
   );
 
-  const isBackupAndSyncEnabled = useSelector(selectIsBackupAndSyncEnabled);
-
   const unreadNotificationCount = useSelector(
     getMetamaskNotificationsUnreadCount,
   );
-
-  const readNotificationCount = useSelector(getMetamaskNotificationsReadCount);
-  const selectedNetworkName = useSelector(selectNetworkName);
-
-  const networkName =
-    networkConfigurations?.[chainId]?.name ?? selectedNetworkName;
-
-  const networkImageSource = useSelector(selectNetworkImageSource);
 
   const isAllNetworks = useSelector(selectIsAllNetworks);
   const isTokenDetectionEnabled = useSelector(selectUseTokenDetection);
@@ -967,7 +976,6 @@ const Wallet = ({
     isAllNetworks && isPopularNetworks ? allDetectedTokens : detectedTokens;
   const selectedNetworkClientId = useSelector(selectNetworkClientId);
 
-  const isAccountMenuEnabled = useAccountMenuEnabled();
   const { detectNfts } = useNftDetection();
 
   /**
@@ -989,22 +997,6 @@ const Wallet = ({
    * Show PNA25 bottom sheet if remote feature flag is enabled and never showed before
    */
   usePna25BottomSheet();
-
-  /**
-   * Callback to trigger when pressing the navigation title.
-   */
-  const onTitlePress = useCallback(() => {
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.SHEET.NETWORK_SELECTOR,
-    });
-    trackEvent(
-      createEventBuilder(MetaMetricsEvents.NETWORK_SELECTOR_PRESSED)
-        .addProperties({
-          chain_id: getDecimalChainId(chainId),
-        })
-        .build(),
-    );
-  }, [navigate, chainId, trackEvent, createEventBuilder]);
 
   /**
    * Check to see if notifications are enabled
@@ -1067,41 +1059,30 @@ const Wallet = ({
     }
   }, [isHomepageSectionsV1Enabled]);
 
-  useEffect(() => {
-    if (!selectedInternalAccount) return;
-    navigation.setOptions(
-      getWalletNavbarOptions(
-        walletRef,
-        selectedInternalAccount,
-        displayName,
-        networkName,
-        networkImageSource,
-        onTitlePress,
-        navigation,
-        colors,
-        isNotificationEnabled,
-        isBackupAndSyncEnabled,
-        unreadNotificationCount,
-        readNotificationCount,
-        shouldDisplayCardButton,
-        isAccountMenuEnabled,
-      ),
+  const touchAreaSlop = useMemo(
+    () => ({ top: 12, bottom: 12, left: 12, right: 12 }),
+    [],
+  );
+
+  const handleHamburgerPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.NAVIGATION_TAPS_SETTINGS,
+      )
+        .addProperties({ action: 'Navigation Drawer', name: 'Settings' })
+        .build(),
     );
-  }, [
-    selectedInternalAccount,
-    displayName,
-    networkName,
-    networkImageSource,
-    onTitlePress,
-    navigation,
-    colors,
-    isNotificationEnabled,
-    isBackupAndSyncEnabled,
-    unreadNotificationCount,
-    readNotificationCount,
-    shouldDisplayCardButton,
-    isAccountMenuEnabled,
-  ]);
+    navigation.navigate(Routes.SETTINGS_VIEW);
+  }, [navigation, trackEvent]);
+
+  const handleCardPress = useCallback(() => {
+    trackEvent(
+      AnalyticsEventBuilder.createEventBuilder(
+        MetaMetricsEvents.CARD_HOME_CLICKED,
+      ).build(),
+    );
+    navigation.navigate(Routes.CARD.ROOT);
+  }, [navigation, trackEvent]);
 
   const getTokenAddedAnalyticsParams = useCallback(
     ({ address, symbol }: { address: string; symbol: string }) => {
@@ -1283,10 +1264,16 @@ const Wallet = ({
     return () => scrollSubscribersRef.current.delete(cb);
   }, []);
 
-  // Reset viewed sections on each new visit so session summary starts fresh.
-  useEffect(() => {
-    viewedSectionsRef.current.clear();
-  }, [visitId]);
+  // Reset viewed sections synchronously on focus, before the new visitId
+  // propagates to child effects that re-add sections. A useEffect on [visitId]
+  // runs after children's effects (React runs children before parents), so
+  // sections would add themselves then the parent would clear them — causing
+  // total_sections_viewed to always be 0 on the second+ visit.
+  useFocusEffect(
+    useCallback(() => {
+      viewedSectionsRef.current.clear();
+    }, []),
+  );
 
   const notifySectionViewed = useCallback((sectionName: string) => {
     viewedSectionsRef.current.add(sectionName);
@@ -1388,50 +1375,132 @@ const Wallet = ({
   return (
     <ErrorBoundary navigation={navigation} view="Wallet">
       <PerpsAlwaysOnProvider>
-        <View style={baseStyles.flexGrow}>
+        <SafeAreaView
+          style={[
+            baseStyles.flexGrow,
+            { backgroundColor: colors.background.default },
+          ]}
+          edges={{ top: 'additive' }}
+          testID={WalletViewSelectorsIDs.WALLET_SAFE_AREA}
+        >
           {selectedInternalAccount ? (
-            <View
-              ref={containerViewRef}
-              style={styles.wrapper}
-              testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
-              onLayout={(e) => {
-                setViewportHeight(e.nativeEvent.layout.height);
-                // measureInWindow gives the absolute screen Y of the container
-                // top, which is needed to form correct visible bounds when
-                // sections call measureInWindow on themselves.
-                containerViewRef.current?.measureInWindow((_x, y) => {
-                  setContainerScreenY(y);
-                });
-              }}
-            >
-              <ConditionalScrollView
-                ref={scrollViewRef}
-                isScrollEnabled={shouldEnableParentScroll}
-                scrollViewProps={{
-                  testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
-                  contentContainerStyle: scrollViewContentStyle,
-                  showsVerticalScrollIndicator: false,
-                  onScroll: isHomepageSectionsV1Enabled
-                    ? handleHomepageScroll
-                    : undefined,
-                  scrollEventThrottle: 16,
-                  refreshControl: shouldEnableParentScroll ? (
-                    <RefreshControl
-                      colors={[colors.primary.default]}
-                      tintColor={colors.icon.default}
-                      refreshing={refreshing}
-                      onRefresh={handleRefresh}
-                    />
-                  ) : undefined,
+            <>
+              <HeaderRoot
+                testID={WalletViewSelectorsIDs.WALLET_HEADER_ROOT}
+                endAccessory={
+                  <View style={styles.headerEndAccessoryContainer}>
+                    <View style={styles.headerActionButtonsContainer}>
+                      <View
+                        testID={
+                          WalletViewSelectorsIDs.NAVBAR_ADDRESS_COPY_BUTTON
+                        }
+                      >
+                        <AddressCopy hitSlop={touchAreaSlop} />
+                      </View>
+                      {shouldDisplayCardButton && (
+                        <CardButton
+                          onPress={handleCardPress}
+                          touchAreaSlop={touchAreaSlop}
+                        />
+                      )}
+                      {isNotificationsFeatureEnabled() ? (
+                        <BadgeWrapper
+                          position={BadgeWrapperPosition.TopRight}
+                          positionAnchorShape={
+                            BadgeWrapperPositionAnchorShape.Circular
+                          }
+                          badge={
+                            isNotificationEnabled &&
+                            unreadNotificationCount > 0 ? (
+                              <BadgeStatus
+                                status={BadgeStatusStatus.Attention}
+                              />
+                            ) : null
+                          }
+                        >
+                          <ButtonIcon
+                            iconProps={{
+                              color: MMDSIconColor.IconDefault,
+                            }}
+                            onPress={handleHamburgerPress}
+                            iconName={MMDSIconName.Menu}
+                            size={ButtonIconSize.Md}
+                            testID={
+                              WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                            }
+                            hitSlop={touchAreaSlop}
+                          />
+                        </BadgeWrapper>
+                      ) : (
+                        <ButtonIcon
+                          iconProps={{
+                            color: MMDSIconColor.IconDefault,
+                          }}
+                          onPress={handleHamburgerPress}
+                          iconName={MMDSIconName.Menu}
+                          size={ButtonIconSize.Md}
+                          testID={
+                            WalletViewSelectorsIDs.WALLET_HAMBURGER_MENU_BUTTON
+                          }
+                          hitSlop={touchAreaSlop}
+                        />
+                      )}
+                    </View>
+                  </View>
+                }
+                twClassName="pl-1 pr-3"
+              >
+                <PickerAccount
+                  ref={walletRef}
+                  accountName={displayName}
+                  onPress={() =>
+                    navigation.navigate(...createAccountSelectorNavDetails({}))
+                  }
+                  testID={WalletViewSelectorsIDs.ACCOUNT_ICON}
+                  hitSlop={touchAreaSlop}
+                  style={styles.headerAccountPickerStyle}
+                />
+              </HeaderRoot>
+              <View
+                ref={containerViewRef}
+                style={styles.wrapper}
+                testID={WalletViewSelectorsIDs.WALLET_CONTAINER}
+                onLayout={(e) => {
+                  setViewportHeight(e.nativeEvent.layout.height);
+                  containerViewRef.current?.measureInWindow((_x, y) => {
+                    setContainerScreenY(y);
+                  });
                 }}
               >
-                {content}
-              </ConditionalScrollView>
-            </View>
+                <ConditionalScrollView
+                  ref={scrollViewRef}
+                  isScrollEnabled={shouldEnableParentScroll}
+                  scrollViewProps={{
+                    testID: WalletViewSelectorsIDs.WALLET_SCROLL_VIEW,
+                    contentContainerStyle: scrollViewContentStyle,
+                    showsVerticalScrollIndicator: false,
+                    onScroll: isHomepageSectionsV1Enabled
+                      ? handleHomepageScroll
+                      : undefined,
+                    scrollEventThrottle: 16,
+                    refreshControl: shouldEnableParentScroll ? (
+                      <RefreshControl
+                        colors={[colors.primary.default]}
+                        tintColor={colors.icon.default}
+                        refreshing={refreshing}
+                        onRefresh={handleRefresh}
+                      />
+                    ) : undefined,
+                  }}
+                >
+                  {content}
+                </ConditionalScrollView>
+              </View>
+            </>
           ) : (
             renderLoader()
           )}
-        </View>
+        </SafeAreaView>
       </PerpsAlwaysOnProvider>
     </ErrorBoundary>
   );

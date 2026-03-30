@@ -5,9 +5,7 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
-  selectSelectedCountry,
   selectUserCardLocation,
-  selectCardGeoLocation,
   selectAlwaysShowCardButton,
 } from '../../../redux/slices/card';
 import {
@@ -16,13 +14,10 @@ import {
   selectCardFeatureFlag,
   CardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
+import { selectGeolocationLocation } from '../../../../selectors/geolocationController';
 import { isBaanxLoginEnabled } from '../../../../components/UI/Card/hooks/isBaanxLoginEnabled';
 import { CardSDK } from '../../../../components/UI/Card/sdk/CardSDK';
-import { mapCountryToLocation } from '../../../../components/UI/Card/util/mapCountryToLocation';
-import {
-  CardLocation,
-  CardVerificationState,
-} from '../../../../components/UI/Card/types';
+import { CardVerificationState } from '../../../../components/UI/Card/types';
 
 /**
  * Card KYC notification deeplink handler
@@ -59,7 +54,7 @@ export const handleCardKycNotification = async () => {
     // Check feature flags
     const shouldHandleKycNotification = isBaanxLoginEnabled({
       alwaysShowCardButton: selectAlwaysShowCardButton(state),
-      cardGeoLocation: selectCardGeoLocation(state) as string,
+      geolocationLocation: selectGeolocationLocation(state),
       cardSupportedCountries: selectCardSupportedCountries(state) as Record<
         string,
         boolean
@@ -149,13 +144,9 @@ async function handleOnboardingFlow(
   );
 
   // Get location from selectedCountry
-  const selectedCountry = selectSelectedCountry(state);
-  const location: CardLocation = mapCountryToLocation(
-    selectedCountry?.key ?? null,
-  );
+  const location = selectUserCardLocation(state);
 
   Logger.log('[handleCardKycNotification] Determined location:', {
-    selectedCountryKey: selectedCountry?.key,
     location,
   });
 

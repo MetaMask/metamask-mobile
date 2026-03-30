@@ -184,7 +184,10 @@ describe('PerpsSelectModifyActionView', () => {
 
     fireEvent.press(screen.getByTestId('reduce-position'));
 
-    expect(mockNavigateToClosePosition).toHaveBeenCalledWith(mockLongPosition);
+    expect(mockNavigateToClosePosition).toHaveBeenCalledWith(
+      mockLongPosition,
+      'position_screen',
+    );
   });
 
   it('calls onReversePosition when flip_position is selected with callback', () => {

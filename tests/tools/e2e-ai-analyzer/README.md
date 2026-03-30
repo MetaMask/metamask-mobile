@@ -10,6 +10,20 @@ It is designed to be used in different **modes**, being each mode responsible fo
 
 You need at least one API key set (see Configuration): `E2E_CLAUDE_API_KEY`, `E2E_OPENAI_API_KEY`, or `E2E_GEMINI_API_KEY`.
 
+#### Creating Release Test Plan
+
+A `test:e2e:ai-test-plan` script is available in `package.json` for the `generate-test-plan` mode. Pass dynamic flags (like `--pr`) after `--`:
+
+```bash
+# Generate a test plan for a specific PR
+E2E_CLAUDE_API_KEY=<your-key> yarn test:e2e:ai-test-plan --pr <PR_NUMBER>
+
+# If E2E_CLAUDE_API_KEY is already exported in your shell, just:
+yarn test:e2e:ai-test-plan --pr <PR_NUMBER>
+```
+
+#### Direct invocation
+
 ```bash
 # Analyze a PR (fetches changed files via gh CLI; requires gh auth and network)
 node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --pr <PR_NUMBER>

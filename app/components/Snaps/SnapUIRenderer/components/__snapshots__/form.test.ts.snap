@@ -282,15 +282,18 @@ exports[`SnapUIForm will render with fields 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
-                  testID="label"
                 >
                   My Input
                 </Text>
@@ -398,15 +401,18 @@ exports[`SnapUIForm will render with fields 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
-                  testID="label"
                 >
                   My Checkbox
                 </Text>
@@ -490,15 +496,18 @@ exports[`SnapUIForm will render with fields 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
-                  testID="label"
                 >
                   My Radio Group
                 </Text>
@@ -631,15 +640,18 @@ exports[`SnapUIForm will render with fields 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
-                  testID="label"
                 >
                   My Dropdown
                 </Text>
@@ -1331,15 +1343,18 @@ exports[`SnapUIForm will render with fields 1`] = `
                 <Text
                   accessibilityRole="text"
                   style={
-                    {
-                      "color": "#131416",
-                      "fontFamily": "Geist-Medium",
-                      "fontSize": 16,
-                      "letterSpacing": 0,
-                      "lineHeight": 24,
-                    }
+                    [
+                      {
+                        "color": "#131416",
+                        "fontFamily": "Geist-Medium",
+                        "fontSize": 16,
+                        "fontWeight": 400,
+                        "letterSpacing": 0,
+                        "lineHeight": 24,
+                      },
+                      undefined,
+                    ]
                   }
-                  testID="label"
                 >
                   My Selector
                 </Text>

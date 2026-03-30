@@ -19,8 +19,11 @@ interface OrderPreviewResult {
  * isLoading/isCalculating flags are used by all 3 consumers for skeleton/inline states.
  */
 export function usePredictOrderPreview(
-  params: PreviewOrderParams & { autoRefreshTimeout?: number },
+  params: PreviewOrderParams & {
+    autoRefreshTimeout?: number;
+  },
 ): OrderPreviewResult {
+  // Destructure params for stable dependencies
   const {
     marketId,
     outcomeId,
@@ -76,6 +79,7 @@ export function usePredictOrderPreview(
 
   useEffect(() => {
     if (!query.error) return;
+
     Logger.error(ensureError(query.error), {
       tags: {
         feature: PREDICT_CONSTANTS.FEATURE_NAME,

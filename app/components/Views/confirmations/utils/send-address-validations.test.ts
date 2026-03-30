@@ -1,7 +1,8 @@
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as ConfusablesUtils from '../../../../util/confusables';
 import {
   getConfusableCharacterInfo,
+  validateBitcoinAddress,
   validateHexAddress,
   validateSolanaAddress,
   validateTronAddress,
@@ -63,6 +64,12 @@ describe('validateHexAddress', () => {
         "You are sending tokens to the token's contract address. This may result in the loss of these tokens.",
     });
   });
+  it('returns empty object when chainId is undefined', async () => {
+    expect(
+      await validateHexAddress('0xdB055877e6c13b6A6B25aBcAA29B393777dD0a73'),
+    ).toStrictEqual({});
+  });
+
   it('returns warning if address is contract address', async () => {
     mockMemoizedGetTokenStandardAndDetails.mockResolvedValue({
       standard: 'ERC20',
@@ -73,6 +80,7 @@ describe('validateHexAddress', () => {
         '0x1',
       ),
     ).toStrictEqual({
+      allowAcknowledge: true,
       error:
         'This address is a token contract address. If you send tokens to this address, you will lose them.',
     });
@@ -118,6 +126,20 @@ describe('validateTronAddress', () => {
   it('does not returns error if address is solana address', () => {
     expect(
       validateTronAddress('TA9vN2KmER9cuVBaHxQjzzRtXnBCdF7D4u'),
+    ).toStrictEqual({});
+  });
+});
+
+describe('validateBitcoinAddress', () => {
+  it('returns error if address is not a valid Bitcoin mainnet address', () => {
+    expect(validateBitcoinAddress('not-a-bitcoin-address')).toStrictEqual({
+      error: 'Invalid address',
+    });
+  });
+
+  it('returns empty object for valid Bitcoin mainnet address', () => {
+    expect(
+      validateBitcoinAddress('bc1qar0srrr7xfkvy5l643lydnw9re59gtzzwf5mdq'),
     ).toStrictEqual({});
   });
 });

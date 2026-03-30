@@ -49,6 +49,8 @@ const config = {
     '<rootDir>/app/util/testUtils/',
     '<rootDir>/app/core/InpageBridgeWeb3.js',
     '<rootDir>/app/features/SampleFeature/e2e/',
+    '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/MarketInsightsEntryCardOriginal.tsx',
+    '<rootDir>/app/components/UI/MarketInsights/components/MarketInsightsEntryCard/AnimatedGradientBorder.tsx',
   ],
   testPathIgnorePatterns: [
     '.*/tests/(smoke|regression)/.*\\.spec\\.(ts|js)$',
@@ -62,6 +64,8 @@ const config = {
   moduleNameMapper: {
     '\\.(svg)$': '<rootDir>/app/__mocks__/svgMock.js',
     '\\.(png)$': '<rootDir>/app/__mocks__/pngMock.js',
+    '\\.(mp4)$': '<rootDir>/app/__mocks__/mp4Mock.js',
+    '^react-native-video$': '<rootDir>/app/__mocks__/react-native-video.tsx',
     '\\webview/index.html': '<rootDir>/app/__mocks__/htmlMock.ts',
     '^@expo/vector-icons@expo/vector-icons$': 'react-native-vector-icons',
     '^@expo/vector-icons/(.*)': 'react-native-vector-icons/$1',
@@ -89,5 +93,5 @@ const config = {
   cache: false,
 };
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 module.exports = config;

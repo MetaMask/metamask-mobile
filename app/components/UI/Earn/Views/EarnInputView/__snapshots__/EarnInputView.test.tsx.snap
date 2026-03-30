@@ -975,6 +975,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-1"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1027,6 +1028,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-2"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1079,6 +1081,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-3"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1145,6 +1148,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-4"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1197,6 +1201,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-5"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1249,6 +1254,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-6"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1315,6 +1321,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-7"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1367,6 +1374,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-8"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1419,6 +1427,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-9"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1487,6 +1496,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     },
                                   ]
                                 }
+                                testID="keypad-key-dot"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -1539,6 +1549,7 @@ exports[`EarnInputView render matches snapshot 1`] = `
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-0"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -2648,6 +2659,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-1"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -2700,6 +2712,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-2"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -2752,6 +2765,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-3"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -2818,6 +2832,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-4"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -2870,6 +2885,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-5"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -2922,6 +2938,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-6"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -2988,6 +3005,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-7"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -3040,6 +3058,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-8"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -3092,6 +3111,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-9"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -3160,6 +3180,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     },
                                   ]
                                 }
+                                testID="keypad-key-dot"
                               >
                                 <Text
                                   accessibilityRole="none"
@@ -3212,6 +3233,7 @@ exports[`EarnInputView when values are entered in the keypad updates ETH and fia
                                     undefined,
                                   ]
                                 }
+                                testID="keypad-key-0"
                               >
                                 <Text
                                   accessibilityRole="none"
