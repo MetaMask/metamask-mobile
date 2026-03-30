@@ -277,6 +277,9 @@ const OndoCampaignDetailsView: React.FC = () => {
                 </>
               )}
 
+              {/* Competition closed banner
+                  - for when cutoff date has passed and user is not opted in
+                  - or when the campaign is complete */}
               {showCompetitionEndedBanner && (
                 <>
                   <Box twClassName="border-b border-border-muted" />
