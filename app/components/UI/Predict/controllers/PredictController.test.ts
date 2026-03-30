@@ -219,6 +219,26 @@ describe('PredictController', () => {
       prepareWithdrawConfirmation: jest.fn(),
     } as unknown as jest.Mocked<PolymarketProvider>;
 
+    // Default safe mocks for async fire-and-forget methods
+    // (prevents unhandled rejections when payWithAnyTokenConfirmation is
+    // triggered by onBuyPaymentTokenChange but the async chain completes
+    // after mock cleanup)
+    mockPolymarketProvider.prepareDeposit.mockResolvedValue({
+      transactions: [
+        {
+          params: {
+            to: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174' as `0x${string}`,
+            data: '0xa9059cbb' as `0x${string}`,
+          },
+          type: TransactionType.predictDeposit,
+        },
+      ],
+      chainId: '0x89',
+    });
+    (addTransactionBatch as jest.Mock).mockResolvedValue({
+      batchId: 'default-batch',
+    });
+
     // Mock the PolymarketProvider constructor
     (
       PolymarketProvider as unknown as jest.MockedClass<
@@ -3600,7 +3620,828 @@ describe('PredictController', () => {
     });
   });
 
+  describe('initializeOrder', () => {
+    it('sets activeOrder to PREVIEW with isInputFocused', () => {
+      withController(({ controller }) => {
+        controller.initializeOrder();
+
+        expect(controller.state.activeOrder).toEqual({
+          state: ActiveOrderState.PREVIEW,
+          isInputFocused: true,
+        });
+      });
+    });
+
+    it('clears selectedPaymentToken', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0xabc',
+          chainId: '0x89',
+        });
+
+        controller.initializeOrder();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('tracks INITIATED analytics event', () => {
+      withController(({ controller }) => {
+        const analyticsProps = { marketId: 'market-1' };
+
+        controller.initializeOrder(
+          analyticsProps as Parameters<typeof controller.initializeOrder>[0],
+        );
+
+        expect(analytics.trackEvent).toHaveBeenCalled();
+      });
+    });
+
+    it('resets any previous activeOrder state', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 100,
+          state: ActiveOrderState.PLACING_ORDER,
+          batchId: 'old-batch',
+          error: 'old error',
+        });
+
+        controller.initializeOrder();
+
+        expect(controller.state.activeOrder).toEqual({
+          state: ActiveOrderState.PREVIEW,
+          isInputFocused: true,
+        });
+      });
+    });
+  });
+
+  describe('onConfirmOrder', () => {
+    it('clears error and sets state to DEPOSIT when isDeposit is true', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'previous error',
+        });
+
+        controller.onConfirmOrder({ isDeposit: true });
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.DEPOSIT,
+        );
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('clears error and sets state to PLACE_ORDER when isDeposit is false', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'previous error',
+        });
+
+        controller.onConfirmOrder({ isDeposit: false });
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PLACE_ORDER,
+        );
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(() =>
+          controller.onConfirmOrder({ isDeposit: true }),
+        ).not.toThrow();
+      });
+    });
+  });
+
+  describe('onBuyPaymentTokenChange', () => {
+    const createAssetToken = (
+      overrides: Partial<{ address: string; chainId: string; symbol: string }>,
+    ) =>
+      ({
+        address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+        chainId: '0x89',
+        symbol: 'USDC.e',
+        decimals: 6,
+        image: '',
+        name: 'USDC.e',
+        balance: '0',
+        logo: undefined,
+        isETH: false,
+        ...overrides,
+      }) as any;
+
+    it('does nothing when token is null', () => {
+      withController(({ controller }) => {
+        const existingToken = {
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        };
+        controller.setSelectedPaymentToken(existingToken);
+
+        controller.onBuyPaymentTokenChange(null);
+
+        expect(controller.state.selectedPaymentToken).toEqual(existingToken);
+      });
+    });
+
+    it('sets selectedPaymentToken to null for balance placeholder address', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        controller.onBuyPaymentTokenChange(
+          createAssetToken({
+            address: '0x0000000000000000000000000000000000000001',
+          }),
+        );
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('sets selectedPaymentToken for external token', () => {
+      withController(({ controller }) => {
+        controller.onBuyPaymentTokenChange(
+          createAssetToken({
+            address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+            chainId: '0x89',
+            symbol: 'USDC.e',
+          }),
+        );
+
+        expect(controller.state.selectedPaymentToken).toEqual({
+          address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+          chainId: '0x89',
+          symbol: 'USDC.e',
+        });
+      });
+    });
+
+    it('clears error and transitions PAY_WITH_ANY_TOKEN to PREVIEW for balance token', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          batchId: 'batch-123',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+          error: 'previous error',
+        });
+
+        controller.onBuyPaymentTokenChange(
+          createAssetToken({
+            address: '0x0000000000000000000000000000000000000001',
+          }),
+        );
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeOrder?.batchId).toBeUndefined();
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('clears error and transitions PREVIEW to REDIRECTING for external token', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'old error',
+        });
+
+        controller.onBuyPaymentTokenChange(
+          createAssetToken({
+            address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+          }),
+        );
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.REDIRECTING,
+        );
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+        expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('does not change state when in PAY_WITH_ANY_TOKEN and external token selected', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.onBuyPaymentTokenChange(
+          createAssetToken({
+            address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+          }),
+        );
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+      });
+    });
+
+    it('does not change state when in PREVIEW and balance token selected', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.onBuyPaymentTokenChange(
+          createAssetToken({
+            address: '0x0000000000000000000000000000000000000001',
+          }),
+        );
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+      });
+    });
+
+    it('still sets selectedPaymentToken when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        controller.onBuyPaymentTokenChange(
+          createAssetToken({
+            address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+            chainId: '0x89',
+            symbol: 'USDC.e',
+          }),
+        );
+
+        expect(controller.state.selectedPaymentToken).toEqual({
+          address: '0x3c499c542cef5e3811e1192ce70d8cc03d5c3359',
+          chainId: '0x89',
+          symbol: 'USDC.e',
+        });
+      });
+    });
+  });
+
+  describe('setOrderAmount', () => {
+    it('sets the amount on activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 0,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.setOrderAmount(50);
+
+        expect(controller.state.activeOrder?.amount).toBe(50);
+      });
+    });
+
+    it('preserves error when setting amount', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 0,
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+
+        controller.setOrderAmount(50);
+
+        expect(controller.state.activeOrder?.error).toBe('some error');
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.setOrderAmount(50)).not.toThrow();
+      });
+    });
+  });
+
+  describe('clearOrderError', () => {
+    it('clears error from activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+
+        controller.clearOrderError();
+
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('does nothing when activeOrder has no error', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.clearOrderError();
+
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.clearOrderError()).not.toThrow();
+      });
+    });
+
+    it('preserves other activeOrder properties', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+
+        controller.clearOrderError();
+
+        expect(controller.state.activeOrder?.amount).toBe(50);
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+      });
+    });
+  });
+
+  describe('setOrderInputFocused', () => {
+    it('sets isInputFocused on activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          isInputFocused: false,
+        });
+
+        controller.setOrderInputFocused(true);
+
+        expect(controller.state.activeOrder?.isInputFocused).toBe(true);
+      });
+    });
+
+    it('sets isInputFocused to false', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          isInputFocused: true,
+        });
+
+        controller.setOrderInputFocused(false);
+
+        expect(controller.state.activeOrder?.isInputFocused).toBe(false);
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.setOrderInputFocused(true)).not.toThrow();
+      });
+    });
+
+    it('preserves other activeOrder properties', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+
+        controller.setOrderInputFocused(true);
+
+        expect(controller.state.activeOrder?.amount).toBe(50);
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeOrder?.error).toBe('some error');
+      });
+    });
+  });
+
+  describe('onDepositOrderFailed', () => {
+    it('sets activeOrder state to REDIRECTING', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        controller.onDepositOrderFailed('Deposit failed');
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.REDIRECTING,
+        );
+      });
+    });
+
+    it('sets the error message on activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        controller.onDepositOrderFailed('Something went wrong');
+
+        expect(controller.state.activeOrder?.error).toBe(
+          'Something went wrong',
+        );
+      });
+    });
+
+    it('removes batchId from activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.DEPOSITING,
+          batchId: 'batch-123',
+        });
+
+        controller.onDepositOrderFailed('error');
+
+        expect(controller.state.activeOrder?.batchId).toBeUndefined();
+      });
+    });
+
+    it('preserves amount when resetting state', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 75,
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        controller.onDepositOrderFailed('error');
+
+        expect(controller.state.activeOrder?.amount).toBe(75);
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onDepositOrderFailed('error')).not.toThrow();
+      });
+    });
+  });
+
+  describe('startPayWithAnyTokenConfirmation', () => {
+    it('sets activeOrder state to CALLING_PAY_WITH_ANY_TOKEN', () => {
+      withController(({ controller }) => {
+        jest
+          .spyOn(controller, 'payWithAnyTokenConfirmation')
+          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
+
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+          error: 'old error',
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+        );
+        expect(controller.state.activeOrder?.error).toBeUndefined();
+      });
+    });
+
+    it('keeps activeOrder in CALLING state while waiting for approval request', async () => {
+      await withController(async ({ controller }) => {
+        jest
+          .spyOn(controller, 'payWithAnyTokenConfirmation')
+          .mockResolvedValue({ success: true, response: { batchId: 'mock' } });
+
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+        );
+      });
+    });
+
+    it('returns activeOrder to PREVIEW when confirmation batch creation fails', async () => {
+      await withController(async ({ controller }) => {
+        jest
+          .spyOn(controller, 'payWithAnyTokenConfirmation')
+          .mockRejectedValue(new Error('Deposit failed'));
+
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+        await new Promise((resolve) => setImmediate(resolve));
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'Deposit failed',
+        });
+      });
+    });
+
+    it('does nothing when activeOrder is not REDIRECTING', () => {
+      withController(({ controller }) => {
+        jest.spyOn(controller, 'payWithAnyTokenConfirmation');
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        controller.startPayWithAnyTokenConfirmation();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.payWithAnyTokenConfirmation).not.toHaveBeenCalled();
+      });
+    });
+  });
+
+  describe('onPayWithAnyTokenConfirmationReady', () => {
+    it('transitions from CALLING_PAY_WITH_ANY_TOKEN to PAY_WITH_ANY_TOKEN', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.onPayWithAnyTokenConfirmationReady();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        );
+      });
+    });
+
+    it('does nothing in other states', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+        });
+
+        controller.onPayWithAnyTokenConfirmationReady();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.REDIRECTING,
+        );
+      });
+    });
+  });
+
+  describe('onPayWithAnyTokenConfirmationFailed', () => {
+    it('resets activeOrder state to PREVIEW and stores the error', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          batchId: 'batch-123',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        controller.onPayWithAnyTokenConfirmationFailed('Deposit failed');
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+          error: 'Deposit failed',
+        });
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(() =>
+          controller.onPayWithAnyTokenConfirmationFailed('error'),
+        ).not.toThrow();
+      });
+    });
+  });
+
+  describe('onOrderError', () => {
+    it('resets activeOrder state to PREVIEW', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PLACING_ORDER,
+        });
+
+        controller.onOrderError();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+      });
+    });
+
+    it('preserves other activeOrder fields', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 100,
+          batchId: 'batch-456',
+          state: ActiveOrderState.DEPOSITING,
+        });
+
+        controller.onOrderError();
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 100,
+          batchId: 'batch-456',
+          state: ActiveOrderState.PREVIEW,
+        });
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onOrderError()).not.toThrow();
+      });
+    });
+
+    it('clears selectedPaymentToken', () => {
+      withController(({ controller }) => {
+        const token = {
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        };
+        controller.setSelectedPaymentToken(token);
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PLACING_ORDER,
+        });
+
+        controller.onOrderError();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+  });
+
+  describe('onOrderEnd', () => {
+    it('clears activeOrder', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PLACING_ORDER,
+        });
+
+        controller.onOrderCancelled();
+
+        expect(controller.state.activeOrder).toBeNull();
+      });
+    });
+
+    it('clears selectedPaymentToken', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+
+        controller.onOrderCancelled();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('does not throw when activeOrder is already null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onOrderCancelled()).not.toThrow();
+      });
+    });
+  });
+
+  describe('onPlaceOrderError', () => {
+    it('resets activeOrder state to PREVIEW', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PLACING_ORDER,
+        });
+
+        controller.onOrderError();
+
+        expect(controller.state.activeOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+      });
+    });
+
+    it('clears selectedPaymentToken', () => {
+      withController(({ controller }) => {
+        controller.setSelectedPaymentToken({
+          address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+          chainId: '0x89',
+          symbol: 'USDC',
+        });
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PLACING_ORDER,
+        });
+
+        controller.onOrderError();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+
+    it('preserves other activeOrder fields when resetting state', () => {
+      withController(({ controller }) => {
+        controller.setActiveOrder({
+          amount: 75,
+          batchId: 'batch-123',
+          state: ActiveOrderState.PLACING_ORDER,
+          error: 'some error',
+        });
+
+        controller.onOrderError();
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 75,
+          batchId: 'batch-123',
+          state: ActiveOrderState.PREVIEW,
+          error: 'some error',
+        });
+      });
+    });
+
+    it('does not throw when activeOrder is null', () => {
+      withController(({ controller }) => {
+        expect(controller.state.activeOrder).toBeNull();
+
+        expect(() => controller.onOrderError()).not.toThrow();
+
+        expect(controller.state.selectedPaymentToken).toBeNull();
+      });
+    });
+  });
+
   describe('payWithAnyTokenConfirmation', () => {
+    it('throws error when there is no active order', async () => {
+      await withController(async ({ controller }) => {
+        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
+          'Active order is required for pay-with-any-token confirmation',
+        );
+
+        expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
+    it('throws error when an active order batch is already in progress', async () => {
+      await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.REDIRECTING,
+          batchId: 'batch-in-progress',
+        });
+
+        await expect(controller.payWithAnyTokenConfirmation()).rejects.toThrow(
+          'Pay-with-any-token confirmation is already in progress',
+        );
+
+        expect(controller.state.activeOrder?.batchId).toBe('batch-in-progress');
+        expect(mockPolymarketProvider.prepareDeposit).not.toHaveBeenCalled();
+        expect(addTransactionBatch).not.toHaveBeenCalled();
+      });
+    });
+
     it('uses predict deposit transaction when setup transactions are present', async () => {
       const setupTransaction = {
         params: {
@@ -3627,6 +4468,11 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
         const result = await controller.payWithAnyTokenConfirmation();
 
         expect(result).toEqual({
@@ -3668,6 +4514,11 @@ describe('PredictController', () => {
       });
 
       await withController(async ({ controller }) => {
+        controller.setActiveOrder({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+
         const result = await controller.payWithAnyTokenConfirmation();
 
         expect(result).toEqual({
@@ -4133,6 +4984,65 @@ describe('PredictController', () => {
         expect(controller.state.pendingDeposits[accountAddress]).toBe(
           undefined,
         );
+      });
+    });
+
+    it('preserves preview activeOrder when deposit-and-order transaction is rejected after switching back to balance', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        controller.setActiveOrder({
+          amount: 50,
+          batchId: 'batch-1',
+          state: ActiveOrderState.PREVIEW,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder).toEqual({
+          amount: 50,
+          state: ActiveOrderState.PREVIEW,
+        });
+      });
+    });
+
+    it('clears activeOrder when deposit-and-order transaction is rejected outside preview', () => {
+      withController(({ controller, messenger }) => {
+        const transactionMeta = createPredictTransactionMeta({
+          nestedType: TransactionType.predictDeposit,
+          status: TransactionStatus.rejected,
+          batchId: 'batch-1',
+        });
+
+        controller.setActiveOrder({
+          amount: 50,
+          batchId: 'batch-1',
+          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
+        });
+
+        messenger.publish('TransactionController:transactionStatusUpdated', {
+          transactionMeta: {
+            ...transactionMeta,
+            type: TransactionType.predictDepositAndOrder,
+            nestedTransactions: [
+              { type: TransactionType.predictDepositAndOrder },
+            ],
+          },
+        } as { transactionMeta: TransactionMeta });
+
+        expect(controller.state.activeOrder).toBeNull();
       });
     });
 

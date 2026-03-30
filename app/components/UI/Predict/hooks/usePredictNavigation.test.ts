@@ -21,7 +21,6 @@ jest.mock('./usePredictActiveOrder', () => ({
   usePredictActiveOrder: () => ({
     initializeActiveOrder: mockInitializeActiveOrder,
     activeOrder: null,
-    updateActiveOrder: jest.fn(),
     clearActiveOrder: jest.fn(),
   }),
 }));
@@ -102,7 +101,6 @@ describe('usePredictNavigation', () => {
     it('passes all params to the navigation call', () => {
       const { result } = renderHook(() => usePredictNavigation());
       const params = createMockParams({
-        isConfirmation: true,
         animationEnabled: false,
       });
 
@@ -113,7 +111,6 @@ describe('usePredictNavigation', () => {
       expect(mockNavigate).toHaveBeenCalledWith(
         Routes.PREDICT.MODALS.BUY_PREVIEW,
         expect.objectContaining({
-          isConfirmation: true,
           animationEnabled: false,
         }),
       );

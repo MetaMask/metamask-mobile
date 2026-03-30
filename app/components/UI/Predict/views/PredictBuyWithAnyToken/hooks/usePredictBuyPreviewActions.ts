@@ -5,21 +5,16 @@ import {
   useRoute,
 } from '@react-navigation/native';
 import { PredictNavigationParamList } from '../../../types/navigation';
-import { useCallback, useMemo, useState } from 'react';
-import { usePredictNavigation } from '../../../hooks/usePredictNavigation';
-import { useConfirmActions } from '../../../../../Views/confirmations/hooks/useConfirmActions';
-import { usePredictPayWithAnyToken } from '../../../hooks/usePredictPayWithAnyToken';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { PlaceOrderOutcome } from '../../../hooks/usePredictPlaceOrder';
 import {
   ActiveOrderState,
   OrderPreview,
   PlaceOrderParams,
 } from '../../../types';
-import { strings } from '../../../../../../../locales/i18n';
-import useApprovalRequest from '../../../../../Views/confirmations/hooks/useApprovalRequest';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
-import { PREDICT_BALANCE_TOKEN_KEY } from '../../../constants/transactions';
 import { usePredictPaymentToken } from '../../../hooks/usePredictPaymentToken';
+import Engine from '../../../../../../core/Engine';
 
 interface UsePredictBuyActionsParams {
   currentValue: number;
@@ -39,134 +34,34 @@ export const usePredictBuyActions = ({
   const route =
     useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
   const navigation = useNavigation();
-  const { onReject } = useConfirmActions();
-  const { onConfirm: onApprovalConfirm } = useApprovalRequest();
-  const { triggerPayWithAnyToken } = usePredictPayWithAnyToken();
-  const { updateActiveOrder, clearActiveOrder } = usePredictActiveOrder();
-  const { navigateToBuyPreview } = usePredictNavigation();
   const [isPreviewFromRouteUsed, setIsPreviewFromRouteUsed] = useState(false);
   const { resetSelectedPaymentToken } = usePredictPaymentToken();
   const { activeOrder } = usePredictActiveOrder();
+  const currentState = useMemo(() => activeOrder?.state, [activeOrder?.state]);
+  const { PredictController } = Engine.context;
 
   const batchId = useMemo(() => activeOrder?.batchId, [activeOrder?.batchId]);
 
-  const {
-    market,
-    outcome,
-    outcomeToken,
-    entryPoint,
-    isConfirmation,
-    preview: previewFromRoute,
-  } = route.params;
-
-  const redirectToBuyPreview = useCallback(
-    (params?: { includeTransaction?: boolean; isConfirming?: boolean }) => {
-      navigateToBuyPreview(
-        {
-          market,
-          outcome,
-          outcomeToken,
-          ...(livePreview ? { preview: { ...livePreview } } : {}),
-          animationEnabled: false,
-          entryPoint,
-          ...(params?.isConfirming ? { isConfirming: true } : {}),
-        },
-        { replace: true },
-      );
-    },
-    [
-      entryPoint,
-      market,
-      navigateToBuyPreview,
-      outcome,
-      outcomeToken,
-      livePreview,
-    ],
-  );
-
-  const handleTokenSelected = useCallback(
-    async ({ tokenKey }: { tokenKey: string | null }) => {
-      updateActiveOrder({ error: null });
-      if (isConfirmation) {
-        if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
-          return;
-        }
-        updateActiveOrder({
-          state: ActiveOrderState.PREVIEW,
-        });
-        redirectToBuyPreview();
-        onReject(undefined, true);
-        return;
-      }
-      if (tokenKey !== PREDICT_BALANCE_TOKEN_KEY) {
-        updateActiveOrder({
-          state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        });
-        triggerPayWithAnyToken({
-          market,
-          outcome,
-          outcomeToken,
-          ...(livePreview ? { preview: { ...livePreview } } : {}),
-        });
-      }
-    },
-    [
-      isConfirmation,
-      market,
-      onReject,
-      outcome,
-      outcomeToken,
-      livePreview,
-      redirectToBuyPreview,
-      triggerPayWithAnyToken,
-      updateActiveOrder,
-    ],
-  );
-
-  const handleDepositFailed = useCallback(
-    async (depositErrorMessage?: string) => {
-      setIsConfirming(false);
-      updateActiveOrder({
-        state: ActiveOrderState.PAY_WITH_ANY_TOKEN,
-        error:
-          depositErrorMessage ?? strings('predict.deposit.error_description'),
-        batchId: null,
-      });
-      triggerPayWithAnyToken({
-        market,
-        outcome,
-        outcomeToken,
-      });
-    },
-    [
-      setIsConfirming,
-      updateActiveOrder,
-      triggerPayWithAnyToken,
-      market,
-      outcome,
-      outcomeToken,
-    ],
-  );
+  const { preview: previewFromRoute } = route.params;
 
   const handleConfirm = useCallback(async () => {
     setIsConfirming(true);
-    updateActiveOrder({ error: null });
+    PredictController.onConfirmOrder({
+      isDeposit: false,
+    });
+  }, [setIsConfirming, PredictController]);
 
-    if (isConfirmation) {
-      updateActiveOrder({
-        state: ActiveOrderState.DEPOSITING,
-      });
-      redirectToBuyPreview({
-        isConfirming: true,
-      });
-      await onApprovalConfirm({
-        deleteAfterResult: true,
-        waitForResult: true,
-        handleErrors: false,
-      });
-      return;
-    }
+  const handleBack = useCallback(() => {
+    PredictController.onOrderCancelled();
+    navigation.dispatch(StackActions.pop());
+  }, [PredictController, navigation]);
 
+  const handleBackSwipe = useCallback(() => {
+    PredictController.onOrderCancelled();
+  }, [PredictController]);
+
+  const handlePlaceOrder = useCallback(async () => {
+    PredictController.onPlaceOrder();
     if (!livePreview && !previewFromRoute) {
       throw new Error('Preview is required');
     }
@@ -183,67 +78,59 @@ export const usePredictBuyActions = ({
       setIsPreviewFromRouteUsed(true);
     }
 
-    updateActiveOrder({
-      state: ActiveOrderState.PLACING_ORDER,
-    });
     const orderResult = await placeOrder({
       analyticsProperties,
       preview: previewToUse,
     });
-    if (
-      orderResult.status === 'error' ||
-      orderResult.status === 'order_not_filled' ||
-      orderResult.status === 'deposit_required' ||
-      orderResult.status === 'deposit_in_progress'
-    ) {
-      setIsConfirming(false);
-      updateActiveOrder({ state: ActiveOrderState.PREVIEW });
+
+    if (orderResult.status !== 'success') {
+      PredictController.onOrderError();
+      return;
     }
+
+    PredictController.onOrderSuccess();
   }, [
-    setIsConfirming,
-    updateActiveOrder,
-    isConfirmation,
+    PredictController,
     livePreview,
     previewFromRoute,
     batchId,
     isPreviewFromRouteUsed,
     placeOrder,
     analyticsProperties,
-    redirectToBuyPreview,
-    onApprovalConfirm,
     resetSelectedPaymentToken,
   ]);
 
-  const handleBack = useCallback(() => {
-    clearActiveOrder();
-    navigation.dispatch(StackActions.pop());
-  }, [clearActiveOrder, navigation]);
+  const handlePlaceOrderRef = useRef(handlePlaceOrder);
+  handlePlaceOrderRef.current = handlePlaceOrder;
 
-  const handleBackSwipe = useCallback(() => {
-    clearActiveOrder();
-    if (isConfirmation) return;
-    navigation.dispatch(StackActions.pop());
-  }, [clearActiveOrder, isConfirmation, navigation]);
+  useEffect(() => {
+    if (
+      currentState === ActiveOrderState.PLACE_ORDER ||
+      currentState === ActiveOrderState.PLACING_ORDER
+    ) {
+      setIsConfirming(true);
+    }
+    if (currentState === ActiveOrderState.PREVIEW) {
+      setIsConfirming(false);
+    }
+  }, [currentState, setIsConfirming]);
 
-  const handlePlaceOrderSuccess = useCallback(() => {
-    setIsConfirming(false);
-    clearActiveOrder();
-    navigation.dispatch(StackActions.pop());
-  }, [setIsConfirming, clearActiveOrder, navigation]);
+  useEffect(() => {
+    if (currentState === ActiveOrderState.SUCCESS) {
+      PredictController.onPlaceOrderEnd();
+      navigation.dispatch(StackActions.pop());
+    }
+  }, [PredictController, currentState, navigation, setIsConfirming]);
 
-  const handlePlaceOrderError = useCallback(() => {
-    setIsConfirming(false);
-    updateActiveOrder({ state: ActiveOrderState.PREVIEW });
-    resetSelectedPaymentToken();
-  }, [setIsConfirming, updateActiveOrder, resetSelectedPaymentToken]);
+  useEffect(() => {
+    if (currentState === ActiveOrderState.PLACE_ORDER) {
+      handlePlaceOrderRef.current();
+    }
+  }, [currentState]);
 
   return {
     handleBack,
     handleBackSwipe,
-    handleTokenSelected,
     handleConfirm,
-    handleDepositFailed,
-    handlePlaceOrderSuccess,
-    handlePlaceOrderError,
   };
 };

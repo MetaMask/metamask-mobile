@@ -118,7 +118,8 @@ import {
 } from '../../../../util/remoteFeatureFlag';
 import { unwrapRemoteFeatureFlag } from '../utils/flags';
 import { parse, PredictFeeCollectionSchema } from '../schemas';
-import { PREDICTION_ERROR_TRANSACTION_BATCH_ID } from '../constants/transactions';
+import { PREDICT_BALANCE_PLACEHOLDER_ADDRESS } from '../constants/transactions';
+import { AssetType } from '../../../Views/confirmations/types/token';
 
 /**
  * State shape for PredictController
@@ -262,7 +263,11 @@ const metadata: StateMetadata<PredictControllerState> = {
 /**
  * PredictController events
  */
-export type PredictTransactionEventType = 'deposit' | 'claim' | 'withdraw';
+export type PredictTransactionEventType =
+  | 'deposit'
+  | 'depositAndOrder'
+  | 'claim'
+  | 'withdraw';
 
 export type PredictTransactionEventStatus =
   | 'approved'
@@ -1927,6 +1932,184 @@ export class PredictController extends BaseController<
     this.update(updater);
   }
 
+  public initializeOrder(
+    analyticsProperties?: PlaceOrderParams['analyticsProperties'],
+  ): void {
+    this.setActiveOrder({
+      state: ActiveOrderState.PREVIEW,
+      isInputFocused: true,
+    });
+    this.setSelectedPaymentToken(null);
+    this.trackPredictOrderEvent({
+      status: PredictTradeStatus.INITIATED,
+      analyticsProperties,
+    });
+  }
+
+  public setOrderAmount(amount: number): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.amount = amount;
+      }
+    });
+  }
+
+  public clearOrderError(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        delete state.activeOrder.error;
+      }
+    });
+  }
+
+  public onConfirmOrder({ isDeposit }: { isDeposit: boolean }): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        delete state.activeOrder.error;
+        state.activeOrder.state = isDeposit
+          ? ActiveOrderState.DEPOSIT
+          : ActiveOrderState.PLACE_ORDER;
+      }
+    });
+  }
+
+  public onDepositOrder(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.DEPOSITING;
+      }
+    });
+  }
+
+  public onDepositOrderSuccess(): void {
+    this.setSelectedPaymentToken(null);
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PLACE_ORDER;
+      }
+    });
+  }
+
+  public onDepositOrderFailed(errorMessage?: string): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.REDIRECTING;
+        state.activeOrder.error = errorMessage;
+        delete state.activeOrder.batchId;
+      }
+    });
+  }
+
+  public onOrderCancelled(): void {
+    this.clearActiveOrder();
+    this.setSelectedPaymentToken(null);
+  }
+
+  public onOrderError(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PREVIEW;
+      }
+    });
+    this.setSelectedPaymentToken(null);
+  }
+
+  public onOrderSuccess(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.SUCCESS;
+      }
+    });
+  }
+
+  public onPlaceOrder(): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.PLACING_ORDER;
+      }
+    });
+  }
+
+  public onPlaceOrderEnd(): void {
+    this.clearActiveOrder();
+    this.setSelectedPaymentToken(null);
+  }
+
+  public onBuyPaymentTokenChange(token: AssetType | null): void {
+    if (!token) {
+      return;
+    }
+
+    const isBalanceToken =
+      token.address === PREDICT_BALANCE_PLACEHOLDER_ADDRESS;
+
+    this.setSelectedPaymentToken(
+      isBalanceToken
+        ? null
+        : {
+            address: token.address,
+            chainId: token.chainId ?? '',
+            symbol: token.symbol,
+          },
+    );
+
+    const activeOrder = this.state.activeOrder;
+    if (!activeOrder) {
+      return;
+    }
+
+    this.clearOrderError();
+
+    if (activeOrder.state === ActiveOrderState.PAY_WITH_ANY_TOKEN) {
+      if (!isBalanceToken) {
+        return;
+      }
+      this.update((state) => {
+        if (state.activeOrder) {
+          delete state.activeOrder.batchId;
+          state.activeOrder.state = ActiveOrderState.PREVIEW;
+        }
+      });
+      return;
+    }
+
+    if (activeOrder.state === ActiveOrderState.PREVIEW) {
+      if (isBalanceToken) {
+        return;
+      }
+      this.update((state) => {
+        if (state.activeOrder) {
+          state.activeOrder.state = ActiveOrderState.REDIRECTING;
+        }
+      });
+    }
+  }
+
+  public startPayWithAnyTokenConfirmation(): void {
+    const activeOrder = this.state.activeOrder;
+    if (!activeOrder || activeOrder.state !== ActiveOrderState.REDIRECTING) {
+      return;
+    }
+
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.state = ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN;
+      }
+    });
+
+    this.payWithAnyTokenConfirmation();
+  }
+
+  public onPayWithAnyTokenConfirmationReady(): void {
+    this.update((state) => {
+      if (
+        state.activeOrder?.state === ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN
+      ) {
+        state.activeOrder.state = ActiveOrderState.PAY_WITH_ANY_TOKEN;
+      }
+    });
+  }
+
   public setActiveOrder(order: PredictControllerState['activeOrder']): void {
     this.update((state) => {
       state.activeOrder = order;
@@ -1936,6 +2119,14 @@ export class PredictController extends BaseController<
   public clearActiveOrder(): void {
     this.update((state) => {
       state.activeOrder = null;
+    });
+  }
+
+  public setOrderInputFocused(isInputFocused: boolean): void {
+    this.update((state) => {
+      if (state.activeOrder) {
+        state.activeOrder.isInputFocused = isInputFocused;
+      }
     });
   }
 
@@ -2077,8 +2268,6 @@ export class PredictController extends BaseController<
    * type so the confirmation routing in `info-root.tsx` renders
    * `PredictPayWithAnyTokenInfo`.
    *
-   * TODO: Remove the cast once `predictDepositAndOrder` is added to
-   * `@metamask/transaction-controller`.
    */
   public async payWithAnyTokenConfirmation(): Promise<
     Result<{ batchId: string }>
@@ -2086,6 +2275,19 @@ export class PredictController extends BaseController<
     const provider = this.provider;
 
     try {
+      const activeOrder = this.state.activeOrder;
+      if (!activeOrder) {
+        throw new Error(
+          'Active order is required for pay-with-any-token confirmation',
+        );
+      }
+
+      if (activeOrder.batchId) {
+        throw new Error(
+          'Pay-with-any-token confirmation is already in progress',
+        );
+      }
+
       const signer = this.getSigner();
 
       this.update((state) => {
@@ -2112,17 +2314,13 @@ export class PredictController extends BaseController<
         throw new Error('Chain ID not provided by deposit preparation');
       }
 
-      // TODO: Remove cast once predictDepositAndOrder is in @metamask/transaction-controller
-      const predictDepositAndOrderType =
-        'predictDepositAndOrder' as unknown as TransactionType;
-
       // Override transaction types to predictDepositAndOrder so the
       // confirmation routing renders the deposit-and-order info component.
       const depositAndOrderTransactions = transactions.map((tx) => ({
         ...tx,
         type:
           tx.type === TransactionType.predictDeposit
-            ? predictDepositAndOrderType
+            ? TransactionType.predictDepositAndOrder
             : tx.type,
       }));
 
@@ -2183,27 +2381,7 @@ export class PredictController extends BaseController<
       };
     } catch (error) {
       const e = ensureError(error);
-      if (e.message.includes('User denied transaction signature')) {
-        this.update((state) => {
-          if (state.activeOrder) {
-            state.activeOrder = null;
-          }
-        });
-        return {
-          success: true,
-          response: { batchId: PREDICTION_ERROR_TRANSACTION_BATCH_ID },
-        };
-      }
-
       const errorMessage = e.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
-
-      this.update((state) => {
-        if (state.activeOrder) {
-          state.activeOrder.error = errorMessage;
-          state.activeOrder.batchId = PREDICTION_ERROR_TRANSACTION_BATCH_ID;
-        }
-      });
-
       Logger.error(
         e,
         this.getErrorContext('payWithAnyTokenConfirmation', {
@@ -2258,6 +2436,7 @@ export class PredictController extends BaseController<
     const nestedTransactionType = transactionMeta?.nestedTransactions?.find(
       ({ type }) =>
         type === TransactionType.predictDeposit ||
+        type === TransactionType.predictDepositAndOrder ||
         type === TransactionType.predictClaim ||
         type === TransactionType.predictWithdraw,
     )?.type;
@@ -2296,7 +2475,7 @@ export class PredictController extends BaseController<
     });
 
     try {
-      this.handleTransactionSideEffects(type, status, address);
+      this.handleTransactionSideEffects(type, status, address, transactionMeta);
     } catch (error) {
       Logger.error(
         ensureError(error),
@@ -2323,12 +2502,35 @@ export class PredictController extends BaseController<
     type: PredictTransactionEventType,
     status: PredictTransactionEventStatus,
     address: string,
+    transactionMeta: TransactionMeta,
   ): void {
     const isTerminal =
       status === 'confirmed' || status === 'failed' || status === 'rejected';
 
     if (type === 'deposit' && isTerminal) {
       this.clearPendingDepositForAddress({ address });
+    }
+
+    if (type === 'depositAndOrder' && status === 'confirmed') {
+      this.onDepositOrderSuccess();
+    }
+
+    if (type === 'depositAndOrder' && status === 'failed') {
+      const errorMessage =
+        transactionMeta.error?.message ?? PREDICT_ERROR_CODES.DEPOSIT_FAILED;
+      this.onDepositOrderFailed(errorMessage);
+    }
+
+    if (type === 'depositAndOrder' && status === 'rejected') {
+      if (this.state.activeOrder?.state === ActiveOrderState.PREVIEW) {
+        this.update((state) => {
+          if (state.activeOrder) {
+            delete state.activeOrder.batchId;
+          }
+        });
+      } else {
+        this.onOrderCancelled();
+      }
     }
 
     if (type === 'claim' && isTerminal) {
@@ -2446,6 +2648,7 @@ export class PredictController extends BaseController<
     Record<TransactionType, PredictTransactionEventType>
   > = {
     [TransactionType.predictDeposit]: 'deposit',
+    [TransactionType.predictDepositAndOrder]: 'depositAndOrder',
     [TransactionType.predictClaim]: 'claim',
     [TransactionType.predictWithdraw]: 'withdraw',
   };

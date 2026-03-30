@@ -43,6 +43,8 @@ export const usePredictBuyConditions = ({
 
   const shouldWaitForPayFees = !isPredictBalanceSelected;
 
+  const currentState = useMemo(() => activeOrder?.state, [activeOrder]);
+
   const isBalancePulsing = useMemo(
     () => isDepositPending && isPredictBalanceSelected,
     [isDepositPending, isPredictBalanceSelected],
@@ -56,20 +58,25 @@ export const usePredictBuyConditions = ({
   const isRateLimited = useMemo(() => preview?.rateLimited ?? false, [preview]);
 
   const isDepositing = useMemo(
-    () => activeOrder?.state === ActiveOrderState.DEPOSITING,
-    [activeOrder],
+    () =>
+      currentState === ActiveOrderState.DEPOSITING ||
+      currentState === ActiveOrderState.DEPOSIT,
+    [currentState],
   );
 
   const isPlacingOrder = useMemo(
     () =>
-      activeOrder?.state === ActiveOrderState.PLACING_ORDER ||
+      currentState === ActiveOrderState.PLACE_ORDER ||
+      currentState === ActiveOrderState.PLACING_ORDER ||
       isPlaceOrderLoading ||
       isDepositing,
-    [activeOrder?.state, isPlaceOrderLoading, isDepositing],
+    [currentState, isPlaceOrderLoading, isDepositing],
   );
 
   const isRedirecting = useMemo(
-    () => activeOrder?.state === ActiveOrderState.REDIRECTING,
+    () =>
+      activeOrder?.state === ActiveOrderState.REDIRECTING ||
+      activeOrder?.state === ActiveOrderState.CALLING_PAY_WITH_ANY_TOKEN,
     [activeOrder],
   );
 

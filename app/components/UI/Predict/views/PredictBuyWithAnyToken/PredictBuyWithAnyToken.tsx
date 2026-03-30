@@ -14,7 +14,7 @@ import React, {
   useState,
 } from 'react';
 import { ScrollView } from 'react-native';
-import { Edge, SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useSelector } from 'react-redux';
 import { BottomSheetRef } from '../../../../../component-library/components/BottomSheets/BottomSheet';
 import { TraceName } from '../../../../../util/trace';
@@ -30,7 +30,6 @@ import PredictKeypad, {
   PredictKeypadHandles,
 } from '../../components/PredictKeypad';
 import PredictOrderRetrySheet from '../../components/PredictOrderRetrySheet';
-import PredictPayWithAnyTokenInfo from './components/PredictPayWithAnyTokenInfo';
 import { PredictPayWithRow } from './components/PredictPayWithRow';
 import { usePredictBuyAvailableBalance } from './hooks/usePredictBuyAvailableBalance';
 import usePredictBuyBackSwipe from './hooks/usePredictBuyBackSwipe';
@@ -41,14 +40,11 @@ import { usePredictBuyActions } from './hooks/usePredictBuyPreviewActions';
 import { usePredictMeasurement } from '../../hooks/usePredictMeasurement';
 import { usePredictOrderPreview } from '../../hooks/usePredictOrderPreview';
 import { usePredictOrderRetry } from '../../hooks/usePredictOrderRetry';
-import { usePredictPayWithAnyTokenTracking } from './hooks/usePredictPayWithAnyTokenTracking';
-import { usePredictPaymentToken } from '../../hooks/usePredictPaymentToken';
 import { usePredictPlaceOrder } from '../../hooks/usePredictPlaceOrder';
 import { selectPredictFakOrdersEnabledFlag } from '../../selectors/featureFlags';
 import { Side } from '../../types';
 import { PredictNavigationParamList } from '../../types/navigation';
 import { parseAnalyticsProperties } from '../../utils/analytics';
-import { usePredictOrderTracking } from './hooks/usePredictOrderTracking';
 
 const SHOW_TOKEN_SELECTION = false;
 
@@ -64,7 +60,6 @@ const PredictBuyWithAnyToken = () => {
     outcome,
     outcomeToken,
     entryPoint,
-    isConfirmation,
     preview: initialPreview,
   } = route.params;
 
@@ -95,7 +90,6 @@ const PredictBuyWithAnyToken = () => {
     placeOrder,
     isLoading: isPlaceOrderLoading,
     error: placeOrderError,
-    result,
     isOrderNotFilled,
     resetOrderNotFilled,
   } = usePredictPlaceOrder();
@@ -143,30 +137,6 @@ const PredictBuyWithAnyToken = () => {
   });
 
   const {
-    handleBack,
-    handleBackSwipe,
-    handleTokenSelected,
-    handleConfirm,
-    handleDepositFailed,
-    handlePlaceOrderSuccess,
-    handlePlaceOrderError,
-  } = usePredictBuyActions({
-    currentValue,
-    analyticsProperties,
-    preview,
-    placeOrder,
-    depositAmount: total - depositFee,
-    setIsConfirming,
-  });
-
-  usePredictBuyBackSwipe({ onBack: handleBackSwipe });
-
-  usePredictPayWithAnyTokenTracking({
-    onFail: handleDepositFailed,
-    onConfirm: handleConfirm,
-  });
-
-  const {
     isPlacingOrder,
     isBelowMinimum,
     canPlaceBet,
@@ -182,9 +152,16 @@ const PredictBuyWithAnyToken = () => {
     isConfirming,
   });
 
-  usePredictPaymentToken({
-    onTokenSelected: handleTokenSelected,
+  const { handleBack, handleBackSwipe, handleConfirm } = usePredictBuyActions({
+    currentValue,
+    analyticsProperties,
+    preview,
+    placeOrder,
+    depositAmount: total - depositFee,
+    setIsConfirming,
   });
+
+  usePredictBuyBackSwipe({ onBack: handleBackSwipe });
 
   useEffect(() => {
     if (!isPreviewCalculating) {
@@ -216,26 +193,12 @@ const PredictBuyWithAnyToken = () => {
     },
   });
 
-  usePredictOrderTracking({
-    result,
-    error: placeOrderError,
-    onSuccess: handlePlaceOrderSuccess,
-    onError: handlePlaceOrderError,
-  });
-
-  const edges = useMemo(
-    () => (isConfirmation ? (['top', 'left', 'right'] as Edge[]) : undefined),
-    [isConfirmation],
-  );
-
   return (
-    <SafeAreaView
-      style={tw.style('flex-1 bg-background-default')}
-      edges={edges}
-    >
+    <SafeAreaView style={tw.style('flex-1 bg-background-default')}>
       <PredictBuyPreviewHeader
         market={market}
         outcome={outcome}
+        outcomeToken={outcomeToken}
         preview={preview}
         onBack={handleBack}
       />
@@ -259,6 +222,7 @@ const PredictBuyWithAnyToken = () => {
             availableBalanceDisplay={availableBalance}
             toWin={toWin}
             isShowingToWinSkeleton={isUserChangeTriggeringCalculation}
+            isPlacingOrder={isPlacingOrder}
           />
           {SHOW_TOKEN_SELECTION && (
             <PredictPayWithRow disabled={isPlacingOrder} />
@@ -323,9 +287,6 @@ const PredictBuyWithAnyToken = () => {
         onDismiss={resetOrderNotFilled}
         isRetrying={isRetrying}
       />
-      {isConfirmation && (
-        <PredictPayWithAnyTokenInfo depositAmount={total - depositFee} />
-      )}
     </SafeAreaView>
   );
 };

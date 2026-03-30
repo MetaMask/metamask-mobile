@@ -11,10 +11,14 @@ export type PredictOrderType = 'FOK' | 'FAK';
 
 export enum ActiveOrderState {
   PREVIEW = 'preview',
+  DEPOSIT = 'deposit',
   DEPOSITING = 'depositing',
+  PLACE_ORDER = 'place_order',
   PLACING_ORDER = 'placing_order',
   REDIRECTING = 'redirecting',
+  CALLING_PAY_WITH_ANY_TOKEN = 'calling_pay_with_any_token',
   PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
+  SUCCESS = 'success',
 }
 
 export enum PredictPriceHistoryInterval {
