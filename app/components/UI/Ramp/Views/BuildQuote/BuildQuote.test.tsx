@@ -1035,6 +1035,30 @@ describe('BuildQuote', () => {
       );
     });
 
+    it('navigates when token is missing from supportedCryptoCurrencies', () => {
+      mockUnavailableController({
+        selectedProvider: {
+          id: '/providers/banxa',
+          name: 'Banxa',
+          supportedCryptoCurrencies: {
+            // TOKEN_ASSET is NOT in the map — treated as unsupported
+            'eip155:1/erc20:0xsomeother': true,
+          },
+          links: [],
+        },
+      });
+      renderWithProvider(<BuildQuote />, { state: initialRootState });
+      act(() => {
+        jest.advanceTimersByTime(650);
+      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        'RampModals',
+        expect.objectContaining({
+          screen: 'RampTokenNotAvailableModal',
+        }),
+      );
+    });
+
     it('re-navigates when provider id changes', () => {
       mockUnavailableController({
         selectedProvider: {

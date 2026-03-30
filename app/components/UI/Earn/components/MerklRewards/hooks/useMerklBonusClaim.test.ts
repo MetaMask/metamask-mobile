@@ -165,6 +165,7 @@ describe('useMerklBonusClaim', () => {
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
     expect(result.current.isClaiming).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('returns default claim data when feature flag is disabled', () => {
@@ -176,6 +177,7 @@ describe('useMerklBonusClaim', () => {
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('returns default claim data when user is geo-blocked', () => {
@@ -187,6 +189,7 @@ describe('useMerklBonusClaim', () => {
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('returns default claim data for ineligible token', () => {
@@ -196,6 +199,7 @@ describe('useMerklBonusClaim', () => {
 
     expect(result.current.claimableReward).toBeNull();
     expect(result.current.hasPendingClaim).toBe(false);
+    expect(result.current.error).toBeNull();
   });
 
   it('passes eligible asset to underlying hooks', () => {
@@ -227,6 +231,7 @@ describe('useMerklBonusClaim', () => {
     expect(result.current.hasPendingClaim).toBe(true);
     expect(result.current.isClaiming).toBe(true);
     expect(result.current.claimRewards).toBe(mockClaimRewards);
+    expect(result.current.error).toBeNull();
   });
 
   it('returns claimableReward null when raw value is "< 0.01" (below threshold)', () => {
@@ -240,6 +245,7 @@ describe('useMerklBonusClaim', () => {
     );
 
     expect(result.current.claimableReward).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 
   it('returns claimableReward null when raw value is below 0.01', () => {
@@ -253,6 +259,7 @@ describe('useMerklBonusClaim', () => {
     );
 
     expect(result.current.claimableReward).toBeNull();
+    expect(result.current.error).toBeNull();
   });
 
   describe('CTA available analytics event', () => {

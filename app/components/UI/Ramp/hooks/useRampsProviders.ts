@@ -1,7 +1,9 @@
 import { useCallback, useEffect, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { useQuery } from '@tanstack/react-query';
 import {
   selectProviders,
+  selectUserRegion,
   selectRampsOrdersForSelectedAccountGroup,
 } from '../../../../selectors/rampsController';
 import { type Provider } from '@metamask/ramps-controller';
@@ -12,6 +14,7 @@ import {
   completedOrdersFromRampsOrders,
 } from '../utils/determinePreferredProvider';
 import { getOrders } from '../../../../reducers/fiatOrders';
+import { rampsQueries } from '../queries';
 
 /**
  * Result returned by the useRampsProviders hook.
@@ -44,6 +47,10 @@ export interface UseRampsProvidersResult {
  * Hook to get providers state from RampsController.
  * This hook assumes Engine is already initialized.
  *
+ * Uses react-query with a 15min staleTime and refetchOnMount so that
+ * providers (including supportedCryptoCurrencies) are refreshed when
+ * stale data is detected on mount.
+ *
  * @returns Providers state.
  */
 export function useRampsProviders(): UseRampsProvidersResult {
@@ -53,6 +60,14 @@ export function useRampsProviders(): UseRampsProvidersResult {
     isLoading,
     error,
   } = useSelector(selectProviders);
+
+  const userRegion = useSelector(selectUserRegion);
+  const regionCode = userRegion?.regionCode ?? '';
+
+  useQuery({
+    ...rampsQueries.providers.options({ regionCode }),
+    enabled: Boolean(regionCode),
+  });
 
   const legacyOrders = useSelector(getOrders);
   const controllerOrders = useSelector(
