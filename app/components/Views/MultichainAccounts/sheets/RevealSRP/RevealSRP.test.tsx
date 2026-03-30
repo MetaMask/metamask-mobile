@@ -83,31 +83,8 @@ describe('RevealSRP', () => {
     expect(mockGoBack).toHaveBeenCalledTimes(1);
   });
 
-  it('navigates to SRP reveal quiz when get started button is pressed', () => {
+  it('navigates to full-screen reveal SRP when get started button is pressed', () => {
     const { getByText } = render();
-
-    const getStartedButton = getByText(
-      strings('multichain_accounts.reveal_srp.get_started'),
-    );
-    fireEvent.press(getStartedButton);
-    expect(mockNavigate).toHaveBeenCalledWith(
-      Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ,
-      {
-        keyringId: 'test-keyring-id',
-      },
-    );
-  });
-
-  it('navigates to full-screen reveal SRP when get started is pressed for seedless login', () => {
-    const { getByText } = renderWithProvider(<RevealSRP />, {
-      state: {
-        engine: {
-          backgroundState: {
-            SeedlessOnboardingController: { vault: '0xseedless' },
-          },
-        },
-      },
-    });
 
     const getStartedButton = getByText(
       strings('multichain_accounts.reveal_srp.get_started'),

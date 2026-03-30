@@ -593,48 +593,7 @@ describe('AccountActions', () => {
       options: { entropySource: 'hd-keyring-entropy-id' },
     };
 
-    it('navigates to full-screen reveal SRP when seedless login flow', () => {
-      mockedUseRoute.mockImplementation(() => ({
-        key: 'mock-key',
-        name: 'mock-route',
-        params: {
-          selectedAccount: MOCK_HD_ACCOUNT_WITH_ENTROPY,
-        },
-      }));
-
-      const state = {
-        ...initialState,
-        engine: {
-          backgroundState: {
-            ...initialState.engine.backgroundState,
-            SeedlessOnboardingController: {
-              ...backgroundState.SeedlessOnboardingController,
-              vault: '0xseedlessvault',
-            },
-          },
-        },
-      } as unknown as RootState;
-
-      const { getByTestId } = renderWithProvider(<AccountActions />, {
-        state,
-      });
-
-      fireEvent.press(
-        getByTestId(
-          AccountActionsBottomSheetSelectorsIDs.SHOW_SECRET_RECOVERY_PHRASE,
-        ),
-      );
-
-      expect(mockNavigate).toHaveBeenCalledWith(
-        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
-        {
-          shouldUpdateNav: true,
-          keyringId: 'hd-keyring-entropy-id',
-        },
-      );
-    });
-
-    it('navigates to modal SRP reveal quiz when not seedless login flow', () => {
+    it('navigates to full-screen reveal SRP', () => {
       mockedUseRoute.mockImplementation(() => ({
         key: 'mock-key',
         name: 'mock-route',
@@ -653,10 +612,13 @@ describe('AccountActions', () => {
         ),
       );
 
-      expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-        screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-        keyringId: 'hd-keyring-entropy-id',
-      });
+      expect(mockNavigate).toHaveBeenCalledWith(
+        Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL,
+        {
+          shouldUpdateNav: true,
+          keyringId: 'hd-keyring-entropy-id',
+        },
+      );
     });
 
     it.each([

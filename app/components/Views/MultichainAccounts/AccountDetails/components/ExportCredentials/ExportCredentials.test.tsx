@@ -23,18 +23,8 @@ jest.mock('react-redux', () => ({
 
 const mockUseSelector = jest.requireMock('react-redux').useSelector;
 
-const buildReduxState = (options?: {
-  seedphraseBackedUp?: boolean;
-  seedlessVault?: string | null;
-}) => ({
+const buildReduxState = (options?: { seedphraseBackedUp?: boolean }) => ({
   user: { seedphraseBackedUp: options?.seedphraseBackedUp ?? true },
-  engine: {
-    backgroundState: {
-      SeedlessOnboardingController: {
-        vault: options?.seedlessVault ?? null,
-      },
-    },
-  },
 });
 
 type MockReduxState = ReturnType<typeof buildReduxState>;
@@ -165,35 +155,7 @@ describe('ExportCredentials', () => {
     ).toBeTruthy();
   });
 
-  it('navigates to SRP reveal quiz when export mnemonic is pressed', () => {
-    mockHdKeyringsWithSnapAccounts.mockReturnValue([
-      {
-        accounts: ['0x123'],
-        metadata: { id: mockKeyringId },
-      },
-    ]);
-
-    mockIsHDOrFirstPartySnapAccount.mockReturnValue(true);
-    mockIsPrivateKeyAccount.mockReturnValue(false);
-
-    const { getByText } = render(<ExportCredentials account={mockAccount} />);
-
-    const mnemonicButton = getByText(
-      `${strings('accounts.secret_recovery_phrase')} 1`,
-    );
-    fireEvent.press(mnemonicButton);
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
-      keyringId: mockKeyringId,
-    });
-  });
-
-  it('navigates to full-screen reveal SRP when export mnemonic is pressed for seedless login', () => {
-    mockUseSelector.mockImplementation(
-      (selector: (state: MockReduxState) => unknown) =>
-        selector(buildReduxState({ seedlessVault: '0xseedlessvault' })),
-    );
+  it('navigates to full-screen reveal SRP when export mnemonic is pressed', () => {
     mockHdKeyringsWithSnapAccounts.mockReturnValue([
       {
         accounts: ['0x123'],

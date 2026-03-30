@@ -30,7 +30,6 @@ import { useStyles } from '../../../../../hooks/useStyles';
 import { ExportCredentialsIds } from '../../ExportCredentials.testIds';
 import { KeyringTypes } from '@metamask/keyring-controller';
 import { RootState } from '../../../../../../reducers';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../../../selectors/seedlessOnboardingController';
 
 interface ExportCredentialsProps {
   account: InternalAccount;
@@ -38,7 +37,6 @@ interface ExportCredentialsProps {
 
 export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
   const { navigate } = useNavigation();
-  const isSeedlessLoginFlow = useSelector(selectSeedlessOnboardingLoginFlow);
   const canExportPrivateKey =
     account.metadata.keyring.type === KeyringTypes.hd ||
     isPrivateKeyAccount(account);
@@ -85,18 +83,11 @@ export const ExportCredentials = ({ account }: ExportCredentialsProps) => {
     if (!keyringId) {
       return;
     }
-    if (isSeedlessLoginFlow) {
-      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        shouldUpdateNav: true,
-        keyringId,
-      });
-      return;
-    }
-    navigate(Routes.MODAL.ROOT_MODAL_FLOW, {
-      screen: Routes.MODAL.SRP_REVEAL_QUIZ,
+    navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      shouldUpdateNav: true,
       keyringId,
     });
-  }, [navigate, account.options.entropySource, isSeedlessLoginFlow]);
+  }, [navigate, account.options.entropySource]);
 
   const onExportPrivateKey = useCallback(() => {
     navigate(Routes.MODAL.MULTICHAIN_ACCOUNT_DETAIL_ACTIONS, {

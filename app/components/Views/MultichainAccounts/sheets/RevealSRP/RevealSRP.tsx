@@ -35,8 +35,6 @@ import SecurityQuizLockImage from '../../../../../images/security-quiz-intro-loc
 import { ButtonSize } from '../../../../../component-library/components/Buttons/Button';
 import { SRP_GUIDE_URL } from '../../../../../constants/urls';
 import { ExportCredentialsIds } from '../../AccountDetails/ExportCredentials.testIds';
-import { useSelector } from 'react-redux';
-import { selectSeedlessOnboardingLoginFlow } from '../../../../../selectors/seedlessOnboardingController';
 
 interface RootNavigationParamList extends ParamListBase {
   RevealSRP: {
@@ -54,7 +52,6 @@ export const RevealSRP = () => {
   const { navigate, goBack } = useNavigation();
 
   const keyringId = useKeyringId(account);
-  const isSeedlessLoginFlow = useSelector(selectSeedlessOnboardingLoginFlow);
 
   const handleLearnMoreClick = useCallback(() => {
     navigate(Routes.WEBVIEW.MAIN, {
@@ -70,17 +67,11 @@ export const RevealSRP = () => {
   }, [goBack]);
 
   const handleGetStartedClick = useCallback(() => {
-    if (isSeedlessLoginFlow) {
-      navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
-        shouldUpdateNav: true,
-        keyringId,
-      });
-      return;
-    }
-    navigate(Routes.SHEET.MULTICHAIN_ACCOUNT_DETAILS.SRP_REVEAL_QUIZ, {
+    navigate(Routes.SETTINGS.REVEAL_PRIVATE_CREDENTIAL, {
+      shouldUpdateNav: true,
       keyringId,
     });
-  }, [isSeedlessLoginFlow, keyringId, navigate]);
+  }, [keyringId, navigate]);
 
   return (
     <SafeAreaView edges={{ bottom: 'additive' }} style={styles.container}>
