@@ -17,6 +17,9 @@ import {
   Icon,
   IconName,
   IconSize,
+  Button,
+  ButtonVariant,
+  ButtonSize,
 } from '@metamask/design-system-react-native';
 import AvatarToken from '../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
 import BadgeNetwork from '../../../../../component-library/components/Badges/Badge/variants/BadgeNetwork';
@@ -30,11 +33,6 @@ import { formatSubscriptNotation } from '../../../../../util/number/subscriptNot
 import { formatWithThreshold } from '../../../../../util/assets';
 import { getNetworkImageSource } from '../../../../../util/networks';
 import Logger from '../../../../../util/Logger';
-import Button, {
-  ButtonVariants,
-  ButtonSize,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import { hasDepositOrderField } from '../../Deposit/utils';
 import BankDetailRow from '../../Deposit/components/BankDetailRow/BankDetailRow';
 import Routes from '../../../../../constants/navigation/Routes';
@@ -599,11 +597,12 @@ const OrderContent: React.FC<OrderContentProps> = ({
           {showManageBankTransfer && (
             <Box twClassName="mt-4">
               <Button
-                variant={ButtonVariants.Secondary}
+                variant={ButtonVariant.Secondary}
                 size={ButtonSize.Lg}
-                label={strings('deposit.bank_details.button')}
                 onPress={handleManageBankTransfer}
-              />
+              >
+                {strings('deposit.bank_details.button')}
+              </Button>
             </Box>
           )}
         </Box>
@@ -644,12 +643,13 @@ const OrderContent: React.FC<OrderContentProps> = ({
         {showCloseButton && (
           <Button
             testID={RampsOrderDetailsSelectorsIDs.CLOSE_BUTTON}
-            variant={ButtonVariants.Primary}
+            variant={ButtonVariant.Primary}
             size={ButtonSize.Lg}
-            width={ButtonWidthTypes.Full}
-            label={strings('ramps_order_details.close')}
+            isFullWidth
             onPress={handleClose}
-          />
+          >
+            {strings('ramps_order_details.close')}
+          </Button>
         )}
       </Box>
     </Box>

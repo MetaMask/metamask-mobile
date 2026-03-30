@@ -1,259 +1,232 @@
 import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { Linking } from 'react-native';
+import { IconColor } from '../../../../../../../component-library/components/Icons/Icon';
+import ConfigurationModal from './ConfigurationModal';
+import { renderScreen } from '../../../../../../../util/test/renderWithProvider';
+import { backgroundState } from '../../../../../../../util/test/initial-root-state';
+import { fireEvent, waitFor } from '@testing-library/react-native';
 import Routes from '../../../../../../../constants/navigation/Routes';
 import { TRANSAK_SUPPORT_URL } from '../../../constants/constants';
+import { ToastContext } from '../../../../../../../component-library/components/Toast';
+import { RampsButtonClickData } from '../../../../hooks/useRampsButtonClickData';
 
-const mockNavigate = jest.fn();
-const mockGoBack = jest.fn();
-const mockGetParent = jest.fn(() => ({
-  getParent: jest.fn(() => ({
-    goBack: mockGoBack,
-  })),
-}));
+const mockButtonClickData: RampsButtonClickData = {
+  ramp_routing: undefined,
+  is_authenticated: false,
+  preferred_provider: undefined,
+  order_count: 0,
+};
 
-jest.mock('@react-navigation/native', () => ({
-  ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => ({
-    navigate: mockNavigate,
-    getParent: mockGetParent,
-  }),
-}));
-
-const mockLogoutFromProvider = jest.fn();
-const mockGoToAggregator = jest.fn();
-
-jest.mock('../../../../hooks/useRampNavigation', () => ({
-  useRampNavigation: () => ({
-    goToAggregator: mockGoToAggregator,
-  }),
-}));
-
-jest.mock('../../../sdk', () => ({
-  useDepositSDK: () => ({
-    logoutFromProvider: mockLogoutFromProvider,
-    isAuthenticated: true,
-    selectedRegion: { isoCode: 'US' },
-  }),
+jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
+  useRampsButtonClickData: jest.fn(() => mockButtonClickData),
 }));
 
 const mockShowToast = jest.fn();
-jest.mock('../../../../../../../component-library/components/Toast', () => {
-  const mockReact = jest.requireActual('react');
-  return {
-    ToastContext: mockReact.createContext({
-      toastRef: { current: { showToast: mockShowToast } },
-    }),
-    ToastVariants: {
-      Icon: 'Icon',
+const mockToastRef = {
+  current: {
+    showToast: mockShowToast,
+    closeToast: jest.fn(),
+  },
+};
+
+function renderWithProvider(component: React.ComponentType) {
+  const WrappedComponent = () => {
+    const Component = component;
+    return (
+      <ToastContext.Provider value={{ toastRef: mockToastRef }}>
+        <Component />
+      </ToastContext.Provider>
+    );
+  };
+
+  return renderScreen(
+    WrappedComponent,
+    {
+      name: 'ConfigurationModal',
     },
+    {
+      state: {
+        engine: {
+          backgroundState,
+        },
+      },
+    },
+  );
+}
+
+const mockNavigate = jest.fn();
+const mockGoBack = jest.fn();
+const mockSetNavigationOptions = jest.fn();
+const mockClearAuthToken = jest.fn();
+const mockGoToAggregator = jest.fn();
+const mockTrackEvent = jest.fn();
+
+jest.mock('../../../../hooks/useAnalytics', () => () => mockTrackEvent);
+
+jest.mock('@react-navigation/native', () => {
+  const actualReactNavigation = jest.requireActual('@react-navigation/native');
+  return {
+    ...actualReactNavigation,
+    useNavigation: () => ({
+      ...actualReactNavigation.useNavigation(),
+      navigate: mockNavigate,
+      goBack: mockGoBack,
+      setOptions: mockSetNavigationOptions.mockImplementation(
+        actualReactNavigation.useNavigation().setOptions,
+      ),
+    }),
   };
 });
 
-const mockTrackEvent = jest.fn();
-jest.mock('../../../../hooks/useAnalytics', () => ({
-  __esModule: true,
-  default: () => mockTrackEvent,
-}));
-
-jest.mock('../../../../hooks/useRampsButtonClickData', () => ({
-  useRampsButtonClickData: () => ({
-    ramp_routing: 'test_routing',
-    is_authenticated: true,
-    preferred_provider: 'transak',
-    order_count: 5,
-  }),
-}));
-
-jest.mock('../../../../../../../util/Logger', () => ({
-  error: jest.fn(),
-}));
-
-jest.mock(
-  '../../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const mockReact = jest.requireActual('react');
-    const { View } = jest.requireActual('react-native');
-    const MockBottomSheet = mockReact.forwardRef(
-      (
-        { children }: { children: React.ReactNode },
-        _ref: React.Ref<unknown>,
-      ) => <View testID="bottom-sheet">{children}</View>,
-    );
-    MockBottomSheet.displayName = 'MockBottomSheet';
-    return MockBottomSheet;
-  },
-);
-
-jest.mock(
-  '../../../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { View, Text, TouchableOpacity } = jest.requireActual('react-native');
-    const MockBottomSheetHeader = ({
-      children,
-      onClose,
-    }: {
-      children: React.ReactNode;
-      onClose?: () => void;
-    }) => (
-      <View testID="bottom-sheet-header">
-        <Text>{children}</Text>
-        {onClose && (
-          <TouchableOpacity testID="close-button" onPress={onClose}>
-            <Text>Close</Text>
-          </TouchableOpacity>
-        )}
-      </View>
-    );
-    MockBottomSheetHeader.displayName = 'MockBottomSheetHeader';
-    return MockBottomSheetHeader;
-  },
-);
-
-jest.mock('../../../../components/MenuItem', () => {
-  const { TouchableOpacity, Text } = jest.requireActual('react-native');
-  const MockMenuItem = ({
-    title,
-    onPress,
-  }: {
-    title: string;
-    iconName?: string;
-    description?: string;
-    onPress: () => void;
-  }) => (
-    <TouchableOpacity testID={`menu-item-${title}`} onPress={onPress}>
-      <Text>{title}</Text>
-    </TouchableOpacity>
-  );
-  MockMenuItem.displayName = 'MockMenuItem';
-  return MockMenuItem;
-});
-
 jest.mock('react-native', () => {
-  const RN = jest.requireActual('react-native');
+  const actualReactNative = jest.requireActual('react-native');
   return {
-    ...RN,
+    ...actualReactNative,
     Linking: {
       openURL: jest.fn(),
     },
   };
 });
 
-import ConfigurationModal from './ConfigurationModal';
-import {
-  ToastContext,
-  ToastVariants,
-} from '../../../../../../../component-library/components/Toast';
+const mockUseDepositSDK = jest.fn();
+jest.mock('../../../sdk', () => ({
+  useDepositSDK: () => mockUseDepositSDK(),
+}));
 
-const renderWithToastProvider = (component: React.ReactElement) => {
-  const mockToastRef = {
-    current: { showToast: mockShowToast, closeToast: jest.fn() },
-  };
-  return render(
-    <ToastContext.Provider value={{ toastRef: mockToastRef }}>
-      {component}
-    </ToastContext.Provider>,
+jest.mock('../../../../hooks/useRampNavigation', () => ({
+  useRampNavigation: jest.fn(() => ({ goToAggregator: mockGoToAggregator })),
+}));
+
+jest.mock('../../../../../../../component-library/components/Toast', () => {
+  const actualToast = jest.requireActual(
+    '../../../../../../../component-library/components/Toast',
   );
-};
+
+  return {
+    ...actualToast,
+    ToastVariants: {
+      Icon: 'Icon',
+    },
+  };
+});
 
 describe('ConfigurationModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-  });
-
-  it('renders correctly with bottom sheet', () => {
-    const { getByTestId } = renderWithToastProvider(<ConfigurationModal />);
-    expect(getByTestId('bottom-sheet')).toBeTruthy();
-  });
-
-  it('renders view order history menu item', () => {
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
-    expect(getByText('View order history')).toBeTruthy();
-  });
-
-  it('renders contact support menu item', () => {
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
-    expect(getByText('Contact support')).toBeTruthy();
-  });
-
-  it('renders more ways to buy menu item', () => {
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
-    expect(getByText('More ways to buy')).toBeTruthy();
-  });
-
-  it('navigates to order history when menu item is pressed', () => {
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
-
-    fireEvent.press(getByText('View order history'));
-
-    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
-      screen: Routes.TRANSACTIONS_VIEW,
-      params: {
-        redirectToOrders: true,
-      },
+    mockUseDepositSDK.mockReturnValue({
+      logoutFromProvider: mockClearAuthToken,
+      isAuthenticated: false,
+      selectedRegion: { isoCode: 'us' },
     });
   });
 
-  it('opens support URL when contact support is pressed', () => {
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
+  it('render matches snapshot', () => {
+    const { toJSON } = renderWithProvider(ConfigurationModal);
+    expect(toJSON()).toMatchSnapshot();
+  });
 
-    fireEvent.press(getByText('Contact support'));
+  it('should navigate to order history when view order history is pressed', () => {
+    const { getByText } = renderWithProvider(ConfigurationModal);
+    const viewOrderHistoryButton = getByText('View order history');
+    fireEvent.press(viewOrderHistoryButton);
+    expect(mockNavigate).toHaveBeenCalledWith(Routes.TRANSACTIONS_VIEW, {
+      screen: Routes.TRANSACTIONS_VIEW,
+      params: { redirectToOrders: true },
+    });
+  });
 
+  it('navigates to aggregator when more ways to buy is pressed', () => {
+    const { getByText } = renderWithProvider(ConfigurationModal);
+    const moreWaysToBuyButton = getByText('More ways to buy');
+
+    fireEvent.press(moreWaysToBuyButton);
+
+    expect(mockGoToAggregator).toHaveBeenCalledWith();
+  });
+
+  it('should open support URL when contact support is pressed', () => {
+    const { getByText } = renderWithProvider(ConfigurationModal);
+    const contactSupportButton = getByText('Contact support');
+    fireEvent.press(contactSupportButton);
     expect(Linking.openURL).toHaveBeenCalledWith(TRANSAK_SUPPORT_URL);
   });
 
-  it('calls logoutFromProvider when logout is pressed', async () => {
-    mockLogoutFromProvider.mockResolvedValueOnce(undefined);
+  it('tracks event when more ways to buy is pressed', () => {
+    const { getByText } = renderWithProvider(ConfigurationModal);
+    const moreWaysToBuyButton = getByText('More ways to buy');
 
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
+    fireEvent.press(moreWaysToBuyButton);
 
-    fireEvent.press(getByText('Log out of Transak'));
-
-    await waitFor(() => {
-      expect(mockLogoutFromProvider).toHaveBeenCalled();
+    expect(mockTrackEvent).toHaveBeenCalledWith('RAMPS_BUTTON_CLICKED', {
+      location: 'Deposit Settings Modal',
+      ramp_type: 'BUY',
+      region: 'us',
+      ramp_routing: undefined,
+      is_authenticated: false,
+      preferred_provider: undefined,
+      order_count: 0,
     });
   });
 
-  it('shows success toast when logout succeeds', async () => {
-    mockLogoutFromProvider.mockResolvedValueOnce(undefined);
+  describe('when user is authenticated', () => {
+    beforeEach(() => {
+      mockUseDepositSDK.mockReturnValue({
+        logoutFromProvider: mockClearAuthToken,
+        isAuthenticated: true,
+        selectedRegion: { isoCode: 'us' },
+      });
+    });
 
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
+    it('should display logout option', () => {
+      const { getByText } = renderWithProvider(ConfigurationModal);
+      expect(getByText('Log out of Transak')).toBeTruthy();
+    });
 
-    fireEvent.press(getByText('Log out of Transak'));
+    it('should clear auth token and show success toast when logout is successful', async () => {
+      mockClearAuthToken.mockResolvedValue(undefined);
+      const { getByText } = renderWithProvider(ConfigurationModal);
+      const logoutButton = getByText('Log out of Transak');
+      fireEvent.press(logoutButton);
 
-    await waitFor(() => {
-      expect(mockShowToast).toHaveBeenCalledWith(
-        expect.objectContaining({
-          variant: ToastVariants.Icon,
-        }),
-      );
+      expect(mockClearAuthToken).toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith({
+          variant: 'Icon',
+          labelOptions: [{ label: 'Successfully logged out' }],
+          iconName: 'CheckBold',
+          iconColor: IconColor.Success,
+          hasNoTimeout: false,
+        });
+      });
+    });
+
+    it('should show error toast when logout fails', async () => {
+      const mockError = new Error('Logout failed');
+      mockClearAuthToken.mockRejectedValue(mockError);
+      const { getByText } = renderWithProvider(ConfigurationModal);
+      const logoutButton = getByText('Log out of Transak');
+
+      fireEvent.press(logoutButton);
+
+      expect(mockClearAuthToken).toHaveBeenCalled();
+
+      await waitFor(() => {
+        expect(mockShowToast).toHaveBeenCalledWith({
+          variant: 'Icon',
+          labelOptions: [{ label: 'Error logging out' }],
+          iconName: 'CircleX',
+          iconColor: IconColor.Error,
+          hasNoTimeout: false,
+        });
+      });
     });
   });
 
-  it('tracks analytics and navigates to aggregator when more ways to buy is pressed', () => {
-    const { getByText } = renderWithToastProvider(<ConfigurationModal />);
-
-    fireEvent.press(getByText('More ways to buy'));
-
-    expect(mockTrackEvent).toHaveBeenCalledWith(
-      'RAMPS_BUTTON_CLICKED',
-      expect.objectContaining({
-        location: 'Deposit Settings Modal',
-        ramp_type: 'BUY',
-        region: 'US',
-      }),
-    );
-    expect(mockGoToAggregator).toHaveBeenCalled();
-  });
-});
-
-describe('ConfigurationModal Route Constants', () => {
-  it('has transactions view route defined', () => {
-    expect(Routes.TRANSACTIONS_VIEW).toBeDefined();
-  });
-
-  it('has deposit modals routes defined', () => {
-    expect(Routes.DEPOSIT.MODALS.ID).toBeDefined();
-    expect(Routes.DEPOSIT.MODALS.CONFIGURATION).toBeDefined();
+  describe('when user is not authenticated', () => {
+    it('should not display logout option', () => {
+      const { queryByText } = renderWithProvider(ConfigurationModal);
+      expect(queryByText('Log out')).toBeNull();
+    });
   });
 });

@@ -21,6 +21,7 @@ jest.mock('./usePredictBalance');
 jest.mock('./usePredictDeposit');
 const mockQueryClient = { invalidateQueries: jest.fn() };
 jest.mock('@tanstack/react-query', () => ({
+  ...jest.requireActual('@tanstack/react-query'),
   useQueryClient: () => mockQueryClient,
 }));
 jest.mock('../../../../../locales/i18n', () => ({
@@ -123,7 +124,7 @@ describe('usePredictPlaceOrder', () => {
       previewOrder: jest.fn(),
       prepareWithdraw: jest.fn(),
       deposit: jest.fn(),
-      payWithAnyTokenConfirmation: jest.fn(),
+      initPayWithAnyToken: jest.fn(),
     });
     mockRefetchBalance.mockResolvedValue({ data: 1000 });
     mockUsePredictBalance.mockReturnValue({
@@ -149,6 +150,7 @@ describe('usePredictPlaceOrder', () => {
       expect(result.current.error).toBeUndefined();
       expect(result.current.result).toBeNull();
       expect(typeof result.current.placeOrder).toBe('function');
+      expect(typeof result.current.invalidateOrderQueries).toBe('function');
     });
   });
 
@@ -189,6 +191,27 @@ describe('usePredictPlaceOrder', () => {
             }),
           ]),
           hasNoTimeout: false,
+        }),
+      );
+
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'balance'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'positions'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'activity'],
+        }),
+      );
+      expect(mockQueryClient.invalidateQueries).toHaveBeenCalledWith(
+        expect.objectContaining({
+          queryKey: ['predict', 'unrealizedPnL'],
         }),
       );
     });

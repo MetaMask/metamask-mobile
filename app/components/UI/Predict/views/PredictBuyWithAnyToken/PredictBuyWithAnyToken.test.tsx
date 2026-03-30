@@ -1,515 +1,410 @@
-import { NavigationProp, RouteProp } from '@react-navigation/native';
-import { screen } from '@testing-library/react-native';
 import React from 'react';
-import { backgroundState } from '../../../../../util/test/initial-root-state';
+import { fireEvent, screen } from '@testing-library/react-native';
+import { useSelector } from 'react-redux';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
-import { PredictMarket } from '../../types';
 import PredictBuyWithAnyToken from './PredictBuyWithAnyToken';
-import { PredictNavigationParamList } from '../../types/navigation';
-import { PredictEventValues } from '../../constants/eventNames';
-import { POLYMARKET_PROVIDER_ID } from '../../providers/polymarket/constants';
 
-jest.mock('../../../../../core/Engine', () => ({
-  context: {
-    PredictController: {
-      trackPredictOrderEvent: jest.fn(),
-    },
-  },
+const mockHandleConfirm = jest.fn();
+const mockPlaceOrder = jest.fn();
+const mockShowOrderPlacedToast = jest.fn();
+const mockInvalidateOrderQueries = jest.fn();
+const mockResetOrderNotFilled = jest.fn();
+const mockSetCurrentValue = jest.fn();
+const mockSetCurrentValueUSDString = jest.fn();
+const mockSetIsInputFocused = jest.fn();
+const mockSetIsUserInputChange = jest.fn();
+const mockSetIsConfirming = jest.fn();
+const mockHandleRetryWithBestPrice = jest.fn();
+
+let mockPayWithAnyTokenEnabled = true;
+let mockFakOrdersEnabled = false;
+let mockIsPreviewCalculating = false;
+let mockIsPlacingOrder = false;
+let mockCanSelectToken = true;
+let mockErrorMessage: string | undefined;
+
+jest.mock('@metamask/design-system-twrnc-preset', () => ({
+  useTailwind: () => ({
+    style: jest.fn(() => ({})),
+  }),
 }));
-
-const mockGoBack = jest.fn();
-const mockDispatch = jest.fn();
-const mockUseNavigation = jest.fn();
-const mockUseRoute = jest.fn();
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
-  useNavigation: () => mockUseNavigation(),
-  useRoute: () => mockUseRoute(),
-}));
-
-const mockPlaceOrder = jest.fn();
-let mockLoadingState = false;
-let mockPlaceOrderResult: { success: boolean; response?: unknown } | null =
-  null;
-let mockPlaceOrderError: string | undefined;
-
-jest.mock('../../hooks/usePredictPlaceOrder', () => ({
-  usePredictPlaceOrder: () => ({
-    placeOrder: mockPlaceOrder,
-    isLoading: mockLoadingState,
-    result: mockPlaceOrderResult,
-    error: mockPlaceOrderError,
-    isOrderNotFilled: false,
-    resetOrderNotFilled: jest.fn(),
-  }),
-}));
-
-jest.mock('../../hooks/usePredictOrderRetry', () => ({
-  usePredictOrderRetry: () => ({
-    retrySheetRef: { current: null },
-    retrySheetVariant: 'busy' as const,
-    isRetrying: false,
-    handleRetryWithBestPrice: jest.fn(),
-  }),
-}));
-
-let mockExpectedAmount = 120;
-let mockMetamaskFee = 0.5;
-let mockProviderFee = 1.0;
-let mockTotalFeePercentage = 4;
-jest.mock('../../hooks/usePredictOrderPreview', () => ({
-  usePredictOrderPreview: () => ({
-    preview: {
-      marketId: 'market-123',
-      outcomeId: 'outcome-456',
-      outcomeTokenId: 'outcome-token-789',
-      timestamp: Date.now(),
-      side: 'BUY',
-      sharePrice: 0.5,
-      maxAmountSpent: 100,
-      minAmountReceived: mockExpectedAmount,
-      slippage: 0.005,
-      tickSize: 0.01,
-      minOrderSize: 1,
-      negRisk: false,
-      fees: {
-        metamaskFee: mockMetamaskFee,
-        providerFee: mockProviderFee,
-        totalFee: mockMetamaskFee + mockProviderFee,
-        totalFeePercentage: mockTotalFeePercentage,
-      },
+  useRoute: () => ({
+    params: {
+      market: { id: 'market-1' },
+      outcome: { id: 'outcome-1' },
+      outcomeToken: { id: 'token-1', title: 'Yes', price: 0.62 },
+      entryPoint: 'market_details',
     },
-    isCalculating: false,
-    error: null,
   }),
 }));
 
-let mockBalance = 1000;
-let mockBalanceLoading = false;
-jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
-  usePredictBuyAvailableBalance: () => ({
-    availableBalance: `$${mockBalance.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-    isBalanceLoading: mockBalanceLoading,
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: jest.fn(),
+}));
+
+jest.mock('../../selectors/featureFlags', () => ({
+  selectPredictWithAnyTokenEnabledFlag: jest.fn(
+    () => mockPayWithAnyTokenEnabled,
+  ),
+  selectPredictFakOrdersEnabledFlag: jest.fn(() => mockFakOrdersEnabled),
+}));
+
+jest.mock('../../utils/analytics', () => ({
+  parseAnalyticsProperties: jest.fn(() => ({
+    marketId: 'market-1',
+    sharePrice: 0.62,
+  })),
+}));
+
+jest.mock('../../utils/format', () => ({
+  formatPrice: jest.fn((value: number) => `$${value.toFixed(2)}`),
+}));
+
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    isPlacingOrder: mockIsPlacingOrder,
   }),
-}));
-
-jest.mock('./hooks/usePredictBuyInputState', () => ({
-  usePredictBuyInputState: () => ({
-    currentValue: 0,
-    setCurrentValue: jest.fn(),
-    currentValueUSDString: '$0.00',
-    setCurrentValueUSDString: jest.fn(),
-    isInputFocused: true,
-    setIsInputFocused: jest.fn(),
-    isUserInputChange: false,
-    setIsUserInputChange: jest.fn(),
-    isConfirming: false,
-    setIsConfirming: jest.fn(),
-  }),
-}));
-
-jest.mock('./hooks/usePredictBuyPreviewActions', () => ({
-  usePredictBuyActions: () => ({
-    handleBack: jest.fn(),
-    handleBackSwipe: jest.fn(),
-    handleTokenSelected: jest.fn(),
-    handleConfirm: jest.fn(),
-    handleDepositFailed: jest.fn(),
-    handlePlaceOrderSuccess: jest.fn(),
-    handlePlaceOrderError: jest.fn(),
-  }),
-}));
-
-jest.mock('./hooks/usePredictBuyBackSwipe', () => ({
-  __esModule: true,
-  default: jest.fn(),
-}));
-
-jest.mock('./hooks/usePredictPayWithAnyTokenTracking', () => ({
-  usePredictPayWithAnyTokenTracking: jest.fn(),
-}));
-
-jest.mock('./hooks/usePredictBuyConditions', () => ({
-  usePredictBuyConditions: () => ({
-    isPlacingOrder: false,
-    isBelowMinimum: false,
-    canPlaceBet: true,
-    isUserChangeTriggeringCalculation: false,
-    isPayFeesLoading: false,
-    isBalancePulsing: false,
-  }),
-}));
-
-jest.mock('../../hooks/usePredictPaymentToken', () => ({
-  usePredictPaymentToken: jest.fn(),
-}));
-
-jest.mock('./hooks/usePredictBuyInfo', () => ({
-  usePredictBuyInfo: () => ({
-    toWin: '$120.00',
-    metamaskFee: 0.5,
-    providerFee: 1.0,
-    total: 101.5,
-    depositFee: 0,
-    rewardsFeeAmount: 0,
-    errorMessage: null,
-  }),
-}));
-
-jest.mock('./hooks/usePredictOrderTracking', () => ({
-  usePredictOrderTracking: jest.fn(),
 }));
 
 jest.mock('../../hooks/usePredictMeasurement', () => ({
   usePredictMeasurement: jest.fn(),
 }));
 
-jest.mock('./components/PredictPayWithAnyTokenInfo', () => ({
-  __esModule: true,
-  default: () => null,
-}));
-
-jest.mock('react-redux', () => ({
-  ...jest.requireActual('react-redux'),
-  useSelector: jest.fn(() => false),
-}));
-
-jest.mock('../../utils/format', () => ({
-  formatPrice: jest.fn(
-    (
-      value: number,
-      options?: { minimumDecimals?: number; maximumDecimals?: number },
-    ) => {
-      const formatted = value.toLocaleString('en-US', {
-        minimumFractionDigits: options?.minimumDecimals ?? 0,
-        maximumFractionDigits: options?.maximumDecimals ?? 2,
-      });
-      return `$${formatted}`;
+jest.mock('../../hooks/usePredictOrderPreview', () => ({
+  usePredictOrderPreview: () => ({
+    preview: {
+      sharePrice: 0.62,
+      minAmountReceived: 24,
     },
-  ),
-  formatCents: jest.fn((value: number) => `${Math.round(value * 100)}¢`),
-  formatPositionSize: jest.fn((value: string | number) => {
-    const num = typeof value === 'string' ? parseFloat(value) : value;
-    return num.toLocaleString('en-US');
+    error: null,
+    isCalculating: mockIsPreviewCalculating,
   }),
-  formatPercentage: jest.fn((value, options) =>
-    value !== undefined
-      ? `${value.toFixed(options?.truncate ?? false)}%`
-      : '0%',
-  ),
 }));
 
-const mockMarket: PredictMarket = {
-  id: 'market-123',
-  providerId: POLYMARKET_PROVIDER_ID,
-  slug: 'bitcoin-price',
-  title: 'Will Bitcoin reach $150,000?',
-  description: 'Market description',
-  image: 'https://example.com/market.png',
-  status: 'open',
-  recurrence: 'none' as never,
-  category: 'crypto',
-  tags: ['blockchain', 'cryptocurrency'],
-  outcomes: [
-    {
-      id: 'outcome-456',
-      marketId: 'market-123',
-      providerId: POLYMARKET_PROVIDER_ID,
-      title: 'Bitcoin Price Outcome',
-      description: 'Outcome description',
-      image: 'https://example.com/outcome.png',
-      status: 'open',
-      volume: 1000000,
-      groupItemTitle: 'Bitcoin Price',
-      tokens: [
-        {
-          id: 'outcome-token-789',
-          title: 'Yes',
-          price: 0.5,
-        },
-        {
-          id: 'outcome-token-790',
-          title: 'No',
-          price: 5000,
-        },
-      ],
-      negRisk: false,
-      tickSize: '0.01',
-    },
-  ],
-  liquidity: 1000000,
-  volume: 1000000,
-};
+jest.mock('../../hooks/usePredictOrderRetry', () => ({
+  usePredictOrderRetry: () => ({
+    retrySheetRef: { current: null },
+    retrySheetVariant: 'busy',
+    isRetrying: false,
+    handleRetryWithBestPrice: mockHandleRetryWithBestPrice,
+  }),
+}));
 
-const mockRoute: RouteProp<PredictNavigationParamList, 'PredictBuyPreview'> = {
-  key: 'PredictBuyPreview-key',
-  name: 'PredictBuyPreview',
-  params: {
-    market: mockMarket,
-    outcome: mockMarket.outcomes[0],
-    outcomeToken: {
-      id: 'outcome-token-789',
-      title: 'Yes',
-      price: 0.5,
-    },
-    entryPoint: PredictEventValues.ENTRY_POINT.PREDICT_FEED,
-    isConfirmation: false,
+jest.mock('../../hooks/usePredictPlaceOrder', () => ({
+  usePredictPlaceOrder: () => ({
+    showOrderPlacedToast: mockShowOrderPlacedToast,
+    invalidateOrderQueries: mockInvalidateOrderQueries,
+  }),
+}));
+
+jest.mock('./hooks/usePredictBuyAvailableBalance', () => ({
+  usePredictBuyAvailableBalance: () => ({
+    availableBalance: 10,
+    isBalanceLoading: false,
+  }),
+}));
+
+jest.mock('./hooks/usePredictBuyInputState', () => ({
+  usePredictBuyInputState: () => ({
+    currentValue: 20,
+    setCurrentValue: mockSetCurrentValue,
+    currentValueUSDString: '$20.00',
+    setCurrentValueUSDString: mockSetCurrentValueUSDString,
+    isInputFocused: false,
+    setIsInputFocused: mockSetIsInputFocused,
+    isUserInputChange: true,
+    setIsUserInputChange: mockSetIsUserInputChange,
+    isConfirming: false,
+    setIsConfirming: mockSetIsConfirming,
+  }),
+}));
+
+jest.mock('./hooks/usePredictBuyInfo', () => ({
+  usePredictBuyInfo: () => ({
+    toWin: 24,
+    metamaskFee: 1,
+    providerFee: 2,
+    total: 23,
+    depositFee: 3,
+    depositAmount: 4,
+    rewardsFeeAmount: 5,
+    totalPayForPredictBalance: 20,
+  }),
+}));
+
+jest.mock('./hooks/usePredictBuyConditions', () => ({
+  usePredictBuyConditions: () => ({
+    canPlaceBet: true,
+    isUserChangeTriggeringCalculation: false,
+    isPayFeesLoading: false,
+    isBalancePulsing: false,
+    isBelowMinimum: false,
+    isInsufficientBalance: false,
+    maxBetAmount: 50,
+    canSelectToken: mockCanSelectToken,
+  }),
+}));
+
+jest.mock('./hooks/usePredictBuyError', () => ({
+  usePredictBuyError: () => ({
+    errorMessage: mockErrorMessage,
+    isOrderNotFilled: false,
+    resetOrderNotFilled: mockResetOrderNotFilled,
+  }),
+}));
+
+jest.mock('./hooks/usePredictBuyActions', () => ({
+  usePredictBuyActions: () => ({
+    handleConfirm: mockHandleConfirm,
+    placeOrder: mockPlaceOrder,
+  }),
+}));
+
+jest.mock(
+  './components/PredictBuyPreviewHeader/PredictBuyPreviewHeader',
+  () => {
+    const { Text } = jest.requireActual('react-native');
+    return function MockPredictBuyPreviewHeader() {
+      return <Text testID="predict-buy-preview-header">Header</Text>;
+    };
   },
-};
+);
 
-const mockNavigation: NavigationProp<PredictNavigationParamList> = {
-  goBack: mockGoBack,
-  dispatch: mockDispatch,
-  navigate: jest.fn(),
-  reset: jest.fn(),
-  setParams: jest.fn(),
-  setOptions: jest.fn(),
-  addListener: jest.fn(),
-  removeListener: jest.fn(),
-  canGoBack: jest.fn(),
-  isFocused: jest.fn(),
-  getParent: jest.fn(),
-  getState: jest.fn(),
-  getId: jest.fn(),
-};
+jest.mock('./components/PredictBuyAmountSection', () => {
+  const { Text } = jest.requireActual('react-native');
+  return function MockPredictBuyAmountSection({
+    availableBalanceDisplay,
+    isPlacingOrder,
+  }: {
+    availableBalanceDisplay: string;
+    isPlacingOrder: boolean;
+  }) {
+    return (
+      <Text testID="predict-buy-amount-section">
+        {`Amount Section ${availableBalanceDisplay} placing-${String(
+          isPlacingOrder,
+        )}`}
+      </Text>
+    );
+  };
+});
 
-const initialState = {
-  engine: {
-    backgroundState,
-  },
-};
+jest.mock('./components/PredictBuyBottomContent', () => {
+  const { View } = jest.requireActual('react-native');
+  return function MockPredictBuyBottomContent({
+    children,
+  }: {
+    children: React.ReactNode;
+  }) {
+    return <View testID="predict-buy-bottom-content">{children}</View>;
+  };
+});
+
+jest.mock('./components/PredictBuyError', () => {
+  const { Text } = jest.requireActual('react-native');
+  return function MockPredictBuyError({
+    errorMessage,
+  }: {
+    errorMessage?: string;
+  }) {
+    return <Text testID="predict-buy-error">{errorMessage ?? 'no-error'}</Text>;
+  };
+});
+
+jest.mock('../../components/PredictFeeBreakdownSheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View, Text, Pressable } = jest.requireActual('react-native');
+  return ReactActual.forwardRef(
+    (
+      {
+        onClose,
+        fakOrdersEnabled,
+      }: {
+        onClose: () => void;
+        fakOrdersEnabled: boolean;
+      },
+      _ref: unknown,
+    ) => (
+      <View testID="predict-fee-breakdown-sheet">
+        <Text>{`fak-orders-${String(fakOrdersEnabled)}`}</Text>
+        <Pressable testID="close-fee-breakdown" onPress={onClose}>
+          <Text>Close Fee Breakdown</Text>
+        </Pressable>
+      </View>
+    ),
+  );
+});
+
+jest.mock('../../components/PredictKeypad', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return ReactActual.forwardRef((_props: unknown, _ref: unknown) => (
+    <View testID="predict-keypad" />
+  ));
+});
+
+jest.mock('../../components/PredictOrderRetrySheet', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return ReactActual.forwardRef((_props: unknown, _ref: unknown) => (
+    <View testID="predict-order-retry-sheet" />
+  ));
+});
+
+jest.mock('./components/PredictPayWithAnyTokenInfo', () => {
+  const { Text } = jest.requireActual('react-native');
+  return function MockPredictPayWithAnyTokenInfo({
+    depositAmount,
+  }: {
+    depositAmount: number;
+  }) {
+    return (
+      <Text testID="predict-pay-with-any-token-info">{depositAmount}</Text>
+    );
+  };
+});
+
+jest.mock('./components/PredictPayWithRow', () => {
+  const { Text } = jest.requireActual('react-native');
+  return {
+    PredictPayWithRow: ({ disabled }: { disabled?: boolean }) => (
+      <Text testID="predict-pay-with-row">{`disabled-${String(disabled)}`}</Text>
+    ),
+  };
+});
+
+jest.mock('./components/PredictFeeSummary/PredictFeeSummary', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return function MockPredictFeeSummary({
+    handleFeesInfoPress,
+  }: {
+    handleFeesInfoPress: () => void;
+  }) {
+    return (
+      <Pressable testID="predict-fee-summary" onPress={handleFeesInfoPress}>
+        <Text>Fee Summary</Text>
+      </Pressable>
+    );
+  };
+});
+
+jest.mock('./components/PredictBuyActionButton', () => {
+  const { Pressable, Text } = jest.requireActual('react-native');
+  return function MockPredictBuyActionButton({
+    onPress,
+    disabled,
+  }: {
+    onPress: () => void;
+    disabled: boolean;
+  }) {
+    return (
+      <Pressable testID="predict-buy-action-button" onPress={onPress}>
+        <Text>{`button-disabled-${String(disabled)}`}</Text>
+      </Pressable>
+    );
+  };
+});
+
+const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 
 describe('PredictBuyWithAnyToken', () => {
-  beforeAll(() => {
-    jest.useFakeTimers();
-  });
-
-  afterAll(() => {
-    jest.useRealTimers();
-  });
-
   beforeEach(() => {
     jest.clearAllMocks();
-
-    mockExpectedAmount = 120;
-    mockLoadingState = false;
-    mockPlaceOrderResult = null;
-    mockPlaceOrderError = undefined;
-    mockBalance = 1000;
-    mockBalanceLoading = false;
-    mockMetamaskFee = 0.5;
-    mockProviderFee = 1.0;
-    mockTotalFeePercentage = 4;
-
-    mockUseNavigation.mockReturnValue(mockNavigation);
-    mockUseRoute.mockReturnValue(mockRoute);
-  });
-
-  afterEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('initial rendering', () => {
-    it('renders market title and outcome information', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(
-        screen.getByText('Will Bitcoin reach $150,000?'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders header with market information', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(screen.getByText('Bitcoin Price')).toBeOnTheScreen();
-    });
-
-    it('displays to win section', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(screen.getByText('To win')).toBeOnTheScreen();
-    });
-  });
-
-  describe('navigation', () => {
-    it('calls navigation hooks on component mount', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(mockUseNavigation).toHaveBeenCalled();
-      expect(mockUseRoute).toHaveBeenCalled();
-    });
-  });
-
-  describe('market display variations', () => {
-    it('displays Yes outcome with price', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(screen.getByText(/Yes at 50¢/)).toBeOnTheScreen();
-    });
-
-    it('renders component with No outcome token in route', () => {
-      const noOutcomeRoute = {
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          outcomeToken: {
-            id: 'outcome-token-no',
-            title: 'No',
-            price: 0.6,
+    mockPayWithAnyTokenEnabled = true;
+    mockFakOrdersEnabled = false;
+    mockIsPreviewCalculating = false;
+    mockIsPlacingOrder = false;
+    mockCanSelectToken = true;
+    mockErrorMessage = undefined;
+    mockUseSelector.mockImplementation((selector) => {
+      if (typeof selector === 'function') {
+        return selector({
+          engine: {
+            backgroundState: {
+              RemoteFeatureFlagController: {},
+            },
           },
-        },
-      };
-      mockUseRoute.mockReturnValue(noOutcomeRoute);
+        });
+      }
 
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(
-        screen.getByText('Will Bitcoin reach $150,000?'),
-      ).toBeOnTheScreen();
-    });
-
-    it('renders component with custom outcome title', () => {
-      const customOutcomeRoute = {
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          outcomeToken: {
-            id: 'outcome-token-custom',
-            title: 'Maybe',
-            price: 0.75,
-          },
-        },
-      };
-      mockUseRoute.mockReturnValue(customOutcomeRoute);
-
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(
-        screen.getByText('Will Bitcoin reach $150,000?'),
-      ).toBeOnTheScreen();
+      return undefined;
     });
   });
 
-  describe('route parameter variations', () => {
-    it('renders component when entryPoint is undefined', () => {
-      const routeWithoutEntryPoint = {
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          entryPoint: undefined,
-        },
-      };
-      mockUseRoute.mockReturnValue(routeWithoutEntryPoint);
+  it('renders the screen, resets user input change after preview calculation, and opens the fee breakdown sheet', () => {
+    renderWithProvider(<PredictBuyWithAnyToken />);
 
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
+    expect(screen.getByTestId('predict-buy-preview-header')).toBeOnTheScreen();
+    expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
+      'Amount Section $10.00 placing-false',
+    );
+    expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
+      'disabled-false',
+    );
+    expect(mockSetIsUserInputChange).toHaveBeenCalledWith(false);
 
-      expect(
-        screen.getByText('Will Bitcoin reach $150,000?'),
-      ).toBeOnTheScreen();
-    });
+    fireEvent.press(screen.getByTestId('predict-fee-summary'));
 
-    it('renders outcome without group title when groupItemTitle is undefined', () => {
-      const routeWithoutGroupTitle = {
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          outcome: {
-            ...mockRoute.params.outcome,
-            groupItemTitle: undefined,
-          },
-        },
-      };
-      mockUseRoute.mockReturnValue(routeWithoutGroupTitle);
+    expect(screen.getByTestId('predict-fee-breakdown-sheet')).toBeOnTheScreen();
 
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
+    fireEvent.press(screen.getByTestId('close-fee-breakdown'));
 
-      expect(screen.getByText(/Yes at 50¢/)).toBeOnTheScreen();
-    });
+    expect(
+      screen.queryByTestId('predict-fee-breakdown-sheet'),
+    ).not.toBeOnTheScreen();
   });
 
-  describe('confirmation mode', () => {
-    it('renders with different safe area edges when isConfirmation is true', () => {
-      const confirmationRoute = {
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          isConfirmation: true,
-        },
-      };
-      mockUseRoute.mockReturnValue(confirmationRoute);
+  it('hides the pay with row when the feature flag is disabled', () => {
+    mockPayWithAnyTokenEnabled = false;
 
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
+    renderWithProvider(<PredictBuyWithAnyToken />);
 
-      expect(
-        screen.getByText('Will Bitcoin reach $150,000?'),
-      ).toBeOnTheScreen();
-    });
-
-    it('shows PredictPayWithAnyTokenInfo when isConfirmation is true', () => {
-      const confirmationRoute = {
-        ...mockRoute,
-        params: {
-          ...mockRoute.params,
-          isConfirmation: true,
-        },
-      };
-      mockUseRoute.mockReturnValue(confirmationRoute);
-
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(
-        screen.getByText('Will Bitcoin reach $150,000?'),
-      ).toBeOnTheScreen();
-    });
+    expect(screen.queryByTestId('predict-pay-with-row')).not.toBeOnTheScreen();
   });
 
-  describe('keypad interaction', () => {
-    it('renders keypad component', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
+  it('disables the pay with row when token selection is unavailable and forwards the confirm action', () => {
+    mockCanSelectToken = false;
+    mockErrorMessage = 'Insufficient balance';
 
-      expect(screen.getByText('Done')).toBeOnTheScreen();
-    });
+    renderWithProvider(<PredictBuyWithAnyToken />);
 
-    it('shows quick amount buttons', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
+    expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
+      'disabled-true',
+    );
+    expect(screen.getByTestId('predict-buy-error')).toHaveTextContent(
+      'Insufficient balance',
+    );
+    expect(
+      screen.getByTestId('predict-pay-with-any-token-info'),
+    ).toHaveTextContent('4');
 
-      expect(screen.getByText('$20')).toBeOnTheScreen();
-      expect(screen.getByText('$50')).toBeOnTheScreen();
-      expect(screen.getByText('$100')).toBeOnTheScreen();
-    });
+    fireEvent.press(screen.getByTestId('predict-buy-action-button'));
+
+    expect(mockHandleConfirm).toHaveBeenCalledTimes(1);
   });
 
-  describe('fee breakdown', () => {
-    it('renders fee summary component container', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
+  it('does not reset user input change while preview calculation is still running', () => {
+    mockIsPreviewCalculating = true;
 
-      expect(screen.getByText('To win')).toBeOnTheScreen();
-    });
+    renderWithProvider(<PredictBuyWithAnyToken />);
+
+    expect(mockSetIsUserInputChange).not.toHaveBeenCalled();
   });
 
-  describe('action button', () => {
-    it('renders action button section', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
+  it('disables token selection while an order is being placed', () => {
+    mockIsPlacingOrder = true;
 
-      expect(screen.getByText('Done')).toBeOnTheScreen();
-    });
-  });
+    renderWithProvider(<PredictBuyWithAnyToken />);
 
-  describe('edge cases', () => {
-    it('handles missing preview gracefully', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(
-        screen.getByText('Will Bitcoin reach $150,000?'),
-      ).toBeOnTheScreen();
-    });
-
-    it('handles component mounting with all hooks', () => {
-      renderWithProvider(<PredictBuyWithAnyToken />, { state: initialState });
-
-      expect(screen.getByText('To win')).toBeOnTheScreen();
-      expect(screen.getByText('Done')).toBeOnTheScreen();
-    });
+    expect(screen.getByTestId('predict-buy-amount-section')).toHaveTextContent(
+      'Amount Section $10.00 placing-true',
+    );
+    expect(screen.getByTestId('predict-pay-with-row')).toHaveTextContent(
+      'disabled-true',
+    );
   });
 });
