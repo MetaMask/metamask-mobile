@@ -24,7 +24,10 @@ export default defineConfig({
   projects: [
     {
       name: 'android',
-      testMatch: 'tests/performance/**/*.spec.js',
+      testMatch: [
+        'tests/performance/**/*.spec.ts',
+        'tests/performance/**/*.spec.js',
+      ],
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -42,7 +45,7 @@ export default defineConfig({
     {
       // Browserstack does not support appium 3 just yet.
       name: 'browserstack-android',
-      testMatch: '**/performance/login/**/*.spec.js',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -59,7 +62,7 @@ export default defineConfig({
     },
     {
       name: 'ios',
-      testMatch: '**/performance/login/**/*.spec.js',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
@@ -74,7 +77,7 @@ export default defineConfig({
     },
     {
       name: 'browserstack-ios',
-      testMatch: '**/performance/login/**/*.spec.js',
+      testMatch: '**/performance/login/**/*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
@@ -131,7 +134,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-ios-browserstack',
-      testMatch: '**/performance/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
@@ -147,7 +150,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-ios-local',
-      testMatch: '**/performance/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
@@ -162,7 +165,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-android-browserstack',
-      testMatch: '**/performance/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -179,7 +182,7 @@ export default defineConfig({
     },
     {
       name: 'mm-connect-android-local',
-      testMatch: '**/performance/mm-connect/**/*.spec.js',
+      testMatch: '**/performance/mm-connect/**/*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
