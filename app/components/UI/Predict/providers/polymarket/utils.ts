@@ -1026,6 +1026,14 @@ const resolveNegRiskOutcomeLabel = (
     return undefined;
   }
 
+  const league = SUPPORTED_SPORTS_LEAGUES.find(
+    (l) => isDrawCapableLeague(l) && position.eventSlug?.startsWith(`${l}-`),
+  );
+
+  if (!league) {
+    return undefined;
+  }
+
   const prefix = position.eventSlug + '-';
   if (!position.slug.startsWith(prefix)) {
     return undefined;
@@ -1040,11 +1048,7 @@ const resolveNegRiskOutcomeLabel = (
     return 'Draw';
   }
 
-  const league = SUPPORTED_SPORTS_LEAGUES.find(
-    (l) => isDrawCapableLeague(l) && position.eventSlug?.startsWith(`${l}-`),
-  );
-
-  if (!league || !teamLookup) {
+  if (!teamLookup) {
     return outcomeToken.toUpperCase();
   }
 

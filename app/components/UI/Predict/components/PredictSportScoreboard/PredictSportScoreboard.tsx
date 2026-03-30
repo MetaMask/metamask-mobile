@@ -162,6 +162,30 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
     ? awayHasPossession
     : homeHasPossession;
 
+  const leftTestIds = isHomeFirst
+    ? {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER,
+      }
+    : {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER,
+      };
+
+  const rightTestIds = isHomeFirst
+    ? {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER,
+      }
+    : {
+        icon: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON,
+        possession: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION,
+        winner: PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER,
+      };
+
   const renderCenterContent = () => {
     if (isPreGame) {
       return (
@@ -252,13 +276,13 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
           <config.TeamIcon
             color={leftTeam.color}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON}`}
+            testID={`${testID}${leftTestIds.icon}`}
           />
         ) : (
           <PredictSportTeamLogo
             uri={leftTeam.logo}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_TEAM_ICON}`}
+            testID={`${testID}${leftTestIds.icon}`}
           />
         )}
 
@@ -269,13 +293,13 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             color={rightTeam.color}
             size={TEAM_ICON_SIZE}
             flipped
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON}`}
+            testID={`${testID}${rightTestIds.icon}`}
           />
         ) : (
           <PredictSportTeamLogo
             uri={rightTeam.logo}
             size={TEAM_ICON_SIZE}
-            testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_TEAM_ICON}`}
+            testID={`${testID}${rightTestIds.icon}`}
           />
         )}
       </Box>
@@ -302,7 +326,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="ml-1">
               <config.PossessionIcon
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_POSSESSION}`}
+                testID={`${testID}${leftTestIds.possession}`}
               />
             </Box>
           )}
@@ -310,7 +334,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="ml-1">
               <PredictSportWinner
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.AWAY_WINNER}`}
+                testID={`${testID}${leftTestIds.winner}`}
               />
             </Box>
           )}
@@ -324,7 +348,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="mr-1">
               <config.PossessionIcon
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_POSSESSION}`}
+                testID={`${testID}${rightTestIds.possession}`}
               />
             </Box>
           )}
@@ -332,7 +356,7 @@ const PredictSportScoreboard: React.FC<PredictSportScoreboardProps> = ({
             <Box twClassName="mr-1">
               <PredictSportWinner
                 size={POSSESSION_ICON_SIZE}
-                testID={`${testID}${PREDICT_SPORT_SCOREBOARD_TEST_IDS.HOME_WINNER}`}
+                testID={`${testID}${rightTestIds.winner}`}
               />
             </Box>
           )}

@@ -31,6 +31,26 @@ export const getSeparatedLabelYPositions = (
   }
 
   const minSpacing = LABEL_HEIGHT + MIN_LABEL_GAP;
+
+  // For 2 labels, use symmetric centering around the midpoint
+  if (dotPositions.length === 2) {
+    const [first, second] = dotPositions;
+    const gap = Math.abs(first.dotY - second.dotY);
+
+    if (gap >= minSpacing) {
+      return [first.dotY, second.dotY];
+    }
+
+    const midPoint = (first.dotY + second.dotY) / 2;
+    const offset = minSpacing / 2;
+
+    if (first.dotY < second.dotY) {
+      return [midPoint - offset, midPoint + offset];
+    }
+    return [midPoint + offset, midPoint - offset];
+  }
+
+  // For 3+ labels, sort and push overlapping labels downward
   const positions = dotPositions.map((pos, index) => ({
     index,
     y: pos.dotY,
