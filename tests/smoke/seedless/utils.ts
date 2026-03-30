@@ -1,5 +1,6 @@
 import Assertions from '../../framework/Assertions';
 import Gestures from '../../framework/Gestures';
+import { asDetoxElement } from '../../framework/EncapsulatedElement';
 import {
   getFixturesServerPort,
   getMockServerPortForFixture,
@@ -180,7 +181,7 @@ export const resetWallet = async (): Promise<void> => {
     timeout: 30000,
   });
 
-  await Gestures.swipe(LoginView.container, 'down', {
+  await Gestures.swipe(asDetoxElement(LoginView.container), 'down', {
     elemDescription: 'Login container - dismiss keyboard',
   });
 
