@@ -100,6 +100,15 @@ jest.mock('../../hooks/usePerpsEventTracking', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  })),
+}));
+
 jest.mock('../../hooks/stream', () => ({
   usePerpsLiveAccount: jest.fn(() => ({
     account: {
@@ -230,6 +239,7 @@ jest.mock('@metamask/perps-controller', () => ({
     SOURCE: {
       MAIN_ACTION_BUTTON: 'main_action_button',
       HOMESCREEN_TAB: 'homescreen_tab',
+      PERPS_HOME: 'perps_home',
     },
     BUTTON_LOCATION: {
       PERPS_HOME: 'perps_home',
@@ -558,7 +568,7 @@ describe('PerpsHomeView', () => {
 
     expect(mockNavigateToMarketList).toHaveBeenCalledWith({
       defaultMarketTypeFilter: 'all',
-      source: PERPS_EVENT_VALUE.SOURCE.HOMESCREEN_TAB,
+      source: PERPS_EVENT_VALUE.SOURCE.PERPS_HOME,
       fromHome: true,
       button_clicked: 'magnifying_glass',
       button_location: 'perps_home',

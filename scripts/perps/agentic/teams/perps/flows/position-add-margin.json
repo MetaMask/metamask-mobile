@@ -1,0 +1,120 @@
+{
+  "title": "Position — add ${{marginAmount}} margin to {{symbol}}",
+  "inputs": {
+    "symbol": {
+      "type": "string",
+      "description": "Market symbol of position to add margin to"
+    },
+    "marginAmount": {
+      "type": "string",
+      "description": "USD margin amount to add"
+    }
+  },
+  "validate": {
+    "runtime": {
+      "pre_conditions": [
+        "wallet.unlocked",
+        {
+          "name": "perps.open_position",
+          "symbol": "{{symbol}}"
+        }
+      ],
+      "steps": [
+        {
+          "id": "assert-position-exists",
+          "action": "eval_async",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.marginUsed:null})})",
+          "assert": {
+            "operator": "not_null",
+            "field": "margin"
+          }
+        },
+        {
+          "id": "nav-market-detail",
+          "action": "navigate",
+          "target": "PerpsMarketDetails",
+          "params": {
+            "market": {
+              "symbol": "{{symbol}}",
+              "name": "{{symbol}}",
+              "price": "0",
+              "change24h": "0",
+              "change24hPercent": "0",
+              "volume": "0",
+              "maxLeverage": "100"
+            }
+          }
+        },
+        {
+          "id": "wait-render",
+          "action": "wait_for",
+          "test_id": "position-card-margin-chevron"
+        },
+        {
+          "id": "press-margin-chevron",
+          "action": "press",
+          "test_id": "position-card-margin-chevron"
+        },
+        {
+          "id": "wait-action-sheet",
+          "action": "wait_for",
+          "test_id": "perps-adjust-margin-add-btn"
+        },
+        {
+          "id": "press-add-margin-option",
+          "action": "press",
+          "test_id": "perps-adjust-margin-add-btn"
+        },
+        {
+          "id": "wait-margin-screen",
+          "action": "wait_for",
+          "route": "PerpsAdjustMargin"
+        },
+        {
+          "id": "press-amount-display",
+          "action": "press",
+          "test_id": "perps-amount-display-touchable"
+        },
+        {
+          "id": "wait-keypad",
+          "action": "wait_for",
+          "test_id": "keypad-delete-button"
+        },
+        {
+          "id": "clear-keypad",
+          "action": "clear_keypad",
+          "count": 8
+        },
+        {
+          "id": "type-amount",
+          "action": "type_keypad",
+          "value": "{{marginAmount}}"
+        },
+        {
+          "id": "press-done",
+          "action": "press",
+          "test_id": "perps-adjust-margin-done-button"
+        },
+        {
+          "id": "wait-done",
+          "action": "wait_for",
+          "test_id": "perps-adjust-margin-confirm-button"
+        },
+        {
+          "id": "press-confirm",
+          "action": "press",
+          "test_id": "perps-adjust-margin-confirm-button"
+        },
+        {
+          "id": "wait-confirm",
+          "action": "wait_for",
+          "expression": "Engine.context.PerpsController.getPositions().then(function(ps){var p=ps.find(function(x){return x.symbol==='{{symbol}}'});return JSON.stringify({margin:p?p.marginUsed:null})})",
+          "assert": {
+            "operator": "not_null",
+            "field": "margin"
+          }
+        }
+      ]
+    }
+  }
+}

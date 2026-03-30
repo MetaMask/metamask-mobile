@@ -4,7 +4,7 @@ import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 import AddCustomCollectible from './AddCustomCollectible';
 import Engine from '../../../../../core/Engine';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as utilsTransactions from '../../../../../util/transactions';
 
 // --- Mock variables (hoisted by Jest) ---

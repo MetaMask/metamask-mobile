@@ -13,13 +13,13 @@ import { useParams } from '../../../../../util/navigation/navUtils';
 import { debounce } from 'lodash';
 import { hasTransactionType } from '../../utils/transaction';
 import { usePredictBalance } from '../../../../UI/Predict/hooks/usePredictBalance';
+import Engine from '../../../../../core/Engine';
 import {
   useTransactionPayIsMaxAmount,
   useTransactionPayTotals,
 } from '../pay/useTransactionPayData';
 import { useTransactionPayHasSourceAmount } from '../pay/useTransactionPayHasSourceAmount';
 import { useConfirmationMetricEvents } from '../metrics/useConfirmationMetricEvents';
-import Engine from '../../../../../core/Engine';
 
 export const MAX_LENGTH = 28;
 const DEBOUNCE_DELAY = 500;
@@ -197,6 +197,12 @@ function useTokenBalance(tokenUsdRate: number) {
   const predictBalanceUsd = new BigNumber(predictBalanceHuman ?? '0')
     .multipliedBy(tokenUsdRate)
     .toNumber();
+
+  if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
+    const perpsState = Engine.context.PerpsController?.state;
+    const availableBalance = perpsState?.accountState?.availableBalance;
+    return availableBalance ? parseFloat(availableBalance) : 0;
+  }
 
   return hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
     ? predictBalanceUsd

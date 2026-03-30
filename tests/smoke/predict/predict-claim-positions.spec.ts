@@ -124,7 +124,6 @@ describe(SmokePredictions('Claim winnings:'), () => {
         // Claim button is animated - disabling sync on iOS to prevent test hang
         await device.disableSynchronization();
 
-        //await WalletView.scrollAndTapPredictionsSection();
         await WalletView.tapClaimButton();
 
         await postClaimMocks(mockServer);
@@ -160,7 +159,12 @@ describe(SmokePredictions('Claim winnings:'), () => {
           description:
             'Wallet screen should be visible after returning from activity',
         });
-        await WalletView.scrollAndTapPredictionsSection('up');
+        await WalletView.scrollAndTapPredictionsSection('down', {
+          overshootSwipe: {
+            direction: 'down',
+            percentage: 0.15,
+          },
+        });
         await Assertions.expectTextDisplayed('$48.16');
 
         // Verify analytics events

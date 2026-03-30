@@ -211,6 +211,10 @@ jest.mock('@metamask/design-system-react-native', () => {
     FontWeight: {
       Medium: 'medium',
     },
+    ButtonVariant: {
+      Primary: 'primary',
+      Secondary: 'secondary',
+    },
     ButtonVariants: {
       Primary: 'primary',
       Secondary: 'secondary',
@@ -266,7 +270,7 @@ jest.mock('@metamask/design-system-react-native', () => {
 });
 
 // Mock Skeleton component
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
 

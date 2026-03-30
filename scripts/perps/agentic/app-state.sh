@@ -14,8 +14,11 @@
 #   scripts/perps/agentic/app-state.sh accounts                 # List all accounts
 #   scripts/perps/agentic/app-state.sh account                  # Get selected account
 #   scripts/perps/agentic/app-state.sh switch-account <addr>    # Switch account
-#   scripts/perps/agentic/app-state.sh recipe perps/positions   # Run a recipe
-#   scripts/perps/agentic/app-state.sh recipe --list            # List recipes
+#   scripts/perps/agentic/app-state.sh press <testId>           # Press component by testID
+#   scripts/perps/agentic/app-state.sh scroll [--test-id <id>] [--offset <n>]  # Scroll
+#   scripts/perps/agentic/app-state.sh set-input <testId> <value>  # Set text input value
+#   scripts/perps/agentic/app-state.sh eval-ref perps/positions  # Run an eval ref
+#   scripts/perps/agentic/app-state.sh eval-ref --list          # List eval refs
 
 set -euo pipefail
 
@@ -58,8 +61,23 @@ case "$COMMAND" in
   switch-account)
     node scripts/perps/agentic/cdp-bridge.js switch-account "$@"
     ;;
-  recipe)
-    node scripts/perps/agentic/cdp-bridge.js recipe "$@"
+  press)
+    node scripts/perps/agentic/cdp-bridge.js press-test-id "$@"
+    ;;
+  scroll)
+    node scripts/perps/agentic/cdp-bridge.js scroll-view "$@"
+    ;;
+  set-input)
+    node scripts/perps/agentic/cdp-bridge.js set-input "$@"
+    ;;
+  sentry-debug)
+    node scripts/perps/agentic/cdp-bridge.js sentry-debug "$@"
+    ;;
+  unlock)
+    node scripts/perps/agentic/cdp-bridge.js unlock "$@"
+    ;;
+  eval-ref)
+    node scripts/perps/agentic/cdp-bridge.js eval-ref "$@"
     ;;
   *)
     echo "Usage: app-state.sh <command> [args...]"
@@ -76,8 +94,14 @@ case "$COMMAND" in
     echo "  accounts               List all accounts"
     echo "  account                Get the currently selected account"
     echo "  switch-account <addr>  Switch to account by address"
-    echo "  recipe <team/name>     Run a recipe (e.g. perps/positions)"
-    echo "  recipe --list          List all available recipes"
+    echo "  press <testId>         Press a component by its testID prop"
+    echo "  scroll [opts]          Scroll a ScrollView/FlatList"
+    echo "                         --test-id <id>  --offset <n>  --animated"
+    echo "  set-input <testId> <value>  Set text input value by testID"
+    echo "  sentry-debug [enable|disable]  Patch Sentry to log errors to console"
+    echo "  unlock <password>      Unlock wallet via fiber tree"
+    echo "  eval-ref <team/name>   Run an eval ref (e.g. perps/positions)"
+    echo "  eval-ref --list        List all available eval refs"
     exit 1
     ;;
 esac

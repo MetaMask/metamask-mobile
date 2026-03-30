@@ -1,10 +1,10 @@
 import { act } from '@testing-library/react-hooks';
 import { waitFor } from '@testing-library/react-native';
 import { AvatarAccountType } from '../../../../component-library/components/Avatars/Avatar';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import * as UseSwitchNotificationsModule from '../../../../util/notifications/hooks/useSwitchNotifications';
 import { renderHookWithProvider } from '../../../../util/test/renderWithProvider';
-// eslint-disable-next-line import/no-namespace
+// eslint-disable-next-line import-x/no-namespace
 import { getValidNotificationAccounts } from '../../../../selectors/notifications';
 import {
   useAccountProps,

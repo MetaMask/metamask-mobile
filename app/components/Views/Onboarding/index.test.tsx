@@ -18,6 +18,19 @@ jest.mock('../../../core/BackupVault', () => ({
   ),
 }));
 
+let mockSkipLoadingUnset = false;
+jest.mock('../../../actions/user', () => {
+  const actualUserActions = jest.requireActual('../../../actions/user');
+  return {
+    ...actualUserActions,
+    loadingUnset: jest.fn(() =>
+      mockSkipLoadingUnset
+        ? { type: 'UNIT_TEST_NOOP' }
+        : actualUserActions.loadingUnset(),
+    ),
+  };
+});
+
 // Mock animation components - using existing mocks
 jest.mock('../../UI/FoxAnimation/FoxAnimation');
 jest.mock('../../UI/OnboardingAnimation/OnboardingAnimation');
@@ -26,6 +39,15 @@ jest.mock('react-native-elevated-view', () => ({
   __esModule: true,
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   default: jest.requireActual('react-native').View,
+}));
+
+const MOCK_APP_VERSION = '7.0.0';
+const MOCK_BUILD_NUMBER = '1234';
+const MOCK_ONBOARDING_VERSION = `${MOCK_APP_VERSION} (${MOCK_BUILD_NUMBER})`;
+
+jest.mock('react-native-device-info', () => ({
+  getVersion: jest.fn(() => MOCK_APP_VERSION),
+  getBuildNumber: jest.fn(() => MOCK_BUILD_NUMBER),
 }));
 
 import React from 'react';
@@ -49,9 +71,12 @@ import Routes from '../../../constants/navigation/Routes';
 import { ONBOARDING, PREVIOUS_SCREEN } from '../../../constants/navigation';
 import { strings } from '../../../../locales/i18n';
 import { OAuthError, OAuthErrorType } from '../../../core/OAuthService/error';
+import { IconName } from '../../../component-library/components/Icons/Icon';
 import { captureException } from '@sentry/react-native';
 import Logger from '../../../util/Logger';
 import { MIGRATION_ERROR_HAPPENED } from '../../../constants/storage';
+import { AccountType } from '../../../constants/onboarding';
+import { MetaMetricsEvents } from '../../../core/Analytics';
 
 // Mock netinfo - using existing mock
 jest.mock('@react-native-community/netinfo');
@@ -68,9 +93,22 @@ jest.mock('../../../util/test/utils', () => ({
 import { fetch as netInfoFetch } from '@react-native-community/netinfo';
 
 const mockNetInfoFetch = netInfoFetch as jest.Mock;
+const mockNavigate = jest.fn();
+const mockReplace = jest.fn();
+const mockGoBack = jest.fn();
 
 // Helper to flush all pending promises
 const flushPromises = () => new Promise((resolve) => setImmediate(resolve));
+const IOS_GOOGLE_WARNING_TITLE = strings('error_sheet.ios_need_update_title');
+const IOS_GOOGLE_WARNING_BUTTON = strings('error_sheet.ios_need_update_button');
+
+const getIosGoogleWarningSheetCall = () =>
+  mockNavigate.mock.calls.find(
+    ([route, params]) =>
+      route === Routes.MODAL.ROOT_MODAL_FLOW &&
+      params?.screen === Routes.SHEET.SUCCESS_ERROR_SHEET &&
+      params?.params?.title === IOS_GOOGLE_WARNING_TITLE,
+  );
 
 const mockInitialState = {
   engine: {
@@ -103,13 +141,22 @@ const mockInitialStateWithExistingUserAndPassword = {
   },
 };
 
-jest.mock('../../../util/device', () => ({
-  isLargeDevice: jest.fn(),
-  isIphoneX: jest.fn(),
-  isAndroid: jest.fn(),
-  isIos: jest.fn(),
-  isMediumDevice: jest.fn(),
-}));
+jest.mock('../../../util/device', () => {
+  const mockDevice = {
+    isLargeDevice: jest.fn(),
+    isIphoneX: jest.fn(),
+    isAndroid: jest.fn(),
+    isIos: jest.fn(),
+    isMediumDevice: jest.fn(),
+    comparePlatformVersionTo: jest.fn().mockReturnValue(1),
+  };
+
+  return {
+    __esModule: true,
+    default: mockDevice,
+    ...mockDevice,
+  };
+});
 
 // expo library are not supported in jest ( unless using jest-expo as preset ), so we need to mock them
 jest.mock('../../../core/OAuthService/OAuthLoginHandlers', () => ({
@@ -252,13 +299,12 @@ jest.mock('../../../core/OAuthService/OAuthLoginHandlers/constants', () => ({
   },
 }));
 
-const mockNavigate = jest.fn();
-const mockReplace = jest.fn();
 const mockNav = {
   navigate: mockNavigate,
   replace: mockReplace,
   reset: jest.fn(),
   setOptions: jest.fn(),
+  goBack: mockGoBack,
   dispatch: jest.fn((action) => {
     if (action.type === 'REPLACE') {
       mockReplace(action.payload.name, action.payload.params);
@@ -388,6 +434,127 @@ describe('Onboarding', () => {
     expect(toJSON()).toMatchSnapshot();
   });
 
+  it('applies compact gap and medium button size on medium device', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(true);
+
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('applies standard gap and large button size on non-medium device', () => {
+    (Device.isMediumDevice as jest.Mock).mockReturnValue(false);
+
+    const { toJSON } = renderScreen(
+      Onboarding,
+      { name: 'Onboarding' },
+      {
+        state: mockInitialState,
+      },
+    );
+
+    expect(toJSON()).toMatchSnapshot();
+  });
+
+  it('renders loading overlay with loading message', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingMessage = 'Creating your wallet...';
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: loadingMessage,
+      },
+    };
+    mockRoute.params = { delete: true };
+
+    try {
+      const { getByText } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(getByText(loadingMessage)).toBeOnTheScreen();
+      });
+    } finally {
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('applies iPhoneX notification padding when on iPhoneX', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: 'Loading...',
+      },
+    };
+    mockRoute.params = { delete: true };
+    (Device.isIphoneX as jest.Mock).mockReturnValue(true);
+
+    try {
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(toJSON()).toMatchSnapshot();
+      });
+    } finally {
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
+  it('applies standard notification padding when not on iPhoneX', async () => {
+    mockSkipLoadingUnset = true;
+    const loadingState = {
+      ...mockInitialState,
+      user: {
+        ...mockInitialState.user,
+        loadingSet: true,
+        loadingMsg: 'Loading...',
+      },
+    };
+    mockRoute.params = { delete: true };
+    (Device.isIphoneX as jest.Mock).mockReturnValue(false);
+
+    try {
+      const { toJSON } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: loadingState,
+        },
+      );
+
+      await waitFor(() => {
+        expect(toJSON()).toMatchSnapshot();
+      });
+    } finally {
+      mockRoute.params = {};
+      mockSkipLoadingUnset = false;
+    }
+  });
+
   it('handles click on create wallet button', () => {
     (Device.isAndroid as jest.Mock).mockReturnValue(true);
     (Device.isIos as jest.Mock).mockReturnValue(false);
@@ -500,6 +667,38 @@ describe('Onboarding', () => {
           onboardingTraceCtx: expect.any(Object),
         }),
       );
+    });
+
+    it('stores the onboarding version on the first create wallet press', async () => {
+      mockSeedlessOnboardingEnabled.mockReturnValue(false);
+      (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+
+      const { getByTestId, store } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      await waitFor(() => {
+        expect(store.getState().onboarding).toEqual(
+          expect.objectContaining({
+            accountType: AccountType.Metamask,
+            onboardingVersion: MOCK_ONBOARDING_VERSION,
+          }),
+        );
+      });
     });
 
     it('navigates to offline error sheet when there is no internet', async () => {
@@ -779,10 +978,13 @@ describe('Onboarding', () => {
     beforeEach(() => {
       mockSeedlessOnboardingEnabled.mockReturnValue(true);
       (StorageWrapper.getItem as jest.Mock).mockResolvedValue(null);
+      (Device.isIos as jest.Mock).mockReturnValue(false);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(1);
     });
 
     afterEach(() => {
       jest.clearAllMocks();
+      mockNavigate.mockReset();
       mockSeedlessOnboardingEnabled.mockReset();
     });
 
@@ -1086,6 +1288,174 @@ describe('Onboarding', () => {
       );
     });
 
+    it('shows iOS version warning sheet before Google login on iOS < 17.4', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      // Verify the warning sheet was shown with the iOS not-supported message.
+      const warningSheetCall = getIosGoogleWarningSheetCall();
+
+      expect(warningSheetCall).toEqual([
+        Routes.MODAL.ROOT_MODAL_FLOW,
+        expect.objectContaining({
+          screen: Routes.SHEET.SUCCESS_ERROR_SHEET,
+          params: expect.objectContaining({
+            type: 'error',
+            icon: IconName.Warning,
+            isInteractable: false,
+            title: IOS_GOOGLE_WARNING_TITLE,
+            description: expect.anything(),
+            primaryButtonLabel: IOS_GOOGLE_WARNING_BUTTON,
+            onPrimaryButtonPress: expect.any(Function),
+            closeOnPrimaryButtonPress: true,
+          }),
+        }),
+      ]);
+      expect(warningSheetCall?.[1].params.onPrimaryButtonPress).toEqual(
+        expect.any(Function),
+      );
+      expect(Device.comparePlatformVersionTo).toHaveBeenCalledWith('17.4');
+
+      await act(async () => {
+        await warningSheetCall?.[1].params.onPrimaryButtonPress?.();
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Wallet Google Ios Warning Viewed',
+          properties: expect.objectContaining({
+            account_type: AccountType.MetamaskGoogle,
+          }),
+        }),
+      );
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+        false,
+      );
+    });
+
+    it('shows iOS version warning for Google login on iOS < 17.4 during import wallet flow', async () => {
+      Platform.OS = 'ios';
+      (Device.isIos as jest.Mock).mockReturnValue(true);
+      (Device.comparePlatformVersionTo as jest.Mock).mockReturnValue(-1);
+      (mockAnalytics.isEnabled as jest.Mock).mockReturnValue(true);
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'success',
+        existingUser: false,
+        accountName: 'test@example.com',
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const importWalletButton = getByTestId(
+        OnboardingSelectorIDs.EXISTING_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(importWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      await act(async () => {
+        await googleOAuthFunction(false);
+        await flushPromises();
+        await flushPromises();
+      });
+
+      const warningSheetCall = getIosGoogleWarningSheetCall();
+
+      expect(warningSheetCall).toBeDefined();
+      expect(warningSheetCall?.[1].params).toEqual(
+        expect.objectContaining({
+          type: 'error',
+          icon: IconName.Warning,
+          title: IOS_GOOGLE_WARNING_TITLE,
+          description: expect.anything(),
+          primaryButtonLabel: IOS_GOOGLE_WARNING_BUTTON,
+          onPrimaryButtonPress: expect.any(Function),
+          closeOnPrimaryButtonPress: true,
+          isInteractable: false,
+        }),
+      );
+      expect(warningSheetCall?.[1].params.onPrimaryButtonPress).toEqual(
+        expect.any(Function),
+      );
+      expect(Device.comparePlatformVersionTo).toHaveBeenCalledWith('17.4');
+
+      await act(async () => {
+        await warningSheetCall?.[1].params.onPrimaryButtonPress?.();
+        await flushPromises();
+        await flushPromises();
+      });
+
+      expect(mockAnalytics.trackEvent).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'Wallet Google Ios Warning Viewed',
+          properties: expect.objectContaining({
+            account_type: AccountType.ImportedGoogle,
+          }),
+        }),
+      );
+      expect(mockCreateLoginHandler).toHaveBeenCalledWith('ios', 'google');
+      expect(mockOAuthService.handleOAuthLogin).toHaveBeenCalledWith(
+        'mockGoogleHandler',
+        true,
+      );
+    });
+
     it('navigates to AccountAlreadyExists for existing user in create wallet flow', async () => {
       mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
       mockOAuthService.handleOAuthLogin.mockResolvedValue({
@@ -1173,6 +1543,56 @@ describe('Onboarding', () => {
           oauthLoginSuccess: true,
           onboardingTraceCtx: expect.any(Object),
         }),
+      );
+    });
+
+    it('does not navigate when OAuth login result type is not success', async () => {
+      mockCreateLoginHandler.mockReturnValue('mockGoogleHandler');
+      mockOAuthService.handleOAuthLogin.mockResolvedValue({
+        type: 'error',
+        existingUser: false,
+      });
+
+      const { getByTestId } = renderScreen(
+        Onboarding,
+        { name: 'Onboarding' },
+        {
+          state: mockInitialState,
+        },
+      );
+
+      const createWalletButton = getByTestId(
+        OnboardingSelectorIDs.NEW_WALLET_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(createWalletButton);
+      });
+
+      const navCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === Routes.MODAL.ROOT_MODAL_FLOW &&
+          call[1]?.screen === Routes.SHEET.ONBOARDING_SHEET,
+      );
+
+      const googleOAuthFunction = navCall[1].params.onPressContinueWithGoogle;
+
+      mockNavigate.mockClear();
+
+      await act(async () => {
+        await googleOAuthFunction(true);
+      });
+
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'ChoosePassword',
+        expect.anything(),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        Routes.ONBOARDING.SOCIAL_LOGIN_SUCCESS_NEW_USER,
+        expect.anything(),
+      );
+      expect(mockNavigate).not.toHaveBeenCalledWith(
+        'AccountAlreadyExists',
+        expect.anything(),
       );
     });
 
@@ -1764,6 +2184,13 @@ describe('Onboarding', () => {
 
       await waitFor(() => {
         expect(mockAnalytics.optIn).toHaveBeenCalled();
+        expect(
+          mockCreateEventBuilder.mock.calls.some(
+            (call) =>
+              (call[0] as { category: string }).category ===
+              MetaMetricsEvents.METRICS_OPT_IN.category,
+          ),
+        ).toBe(true);
       });
     });
   });

@@ -11,6 +11,7 @@ import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
 import { selectIsMusdConversionFlowEnabledFlag } from '../../../../UI/Earn/selectors/featureFlags';
+import { selectMoneyHomeScreenEnabledFlag } from '../../../../UI/Money/selectors/featureFlags';
 import { useMusdConversionEligibility } from '../../../../UI/Earn/hooks/useMusdConversionEligibility';
 import { useMusdBalance } from '../../../../UI/Earn/hooks/useMusdBalance';
 import MusdAggregatedRow from './MusdAggregatedRow';
@@ -39,14 +40,19 @@ const CashSection = ({
   );
   const { isEligible: isGeoEligible } = useMusdConversionEligibility();
   const { hasMusdBalanceOnAnyChain } = useMusdBalance();
+  const isMoneyHomeEnabled = useSelector(selectMoneyHomeScreenEnabledFlag);
 
   const isCashSectionEnabled = isMusdConversionEnabled && isGeoEligible;
 
   const handleViewCashTokens = useCallback(() => {
-    navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW as never);
-  }, [navigation]);
+    if (isMoneyHomeEnabled) {
+      navigation.navigate(Routes.MONEY.ROOT as never);
+    } else {
+      navigation.navigate(Routes.WALLET.CASH_TOKENS_FULL_VIEW as never);
+    }
+  }, [navigation, isMoneyHomeEnabled]);
 
-  useHomeViewedEvent({
+  const { onLayout } = useHomeViewedEvent({
     sectionRef: sectionViewRef,
     isLoading: false,
     sectionName: HomeSectionNames.CASH,
@@ -66,7 +72,7 @@ const CashSection = ({
   const title = strings('homepage.sections.cash');
 
   return (
-    <View ref={sectionViewRef}>
+    <View ref={sectionViewRef} onLayout={onLayout}>
       <Box gap={3}>
         <SectionHeader title={title} onPress={handleViewCashTokens} />
         {!hasMusdBalanceOnAnyChain ? (

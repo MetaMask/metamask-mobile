@@ -1,11 +1,13 @@
 import React, { useCallback, useState, useEffect } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { Box, Text, TextVariant } from '@metamask/design-system-react-native';
-import Button, {
+import {
+  Box,
+  Text,
+  TextVariant,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
@@ -16,7 +18,6 @@ import { CardError } from '../../types';
 import {
   resetOnboardingState,
   selectContactVerificationId,
-  selectSelectedCountry,
   setContactVerificationId,
   setOnboardingId,
 } from '../../../../../core/redux/slices/card';
@@ -26,6 +27,7 @@ import { CardActions, CardScreens } from '../../util/metrics';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { IconName } from '../../../../../component-library/components/Icons/Icon';
+import useRegions from '../../hooks/useRegions';
 
 const CODE_LENGTH = 6;
 
@@ -34,17 +36,20 @@ const ConfirmEmail = () => {
   const dispatch = useDispatch();
   const [confirmCode, setConfirmCode] = useState('');
   const [resendCooldown, setResendCooldown] = useState(60);
-  const selectedCountry = useSelector(selectSelectedCountry);
+  const { getRegionByCode } = useRegions();
   const contactVerificationId = useSelector(selectContactVerificationId);
   const { trackEvent, createEventBuilder } = useAnalytics();
   const [latestValueSubmitted, setLatestValueSubmitted] = useState<
     string | null
   >(null);
 
-  const { email, password } = useParams<{
+  const { email, password, countryKey } = useParams<{
     email: string;
     password: string;
+    countryKey: string;
   }>();
+
+  const selectedCountry = getRegionByCode(countryKey);
 
   const {
     sendEmailVerification,
@@ -139,7 +144,9 @@ const ConfirmEmail = () => {
 
       if (onboardingId) {
         dispatch(setOnboardingId(onboardingId));
-        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER);
+        navigation.navigate(Routes.CARD.ONBOARDING.SET_PHONE_NUMBER, {
+          countryKey,
+        });
       } else if (hasAccount) {
         const navigateToAuthentication = () => {
           navigation.reset({
@@ -183,6 +190,7 @@ const ConfirmEmail = () => {
   }, [
     confirmCode,
     contactVerificationId,
+    countryKey,
     dispatch,
     email,
     navigation,
@@ -204,16 +212,27 @@ const ConfirmEmail = () => {
     }
   }, [resendCooldown]);
 
-  // Auto-submit when all digits are entered
   useEffect(() => {
     if (
       confirmCode.length === CODE_LENGTH &&
-      latestValueSubmitted !== confirmCode
+      latestValueSubmitted !== confirmCode &&
+      selectedCountry &&
+      email &&
+      password &&
+      contactVerificationId
     ) {
       setLatestValueSubmitted(confirmCode);
       handleContinue();
     }
-  }, [confirmCode, handleContinue, latestValueSubmitted]);
+  }, [
+    confirmCode,
+    contactVerificationId,
+    email,
+    handleContinue,
+    latestValueSubmitted,
+    password,
+    selectedCountry,
+  ]);
 
   const isDisabled =
     verifyLoading ||
@@ -303,15 +322,16 @@ const ConfirmEmail = () => {
   const renderActions = () => (
     <Box twClassName="flex flex-col items-center justify-center gap-2">
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={verifyLoading}
+        isLoading={verifyLoading}
         testID="confirm-email-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
       <Text
         variant={TextVariant.BodySm}
         testID="confirm-email-legal-terms"

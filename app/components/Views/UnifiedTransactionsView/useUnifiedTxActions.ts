@@ -190,7 +190,6 @@ export function useUnifiedTxActions() {
     if (params?.error) {
       return undefined;
     }
-    // Legacy tx with gasPrice 0x0 would produce 0 from the modal; fall back to market estimate so the replacement gets mined.
     if (
       params &&
       'gasPrice' in params &&
@@ -213,8 +212,9 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for speed up');
       }
 
+      const gasValues = getParamsToSend(params);
+
       if (isLedgerAccount) {
-        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -230,7 +230,7 @@ export function useUnifiedTxActions() {
         return;
       }
 
-      await speedUpTx(speedUpTxId, getParamsToSend(params));
+      await speedUpTx(speedUpTxId, gasValues);
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
       toggleRetry(getErrorMessage(error));
@@ -247,8 +247,9 @@ export function useUnifiedTxActions() {
         throw new Error('Missing transaction id for cancel');
       }
 
+      const gasValues = getParamsToSend(params);
+
       if (isLedgerAccount) {
-        const gasValues = getParamsToSend(params);
         const isEip1559 = gasValues && 'maxFeePerGas' in gasValues;
 
         await signLedgerTransaction({
@@ -265,7 +266,7 @@ export function useUnifiedTxActions() {
 
       await Engine.context.TransactionController.stopTransaction(
         cancelTxId,
-        getParamsToSend(params),
+        gasValues,
       );
       onSpeedUpCancelCompleted();
     } catch (error: unknown) {
@@ -289,7 +290,7 @@ export function useUnifiedTxActions() {
   );
 
   const cancelUnsignedQRTransaction = async (tx: TransactionMeta) => {
-    await Engine.context.ApprovalController.reject(
+    await Engine.context.ApprovalController.rejectRequest(
       tx.id,
       providerErrors.userRejectedRequest(),
     );

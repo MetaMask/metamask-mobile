@@ -56,6 +56,15 @@ jest.mock('@react-navigation/native', () => ({
     children,
 }));
 
+jest.mock('../../hooks/usePredictActiveOrder', () => ({
+  usePredictActiveOrder: () => ({
+    initializeActiveOrder: jest.fn(),
+    activeOrder: null,
+    updateActiveOrder: jest.fn(),
+    clearActiveOrder: jest.fn(),
+  }),
+}));
+
 jest.mock('@react-navigation/stack', () => ({
   createStackNavigator: () => ({
     Navigator: ({ children }: { children: React.ReactNode }) => children,
@@ -678,10 +687,13 @@ const getActionButtons = () =>
     .getAllByTestId('button')
     .filter((button) => getActionButtonText(button).includes('¢'));
 
+const getActionButtonPrice = (button: ReactTestInstance) => {
+  const match = getActionButtonText(button).match(/(\d+(?:\.\d+)?)¢$/);
+  return match ? Number(match[1]) : null;
+};
+
 const findActionButtonByPrice = (price: number) =>
-  getActionButtons().find(
-    (button) => getActionButtonText(button) === `•${price}¢`,
-  );
+  getActionButtons().find((button) => getActionButtonPrice(button) === price);
 
 describe('PredictMarketDetails', () => {
   afterEach(() => {
@@ -793,7 +805,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -806,7 +818,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -822,7 +834,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -836,7 +848,7 @@ describe('PredictMarketDetails', () => {
       const { mockNavigate } = setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -1165,7 +1177,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest();
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -1212,7 +1224,9 @@ describe('PredictMarketDetails', () => {
       const buttonLabels = actionButtons.map(getActionButtonText);
 
       expect(actionButtons).toHaveLength(2);
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•65¢', '•35¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•65¢', 'No•35¢']),
+      );
     });
 
     it('calculates percentage correctly from market price', () => {
@@ -1236,7 +1250,9 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•75¢', '•25¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•75¢', 'No•25¢']),
+      );
     });
   });
 
@@ -1289,7 +1305,7 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toContain('•65¢');
+      expect(buttonLabels).toContain('Yes•65¢');
     });
 
     it('handles missing price data gracefully', () => {
@@ -1314,7 +1330,9 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•0¢', '•100¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•0¢', 'No•100¢']),
+      );
     });
   });
 
@@ -1333,7 +1351,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(marketWithoutEndDate);
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -1405,7 +1423,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1490,6 +1508,31 @@ describe('PredictMarketDetails', () => {
         },
       );
     });
+
+    it('renders stacked footer labels for long outcome names', () => {
+      const singleOutcomeMarket = createMockMarket({
+        title: 'College basketball winner',
+        status: 'open',
+        outcomes: [
+          {
+            id: 'outcome-1',
+            title: 'Winner',
+            tokens: [
+              { id: 'token-1', title: 'Howard Bison', price: 0.98 },
+              { id: 'token-2', title: 'Coppin State Eagles', price: 0.02 },
+            ],
+            volume: 1000000,
+          },
+        ],
+      });
+
+      setupPredictMarketDetailsTest(singleOutcomeMarket);
+
+      expect(screen.getByText('Howard Bison')).toBeOnTheScreen();
+      expect(screen.getByText('98¢')).toBeOnTheScreen();
+      expect(screen.getByText('Coppin State Eagles')).toBeOnTheScreen();
+      expect(screen.getByText('2¢')).toBeOnTheScreen();
+    });
   });
 
   describe('Pull to Refresh', () => {
@@ -1563,7 +1606,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1598,7 +1641,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1681,7 +1724,7 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toContain('•65¢');
+      expect(buttonLabels).toContain('Yes•65¢');
     });
 
     it('renders action buttons only for single outcome markets', () => {
@@ -1705,7 +1748,9 @@ describe('PredictMarketDetails', () => {
       const actionButtons = getActionButtons();
       const buttonLabels = actionButtons.map(getActionButtonText);
 
-      expect(buttonLabels).toEqual(expect.arrayContaining(['•65¢', '•35¢']));
+      expect(buttonLabels).toEqual(
+        expect.arrayContaining(['Yes•65¢', 'No•35¢']),
+      );
     });
   });
 
@@ -1743,7 +1788,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1776,7 +1821,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -1809,7 +1854,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -2176,7 +2221,7 @@ describe('PredictMarketDetails', () => {
 
       // Switch to Positions tab (index 0 when positions exist)
       const positionsTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(0),
+        getPredictMarketDetailsSelector.tabBarTab('positions'),
       );
       fireEvent.press(positionsTab);
 
@@ -2616,7 +2661,7 @@ describe('PredictMarketDetails', () => {
       setupPredictMarketDetailsTest(closedMarket);
 
       const aboutTab = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(1),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTab);
 
@@ -2652,7 +2697,7 @@ describe('PredictMarketDetails', () => {
       );
 
       const aboutTabWithPositions = screen.getByTestId(
-        getPredictMarketDetailsSelector.tabBarTab(2),
+        getPredictMarketDetailsSelector.tabBarTab('about'),
       );
       fireEvent.press(aboutTabWithPositions);
 

@@ -499,6 +499,34 @@ class FixtureBuilder {
   }
 
   /**
+   * Seeds ramps unified buy V1/V2 flags in RemoteFeatureFlagController so deeplinks
+   * and early navigation match the intended path before the remote config API responds.
+   * Uses minimumVersion 0.0.0 so any E2E app build passes the version gate.
+   */
+  withRampsUnifiedBuyRemoteFlagsSeededForE2E(options?: {
+    rampsUnifiedBuyV1?: boolean;
+    rampsUnifiedBuyV2?: boolean;
+  }) {
+    const rampsUnifiedBuyV1 = options?.rampsUnifiedBuyV1 ?? true;
+    const rampsUnifiedBuyV2 = options?.rampsUnifiedBuyV2 ?? true;
+    merge(this.fixture.state.engine.backgroundState, {
+      RemoteFeatureFlagController: {
+        remoteFeatureFlags: {
+          rampsUnifiedBuyV1: {
+            active: rampsUnifiedBuyV1,
+            minimumVersion: '0.0.0',
+          },
+          rampsUnifiedBuyV2: {
+            enabled: rampsUnifiedBuyV2,
+            minimumVersion: '0.0.0',
+          },
+        },
+      },
+    });
+    return this;
+  }
+
+  /**
    * Sets detected geolocation (e.g. for RWA/Stocks section visibility in Trending).
    * Use a non-restricted country code so RWA data is shown when not in __DEV__ (e.g. CI).
    * @param countryCode - ISO country code (e.g. 'AR' for Argentina).
@@ -1368,15 +1396,11 @@ class FixtureBuilder {
         },
         selectedAccount: '4d7a5e0b-b261-4aed-8126-43972b0fa0a1', // Default to Ethereum account
       },
+      accountIdByAddress: {
+        '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6':
+          '4d7a5e0b-b261-4aed-8126-43972b0fa0a1',
+      },
     };
-    // this.fixture.state.engine.backgroundState.PreferencesController.identities = {
-    //   '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6': {
-    //     address: '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6',
-    //     name: 'Account 1',
-    //     importTime: 1684232000456,
-    //   },
-    // };
-    // this.fixture.state.engine.backgroundState.PreferencesController.selectedAddress = '0xbacec2e26c5c794de6e82a1a7e21b9c329fa8cf6';
 
     // Configure for Ethereum mainnet only
     this.fixture.state.engine.backgroundState.MultichainNetworkController = {
