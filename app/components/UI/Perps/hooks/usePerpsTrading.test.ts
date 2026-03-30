@@ -20,6 +20,16 @@ import {
 } from '@metamask/perps-controller';
 import { usePerpsTrading } from './usePerpsTrading';
 
+const mockEnsureArbitrumNetworkExists = jest.fn().mockResolvedValue(undefined);
+jest.mock('./usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
+}));
+
 // Mock Engine
 jest.mock('../../../../core/Engine', () => ({
   context: {
