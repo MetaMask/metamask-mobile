@@ -18,6 +18,10 @@ import handleMetaMaskDeeplink from '../handleMetaMaskDeeplink';
 import { SHIELD_WEBSITE_URL } from '../../../../../constants/shield';
 // eslint-disable-next-line import-x/no-namespace
 import * as signatureUtils from '../../../utils/verifySignature';
+import {
+  SignatureStatus,
+  InterstitialState,
+} from '../../../types/deepLinkAnalytics.types';
 
 jest.mock('../handleMetaMaskDeeplink');
 jest.mock('../../../../SDKConnect/handlers/handleDeeplink');
@@ -171,7 +175,13 @@ describe('handleUniversalLink', () => {
         source: 'test',
       });
 
-      expect(mockCreateBuilder).toHaveBeenCalled();
+      expect(mockCreateBuilder).toHaveBeenCalledWith(
+        expect.objectContaining({
+          signatureStatus: SignatureStatus.MISSING,
+          interstitialShown: false,
+          interstitialAction: InterstitialState.NOT_SHOWN,
+        }),
+      );
       expect(mockHandleMetaMaskDeeplink).toHaveBeenCalled();
     });
   });

@@ -220,6 +220,7 @@ async function handleUniversalLink({
       url,
       route: sdkRoute,
       urlParams: params || {},
+      branchParams: {},
       signatureStatus: SignatureStatus.MISSING,
       interstitialShown: false,
       interstitialDisabled: false,
