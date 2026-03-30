@@ -6001,6 +6001,7 @@
     "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
+    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
     "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
     "claim": "Claim",
@@ -7950,7 +7951,8 @@
       "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
       "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically.",
       "geo_restriction_banner_title": "Not available in your region",
-      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations."
+      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
+      "opt_in_success_toast": "You're in!"
     },
     "campaign_mechanics": {
       "title": "Mechanics"
