@@ -47,6 +47,25 @@ module.exports = function (baseConfig) {
     process.env.IS_TEST === 'true' ||
     process.env.METAMASK_ENVIRONMENT === 'e2e';
 
+  /**
+   * E2E Metro redirects under tests/module-mocking.
+   * - PERFORMANCE_TEST_JOB / E2E_USE_SEEDLESS_OAUTH_METRO_MOCK
+   * - E2E_USE_SEEDLESS_CONTROLLER_METRO_MOCK: seedless-onboarding-controller mock (default ON)
+   * - E2E_USE_OAUTH_LOGIN_HANDLERS_METRO_MOCK: OAuthLoginHandlers mock (default ON)
+   */
+  const e2eAllowsSeedlessOAuthMetroMocks =
+    isE2E &&
+    (process.env.PERFORMANCE_TEST_JOB === 'true' ||
+      process.env.E2E_USE_SEEDLESS_OAUTH_METRO_MOCK !== 'false');
+
+  const useE2ESeedlessControllerMetroMock =
+    e2eAllowsSeedlessOAuthMetroMocks &&
+    process.env.E2E_USE_SEEDLESS_CONTROLLER_METRO_MOCK !== 'false';
+
+  const useE2EOAuthLoginHandlersMetroMock =
+    e2eAllowsSeedlessOAuthMetroMocks &&
+    process.env.E2E_USE_OAUTH_LOGIN_HANDLERS_METRO_MOCK !== 'false';
+
   // For less powerful machines, leave room to do other tasks. For instance,
   // if you have 10 cores but only 16GB, only 3 workers would get used.
   // Also forces maxWorkers value to be no less than 2, ensuring
@@ -150,38 +169,42 @@ module.exports = function (baseConfig) {
                 ),
               };
             }
-            if (
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller',
-              ) ||
-              moduleName.endsWith(
-                'controllers/seedless-onboarding-controller/index',
-              ) ||
-              moduleName === './seedless-onboarding-controller' ||
-              moduleName === '../seedless-onboarding-controller'
-            ) {
-              return {
-                type: 'sourceFile',
-                filePath: path.resolve(
-                  __dirname,
-                  'tests/module-mocking/seedless/index.ts',
-                ),
-              };
+            if (useE2ESeedlessControllerMetroMock) {
+              if (
+                moduleName.endsWith(
+                  'controllers/seedless-onboarding-controller',
+                ) ||
+                moduleName.endsWith(
+                  'controllers/seedless-onboarding-controller/index',
+                ) ||
+                moduleName === './seedless-onboarding-controller' ||
+                moduleName === '../seedless-onboarding-controller'
+              ) {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'tests/module-mocking/seedless/index.ts',
+                  ),
+                };
+              }
             }
-            // Mock OAuth Login Handlers for E2E Google/Apple login tests
-            if (
-              moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
-              moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
-              moduleName === './OAuthLoginHandlers' ||
-              moduleName === '../OAuthLoginHandlers'
-            ) {
-              return {
-                type: 'sourceFile',
-                filePath: path.resolve(
-                  __dirname,
-                  'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
-                ),
-              };
+            if (useE2EOAuthLoginHandlersMetroMock) {
+              // Skips native Google/Apple UI; tokens still hit auth server (see module mock).
+              if (
+                moduleName.endsWith('OAuthService/OAuthLoginHandlers') ||
+                moduleName.endsWith('OAuthService/OAuthLoginHandlers/index') ||
+                moduleName === './OAuthLoginHandlers' ||
+                moduleName === '../OAuthLoginHandlers'
+              ) {
+                return {
+                  type: 'sourceFile',
+                  filePath: path.resolve(
+                    __dirname,
+                    'tests/module-mocking/oauth/OAuthLoginHandlers/index.ts',
+                  ),
+                };
+              }
             }
           }
           return context.resolveRequest(context, moduleName, platform);
