@@ -91,9 +91,7 @@ export class BrowserStackConfigBuilder {
             `${projectName} ${platformName}`,
           sessionName: `${projectName} ${platformName} test`,
           buildIdentifier:
-            process.env.GITHUB_ACTIONS === 'true'
-              ? `CI ${process.env.GITHUB_RUN_ID}`
-              : process.env.USER,
+            process.env.GITHUB_ACTIONS === 'true' ? '' : process.env.USER,
           appProfiling: true,
           selfHeal: true,
           networkProfile: '4g-lte-advanced-good',
