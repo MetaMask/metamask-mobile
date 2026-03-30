@@ -414,6 +414,10 @@ jest.mock('../../../MarketInsights', () => ({
       <TouchableOpacity testID="market-insights-entry-card" onPress={onPress} />
     );
   },
+  MarketInsightsEntryCardSkeleton: () => {
+    const { View } = jest.requireActual('react-native');
+    return <View testID="market-insights-entry-card-skeleton" />;
+  },
   selectMarketInsightsEnabled: jest.fn(),
 }));
 
@@ -433,6 +437,15 @@ jest.mock('../../hooks/useIsPriceDeviatedAboveThreshold', () => ({
     isDeviatedAboveThreshold: false,
     isLoading: false,
   })),
+}));
+
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
 }));
 
 jest.mock('../../hooks', () => ({
@@ -475,9 +488,6 @@ jest.mock('../../hooks', () => ({
     getAccountState: jest.fn(),
     depositWithConfirmation: mockDepositWithConfirmation,
     withdrawWithConfirmation: jest.fn(),
-  })),
-  usePerpsNetworkManagement: jest.fn(() => ({
-    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
   })),
   usePerpsNavigation: jest.fn(() => ({
     navigateToHome: mockNavigateToHome,
@@ -1067,10 +1077,12 @@ describe('PerpsMarketDetailsView', () => {
         fireEvent.press(addFundsButton);
       });
 
-      expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
-        stack: 'Perps',
+      await waitFor(() => {
+        expect(mockNavigateToConfirmation).toHaveBeenCalledWith({
+          stack: 'Perps',
+        });
+        expect(mockDepositWithConfirmation).toHaveBeenCalled();
       });
-      expect(mockDepositWithConfirmation).toHaveBeenCalled();
     });
 
     it('handles depositWithConfirmation rejection without throwing', async () => {
@@ -3422,6 +3434,58 @@ describe('PerpsMarketDetailsView', () => {
           }),
         }),
       );
+    });
+
+    it('shows skeleton when loading and no report is available', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: true,
+        error: null,
+        timeAgo: '',
+      });
+
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(
+        getByTestId('market-insights-entry-card-skeleton'),
+      ).toBeOnTheScreen();
+      expect(queryByTestId('market-insights-entry-card')).toBeNull();
+    });
+
+    it('hides skeleton and shows card when report is available', () => {
+      const { getByTestId, queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(getByTestId('market-insights-entry-card')).toBeOnTheScreen();
+      expect(queryByTestId('market-insights-entry-card-skeleton')).toBeNull();
+    });
+
+    it('hides market insights section entirely when not loading and no report', () => {
+      mockUseMarketInsights.mockReturnValue({
+        report: null,
+        isLoading: false,
+        error: null,
+        timeAgo: '',
+      });
+
+      const { queryByTestId } = renderWithProvider(
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>,
+        { state: initialState },
+      );
+
+      expect(queryByTestId('market-insights-entry-card')).toBeNull();
+      expect(queryByTestId('market-insights-entry-card-skeleton')).toBeNull();
     });
   });
 });

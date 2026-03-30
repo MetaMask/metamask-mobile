@@ -11,6 +11,7 @@ import TermsOfUseModal from '../../page-objects/Onboarding/TermsOfUseModal';
 import WalletView from '../../page-objects/wallet/WalletView';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import LoginView from '../../page-objects/wallet/LoginView';
+import AccountMenu from '../../page-objects/AccountMenu/AccountMenu';
 import SettingsView from '../../page-objects/Settings/SettingsView';
 import ForgotPasswordModal from '../../page-objects/Common/ForgotPasswordModalView';
 import { loginToApp } from '../../flows/wallet.flow';
@@ -117,9 +118,9 @@ export const completeAppleNewUserOnboarding = (): Promise<void> =>
  * no need to terminate/relaunch the app (which desyncs Metro).
  */
 export const lockApp = async (): Promise<void> => {
-  await TabBarComponent.tapSettings();
+  await TabBarComponent.tapAccountsMenu();
 
-  await SettingsView.tapLock();
+  await AccountMenu.tapLock();
 
   await SettingsView.tapYesAlertButton();
 
