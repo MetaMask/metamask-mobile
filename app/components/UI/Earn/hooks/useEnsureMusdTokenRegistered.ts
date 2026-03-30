@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
+import { retryWithExponentialDelay } from '../../../../util/exponential-retry';
 import { ensureMusdTokenRegistered } from '../utils/musdConversionTransaction';
 import { CHAIN_IDS } from '@metamask/transaction-controller';
 
@@ -25,7 +26,10 @@ export function useEnsureMusdTokenRegistered(): void {
         }
 
         try {
-          await ensureMusdTokenRegistered({ chainId, networkClientId });
+          await retryWithExponentialDelay(
+            () => ensureMusdTokenRegistered({ chainId, networkClientId }),
+            2, // 3 total attempts
+          );
         } catch (error) {
           Logger.error(
             error as Error,
