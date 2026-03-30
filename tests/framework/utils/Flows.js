@@ -137,7 +137,10 @@ export async function onboardingFlowImportSRP(device, srp) {
   await WalletMainScreen.isMainWalletViewVisible();
 }
 
-export async function onboardingFlowSeedlessNewUser(device, provider) {
+export async function onboardingFlowSeedlessFirstSessionToWallet(
+  device,
+  provider,
+) {
   OnboardingScreen.device = device;
   OnboardingSheet.device = device;
   SocialLoginScreen.device = device;
@@ -190,26 +193,31 @@ export async function onboardingFlowSeedlessNewUser(device, provider) {
     isNewUser = result === 'new_user';
   }
 
-  if (!isNewUser) {
-    throw new Error(
-      `onboardingFlowSeedlessNewUser(${provider}): expected new-user OAuth UI; got account-found. ` +
-        'Use a seedless E2E build where the first social login is new user (same as new-user perf APK), ' +
-        'not an existing-user-only mock artifact.',
+  if (isNewUser) {
+    await CreatePasswordScreen.enterPassword(
+      getPasswordForScenario('onboarding'),
     );
+    await CreatePasswordScreen.reEnterPassword(
+      getPasswordForScenario('onboarding'),
+    );
+    await CreatePasswordScreen.tapIUnderstandCheckBox();
+    await CreatePasswordScreen.tapCreatePasswordButton();
+
+    await OnboardingSucessScreen.isVisible();
+    await OnboardingSucessScreen.tapDone();
+    await checkPredictionsModalIsVisible(device);
+    await dissmissPredictionsModal(device);
+    await WalletMainScreen.isMainWalletViewVisible();
+    return;
   }
 
-  await CreatePasswordScreen.enterPassword(
-    getPasswordForScenario('onboarding'),
-  );
-  await CreatePasswordScreen.reEnterPassword(
-    getPasswordForScenario('onboarding'),
-  );
-  await CreatePasswordScreen.tapIUnderstandCheckBox();
-  await CreatePasswordScreen.tapCreatePasswordButton();
-
-  await OnboardingSucessScreen.isVisible();
-  await OnboardingSucessScreen.tapDone();
-  await checkPredictionsModalIsVisible(device);
+  // Existing user (account already exists): same path as seedless-*-onboarding perf specs
+  await SocialLoginScreen.tapAccountFoundLoginButton();
+  await LoginScreen.isLoginScreenVisible();
+  const unlockPassword =
+    getPasswordForScenario('login') || getPasswordForScenario('onboarding');
+  await LoginScreen.typePassword(unlockPassword);
+  await LoginScreen.tapUnlockButton();
   await dissmissPredictionsModal(device);
   await WalletMainScreen.isMainWalletViewVisible();
 }

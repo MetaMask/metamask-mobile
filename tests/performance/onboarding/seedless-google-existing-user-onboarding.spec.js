@@ -9,14 +9,14 @@ import LoginScreen from '../../../wdio/screen-objects/LoginScreen.js';
 import AppwrightGestures from '../../framework/AppwrightGestures.ts';
 import {
   login,
-  onboardingFlowSeedlessNewUser,
+  onboardingFlowSeedlessFirstSessionToWallet,
 } from '../../framework/utils/Flows.js';
 import { PerformanceOnboarding } from '../../tags.performance.js';
 
 test.describe(`${PerformanceOnboarding} seedless existing user`, () => {
   test.setTimeout(360000);
   test(
-    'Seedless Onboarding: Google Login Returning User (cold start after onboarding)',
+    'Seedless Onboarding: Google Login Existing User',
     { tag: '@metamask-onboarding-team' },
     async ({ device, performanceTracker }, testInfo) => {
       OnboardingScreen.device = device;
@@ -27,7 +27,7 @@ test.describe(`${PerformanceOnboarding} seedless existing user`, () => {
       WalletMainScreen.device = device;
       LoginScreen.device = device;
 
-      await onboardingFlowSeedlessNewUser(device, 'google');
+      await onboardingFlowSeedlessFirstSessionToWallet(device, 'google');
 
       await AppwrightGestures.terminateApp(device);
       await AppwrightGestures.activateApp(device);
