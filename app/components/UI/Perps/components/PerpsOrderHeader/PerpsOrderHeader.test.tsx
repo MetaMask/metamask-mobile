@@ -80,7 +80,7 @@ describe('PerpsOrderHeader', () => {
     expect(component).toBeDefined();
   });
 
-  it('should use ArrowLeft icon for back button, not Arrow2Left', () => {
+  it('uses ArrowLeft icon for back button, not Arrow2Left', () => {
     const { getByTestId } = render(<PerpsOrderHeader {...defaultProps} />);
     const backButton = getByTestId(PerpsOrderHeaderSelectorsIDs.BACK_BUTTON);
     expect(backButton.props.accessibilityLabel).toBe('ArrowLeft');
