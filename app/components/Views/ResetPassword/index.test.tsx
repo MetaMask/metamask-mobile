@@ -878,7 +878,7 @@ describe('ResetPassword', () => {
         .mockResolvedValueOnce(false);
 
       NavigationService.navigation =
-        mockNavigation as unknown as NavigationContainerRef;
+        mockNavigation as unknown as NavigationContainerRef<ParamListBase>;
 
       const component = await navigateToResetForm();
       await fillResetForm(component);
