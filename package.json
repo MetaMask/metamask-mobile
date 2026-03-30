@@ -187,6 +187,7 @@
     "@metamask/accounts-controller": "37.1.0",
     "@metamask/multichain-account-service": "8.0.0",
     "@metamask/profile-sync-controller": "28.0.1",
+    "@metamask/snaps-controllers@npm:^19.0.0": "18.0.4",
     "@metamask/core-backend": "^5.0.0",
     "@metamask/bridge-status-controller@npm:^69.0.0": "patch:@metamask/bridge-status-controller@npm%3A69.0.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-69.0.0-ec19aeeecf.patch",
     "bn.js@npm:4.11.6": "4.12.3",
