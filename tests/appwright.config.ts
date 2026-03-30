@@ -77,7 +77,7 @@ export default defineConfig({
     {
       name: 'android-onboarding',
       // Exclude seedless OAuth perf — those run under android-onboarding-seedless with a binary
-      // built with OAuth Metro mocks enabled (see metro.config.js E2E_USE_OAUTH_LOGIN_HANDLERS_METRO_MOCK).
+      // built with seedless+OAuth Metro mocks
       testMatch: '**/performance/onboarding/**/*.spec.js',
       testIgnore: '**/performance/onboarding/seedless-*.spec.js',
       use: {
