@@ -75,6 +75,8 @@ const OndoLeaderboardView: React.FC = () => {
               hasError={hasPositionError}
               hasFetched={positionHasFetched}
               refetch={refetchPosition}
+              showTitle
+              computedAt={position?.computedAt}
             />
           </Box>
 
@@ -92,6 +94,7 @@ const OndoLeaderboardView: React.FC = () => {
               hasError={hasLeaderboardError}
               isLeaderboardNotYetComputed={isLeaderboardNotYetComputed}
               onRetry={refetchLeaderboard}
+              showTitle={false}
             />
           </Box>
         </ScrollView>

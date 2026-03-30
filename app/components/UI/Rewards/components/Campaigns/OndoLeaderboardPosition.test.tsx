@@ -70,6 +70,7 @@ jest.mock('../../../../../../locales/i18n', () => ({
       'rewards.ondo_campaign_leaderboard_position.error_loading':
         'Failed to load your position',
       'rewards.ondo_campaign_leaderboard_position.retry': 'Retry',
+      'rewards.ondo_campaign_leaderboard_position.updated_at': `Updated ${params?.time ?? ''}`,
     };
     return translations[key] || key;
   },
@@ -134,11 +135,7 @@ describe('OndoLeaderboardPosition', () => {
   describe('error state', () => {
     it('renders error banner when has error and no data', () => {
       const { getByTestId } = render(
-        <OndoLeaderboardPosition
-          {...baseProps}
-          hasError
-          hasFetched
-        />,
+        <OndoLeaderboardPosition {...baseProps} hasError hasFetched />,
       );
 
       expect(
@@ -215,12 +212,43 @@ describe('OndoLeaderboardPosition', () => {
       ).toBeDefined();
     });
 
-    it('renders title', () => {
-      const { getByText } = render(
+    it('does not render title by default (showTitle defaults to false)', () => {
+      const { queryByText } = render(
         <OndoLeaderboardPosition {...loadedProps} />,
       );
 
+      expect(queryByText('Your Position')).toBeNull();
+    });
+
+    it('renders title when showTitle is true', () => {
+      const { getByText } = render(
+        <OndoLeaderboardPosition {...loadedProps} showTitle />,
+      );
+
       expect(getByText('Your Position')).toBeDefined();
+    });
+
+    it('renders computedAt timestamp when showTitle is true and computedAt is provided', () => {
+      const { getByText } = render(
+        <OndoLeaderboardPosition
+          {...loadedProps}
+          showTitle
+          computedAt={MOCK_POSITION.computedAt}
+        />,
+      );
+
+      expect(getByText(/Updated/)).toBeDefined();
+    });
+
+    it('does not render computedAt when showTitle is false', () => {
+      const { queryByText } = render(
+        <OndoLeaderboardPosition
+          {...loadedProps}
+          computedAt={MOCK_POSITION.computedAt}
+        />,
+      );
+
+      expect(queryByText(/Updated/)).toBeNull();
     });
 
     it('renders rank', () => {

@@ -36,6 +36,7 @@ const CampaignJoinCTA: React.FC<CampaignJoinCTAProps> = ({
 
   if (
     participantStatus.isLoading ||
+    !participantStatus ||
     participantStatus.status?.optedIn === true ||
     getCampaignStatus(campaign) !== 'active' ||
     !isOptinAllowed(campaign)

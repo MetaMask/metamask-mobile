@@ -1,7 +1,9 @@
 import React from 'react';
 import {
   Box,
+  BoxAlignItems,
   BoxFlexDirection,
+  BoxJustifyContent,
   Text,
   TextColor,
   TextVariant,
@@ -11,7 +13,7 @@ import {
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../../../locales/i18n';
 import RewardsErrorBanner from '../RewardsErrorBanner';
-import { formatRateOfReturn } from './OndoLeaderboard.utils';
+import { formatRateOfReturn, formatComputedAt } from './OndoLeaderboard.utils';
 import formatFiat from '../../../../../util/formatFiat';
 import { BigNumber } from 'bignumber.js';
 import type { CampaignLeaderboardPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
@@ -34,18 +36,28 @@ interface OndoLeaderboardPositionProps {
   hasError: boolean;
   hasFetched: boolean;
   refetch: () => Promise<void>;
+  showTitle?: boolean;
+  /** When provided and showTitle is true, displays a "Last updated" timestamp */
+  computedAt?: string | null;
 }
 
 const formatUsd = (value: number): string =>
   formatFiat(new BigNumber(value), 'USD');
 
-const PositionSkeleton: React.FC = () => {
+const PositionSkeleton: React.FC<{ showTitle?: boolean }> = ({
+  showTitle = false,
+}) => {
   const tw = useTailwind();
   return (
     <Box
       twClassName="gap-3"
       testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.LOADING}
     >
+      {showTitle && (
+        <Text variant={TextVariant.HeadingMd}>
+          {strings('rewards.ondo_campaign_leaderboard_position.title')}
+        </Text>
+      )}
       {/* Row 1: Rank | Tier */}
       <Box flexDirection={BoxFlexDirection.Row} twClassName="gap-4">
         <Skeleton style={tw.style('h-12 flex-1 rounded-lg')} />
@@ -109,9 +121,11 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
   hasError,
   hasFetched,
   refetch,
+  showTitle = false,
+  computedAt,
 }) => {
   if (isLoading && !position) {
-    return <PositionSkeleton />;
+    return <PositionSkeleton showTitle={showTitle} />;
   }
 
   if (hasError && !position) {
@@ -155,9 +169,28 @@ const OndoLeaderboardPosition: React.FC<OndoLeaderboardPositionProps> = ({
       twClassName="gap-3"
       testID={ONDO_LEADERBOARD_POSITION_TEST_IDS.CONTAINER}
     >
-      <Text variant={TextVariant.HeadingMd}>
-        {strings('rewards.ondo_campaign_leaderboard_position.title')}
-      </Text>
+      {showTitle && (
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          justifyContent={BoxJustifyContent.Between}
+        >
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.ondo_campaign_leaderboard_position.title')}
+          </Text>
+          {computedAt && (
+            <Text
+              variant={TextVariant.BodyXs}
+              color={TextColor.TextAlternative}
+            >
+              {strings(
+                'rewards.ondo_campaign_leaderboard_position.updated_at',
+                { time: formatComputedAt(computedAt) },
+              )}
+            </Text>
+          )}
+        </Box>
+      )}
 
       {/* Grid row 1: Rank | Tier | (empty) */}
       <Box flexDirection={BoxFlexDirection.Row}>

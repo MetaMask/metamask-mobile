@@ -166,14 +166,14 @@ jest.mock('../components/Campaigns/OndoPortfolio', () => {
   };
 });
 
-jest.mock('../components/Campaigns/CampaignEntriesClosedBanner', () => {
+jest.mock('../components/RewardsInfoBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
   return {
     __esModule: true,
     default: () =>
       ReactActual.createElement(View, {
-        testID: 'campaign-entries-closed-banner',
+        testID: 'competition-ended-banner',
       }),
   };
 });
@@ -257,8 +257,10 @@ jest.mock('../../../../../locales/i18n', () => ({
       'rewards.campaigns_view.error_description': 'Please try again.',
       'rewards.campaigns_view.retry_button': 'Retry',
       'rewards.campaign_details.join_campaign': 'Join Campaign',
-      'rewards.campaign_details.entries_closed_title': 'Entries closed',
-      'rewards.campaign_details.entries_closed_description': 'Missed window',
+      'rewards.campaign_details.competition_closed_title':
+        'Competition no longer open',
+      'rewards.campaign_details.competition_closed_description':
+        'Entries are now closed',
     };
     return translations[key] || key;
   },
@@ -655,7 +657,7 @@ describe('OndoCampaignDetailsView', () => {
     });
   });
 
-  describe('entries-closed banner', () => {
+  describe('competition ended banner', () => {
     it('shows the banner when campaign is active, past cutoff, and user is not opted in', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
@@ -669,7 +671,26 @@ describe('OndoCampaignDetailsView', () => {
         ],
       });
       const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('campaign-entries-closed-banner')).toBeDefined();
+      expect(getByTestId('competition-ended-banner')).toBeDefined();
+    });
+
+    it('shows the banner when campaign is complete and user is not opted in', () => {
+      const lastMonth = new Date();
+      lastMonth.setMonth(lastMonth.getMonth() - 1);
+      const yesterday = new Date();
+      yesterday.setDate(yesterday.getDate() - 1);
+
+      mockUseRewardCampaigns.mockReturnValue({
+        ...hookDefaults,
+        campaigns: [
+          createTestCampaign({
+            startDate: lastMonth.toISOString(),
+            endDate: yesterday.toISOString(),
+          }),
+        ],
+      });
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('competition-ended-banner')).toBeDefined();
     });
 
     it('does not show the banner when entries are still open', () => {
@@ -678,10 +699,10 @@ describe('OndoCampaignDetailsView', () => {
         campaigns: [createTestCampaign()],
       });
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('campaign-entries-closed-banner')).toBeNull();
+      expect(queryByTestId('competition-ended-banner')).toBeNull();
     });
 
-    it('does not show the banner when the user is opted in', () => {
+    it('does not show the banner when the user is opted in with portfolio fetching', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
@@ -699,11 +720,12 @@ describe('OndoCampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
+      // Portfolio not yet fetched — banner should be hidden while data loads
       const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('campaign-entries-closed-banner')).toBeNull();
+      expect(queryByTestId('competition-ended-banner')).toBeNull();
     });
 
-    it('does not show the banner while participant status is loading', () => {
+    it('shows the banner even while participant status is loading (entries closed)', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
@@ -721,8 +743,8 @@ describe('OndoCampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { queryByTestId } = render(<OndoCampaignDetailsView />);
-      expect(queryByTestId('campaign-entries-closed-banner')).toBeNull();
+      const { getByTestId } = render(<OndoCampaignDetailsView />);
+      expect(getByTestId('competition-ended-banner')).toBeDefined();
     });
   });
 

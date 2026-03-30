@@ -95,7 +95,7 @@ jest.mock('../../../../../util/formatFiat', () => ({
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string, params?: Record<string, string | number>) => {
     const translations: Record<string, string> = {
-      'rewards.ondo_campaign_portfolio.positions_heading': 'Your Positions',
+      'rewards.ondo_campaign_portfolio.title': 'Your Positions',
       'rewards.ondo_campaign_portfolio.empty': 'No positions yet',
       'rewards.ondo_campaign_portfolio.empty_description':
         'Start investing to see your positions',
@@ -201,6 +201,19 @@ describe('OndoPortfolio', () => {
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeNull();
     });
 
+    it('renders skeleton when loading and portfolio has zero positions', () => {
+      const { getByTestId } = render(
+        <OndoPortfolio
+          {...baseProps}
+          portfolio={{ ...MOCK_PORTFOLIO, positions: [] }}
+          isLoading
+          hasFetched
+        />,
+      );
+
+      expect(getByTestId(ONDO_PORTFOLIO_TEST_IDS.LOADING)).toBeDefined();
+    });
+
     it('renders skeleton during retry (isLoading=true, hasFetched=true, no portfolio)', () => {
       const { getByTestId, queryByTestId } = render(
         <OndoPortfolio {...baseProps} isLoading hasFetched />,
@@ -254,11 +267,7 @@ describe('OndoPortfolio', () => {
 
     it('does not render empty banner when portfolio data is present', () => {
       const { queryByTestId } = render(
-        <OndoPortfolio
-          {...baseProps}
-          portfolio={MOCK_PORTFOLIO}
-          hasFetched
-        />,
+        <OndoPortfolio {...baseProps} portfolio={MOCK_PORTFOLIO} hasFetched />,
       );
 
       expect(queryByTestId(ONDO_PORTFOLIO_TEST_IDS.EMPTY)).toBeNull();

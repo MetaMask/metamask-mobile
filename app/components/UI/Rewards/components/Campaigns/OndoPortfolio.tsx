@@ -107,13 +107,14 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
     [portfolio],
   );
 
-  const showSkeleton = isLoading && !portfolio;
+  const showSkeleton =
+    isLoading && (!portfolio || portfolio.positions.length === 0);
 
   if (hasError && !portfolio) {
     return (
       <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.ERROR}>
         <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_portfolio.positions_heading')}
+          {strings('rewards.ondo_campaign_portfolio.title')}
         </Text>
         <RewardsErrorBanner
           title={strings('rewards.ondo_campaign_portfolio.error_loading')}
@@ -130,6 +131,15 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
   if (showSkeleton) {
     return (
       <Box twClassName="gap-3" testID={ONDO_PORTFOLIO_TEST_IDS.LOADING}>
+        <Box
+          flexDirection={BoxFlexDirection.Row}
+          alignItems={BoxAlignItems.Center}
+          twClassName="mb-4 gap-2"
+        >
+          <Text variant={TextVariant.HeadingMd}>
+            {strings('rewards.ondo_campaign_portfolio.title')}
+          </Text>
+        </Box>
         <Skeleton style={tw.style('h-32 rounded-xl')} />
         <Skeleton style={tw.style('h-24 rounded-xl')} />
         <Skeleton style={tw.style('h-24 rounded-xl')} />
@@ -141,7 +151,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
     return (
       <Box testID={ONDO_PORTFOLIO_TEST_IDS.EMPTY} twClassName="gap-3">
         <Text variant={TextVariant.HeadingMd}>
-          {strings('rewards.ondo_campaign_portfolio.positions_heading')}
+          {strings('rewards.ondo_campaign_portfolio.title')}
         </Text>
         <RewardsInfoBanner
           title={strings('rewards.ondo_campaign_portfolio.empty')}
@@ -181,7 +191,7 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
           twClassName="mb-4 gap-2"
         >
           <Text variant={TextVariant.HeadingMd}>
-            {strings('rewards.ondo_campaign_portfolio.positions_heading')}
+            {strings('rewards.ondo_campaign_portfolio.title')}
           </Text>
           {grouped.length > 0 && (
             <Icon
@@ -190,16 +200,18 @@ const OndoPortfolio: React.FC<OndoPortfolioProps> = ({
               color={IconColor.IconDefault}
             />
           )}
-          <Box twClassName="flex-1" alignItems={BoxAlignItems.End}>
-            <Text
-              variant={TextVariant.BodyXs}
-              color={TextColor.TextAlternative}
-            >
-              {strings('rewards.ondo_campaign_portfolio.updated_at', {
-                time: formatComputedAt(portfolio.computedAt),
-              })}
-            </Text>
-          </Box>
+          {portfolio.computedAt && portfolio.positions.length > 0 && (
+            <Box twClassName="flex-1" alignItems={BoxAlignItems.End}>
+              <Text
+                variant={TextVariant.BodyXs}
+                color={TextColor.TextAlternative}
+              >
+                {strings('rewards.ondo_campaign_portfolio.updated_at', {
+                  time: formatComputedAt(portfolio.computedAt),
+                })}
+              </Text>
+            </Box>
+          )}
         </Box>
       </TouchableOpacity>
 

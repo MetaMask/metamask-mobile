@@ -7961,6 +7961,8 @@
       "join_campaign": "Join the campaign",
       "entries_closed_title": "Entries closed",
       "entries_closed_description": "You missed the opt-in window",
+      "competition_closed_title": "Competition no longer open",
+      "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
@@ -7979,13 +7981,12 @@
       "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
-      "title": "Positions",
+      "title": "My Positions",
       "total_value": "Total value",
       "portfolio_pnl": "P&L",
       "portfolio_pnl_percent": "P&L (%)",
       "summary_cost_basis": "Cost basis",
       "summary_net_deposit": "Net deposit",
-      "positions_heading": "Positions",
       "position_current_value": "Value",
       "position_unrealized_pnl": "P&L",
       "updated_at": "Last updated: {{time}}",

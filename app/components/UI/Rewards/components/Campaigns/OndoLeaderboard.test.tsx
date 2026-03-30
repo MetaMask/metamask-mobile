@@ -248,6 +248,14 @@ describe('OndoLeaderboard', () => {
       expect(getByText('Leaderboard')).toBeDefined();
     });
 
+    it('does not render title when showTitle is false', () => {
+      const { queryByText } = render(
+        <OndoLeaderboard {...defaultProps} showTitle={false} />,
+      );
+
+      expect(queryByText('Leaderboard')).toBeNull();
+    });
+
     it('renders computed at timestamp', () => {
       const { getByTestId } = render(<OndoLeaderboard {...defaultProps} />);
 
