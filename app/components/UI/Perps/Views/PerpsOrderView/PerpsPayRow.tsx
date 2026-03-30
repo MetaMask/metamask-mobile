@@ -191,17 +191,17 @@ export const PerpsPayRow = ({
           appliedPendingTokenRef.current.chainId === pendingChainId);
     if (alreadyApplied) return;
 
+    appliedPendingTokenRef.current = {
+      address: pendingAddr,
+      chainId: pendingChainId,
+    };
+
     if (
       payToken?.address !== pendingAddr ||
       payToken?.chainId !== pendingChainId ||
       selectedPaymentToken?.address !== pendingAddr ||
       selectedPaymentToken?.chainId !== pendingChainId
     ) {
-      appliedPendingTokenRef.current = {
-        address: pendingAddr,
-        chainId: pendingChainId,
-      };
-
       setPayToken({
         address: pendingAddr as Hex,
         chainId: pendingChainId as Hex,
