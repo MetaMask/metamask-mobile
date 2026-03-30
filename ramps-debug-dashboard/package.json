@@ -1,0 +1,14 @@
+{
+  "name": "ramps-debug-dashboard",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.mjs",
+    "setup": "bash setup.sh",
+    "teardown": "bash teardown.sh"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}

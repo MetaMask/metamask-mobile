@@ -98,6 +98,18 @@ export const rampsControllerInit: ControllerInitFunction<
     startUnifiedBuyV2IfEnabled();
   });
 
+  // Opt-in dev tooling: set RAMPS_DEBUG_DASHBOARD=true in .js.env (see Ramp/debug/README.md).
+  // Dynamic import keeps the bridge (and its fetch instrumentation) out of the bundle unless enabled.
+  if (__DEV__ && process.env.RAMPS_DEBUG_DASHBOARD === 'true') {
+    import('../../../../components/UI/Ramp/debug/RampsDebugBridge')
+      .then(({ initRampsDebugBridge }) => {
+        initRampsDebugBridge(controller, controllerMessenger);
+      })
+      .catch(() => {
+        /* optional dev tooling — ignore load failures */
+      });
+  }
+
   return {
     controller,
   };
