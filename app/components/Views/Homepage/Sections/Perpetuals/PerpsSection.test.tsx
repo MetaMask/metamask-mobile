@@ -13,6 +13,17 @@ import { selectIsFirstTimePerpsUser } from '../../../../UI/Perps/selectors/perps
 const mockNavigate = jest.fn();
 const mockTrack = jest.fn();
 
+const mockApplyTagForDedicatedTrendingSection = jest.fn();
+const mockClearTransactionAbTests = jest.fn();
+
+jest.mock('../../hooks/useHomepageTrendingSectionTransactionAbTests', () => ({
+  useHomepageTrendingSectionTransactionAbTests: () => ({
+    applyTagForDedicatedTrendingSection:
+      mockApplyTagForDedicatedTrendingSection,
+    clearTransactionAbTests: mockClearTransactionAbTests,
+  }),
+}));
+
 jest.mock('../../../../../selectors/preferencesController', () => ({
   ...jest.requireActual('../../../../../selectors/preferencesController'),
   selectPrivacyMode: () => false,
@@ -724,6 +735,8 @@ describe('PerpsSection', () => {
 
       fireEvent.press(screen.getByTestId('perps-market-tile-SOL'));
 
+      expect(mockClearTransactionAbTests).toHaveBeenCalled();
+      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
       expect(mockNavigate).toHaveBeenCalledWith(Routes.PERPS.ROOT, {
         screen: Routes.PERPS.MARKET_DETAILS,
         params: { market, source: 'home_section' },
@@ -1556,6 +1569,31 @@ describe('PerpsSection', () => {
       expect(
         screen.getByTestId('homepage-trending-perps-carousel'),
       ).toBeOnTheScreen();
+    });
+
+    it('tags homepage trending AB tests when a trending-only carousel tile is pressed', () => {
+      jest
+        .requireMock('../../../../UI/Perps/hooks')
+        .usePerpsMarkets.mockReturnValue({
+          markets: [makeTrendingMarket({ symbol: 'BTC' })],
+          isLoading: false,
+          error: null,
+          refresh: jest.fn(),
+          isRefreshing: false,
+        });
+
+      renderWithProvider(
+        <PerpsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByTestId('perps-market-tile-BTC'));
+
+      expect(mockApplyTagForDedicatedTrendingSection).toHaveBeenCalled();
+      expect(mockClearTransactionAbTests).not.toHaveBeenCalled();
     });
 
     it('renders carousel when WebSocket errors but REST markets load', () => {

@@ -9,6 +9,17 @@ import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames'
 const mockNavigate = jest.fn();
 const mockClaim = jest.fn();
 
+const mockApplyTagForDedicatedTrendingSection = jest.fn();
+const mockClearTransactionAbTests = jest.fn();
+
+jest.mock('../../hooks/useHomepageTrendingSectionTransactionAbTests', () => ({
+  useHomepageTrendingSectionTransactionAbTests: () => ({
+    applyTagForDedicatedTrendingSection:
+      mockApplyTagForDedicatedTrendingSection,
+    clearTransactionAbTests: mockClearTransactionAbTests,
+  }),
+}));
+
 jest.mock('@react-navigation/native', () => {
   const actualNav = jest.requireActual('@react-navigation/native');
   return {
@@ -359,6 +370,28 @@ describe('PredictionsSection', () => {
       await waitFor(() => {
         expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
       });
+    });
+
+    it('clears staged tx AB tests when a default-mode market card is pressed', async () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection sectionIndex={0} totalSectionsLoaded={1} />,
+      );
+
+      await waitFor(() => {
+        expect(screen.getByText('Will ETH reach $5000?')).toBeOnTheScreen();
+      });
+
+      fireEvent.press(screen.getByText('Will ETH reach $5000?'));
+
+      expect(mockClearTransactionAbTests).toHaveBeenCalled();
+      expect(mockApplyTagForDedicatedTrendingSection).not.toHaveBeenCalled();
     });
 
     it('shows market skeletons when loading markets', () => {
@@ -764,6 +797,28 @@ describe('PredictionsSection', () => {
       );
 
       expect(screen.getByText('Will BTC reach 100k?')).toBeOnTheScreen();
+    });
+
+    it('tags homepage trending AB when a trending-only market card is pressed', () => {
+      mockUsePredictMarketsForHomepage.mockReturnValue({
+        markets: mockMarkets,
+        isLoading: false,
+        error: null,
+        refetch: jest.fn(),
+      });
+
+      renderWithProvider(
+        <PredictionsSection
+          sectionIndex={0}
+          totalSectionsLoaded={5}
+          mode="trending-only"
+        />,
+      );
+
+      fireEvent.press(screen.getByText('Will BTC reach 100k?'));
+
+      expect(mockApplyTagForDedicatedTrendingSection).toHaveBeenCalled();
+      expect(mockClearTransactionAbTests).not.toHaveBeenCalled();
     });
 
     it('uses titleOverride when provided', () => {

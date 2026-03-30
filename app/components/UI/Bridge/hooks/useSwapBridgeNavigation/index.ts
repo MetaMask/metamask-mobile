@@ -27,6 +27,7 @@ import {
   setDestToken,
   setIsDestTokenManuallySet,
   setAbTestContext,
+  setTransactionActiveAbTests,
 } from '../../../../../core/redux/slices/bridge';
 import { trace, TraceName } from '../../../../../util/trace';
 import Engine from '../../../../../core/Engine';
@@ -38,6 +39,11 @@ import {
 } from '../../utils/tokenUtils';
 import { areAddressesEqual } from '../../../../../util/address';
 import TrendingFeedSessionManager from '../../../Trending/services/TrendingFeedSessionManager';
+import { useABTest } from '../../../../../hooks';
+import {
+  HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+  HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
+} from '../../../../Views/Homepage/abTestConfig';
 
 /**
  * When navigating to the Asset view from trending tokens list, we add a property
@@ -51,6 +57,14 @@ export const isAssetFromTrending = (asset: unknown) =>
   asset !== null &&
   'isFromTrending' in asset &&
   asset.isFromTrending === true;
+
+/** True when the asset was opened from the homepage “Trending tokens” section (separate-trending layout). */
+export const isAssetFromHomepageTrendingSection = (asset: unknown): boolean =>
+  typeof asset === 'object' &&
+  asset !== null &&
+  'fromHomepageTrendingSection' in asset &&
+  (asset as { fromHomepageTrendingSection?: boolean })
+    .fromHomepageTrendingSection === true;
 
 export interface BridgeRouteParams {
   sourcePage: string;
@@ -143,6 +157,14 @@ export const useSwapBridgeNavigation = ({
     selectIsBridgeEnabledSourceFactory,
   );
   const currentNetworkInfo = useCurrentNetworkInfo();
+
+  const {
+    variantName: homepageTrendingVariantName,
+    isActive: isHomepageTrendingAbActive,
+  } = useABTest(
+    HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+    HOMEPAGE_TRENDING_SECTIONS_VARIANTS,
+  );
 
   // Unified swaps/bridge UI
   const goToNativeBridge = useCallback(
@@ -259,8 +281,29 @@ export const useSwapBridgeNavigation = ({
       }
 
       // Check if user is in an active trending session for analytics
-      const isFromTrending =
+      const isFromTrendingSession =
         TrendingFeedSessionManager.getInstance().isFromTrending;
+      const isFromTrendingAsset =
+        isAssetFromTrending(effectiveSourceTokenBase) ||
+        isAssetFromTrending(effectiveDestTokenBase);
+      const isFromTrending = isFromTrendingSession || isFromTrendingAsset;
+
+      const fromHomepageTrendingSection =
+        isAssetFromHomepageTrendingSection(effectiveSourceTokenBase) ||
+        isAssetFromHomepageTrendingSection(effectiveDestTokenBase);
+
+      dispatch(
+        setTransactionActiveAbTests(
+          fromHomepageTrendingSection && isHomepageTrendingAbActive
+            ? [
+                {
+                  key: HOMEPAGE_TRENDING_SECTIONS_AB_KEY,
+                  value: homepageTrendingVariantName,
+                },
+              ]
+            : undefined,
+        ),
+      );
 
       // Set the location on the bridge controller once so all internally-fired
       // events (InputChanged, QuotesRequested, QuotesReceived, etc.) carry it.
@@ -337,6 +380,8 @@ export const useSwapBridgeNavigation = ({
       getIsBridgeEnabledSource,
       skipLocationUpdate,
       swapButtonEventLocationOverride,
+      isHomepageTrendingAbActive,
+      homepageTrendingVariantName,
     ],
   );
   const { networkModal } = useAddNetwork();

@@ -26,4 +26,6 @@ export interface TokenI {
   accountType?: KeyringAccountType;
   pricePercentChange1d?: number;
   rwaData?: TokenRwaData;
+  /** Set when Token Details was opened from the homepage trending-tokens section */
+  fromHomepageTrendingSection?: boolean;
 }

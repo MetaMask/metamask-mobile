@@ -58,6 +58,7 @@ import type { PerpsSectionProps } from './PerpsSectionWithProvider';
 import HomepageSectionUnrealizedPnlRow, {
   type HomepageUnrealizedPnlTone,
 } from '../../components/HomepageSectionUnrealizedPnlRow';
+import { useHomepageTrendingSectionTransactionAbTests } from '../../hooks/useHomepageTrendingSectionTransactionAbTests';
 
 const MAX_ITEMS = 5;
 const MAX_TRENDING_MARKETS = 5;
@@ -67,9 +68,17 @@ interface UsePerpsTrendingCarouselDataArgs {
   skipInitialFetch?: boolean;
 }
 
-const usePerpsNavigationHandlers = () => {
+interface UsePerpsNavigationHandlersArgs {
+  isDedicatedTrendingSection?: boolean;
+}
+
+const usePerpsNavigationHandlers = ({
+  isDedicatedTrendingSection = false,
+}: UsePerpsNavigationHandlersArgs = {}) => {
   const navigation = useNavigation<NavigationProp<PerpsNavigationParamList>>();
   const isFirstTimePerpsUser = useSelector(selectIsFirstTimePerpsUser);
+  const { applyTagForDedicatedTrendingSection, clearTransactionAbTests } =
+    useHomepageTrendingSectionTransactionAbTests();
 
   const navigateToTutorialOrScreen = useCallback(
     (screen: string, params: Record<string, unknown>) => {
@@ -87,25 +96,37 @@ const usePerpsNavigationHandlers = () => {
   );
 
   const handleViewAllPerps = useCallback(() => {
+    clearTransactionAbTests();
     navigateToTutorialOrScreen(Routes.PERPS.PERPS_HOME, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
     });
-  }, [navigateToTutorialOrScreen]);
+  }, [clearTransactionAbTests, navigateToTutorialOrScreen]);
 
   const handleViewMorePerps = useCallback(() => {
+    clearTransactionAbTests();
     navigateToTutorialOrScreen(Routes.PERPS.MARKET_LIST, {
       source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
     });
-  }, [navigateToTutorialOrScreen]);
+  }, [clearTransactionAbTests, navigateToTutorialOrScreen]);
 
   const handleTilePress = useCallback(
     (market: PerpsMarketData) => {
+      if (isDedicatedTrendingSection) {
+        applyTagForDedicatedTrendingSection();
+      } else {
+        clearTransactionAbTests();
+      }
       navigateToTutorialOrScreen(Routes.PERPS.MARKET_DETAILS, {
         market,
         source: PERPS_EVENT_VALUE.SOURCE.HOME_SECTION,
       });
     },
-    [navigateToTutorialOrScreen],
+    [
+      applyTagForDedicatedTrendingSection,
+      clearTransactionAbTests,
+      isDedicatedTrendingSection,
+      navigateToTutorialOrScreen,
+    ],
   );
 
   return {
@@ -113,6 +134,7 @@ const usePerpsNavigationHandlers = () => {
     handleViewAllPerps,
     handleViewMorePerps,
     handleTilePress,
+    clearTransactionAbTests,
   };
 };
 
@@ -248,6 +270,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
       handleViewAllPerps,
       handleViewMorePerps,
       handleTilePress,
+      clearTransactionAbTests,
     } = usePerpsNavigationHandlers();
 
     const { positions, isInitialLoading: positionsLoading } =
@@ -343,6 +366,7 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     const handlePositionPress = useCallback(
       (position: Position) => {
+        clearTransactionAbTests();
         track(MetaMetricsEvents.PERPS_UI_INTERACTION, {
           [PERPS_EVENT_PROPERTY.INTERACTION_TYPE]:
             PERPS_EVENT_VALUE.INTERACTION_TYPE.BUTTON_CLICKED,
@@ -361,9 +385,8 @@ const PerpsSectionMain = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
           source: 'section_position',
         });
       },
-      [navigateToTutorialOrScreen, markets, track],
+      [clearTransactionAbTests, navigateToTutorialOrScreen, markets, track],
     );
-
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
     // positions-only: never wait on market/trending data — analytics for empty
@@ -491,7 +514,7 @@ const PerpsSectionTrendingOnly = forwardRef<
     const title = titleOverride ?? strings('homepage.sections.perpetuals');
     const analyticsName = sectionNameOverride ?? HomeSectionNames.PERPS;
     const { handleViewAllPerps, handleViewMorePerps, handleTilePress } =
-      usePerpsNavigationHandlers();
+      usePerpsNavigationHandlers({ isDedicatedTrendingSection: true });
     const { marketsLoading, allCarouselMarkets, watchlistSymbolSet } =
       usePerpsTrendingCarouselData({});
     const carouselSymbols = useMemo(

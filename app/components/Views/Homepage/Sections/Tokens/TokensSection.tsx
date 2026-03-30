@@ -363,6 +363,7 @@ const TokensSectionTrendingOnly = forwardRef<
                     key={token.assetId}
                     token={token}
                     position={index}
+                    fromHomepageTrendingSection
                   />
                 ))}
           </SectionRow>

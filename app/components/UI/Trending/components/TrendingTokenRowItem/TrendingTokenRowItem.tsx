@@ -141,6 +141,8 @@ interface TrendingTokenRowItemProps {
    * asset details screen (including network-add logic and analytics tracking).
    */
   onPress?: (token: TrendingAsset) => void;
+  /** Homepage “Trending tokens” section (separate-trending layout); tags swap tx analytics */
+  fromHomepageTrendingSection?: boolean;
 }
 
 /**
@@ -149,6 +151,7 @@ interface TrendingTokenRowItemProps {
 const getAssetNavigationParams = (
   token: TrendingAsset,
   source: TokenDetailsSource,
+  fromHomepageTrendingSection?: boolean,
 ) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
@@ -177,6 +180,9 @@ const getAssetNavigationParams = (
     source,
     rwaData: token.rwaData,
     securityData: token.securityData,
+    ...(fromHomepageTrendingSection
+      ? { fromHomepageTrendingSection: true }
+      : {}),
   };
 };
 
@@ -187,6 +193,7 @@ const TrendingTokenRowItem = ({
   filterContext,
   tokenDetailsSource = TokenDetailsSource.Trending,
   onPress,
+  fromHomepageTrendingSection,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -203,8 +210,13 @@ const TrendingTokenRowItem = ({
   );
 
   const assetParams = useMemo(
-    () => getAssetNavigationParams(token, tokenDetailsSource),
-    [token, tokenDetailsSource],
+    () =>
+      getAssetNavigationParams(
+        token,
+        tokenDetailsSource,
+        fromHomepageTrendingSection,
+      ),
+    [token, tokenDetailsSource, fromHomepageTrendingSection],
   );
 
   const networkBadgeImageSource = useMemo(

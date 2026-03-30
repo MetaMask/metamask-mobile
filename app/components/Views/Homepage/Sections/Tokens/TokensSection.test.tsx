@@ -301,9 +301,11 @@ jest.mock('../../../../hooks/useAnalytics/useAnalytics', () => ({
   }),
 }));
 
+const mockUseHomeViewedEvent = jest.fn(() => ({ onLayout: jest.fn() }));
 jest.mock('../../hooks/useHomeViewedEvent', () => ({
   __esModule: true,
-  default: jest.fn(() => ({ onLayout: jest.fn() })),
+  default: (...args: unknown[]) =>
+    Reflect.apply(mockUseHomeViewedEvent, undefined, args),
   HomeSectionNames: {
     TOKENS: 'tokens',
     PERPS: 'perps',
@@ -841,6 +843,58 @@ describe('TokensSection', () => {
       );
 
       expect(toJSON()).toBeNull();
+    });
+
+    it('passes isLoading true and isEmpty false while token list is loading', () => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(false);
+      mockSortedTokenKeys.mockReturnValue([]);
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="positions-only"
+        />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isLoading: true,
+          isEmpty: false,
+          itemCount: 0,
+        }),
+      );
+    });
+
+    it('passes isEmpty true when display tokens are empty after load (e.g. only mUSD with Cash section)', () => {
+      mockUseIsZeroBalanceAccount.mockReturnValue(false);
+      jest
+        .requireMock('../../../../UI/Earn/selectors/featureFlags')
+        .selectIsMusdConversionFlowEnabledFlag.mockReturnValue(true);
+      mockUseMusdConversionEligibility.mockReturnValue({ isEligible: true });
+      mockSortedTokenKeys.mockReturnValue([
+        {
+          chainId: '0x1',
+          address: '0xaca92e438df0b2401ff60da7e4337b687a2435da',
+          isStaked: false,
+        },
+      ]);
+
+      renderWithProvider(
+        <TokensSection
+          sectionIndex={0}
+          totalSectionsLoaded={1}
+          mode="positions-only"
+        />,
+      );
+
+      expect(mockUseHomeViewedEvent).toHaveBeenLastCalledWith(
+        expect.objectContaining({
+          isLoading: false,
+          isEmpty: true,
+          itemCount: 0,
+        }),
+      );
     });
 
     it('renders token items when account has balance', () => {

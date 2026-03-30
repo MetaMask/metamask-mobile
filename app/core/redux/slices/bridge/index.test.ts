@@ -77,6 +77,7 @@ describe('bridge slice', () => {
         visiblePillChainIds: undefined,
         selectedQuoteRequestId: undefined,
         abTestContext: undefined,
+        transactionActiveAbTests: undefined,
       });
     });
   });
