@@ -137,9 +137,7 @@ function Tooltip({
       TransactionType.perpsWithdraw,
     ])
   ) {
-    if (
-      hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])
-    ) {
+    if (hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])) {
       message = strings('confirm.tooltip.perps_withdraw.transaction_fee');
     } else if (
       hasTransactionType(transactionMeta, [TransactionType.predictWithdraw])
