@@ -26,6 +26,8 @@ import {
   formatChainIdToHex,
   TokenFeatureType,
   type TokenFeature,
+  type QuoteStreamCompleteData,
+  QuoteStreamCompleteReason,
 } from '@metamask/bridge-controller';
 import {
   BridgeToken,
@@ -685,6 +687,11 @@ export const selectDestTokenWarning = createSelector(
   (controllerFields): TokenFeature | undefined =>
     selectTokenWarningsBase(controllerFields)?.[0],
 );
+
+export const selectQuoteStreamComplete = (
+  state: RootState,
+): QuoteStreamCompleteData | null =>
+  state.engine.backgroundState.BridgeController.quoteStreamComplete ?? null;
 
 // Actions
 export const {
