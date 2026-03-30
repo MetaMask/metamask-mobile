@@ -9,11 +9,13 @@ import {
   selectSourceToken,
   selectBridgeControllerState,
   selectIsSolanaSourced,
+  selectQuoteStreamComplete,
 } from '../../../../../core/redux/slices/bridge';
 import { strings } from '../../../../../../locales/i18n';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
 import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
 import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
+import BannerBase from '../../../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { selectSelectedInternalAccountFormattedAddress } from '../../../../../selectors/accountsController';
 import { isHardwareAccount } from '../../../../../util/address';
 import ApprovalTooltip from '../../components/ApprovalText';
@@ -30,7 +32,13 @@ import {
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
+import Icon, {
+  IconName,
+  IconSize,
+} from '../../../../../component-library/components/Icons/Icon';
+import { useTheme } from '../../../../../util/theme';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds.ts';
+import { QUOTE_STREAM_REASON_TO_STRING } from './BridgeView.constants';
 
 interface Props {
   latestSourceBalance: ReturnType<typeof useLatestBalance>;
@@ -39,6 +47,7 @@ interface Props {
 
 export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
   const { styles } = useStyles(createStyles);
+  const { colors } = useTheme();
   const sourceAmount = useSelector(selectSourceAmount);
   const sourceToken = useSelector(selectSourceToken);
   const destToken = useSelector(selectDestToken);
@@ -47,11 +56,37 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
     selectSelectedInternalAccountFormattedAddress,
   );
   const isSolanaSourced = useSelector(selectIsSolanaSourced);
+  const quoteStreamComplete = useSelector(selectQuoteStreamComplete);
 
   const { activeQuote, isLoading, blockaidError, needsNewQuote } =
     useBridgeQuoteData({
       latestSourceAtomicBalance: latestSourceBalance?.atomicBalance,
     });
+
+  const quoteStreamCompleteError = quoteStreamComplete?.reason
+    ? QUOTE_STREAM_REASON_TO_STRING[quoteStreamComplete.reason]
+    : undefined;
+
+  const quoteStreamErrorBannerStyle = {
+    borderLeftWidth: 4,
+    borderColor: colors.error.default,
+    backgroundColor: colors.error.muted,
+    paddingLeft: 8,
+  };
+
+  const quoteStreamCompleteBanner = quoteStreamCompleteError ? (
+    <BannerBase
+      style={quoteStreamErrorBannerStyle}
+      startAccessory={
+        <Icon
+          name={IconName.Danger}
+          color={colors.error.default}
+          size={IconSize.Lg}
+        />
+      }
+      description={quoteStreamCompleteError}
+    />
+  ) : null;
 
   const isValidSourceAmount =
     sourceAmount !== undefined && sourceAmount !== '.' && sourceToken?.decimals;
@@ -67,6 +102,7 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
   if (needsNewQuote) {
     return (
       <Box style={styles.buttonContainer}>
+        {quoteStreamCompleteBanner}
         <SwapsConfirmButton
           location={location}
           latestSourceBalance={latestSourceBalance}
@@ -76,6 +112,17 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
   }
 
   if (!activeQuote) {
+    if (quoteStreamCompleteBanner) {
+      return (
+        <Box style={styles.buttonContainer}>
+          {quoteStreamCompleteBanner}
+          <SwapsConfirmButton
+            location={location}
+            latestSourceBalance={latestSourceBalance}
+          />
+        </Box>
+      );
+    }
     return null;
   }
 
@@ -111,6 +158,7 @@ export const BridgeViewFooter = ({ latestSourceBalance, location }: Props) => {
             description={blockaidError}
           />
         )}
+        {quoteStreamCompleteBanner}
 
         <SwapsConfirmButton
           location={location}
