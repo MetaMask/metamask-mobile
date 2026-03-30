@@ -30,6 +30,7 @@ export function MoneyAccountDepositInfo() {
   return (
     <CustomAmountInfo
       currency={MONEY_ACCOUNT_CURRENCY}
+      disableConfirm={!selectedToAddress}
       afterPayWith={
         <ToAccountSelector
           chainId={transactionMeta?.chainId}

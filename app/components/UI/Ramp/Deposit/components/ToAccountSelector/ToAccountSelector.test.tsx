@@ -1,7 +1,9 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { mockTheme } from '../../../../../../util/theme';
-import ToAccountSelector, { TO_ACCOUNT_SELECTOR_TEST_IDS } from './ToAccountSelector';
+import ToAccountSelector, {
+  TO_ACCOUNT_SELECTOR_TEST_IDS,
+} from './ToAccountSelector';
 
 const MOCK_ADDRESS_1 = '0x1234567890123456789012345678901234567890';
 const MOCK_ADDRESS_2 = '0xABCDEF1234567890ABCDEF1234567890ABCDEF12';
@@ -105,33 +107,31 @@ jest.mock('@metamask/bridge-controller', () => ({
   }),
 }));
 
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    return ({
+jest.mock('react-native', () => {
+  const RN = jest.requireActual('react-native');
+  const { View } = RN;
+  return {
+    ...RN,
+    Modal: ({
       children,
+      visible,
       testID,
     }: {
       children: React.ReactNode;
+      visible?: boolean;
       testID?: string;
-      onClose?: () => void;
-    }) => <View testID={testID}>{children}</View>;
-  },
-);
-
-jest.mock(
-  '../../../../../../component-library/components/BottomSheets/BottomSheetHeader',
-  () => {
-    const { Text } = jest.requireActual('react-native');
-    return ({
-      children,
-    }: {
-      children: React.ReactNode;
-      onClose?: () => void;
-    }) => <Text>{children}</Text>;
-  },
-);
+      animationType?: string;
+      presentationStyle?: string;
+      onRequestClose?: () => void;
+    }) => {
+      if (!visible) return null;
+      return <View testID={testID}>{children}</View>;
+    },
+    SafeAreaView: ({ children }: { children: React.ReactNode }) => (
+      <View>{children}</View>
+    ),
+  };
+});
 
 jest.mock(
   '../../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList',

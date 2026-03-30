@@ -79,6 +79,10 @@ export interface CustomAmountInfoProps {
    * Optional content rendered after the PayWithRow inside inputContainer.
    */
   afterPayWith?: ReactNode;
+  /**
+   * When true, the confirm/continue button is disabled regardless of alert state.
+   */
+  disableConfirm?: boolean;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
@@ -86,6 +90,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
     afterPayWith,
     children,
     currency,
+    disableConfirm,
     disablePay,
     hasMax,
     onAmountSubmit,
@@ -200,7 +205,12 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
             />
           )}
           {!hasTokens && <BuySection />}
-          {!isKeyboardVisible && <ConfirmButton alertTitle={alertTitle} />}
+          {!isKeyboardVisible && (
+            <ConfirmButton
+              alertTitle={alertTitle}
+              disableConfirm={disableConfirm}
+            />
+          )}
         </Box>
       </Box>
     );
@@ -282,12 +292,13 @@ function BuySection() {
 
 function ConfirmButton({
   alertTitle,
-}: Readonly<{ alertTitle: string | undefined }>) {
+  disableConfirm,
+}: Readonly<{ alertTitle: string | undefined; disableConfirm?: boolean }>) {
   const { styles } = useStyles(styleSheet, {});
   const { hasBlockingAlerts } = useAlerts();
   const isLoading = useIsTransactionPayLoading();
   const { onConfirm } = useTransactionConfirm();
-  const disabled = hasBlockingAlerts || isLoading;
+  const disabled = hasBlockingAlerts || isLoading || Boolean(disableConfirm);
   const buttonLabel = useButtonLabel();
 
   return (

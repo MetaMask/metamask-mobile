@@ -5,6 +5,23 @@ const stylesheet = (params: { theme: Theme }) => {
   const { theme } = params;
 
   return StyleSheet.create({
+    container: {
+      alignItems: 'center',
+      marginTop: 8,
+    },
+    modalContainer: {
+      flex: 1,
+      backgroundColor: theme.colors.background.default,
+    },
+    modalHeader: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingHorizontal: 16,
+      paddingVertical: 12,
+      borderBottomWidth: 1,
+      borderBottomColor: theme.colors.border.muted,
+    },
     selector: {
       flexDirection: 'row',
       justifyContent: 'space-between',
@@ -13,7 +30,7 @@ const stylesheet = (params: { theme: Theme }) => {
       backgroundColor: theme.colors.background.muted,
       borderRadius: 12,
       padding: 8,
-      alignSelf: 'flex-start',
+      alignSelf: 'center',
       flexShrink: 1,
     },
     accountText: {

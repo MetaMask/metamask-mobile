@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { TouchableOpacity } from 'react-native';
+import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarSize,
@@ -12,8 +12,6 @@ import Icon, {
   IconName,
   IconSize,
 } from '../../../../../../component-library/components/Icons/Icon';
-import BottomSheet from '../../../../../../component-library/components/BottomSheets/BottomSheet';
-import BottomSheetHeader from '../../../../../../component-library/components/BottomSheets/BottomSheetHeader';
 import MultichainAccountSelectorList from '../../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList';
 import { AccountSection } from '../../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList.types';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
@@ -136,7 +134,7 @@ const ToAccountSelector: React.FC<ToAccountSelectorProps> = ({
   }, []);
 
   return (
-    <>
+    <View style={styles.container}>
       <TouchableOpacity
         onPress={openBottomSheet}
         style={styles.selector}
@@ -177,14 +175,24 @@ const ToAccountSelector: React.FC<ToAccountSelectorProps> = ({
           </>
         )}
       </TouchableOpacity>
-      {isBottomSheetVisible && (
-        <BottomSheet
-          onClose={closeBottomSheet}
-          testID={TO_ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET}
-        >
-          <BottomSheetHeader onClose={closeBottomSheet}>
-            Select recipient
-          </BottomSheetHeader>
+      <Modal
+        visible={isBottomSheetVisible}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={closeBottomSheet}
+        testID={TO_ACCOUNT_SELECTOR_TEST_IDS.BOTTOM_SHEET}
+      >
+        <SafeAreaView style={styles.modalContainer}>
+          <View style={styles.modalHeader}>
+            <Text variant={TextVariant.HeadingMD}>Select recipient</Text>
+            <TouchableOpacity onPress={closeBottomSheet}>
+              <Icon
+                name={IconName.Close}
+                size={IconSize.Md}
+                color={theme.colors.icon.default}
+              />
+            </TouchableOpacity>
+          </View>
           <MultichainAccountSelectorList
             selectedAccountGroups={
               selectedAccountGroup ? [selectedAccountGroup] : []
@@ -195,9 +203,9 @@ const ToAccountSelector: React.FC<ToAccountSelectorProps> = ({
             chainId={chainId}
             hideAccountCellMenu
           />
-        </BottomSheet>
-      )}
-    </>
+        </SafeAreaView>
+      </Modal>
+    </View>
   );
 };
 
