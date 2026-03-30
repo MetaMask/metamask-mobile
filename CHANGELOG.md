@@ -9,8 +9,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [7.72.0]
 
+### Uncategorized
+
+- chore(release): sync stable to main for version 7.70.1 (#27913)
+- Added a checkbox to upload sourcemap on build mobile workflow (#27750)
+- chore: consolidate source_branch and ref in build.yml (#27768)
+- Modified useERC20Tokens to make an API call instead of reading from the cache (#27611)
+- chore(release): sync stable to main for version 7.72.0 (#27809)
+
 ### Added
 
+- Added new workflow runway_ios_rc_workflow (#27662)
+- Added check to hide Speed up and Cancel buttons in the activity list and transaction details when the user has selected another (#27404)
+  token to pay for gas
+- Improves quote loading UI (#27174)
+- Changed the default search engine to Brave Search for a privacy-focused, ad-free browsing experience (#26356)
+- Added Earn Rewards preview section to the Rewards Dashboard with geo-gated mUSD calculator and MetaMask Card earn cards (#27684)
+- Added geo-restriction guard to campaign opt-in sheet, disabling opt-in for users in restricted regions (#27676)
+- Added edit gas from cancel/speed up modal: users can tap the network fee row to open the gas fee modal and adjust gas before (#27194)
+  confirming cancel or speed up
+- Added an experiment for the bridge token selector balance layout. (#27690)
 - Added Stable network logo and USDT0 native token icon (#27258)
 - Added "View all" actions for Explore search sections (#26569)
 - Added Ondo GM campaign portfolio positions (#27971)
@@ -52,6 +70,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- fix: replace static hex colors with design tokens in test files (#26396)
 - Fixed Perps PnL comma formatting (#27815)
 - Fixed incorrect aggregated PnL and order size for multi-fill trades on Perps market and home (#27906)
 - Fixed HIP-3 market category labels for URNM (commodity) and USAR (stock) (#27910)
