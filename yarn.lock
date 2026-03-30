@@ -35877,6 +35877,7 @@ __metadata:
     prop-types: "npm:15.7.2"
     pump: "npm:3.0.0"
     punycode: "npm:^2.1.1"
+    pusher-js: "npm:^8.4.3"
     qs: "npm:6.14.1"
     query-string: "npm:^6.12.1"
     randomfill: "npm:^1.0.4"
@@ -39799,6 +39800,15 @@ __metadata:
   dependencies:
     bitcoin-ops: "npm:^1.3.0"
   checksum: 10/963fb0b61258e7654d6e3e34e68c8672bc3fdbd154da0a9af0482d2b7b9e9227b11bc17a39f42003f92e996cb552395e903d369347c840381a356964cf553967
+  languageName: node
+  linkType: hard
+
+"pusher-js@npm:^8.4.3":
+  version: 8.4.3
+  resolution: "pusher-js@npm:8.4.3"
+  dependencies:
+    tweetnacl: "npm:^1.0.3"
+  checksum: 10/adfb114535e72925d76fde783d274f79154c349bcc57aa6eaff839c4995c7cb6595881ca940dda52a2d99c366ce48ff0bf2070a135da08bd3c8c699e462f895e
   languageName: node
   linkType: hard
 
