@@ -106,6 +106,13 @@ export function useTransactionPayMetrics() {
     properties.mm_pay_use_case = 'predict_withdraw';
   }
 
+  if (
+    payToken &&
+    hasTransactionType(transactionMeta, [TransactionType.perpsWithdraw])
+  ) {
+    properties.mm_pay_use_case = 'perps_withdraw';
+  }
+
   if (payToken) {
     const sendingAmountUsd = Number(primaryRequiredToken?.amountUsd ?? '0');
     properties.mm_pay_sending_value_usd = sendingAmountUsd;
