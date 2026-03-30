@@ -480,6 +480,13 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
     sdkV2Connection?.originatorInfo?.url ??
     '';
 
+  const selfReportedDappUrl =
+    isOriginMMSDKRemoteConn || isOriginMMSDKV2RemoteConn
+      ? dappUrl
+      : isOriginWalletConnect
+        ? wc2Metadata?.url
+        : undefined;
+
   const { domainTitle, hostname } = useMemo(() => {
     let title = strings('sdk.unknown');
     let dappHostname = dappUrl || channelIdOrHostname;
@@ -695,6 +702,7 @@ const MultichainAccountConnect = (props: AccountConnectProps) => {
             source: eventSource,
             chain_id_list: selectedChainIds,
             referrer: request.metadata.origin,
+            self_reported_dapp_url: selfReportedDappUrl,
             ...getApiAnalyticsProperties(isMultichainRequest),
           })
           .build(),

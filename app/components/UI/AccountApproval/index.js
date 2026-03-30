@@ -143,6 +143,7 @@ class AccountApproval extends PureComponent {
         ? getAddressAccountType(selectedAddress)
         : null,
       dapp_host_name: urlHostName,
+      self_reported_dapp_url: currentPageInformation?.url,
       chain_id: chainId ? getDecimalChainId(chainId) : null,
       number_of_accounts: accountsLength,
       number_of_accounts_connected: 1,
