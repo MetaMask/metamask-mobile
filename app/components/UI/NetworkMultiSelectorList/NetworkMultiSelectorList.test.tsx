@@ -31,6 +31,27 @@ jest.mock('react-redux', () => ({
   useSelector: jest.fn(),
 }));
 
+// Avoid loading keyring-utils, keyring-api, and the network/Engine chain in this test
+jest.mock('../../../selectors/accountsController', () => ({
+  selectSelectedInternalAccountFormattedAddress: jest.fn(),
+}));
+
+jest.mock('../../../util/address', () => ({
+  isHardwareAccount: jest.fn(() => false),
+}));
+
+jest.mock('@metamask/keyring-api', () => ({
+  EntropySourceId: {},
+  BtcMethod: {},
+  EthMethod: {},
+  SolAccountType: {},
+  SolMethod: {},
+  TrxMethod: {},
+  isEvmAccountType: jest.fn(),
+  KeyringAccountType: {},
+  EthScope: {},
+}));
+
 jest.mock('react-native-safe-area-context', () => ({
   useSafeAreaInsets: jest.fn(),
 }));
@@ -89,12 +110,6 @@ jest.mock('../../../util/hideProtocolFromUrl', () =>
 jest.mock('../../../util/hideKeyFromUrl', () =>
   jest.fn((url: string) => url.replace(/\/[a-zA-Z0-9]{32,}$/, '')),
 );
-
-jest.mock('../../../multichain-accounts/remote-feature-flag', () => ({
-  isMultichainAccountsRemoteFeatureEnabled: jest.fn(),
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_1: 'v1',
-  MULTI_CHAIN_ACCOUNTS_FEATURE_VERSION_2: 'v2',
-}));
 
 jest.mock('@metamask/utils', () => ({
   KnownCaipNamespace: { Eip155: 'eip155' },

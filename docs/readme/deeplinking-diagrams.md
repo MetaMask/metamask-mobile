@@ -72,7 +72,6 @@ flowchart TD
     Route --> Action{Action Type?}
     Action -->|swap| HandleSwap[handleSwapUrl]
     Action -->|buy/sell| HandleRamp[handleRampUrl]
-    Action -->|deposit| HandleDeposit[handleDepositCashUrl]
     Action -->|home| HandleHome[navigateToHomeUrl]
     Action -->|perps/perps-markets| HandlePerps[handlePerpsUrl]
     Action -->|perps-asset| NotImplemented[⚠️ NOT IMPLEMENTED]
@@ -87,7 +86,6 @@ flowchart TD
 
     HandleSwap --> Execute
     HandleRamp --> Execute
-    HandleDeposit --> Execute
     HandleHome --> Execute
     HandlePerps --> Execute
     HandlePredict --> Execute

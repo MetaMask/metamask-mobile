@@ -65,6 +65,22 @@ export const formatPercentage = (
 };
 
 /**
+ * Builds `amount` / `percent` for `strings('predict.unrealized_pnl_value', …)`.
+ * Same rules as PredictPositionsHeader: signed cash, signed % via `formatPercentage`.
+ */
+export function formatPredictUnrealizedPnLStringParts(data: {
+  cashUpnl: number;
+  percentUpnl: number;
+}): { amount: string; percent: string } {
+  const { cashUpnl, percentUpnl } = data;
+  const amountSign = cashUpnl >= 0 ? '+' : '-';
+  const amount = `${amountSign}$${Math.abs(cashUpnl).toFixed(2)}`;
+  const percentSign = percentUpnl >= 0 ? '+' : '';
+  const percent = `${percentSign}${formatPercentage(percentUpnl)}`;
+  return { amount, percent };
+}
+
+/**
  * Formats a price value as USD currency with rounding up to nearest cent
  * @param price - Raw numeric price value
  * @param options - Optional formatting options
@@ -114,15 +130,17 @@ export const formatPrice = (
  * - Uses subscript notation for values with 4+ leading zeros (e.g., 0.00000614 → $0.0₅614)
  * - The subscript indicates the number of leading zeros after the decimal point
  * - Returns "—" for zero values
- * - Uses min 2, max 4 decimal places for regular values
+ * - Values >= 1: exactly 2 decimal places (e.g. $2,285.01)
+ * - Values < 1: up to 4 decimal places (e.g. $0.1446)
  * @param price - The price value to format (string or number)
  * @param currencyCode - ISO 4217 currency code (e.g. 'USD', 'EUR'). Defaults to 'USD'.
  * @returns Formatted price string with currency symbol or "—" for zero
+ * @example formatPriceWithSubscriptNotation(2285.013) => "$2,285.01"
  * @example formatPriceWithSubscriptNotation(1.99) => "$1.99"
  * @example formatPriceWithSubscriptNotation(0.144566) => "$0.1446"
  * @example formatPriceWithSubscriptNotation(0.00000614) => "$0.0₅614"
  * @example formatPriceWithSubscriptNotation(0) => "—"
- * @example formatPriceWithSubscriptNotation(1.2345, 'EUR') => "€1.2345"
+ * @example formatPriceWithSubscriptNotation(1.2345, 'EUR') => "€1.23"
  */
 export const formatPriceWithSubscriptNotation = (
   price: string | number,
@@ -151,7 +169,7 @@ export const formatPriceWithSubscriptNotation = (
   const formattedNumber = new Intl.NumberFormat('en-US', {
     style: 'decimal',
     minimumFractionDigits: 2,
-    maximumFractionDigits: 4,
+    maximumFractionDigits: num >= 1 ? 2 : 4,
   }).format(num);
   return addSymbol(formattedNumber);
 };

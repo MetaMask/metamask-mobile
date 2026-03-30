@@ -94,11 +94,18 @@ export interface UseTokenActionsResult {
   onBuy: () => void;
   onSend: () => Promise<void>;
   onReceive: () => void;
-  goToSwaps: () => void;
+  goToSwaps: (
+    tokenOverride?: BridgeToken,
+    destTokenOverride?: BridgeToken,
+    buttonLabel?: string,
+    scrollToTopOnNav?: boolean,
+  ) => void;
   /** Sticky bar Buy handler - smart source selection, current asset as destination */
   handleBuyPress: () => void;
   /** Sticky bar Sell handler - current asset as source, mUSD/native as destination */
   handleSellPress: () => void;
+  /** Whether the user has any tokens with positive balance that can be used as a swap source */
+  hasEligibleSwapTokens: boolean;
   networkModal: React.ReactNode;
 }
 
@@ -323,7 +330,7 @@ export const useTokenActions = ({
         .build(),
     );
 
-    goToBuy({ assetId });
+    goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
   }, [
     trackEvent,
     createEventBuilder,
@@ -432,7 +439,7 @@ export const useTokenActions = ({
         assetId = undefined;
       }
 
-      goToBuy({ assetId });
+      goToBuy({ assetId }, { buyFlowOrigin: 'tokenInfo' });
       return;
     }
 
@@ -441,6 +448,7 @@ export const useTokenActions = ({
       buySourceToken,
       currentTokenAsBridgeToken,
       strings('asset_overview.buy_button'),
+      true,
     );
   }, [
     goToSwaps,
@@ -458,6 +466,7 @@ export const useTokenActions = ({
       currentTokenAsBridgeToken,
       undefined,
       strings('asset_overview.sell_button'),
+      true,
     );
   }, [goToSwaps, currentTokenAsBridgeToken]);
 
@@ -468,6 +477,7 @@ export const useTokenActions = ({
     goToSwaps,
     handleBuyPress,
     handleSellPress,
+    hasEligibleSwapTokens: buySourceToken !== null,
     networkModal,
   };
 };

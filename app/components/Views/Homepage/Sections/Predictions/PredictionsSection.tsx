@@ -2,18 +2,21 @@ import React, {
   forwardRef,
   useCallback,
   useImperativeHandle,
+  useMemo,
   useRef,
 } from 'react';
+import { useQueryClient } from '@tanstack/react-query';
 import { ScrollView, View } from 'react-native';
 import { useNavigation, NavigationProp } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import SectionTitle from '../../components/SectionTitle';
-import ErrorState from '../../components/ErrorState';
+import SectionHeader from '../../../../../component-library/components-temp/SectionHeader';
 import Routes from '../../../../../constants/navigation/Routes';
+import { WalletViewSelectorsIDs } from '../../../../Views/Wallet/WalletView.testIds';
 import { SectionRefreshHandle } from '../../types';
 import { selectPredictEnabledFlag } from '../../../../UI/Predict/selectors/featureFlags';
+import { selectPrivacyMode } from '../../../../../selectors/preferencesController';
 import { strings } from '../../../../../../locales/i18n';
 import {
   usePredictMarketsForHomepage,
@@ -26,14 +29,24 @@ import {
   PredictPositionRowSkeleton,
 } from './components';
 import ViewMoreCard from '../../components/ViewMoreCard';
-import type { PredictPosition } from '../../../../UI/Predict/types';
+import type {
+  PredictPosition,
+  UnrealizedPnL,
+} from '../../../../UI/Predict/types';
 import type { PredictNavigationParamList } from '../../../../UI/Predict/types/navigation';
 import { PredictEventValues } from '../../../../UI/Predict/constants/eventNames';
 import { PredictClaimButton } from '../../../../UI/Predict/components/PredictActionButtons';
 import { usePredictClaim } from '../../../../UI/Predict/hooks/usePredictClaim';
+import { useUnrealizedPnL } from '../../../../UI/Predict/hooks/useUnrealizedPnL';
+import { predictQueries } from '../../../../UI/Predict/queries';
+import { getEvmAccountFromSelectedAccountGroup } from '../../../../UI/Predict/utils/accounts';
+import { formatPredictUnrealizedPnLStringParts } from '../../../../UI/Predict/utils/format';
 import useHomeViewedEvent, {
   HomeSectionNames,
 } from '../../hooks/useHomeViewedEvent';
+import HomepageSectionUnrealizedPnlRow, {
+  type HomepageUnrealizedPnlTone,
+} from '../../components/HomepageSectionUnrealizedPnlRow';
 
 const MAX_MARKETS_DISPLAYED = 5;
 
@@ -46,6 +59,48 @@ const SKELETON_KEYS = Array.from(
 interface PredictionsSectionProps {
   sectionIndex: number;
   totalSectionsLoaded: number;
+}
+
+interface PredictHomepageUnrealizedPnlRowState {
+  show: boolean;
+  isLoading: boolean;
+  valueText?: string;
+  tone: HomepageUnrealizedPnlTone;
+}
+
+function getPredictHomepageUnrealizedPnlRowState(input: {
+  hasPositions: boolean;
+  privacyMode: boolean;
+  isPnlLoading: boolean;
+  pnl: UnrealizedPnL | null | undefined;
+}): PredictHomepageUnrealizedPnlRowState {
+  const { hasPositions, privacyMode, isPnlLoading, pnl } = input;
+
+  if (!hasPositions || privacyMode) {
+    return { show: false, isLoading: false, tone: 'neutral' };
+  }
+  if (isPnlLoading) {
+    return { show: true, isLoading: true, tone: 'neutral' };
+  }
+  if (!pnl) {
+    return { show: false, isLoading: false, tone: 'neutral' };
+  }
+
+  const cashUpnl = pnl.cashUpnl ?? 0;
+  const valueText = strings(
+    'predict.unrealized_pnl_value',
+    formatPredictUnrealizedPnLStringParts({
+      cashUpnl,
+      percentUpnl: pnl.percentUpnl ?? 0,
+    }),
+  );
+
+  return {
+    show: true,
+    isLoading: false,
+    valueText,
+    tone: cashUpnl > 0 ? 'positive' : cashUpnl < 0 ? 'negative' : 'neutral',
+  };
 }
 
 /**
@@ -66,6 +121,8 @@ const PredictionsSection = forwardRef<
   const navigation =
     useNavigation<NavigationProp<PredictNavigationParamList>>();
   const isPredictEnabled = useSelector(selectPredictEnabledFlag);
+  const privacyMode = useSelector(selectPrivacyMode);
+  const queryClient = useQueryClient();
   const title = strings('homepage.sections.predictions');
   const { claim } = usePredictClaim();
 
@@ -94,6 +151,29 @@ const PredictionsSection = forwardRef<
   // Determine if user has positions
   const hasPositions = positions.length > 0;
 
+  const {
+    data: predictUnrealizedPnL,
+    isLoading: isPredictUnrealizedPnLLoading,
+  } = useUnrealizedPnL({
+    enabled: hasPositions,
+  });
+
+  const predictHomepageUnrealizedPnl = useMemo(
+    () =>
+      getPredictHomepageUnrealizedPnlRowState({
+        hasPositions,
+        privacyMode,
+        isPnlLoading: isPredictUnrealizedPnLLoading,
+        pnl: predictUnrealizedPnL,
+      }),
+    [
+      hasPositions,
+      privacyMode,
+      isPredictUnrealizedPnLLoading,
+      predictUnrealizedPnL,
+    ],
+  );
+
   const isLoading = isLoadingPositions || isLoadingMarkets;
 
   const hasError =
@@ -113,9 +193,9 @@ const PredictionsSection = forwardRef<
   // !isLoading is required: isEmpty is false during loading (its formula starts
   // with !isLoading), so without this guard the hook would fire with stale
   // itemCount/isEmpty values before data arrives.
-  const willRender = isPredictEnabled && !isLoading && !isEmpty;
+  const willRender = isPredictEnabled && !isLoading && !isEmpty && !hasError;
 
-  useHomeViewedEvent({
+  const { onLayout } = useHomeViewedEvent({
     sectionRef: willRender ? sectionViewRef : null,
     isLoading,
     sectionName: HomeSectionNames.PREDICT,
@@ -127,8 +207,14 @@ const PredictionsSection = forwardRef<
   });
 
   const refresh = useCallback(async () => {
-    await Promise.all([refetchPositions(), refetchMarkets()]);
-  }, [refetchPositions, refetchMarkets]);
+    const addr = getEvmAccountFromSelectedAccountGroup()?.address;
+    const invalidatePnl = addr
+      ? queryClient.invalidateQueries({
+          queryKey: predictQueries.unrealizedPnL.keys.byAddress(addr),
+        })
+      : Promise.resolve();
+    await Promise.all([refetchPositions(), refetchMarkets(), invalidatePnl]);
+  }, [queryClient, refetchPositions, refetchMarkets]);
 
   useImperativeHandle(ref, () => ({ refresh }), [refresh]);
 
@@ -157,28 +243,34 @@ const PredictionsSection = forwardRef<
     return null;
   }
 
+  // Don't render if there is a connection error
   if (hasError) {
-    return (
-      <View ref={sectionViewRef}>
-        <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
-          <ErrorState
-            title={strings('homepage.error.unable_to_load', {
-              section: title.toLowerCase(),
-            })}
-            onRetry={refresh}
-          />
-        </Box>
-      </View>
-    );
+    return null;
   }
 
   // Render positions if user has any
   if (hasPositions || isLoadingPositions) {
     return (
-      <View ref={sectionViewRef}>
+      <View ref={sectionViewRef} onLayout={onLayout}>
         <Box gap={3}>
-          <SectionTitle title={title} onPress={handleViewAllPredictions} />
+          <Box gap={1}>
+            <SectionHeader
+              title={title}
+              onPress={handleViewAllPredictions}
+              testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE(
+                'predictions',
+              )}
+            />
+            {predictHomepageUnrealizedPnl.show && (
+              <HomepageSectionUnrealizedPnlRow
+                isLoading={predictHomepageUnrealizedPnl.isLoading}
+                valueText={predictHomepageUnrealizedPnl.valueText}
+                tone={predictHomepageUnrealizedPnl.tone}
+                label={strings('predict.unrealized_pnl_label')}
+                testID="homepage-predict-unrealized-pnl"
+              />
+            )}
+          </Box>
           <Box>
             {isLoadingPositions ? (
               <>
@@ -217,9 +309,13 @@ const PredictionsSection = forwardRef<
 
   // Render trending markets if no positions
   return (
-    <View ref={sectionViewRef}>
+    <View ref={sectionViewRef} onLayout={onLayout}>
       <Box gap={3}>
-        <SectionTitle title={title} onPress={handleViewAllPredictions} />
+        <SectionHeader
+          title={title}
+          onPress={handleViewAllPredictions}
+          testID={WalletViewSelectorsIDs.HOMEPAGE_SECTION_TITLE('predictions')}
+        />
         <ScrollView
           horizontal
           showsHorizontalScrollIndicator={false}

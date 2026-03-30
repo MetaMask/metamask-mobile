@@ -106,6 +106,15 @@ export interface HardwareWalletAdapter {
   stopDeviceDiscovery(): void;
 
   /**
+   * Ensure required OS permissions are granted for this adapter.
+   * Requests permissions if needed; opens OS Settings when permanently denied.
+   *
+   * @returns `true` if permissions are granted, `false` if the user was
+   * redirected to Settings.
+   */
+  ensurePermissions(): Promise<boolean>;
+
+  /**
    * Check if the underlying transport mechanism is available.
    * For Ledger: Bluetooth is enabled
    * For QR: Camera permission granted

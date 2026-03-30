@@ -1,4 +1,4 @@
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import BN from 'bnjs4';
 
 import * as controllerUtilsModule from '@metamask/controller-utils';
@@ -1667,6 +1667,7 @@ describe('Transactions utils :: getTransactionActionKey', () => {
     TransactionType.lendingDeposit,
     TransactionType.lendingWithdraw,
     TransactionType.perpsDeposit,
+    TransactionType.perpsWithdraw,
     TransactionType.predictDeposit,
   ])('returns transaction type if type is %s', async (type) => {
     const transaction = { type };

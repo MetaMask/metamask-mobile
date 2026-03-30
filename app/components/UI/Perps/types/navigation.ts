@@ -110,6 +110,7 @@ export interface PerpsNavigationParamList extends ParamListBase {
 
   PerpsClosePosition: {
     position: Position;
+    source?: string;
   };
 
   PerpsAdjustMargin: {
@@ -160,6 +161,10 @@ export interface PerpsNavigationParamList extends ParamListBase {
     isFromGTMModal?: boolean;
     /** Analytics: how the user got to the tutorial (e.g. homescreen_tab, main_action_button) */
     source?: string;
+    /** Screen to navigate to after tutorial completion instead of the default PerpsHome */
+    redirectScreen?: string;
+    /** Params to pass to the redirect screen */
+    redirectParams?: Record<string, unknown>;
   };
 
   // TP/SL screen

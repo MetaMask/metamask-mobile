@@ -99,10 +99,18 @@ const Routes = {
   REFERRAL_REWARDS_VIEW: 'ReferralRewardsView',
   REWARDS_SETTINGS_VIEW: 'RewardsSettingsView',
   REWARDS_DASHBOARD: 'RewardsDashboard',
+  REWARDS_CAMPAIGNS_VIEW: 'RewardsCampaignsView',
+  REWARDS_MUSD_CALCULATOR_VIEW: 'RewardsMusdCalculatorView',
+  REWARDS_ONDO_CAMPAIGN_DETAILS_VIEW: 'RewardsCampaignDetails',
+  REWARDS_SEASON_ONE_CAMPAIGN_DETAILS_VIEW: 'RewardsSeasonOneCampaignDetails',
+  REWARDS_CAMPAIGN_MECHANICS: 'RewardsCampaignMechanics',
+  REWARDS_ONDO_CAMPAIGN_LEADERBOARD: 'RewardsOndoCampaignLeaderboard',
   TRENDING_VIEW: 'TrendingView',
   TRENDING_FEED: 'TrendingFeed',
+  WHATS_HAPPENING_DETAIL: 'WhatsHappeningDetailView',
   SITES_FULL_VIEW: 'SitesFullView',
   EXPLORE_SEARCH: 'ExploreSearch',
+  EXPLORE_SECTION_RESULTS_FULL_VIEW: 'ExploreSectionResultsFullView',
   REWARDS_ONBOARDING_FLOW: 'RewardsOnboardingFlow',
   REWARDS_ONBOARDING_INTRO: 'RewardsOnboardingIntro',
   REWARDS_ONBOARDING_1: 'RewardsOnboarding1',
@@ -123,6 +131,7 @@ const Routes = {
     TRADE_WALLET_ACTIONS: 'TradeWalletActions',
     FUND_ACTION_MENU: 'FundActionMenu',
     MORE_TOKEN_ACTIONS_MENU: 'MoreTokenActionsMenu',
+    SECURITY_BADGE_BOTTOM_SHEET: 'SecurityBadgeBottomSheet',
     NFT_AUTO_DETECTION_MODAL: 'NFTAutoDetectionModal',
     MULTI_RPC_MIGRATION_MODAL: 'MultiRPcMigrationModal',
     MAX_BROWSER_TABS_MODAL: 'MaxBrowserTabsModal',
@@ -261,6 +270,7 @@ const Routes = {
     TRENDING_TOKENS_FULL_VIEW: 'TrendingTokensFullView',
     RWA_TOKENS_FULL_VIEW: 'RWATokensFullView',
     DEFI_FULL_VIEW: 'DeFiFullView',
+    CASH_TOKENS_FULL_VIEW: 'CashTokensFullView',
   },
   VAULT_RECOVERY: {
     RESTORE_WALLET: 'RestoreWallet',
@@ -279,7 +289,6 @@ const Routes = {
       DEFAULT_SLIPPAGE_MODAL: 'DefaultSlippageModal',
       CUSTOM_SLIPPAGE_MODAL: 'CustomSlippageModal',
       TRANSACTION_DETAILS_BLOCK_EXPLORER: 'TransactionDetailsBlockExplorer',
-      QUOTE_EXPIRED_MODAL: 'QuoteExpiredModal',
       BLOCKAID_MODAL: 'BlockaidModal',
       RECIPIENT_SELECTOR_MODAL: 'RecipientSelectorModal',
       MARKET_CLOSED_MODAL: 'MarketClosedModal',
@@ -382,6 +391,10 @@ const Routes = {
       LENDING_LEARN_MORE: 'EarnLendingLearnMoreModal',
     },
   },
+  MONEY: {
+    ROOT: 'MoneyScreens',
+    HOME: 'MoneyHome',
+  },
   FULL_SCREEN_CONFIRMATIONS: {
     REDESIGNED_CONFIRMATIONS: 'RedesignedConfirmations',
     NO_HEADER: 'NoHeaderConfirmations',
@@ -458,6 +471,7 @@ const Routes = {
       RECURRING_FEE: 'CardRecurringFeeModal',
       DAIMO_PAY: 'CardDaimoPayModal',
       VIEW_PIN: 'CardViewPinModal',
+      SPENDING_LIMIT_OPTIONS: 'CardSpendingLimitOptionsModal',
     },
   },
   SEND: {
@@ -470,6 +484,7 @@ const Routes = {
     RETURN_TO_DAPP_NOTIFICATION: 'ReturnToDappToast',
   },
   FEATURE_FLAG_OVERRIDE: 'FeatureFlagOverride',
+  SECURITY_TRUST: 'SecurityTrust',
 };
 
 export default Routes;

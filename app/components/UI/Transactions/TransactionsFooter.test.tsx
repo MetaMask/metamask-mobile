@@ -4,21 +4,12 @@ import TransactionsFooter from './TransactionsFooter';
 import { strings } from '../../../../locales/i18n';
 import { NO_RPC_BLOCK_EXPLORER } from '../../../constants/network';
 
-jest.mock('../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      text: {
-        default: '#24272a',
-      },
-    },
-    typography: {
-      sBodySM: {
-        fontSize: 14,
-        lineHeight: 20,
-      },
-    },
-  }),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    useTheme: () => mockTheme,
+  };
+});
 
 jest.mock('../../../util/networks', () => ({
   getBlockExplorerName: jest.fn(),
@@ -105,6 +96,7 @@ describe('TransactionsFooter', () => {
   describe('EVM Chain Block Explorer', () => {
     it('renders Etherscan button for mainnet', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -120,6 +112,7 @@ describe('TransactionsFooter', () => {
 
     it('renders Etherscan button for non-RPC networks', () => {
       mockIsMainnetByChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -147,6 +140,22 @@ describe('TransactionsFooter', () => {
       );
 
       expect(getByText('View full history on Custom Explorer')).toBeTruthy();
+    });
+
+    it('uses explorer URL for label when chainId does not match global providerType', () => {
+      mockIsMainnetByChainId.mockReturnValue(false);
+      mockGetBlockExplorerName.mockReturnValue('Gnosisscan');
+
+      const { getByText } = render(
+        <TransactionsFooter
+          chainId="0x64"
+          providerType="mainnet"
+          rpcBlockExplorer="https://gnosisscan.io"
+          onViewBlockExplorer={mockOnViewBlockExplorer}
+        />,
+      );
+
+      expect(getByText('View full history on Gnosisscan')).toBeTruthy();
     });
 
     it('hides button for RPC networks without block explorer', () => {
@@ -180,6 +189,7 @@ describe('TransactionsFooter', () => {
 
     it('calls onViewBlockExplorer when button is pressed', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -314,6 +324,7 @@ describe('TransactionsFooter', () => {
 
     it('renders both button and disclaimer when both conditions are met', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter
@@ -404,6 +415,7 @@ describe('TransactionsFooter', () => {
   describe('Component Structure', () => {
     it('renders with correct structure when both elements are present', () => {
       mockIsMainnetByChainId.mockReturnValue(true);
+      mockGetBlockExplorerName.mockReturnValue('Etherscan');
 
       const { getByText } = render(
         <TransactionsFooter

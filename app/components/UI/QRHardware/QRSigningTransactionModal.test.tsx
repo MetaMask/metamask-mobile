@@ -33,19 +33,13 @@ jest.mock('../../../util/navigation/navUtils', () => ({
   useParams: jest.fn(),
 }));
 
-jest.mock('../../../util/theme', () => ({
-  ...jest.requireActual('../../../util/theme'),
-  useAppThemeFromContext: jest.fn(() => ({
-    colors: {
-      background: {
-        default: '#FFFFFF',
-      },
-      primary: {
-        default: '#037DD6',
-      },
-    },
-  })),
-}));
+jest.mock('../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../util/theme');
+  return {
+    ...jest.requireActual('../../../util/theme'),
+    useAppThemeFromContext: jest.fn(() => mockTheme),
+  };
+});
 
 jest.mock('react-native', () => {
   const actual = jest.requireActual('react-native');
@@ -122,10 +116,10 @@ describe('QRSigningTransactionModal', () => {
 
     (
       Engine.context as unknown as {
-        ApprovalController: { accept: jest.Mock };
+        ApprovalController: { acceptRequest: jest.Mock };
       }
     ).ApprovalController = {
-      accept: jest.fn().mockResolvedValue(undefined),
+      acceptRequest: jest.fn().mockResolvedValue(undefined),
     };
   });
 
@@ -157,7 +151,7 @@ describe('QRSigningTransactionModal', () => {
     expect(queryByTestId('QRSigningDetails')).toBeNull();
   });
 
-  it('calls ApprovalController.accept and onConfirmationComplete on success callback', async () => {
+  it('calls ApprovalController.acceptRequest and onConfirmationComplete on success callback', async () => {
     const initialState = createInitialState();
 
     const { getByTestId } = renderScreen(
@@ -171,11 +165,11 @@ describe('QRSigningTransactionModal', () => {
 
     await successCallback();
 
-    expect(Engine.context.ApprovalController.accept).toHaveBeenCalledWith(
-      mockTransactionId,
-      undefined,
-      { waitForResult: true },
-    );
+    expect(
+      Engine.context.ApprovalController.acceptRequest,
+    ).toHaveBeenCalledWith(mockTransactionId, undefined, {
+      waitForResult: true,
+    });
 
     expect(mockOnConfirmationComplete).toHaveBeenCalledWith(true);
   });

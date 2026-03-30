@@ -1,6 +1,7 @@
 import React from 'react';
 import { fireEvent, waitFor } from '@testing-library/react-native';
 import PaymentSelectionModal from './PaymentSelectionModal';
+import { PAYMENT_SELECTION_MODAL_TEST_IDS } from './PaymentSelectionModal.testIds';
 import { renderScreen } from '../../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../../util/test/initial-root-state';
 jest.mock('../../../../../Base/RemoteImage', () => jest.fn(() => null));
@@ -12,11 +13,11 @@ const mockGetQuotes = jest.fn().mockResolvedValue({
   customActions: [],
 });
 
-const mockGetWidgetUrl = jest.fn();
+const mockGetBuyWidgetData = jest.fn();
 
 const defaultQuotesReturn = {
   getQuotes: mockGetQuotes,
-  getWidgetUrl: mockGetWidgetUrl,
+  getBuyWidgetData: mockGetBuyWidgetData,
   data: null,
   loading: false,
   error: null,
@@ -208,6 +209,16 @@ describe('PaymentSelectionModal', () => {
     expect(getByText('fiat_on_ramp.pay_with')).toBeOnTheScreen();
   });
 
+  it('calls onCloseBottomSheet when header close is pressed', () => {
+    const { getByTestId } = renderWithProvider(PaymentSelectionModal);
+
+    fireEvent.press(
+      getByTestId(PAYMENT_SELECTION_MODAL_TEST_IDS.HEADER_CLOSE_BUTTON),
+    );
+
+    expect(mockOnCloseBottomSheet).toHaveBeenCalledTimes(1);
+  });
+
   it('displays payment methods list', () => {
     const { getAllByText } = renderWithProvider(PaymentSelectionModal);
 
@@ -349,5 +360,28 @@ describe('PaymentSelectionModal', () => {
       ],
       forceRefresh: true,
     });
+  });
+
+  it('shows payment method without quote when only custom-action quote matches', () => {
+    const customActionQuote = {
+      provider: '/providers/transak',
+      quote: {
+        paymentMethod: '/payments/debit-credit-card-1',
+        isCustomAction: true,
+      },
+    };
+    mockUseRampsQuotes.mockImplementation(() => ({
+      ...defaultQuotesReturn,
+      data: {
+        success: [customActionQuote],
+        error: [],
+        sorted: [],
+        customActions: [],
+      },
+      loading: false,
+    }));
+
+    const { getAllByText } = renderWithProvider(PaymentSelectionModal);
+    expect(getAllByText('Debit or Credit').length).toBeGreaterThan(0);
   });
 });

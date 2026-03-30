@@ -11,7 +11,16 @@ import {
   IconSize,
   FontWeight,
 } from '@metamask/design-system-react-native';
-import { RampsOrderStatus } from '@metamask/ramps-controller';
+import {
+  normalizeProviderCode,
+  RampsOrderStatus,
+} from '@metamask/ramps-controller';
+import { isBailedOrderStatus } from '../BuildQuote/BuildQuote';
+import { extractOrderCode } from '../../utils/extractOrderCode';
+import {
+  getNavigateAfterExternalBrowserRoutes,
+  type RampsOrderDetailsParams,
+} from '../../utils/rampsNavigation';
 import Button, {
   ButtonVariants,
   ButtonSize,
@@ -32,11 +41,6 @@ import { useRampsOrders } from '../../hooks/useRampsOrders';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { RampsOrderDetailsSelectorsIDs } from './OrderDetails.testIds';
-
-interface RampsOrderDetailsParams {
-  orderId: string;
-  showCloseButton?: boolean;
-}
 
 export const createRampsOrderDetailsNavDetails =
   createNavigationDetails<RampsOrderDetailsParams>(
@@ -66,11 +70,16 @@ const styles = StyleSheet.create({
 
 const OrderDetails = () => {
   const params = useParams<RampsOrderDetailsParams>();
-  const { getOrderById, refreshOrder } = useRampsOrders();
-  const order = getOrderById(params.orderId);
+  const { getOrderById, refreshOrder, getOrderFromCallback, addOrder } =
+    useRampsOrders();
+  const orderCode = params.orderId ? extractOrderCode(params.orderId) : '';
+  const order = getOrderById(orderCode);
   const isPending = order ? PENDING_STATUSES.has(order.status) : false;
+  const hasCallbackParams = Boolean(
+    params.callbackUrl && params.providerCode && params.walletAddress,
+  );
 
-  const [isLoading, setIsLoading] = useState(isPending);
+  const [isLoading, setIsLoading] = useState(isPending || hasCallbackParams);
   const [error, setError] = useState<string | null>(null);
   const theme = useTheme();
   const { colors } = theme;
@@ -78,6 +87,72 @@ const OrderDetails = () => {
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const hasFetchedFromCallback = useRef(false);
+
+  const executeCallbackFetch = useCallback(
+    async (
+      providerCode: string,
+      callbackUrl: string,
+      walletAddress: string,
+      logContext: string,
+    ) => {
+      try {
+        setError(null);
+        const fetchedOrder = await getOrderFromCallback(
+          providerCode,
+          callbackUrl,
+          walletAddress,
+        );
+        if (!fetchedOrder || isBailedOrderStatus(fetchedOrder.status)) {
+          navigation.reset({
+            index: 0,
+            routes: getNavigateAfterExternalBrowserRoutes({
+              returnDestination: 'buildQuote',
+            }),
+          });
+          return;
+        }
+        addOrder(fetchedOrder);
+        navigation.setParams({
+          orderId: fetchedOrder.providerOrderId,
+          callbackUrl: undefined,
+          providerCode: undefined,
+          walletAddress: undefined,
+        });
+      } catch (fetchError) {
+        Logger.error(fetchError as Error, {
+          message: `RampsOrderDetails: error fetching order from callback URL${logContext}`,
+          callbackUrl,
+        });
+        setError(
+          fetchError instanceof Error && fetchError.message
+            ? fetchError.message
+            : strings('ramps_order_details.error_message'),
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [getOrderFromCallback, addOrder, navigation],
+  );
+
+  const handleRetryCallbackFetch = useCallback(async () => {
+    if (!params.callbackUrl || !params.providerCode || !params.walletAddress) {
+      return;
+    }
+    setIsLoading(true);
+    await executeCallbackFetch(
+      params.providerCode,
+      params.callbackUrl,
+      params.walletAddress,
+      ' (retry)',
+    );
+  }, [
+    params.callbackUrl,
+    params.providerCode,
+    params.walletAddress,
+    executeCallbackFetch,
+  ]);
 
   useEffect(() => {
     navigation.setOptions(
@@ -119,10 +194,7 @@ const OrderDetails = () => {
     try {
       setError(null);
       setIsRefreshing(true);
-      const providerCode = (order.provider?.id ?? '').replace(
-        '/providers/',
-        '',
-      );
+      const providerCode = normalizeProviderCode(order.provider?.id ?? '');
       await refreshOrder(
         providerCode,
         order.providerOrderId,
@@ -147,15 +219,37 @@ const OrderDetails = () => {
   }, [order, refreshOrder]);
 
   useEffect(() => {
-    if (isPending) {
+    if (isPending && !hasCallbackParams) {
       handleOnRefresh();
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  if (!order) {
-    return <ScreenLayout />;
-  }
+  useEffect(() => {
+    if (
+      !hasCallbackParams ||
+      hasFetchedFromCallback.current ||
+      !params.callbackUrl ||
+      !params.providerCode ||
+      !params.walletAddress
+    ) {
+      return;
+    }
+    hasFetchedFromCallback.current = true;
+
+    executeCallbackFetch(
+      params.providerCode,
+      params.callbackUrl,
+      params.walletAddress,
+      '',
+    );
+  }, [
+    hasCallbackParams,
+    params.callbackUrl,
+    params.providerCode,
+    params.walletAddress,
+    executeCallbackFetch,
+  ]);
 
   if (isLoading) {
     return (
@@ -170,6 +264,9 @@ const OrderDetails = () => {
   }
 
   if (error) {
+    const onRetry = hasCallbackParams
+      ? handleRetryCallbackFetch
+      : handleOnRefresh;
     return (
       <ScreenLayout>
         <ScreenLayout.Body>
@@ -197,12 +294,16 @@ const OrderDetails = () => {
               size={ButtonSize.Lg}
               width={ButtonWidthTypes.Full}
               label={strings('ramps_order_details.try_again')}
-              onPress={handleOnRefresh}
+              onPress={onRetry}
             />
           </Box>
         </ScreenLayout.Body>
       </ScreenLayout>
     );
+  }
+
+  if (!order) {
+    return <ScreenLayout />;
   }
 
   return (
