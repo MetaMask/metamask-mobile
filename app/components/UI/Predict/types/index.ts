@@ -11,10 +11,10 @@ export type PredictOrderType = 'FOK' | 'FAK';
 
 export enum ActiveOrderState {
   PREVIEW = 'preview',
+  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
   DEPOSITING = 'depositing',
   PLACING_ORDER = 'placing_order',
-  REDIRECTING = 'redirecting',
-  PAY_WITH_ANY_TOKEN = 'pay_with_any_token',
+  SUCCESS = 'success',
 }
 
 export enum PredictPriceHistoryInterval {
@@ -493,6 +493,8 @@ export type OrderResult = Result<{
 
 export interface PlaceOrderParams {
   preview: OrderPreview;
+  address?: string;
+  transactionId?: string;
   analyticsProperties?: {
     marketId?: string;
     marketTitle?: string;

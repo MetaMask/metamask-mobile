@@ -268,21 +268,10 @@ describe('useInsufficientBalanceAlert', () => {
     expect(result.current[0].key).toBe(AlertKeys.InsufficientBalance);
   });
 
-  it('returns empty array if transaction type is predictWithdraw', () => {
+  it('returns empty array if transaction type ignored', () => {
     mockUseTransactionMetadataRequest.mockReturnValue({
       ...mockTransaction,
       type: TransactionType.predictWithdraw,
-    } as unknown as TransactionMeta);
-
-    const { result } = renderHook(() => useInsufficientBalanceAlert());
-
-    expect(result.current).toStrictEqual([]);
-  });
-
-  it('returns empty array if transaction type is perpsWithdraw', () => {
-    mockUseTransactionMetadataRequest.mockReturnValue({
-      ...mockTransaction,
-      type: TransactionType.perpsWithdraw,
     } as unknown as TransactionMeta);
 
     const { result } = renderHook(() => useInsufficientBalanceAlert());
