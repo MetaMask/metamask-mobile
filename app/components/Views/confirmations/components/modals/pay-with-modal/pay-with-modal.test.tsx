@@ -33,6 +33,8 @@ import { getAvailableTokens } from '../../../utils/transaction-pay';
 import { useWithdrawTokenFilter } from '../../../hooks/pay/useWithdrawTokenFilter';
 import { usePerpsPaymentToken } from '../../../../../UI/Perps/hooks/usePerpsPaymentToken';
 import { usePerpsBalanceTokenFilter } from '../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter';
+import { usePredictPaymentToken } from '../../../../../UI/Predict/hooks/usePredictPaymentToken';
+import { usePredictBalanceTokenFilter } from '../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter';
 
 const mockAddTokens = jest.fn().mockResolvedValue(undefined);
 const mockFindNetworkClientIdByChainId = jest
@@ -60,6 +62,8 @@ jest.mock('../../../hooks/transactions/useTransactionMetadataRequest');
 jest.mock('../../../utils/transaction-pay');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsPaymentToken');
 jest.mock('../../../../../UI/Perps/hooks/usePerpsBalanceTokenFilter');
+jest.mock('../../../../../UI/Predict/hooks/usePredictPaymentToken');
+jest.mock('../../../../../UI/Predict/hooks/usePredictBalanceTokenFilter');
 
 jest.mock('../../../hooks/send/useAccountTokens', () => {
   // Return a stable reference to avoid infinite re-render loops.
@@ -217,6 +221,11 @@ describe('PayWithModal', () => {
   const usePerpsBalanceTokenFilterMock = jest.mocked(
     usePerpsBalanceTokenFilter,
   );
+  const onPredictPaymentTokenChangeMock = jest.fn();
+  const usePredictPaymentTokenMock = jest.mocked(usePredictPaymentToken);
+  const usePredictBalanceTokenFilterMock = jest.mocked(
+    usePredictBalanceTokenFilter,
+  );
 
   beforeEach(() => {
     jest.resetAllMocks();
@@ -257,6 +266,17 @@ describe('PayWithModal', () => {
     } as unknown as ReturnType<typeof usePerpsPaymentToken>);
 
     usePerpsBalanceTokenFilterMock.mockReturnValue(
+      jest.fn((tokens: AssetType[]) => tokens),
+    );
+
+    usePredictPaymentTokenMock.mockReturnValue({
+      onPaymentTokenChange: onPredictPaymentTokenChangeMock,
+      isPredictBalanceSelected: true,
+      selectedPaymentToken: null,
+      resetSelectedPaymentToken: jest.fn(),
+    } as ReturnType<typeof usePredictPaymentToken>);
+
+    usePredictBalanceTokenFilterMock.mockReturnValue(
       jest.fn((tokens: AssetType[]) => tokens),
     );
   });
