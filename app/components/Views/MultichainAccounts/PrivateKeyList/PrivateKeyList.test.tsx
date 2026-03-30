@@ -215,12 +215,12 @@ describe('PrivateKeyList', () => {
 
     await findByTestId(PrivateKeyListIds.LIST);
 
-    expect(getByText(TITLE)).toBeDefined();
+    expect(getByText(TITLE)).toBeOnTheScreen();
 
     expect(getAllByText(shortenedEthAddress).length).toBe(3);
-    expect(getByText('Ethereum')).toBeDefined();
-    expect(getByText('Base')).toBeDefined();
-    expect(getByText('Arbitrum One')).toBeDefined();
+    expect(getByText('Ethereum')).toBeOnTheScreen();
+    expect(getByText('Base')).toBeOnTheScreen();
+    expect(getByText('Arbitrum One')).toBeOnTheScreen();
   });
 
   it('clears wrong-password error and shows list when correct password is entered after wrong', async () => {
