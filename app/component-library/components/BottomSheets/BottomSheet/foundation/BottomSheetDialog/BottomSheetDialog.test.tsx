@@ -109,7 +109,7 @@ describe('BottomSheetDialog', () => {
 
     expect(onCloseMock).toHaveBeenCalled();
   });
-  it('should call onClose only once when onCloseDialog is called twice rapidly', () => {
+  it('calls onClose only once when onCloseDialog is invoked twice rapidly', () => {
     const onCloseMock = jest.fn();
     const TestComponent = () => {
       const ref = useRef<BottomSheetDialogRef>(null);
@@ -134,7 +134,7 @@ describe('BottomSheetDialog', () => {
     expect(onCloseMock).toHaveBeenCalledTimes(1);
   });
 
-  it('should allow closing again after re-opening', () => {
+  it('allows closing again after re-opening', () => {
     const onCloseMock = jest.fn();
     const onOpenMock = jest.fn();
     const TestComponent = () => {
