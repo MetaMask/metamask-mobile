@@ -775,6 +775,10 @@ class AuthenticationService {
           // Unlock keyrings.
           await this.loginVaultCreation(passwordToUse);
 
+          if (authPreference?.oauth2Login && isE2EMockOAuth()) {
+            await this.syncKeyringEncryptionKey();
+          }
+
           // Update authentication preference.
           if (authPreference) {
             await this.updateAuthPreference({
@@ -1181,6 +1185,13 @@ class AuthenticationService {
 
   rehydrateSeedPhrase = async (password: string): Promise<void> => {
     try {
+      if (isE2EMockOAuth()) {
+        this.dispatchOauthReset();
+        ReduxService.store.dispatch(setExistingUser(true));
+        await StorageWrapper.removeItem(SEED_PHRASE_HINTS);
+        return;
+      }
+
       const { SeedlessOnboardingController } = Engine.context;
       let allSRPs: Awaited<
         ReturnType<typeof SeedlessOnboardingController.fetchAllSecretData>

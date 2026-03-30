@@ -5,6 +5,7 @@ import {
   PASSCODE_DISABLED,
   OPTIN_META_METRICS_UI_SEEN,
   PREVIOUS_AUTH_TYPE_BEFORE_REMEMBER_ME,
+  SEED_PHRASE_HINTS,
 } from '../../constants/storage';
 import { Authentication } from './Authentication';
 import AUTHENTICATION_TYPE from '../../constants/userProperties';
@@ -1799,6 +1800,24 @@ describe('Authentication', () => {
 
     afterEach(() => {
       jest.clearAllMocks();
+      mockIsE2EMockOAuth.mockReturnValue(false);
+    });
+
+    it('skips fetchAllSecretData when E2E mock OAuth is enabled', async () => {
+      mockIsE2EMockOAuth.mockReturnValue(true);
+      const removeItemSpy = jest
+        .spyOn(StorageWrapper, 'removeItem')
+        .mockResolvedValue(undefined);
+
+      await Authentication.rehydrateSeedPhrase(mockPassword);
+
+      expect(
+        Engine.context.SeedlessOnboardingController.fetchAllSecretData,
+      ).not.toHaveBeenCalled();
+      expect(OAuthService.resetOauthState).toHaveBeenCalled();
+      expect(removeItemSpy).toHaveBeenCalledWith(SEED_PHRASE_HINTS);
+
+      removeItemSpy.mockRestore();
     });
 
     it('rehydrate with a single seed phrase', async () => {

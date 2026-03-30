@@ -4,6 +4,7 @@ import AppwrightSelectors from '../../tests/framework/AppwrightSelectors';
 import AppwrightGestures from '../../tests/framework/AppwrightGestures';
 import { LoginViewSelectors } from '../../app/components/Views/Login/LoginView.testIds';
 import { expect as appwrightExpect } from 'appwright';
+import { iosPasswordInputXpath } from './Onboarding/iosPasswordInputXpath.js';
 
 class LoginScreen {
 
@@ -55,15 +56,16 @@ class LoginScreen {
         LoginViewSelectors.PASSWORD_INPUT,
       );
     }
-     if (AppwrightSelectors.isAndroid(this._device)) {
+    if (AppwrightSelectors.isAndroid(this._device)) {
       return AppwrightSelectors.getElementByCatchAll(
         this._device,
         LoginViewSelectors.PASSWORD_INPUT,
       );
     }
-    return AppwrightSelectors.getElementByID(
+    // iOS: design-system TextField exposes SecureTextField; testID may not match getElementByID.
+    return AppwrightSelectors.getElementByXpath(
       this._device,
-      LoginViewSelectors.PASSWORD_INPUT,
+      iosPasswordInputXpath(LoginViewSelectors.PASSWORD_INPUT, 1),
     );
   }
 
