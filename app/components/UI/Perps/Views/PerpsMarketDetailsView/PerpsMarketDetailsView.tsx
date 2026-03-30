@@ -448,8 +448,8 @@ const PerpsMarketDetailsView: React.FC<PerpsMarketDetailsViewProps> = () => {
       setIsEligibilityModalVisible(true);
       return;
     }
-    navigateToConfirmation({ stack: Routes.PERPS.ROOT });
     try {
+      navigateToConfirmation({ stack: Routes.PERPS.ROOT });
       await depositWithConfirmation();
     } catch (err) {
       Logger.error(ensureError(err, 'PerpsMarketDetailsView.handleAddFunds'), {
