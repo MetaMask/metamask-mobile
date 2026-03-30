@@ -56,15 +56,12 @@ import QuoteDetailsCard from '../../components/QuoteDetailsCard';
 import QuoteDetailsCardSkeleton from '../../components/QuoteDetailsCard/QuoteDetailsCardSkeleton';
 import { useBridgeQuoteRequest } from '../../hooks/useBridgeQuoteRequest';
 import { useBridgeQuoteData } from '../../hooks/useBridgeQuoteData';
-import BannerAlert from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert';
-import { BannerAlertSeverity } from '../../../../../component-library/components/Banners/Banner/variants/BannerAlert/BannerAlert.types';
 import { createStyles } from './BridgeView.styles';
 import { useInitialSourceToken } from '../../hooks/useInitialSourceToken';
 import { useInitialDestToken } from '../../hooks/useInitialDestToken';
 import { useGasFeeEstimates } from '../../../../Views/confirmations/hooks/gas/useGasFeeEstimates';
 import { selectSelectedNetworkClientId } from '../../../../../selectors/networkController';
 import { useIsNetworkEnabled } from '../../hooks/useIsNetworkEnabled';
-import { BridgeToken } from '../../types';
 import { useSwitchTokens } from '../../hooks/useSwitchTokens';
 import {
   Pressable,
@@ -90,7 +87,6 @@ import { useIsGasIncludedSTXSendBundleSupported } from '../../hooks/useIsGasIncl
 import { useIsGasIncluded7702Supported } from '../../hooks/useIsGasIncluded7702Supported/index.ts';
 import { useRefreshSmartTransactionsLiveness } from '../../../../hooks/useRefreshSmartTransactionsLiveness';
 import { BridgeViewSelectorsIDs } from './BridgeView.testIds';
-import { useRWAToken } from '../../hooks/useRWAToken.ts';
 import { SwapsKeypadRef } from '../../components/SwapsKeypad/types.ts';
 import { GaslessQuickPickOptions } from '../../components/GaslessQuickPickOptions/index.tsx';
 import { SwapsConfirmButton } from '../../components/SwapsConfirmButton/index.tsx';
@@ -106,7 +102,6 @@ import { BridgeViewFooter } from './BridgeViewFooter.tsx';
 const SCROLL_NEAR_BOTTOM_PX = 160;
 
 const BridgeView = () => {
-  const [isErrorBannerVisible, setIsErrorBannerVisible] = useState(true);
   const [isNearBottom, setIsNearBottom] = useState(false);
   const isSubmittingTx = useSelector(selectIsSubmittingTx);
 
@@ -136,7 +131,6 @@ const BridgeView = () => {
   const destAddress = useSelector(selectDestAddress);
   const bridgeViewMode = useSelector(selectBridgeViewMode);
   const { handleSwitchTokens } = useSwitchTokens();
-  const { isStockToken } = useRWAToken();
   const selectedAddress = useSelector(
     selectSelectedInternalAccountFormattedAddress,
   );
@@ -238,7 +232,6 @@ const BridgeView = () => {
     activeQuote,
     isLoading,
     destTokenAmount,
-    quoteFetchError,
     isNoQuotesAvailable,
     blockaidError,
     shouldShowPriceImpactWarning,
@@ -300,9 +293,6 @@ const BridgeView = () => {
     isPriceImpactWarningVisible: shouldShowPriceImpactWarning,
   });
 
-  // Compute error state directly from dependencies
-  const isError = isNoQuotesAvailable || quoteFetchError;
-
   const isZeroState = !sourceAmount || !(Number(sourceAmount) > 0);
 
   // Update quote parameters when relevant state changes
@@ -332,13 +322,6 @@ const BridgeView = () => {
   }, [navigation, bridgeViewMode, colors]);
 
   useTrackSwapPageViewed();
-
-  // Reset isErrorBannerVisible when error state changes
-  useEffect(() => {
-    if (isError) {
-      setIsErrorBannerVisible(true);
-    }
-  }, [isError]);
 
   const handleSourceMaxPress = () => {
     if (latestSourceBalance?.displayBalance) {
@@ -382,19 +365,8 @@ const BridgeView = () => {
       type: 'dest',
     });
 
-  const isRWATokenSelected = useMemo(
-    () =>
-      (sourceToken && isStockToken(sourceToken as BridgeToken)) ||
-      (destToken && isStockToken(destToken as BridgeToken)),
-    [isStockToken, sourceToken, destToken],
-  );
-  const genericErrorMessage = isRWATokenSelected
-    ? strings('bridge.stock_token_error_banner_description')
-    : strings('bridge.error_banner_description');
-
   const getContentMode = () => {
     if (isLoading && !activeQuote && !needsNewQuote) return 'loading';
-    if (isError && isErrorBannerVisible) return 'error';
     if (isZeroState) return 'zero';
     return 'quote';
   };
@@ -544,19 +516,6 @@ const BridgeView = () => {
             {contentMode === 'loading' ? (
               <Box style={styles.loadingContainer}>
                 <QuoteDetailsCardSkeleton />
-              </Box>
-            ) : null}
-            {contentMode === 'error' ? (
-              <Box style={styles.buttonContainer}>
-                <BannerAlert
-                  severity={BannerAlertSeverity.Error}
-                  description={genericErrorMessage}
-                  onClose={() => {
-                    setIsErrorBannerVisible(false);
-                    inputRef.current?.focus();
-                    keypadRef.current?.open();
-                  }}
-                />
               </Box>
             ) : null}
             {contentMode === 'quote' ? (
