@@ -6,7 +6,7 @@ import { useTheme } from '../../../../util/theme';
 import {
   Box,
   BoxAlignItems,
-  BoxFlexDirection,
+  BoxFlexDirection, Button, ButtonSize, ButtonVariant,
   FontWeight,
   Icon,
   IconColor,
@@ -64,24 +64,7 @@ const BenefitDetailsView = () => {
               testID={REWARDS_VIEW_SELECTORS.TOP_BENEFIT_DETAILS_IMAGE}
             />
           </Box>
-          <Box
-            twClassName="gap-1"
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-          >
-            <Icon
-              name={IconName.Clock}
-              size={IconSize.Md}
-              color={IconColor.IconAlternative}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
-            >
-              {formatDayHourRemaining(benefit.actionDate)}
-            </Text>
-          </Box>
-          <Box twClassName="py-6 gap-4">
+          <Box twClassName="py-6">
             <Text
               color={TextColor.TextDefault}
               variant={TextVariant.HeadingLg}
@@ -89,6 +72,23 @@ const BenefitDetailsView = () => {
             >
               {benefit.longTitle}
             </Text>
+            <Box
+              twClassName="gap-1 mt-1 mb-2"
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
+            >
+              <Icon
+                name={IconName.Clock}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {formatDayHourRemaining(benefit.actionDate)}
+              </Text>
+            </Box>
             <Text
               variant={TextVariant.BodyMd}
               color={TextColor.TextAlternative}
@@ -98,22 +98,15 @@ const BenefitDetailsView = () => {
           </Box>
         </ScrollView>
         <Box twClassName="absolute bottom-0 left-0 right-0 p-4">
-          <TouchableOpacity
+          <Button
+            variant={ButtonVariant.Primary}
+            size={ButtonSize.Lg}
             onPress={handleClaim}
-            activeOpacity={0.8}
-            style={[
-              tw.style('rounded-2xl py-3 items-center'),
-              { backgroundColor: colors.background.alternative },
-            ]}
+            twClassName="w-full"
+            testID={REWARDS_VIEW_SELECTORS.DETAIL_BENEFIT_ACTION}
           >
-            <Text
-              variant={TextVariant.BodyMd}
-              fontWeight={FontWeight.Medium}
-              color={TextColor.TextDefault}
-            >
-              Claim
-            </Text>
-          </TouchableOpacity>
+            {strings('rewards.benefits.action')}
+          </Button>
         </Box>
       </SafeAreaView>
     </ErrorBoundary>

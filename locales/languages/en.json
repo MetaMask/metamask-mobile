@@ -7912,7 +7912,8 @@
     "benefits": {
       "title": "Benefits",
       "list_header":  "Available",
-      "title_claim": "Claim Benefit"
+      "title_claim": "Claim Benefit",
+      "action": "Claim"
     },
     "end_of_season_rewards": {
       "confirm_label_default": "Confirm",
