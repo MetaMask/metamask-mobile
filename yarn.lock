@@ -8251,16 +8251,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/error-reporting-service@npm:^3.0.0":
-  version: 3.0.0
-  resolution: "@metamask/error-reporting-service@npm:3.0.0"
-  dependencies:
-    "@metamask/base-controller": "npm:^9.0.0"
-    "@metamask/messenger": "npm:^0.3.0"
-  checksum: 10/f62921c4b185ae2d7524230da35e8f6e9d18554931fc1c72da2c0e59a27c8b7ceaa12d5a94f6fda4a9a313abce71fa59c76954615a13e28df7830b7e716664e5
-  languageName: node
-  linkType: hard
-
 "@metamask/eslint-config-typescript@npm:^13.0.0":
   version: 13.0.0
   resolution: "@metamask/eslint-config-typescript@npm:13.0.0"
@@ -8893,13 +8883,6 @@ __metadata:
   version: 1.1.2
   resolution: "@metamask/message-signing-snap@npm:1.1.2"
   checksum: 10/99970642e6bbcb4dbfeb9defbc286ce92f992d11c542000ea761c5c892b2fbac5fdee9d5c6c8f8df05666322848ab7bb510289780959a14fbb390d556fd63f19
-  languageName: node
-  linkType: hard
-
-"@metamask/messenger@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "@metamask/messenger@npm:0.3.0"
-  checksum: 10/84e9f4193646d749c7260a4958b13974b3c8738cc2e414116279ed31734e1edba687ff56ddbfdb75033bce30aaa9eeb7c391bccb87a66dbc99a902882271f673
   languageName: node
   linkType: hard
 
@@ -10127,9 +10110,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@metamask/transaction-controller@npm:^63.0.0, @metamask/transaction-controller@npm:^63.1.0":
-  version: 63.1.0
-  resolution: "@metamask/transaction-controller@npm:63.1.0"
+"@metamask/transaction-controller@npm:^63.0.0, @metamask/transaction-controller@npm:^63.3.0":
+  version: 63.3.0
+  resolution: "@metamask/transaction-controller@npm:63.3.0"
   dependencies:
     "@ethereumjs/common": "npm:^4.4.0"
     "@ethereumjs/tx": "npm:^5.4.0"
@@ -10162,7 +10145,7 @@ __metadata:
   peerDependencies:
     "@babel/runtime": ^7.0.0
     "@metamask/eth-block-tracker": ">=9"
-  checksum: 10/02aaf926d003c01f6844bc9c0f4cb18f34884e3badc393103beed3755ebcae52e522a52b2a16f40c0965be98c2f4125cf8ae60e3766b0f960ecc65c62f8a161f
+  checksum: 10/e9616ee54fad77bc5df47f4dd41aad3f423174b505c8a743f0097fdd87d5a6d5d5a3223fca16a940f306d0c4d918c76e345e00a7e76a646a44e00d12f88e15fb
   languageName: node
   linkType: hard
 
@@ -35594,7 +35577,6 @@ __metadata:
     "@metamask/eip-5792-middleware": "npm:^2.0.0"
     "@metamask/eip1193-permission-middleware": "npm:^1.0.2"
     "@metamask/ens-resolver-snap": "npm:^1.1.0"
-    "@metamask/error-reporting-service": "npm:^3.0.0"
     "@metamask/eslint-config-typescript": "npm:^13.0.0"
     "@metamask/eslint-plugin-design-tokens": "npm:^1.0.0"
     "@metamask/eth-hd-keyring": "npm:^13.0.0"
@@ -35624,7 +35606,7 @@ __metadata:
     "@metamask/keyring-utils": "npm:^3.2.0"
     "@metamask/logging-controller": "npm:^8.0.0"
     "@metamask/message-signing-snap": "npm:^1.1.2"
-    "@metamask/messenger": "npm:^0.3.0"
+    "@metamask/messenger": "npm:^1.0.0"
     "@metamask/metamask-eth-abis": "npm:3.1.1"
     "@metamask/mobile-provider": "npm:^3.0.0"
     "@metamask/mobile-wallet-protocol-core": "npm:^0.4.0"
@@ -35680,7 +35662,7 @@ __metadata:
     "@metamask/test-dapp": "npm:9.5.0"
     "@metamask/test-dapp-multichain": "npm:^0.17.1"
     "@metamask/test-dapp-solana": "npm:^0.3.0"
-    "@metamask/transaction-controller": "npm:^63.1.0"
+    "@metamask/transaction-controller": "npm:^63.3.0"
     "@metamask/transaction-pay-controller": "npm:^17.1.0"
     "@metamask/tron-wallet-snap": "npm:1.24.0"
     "@metamask/utils": "npm:^11.8.1"
