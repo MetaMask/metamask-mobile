@@ -12,7 +12,9 @@ describe('PoweredByTransak', () => {
   it('renders svg logo for english locales', () => {
     I18n.locale = 'en-US';
 
-    const { queryByText } = render(<PoweredByTransak />);
+    const { queryByText } = render(
+      <PoweredByTransak name="powered-by-transak-logo" />,
+    );
 
     expect(queryByText('Powered by Transak')).toBeNull();
   });
@@ -20,7 +22,9 @@ describe('PoweredByTransak', () => {
   it('renders localized text for non-english locales', () => {
     I18n.locale = 'es';
 
-    const { getByText } = render(<PoweredByTransak />);
+    const { getByText } = render(
+      <PoweredByTransak name="powered-by-transak-logo" />,
+    );
 
     expect(getByText('Desarrollado por Transak')).toBeOnTheScreen();
   });
