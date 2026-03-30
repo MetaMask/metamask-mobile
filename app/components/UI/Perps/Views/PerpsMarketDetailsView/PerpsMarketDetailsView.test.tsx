@@ -1939,6 +1939,69 @@ describe('PerpsMarketDetailsView', () => {
 
       expect(getByText('Geo Block Tooltip')).toBeOnTheScreen();
     });
+
+    it('returns failure when TPSL onConfirm runs after position is cleared', async () => {
+      mockNavigate.mockClear();
+
+      const existingPosition = {
+        symbol: 'BTC',
+        size: '0.5',
+        entryPrice: '50000',
+        leverage: { value: 10, type: 'isolated' as const },
+        marginUsed: '5000',
+        unrealizedPnl: '100',
+        returnOnEquity: '0.02',
+        liquidationPrice: '45000',
+      };
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: true,
+        isLoading: false,
+        error: null,
+        existingPosition,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      const viewTree = (
+        <PerpsConnectionProvider>
+          <PerpsMarketDetailsView />
+        </PerpsConnectionProvider>
+      );
+
+      const { getByTestId, rerender } = renderWithProvider(viewTree, {
+        state: initialState,
+      });
+
+      fireEvent.press(getByTestId('perps-position-card-auto-close-button'));
+
+      const tpslNavigateCall = mockNavigate.mock.calls.find(
+        (call) => call[0] === 'PerpsTPSL',
+      );
+      expect(tpslNavigateCall).toBeTruthy();
+      const onConfirm = (
+        tpslNavigateCall as [
+          string,
+          { onConfirm: (...args: unknown[]) => Promise<{ success: boolean }> },
+        ]
+      )[1].onConfirm;
+
+      mockUseHasExistingPosition.mockReturnValue({
+        hasPosition: false,
+        isLoading: false,
+        error: null,
+        existingPosition: null,
+        refreshPosition: jest.fn(),
+        positionOpenedTimestamp: undefined,
+      });
+
+      rerender(viewTree);
+
+      await act(async () => {
+        const result = await onConfirm(undefined, undefined, undefined);
+        expect(result).toEqual({ success: false });
+      });
+    });
   });
 
   describe('Notification tooltip functionality', () => {
