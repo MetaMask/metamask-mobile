@@ -13,6 +13,7 @@ import {
 import {
   type CampaignDto,
   CampaignType,
+  type OndoCampaignTier,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 jest.mock('@metamask/design-system-react-native', () => ({
@@ -289,6 +290,8 @@ describe('CampaignTile.utils', () => {
   describe('isOptinAllowed', () => {
     const minimalOndoDetails = {
       howItWorks: { title: 'How', description: 'Desc', steps: [] },
+      depositCutoffDate: '2025-12-31T23:59:59.999Z',
+      tiers: [] as OndoCampaignTier[],
     };
 
     /** Time within default buildCampaignDto start/end so status is `active`. */
@@ -316,7 +319,10 @@ describe('CampaignTile.utils', () => {
     it('returns true for ONDO_HOLDING when depositCutoffDate is absent', () => {
       const campaign = buildCampaignDto({
         type: CampaignType.ONDO_HOLDING,
-        details: minimalOndoDetails,
+        details: {
+          ...minimalOndoDetails,
+          depositCutoffDate: '',
+        },
       });
 
       expect(isOptinAllowed(campaign)).toBe(true);

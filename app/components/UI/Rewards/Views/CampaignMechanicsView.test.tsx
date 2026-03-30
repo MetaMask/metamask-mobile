@@ -6,7 +6,14 @@ import CampaignMechanicsView, {
 import {
   type CampaignDto,
   CampaignType,
+  type OndoCampaignTier,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
+
+const EMPTY_ONDO_TIERS: OndoCampaignTier[] = [];
+const TEST_ONDO_DETAILS_DEFAULTS = {
+  depositCutoffDate: '2027-06-01T00:00:00.000Z',
+  tiers: EMPTY_ONDO_TIERS,
+};
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 
 const mockGoBack = jest.fn();
@@ -189,6 +196,7 @@ describe('CampaignMechanicsView', () => {
                 description: 'Earn rewards',
                 steps: [],
               },
+              ...TEST_ONDO_DETAILS_DEFAULTS,
             },
           }),
         ],
@@ -247,6 +255,7 @@ describe('CampaignMechanicsView', () => {
                 steps: [],
                 notes: richTextNotes,
               },
+              ...TEST_ONDO_DETAILS_DEFAULTS,
             },
           }),
         ],
@@ -269,6 +278,7 @@ describe('CampaignMechanicsView', () => {
                 steps: [],
                 notes: null,
               },
+              ...TEST_ONDO_DETAILS_DEFAULTS,
             },
           }),
         ],
@@ -290,6 +300,7 @@ describe('CampaignMechanicsView', () => {
                 description: 'Earn rewards',
                 steps: [],
               },
+              ...TEST_ONDO_DETAILS_DEFAULTS,
             },
           }),
         ],
@@ -312,6 +323,7 @@ describe('CampaignMechanicsView', () => {
                 steps: [],
                 notes: { title: 'Only title' },
               },
+              ...TEST_ONDO_DETAILS_DEFAULTS,
             },
           }),
         ],
@@ -334,6 +346,7 @@ describe('CampaignMechanicsView', () => {
                 steps: [],
                 notes: 'just a string',
               },
+              ...TEST_ONDO_DETAILS_DEFAULTS,
             },
           }),
         ],

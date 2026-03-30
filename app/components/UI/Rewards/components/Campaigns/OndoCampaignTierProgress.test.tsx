@@ -4,9 +4,10 @@ import { useSelector } from 'react-redux';
 import OndoCampaignTierProgress, {
   ONDO_TIER_PROGRESS_TEST_IDS,
 } from './OndoCampaignTierProgress';
-import type {
-  CampaignDto,
-  OndoGmPortfolioDto,
+import {
+  CampaignType,
+  type CampaignDto,
+  type OndoGmPortfolioDto,
 } from '../../../../../core/Engine/controllers/rewards-controller/types';
 import {
   selectRewardsSubscriptionId,
@@ -83,8 +84,15 @@ function createCampaignWithTiers(
   return {
     id: CAMPAIGN_ID,
     name: 'Ondo',
-    type: 'ONDO' as CampaignDto['type'],
+    type: CampaignType.ONDO_HOLDING,
+    startDate: '2025-06-01T00:00:00.000Z',
+    endDate: '2025-12-31T23:59:59.999Z',
+    termsAndConditions: null,
+    excludedRegions: [],
+    featured: true,
     details: {
+      howItWorks: { title: 'How', description: 'Desc', steps: [] },
+      depositCutoffDate: '2025-12-31T00:00:00.000Z',
       tiers: [
         { name: 'STARTER', minNetDeposit: 0 },
         { name: 'MID', minNetDeposit: 5000 },
@@ -92,7 +100,7 @@ function createCampaignWithTiers(
       ],
     },
     ...overrides,
-  } as CampaignDto;
+  };
 }
 
 function createPortfolio(
@@ -171,8 +179,12 @@ describe('OndoCampaignTierProgress', () => {
       setupUseSelector({
         campaigns: [
           createCampaignWithTiers({
-            details: { tiers: [] },
-          } as Partial<CampaignDto>),
+            details: {
+              howItWorks: { title: 'How', description: 'Desc', steps: [] },
+              depositCutoffDate: '2025-12-31T00:00:00.000Z',
+              tiers: [],
+            },
+          }),
         ],
       });
 
