@@ -420,7 +420,6 @@ class PerformanceReporter {
         '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project is not recognized as BrowserStack-backed',
       );
     }
-
     return isBrowserStackRun;
   }
 
