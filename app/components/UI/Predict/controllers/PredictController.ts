@@ -1697,7 +1697,11 @@ export class PredictController extends BaseController<
 
       traceData = { success: false, error: errorMessage };
 
-      if (!canUpdateActiveBuyOrder) {
+      if (
+        predictWithAnyTokenEnabled &&
+        preview.side === Side.BUY &&
+        !canUpdateActiveBuyOrder
+      ) {
         this.messenger.publish('PredictController:transactionStatusChanged', {
           type: 'order',
           status: 'failed',
