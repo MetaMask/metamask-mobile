@@ -7,7 +7,12 @@ import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
 
-import { CaipChainId, Hex, KnownCaipNamespace } from '@metamask/utils';
+import {
+  CaipAccountId,
+  CaipChainId,
+  Hex,
+  KnownCaipNamespace,
+} from '@metamask/utils';
 import Routes from '../../../app/constants/navigation/Routes';
 import ppomUtil from '../../../app/lib/ppom/ppom-util';
 import {
@@ -45,6 +50,11 @@ import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
+import {
+  getNonEvmAdapterForCaipChainId,
+  isNonEvmCaipChainId,
+  routeNonEvmToSnap,
+} from './multichain';
 
 const ERROR_CODES = {
   USER_REJECT_CODE: 5000,
@@ -277,10 +287,11 @@ class WalletConnect2Session {
   };
 
   public get getAllowedChainIds(): CaipChainId[] {
-    return (
-      this.session.namespaces.eip155?.chains?.map(
-        (chain) => chain as CaipChainId,
-      ) || []
+    // Aggregate every namespace's chains (EVM + non-EVM) so dapps
+    // and downstream callers see the full set of permitted chains, not only
+    // EIP-155. Required so non-EVM permissions survive session restoration.
+    return Object.values(this.session.namespaces ?? {}).flatMap(
+      (ns) => (ns?.chains ?? []) as CaipChainId[],
     );
   }
 
@@ -398,6 +409,18 @@ class WalletConnect2Session {
       const namespaces = await getScopedPermissions({
         channelId: this.channelId,
       });
+
+      // Preserve non-EVM namespaces already approved on the
+      // active session — `getScopedPermissions` only knows about EIP-155, so
+      // calling `updateSession` with its output alone would drop the others.
+      for (const [key, value] of Object.entries(
+        this.session.namespaces ?? {},
+      )) {
+        if (key !== KnownCaipNamespace.Eip155 && value) {
+          (namespaces as Record<string, SessionTypes.Namespace>)[key] = value;
+        }
+      }
+
       DevLogger.log(
         `🔴🔴 WC2::updateSession updating with namespaces`,
         namespaces,
@@ -567,6 +590,67 @@ class WalletConnect2Session {
     }
 
     const method = requestEvent.params.request.method;
+
+    // Non-EVM requests bypass the EVM chain switch / dispatch path entirely and go through the
+    // Snap-based MultichainRoutingService.
+    // The EVM logic below stays untouched.
+    const requestChainId = requestEvent.params.chainId as string;
+    if (isNonEvmCaipChainId(requestChainId)) {
+      const adapter = getNonEvmAdapterForCaipChainId(requestChainId);
+      if (adapter?.redirectMethods.includes(method)) {
+        this.requestsToRedirect[requestEvent.id] = true;
+      }
+      const normalize = (chain: string): string =>
+        adapter?.normalizeCaipChainId
+          ? adapter.normalizeCaipChainId(chain)
+          : chain;
+      const scope = normalize(requestChainId) as CaipChainId;
+      const namespace = scope.split(':')[0];
+      const nsConfig = this.session.namespaces?.[namespace];
+      // Compare normalized forms so a request using `tron:0x…` matches a
+      // session approved with `tron:<decimal>`.
+      const isPermittedChain =
+        nsConfig?.chains?.some((chain) => normalize(chain) === scope) ?? false;
+      const connectedAddresses = (nsConfig?.accounts ?? []) as CaipAccountId[];
+
+      if (!isPermittedChain) {
+        this._isHandlingRequest = false;
+        await this.rejectRequest({
+          id: String(requestEvent.id),
+          error: rpcErrors.invalidParams({
+            message: `Invalid parameters: chainId ${requestChainId} not permitted on this session.`,
+          }),
+        });
+        return;
+      }
+
+      if (connectedAddresses.length === 0) {
+        this._isHandlingRequest = false;
+        await this.rejectRequest({
+          id: String(requestEvent.id),
+          error: providerErrors.unauthorized(
+            `No permitted accounts for namespace ${namespace}.`,
+          ),
+        });
+        return;
+      }
+
+      try {
+        await routeNonEvmToSnap({
+          requestEvent,
+          scope,
+          connectedAddresses,
+          host: {
+            approveRequest: this.approveRequest,
+            rejectRequest: this.rejectRequest,
+          },
+        });
+      } finally {
+        this._isHandlingRequest = false;
+      }
+      return;
+    }
+
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
     let caip2ChainId: CaipChainId;

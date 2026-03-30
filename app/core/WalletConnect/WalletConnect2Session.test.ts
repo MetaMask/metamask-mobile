@@ -144,6 +144,23 @@ jest.mock('./wc-utils', () => ({
   normalizeOrigin: jest.fn().mockImplementation((url) => url),
   getHostname: jest.fn().mockReturnValue('example.com'),
 }));
+
+// Mock for the appended `Tron namespace` describe block. EVM tests above are
+// unaffected: they only feed eip155 chain IDs into `handleRequest`, so
+// `isNonEvmCaipChainId` returns `false` and the EVM path runs as on main.
+jest.mock('./multichain', () => ({
+  isNonEvmCaipChainId: jest.fn(
+    (id: unknown) => typeof id === 'string' && id.startsWith('tron:'),
+  ),
+  getNonEvmAdapterForCaipChainId: jest.fn(() => ({
+    namespace: 'tron',
+    redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
+    normalizeCaipChainId: (id: string) => id,
+    buildNamespaceSlice: jest.fn(),
+  })),
+  routeNonEvmToSnap: jest.fn().mockResolvedValue(undefined),
+  addNonEvmNamespacesIfRequested: jest.fn(),
+}));
 jest.mock('../../selectors/networkController', () => ({
   selectEvmChainId: jest.fn(),
   selectEvmNetworkConfigurationsByChainId: jest.fn().mockReturnValue({}),
@@ -1225,6 +1242,184 @@ describe('WalletConnect2Session', () => {
         chainId: 1,
         accounts: ['0x1234567890abcdef1234567890abcdef12345678'],
       });
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────
+  // New tests for the non-EVM IF in `handleRequest`. These only validate
+  // the wiring: detailed request mapping / Snap routing is covered by the
+  // dedicated tests under `multichain/*.test.ts`.
+  // ─────────────────────────────────────────────────────────────────────
+  describe('Tron namespace', () => {
+    const multichain = jest.requireMock('./multichain') as {
+      isNonEvmCaipChainId: jest.Mock;
+      getNonEvmAdapterForCaipChainId: jest.Mock;
+      routeNonEvmToSnap: jest.Mock;
+    };
+
+    const tronAdapterMock = {
+      namespace: 'tron',
+      redirectMethods: ['tron_signTransaction', 'tron_signMessage'],
+      normalizeCaipChainId: jest.fn((id: string) => id),
+    };
+
+    beforeEach(() => {
+      jest.clearAllMocks();
+      multichain.isNonEvmCaipChainId.mockImplementation(
+        (id: unknown) => typeof id === 'string' && id.startsWith('tron:'),
+      );
+      multichain.getNonEvmAdapterForCaipChainId.mockImplementation(
+        () => tronAdapterMock,
+      );
+      tronAdapterMock.normalizeCaipChainId.mockImplementation(
+        (id: string) => id,
+      );
+      multichain.routeNonEvmToSnap.mockResolvedValue(undefined);
+    });
+
+    const buildTronRequest = (
+      method: string,
+      chainId: string = 'tron:728126428',
+    ) =>
+      ({
+        id: 42,
+        topic: mockSession.topic,
+        params: {
+          request: { method, params: [{ rawDataHex: '0xabc' }] },
+          chainId,
+        },
+        verifyContext: {
+          verified: {
+            origin: 'https://sunswap.com',
+            validation: 'UNKNOWN',
+            verifyUrl: '',
+          },
+        },
+      }) as unknown as WalletKitTypes.SessionRequest;
+
+    it('routes Tron requests to routeToTronSnap and skips EVM dispatch', async () => {
+      session.session = {
+        ...mockSession,
+        namespaces: {
+          tron: {
+            chains: ['tron:728126428'],
+            methods: ['tron_signTransaction'],
+            events: [],
+            accounts: ['tron:728126428:TJ4ExampleAddress'],
+          },
+        },
+      } as unknown as SessionTypes.Struct;
+
+      const request = buildTronRequest('tron_signTransaction');
+      await session.handleRequest(request);
+
+      expect(multichain.routeNonEvmToSnap).toHaveBeenCalledTimes(1);
+      const args = multichain.routeNonEvmToSnap.mock.calls[0][0];
+      expect(args.scope).toBe('tron:728126428');
+      expect(args.connectedAddresses).toEqual([
+        'tron:728126428:TJ4ExampleAddress',
+      ]);
+      // EVM path side-effects must not have been triggered.
+      expect(session.isHandlingRequest()).toBe(false);
+    });
+
+    it('marks redirect for tron_signTransaction before routing to Snap', async () => {
+      const request = buildTronRequest('tron_signTransaction');
+
+      let redirectStateAtRouting: boolean | undefined;
+      multichain.routeNonEvmToSnap.mockImplementationOnce(async () => {
+        redirectStateAtRouting = (session as any).requestsToRedirect[
+          request.id
+        ];
+      });
+
+      await session.handleRequest(request);
+
+      expect(redirectStateAtRouting).toBe(true);
+    });
+
+    it('does not mark redirect for non-redirect Tron methods', async () => {
+      const request = buildTronRequest('tron_unknownMethod');
+
+      await session.handleRequest(request);
+
+      expect((session as any).requestsToRedirect[request.id]).toBeUndefined();
+    });
+
+    it('normalizes hex Tron chain IDs before routing', async () => {
+      tronAdapterMock.normalizeCaipChainId.mockImplementation((id: string) =>
+        id === 'tron:0x2b6653dc' ? 'tron:728126428' : id,
+      );
+
+      const request = buildTronRequest('tron_signMessage', 'tron:0x2b6653dc');
+      await session.handleRequest(request);
+
+      const args = multichain.routeNonEvmToSnap.mock.calls[0][0];
+      expect(args.scope).toBe('tron:728126428');
+    });
+
+    it('aggregates chains from every namespace in getAllowedChainIds', () => {
+      session.session = {
+        ...mockSession,
+        namespaces: {
+          eip155: {
+            chains: ['eip155:1', 'eip155:137'],
+            methods: [],
+            events: [],
+            accounts: [],
+          },
+          tron: {
+            chains: ['tron:728126428'],
+            methods: [],
+            events: [],
+            accounts: [],
+          },
+        },
+      } as unknown as SessionTypes.Struct;
+
+      const chains = session.getAllowedChainIds;
+      expect(chains).toEqual(
+        expect.arrayContaining(['eip155:1', 'eip155:137', 'tron:728126428']),
+      );
+      expect(chains).toHaveLength(3);
+    });
+
+    it('preserves non-EVM namespaces when updateSession runs', async () => {
+      session.session = {
+        ...mockSession,
+        namespaces: {
+          eip155: {
+            chains: ['eip155:1'],
+            methods: [],
+            events: [],
+            accounts: [],
+          },
+          tron: {
+            chains: ['tron:728126428'],
+            methods: ['tron_signTransaction'],
+            events: [],
+            accounts: ['tron:728126428:TJ4Example'],
+          },
+        },
+      } as unknown as SessionTypes.Struct;
+
+      const updateSpy = jest
+        .spyOn(mockClient, 'updateSession')
+        .mockResolvedValue({ acknowledged: () => Promise.resolve() } as any);
+
+      await session.updateSession({ chainId: 1, accounts: ['0xabc'] });
+
+      const call = updateSpy.mock.calls.find(
+        ([payload]) => payload?.topic === mockSession.topic,
+      )?.[0];
+      expect(call?.namespaces?.tron).toEqual({
+        chains: ['tron:728126428'],
+        methods: ['tron_signTransaction'],
+        events: [],
+        accounts: ['tron:728126428:TJ4Example'],
+      });
+      // EVM slice still produced from getScopedPermissions mock.
+      expect(call?.namespaces?.eip155).toBeDefined();
     });
   });
 });

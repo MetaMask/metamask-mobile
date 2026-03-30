@@ -48,6 +48,7 @@ import {
 import WalletConnect2Session from './WalletConnect2Session';
 import { CaipChainId } from '@metamask/utils';
 import NavigationService from '../NavigationService';
+import { addNonEvmNamespacesIfRequested } from './multichain';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
   typeof PROJECT_ID === 'string' && PROJECT_ID?.length > 0;
@@ -677,6 +678,15 @@ export class WC2Manager {
 
       // Use getScopedPermissions to get properly formatted namespaces
       const namespaces = await getScopedPermissions({ channelId });
+
+      // Inject every non-EVM namespace the dapp asked for.
+      // No-op when the proposal references
+      // only EVM. EVM namespaces built above are never modified.
+      addNonEvmNamespacesIfRequested({
+        namespaces,
+        proposal: proposal.params,
+        channelId,
+      });
 
       DevLogger.log(`WC2::session_proposal namespaces`, namespaces);
 

@@ -232,6 +232,13 @@ jest.mock('./wc-utils', () => ({
   hideWCLoadingState: jest.fn(),
 }));
 
+// Mock for the appended `Tron namespace` describe block. EVM proposal tests
+// above are unaffected: `addNonEvmNamespacesIfRequested` is a no-op that
+// does not modify the namespaces map produced by `getScopedPermissions`.
+jest.mock('./multichain', () => ({
+  addNonEvmNamespacesIfRequested: jest.fn(),
+}));
+
 jest.mock('@walletconnect/core', () => ({
   Core: jest.fn().mockImplementation((opts) => ({
     projectId: opts?.projectId,
@@ -2229,6 +2236,142 @@ describe('WC2Manager', () => {
       await manager.onSessionProposal(proposal as any);
 
       expect(mockDisconnectSession).not.toHaveBeenCalled();
+    });
+  });
+
+  // ─────────────────────────────────────────────────────────────────────
+  // New tests for the Tron hook in `_handleSessionProposal`. These only
+  // validate wiring: full Tron namespace logic is covered by
+  // `multichain/tron/namespace.test.ts`.
+  // ─────────────────────────────────────────────────────────────────────
+  describe('Tron namespace', () => {
+    const multichain = jest.requireMock('./multichain') as {
+      addNonEvmNamespacesIfRequested: jest.Mock;
+    };
+
+    let manager: WC2Manager;
+    let mockApproveSession: jest.Mock;
+
+    beforeEach(async () => {
+      jest.clearAllMocks();
+      multichain.addNonEvmNamespacesIfRequested.mockImplementation(
+        ({ namespaces }: { namespaces: Record<string, unknown> }) => {
+          namespaces.tron = {
+            chains: ['tron:728126428'],
+            methods: ['tron_signTransaction', 'tron_signMessage'],
+            events: [],
+            accounts: ['tron:728126428:TJ4Example'],
+          };
+        },
+      );
+      mockApproveSession = jest.fn().mockResolvedValue({
+        topic: 'tron-topic',
+        pairingTopic: 'tron-pairing',
+        peer: {
+          metadata: { url: 'https://example.com', name: 'X', icons: [] },
+        },
+        namespaces: {},
+      });
+      // Build a minimal manager via the same factory as other suites in this
+      // file. Reuse the existing TestWC2Manager init helper from earlier in
+      // the file by triggering the singleton path.
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (WC2Manager as any).instance = undefined;
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (WC2Manager as any)._initialized = false;
+      manager = (await WC2Manager.init({})) as WC2Manager;
+      const web3Wallet = (manager as unknown as { web3Wallet: IWalletKit })
+        .web3Wallet;
+      (web3Wallet.approveSession as jest.Mock) = mockApproveSession;
+    });
+
+    it('invokes addNonEvmNamespacesIfRequested with the proposal params', async () => {
+      const proposal = {
+        id: 1,
+        params: {
+          id: 1,
+          pairingTopic: 'tron-pairing',
+          proposer: {
+            publicKey: 'pk',
+            metadata: {
+              name: 'X',
+              description: 'X',
+              url: 'https://example.com',
+              icons: [],
+            },
+          },
+          requiredNamespaces: {
+            eip155: {
+              chains: ['eip155:1'],
+              methods: ['eth_sendTransaction'],
+              events: ['chainChanged'],
+            },
+          },
+          optionalNamespaces: {
+            tron: {
+              chains: ['tron:728126428'],
+              methods: ['tron_signTransaction'],
+              events: [],
+            },
+          },
+          expiryTimestamp: Date.now() + 60_000,
+          relays: [{ protocol: 'irn' }],
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await manager.onSessionProposal(proposal as any);
+
+      expect(multichain.addNonEvmNamespacesIfRequested).toHaveBeenCalledTimes(
+        1,
+      );
+      const call = multichain.addNonEvmNamespacesIfRequested.mock.calls[0][0];
+      expect(call.proposal).toBe(proposal.params);
+      expect(call.channelId).toBe('tron-pairing');
+      // EVM namespaces still produced upstream by getScopedPermissions.
+      expect(call.namespaces.eip155).toBeDefined();
+    });
+
+    it('passes the augmented namespaces map to approveSession', async () => {
+      const proposal = {
+        id: 2,
+        params: {
+          id: 2,
+          pairingTopic: 'tron-pairing-2',
+          proposer: {
+            publicKey: 'pk',
+            metadata: {
+              name: 'X',
+              description: 'X',
+              url: 'https://example.com',
+              icons: [],
+            },
+          },
+          requiredNamespaces: {},
+          optionalNamespaces: {
+            tron: {
+              chains: ['tron:728126428'],
+              methods: ['tron_signTransaction'],
+              events: [],
+            },
+          },
+          expiryTimestamp: Date.now() + 60_000,
+          relays: [{ protocol: 'irn' }],
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await manager.onSessionProposal(proposal as any);
+
+      expect(mockApproveSession).toHaveBeenCalledWith(
+        expect.objectContaining({
+          namespaces: expect.objectContaining({
+            tron: expect.objectContaining({
+              chains: ['tron:728126428'],
+            }),
+          }),
+        }),
+      );
     });
   });
 });
