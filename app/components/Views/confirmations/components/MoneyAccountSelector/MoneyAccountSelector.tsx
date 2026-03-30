@@ -2,9 +2,7 @@ import React, { useCallback, useMemo, useState } from 'react';
 import { Modal, SafeAreaView, TouchableOpacity, View } from 'react-native';
 import { AccountGroupObject } from '@metamask/account-tree-controller';
 import { AccountId } from '@metamask/accounts-controller';
-import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { EthScope } from '@metamask/keyring-api';
-import { KnownCaipNamespace } from '@metamask/utils';
 import { useSelector } from 'react-redux';
 import Avatar, {
   AvatarSize,
@@ -35,13 +33,11 @@ export const MONEY_ACCOUNT_SELECTOR_TEST_IDS = {
 };
 
 export interface MoneyAccountSelectorProps {
-  chainId?: string;
   selectedAddress?: string;
   onAccountSelected: (address: string) => void;
 }
 
 const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
-  chainId,
   selectedAddress,
   onAccountSelected,
 }) => {
@@ -54,20 +50,10 @@ const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
   const accountGroupsByWallet = useSelector(selectAccountGroupsByWallet);
   const accountAvatarType = useSelector(selectAvatarAccountType);
 
-  const destScope = chainId ? formatChainIdToCaip(chainId) : '';
-  const isDestEvm = destScope.startsWith(KnownCaipNamespace.Eip155);
-
   const getIsAccountSupported = useCallback(
-    (account: AccountId) => {
-      if (!destScope) return true;
-      const byDestScope =
-        internalAccountsById[account]?.scopes.includes(destScope);
-      const byEvmWildcard = isDestEvm
-        ? internalAccountsById[account]?.scopes.includes(EthScope.Eoa)
-        : false;
-      return byDestScope || byEvmWildcard;
-    },
-    [internalAccountsById, destScope, isDestEvm],
+    (account: AccountId) =>
+      Boolean(internalAccountsById[account]?.scopes.includes(EthScope.Eoa)),
+    [internalAccountsById],
   );
 
   const handleSelectAccount = useCallback(
@@ -85,7 +71,7 @@ const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
   );
 
   const filteredAccountSections = useMemo(() => {
-    if (!chainId || !accountGroupsByWallet || !internalAccountsById) {
+    if (!accountGroupsByWallet || !internalAccountsById) {
       return undefined;
     }
 
@@ -106,12 +92,7 @@ const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
 
       return acc;
     }, []);
-  }, [
-    chainId,
-    accountGroupsByWallet,
-    internalAccountsById,
-    getIsAccountSupported,
-  ]);
+  }, [accountGroupsByWallet, internalAccountsById, getIsAccountSupported]);
 
   const selectedAccountGroup = useMemo(() => {
     if (!selectedAddress) return undefined;
@@ -198,7 +179,6 @@ const MoneyAccountSelector: React.FC<MoneyAccountSelectorProps> = ({
             showFooter={false}
             onSelectAccount={handleSelectAccount}
             accountSections={filteredAccountSections}
-            chainId={chainId}
             hideAccountCellMenu
           />
         </SafeAreaView>

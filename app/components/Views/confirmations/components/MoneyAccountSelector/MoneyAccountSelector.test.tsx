@@ -89,12 +89,12 @@ jest.mock('react-native', () => {
 const mockInternalAccountsById = {
   'account-1': {
     address: '0xAccount1Address',
-    scopes: ['eip155:1'],
+    scopes: ['eip155:0'],
     metadata: { name: 'Account 1' },
   },
   'account-2': {
     address: '0xAccount2Address',
-    scopes: ['eip155:1'],
+    scopes: ['eip155:0'],
     metadata: { name: 'Account 2' },
   },
 };
@@ -159,12 +159,6 @@ jest.mock('react-redux', () => ({
   }),
 }));
 
-jest.mock('@metamask/bridge-controller', () => ({
-  formatChainIdToCaip: jest.fn(
-    (chainId: string) => `eip155:${parseInt(chainId, 16)}`,
-  ),
-}));
-
 jest.mock(
   '../../../../../component-library/components-temp/MultichainAccounts/MultichainAccountSelectorList/MultichainAccountSelectorList',
   () => {
@@ -183,7 +177,7 @@ jest.mock(
       }[];
       selectedAccountGroups?: unknown[];
       showFooter?: boolean;
-      chainId?: string;
+
       hideAccountCellMenu?: boolean;
     }) => (
       <View testID="account-selector-list">
@@ -232,10 +226,7 @@ describe('MoneyAccountSelector', () => {
 
   it('opens modal when pill is pressed', () => {
     const { getByTestId } = render(
-      <MoneyAccountSelector
-        chainId="0x1"
-        onAccountSelected={mockOnAccountSelected}
-      />,
+      <MoneyAccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
     fireEvent.press(getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL));
@@ -247,10 +238,7 @@ describe('MoneyAccountSelector', () => {
 
   it('calls onAccountSelected with correct address when account is selected', () => {
     const { getByTestId } = render(
-      <MoneyAccountSelector
-        chainId="0x1"
-        onAccountSelected={mockOnAccountSelected}
-      />,
+      <MoneyAccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
     fireEvent.press(getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL));
@@ -261,10 +249,7 @@ describe('MoneyAccountSelector', () => {
 
   it('closes modal after selecting an account', () => {
     const { getByTestId, queryByTestId } = render(
-      <MoneyAccountSelector
-        chainId="0x1"
-        onAccountSelected={mockOnAccountSelected}
-      />,
+      <MoneyAccountSelector onAccountSelected={mockOnAccountSelected} />,
     );
 
     fireEvent.press(getByTestId(MONEY_ACCOUNT_SELECTOR_TEST_IDS.PILL));

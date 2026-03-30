@@ -55,7 +55,6 @@ jest.mock('../../MoneyAccountSelector', () => {
       onAccountSelected,
     }: {
       onAccountSelected: (address: string) => void;
-      chainId?: string;
       selectedAddress?: string;
     }) => (
       <TouchableOpacity
@@ -134,10 +133,7 @@ describe('MoneyAccountDepositInfo', () => {
     );
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
 
-    fireEvent.changeText(
-      getByTestId('money-account-selector-input'),
-      '0xTestAddress',
-    );
+    fireEvent.press(getByTestId('money-account-selector-pill'));
 
     expect(updateEditableParams).not.toHaveBeenCalled();
   });
