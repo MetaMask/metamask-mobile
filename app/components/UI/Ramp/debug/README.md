@@ -6,6 +6,8 @@ Opt-in tooling that streams `RampsController` state, method calls, and related f
 
 ## Enable in the app
 
+Values are read via **`app/util/environment.ts`** (`isRampsDebugDashboardEnabled`, `getRampsDebugDashboardWebSocketUrl`), same as other dev flags: `process.env` is **inlined at bundle time** by Babel (`transform-inline-environment-variables`) from `.js.env` when Metro runs — there is no separate runtime env loader for these keys.
+
 1. In **`.js.env`** (copy from `.js.env.example` if needed), set:
 
    ```bash

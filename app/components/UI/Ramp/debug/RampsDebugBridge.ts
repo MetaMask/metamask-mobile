@@ -1,17 +1,6 @@
 import type { RampsController } from '@metamask/ramps-controller';
+import { getRampsDebugDashboardWebSocketUrl } from '../../../../util/environment';
 import Logger from '../../../../util/Logger';
-
-/**
- * WebSocket URL for the local ramps-debug-dashboard server.
- * Set `RAMPS_DEBUG_DASHBOARD_URL` in `.js.env` when `localhost` is wrong (e.g. physical device → use Mac LAN IP, or Android emulator host alias).
- */
-function getRampsDebugDashboardWebSocketUrl(): string {
-  const url = process.env.RAMPS_DEBUG_DASHBOARD_URL;
-  if (typeof url === 'string' && url.trim().length > 0) {
-    return url.trim();
-  }
-  return 'ws://localhost:8099';
-}
 
 const DASHBOARD_URL = getRampsDebugDashboardWebSocketUrl();
 const RECONNECT_DELAY_MS = 3000;
