@@ -185,6 +185,7 @@
     "viem": "2.31.3",
     "@metamask/account-tree-controller": "6.0.0",
     "@metamask/accounts-controller": "37.1.0",
+    "@metamask/snaps-controllers": "18.0.4",
     "@metamask/core-backend": "^5.0.0",
     "@metamask/bridge-status-controller@npm:^69.0.0": "patch:@metamask/bridge-status-controller@npm%3A69.0.0#~/.yarn/patches/@metamask-bridge-status-controller-npm-69.0.0-ec19aeeecf.patch",
     "bn.js@npm:4.11.6": "4.12.3",
