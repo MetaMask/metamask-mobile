@@ -112,6 +112,8 @@
     "run-playwright:android-bs": "yarn playwright test --project browserstack-android --config tests/playwright.config.ts",
     "run-playwright:android-onboarding-bs": "yarn playwright test --project android-onboarding --project android-onboarding-seedless --config tests/playwright.config.ts",
     "run-playwright:ios-onboarding-bs": "yarn playwright test --project ios-onboarding --project ios-onboarding-seedless --config tests/playwright.config.ts",
+    "run-playwright:android-seedless-bs": "yarn playwright test --project android-onboarding-seedless --config tests/playwright.config.ts",
+    "run-playwright:ios-seedless-bs": "yarn playwright test --project ios-onboarding-seedless --config tests/playwright.config.ts",
     "run-playwright:ios-bs": "yarn playwright test --project browserstack-ios --config tests/playwright.config.ts",
     "run-playwright:android": "yarn playwright test --project android --config tests/playwright.config.ts",
     "run-playwright:ios": "yarn playwright test --project ios --config tests/playwright.config.ts",
