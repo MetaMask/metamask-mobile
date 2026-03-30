@@ -195,7 +195,7 @@ export default defineConfig({
     },
     {
       name: 'android-onboarding-seedless',
-      testMatch: '**/performance/onboarding/seedless-*.spec.js',
+      testMatch: '**/performance/onboarding/seedless-*.spec.ts',
       use: {
         platform: Platform.ANDROID,
         device: {
@@ -214,7 +214,7 @@ export default defineConfig({
     },
     {
       name: 'ios-onboarding-seedless',
-      testMatch: '**/performance/onboarding/seedless-*.spec.js',
+      testMatch: '**/performance/onboarding/seedless-*.spec.ts',
       use: {
         platform: Platform.IOS,
         device: {
