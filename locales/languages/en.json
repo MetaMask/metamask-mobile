@@ -6004,6 +6004,7 @@
     "percentage_bonus": "{{percentage}}% bonus",
     "claimable_bonus": "Claimable bonus",
     "claim_bonus": "Claim bonus",
+    "claim_bonus_with_fiat": "Claim {{amount}}",
     "claim_bonus_subtitle": "Bonus will be paid out on {{networkName}}.",
     "percentage_bonus_on_linea": "{{percentage}}% bonus on Linea",
     "claim": "Claim",
@@ -6532,6 +6533,9 @@
       },
       "predict_deposit": {
         "transaction_fee": "We'll swap your tokens for USDC.e on Polygon, the network used by Predictions. Swap providers may charge a fee, but MetaMask won't."
+      },
+      "perps_withdraw": {
+        "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
       },
       "predict_withdraw": {
         "transaction_fee": "MetaMask will swap to your desired token for you. No MetaMask fee applies when you swap to mUSD."
@@ -7953,7 +7957,8 @@
       "opt_in_sheet_link_text": "Supplemental Terms of Use and Privacy Notice",
       "opt_in_sheet_description_post_link": "We'll track onchain activity to reward you automatically.",
       "geo_restriction_banner_title": "Not available in your region",
-      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations."
+      "geo_restriction_banner_description": "This campaign is not available in your region due to local regulations.",
+      "opt_in_success_toast": "You're in!"
     },
     "campaign_mechanics": {
       "title": "Mechanics"
@@ -7968,6 +7973,8 @@
       "join_campaign": "Join the campaign",
       "entries_closed_title": "Entries closed",
       "entries_closed_description": "You missed the opt-in window",
+      "competition_closed_title": "Competition no longer open",
+      "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
       "how_it_works": "How it works"
@@ -7986,13 +7993,12 @@
       "retry": "Retry"
     },
     "ondo_campaign_portfolio": {
-      "title": "Positions",
+      "title": "My Positions",
       "total_value": "Total value",
       "portfolio_pnl": "P&L",
       "portfolio_pnl_percent": "P&L (%)",
       "summary_cost_basis": "Cost basis",
       "summary_net_deposit": "Net deposit",
-      "positions_heading": "Positions",
       "position_current_value": "Value",
       "position_unrealized_pnl": "P&L",
       "updated_at": "Last updated: {{time}}",

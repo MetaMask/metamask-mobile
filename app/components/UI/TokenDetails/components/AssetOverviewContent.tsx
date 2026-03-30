@@ -58,6 +58,7 @@ import { useTokenDetailsABTest } from '../hooks/useTokenDetailsABTest';
 import useTokenBuyability from '../../Ramp/hooks/useTokenBuyability';
 import {
   MarketInsightsEntryCard,
+  MarketInsightsEntryCardSkeleton,
   useMarketInsights,
   selectMarketInsightsEnabled,
 } from '../../MarketInsights';
@@ -640,6 +641,11 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
     });
   };
 
+  const shouldShowMarketInsights =
+    isMarketInsightsEnabled &&
+    Boolean(marketInsightsCaip19Id) &&
+    (Boolean(marketInsightsReport) || isMarketInsightsLoading);
+
   return (
     <View style={styles.wrapper} testID={TokenOverviewSelectorsIDs.CONTAINER}>
       {token.hasBalanceError ? (
@@ -841,17 +847,19 @@ const AssetOverviewContent: React.FC<AssetOverviewContentProps> = ({
               }}
             />
           )}
-          {isMarketInsightsEnabled &&
-          marketInsightsReport &&
-          marketInsightsCaip19Id ? (
+          {shouldShowMarketInsights ? (
             <View style={styles.marketInsightsWrapper}>
-              <MarketInsightsEntryCard
-                report={marketInsightsReport}
-                timeAgo={marketInsightsTimeAgo}
-                onPress={handleMarketInsightsPress}
-                caip19Id={marketInsightsCaip19Id}
-                testID="market-insights-entry-card"
-              />
+              {marketInsightsReport ? (
+                <MarketInsightsEntryCard
+                  report={marketInsightsReport}
+                  timeAgo={marketInsightsTimeAgo}
+                  onPress={handleMarketInsightsPress}
+                  caip19Id={marketInsightsCaip19Id ?? undefined}
+                  testID="market-insights-entry-card"
+                />
+              ) : (
+                <MarketInsightsEntryCardSkeleton />
+              )}
             </View>
           ) : null}
           {
