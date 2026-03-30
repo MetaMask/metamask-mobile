@@ -59,7 +59,12 @@ export class AppStateEventListener {
         this.processAppStateChange();
       }, 2000);
     }
-    this.lastAppState = nextAppState;
+    // On iOS, returning from background passes through an intermediate 'inactive'
+    // state before reaching 'active'. Don't overwrite 'background' with 'inactive'
+    // so the subsequent 'active' check above still sees the original 'background' state.
+    if (!(nextAppState === 'inactive' && this.lastAppState === 'background')) {
+      this.lastAppState = nextAppState;
+    }
   };
 
   private identifyUserOnAppStart = () => {
