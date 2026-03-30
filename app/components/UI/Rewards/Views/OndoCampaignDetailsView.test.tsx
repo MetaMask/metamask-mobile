@@ -725,7 +725,7 @@ describe('OndoCampaignDetailsView', () => {
       expect(queryByTestId('competition-ended-banner')).toBeNull();
     });
 
-    it('shows the banner even while participant status is loading (entries closed)', () => {
+    it('does not show the banner while participant status is loading (entries closed)', () => {
       mockUseRewardCampaigns.mockReturnValue({
         ...hookDefaults,
         campaigns: [
@@ -743,8 +743,8 @@ describe('OndoCampaignDetailsView', () => {
         hasError: false,
         refetch: jest.fn(),
       });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('competition-ended-banner')).toBeDefined();
+      const { queryByTestId } = render(<OndoCampaignDetailsView />);
+      expect(queryByTestId('competition-ended-banner')).toBeNull();
     });
   });
 
