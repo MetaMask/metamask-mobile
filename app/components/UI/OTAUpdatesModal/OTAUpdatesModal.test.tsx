@@ -7,6 +7,7 @@ import { MetaMetricsEvents } from '../../../core/Analytics';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
+import { AnalyticsEventBuilder } from '../../../util/analytics/AnalyticsEventBuilder';
 
 // Mock theme utility
 jest.mock('../../../util/theme', () => ({
@@ -119,11 +120,12 @@ import OTAUpdatesModal from './OTAUpdatesModal';
 describe('OTAUpdatesModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    jest
-      .mocked(useAnalytics)
-      .mockReturnValue(
-        createMockUseAnalyticsHook({ trackEvent: mockTrackEvent }),
-      );
+    jest.mocked(useAnalytics).mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: AnalyticsEventBuilder.createEventBuilder,
+      }),
+    );
     (Platform as unknown as { OS: string }).OS = 'ios';
     mockOnCloseBottomSheet.mockImplementation((callback?: () => void) => {
       if (callback) callback();
@@ -135,7 +137,7 @@ describe('OTAUpdatesModal', () => {
 
     expect(mockTrackEvent).toHaveBeenCalledWith(
       expect.objectContaining({
-        event: MetaMetricsEvents.OTA_UPDATES_MODAL_VIEWED,
+        name: MetaMetricsEvents.OTA_UPDATES_MODAL_VIEWED.category,
       }),
     );
   });
@@ -148,7 +150,8 @@ describe('OTAUpdatesModal', () => {
     await waitFor(() => {
       expect(mockTrackEvent).toHaveBeenCalledWith(
         expect.objectContaining({
-          event: MetaMetricsEvents.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED,
+          name: MetaMetricsEvents.OTA_UPDATES_MODAL_PRIMARY_ACTION_CLICKED
+            .category,
         }),
       );
     });
