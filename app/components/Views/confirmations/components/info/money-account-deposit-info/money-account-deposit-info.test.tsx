@@ -69,6 +69,18 @@ jest.mock('../../MoneyAccountSelector', () => {
 });
 
 describe('MoneyAccountDepositInfo', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    const { useTransactionMetadataRequest } = jest.requireMock(
+      '../../../hooks/transactions/useTransactionMetadataRequest',
+    );
+    useTransactionMetadataRequest.mockReturnValue({
+      id: 'mock-tx-id',
+      chainId: '0x1',
+      txParams: { from: '0xFromAddress', to: undefined },
+    });
+  });
+
   it('renders CustomAmountInfo with usd currency', () => {
     const { getByTestId } = render(<MoneyAccountDepositInfo />);
 
@@ -112,5 +124,24 @@ describe('MoneyAccountDepositInfo', () => {
     expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
       to: '0xTestAddress',
     });
+  });
+
+  it('does not call updateEditableParams when transactionMeta has no id', () => {
+    const { useTransactionMetadataRequest } = jest.requireMock(
+      '../../../hooks/transactions/useTransactionMetadataRequest',
+    );
+    useTransactionMetadataRequest.mockReturnValueOnce(null);
+
+    const { updateEditableParams } = jest.requireMock(
+      '../../../../../../util/transaction-controller',
+    );
+    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+
+    fireEvent.changeText(
+      getByTestId('money-account-selector-input'),
+      '0xTestAddress',
+    );
+
+    expect(updateEditableParams).not.toHaveBeenCalled();
   });
 });
