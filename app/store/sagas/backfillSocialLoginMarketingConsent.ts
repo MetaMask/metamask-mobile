@@ -9,8 +9,6 @@ import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onb
 import Logger from '../../util/Logger';
 import type { RootState } from '../../reducers';
 import { selectPendingSocialLoginMarketingConsentBackfill } from '../../selectors/seedlessOnboardingController';
-import generateUserProfileAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 
 export function* backfillSocialLoginMarketingConsent() {
   const authConnection: RootState['onboarding']['seedless']['pendingSocialLoginMarketingConsentBackfill'] =
@@ -30,11 +28,6 @@ export function* backfillSocialLoginMarketingConsent() {
   }
 
   try {
-    yield call([analytics, analytics.identify], {
-      ...generateUserProfileAnalyticsMetaData(),
-      ...generateDeviceAnalyticsMetaData(),
-    });
-
     const event = AnalyticsEventBuilder.createEventBuilder(
       MetaMetricsEvents.ANALYTICS_PREFERENCE_SELECTED,
     )

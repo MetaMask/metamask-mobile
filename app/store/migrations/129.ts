@@ -43,7 +43,7 @@ const migration = (state: unknown): unknown => {
       return state;
     }
 
-    if (state.security.dataCollectionForMarketing !== true) {
+    if (state.security?.dataCollectionForMarketing !== true) {
       return state;
     }
 

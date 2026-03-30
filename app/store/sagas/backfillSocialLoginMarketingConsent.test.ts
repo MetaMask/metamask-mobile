@@ -5,8 +5,6 @@ import { UserProfileProperty } from '../../util/metrics/UserSettingsAnalyticsMet
 import initialRootState from '../../util/test/initial-root-state';
 import { setPendingSocialLoginMarketingConsentBackfill } from '../../actions/onboarding';
 import { analytics } from '../../util/analytics/analytics';
-import generateUserProfileAnalyticsMetaData from '../../util/metrics/UserSettingsAnalyticsMetaData/generateUserProfileAnalyticsMetaData';
-import generateDeviceAnalyticsMetaData from '../../util/metrics/DeviceAnalyticsMetaData/generateDeviceAnalyticsMetaData';
 
 jest.mock('../../core/Analytics', () => ({
   __esModule: true,
@@ -50,11 +48,6 @@ jest.mock('../../util/Logger', () => ({
   },
 }));
 
-const mockedGenerateUserProfile = jest.mocked(
-  generateUserProfileAnalyticsMetaData,
-);
-const mockedGenerateDevice = jest.mocked(generateDeviceAnalyticsMetaData);
-
 const mockUserProfileTraits = { theme: 'dark', token_detection_enable: 'ON' };
 const mockDeviceTraits = { platform: 'ios', applicationVersion: '7.0.0' };
 
@@ -64,8 +57,6 @@ describe('backfillSocialLoginMarketingConsent', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    mockedGenerateUserProfile.mockReturnValue(mockUserProfileTraits as never);
-    mockedGenerateDevice.mockReturnValue(mockDeviceTraits as never);
   });
 
   it('does nothing when no pending backfill marker exists', async () => {
