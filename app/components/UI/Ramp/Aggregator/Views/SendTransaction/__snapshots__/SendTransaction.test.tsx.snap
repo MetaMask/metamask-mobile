@@ -132,11 +132,7 @@ exports[`SendTransaction View renders correctly 1`] = `
           >
             <View
               collapsable={false}
-              enabled={false}
-              handlerTag={3}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
+              pointerEvents="box-none"
               style={
                 {
                   "flex": 1,
@@ -146,7 +142,7 @@ exports[`SendTransaction View renders correctly 1`] = `
               <View
                 collapsable={false}
                 enabled={false}
-                handlerTag={2}
+                handlerTag={3}
                 handlerType="PanGestureHandler"
                 needsOffscreenAlphaCompositing={false}
                 onGestureHandlerEvent={[Function]}
@@ -901,11 +897,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
           >
             <View
               collapsable={false}
-              enabled={false}
-              handlerTag={6}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
+              pointerEvents="box-none"
               style={
                 {
                   "flex": 1,
@@ -915,7 +907,7 @@ exports[`SendTransaction View renders correctly for custom action payment method
               <View
                 collapsable={false}
                 enabled={false}
-                handlerTag={5}
+                handlerTag={6}
                 handlerType="PanGestureHandler"
                 needsOffscreenAlphaCompositing={false}
                 onGestureHandlerEvent={[Function]}
@@ -1588,11 +1580,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
           >
             <View
               collapsable={false}
-              enabled={false}
-              handlerTag={5}
-              handlerType="PanGestureHandler"
-              onGestureHandlerEvent={[Function]}
-              onGestureHandlerStateChange={[Function]}
+              pointerEvents="box-none"
               style={
                 {
                   "flex": 1,
@@ -1602,7 +1590,7 @@ exports[`SendTransaction View renders correctly for token 1`] = `
               <View
                 collapsable={false}
                 enabled={false}
-                handlerTag={4}
+                handlerTag={5}
                 handlerType="PanGestureHandler"
                 needsOffscreenAlphaCompositing={false}
                 onGestureHandlerEvent={[Function]}
