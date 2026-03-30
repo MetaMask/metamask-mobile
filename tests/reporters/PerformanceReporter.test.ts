@@ -285,6 +285,25 @@ describe('PerformanceReporter', () => {
       expect(BrowserStackEnricher).toHaveBeenCalled();
     });
 
+    it('enriches sessions for onboarding BrowserStack projects', async () => {
+      const result = makeResult({
+        attachments: [
+          makeSessionAttachment({ projectName: 'android-onboarding' }),
+          makeMetricsAttachment(),
+        ],
+      });
+      reporter.onTestEnd(
+        makeTest({
+          parent: { project: { name: 'android-onboarding' } },
+        }) as never,
+        result as never,
+      );
+
+      await reporter.onEnd();
+
+      expect(BrowserStackEnricher).toHaveBeenCalled();
+    });
+
     it('creates reports directory if it does not exist', async () => {
       (fs.existsSync as jest.Mock).mockReturnValue(false);
       const result = makeResult({

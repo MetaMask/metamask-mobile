@@ -400,18 +400,24 @@ class PerformanceReporter {
     const projectNames = this.sessions
       .map((s) => s.projectName)
       .filter(Boolean);
+    const isBrowserStackProject = (name: string): boolean => {
+      const normalizedName = name.toLowerCase();
+      return (
+        normalizedName.includes('browserstack') ||
+        normalizedName === 'android-onboarding' ||
+        normalizedName === 'ios-onboarding'
+      );
+    };
     const isBrowserStackRun =
       this.sessions.length > 0 &&
-      projectNames.some((name) =>
-        (name ?? '').toLowerCase().includes('browserstack'),
-      );
+      projectNames.some((name) => isBrowserStackProject(name ?? ''));
 
     logger.info(
       `[Pipeline] Sessions: ${this.sessions.length}, projectNames: [${projectNames.join(', ') || 'none'}], isBrowserStackRun: ${isBrowserStackRun}`,
     );
     if (this.sessions.length > 0 && !isBrowserStackRun) {
       logger.info(
-        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project name does not include "browserstack-"',
+        '[Pipeline] Skipping BrowserStack fetch (video/profiling/network logs): project is not recognized as BrowserStack-backed',
       );
     }
 

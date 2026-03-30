@@ -52,10 +52,14 @@ class CreateNewWalletScreen {
     if (!this._device) {
       return Selectors.getXpathElementByResourceId(REMIND_LATER_BUTTON_ID);
     } else {
-      return AppwrightSelectors.getElementByID(
-        this._device,
-        REMIND_LATER_BUTTON_ID,
-      );
+      if (AppwrightSelectors.isAndroid(this._device)) {
+        return AppwrightSelectors.getElementByID(
+          this._device,
+          REMIND_LATER_BUTTON_ID,
+        );
+      } else {
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeStaticText[@name="Remind me later"])[2]');
+      }
     }
   }
 
@@ -71,7 +75,7 @@ class CreateNewWalletScreen {
           CREATE_PASSWORD_INPUT_FIRST_FIELD,
         );
       } else {
-        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="textfield"])[1]');
+        return AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="create-password-first-input-field"])[1]');
       }
     }
   }
@@ -88,7 +92,7 @@ class CreateNewWalletScreen {
           CONFIRM_PASSWORD_INPUT_FIRST_FIELD,
         );
       } else {
-        return  AppwrightSelectors.getElementByXpath(this._device, '//XCUIElementTypeOther[@name="textfield" and @label="create-password-second-input-field"]');
+        return  AppwrightSelectors.getElementByXpath(this._device, '(//XCUIElementTypeOther[@name="create-password-second-input-field"])[1]');
       }
     }
   }
