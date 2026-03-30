@@ -579,6 +579,7 @@ describe('OAuth login service', () => {
       expect(result.type).toBe('success');
       expect(result.existingUser).toBe(true);
       expect(result.accountName).toBe('swnam909@gmail.com');
+      expect(mockAuthenticate).not.toHaveBeenCalled();
     });
 
     it('rejects when QA mock token response is non-OK', async () => {

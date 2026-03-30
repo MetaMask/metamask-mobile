@@ -7,6 +7,7 @@ import WelcomeScreen from '../../../wdio/screen-objects/Onboarding/OnboardingCar
 import TermOfUseScreen from '../../../wdio/screen-objects/Modals/TermOfUseScreen.js';
 import OnboardingScreen from '../../../wdio/screen-objects/Onboarding/OnboardingScreen.js';
 import OnboardingSheet from '../../../wdio/screen-objects/Onboarding/OnboardingSheet.js';
+import SocialLoginScreen from '../../../wdio/screen-objects/Onboarding/SocialLoginScreen.js';
 import CreatePasswordScreen from '../../../wdio/screen-objects/Onboarding/CreatePasswordScreen.js';
 import MetaMetricsScreen from '../../../wdio/screen-objects/Onboarding/MetaMetricsScreen.js';
 import OnboardingSucessScreen from '../../../wdio/screen-objects/OnboardingSucessScreen.js';
@@ -132,6 +133,83 @@ export async function onboardingFlowImportSRP(device, srp) {
   await OnboardingSucessScreen.tapDone();
 
   //await dismissRewardsBottomSheetModal(device);
+  await dissmissPredictionsModal(device);
+  await WalletMainScreen.isMainWalletViewVisible();
+}
+
+export async function onboardingFlowSeedlessNewUser(device, provider) {
+  OnboardingScreen.device = device;
+  OnboardingSheet.device = device;
+  SocialLoginScreen.device = device;
+  CreatePasswordScreen.device = device;
+  OnboardingSucessScreen.device = device;
+  WalletMainScreen.device = device;
+  LoginScreen.device = device;
+
+  await OnboardingScreen.isScreenTitleVisible();
+
+  await OnboardingScreen.tapCreateNewWalletButton();
+  await OnboardingSheet.isVisible();
+
+  if (provider === 'google') {
+    await OnboardingSheet.tapGoogleLoginButton();
+  } else {
+    await OnboardingSheet.tapAppleLoginButton();
+  }
+
+  let isNewUser = true;
+
+  if (AppwrightSelectors.isIOS(device)) {
+    const iosNewUserEl = await SocialLoginScreen.iosNewUserTitle;
+    const accountFoundEl = await SocialLoginScreen.accountFoundContainer;
+    const result = await Promise.any([
+      expect(iosNewUserEl)
+        .toBeVisible({ timeout: 30000 })
+        .then(() => 'new_user'),
+      expect(accountFoundEl)
+        .toBeVisible({ timeout: 30000 })
+        .then(() => 'existing_user'),
+    ]);
+    isNewUser = result === 'new_user';
+
+    if (isNewUser) {
+      await SocialLoginScreen.tapIosNewUserSetPinButton();
+      await CreatePasswordScreen.isVisible();
+    }
+  } else {
+    const passwordEl = await CreatePasswordScreen.newPasswordInput;
+    const accountFoundEl = await SocialLoginScreen.accountFoundContainer;
+    const result = await Promise.any([
+      expect(passwordEl)
+        .toBeVisible({ timeout: 30000 })
+        .then(() => 'new_user'),
+      expect(accountFoundEl)
+        .toBeVisible({ timeout: 30000 })
+        .then(() => 'existing_user'),
+    ]);
+    isNewUser = result === 'new_user';
+  }
+
+  if (!isNewUser) {
+    throw new Error(
+      `onboardingFlowSeedlessNewUser(${provider}): expected new-user OAuth UI; got account-found. ` +
+        'Use a seedless E2E build where the first social login is new user (same as new-user perf APK), ' +
+        'not an existing-user-only mock artifact.',
+    );
+  }
+
+  await CreatePasswordScreen.enterPassword(
+    getPasswordForScenario('onboarding'),
+  );
+  await CreatePasswordScreen.reEnterPassword(
+    getPasswordForScenario('onboarding'),
+  );
+  await CreatePasswordScreen.tapIUnderstandCheckBox();
+  await CreatePasswordScreen.tapCreatePasswordButton();
+
+  await OnboardingSucessScreen.isVisible();
+  await OnboardingSucessScreen.tapDone();
+  await checkPredictionsModalIsVisible(device);
   await dissmissPredictionsModal(device);
   await WalletMainScreen.isMainWalletViewVisible();
 }
