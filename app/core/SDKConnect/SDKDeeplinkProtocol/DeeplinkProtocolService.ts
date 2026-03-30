@@ -555,6 +555,16 @@ export default class DeeplinkProtocolService {
       params: any;
     };
 
+    // Track wallet-side RPC action for deeplink protocol
+    const anonId = this.connections[params.channelId]?.originatorInfo?.anonId;
+    if (anonId) {
+      analytics.track('wallet_action_received', {
+        anon_id: anonId,
+        transport: 'deeplink_protocol',
+        rpc_method: requestObject.method,
+      });
+    }
+
     // Prevent external transactions from using internal origins.
     // This is an external connection (SDK deeplink protocol), so block any internal origin.
     // NOTE: params.url is self-reported by the dapp via the deeplink URL and is unverified.
