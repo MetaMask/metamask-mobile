@@ -36,7 +36,7 @@ class CreatePasswordView {
           ),
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
-            '//XCUIElementTypeSecureTextField[@name="create-password-first-input-field"]',
+            '//XCUIElementTypeSecureTextField[@name="create-password-first-input-field"][1]',
           ),
       },
     });
@@ -59,7 +59,7 @@ class CreatePasswordView {
           ),
         ios: () =>
           PlaywrightMatchers.getElementByXPath(
-            '//XCUIElementTypeSecureTextField[@name="create-password-second-input-field"]',
+            '//XCUIElementTypeSecureTextField[@name="create-password-second-input-field"][2]',
           ),
       },
     });

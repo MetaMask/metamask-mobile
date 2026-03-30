@@ -20,13 +20,19 @@ class ProtectYourWalletView {
         Matchers.getElementByID(
           ManualBackUpStepsSelectorsIDs.REMIND_ME_LATER_BUTTON,
         ),
-      appium: () =>
-        PlaywrightMatchers.getElementByXPath(
-          '(//XCUIElementTypeStaticText[@name="Remind me later"])[2]',
-          {
-            exact: true,
-          },
-        ),
+      appium: {
+        android: () =>
+          PlaywrightMatchers.getElementByAndroidUIAutomator(
+            'text("Remind me later")',
+          ),
+        ios: () =>
+          PlaywrightMatchers.getElementByXPath(
+            '(//XCUIElementTypeStaticText[@name="Remind me later"])[2]',
+            {
+              exact: true,
+            },
+          ),
+      },
     });
   }
 
