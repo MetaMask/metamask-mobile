@@ -75,10 +75,15 @@ export interface CustomAmountInfoProps {
    * Callback fired when user presses Done after entering an amount.
    */
   onAmountSubmit?: () => void;
+  /**
+   * Optional content rendered after the PayWithRow inside inputContainer.
+   */
+  afterPayWith?: ReactNode;
 }
 
 export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
   ({
+    afterPayWith,
     children,
     currency,
     disablePay,
@@ -156,6 +161,7 @@ export const CustomAmountInfo: React.FC<CustomAmountInfoProps> = memo(
               )}
               {children}
               {disablePay !== true && hasTokens && <PayWithRow />}
+              {afterPayWith}
             </>
           )}
         </Box>

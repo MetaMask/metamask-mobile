@@ -1,5 +1,5 @@
 import React from 'react';
-import { render } from '@testing-library/react-native';
+import { render, fireEvent } from '@testing-library/react-native';
 import {
   MoneyAccountDepositInfo,
   MONEY_ACCOUNT_CURRENCY,
@@ -11,15 +11,63 @@ jest.mock('../../../hooks/ui/useNavbar', () => ({
 }));
 
 jest.mock('../custom-amount-info', () => ({
-  CustomAmountInfo: ({ currency }: { currency: string }) => {
-    const { Text } = jest.requireActual('react-native');
-    return <Text testID="custom-amount-info">{currency}</Text>;
+  CustomAmountInfo: ({
+    currency,
+    children,
+    afterPayWith,
+  }: {
+    currency: string;
+    children?: React.ReactNode;
+    afterPayWith?: React.ReactNode;
+  }) => {
+    const { View, Text } = jest.requireActual('react-native');
+    return (
+      <View>
+        <Text testID="custom-amount-info">{currency}</Text>
+        {children}
+        {afterPayWith}
+      </View>
+    );
   },
 }));
 
 jest.mock('../../../../../../../locales/i18n', () => ({
   strings: (key: string) => key,
 }));
+
+jest.mock('../../../hooks/transactions/useTransactionMetadataRequest', () => ({
+  useTransactionMetadataRequest: jest.fn(() => ({
+    id: 'mock-tx-id',
+    chainId: '0x1',
+    txParams: { from: '0xFromAddress', to: undefined },
+  })),
+}));
+
+jest.mock('../../../../../../util/transaction-controller', () => ({
+  updateEditableParams: jest.fn(),
+}));
+
+jest.mock('../../../../../UI/Ramp/Deposit/components/ToAccountSelector', () => {
+  const { TouchableOpacity, Text } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: ({
+      onAccountSelected,
+      selectedAddress,
+    }: {
+      onAccountSelected: (address: string) => void;
+      chainId?: string;
+      selectedAddress?: string;
+    }) => (
+      <TouchableOpacity
+        testID="to-account-selector-pill"
+        onPress={() => onAccountSelected('0xTestAddress')}
+      >
+        <Text>{selectedAddress ?? 'Select recipient'}</Text>
+      </TouchableOpacity>
+    ),
+  };
+});
 
 describe('MoneyAccountDepositInfo', () => {
   it('renders CustomAmountInfo with usd currency', () => {
@@ -43,5 +91,24 @@ describe('MoneyAccountDepositInfo', () => {
 
   it('MONEY_ACCOUNT_CURRENCY is usd', () => {
     expect(MONEY_ACCOUNT_CURRENCY).toBe('usd');
+  });
+
+  it('renders ToAccountSelector', () => {
+    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+
+    expect(getByTestId('to-account-selector-pill')).toBeOnTheScreen();
+  });
+
+  it('calls updateEditableParams with selected address when account is chosen', () => {
+    const { updateEditableParams } = jest.requireMock(
+      '../../../../../../util/transaction-controller',
+    );
+    const { getByTestId } = render(<MoneyAccountDepositInfo />);
+
+    fireEvent.press(getByTestId('to-account-selector-pill'));
+
+    expect(updateEditableParams).toHaveBeenCalledWith('mock-tx-id', {
+      to: '0xTestAddress',
+    });
   });
 });
