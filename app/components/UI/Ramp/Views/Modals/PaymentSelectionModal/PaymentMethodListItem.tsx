@@ -63,7 +63,8 @@ const PaymentMethodListItem: React.FC<PaymentMethodListItemProps> = ({
   const { colors } = useTheme();
   const styles = createStyles(colors);
   const { formatToken, formatCurrency } = useFormatters();
-  const localizedPaymentMethodName = getLocalizedPaymentMethodName(paymentMethod);
+  const localizedPaymentMethodName =
+    getLocalizedPaymentMethodName(paymentMethod);
 
   const delayText =
     Array.isArray(paymentMethod.delay) && paymentMethod.delay.length >= 2

@@ -23,7 +23,9 @@ describe('localizePaymentMethodName', () => {
 
   it('returns localized debit card label on non-English locales', () => {
     I18n.locale = 'es';
-    const stringsSpy = jest.spyOn(I18n, 't').mockReturnValue('Tarjeta de débito');
+    const stringsSpy = jest
+      .spyOn(I18n, 't')
+      .mockReturnValue('Tarjeta de débito');
 
     const label = getLocalizedPaymentMethodName(makePaymentMethod());
 

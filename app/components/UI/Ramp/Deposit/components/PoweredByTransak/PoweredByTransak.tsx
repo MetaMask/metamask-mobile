@@ -13,7 +13,8 @@ function PoweredByTransak({
   ...props
 }: React.ComponentProps<typeof PoweredByTransakSVG>) {
   const { styles } = useStyles(styleSheet, {});
-  const showLocalizedText = I18n.locale.toLowerCase().startsWith('en') === false;
+  const showLocalizedText =
+    I18n.locale.toLowerCase().startsWith('en') === false;
 
   if (showLocalizedText) {
     return (

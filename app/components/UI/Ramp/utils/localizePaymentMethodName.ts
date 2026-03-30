@@ -28,17 +28,15 @@ const isCardPaymentMethod = (paymentMethod: PaymentMethodLike): boolean => {
   const comparableType = toComparableValue(paymentMethod.paymentType);
   const comparableName = toComparableValue(paymentMethod.name);
 
-  return CARD_PAYMENT_METHOD_IDENTIFIERS.some(
-    (identifier) => {
-      const comparableIdentifier = toComparableValue(identifier);
+  return CARD_PAYMENT_METHOD_IDENTIFIERS.some((identifier) => {
+    const comparableIdentifier = toComparableValue(identifier);
 
-      return (
-        comparableId.includes(comparableIdentifier) ||
-        comparableType.includes(comparableIdentifier) ||
-        comparableName.includes(comparableIdentifier)
-      );
-    },
-  );
+    return (
+      comparableId.includes(comparableIdentifier) ||
+      comparableType.includes(comparableIdentifier) ||
+      comparableName.includes(comparableIdentifier)
+    );
+  });
 };
 
 /**
