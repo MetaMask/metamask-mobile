@@ -145,6 +145,10 @@ export const PerpsPayRow = ({
 
     const defaultToken = defaultPayTokenWhenNoPerpsBalance;
     if (defaultToken != null) {
+      appliedPendingTokenRef.current = {
+        address: defaultToken.address,
+        chainId: defaultToken.chainId,
+      };
       setPayToken({
         address: defaultToken.address as Hex,
         chainId: defaultToken.chainId as Hex,
@@ -154,10 +158,7 @@ export const PerpsPayRow = ({
         address: defaultToken.address as Hex,
         chainId: defaultToken.chainId as Hex,
       });
-      appliedPendingTokenRef.current = {
-        address: defaultToken.address,
-        chainId: defaultToken.chainId,
-      };
+
       return;
     }
 
@@ -170,8 +171,15 @@ export const PerpsPayRow = ({
     setPayToken,
   ]);
 
+  useEffect(
+    () => () => {
+      Engine.context.PerpsController?.setSelectedPaymentToken?.(null);
+    },
+    [initialAsset],
+  );
+
   useEffect(() => {
-    if (!pendingConfigSelectedPaymentToken || !selectedPaymentToken) return;
+    if (!pendingConfigSelectedPaymentToken) return;
 
     const pendingAddr = pendingConfigSelectedPaymentToken.address;
     const pendingChainId = pendingConfigSelectedPaymentToken.chainId;
@@ -185,8 +193,15 @@ export const PerpsPayRow = ({
 
     if (
       payToken?.address !== pendingAddr ||
-      payToken?.chainId !== pendingChainId
+      payToken?.chainId !== pendingChainId ||
+      selectedPaymentToken?.address !== pendingAddr ||
+      selectedPaymentToken?.chainId !== pendingChainId
     ) {
+      appliedPendingTokenRef.current = {
+        address: pendingAddr,
+        chainId: pendingChainId,
+      };
+
       setPayToken({
         address: pendingAddr as Hex,
         chainId: pendingChainId as Hex,
@@ -198,11 +213,8 @@ export const PerpsPayRow = ({
         chainId: pendingChainId as Hex,
       });
     }
-    appliedPendingTokenRef.current = {
-      address: pendingAddr,
-      chainId: pendingChainId,
-    };
   }, [
+    initialAsset,
     payToken,
     pendingConfigSelectedPaymentToken,
     setPayToken,
