@@ -37,11 +37,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Improved Predict withdraw token list load performance (#27735)
 - Removed token list item V1/V2 feature flag (#27731)
 - Updated hosted charting library URL for in-app charts (#27972)
-- Refined Rewards pages, campaign tiles, and mUSD calculator presentation (#27952, #27949)
+- Hid date on Rewards campaign cards, tightened disclaimer copy, and added mUSD button metrics in the mUSD view (#27952)
+- Improved mUSD calculator defaults, swap navigation, and disclaimer placement (#27949)
 - Market Insights feedback buttons show a filled state and persist selection for the current digest (#27849)
-- Migrated `Button` to the design system across web3auth, card, confirmations, wallet-integration, and bridge scopes (#27810, #27752, #27805, #27548, #27535)
+- Migrated `Button` to the design system in the web3auth scope (#27810)
+- Migrated `Button` to the design system in the card scope (#27752)
+- Migrated `Button` to the design system in the confirmations scope (#27805)
+- Migrated `Button` to the design system in the wallet-integration scope (#27548)
+- Migrated `Button` to the design system in the bridge scope (#27535)
 - Activity "View full history" uses the correct block explorer when the wallet network does not match the activity chain (#27734)
-- WalletConnect v2: sequential session restore, `pairingTopic` handling for permission revocation, and Redux store listener cleanup (#27950, #27945, #27932)
+- WalletConnect v2: sequential session restore (#27950)
+- WalletConnect v2: `pairingTopic` handling for permission revocation (#27945)
+- WalletConnect v2: Redux store listener cleanup (#27932)
 
 ### Fixed
 
