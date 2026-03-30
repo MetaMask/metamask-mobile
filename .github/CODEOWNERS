@@ -60,7 +60,7 @@ scripts/set-secrets-from-config.js                          @MetaMask/mobile-adm
 metro.transform.js @MetaMask/mobile-platform @MetaMask/core-platform
 
 # Money Movement Team (formerly Ramps)
-ramps-debug-dashboard/                                 @MetaMask/money-movement
+scripts/money-movement/                                @MetaMask/money-movement
 app/components/UI/Ramp/                                @MetaMask/money-movement
 app/reducers/fiatOrders/                               @MetaMask/money-movement
 app/core/Engine/controllers/ramps-controller           @MetaMask/money-movement

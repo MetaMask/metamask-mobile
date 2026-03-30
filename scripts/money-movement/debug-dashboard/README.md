@@ -1,14 +1,14 @@
-# Ramps debug dashboard
+# Ramps debug dashboard (Money Movement)
 
-Local WebSocket relay between MetaMask Mobile (`RampsDebugBridge`) and the browser UI.
+Host-side dev tool under **`scripts/money-movement/`**. Local WebSocket relay between MetaMask Mobile (`RampsDebugBridge`) and the browser UI.
 
-**App setup (env vars, devices, `adb reverse`):** see [`app/components/UI/Ramp/debug/README.md`](../app/components/UI/Ramp/debug/README.md).
+**App setup (env vars, devices, `adb reverse`):** see [`app/components/UI/Ramp/debug/README.md`](../../../app/components/UI/Ramp/debug/README.md).
 
 ## Session log (for Cursor / agents)
 
 Every message the mobile app sends is appended to a **JSON Lines** file (one JSON object per line) so an agent can read the same stream you see in the browser:
 
-- **Default path:** `ramps-debug-dashboard/logs/ramps-debug.jsonl` (gitignored)
+- **Default path:** `scripts/money-movement/debug-dashboard/logs/ramps-debug.jsonl` (gitignored)
 - **Override:** `RAMPS_DEBUG_LOG_FILE=/absolute/path/custom.jsonl node server.mjs`
 
 Each line includes the same `type`, `args`, `result`, `state`, etc. as the dashboard, plus `_serverReceivedAt` (ms since epoch) when the server wrote the line.

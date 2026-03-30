@@ -24,7 +24,7 @@ From the **repository root**:
 
 4. **In the app:** set `RAMPS_DEBUG_DASHBOARD="true"` in **`.js.env`**, restart Metro (`yarn watch:clean` or your watcher), run a **debug** build. When the app connects, the server logs `Mobile app connected`.
 
-The dashboard folder is **not** part of the root Yarn workspace; **`npm ci`** is used there on purpose (see below). Root scripts wrap that so you do not need to `cd` into `ramps-debug-dashboard/`.
+The dashboard lives under **`scripts/money-movement/debug-dashboard/`** (Money Movement team scripts, same idea as e.g. `scripts/perps/`). It is **not** part of the root Yarn workspace; **`npm ci`** is used there on purpose. Root `yarn` scripts wrap it so you do not need to `cd` into that folder.
 
 ## Enable in the app
 
@@ -71,7 +71,7 @@ yarn ramps:debug-dashboard:install   # once / when lockfile changes
 yarn ramps:debug-dashboard
 ```
 
-Or from **`ramps-debug-dashboard/`**:
+Or from **`scripts/money-movement/debug-dashboard/`**:
 
 ```bash
 npm ci && node server.mjs
@@ -81,11 +81,11 @@ npm ci && node server.mjs
 - WebSocket: `ws://localhost:8099`
 - Optional: `RAMPS_DEBUG_PORT=8100 yarn ramps:debug-dashboard` (and set `RAMPS_DEBUG_DASHBOARD_URL` in `.js.env` to match).
 
-`yarn start` inside **`ramps-debug-dashboard/`** can fail under the root Yarn workspace; prefer the root **`yarn ramps:debug-dashboard`** commands or **`npm ci` + `node server.mjs`** in that directory.
+`yarn start` inside **`scripts/money-movement/debug-dashboard/`** can fail under the root Yarn workspace; prefer the root **`yarn ramps:debug-dashboard`** commands or **`npm ci` + `node server.mjs`** in that directory.
 
 Session log (JSON Lines, useful for agents / offline review):
 
-- Default: `ramps-debug-dashboard/logs/ramps-debug.jsonl`
+- Default: `scripts/money-movement/debug-dashboard/logs/ramps-debug.jsonl`
 - Override: `RAMPS_DEBUG_LOG_FILE=/absolute/path.jsonl node server.mjs`
 
 ## Verify

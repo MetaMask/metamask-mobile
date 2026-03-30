@@ -32,7 +32,7 @@ export const isRampsDebugDashboardEnabled = (): boolean =>
   process.env.RAMPS_DEBUG_DASHBOARD === 'true';
 
 /**
- * WebSocket URL for `ramps-debug-dashboard` (default host loopback).
+ * WebSocket URL for the RAMPS debug dashboard (`scripts/money-movement/debug-dashboard/`, default host loopback).
  * Override with `RAMPS_DEBUG_DASHBOARD_URL` in `.js.env` for devices/emulators.
  *
  * @see app/components/UI/Ramp/debug/README.md

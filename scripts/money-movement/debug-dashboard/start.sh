@@ -2,7 +2,7 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MOBILE_DIR="$(dirname "$SCRIPT_DIR")"
+MOBILE_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_DIR")")")"
 BRIDGE_FILE="$MOBILE_DIR/app/components/UI/Ramp/debug/RampsDebugBridge.ts"
 INIT_FILE="$MOBILE_DIR/app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts"
 

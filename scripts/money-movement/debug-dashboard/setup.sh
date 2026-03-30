@@ -2,7 +2,8 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
-MOBILE_DIR="$(dirname "$SCRIPT_DIR")"
+# Repo root (this package lives at scripts/money-movement/debug-dashboard/)
+MOBILE_DIR="$(dirname "$(dirname "$(dirname "$SCRIPT_DIR")")")"
 BRIDGE_DEST="$MOBILE_DIR/app/components/UI/Ramp/debug"
 INIT_FILE="app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts"
 

@@ -24,7 +24,7 @@ jobs:
           paths_ignored: |
             tests/
             docs/
-            ramps-debug-dashboard/
+            scripts/money-movement/debug-dashboard/
             .storybook/
             '**/*.test.js'
             '**/*.test.ts'
