@@ -757,6 +757,17 @@ export default class DeeplinkProtocolService {
         DevLogger.log('DeeplinkProtocolService:: parsed message:-', message);
         data = message;
 
+        // Track wallet-side RPC action for deeplink protocol
+        const actionAnonId =
+          this.connections[sessionId]?.originatorInfo?.anonId;
+        if (actionAnonId) {
+          analytics.track('wallet_action_received', {
+            anon_id: actionAnonId,
+            transport: 'deeplink_protocol',
+            rpc_method: data.method,
+          });
+        }
+
         const isAccountChanged = dappAccountAddress !== walletSelectedAddress;
         const isChainChanged = dappAccountChainId !== walletSelectedChainId;
 

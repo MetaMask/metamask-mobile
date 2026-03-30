@@ -16,6 +16,10 @@ import { analytics } from '@metamask/sdk-analytics';
 
 jest.mock('../SDKConnect');
 jest.mock('react-native');
+jest.mock('../utils/wait.util', () => ({
+  wait: jest.fn().mockResolvedValue(undefined),
+  waitForKeychainUnlocked: jest.fn().mockResolvedValue(true),
+}));
 jest.mock('@metamask/sdk-analytics', () => ({
   analytics: {
     track: jest.fn(),
@@ -710,6 +714,127 @@ describe('DeeplinkProtocolService', () => {
           params: [],
         }),
       });
+
+      expect(analytics.track).not.toHaveBeenCalledWith(
+        'wallet_action_received',
+        expect.anything(),
+      );
+    });
+  });
+
+  describe('handleMessage analytics', () => {
+    const originatorInfoPayload = {
+      originatorInfo: {
+        url: 'https://test-dapp.com',
+        title: 'Test Dapp',
+        platform: 'web',
+        dappId: 'test',
+        anonId: 'msg-anon-id-789',
+      },
+    };
+
+    it('tracks wallet_action_received for RPC messages', async () => {
+      await service.init();
+
+      // Pre-seed connection with anonId
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).connections = {
+        'msg-channel-001': {
+          id: 'msg-channel-001',
+          originatorInfo: originatorInfoPayload.originatorInfo,
+          validUntil: Date.now() + 60000,
+          scheme: 'testapp',
+          connected: true,
+        },
+      };
+
+      // Pre-seed bridge
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockBridge: any = { onMessage: jest.fn() };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).bridgeByClientId = { 'msg-channel-001': mockBridge };
+
+      (handleCustomRpcCalls as jest.Mock).mockResolvedValueOnce({
+        id: '1',
+        method: 'personal_sign',
+        params: [],
+      });
+
+      const rpcMessage = { id: '1', method: 'personal_sign', params: [] };
+      const base64Message = Buffer.from(JSON.stringify(rpcMessage)).toString(
+        'base64',
+      );
+
+      // Use checksummed address so it matches walletSelectedAddress (no account-changed early exit)
+      service.handleMessage({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        message: base64Message,
+        channelId: 'msg-channel-001',
+        scheme: 'testapp',
+        account: `${toChecksumHexAddress(MOCK_ADDRESS)}@0x1`,
+      });
+
+      // handleMessage fires async internally — wait for it
+      await new Promise((resolve) => setTimeout(resolve, 300));
+
+      expect(analytics.track).toHaveBeenCalledWith(
+        'wallet_action_received',
+        expect.objectContaining({
+          anon_id: 'msg-anon-id-789',
+          transport: 'deeplink_protocol',
+          rpc_method: 'personal_sign',
+        }),
+      );
+    });
+
+    it('does not track when anonId is absent', async () => {
+      await service.init();
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).connections = {
+        'msg-no-anon-channel': {
+          id: 'msg-no-anon-channel',
+          originatorInfo: {
+            url: 'https://test.com',
+            title: 'Test',
+            platform: 'web',
+            dappId: 'test',
+          },
+          validUntil: Date.now() + 60000,
+          scheme: 'testapp',
+          connected: true,
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const mockBridgeNoAnon: any = { onMessage: jest.fn() };
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      (service as any).bridgeByClientId = {
+        'msg-no-anon-channel': mockBridgeNoAnon,
+      };
+
+      (handleCustomRpcCalls as jest.Mock).mockResolvedValueOnce({
+        id: '1',
+        method: 'personal_sign',
+        params: [],
+      });
+
+      const rpcMessage = { id: '1', method: 'personal_sign', params: [] };
+      const base64Message = Buffer.from(JSON.stringify(rpcMessage)).toString(
+        'base64',
+      );
+
+      service.handleMessage({
+        dappPublicKey: 'test-pub-key',
+        url: 'https://test-dapp.com',
+        message: base64Message,
+        channelId: 'msg-no-anon-channel',
+        scheme: 'testapp',
+        account: `${toChecksumHexAddress(MOCK_ADDRESS)}@0x1`,
+      });
+
+      await new Promise((resolve) => setTimeout(resolve, 300));
 
       expect(analytics.track).not.toHaveBeenCalledWith(
         'wallet_action_received',
