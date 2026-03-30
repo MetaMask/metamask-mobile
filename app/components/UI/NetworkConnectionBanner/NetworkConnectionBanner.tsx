@@ -4,7 +4,6 @@ import { useAppTheme } from '../../../util/theme';
 import { useNetworkConnectionBanner } from '../../hooks/useNetworkConnectionBanner';
 import { strings } from '../../../../locales/i18n';
 import { NetworkConnectionBannerState } from '../../../reducers/networkConnectionBanner';
-import BannerBase from '../../../component-library/components/Banners/Banner/foundation/BannerBase';
 import { Theme } from '../../../util/theme/models';
 import Animated, {
   cancelAnimation,
@@ -16,6 +15,7 @@ import Animated, {
 } from 'react-native-reanimated';
 import { Platform, Pressable } from 'react-native';
 import {
+  BannerBase,
   FontWeight,
   Icon,
   IconColor,

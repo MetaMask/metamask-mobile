@@ -20,7 +20,7 @@ import {
 /**
  * @deprecated This component is unused and will be removed.
  * Please use `BannerBase` from `@metamask/design-system-react-native` instead.
- * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/BannerBase/README.md}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/MIGRATION.md#bannerbase-component Migration docs}
  * @since @metamask/design-system-react-native@0.11.0
  */
 const BannerTip: React.FC<BannerTipProps> = ({
