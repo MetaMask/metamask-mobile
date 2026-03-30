@@ -352,10 +352,6 @@ import {
   AppMetadataControllerState,
 } from '@metamask/app-metadata-controller';
 import type {
-  ErrorReportingService,
-  ErrorReportingServiceActions,
-} from '@metamask/error-reporting-service';
-import type {
   StorageService,
   StorageServiceActions,
   StorageServiceEvents,
@@ -439,7 +435,6 @@ import { captureException } from '@sentry/react-native';
  */
 type RequiredControllers = Omit<
   Controllers,
-  | 'ErrorReportingService'
   | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
@@ -453,7 +448,6 @@ type RequiredControllers = Omit<
  */
 type OptionalControllers = Pick<
   Controllers,
-  | 'ErrorReportingService'
   | 'GeolocationApiService'
   | 'MultichainRouter'
   | 'RewardsDataService'
@@ -548,7 +542,6 @@ type GlobalActions =
   | AppMetadataControllerActions
   | MultichainRouterActions
   | DeFiPositionsControllerActions
-  | ErrorReportingServiceActions
   | StorageServiceActions
   | DelegationControllerActions
   | SeedlessOnboardingControllerActions
@@ -690,7 +683,6 @@ export type Controllers = {
   AssetsContractController: AssetsContractController;
   AssetsController: AssetsController;
   CurrencyRateController: CurrencyRateController;
-  ErrorReportingService: ErrorReportingService;
   GasFeeController: GasFeeController;
   KeyringController: KeyringController;
   LoggingController: LoggingController;
@@ -908,7 +900,6 @@ export type ControllersToInitialize =
   | 'SnapKeyringBuilder'
   ///: END:ONLY_INCLUDE_IF
   | 'EarnController'
-  | 'ErrorReportingService'
   | 'StorageService'
   | 'LoggingController'
   | 'NetworkController'
