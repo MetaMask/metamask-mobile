@@ -1214,7 +1214,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not publish order confirmed event when there is an active buy order', async () => {
+    it('publishes order confirmed event when there is an active buy order', async () => {
       const mockResult = {
         success: true as const,
         response: {
@@ -1239,8 +1239,8 @@ describe('PredictController', () => {
 
           await controller.placeOrder({ preview });
 
-          expect(handler).not.toHaveBeenCalledWith(
-            expect.objectContaining({ type: 'order' }),
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'order', status: 'confirmed' }),
           );
         },
         {
@@ -1351,7 +1351,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not publish order failed event when buy order fails and there is an active buy order', async () => {
+    it('publishes order failed event when buy order fails and there is an active buy order', async () => {
       await withController(
         async ({ controller, messenger }) => {
           mockPolymarketProvider.placeOrder.mockRejectedValue(
@@ -1372,8 +1372,8 @@ describe('PredictController', () => {
             'Order placement failed',
           );
 
-          expect(handler).not.toHaveBeenCalledWith(
-            expect.objectContaining({ type: 'order' }),
+          expect(handler).toHaveBeenCalledWith(
+            expect.objectContaining({ type: 'order', status: 'failed' }),
           );
         },
         {
@@ -4150,6 +4150,7 @@ describe('PredictController', () => {
 
     it('still sets selectedPaymentToken when activeOrder is null', () => {
       withController(({ controller }) => {
+        controller.clearActiveOrder();
         expect(controller.state.activeBuyOrder).toBeNull();
 
         controller.selectPaymentToken(
@@ -4197,6 +4198,7 @@ describe('PredictController', () => {
 
     it('does not throw when activeOrder is null', () => {
       withController(({ controller }) => {
+        controller.clearActiveOrder();
         expect(controller.state.activeBuyOrder).toBeNull();
 
         expect(() => controller.clearOrderError()).not.toThrow();
@@ -4268,7 +4270,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('onPlaceOrderEnd sets activeBuyOrder to null and does not clear pendingOrderPreviews', () => {
+    it('clearActiveOrder sets activeBuyOrder to null and does not clear pendingOrderPreviews', () => {
       withController(({ controller }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.SUCCESS,
@@ -4278,7 +4280,7 @@ describe('PredictController', () => {
           signerAddress: MOCK_ADDRESS,
         };
 
-        controller.onPlaceOrderEnd();
+        controller.clearActiveOrder();
 
         expect(controller.state.activeBuyOrder).toBeNull();
         expect(getPendingOrderPreviews(controller)['tx-123']).toBeDefined();
@@ -4340,7 +4342,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('isCurrentActiveBuyOrder returns false when activeBuyOrder has no transactionId and a transactionId is provided', async () => {
+    it('updates activeBuyOrder to SUCCESS when buy order completes regardless of transactionId mismatch', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -4364,7 +4366,7 @@ describe('PredictController', () => {
           });
 
           expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PREVIEW,
+            ActiveOrderState.SUCCESS,
           );
         },
         {
@@ -4379,7 +4381,7 @@ describe('PredictController', () => {
   });
 
   describe('payWithAnyTokenConfirmation', () => {
-    it('initializes an order when there is no active order', async () => {
+    it('initializes deposit batch with default active order in PREVIEW state', async () => {
       await withController(async ({ controller }) => {
         controller.setSelectedPaymentToken({
           address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
@@ -4398,7 +4400,6 @@ describe('PredictController', () => {
         expect(controller.state.activeBuyOrder?.state).toBe(
           ActiveOrderState.PREVIEW,
         );
-        expect(controller.state.selectedPaymentToken).toBeNull();
         expect(mockPolymarketProvider.prepareDeposit).toHaveBeenCalled();
         expect(addTransactionBatch).toHaveBeenCalled();
       });
@@ -4985,7 +4986,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('clears preview activeOrder when deposit-and-order transaction is rejected after switching back to balance', () => {
+    it('resets activeOrder to PREVIEW when deposit-and-order transaction is rejected after switching back to balance', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictDeposit,
@@ -5008,11 +5009,14 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeBuyOrder?.transactionId).toBeUndefined();
       });
     });
 
-    it('clears activeOrder when deposit-and-order transaction is rejected from preview while an external token is still selected', () => {
+    it('resets activeOrder to PREVIEW and clears selectedPaymentToken when deposit-and-order transaction is rejected from preview while an external token is still selected', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictDeposit,
@@ -5040,12 +5044,15 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeBuyOrder?.transactionId).toBeUndefined();
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
-    it('clears activeOrder when deposit-and-order transaction is rejected outside preview', () => {
+    it('resets activeOrder to PREVIEW when deposit-and-order transaction is rejected outside preview', () => {
       withController(({ controller, messenger }) => {
         const transactionMeta = createPredictTransactionMeta({
           nestedType: TransactionType.predictDeposit,
@@ -5068,7 +5075,10 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
+        expect(controller.state.activeBuyOrder?.transactionId).toBeUndefined();
       });
     });
 
@@ -7445,8 +7455,8 @@ describe('PredictController', () => {
     });
   });
 
-  describe('onPlaceOrderEnd', () => {
-    it('clears activeOrder and selectedPaymentToken', () => {
+  describe('onPlaceOrderSuccess', () => {
+    it('resets activeBuyOrder to PREVIEW and clears selectedPaymentToken', () => {
       withController(({ controller }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.SUCCESS,
@@ -7457,14 +7467,16 @@ describe('PredictController', () => {
           symbol: 'USDC',
         });
 
-        controller.onPlaceOrderEnd();
+        controller.onPlaceOrderSuccess();
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrder).toEqual({
+          state: ActiveOrderState.PREVIEW,
+        });
         expect(controller.state.selectedPaymentToken).toBeNull();
       });
     });
 
-    it('does not clear pendingOrderPreviews on navigation away', () => {
+    it('does not clear pendingOrderPreviews on success reset', () => {
       withController(({ controller }) => {
         (
           controller as unknown as {
@@ -7480,7 +7492,7 @@ describe('PredictController', () => {
           signerAddress: MOCK_ADDRESS,
         };
 
-        controller.onPlaceOrderEnd();
+        controller.onPlaceOrderSuccess();
 
         expect(
           (
@@ -7696,7 +7708,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not update activeBuyOrder when background order completes for a different active order', async () => {
+    it('updates activeBuyOrder to SUCCESS when background order completes for any buy order', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -7736,7 +7748,7 @@ describe('PredictController', () => {
           });
 
           expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PREVIEW,
+            ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
           expect(
@@ -7762,7 +7774,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not clear selectedPaymentToken when background order fails for a different active order', async () => {
+    it('clears selectedPaymentToken when buy order fails with flag enabled', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -7785,11 +7797,7 @@ describe('PredictController', () => {
             controller.placeOrder({ preview, transactionId: 'tx-bg-1' }),
           ).rejects.toThrow('Order failed');
 
-          expect(controller.state.selectedPaymentToken).toEqual({
-            address: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
-            chainId: '0x89',
-            symbol: 'USDC',
-          });
+          expect(controller.state.selectedPaymentToken).toBeNull();
         },
         {
           mocks: {
@@ -7906,7 +7914,7 @@ describe('PredictController', () => {
       );
     });
 
-    it('does not enter PAY_WITH_ANY_TOKEN branch when transactionId has existing pending preview', async () => {
+    it('skips PAY_WITH_ANY_TOKEN deposit branch and places order directly when transactionId has existing pending preview', async () => {
       await withController(
         async ({ controller }) => {
           setActiveOrderForTest(controller, {
@@ -7946,7 +7954,7 @@ describe('PredictController', () => {
           });
 
           expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PAY_WITH_ANY_TOKEN,
+            ActiveOrderState.SUCCESS,
           );
           expect(mockPolymarketProvider.placeOrder).toHaveBeenCalled();
         },
@@ -8010,7 +8018,9 @@ describe('PredictController', () => {
 
         await controller.placeOrder({ preview });
 
-        expect(controller.state.activeBuyOrder).toBeNull();
+        expect(controller.state.activeBuyOrder?.state).toBe(
+          ActiveOrderState.PREVIEW,
+        );
       });
     });
 
@@ -8207,7 +8217,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('returns activeBuyOrder to preview and retries when depositAndOrder transaction fails', () => {
+    it('returns activeBuyOrder to PAY_WITH_ANY_TOKEN and retries when depositAndOrder transaction fails', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.DEPOSITING,
@@ -8235,7 +8245,7 @@ describe('PredictController', () => {
         } as { transactionMeta: TransactionMeta });
 
         expect(controller.state.activeBuyOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
         expect(retrySpy).toHaveBeenCalledTimes(1);
       });
@@ -8278,7 +8288,7 @@ describe('PredictController', () => {
 
         expect(retrySpy).toHaveBeenCalledTimes(1);
         expect(controller.state.activeBuyOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
         expect(controller.state.activeBuyOrder?.error).toBe(
           'User rejected the request.',
@@ -8350,7 +8360,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('does not publish order failed event when depositAndOrder fails and there is an active buy order', () => {
+    it('publishes order failed event when depositAndOrder fails and there is an active buy order', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.DEPOSITING,
@@ -8383,8 +8393,8 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(handler).not.toHaveBeenCalledWith(
-          expect.objectContaining({ type: 'order' }),
+        expect(handler).toHaveBeenCalledWith(
+          expect.objectContaining({ type: 'order', status: 'failed' }),
         );
       });
     });
@@ -8450,7 +8460,7 @@ describe('PredictController', () => {
       });
     });
 
-    it('does not retry initPayWithAnyToken when deposit fails for a different active order', () => {
+    it('retries initPayWithAnyToken when deposit fails and activeBuyOrder exists', () => {
       withController(({ controller, messenger }) => {
         setActiveOrderForTest(controller, {
           state: ActiveOrderState.PREVIEW,
@@ -8476,9 +8486,9 @@ describe('PredictController', () => {
           },
         } as { transactionMeta: TransactionMeta });
 
-        expect(retrySpy).not.toHaveBeenCalled();
+        expect(retrySpy).toHaveBeenCalledTimes(1);
         expect(controller.state.activeBuyOrder?.state).toBe(
-          ActiveOrderState.PREVIEW,
+          ActiveOrderState.PAY_WITH_ANY_TOKEN,
         );
       });
     });
@@ -8636,7 +8646,7 @@ describe('PredictController', () => {
 
           expect(retrySpy).toHaveBeenCalled();
           expect(controller.state.activeBuyOrder?.state).toBe(
-            ActiveOrderState.PREVIEW,
+            ActiveOrderState.PAY_WITH_ANY_TOKEN,
           );
         });
       });
