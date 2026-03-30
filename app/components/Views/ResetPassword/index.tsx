@@ -745,6 +745,7 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
                     color={TextColor.TextDefault}
                     testID={ChoosePasswordSelectorsIDs.CHECKBOX_TEXT_ID}
                     onPress={toggleSelection}
+                    twClassName="flex-row items-center w-[90%]"
                   >
                     {isSrp
                       ? strings('reset_password.i_understand')
