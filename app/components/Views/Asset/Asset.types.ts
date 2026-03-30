@@ -2,6 +2,8 @@
  * Asset view navigation parameters
  */
 
+import { TokenRwaData } from '@metamask/assets-controllers';
+
 /** Asset loader parameters */
 export interface AssetLoaderParams {
   address?: string;
@@ -25,8 +27,5 @@ export interface AssetViewParams {
   aggregators?: string[];
   source?: string;
   scrollToMerklRewards?: boolean;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  rwaData?: any;
-  // Additional properties from token spread
-  [key: string]: unknown;
+  rwaData?: TokenRwaData;
 }
