@@ -2317,6 +2317,7 @@
       "cashing_out_subtitle": "Estimated {{time}} seconds",
       "placing_prediction": "Placing a prediction",
       "prediction_placed": "Prediction placed",
+      "prediction_failed": "Failed to place prediction",
       "order_failed": "Order failed",
       "payments_made_in_usdc": "All payments are made in USDC",
       "prediction_insufficient_funds": "Not enough funds. You can use up to {{amount}}.",
@@ -2330,6 +2331,7 @@
       "order_failed_title": "Order failed",
       "order_failed_body": "There wasn't enough liquidity at this price. Want to try again?",
       "try_again": "Try again",
+      "view": "View",
       "yes_buy": "Yes, buy",
       "yes_sell": "Yes, sell"
     },
@@ -2384,7 +2386,8 @@
       "unknown_error": "An unknown error occurred",
       "order_not_fully_filled": "Failed to fill your order",
       "buy_order_not_fully_filled": "Not enough shares available at market price to place your order right now.",
-      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now."
+      "sell_order_not_fully_filled": "There isn't enough demand at market price to cash out right now.",
+      "preview_not_available": "No preview available"
     },
     "game_details_footer": {
       "pick_a_winner": "Pick a winner",
