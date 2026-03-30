@@ -1,18 +1,10 @@
-import { SetStateAction, useCallback, useMemo, useRef, useState } from 'react';
-
+import { SetStateAction, useCallback, useRef, useState } from 'react';
 import { usePredictActiveOrder } from '../../../hooks/usePredictActiveOrder';
-import { RouteProp, useRoute } from '@react-navigation/native';
-import { PredictNavigationParamList } from '../../../types/navigation';
 
 export const usePredictBuyInputState = () => {
-  const { activeOrder, updateActiveOrder } = usePredictActiveOrder();
+  const { clearOrderError } = usePredictActiveOrder();
 
-  const route =
-    useRoute<RouteProp<PredictNavigationParamList, 'PredictBuyPreview'>>();
-
-  const { isConfirming: initialIsConfirmingFromRoute = false } = route.params;
-
-  const currentValue = activeOrder?.amount ?? 0;
+  const [currentValue, setCurrentValueState] = useState(0);
 
   const currentValueRef = useRef(currentValue);
   currentValueRef.current = currentValue;
@@ -21,24 +13,18 @@ export const usePredictBuyInputState = () => {
     currentValue ? currentValue.toString() : '',
   );
 
-  const isInputFocused = useMemo(
-    () => activeOrder?.isInputFocused ?? false,
-    [activeOrder],
-  );
+  const [isInputFocused, setIsInputFocusedState] = useState(true);
+  const shouldSyncCurrentValueRef = useRef(false);
+  const shouldClearAmountErrorRef = useRef(false);
+  const shouldSyncInputFocusRef = useRef(false);
 
-  const setIsInputFocused = useCallback(
-    (_isInputFocused: boolean) => {
-      updateActiveOrder({
-        isInputFocused: _isInputFocused,
-      });
-    },
-    [updateActiveOrder],
-  );
+  const setIsInputFocused = useCallback((nextIsInputFocused: boolean) => {
+    shouldSyncInputFocusRef.current = true;
+    setIsInputFocusedState(nextIsInputFocused);
+  }, []);
 
   const [isUserInputChange, setIsUserInputChange] = useState(false);
-  const [isConfirming, setIsConfirming] = useState(
-    initialIsConfirmingFromRoute,
-  );
+  const [isConfirming, setIsConfirming] = useState(false);
 
   const setCurrentValue = useCallback(
     (value: SetStateAction<number>) => {
@@ -50,16 +36,19 @@ export const usePredictBuyInputState = () => {
 
       const isUserInput = nextValue !== previousValue && nextValue > 0;
 
+      if (isUserInput) {
+        clearOrderError();
+      }
+
       if (nextValue !== previousValue) {
         setIsUserInputChange(isUserInput);
       }
 
-      updateActiveOrder({
-        amount: nextValue,
-        ...(isUserInput ? { error: null } : {}),
-      });
+      shouldSyncCurrentValueRef.current = true;
+      shouldClearAmountErrorRef.current = isUserInput;
+      setCurrentValueState(nextValue);
     },
-    [updateActiveOrder],
+    [clearOrderError],
   );
 
   return {
