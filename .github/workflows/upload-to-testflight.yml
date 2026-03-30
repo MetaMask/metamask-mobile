@@ -4,6 +4,23 @@ name: Upload to TestFlight
 # All TestFlight logic lives here; build.yml only builds and uploads artifacts.
 #
 on:
+  workflow_call:
+    inputs:
+      source_branch:
+        description: 'Branch, tag, or SHA to build'
+        required: true
+        type: string
+        default: 'main'
+      environment:
+        description: 'Build environment / track (exp, beta, rc)'
+        required: true
+        type: string
+        default: 'rc'
+      testflight_group:
+        description: 'TestFlight external testing group'
+        required: false
+        type: string
+        default: 'MetaMask BETA & Release Candidates'
   workflow_dispatch:
     inputs:
       source_branch:
@@ -39,28 +56,10 @@ jobs:
   # Create a temporary branch so the version-bump commit can be pushed without
   # hitting branch-protection rules on the source branch (e.g. main).
   prepare-build-branch:
-    name: Create build branch
-    runs-on: ubuntu-latest
-    outputs:
-      build_branch: ${{ steps.create-branch.outputs.branch_name }}
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-          ref: ${{ inputs.source_branch }}
-          token: ${{ secrets.PR_TOKEN || github.token }}
-      - name: Create temporary build branch
-        id: create-branch
-        env:
-          SOURCE_BRANCH: ${{ inputs.source_branch }}
-        run: |
-          TIMESTAMP=$(date +%s%3N)
-          SANITIZED=$(echo "$SOURCE_BRANCH" | tr '/' '-')
-          BRANCH_NAME="build/${SANITIZED}-${TIMESTAMP}"
-          git checkout -b "$BRANCH_NAME"
-          git push origin "$BRANCH_NAME"
-          echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
-          echo "✅ Created build branch: $BRANCH_NAME"
+    uses: ./.github/workflows/create-build-branch.yml
+    with:
+      source_branch: ${{ inputs.source_branch }}
+    secrets: inherit
 
   build:
     name: Build iOS (${{ inputs.environment || 'rc' }})
