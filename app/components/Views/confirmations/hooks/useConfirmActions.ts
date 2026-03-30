@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react';
+import { useCallback, useMemo } from 'react';
 import { useNavigation } from '@react-navigation/native';
 import { ApprovalType } from '@metamask/controller-utils';
 
@@ -30,19 +30,9 @@ export const useConfirmActions = () => {
     approvalType && approvalType === ApprovalType.Transaction;
 
   const isLedgerAccount = useIsConfirmationFromLedgerAccount();
-  const isRejectedRef = useRef(false);
-
-  useEffect(() => {
-    isRejectedRef.current = false;
-  }, [approvalRequest?.id]);
 
   const onReject = useCallback(
     async (error?: Error, skipNavigation = false, navigateToHome = false) => {
-      if (isRejectedRef.current) {
-        return;
-      }
-      isRejectedRef.current = true;
-
       await cancelQRScanRequestIfPresent();
       onRequestReject(error);
       if (!skipNavigation) {
