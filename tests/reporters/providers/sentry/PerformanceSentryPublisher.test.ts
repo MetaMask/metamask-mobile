@@ -169,6 +169,21 @@ describe('PerformanceSentryPublisher', () => {
     expect(payload.tags.project_name).toBe('browserstack-android');
     expect(payload.tags.build_variant).toBe('exp');
     expect(payload.extra.timer_steps).toHaveLength(2);
+    expect(payload.spans).toHaveLength(2);
+    expect(payload.spans[0].op).toBe('e2e.performance.step');
+    expect(payload.spans[0].data.project_name).toBe('browserstack-android');
+    expect(payload.spans[0].data.provider).toBe('browserstack');
+    expect(payload.spans[0].data.team_id).toBe('qa-automation');
+    expect(payload.spans[0].data.team_name).toBe('QA Automation');
+    expect(payload.spans[0].data.test_status).toBe('passed');
+    expect(payload.spans[0].data.retry).toBe(0);
+    expect(payload.spans[0].data.worker_index).toBe(3);
+    expect(payload.spans[0].data.build_variant).toBe('exp');
+    expect(payload.spans[0].data.device_name).toBe('Samsung Galaxy S23 Ultra');
+    expect(payload.spans[0].data.device_os_version).toBe('13.0');
+    expect(payload.spans[0].data.test_file_path).toBe(
+      'tests/performance/onboarding/import-wallet.spec.js',
+    );
   });
 
   it('protects reserved aggregate keys from timer-key collisions', async () => {
