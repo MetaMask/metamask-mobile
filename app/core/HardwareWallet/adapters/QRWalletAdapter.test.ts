@@ -1,5 +1,9 @@
 import { QRWalletAdapter } from './QRWalletAdapter';
-import { HardwareWalletType, DeviceEvent } from '@metamask/hw-wallet-sdk';
+import {
+  HardwareWalletType,
+  DeviceEvent,
+  ErrorCode,
+} from '@metamask/hw-wallet-sdk';
 import { HardwareWalletAdapterOptions } from '../types';
 
 const mockGetCameraPermissionStatus = jest.fn();
@@ -217,68 +221,68 @@ describe('QRWalletAdapter', () => {
   });
 
   describe('ensurePermissions', () => {
-    it('returns true so the scanner modal can handle camera permission itself', async () => {
+    it('checks and requests camera permission when needed', async () => {
       mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
       mockRequestCameraPermission.mockResolvedValueOnce('granted');
 
       const result = await adapter.ensurePermissions();
 
       expect(result).toBe(true);
-      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
-      expect(mockRequestCameraPermission).not.toHaveBeenCalled();
+      expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
+      expect(mockRequestCameraPermission).toHaveBeenCalledTimes(1);
     });
   });
 
   describe('isTransportAvailable', () => {
-    it('returns true without pre-checking camera permission', async () => {
+    it('returns true when camera permission is granted', async () => {
       const result = await adapter.isTransportAvailable();
 
       expect(result).toBe(true);
-      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
     });
 
-    it('does not request camera permission when status is not determined', async () => {
+    it('returns false when permission status is not determined', async () => {
       mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
       mockRequestCameraPermission.mockResolvedValueOnce('granted');
 
       const result = await adapter.isTransportAvailable();
 
-      expect(result).toBe(true);
-      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+      expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
     });
 
-    it('returns true even when camera permission is denied', async () => {
+    it('returns false when camera permission is denied', async () => {
       mockGetCameraPermissionStatus.mockReturnValueOnce('denied');
 
       const result = await adapter.isTransportAvailable();
 
-      expect(result).toBe(true);
-      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+      expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
     });
 
-    it('returns true even when a permission request would be denied', async () => {
+    it('does not request camera permission when transport is checked', async () => {
       mockGetCameraPermissionStatus.mockReturnValueOnce('not-determined');
       mockRequestCameraPermission.mockResolvedValueOnce('denied');
 
       const result = await adapter.isTransportAvailable();
 
-      expect(result).toBe(true);
-      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      expect(result).toBe(false);
+      expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
       expect(mockRequestCameraPermission).not.toHaveBeenCalled();
     });
 
-    it('returns true even when camera permission APIs would throw', async () => {
+    it('rejects when camera permission status lookup throws', async () => {
       mockGetCameraPermissionStatus.mockImplementationOnce(() => {
         throw new Error('permission check failed');
       });
 
-      const result = await adapter.isTransportAvailable();
-
-      expect(result).toBe(true);
-      expect(mockGetCameraPermissionStatus).not.toHaveBeenCalled();
+      await expect(adapter.isTransportAvailable()).rejects.toThrow(
+        'permission check failed',
+      );
+      expect(mockGetCameraPermissionStatus).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -311,8 +315,10 @@ describe('QRWalletAdapter', () => {
   });
 
   describe('getTransportDisabledErrorCode', () => {
-    it('returns null (no persistent transport monitoring for QR)', () => {
-      expect(adapter.getTransportDisabledErrorCode()).toBeNull();
+    it('returns camera-permission-disabled error code', () => {
+      expect(adapter.getTransportDisabledErrorCode()).toBe(
+        ErrorCode.PermissionNearbyDevicesDenied,
+      );
     });
   });
 
@@ -346,8 +352,10 @@ describe('QRWalletAdapter', () => {
       expect(adapter.requiresDeviceDiscovery).toBe(false);
     });
 
-    it('returns null for transport disabled error code', () => {
-      expect(adapter.getTransportDisabledErrorCode()).toBeNull();
+    it('returns camera permission error code for transport disabled state', () => {
+      expect(adapter.getTransportDisabledErrorCode()).toBe(
+        ErrorCode.PermissionNearbyDevicesDenied,
+      );
     });
 
     it('does NOT call transport state callback immediately', () => {
