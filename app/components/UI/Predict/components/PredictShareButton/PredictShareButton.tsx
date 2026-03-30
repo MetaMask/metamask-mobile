@@ -1,9 +1,5 @@
 import React, { useCallback, useContext } from 'react';
 import { Pressable, Share } from 'react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useTheme } from '../../../../../util/theme';
 import { PredictMarketDetailsSelectorsIDs } from '../../Predict.testIds';
 import { strings } from '../../../../../../locales/i18n';
@@ -11,7 +7,13 @@ import {
   ToastContext,
   ToastVariants,
 } from '../../../../../component-library/components/Toast';
-import { Box } from '@metamask/design-system-react-native';
+import {
+  Box,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
+} from '@metamask/design-system-react-native';
 import Engine from '../../../../../core/Engine';
 import { PredictShareStatus } from '../../constants/eventNames';
 
@@ -62,6 +64,7 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
                 isBold: true,
               },
             ],
+            // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
             iconName: IconName.Confirmation,
             backgroundColor: 'transparent',
             iconColor: colors.success.default,
@@ -71,7 +74,7 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
               <Box twClassName="items-center justify-center align-center pr-[12px]">
                 <Icon
                   name={IconName.Confirmation}
-                  color={colors.success.default}
+                  color={IconColor.SuccessDefault}
                   size={IconSize.Lg}
                 />
               </Box>
@@ -101,7 +104,7 @@ const PredictShareButton: React.FC<PredictShareButtonProps> = ({
       <Icon
         name={IconName.Share}
         size={IconSize.Lg}
-        color={colors.icon.default}
+        color={IconColor.IconDefault}
       />
     </Pressable>
   );

@@ -4,7 +4,7 @@ import { ConfirmationLoader } from '../../../Views/confirmations/components/conf
 import { useConfirmNavigation } from '../../../Views/confirmations/hooks/useConfirmNavigation';
 import { usePredictTrading } from './usePredictTrading';
 import { useSelector } from 'react-redux';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import {
   ToastContext,
   ToastVariants,
@@ -37,6 +37,7 @@ export const usePredictWithdraw = () => {
       // Show error toast to user
       toastRef?.current?.showToast({
         variant: ToastVariants.Icon,
+        // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
         iconName: IconName.Danger,
         labelOptions: [
           {

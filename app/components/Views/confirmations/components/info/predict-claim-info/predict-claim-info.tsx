@@ -9,7 +9,7 @@ import { usePredictClaimConfirmationMetrics } from '../../../hooks/metrics/usePr
 import ButtonIcon, {
   ButtonIconSizes,
 } from '../../../../../../component-library/components/Buttons/ButtonIcon';
-import { IconName } from '../../../../../../component-library/components/Icons/Icon';
+import { IconName } from '@metamask/design-system-react-native';
 import { useConfirmActions } from '../../../hooks/useConfirmActions';
 import { useStyles } from '../../../../../../component-library/hooks';
 import styleSheet from './predict-claim-info.styles';
@@ -46,6 +46,7 @@ function BackButton() {
   return (
     <ButtonIcon
       size={ButtonIconSizes.Lg}
+      // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
       iconName={IconName.Close}
       onPress={() => onReject()}
       style={styles.backButton}

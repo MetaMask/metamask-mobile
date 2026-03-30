@@ -6,16 +6,15 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
-import { useTheme } from '../../../../../../../util/theme';
 import PredictMarketOutcome from '../../../../components/PredictMarketOutcome';
 import PredictMarketOutcomeResolved from '../../../../components/PredictMarketOutcomeResolved';
 import {
@@ -63,7 +62,6 @@ const PredictMarketDetailsOutcomes = memo(
     onResolvedExpandedToggle,
   }: PredictMarketDetailsOutcomesProps) => {
     const tw = useTailwind();
-    const { colors } = useTheme();
 
     if (!market) {
       return <Box />;
@@ -158,7 +156,7 @@ const PredictMarketDetailsOutcomes = memo(
                   isResolvedExpanded ? IconName.ArrowUp : IconName.ArrowDown
                 }
                 size={IconSize.Md}
-                color={colors.text.alternative}
+                color={IconColor.IconAlternative}
               />
             </Box>
             {isResolvedExpanded &&

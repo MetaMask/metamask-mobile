@@ -2,6 +2,10 @@ import {
   Box,
   BoxAlignItems,
   BoxFlexDirection,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
@@ -16,10 +20,6 @@ import Button, {
   ButtonVariants,
   ButtonWidthTypes,
 } from '../../../../../component-library/components/Buttons/Button';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { useStyles } from '../../../../../component-library/hooks';
 import {
   PredictMarket,
@@ -168,8 +168,8 @@ const PredictMarketOutcome: React.FC<PredictMarketOutcomeProps> = ({
                     size={IconSize.Md}
                     color={
                       outcomeToken.price === 1
-                        ? TextColor.SuccessDefault
-                        : TextColor.TextMuted
+                        ? IconColor.SuccessDefault
+                        : IconColor.IconMuted
                     }
                   />
                 )}

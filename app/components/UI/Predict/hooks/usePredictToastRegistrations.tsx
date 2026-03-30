@@ -1,7 +1,8 @@
 import {
   Box,
-  IconColor as ReactNativeDsIconColor,
-  IconSize as ReactNativeDsIconSize,
+  IconColor,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { Spinner } from '@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs';
 import { useNavigation } from '@react-navigation/native';
@@ -9,7 +10,6 @@ import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
-import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
 import { ButtonVariants } from '../../../../component-library/components/Buttons/Button';
 import type { ToastRef } from '../../../../component-library/components/Toast/Toast.types';
@@ -51,13 +51,14 @@ const showPendingToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
+    // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
     iconName: IconName.Loading,
     hasNoTimeout: false,
     startAccessory: (
       <Box twClassName="pr-3">
         <Spinner
-          color={ReactNativeDsIconColor.PrimaryDefault}
-          spinnerIconProps={{ size: ReactNativeDsIconSize.Lg }}
+          color={IconColor.PrimaryDefault}
+          spinnerIconProps={{ size: IconSize.Lg }}
         />
       </Box>
     ),
@@ -90,6 +91,7 @@ const showSuccessToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
+    // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
     iconName: IconName.Confirmation,
     iconColor,
     hasNoTimeout: false,
@@ -119,6 +121,7 @@ const showErrorToast = ({
       { label: '\n', isBold: false },
       { label: description, isBold: false },
     ],
+    // @ts-expect-error - dsrn IconName is string-compatible with component-library IconName
     iconName: IconName.Error,
     iconColor,
     backgroundColor,

@@ -4,15 +4,14 @@ import {
   BoxFlexDirection,
   BoxAlignItems,
   BoxJustifyContent,
+  Icon,
+  IconName,
+  IconSize,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Pressable } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import { Skeleton } from '../../../../../component-library/components-temp/Skeleton';
 import {
   PREDICT_DETAILS_HEADER_SKELETON,

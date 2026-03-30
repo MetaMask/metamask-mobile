@@ -6,15 +6,14 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextColor,
   TextVariant,
 } from '@metamask/design-system-react-native';
-import Icon, {
-  IconName,
-  IconSize,
-} from '../../../../../../../component-library/components/Icons/Icon';
-import { useTheme } from '../../../../../../../util/theme';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { PredictMarketDetailsSelectorsIDs } from '../../../../Predict.testIds';
 import PredictDetailsHeaderSkeleton from '../../../../components/PredictDetailsHeaderSkeleton';
@@ -41,7 +40,6 @@ const PredictMarketDetailsHeader = memo(
     insetsTop,
     onBackPress,
   }: PredictMarketDetailsHeaderProps) => {
-    const { colors } = useTheme();
     const tw = useTailwind();
 
     if (isLoading) {
@@ -67,7 +65,7 @@ const PredictMarketDetailsHeader = memo(
             <Icon
               name={IconName.ArrowLeft}
               size={IconSize.Lg}
-              color={colors.icon.default}
+              color={IconColor.IconDefault}
             />
           </Pressable>
           <Box twClassName="w-10 h-10 rounded-lg bg-muted overflow-hidden">

@@ -88,17 +88,14 @@ jest.mock('react-native-safe-area-context', () => {
 });
 
 // Minimal mock to add testID pattern for icon assertions
-jest.mock('../../../../../component-library/components/Icons/Icon', () => {
-  const ActualIcon = jest.requireActual(
-    '../../../../../component-library/components/Icons/Icon',
-  );
+jest.mock('@metamask/design-system-react-native', () => {
+  const ActualDSRN = jest.requireActual('@metamask/design-system-react-native');
   // Jest mock factory runs before module imports; require() needed for testIds
   // eslint-disable-next-line @typescript-eslint/no-require-imports, @typescript-eslint/no-var-requires
   const PredictTestIds = require('../../Predict.testIds');
   return {
-    ...ActualIcon,
-    __esModule: true,
-    default: ({
+    ...ActualDSRN,
+    Icon: ({
       name,
       testID,
       ...props
@@ -107,9 +104,9 @@ jest.mock('../../../../../component-library/components/Icons/Icon', () => {
       testID?: string;
       [key: string]: unknown;
     }) => {
-      const Icon = ActualIcon.default;
+      const OriginalIcon = ActualDSRN.Icon;
       return (
-        <Icon
+        <OriginalIcon
           {...props}
           name={name}
           testID={

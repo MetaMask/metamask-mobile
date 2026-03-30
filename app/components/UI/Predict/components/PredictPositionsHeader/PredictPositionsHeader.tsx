@@ -3,6 +3,10 @@ import {
   BoxAlignItems,
   BoxFlexDirection,
   BoxJustifyContent,
+  Icon,
+  IconColor,
+  IconName,
+  IconSize,
   Text,
   TextVariant,
 } from '@metamask/design-system-react-native';
@@ -25,11 +29,6 @@ import { TouchableOpacity } from 'react-native';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../../../locales/i18n';
 import { PredictPositionsHeaderSelectorsIDs } from '../../Predict.testIds';
-import Icon, {
-  IconColor,
-  IconName,
-  IconSize,
-} from '../../../../../component-library/components/Icons/Icon';
 import SensitiveText, {
   SensitiveTextLength,
 } from '../../../../../component-library/components/Texts/SensitiveText';
@@ -273,7 +272,7 @@ const PredictPositionsHeader = forwardRef<
                       <Icon
                         name={IconName.ArrowRight}
                         size={IconSize.Sm}
-                        color={IconColor.Alternative}
+                        color={IconColor.IconAlternative}
                       />
                     </>
                   )}
