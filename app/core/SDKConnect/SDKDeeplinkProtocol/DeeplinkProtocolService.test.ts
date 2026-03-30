@@ -866,6 +866,7 @@ describe('DeeplinkProtocolService', () => {
         scheme: 'testapp',
         channelId: 'new-channel-123',
         originatorInfo: base64OriginatorInfo,
+        sdkVersion: '2',
       });
 
       expect(analytics.track).toHaveBeenCalledWith(
@@ -874,6 +875,7 @@ describe('DeeplinkProtocolService', () => {
           anon_id: 'test-anon-id-123',
           transport: 'deeplink_protocol',
           connection_type: 'new_session',
+          sdk_version: '2',
         }),
       );
     });

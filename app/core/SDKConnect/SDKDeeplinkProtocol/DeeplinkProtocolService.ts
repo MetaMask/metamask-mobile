@@ -446,6 +446,7 @@ export default class DeeplinkProtocolService {
     channelId: string;
     originatorInfo?: string;
     request?: string;
+    sdkVersion?: string;
   }) {
     if (!params.originatorInfo) {
       const deepLinkError = new Error(
@@ -485,6 +486,7 @@ export default class DeeplinkProtocolService {
         anon_id: anonId,
         transport: 'deeplink_protocol',
         connection_type: isSessionExists ? 'reconnect' : 'new_session',
+        sdk_version: params.sdkVersion,
       });
     }
 
