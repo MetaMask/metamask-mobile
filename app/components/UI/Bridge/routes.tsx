@@ -12,14 +12,7 @@ import { CustomSlippageModal } from './components/SlippageModal/CustomSlippageMo
 import NetworkListModal from './components/BridgeTokenSelector/NetworkListModal';
 import { QuoteSelectorView } from './components/QuoteSelectorView';
 import { PriceImpactModal } from './components/PriceImpactModal';
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
+import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 type ScreenComponent = React.ComponentType<any>;

@@ -25,18 +25,11 @@ import ProcessingInfoModal from './Views/Modals/ProcessingInfoModal/ProcessingIn
 import SsnInfoModal from './Deposit/Views/Modals/SsnInfoModal';
 import RampsOrderDetails from './Views/OrderDetails';
 import LockManagerService from '../../../core/LockManagerService';
+import { clearStackNavigatorOptions } from '../../../constants/navigation/clearStackNavigatorOptions';
 
 const RootStack = createStackNavigator();
 const Stack = createStackNavigator();
 const ModalsStack = createStackNavigator();
-
-const clearStackNavigatorOptions = {
-  headerShown: false,
-  cardStyle: {
-    backgroundColor: 'transparent',
-  },
-  animationEnabled: false,
-};
 
 const MainRoutes = () => (
   <Stack.Navigator initialRouteName={Routes.RAMP.TOKEN_SELECTION}>
