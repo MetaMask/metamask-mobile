@@ -28,6 +28,10 @@ import {
   resolveMyxAuthConfig,
 } from './PerpsController';
 import type { PerpsControllerState } from './PerpsController';
+import {
+  PERPS_EVENT_PROPERTY,
+  PERPS_EVENT_VALUE,
+} from './constants/eventNames';
 import { PERPS_ERROR_CODES } from './perpsErrorCodes';
 import { HyperLiquidProvider } from './providers/HyperLiquidProvider';
 import type {
@@ -38,6 +42,7 @@ import type {
   PerpsProviderType,
   SubscribeAccountParams,
 } from './types';
+import { PerpsAnalyticsEvent } from './types';
 
 jest.mock('./providers/HyperLiquidProvider');
 jest.mock('./providers/MYXProvider');
@@ -3314,12 +3319,14 @@ describe('PerpsController', () => {
       expect(withdrawal.success).toBe(true);
     });
 
-    it('updates withdrawal status to failed', () => {
+    it('removes withdrawal request when status is failed', () => {
       controller.updateWithdrawalStatus(mockWithdrawalId, 'failed');
 
-      const withdrawal = controller.state.withdrawalRequests[0];
-      expect(withdrawal.status).toBe('failed');
-      expect(withdrawal.success).toBe(false);
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('clears withdrawal progress when status completed', () => {
@@ -3354,6 +3361,11 @@ describe('PerpsController', () => {
 
       expect(controller.state.withdrawalProgress.progress).toBe(0);
       expect(controller.state.withdrawalProgress.activeWithdrawalId).toBeNull();
+      expect(
+        controller.state.withdrawalRequests.some(
+          (w) => w.id === mockWithdrawalId,
+        ),
+      ).toBe(false);
     });
 
     it('finds withdrawal by ID', () => {
@@ -3423,6 +3435,95 @@ describe('PerpsController', () => {
       expect(withdrawal.status).toBe('completed');
       expect(withdrawal.txHash).toBeUndefined();
       expect(withdrawal.success).toBe(true);
+    });
+  });
+
+  describe('completeWithdrawalFromHistory', () => {
+    const pendingId = 'withdrawal-fifo-1';
+    const txHash = '0xfifoabc';
+    const completedPayload = {
+      txHash,
+      amount: '25',
+      timestamp: 1_700_000_000_000,
+      asset: 'USDC',
+    };
+
+    beforeEach(() => {
+      markControllerAsInitialized();
+      controller.testUpdate((state) => {
+        state.withdrawalRequests = [
+          {
+            id: pendingId,
+            timestamp: Date.now(),
+            amount: '25',
+            asset: 'USDC',
+            accountAddress: '0x1234567890123456789012345678901234567890',
+            success: false,
+            status: 'pending',
+            source: 'hyperliquid',
+          },
+        ];
+        state.withdrawInProgress = true;
+        state.lastCompletedWithdrawalTimestamp = 1_699_000_000_000;
+        state.lastCompletedWithdrawalTxHashes = ['0xexisting'];
+        state.lastUpdateTimestamp = 99_999;
+      });
+    });
+
+    it('does not mutate FIFO guards or emit analytics when withdrawal id is unknown', () => {
+      const snapshot = {
+        withdrawalRequests: [...controller.state.withdrawalRequests],
+        lastCompletedWithdrawalTimestamp:
+          controller.state.lastCompletedWithdrawalTimestamp,
+        lastCompletedWithdrawalTxHashes: [
+          ...controller.state.lastCompletedWithdrawalTxHashes,
+        ],
+        withdrawInProgress: controller.state.withdrawInProgress,
+        lastUpdateTimestamp: controller.state.lastUpdateTimestamp,
+      };
+
+      controller.completeWithdrawalFromHistory('unknown-withdrawal-id', {
+        ...completedPayload,
+        txHash: '0xstale',
+      });
+
+      expect(controller.state.withdrawalRequests).toEqual(
+        snapshot.withdrawalRequests,
+      );
+      expect(controller.state.lastCompletedWithdrawalTimestamp).toBe(
+        snapshot.lastCompletedWithdrawalTimestamp,
+      );
+      expect(controller.state.lastCompletedWithdrawalTxHashes).toEqual(
+        snapshot.lastCompletedWithdrawalTxHashes,
+      );
+      expect(controller.state.withdrawInProgress).toBe(
+        snapshot.withdrawInProgress,
+      );
+      expect(controller.state.lastUpdateTimestamp).toBe(
+        snapshot.lastUpdateTimestamp,
+      );
+      expect(mockInfrastructure.metrics.trackPerpsEvent).not.toHaveBeenCalled();
+    });
+
+    it('removes the request, updates FIFO guards, and tracks completion when id matches', () => {
+      controller.completeWithdrawalFromHistory(pendingId, completedPayload);
+
+      expect(controller.state.withdrawalRequests).toHaveLength(0);
+      expect(controller.state.lastCompletedWithdrawalTimestamp).toBe(
+        completedPayload.timestamp,
+      );
+      expect(controller.state.lastCompletedWithdrawalTxHashes).toEqual([
+        '0xexisting',
+        txHash,
+      ]);
+      expect(controller.state.withdrawInProgress).toBe(false);
+      expect(mockInfrastructure.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.WithdrawalTransaction,
+        expect.objectContaining({
+          [PERPS_EVENT_PROPERTY.STATUS]: PERPS_EVENT_VALUE.STATUS.COMPLETED,
+          [PERPS_EVENT_PROPERTY.WITHDRAWAL_AMOUNT]: 25,
+        }),
+      );
     });
   });
 
