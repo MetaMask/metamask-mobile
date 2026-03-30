@@ -3,7 +3,7 @@ import { loginToApp } from '../../flows/wallet.flow';
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import { withFixtures } from '../../framework/fixtures/FixtureHelper';
 import WalletView from '../../page-objects/wallet/WalletView';
-import TokensFullView from '../../page-objects/wallet/TokensFullView';
+import TokensFullView from '../../page-objects/wallet/HomeSections';
 import NetworkManager from '../../page-objects/wallet/NetworkManager';
 import Assertions from '../../framework/Assertions';
 import { NetworkToCaipChainId } from '../../../app/components/UI/NetworkMultiSelector/NetworkMultiSelector.constants';
@@ -169,7 +169,7 @@ describe(
 
           // Homepage tokens section shows ALL tokens regardless of the Linea-only filter
           await NetworkManager.checkTokenIsVisible('ETH');
-          await NetworkManager.checkTokenIsVisible('USDC');
+          await NetworkManager.checkTokenIsVisible('SOL');
         },
       );
     });

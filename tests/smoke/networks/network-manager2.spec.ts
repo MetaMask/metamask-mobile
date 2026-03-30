@@ -13,11 +13,6 @@ import TestDApp from '../../page-objects/Browser/TestDApp';
 import ConnectedAccountsModal from '../../page-objects/Browser/ConnectedAccountsModal';
 import ConnectBottomSheet from '../../page-objects/Browser/ConnectBottomSheet';
 import { CustomNetworks } from '../../resources/networks.e2e';
-import WalletView from '../../page-objects/wallet/WalletView';
-import TokensFullView from '../../page-objects/wallet/TokensFullView';
-import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
-import { remoteFeatureFlagHomepageSectionsV1Enabled } from '../../api-mocking/mock-responses/feature-flags-mocks';
-import { Mockttp } from 'mockttp';
 
 const POLYGON = CustomNetworks.Tenderly.Polygon.providerConfig.nickname;
 
@@ -68,17 +63,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
             )
             .build(),
           restartDevice: true,
-          testSpecificMock: async (mockServer: Mockttp) => {
-            await setupRemoteFeatureFlagsMock(mockServer, {
-              ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-            });
-          },
         },
         async () => {
           await loginToApp();
-
-          await WalletView.tapOnNewTokensSection();
-          await TokensFullView.waitForVisible();
 
           // Open network manager and verify initial state
           await NetworkManager.openNetworkManager();
@@ -142,17 +129,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           ])
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-        },
       },
       async () => {
         await loginToApp();
-
-        await WalletView.tapOnNewTokensSection();
-        await TokensFullView.waitForVisible();
 
         // Open network manager and verify initial state
         await NetworkManager.openNetworkManager();
@@ -207,17 +186,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           ])
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-        },
       },
       async () => {
         await loginToApp();
-
-        await WalletView.tapOnNewTokensSection();
-        await TokensFullView.waitForVisible();
 
         // Open network manager and verify initial state
         await NetworkManager.openNetworkManager();
@@ -267,17 +238,9 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
           .withPopularNetworks()
           .build(),
         restartDevice: true,
-        testSpecificMock: async (mockServer: Mockttp) => {
-          await setupRemoteFeatureFlagsMock(mockServer, {
-            ...remoteFeatureFlagHomepageSectionsV1Enabled(),
-          });
-        },
       },
       async () => {
         await loginToApp();
-
-        await WalletView.tapOnNewTokensSection();
-        await TokensFullView.waitForVisible();
 
         // Step 1: Verify initial state - Ethereum should be enabled
         await NetworkManager.openNetworkManager();
@@ -321,10 +284,6 @@ describe(SmokeNetworkAbstractions('Network Manager'), () => {
         // Step 4: Close browser to reveal app tab bar, then return to wallet
         await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapWallet();
-
-        // Navigate into TokensFullView to access the network filter control bar
-        await WalletView.tapOnNewTokensSection();
-        await TokensFullView.waitForVisible();
 
         // Verify Ethereum is still the active network (preservation)
         await NetworkManager.checkBaseControlBarText(
