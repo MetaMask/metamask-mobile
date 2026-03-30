@@ -1,6 +1,6 @@
-# Ramps debug dashboard (Money Movement)
+# Ramps debug dashboard
 
-Host-side dev tool under **`scripts/money-movement/`**. Local WebSocket relay between MetaMask Mobile (`RampsDebugBridge`) and the browser UI.
+Host-side dev tool under **`scripts/money-movement/`** (see `.github/CODEOWNERS`). WebSocket relay between MetaMask Mobile (`RampsDebugBridge`) and the browser UI.
 
 **App setup (env vars, devices, `adb reverse`):** see [`app/components/UI/Ramp/debug/README.md`](../../../app/components/UI/Ramp/debug/README.md).
 

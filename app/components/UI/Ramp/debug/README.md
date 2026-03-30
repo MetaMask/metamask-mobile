@@ -2,7 +2,7 @@
 
 Opt-in tooling that streams `RampsController` state, method calls, and related fetch traffic to a **local WebSocket server** and browser UI. It is **not** used in production builds.
 
-**Ownership:** Money Movement team (see `.github/CODEOWNERS` for `app/components/UI/Ramp/`).
+**Ownership:** Ramps team (see `.github/CODEOWNERS` for `app/components/UI/Ramp/` and `scripts/money-movement/`).
 
 ## Quick start
 
@@ -24,7 +24,7 @@ From the **repository root**:
 
 4. **In the app:** set `RAMPS_DEBUG_DASHBOARD="true"` in **`.js.env`**, restart Metro (`yarn watch:clean` or your watcher), run a **debug** build. When the app connects, the server logs `Mobile app connected`.
 
-The dashboard lives under **`scripts/money-movement/debug-dashboard/`** (Money Movement team scripts, same idea as e.g. `scripts/perps/`). It is **not** part of the root Yarn workspace; **`npm ci`** is used there on purpose. Root `yarn` scripts wrap it so you do not need to `cd` into that folder.
+The dashboard lives under **`scripts/money-movement/debug-dashboard/`** (same pattern as e.g. `scripts/perps/`). It is **not** part of the root Yarn workspace; **`npm ci`** is used there on purpose. Root `yarn` scripts wrap it so you do not need to `cd` into that folder.
 
 ## Enable in the app
 
