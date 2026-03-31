@@ -1112,7 +1112,13 @@ const BuildQuote = () => {
               label={strings('fiat_on_ramp_aggregator.get_quotes')}
               variant={ButtonVariants.Primary}
               width={ButtonWidthTypes.Full}
-              isDisabled={amountNumber <= 0 || isFetching}
+              isDisabled={
+                amountNumber <= 0 ||
+                isFetching ||
+                !amountIsValid ||
+                amountIsOverGas ||
+                hasInsufficientBalance
+              }
               accessibilityRole="button"
             />
           </Row>

@@ -300,6 +300,66 @@ describe('Quotes', () => {
     });
   });
 
+  it('shows provider error message when all quotes have errors', async () => {
+    const providerErrorMessage = 'Minimum amount is $50 for this provider';
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      customActions: [],
+      quotesWithoutError: [],
+      quotesByPriceWithoutError: [],
+      quotesByReliabilityWithoutError: [],
+      recommendedQuote: undefined,
+      quotesWithError: [
+        {
+          error: true,
+          message: providerErrorMessage,
+          provider: { name: 'TestProvider' },
+        },
+      ] as unknown as QuoteError[],
+    };
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(screen.getByText('No providers available')).toBeTruthy();
+    expect(screen.getByText(providerErrorMessage)).toBeTruthy();
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
+  it('shows generic fallback when all quotes error but have no message', async () => {
+    mockUseQuotesAndCustomActionsValues = {
+      ...mockUseQuotesAndCustomActionsInitialValues,
+      customActions: [],
+      quotesWithoutError: [],
+      quotesByPriceWithoutError: [],
+      quotesByReliabilityWithoutError: [],
+      recommendedQuote: undefined,
+      quotesWithError: [
+        {
+          error: true,
+          provider: { name: 'TestProvider' },
+        },
+      ] as unknown as QuoteError[],
+    };
+    render(Quotes);
+    act(() => {
+      jest.advanceTimersByTime(3000);
+      jest.clearAllTimers();
+    });
+    expect(screen.getByText('No providers available')).toBeTruthy();
+    expect(
+      screen.getByText(
+        'Try choosing a different payment method or try to increase or reduce the amount you want to buy!',
+      ),
+    ).toBeTruthy();
+    act(() => {
+      jest.useFakeTimers({ legacyFakeTimers: true });
+    });
+  });
+
   it('renders correctly after animation with the recommended quote', async () => {
     render(Quotes);
     act(() => {

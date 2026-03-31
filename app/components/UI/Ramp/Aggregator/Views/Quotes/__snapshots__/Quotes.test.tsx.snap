@@ -813,7 +813,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={26}
+              handlerTag={30}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -946,7 +946,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={25}
+                          handlerTag={29}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -1265,7 +1265,7 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={27}
+                              handlerTag={31}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -1505,7 +1505,6 @@ exports[`Quotes custom action renders correctly after animation with the recomme
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <View />
                         </View>
                       </View>
                     </View>
@@ -2850,7 +2849,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={17}
+              handlerTag={21}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -2983,7 +2982,7 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                         <View
                           collapsable={false}
                           enabled={false}
-                          handlerTag={16}
+                          handlerTag={20}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -3362,7 +3361,6 @@ exports[`Quotes renders correctly after animation with expanded quotes 2`] = `
                                   </Text>
                                 </View>
                               </View>
-                              <View />
                               <View
                                 style={
                                   [
@@ -4608,7 +4606,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={14}
+              handlerTag={18}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -4741,7 +4739,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={13}
+                          handlerTag={17}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -5060,7 +5058,7 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                           >
                             <RCTScrollView
                               collapsable={false}
-                              handlerTag={15}
+                              handlerTag={19}
                               handlerType="NativeViewGestureHandler"
                               onGestureHandlerEvent={[Function]}
                               onGestureHandlerStateChange={[Function]}
@@ -5450,7 +5448,6 @@ exports[`Quotes renders correctly after animation with the recommended quote 1`]
                               </Text>
                             </TouchableOpacity>
                           </View>
-                          <View />
                         </View>
                       </View>
                     </View>
@@ -6429,7 +6426,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={86}
+              handlerTag={90}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -6562,7 +6559,7 @@ exports[`Quotes renders correctly when fetching quotes errors 1`] = `
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={85}
+                          handlerTag={89}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -7100,7 +7097,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={82}
+              handlerTag={86}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7233,7 +7230,7 @@ exports[`Quotes renders correctly with sdkError 1`] = `
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={81}
+                          handlerTag={85}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}
@@ -7771,7 +7768,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
             <View
               collapsable={false}
               enabled={false}
-              handlerTag={71}
+              handlerTag={75}
               handlerType="PanGestureHandler"
               onGestureHandlerEvent={[Function]}
               onGestureHandlerStateChange={[Function]}
@@ -7904,7 +7901,7 @@ exports[`Quotes renders quotes expired screen 1`] = `
                         <View
                           collapsable={false}
                           enabled={true}
-                          handlerTag={70}
+                          handlerTag={74}
                           handlerType="PanGestureHandler"
                           onGestureHandlerEvent={[Function]}
                           onGestureHandlerStateChange={[Function]}

@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { BackHandler } from 'react-native';
 import { useSelector } from 'react-redux';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -577,6 +583,17 @@ function Quotes() {
     }
   }, [ErrorFetchingQuotes, pollingCyclesLeft]);
 
+  const providerErrorDescription = useMemo(() => {
+    if (
+      !isFetchingQuotes &&
+      quotesByPriceWithoutError.length === 0 &&
+      quotesWithError.length > 0
+    ) {
+      return quotesWithError[0]?.message;
+    }
+    return undefined;
+  }, [isFetchingQuotes, quotesByPriceWithoutError.length, quotesWithError]);
+
   useEffect(() => {
     navigation.setOptions(
       getDepositNavbarOptions(
@@ -928,16 +945,18 @@ function Quotes() {
     quotesByPriceWithoutError.length === 0 &&
     (!customActions || customActions.length === 0)
   ) {
+    const fallbackDescription = strings(
+      isBuy
+        ? 'fiat_on_ramp_aggregator.try_different_amount_to_buy_input'
+        : 'fiat_on_ramp_aggregator.try_different_amount_to_sell_input',
+    );
+
     if (!isExpanded) {
       return (
         <BottomSheet>
           <ErrorView
             title={strings('fiat_on_ramp_aggregator.no_providers_available')}
-            description={strings(
-              isBuy
-                ? 'fiat_on_ramp_aggregator.try_different_amount_to_buy_input'
-                : 'fiat_on_ramp_aggregator.try_different_amount_to_sell_input',
-            )}
+            description={providerErrorDescription || fallbackDescription}
             ctaOnPress={() => navigation.goBack()}
             location={'Quotes Screen'}
             asScreen={false}
@@ -954,11 +973,7 @@ function Quotes() {
         <ScreenLayout>
           <ErrorView
             title={strings('fiat_on_ramp_aggregator.no_providers_available')}
-            description={strings(
-              isBuy
-                ? 'fiat_on_ramp_aggregator.try_different_amount_to_buy_input'
-                : 'fiat_on_ramp_aggregator.try_different_amount_to_sell_input',
-            )}
+            description={providerErrorDescription || fallbackDescription}
             ctaOnPress={() => navigation.goBack()}
             location={'Quotes Screen'}
           />
