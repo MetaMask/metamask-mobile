@@ -18,6 +18,7 @@ export type {
   RewardsDataServiceOptOutAction,
   RewardsDataServiceGetUnlockedRewardsAction,
   RewardsDataServiceClaimRewardAction,
+  RewardsDataServiceGetPortfolioBalanceHistoryAction,
 } from './rewards-data-service';
 
 export { RewardsDataService } from './rewards-data-service';

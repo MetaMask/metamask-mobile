@@ -27,6 +27,8 @@ import {
   type CampaignLeaderboardPositionDto,
   type OndoGmPortfolioDto,
   type OndoGmPortfolioState,
+  type OndoGmBalanceHistoryDto,
+  type OndoGmBalanceHistoryState,
   type PointsEstimateHistoryEntry,
   ClaimRewardDto,
   PointsEventsDtoState,
@@ -119,6 +121,9 @@ const ONDO_CAMPAIGN_LEADERBOARD_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 
 
 // Campaign portfolio position cache threshold
 const ONDO_CAMPAIGN_PORTFOLIO_POSITION_CACHE_THRESHOLD_MS = 1000 * 60 * 5; // 5 minutes
+
+// Campaign balance history cache threshold
+const ONDO_CAMPAIGN_BALANCE_HISTORY_CACHE_THRESHOLD_MS = 1000 * 60 * 30; // 30 minutes
 
 // Points events cache threshold (first page only)
 const POINTS_EVENTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute cache
@@ -223,6 +228,12 @@ const metadata: StateMetadata<RewardsControllerState> = {
     includeInDebugSnapshot: false,
     usedInUi: true,
   },
+  ondoCampaignBalanceHistory: {
+    includeInStateLogs: true,
+    persist: true,
+    includeInDebugSnapshot: false,
+    usedInUi: true,
+  },
   pointsEstimateHistory: {
     includeInStateLogs: true,
     persist: true,
@@ -256,6 +267,7 @@ export const getRewardsControllerDefaultState = (): RewardsControllerState => ({
   ondoCampaignLeaderboard: {},
   ondoCampaignLeaderboardPositions: {},
   ondoCampaignPortfolio: {},
+  ondoCampaignBalanceHistory: {},
   pointsEstimateHistory: [],
   rewardsEnvUrl: null,
 });
@@ -645,6 +657,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getOndoCampaignPortfolioPosition',
       this.getOndoCampaignPortfolioPosition.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:getPortfolioBalanceHistory',
+      this.getPortfolioBalanceHistory.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:claimReward',
@@ -3790,6 +3806,57 @@ export class RewardsController extends BaseController<
             positions: payload.positions,
             summary: payload.summary,
             computedAt: payload.computedAt,
+            lastFetched: Date.now(),
+          };
+        });
+      },
+    });
+    return result;
+  }
+
+  /**
+   * Get the current user's Ondo GM portfolio balance history for a campaign.
+   * This is an authenticated endpoint.
+   * Results are cached for 30 minutes by the RewardsController.
+   * @param campaignId - The campaign ID to get balance history for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The balance history.
+   */
+  async getPortfolioBalanceHistory(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmBalanceHistoryDto> {
+    if (!this.isRewardsFeatureEnabled()) {
+      return { balance_history: [] };
+    }
+
+    const key = `${subscriptionId}:${campaignId}`;
+    const result = await wrapWithCache<OndoGmBalanceHistoryDto>({
+      key,
+      ttl: ONDO_CAMPAIGN_BALANCE_HISTORY_CACHE_THRESHOLD_MS,
+      readCache: (k) => {
+        const cached = this.state.ondoCampaignBalanceHistory[k];
+        if (!cached) return undefined;
+        return {
+          payload: { balance_history: cached.balance_history },
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () =>
+        this.#withAuthRetry(async () => {
+          Logger.log(
+            'RewardsController: Fetching fresh balance history via API call',
+          );
+          return (await this.messenger.call(
+            'RewardsDataService:getPortfolioBalanceHistory',
+            campaignId,
+            subscriptionId,
+          )) as OndoGmBalanceHistoryDto;
+        }, subscriptionId),
+      writeCache: (k, payload) => {
+        this.update((state) => {
+          state.ondoCampaignBalanceHistory[k] = {
+            balance_history: payload.balance_history,
             lastFetched: Date.now(),
           };
         });

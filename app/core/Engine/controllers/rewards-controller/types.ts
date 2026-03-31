@@ -195,6 +195,16 @@ export type ThemeImageState = {
 export type CampaignDetailsState = {
   howItWorks: OndoCampaignHowItWorksState;
   depositCutoffDate?: string;
+  tiers: OndoCampaignTierState[];
+};
+
+/**
+ * Serializable version of OndoCampaignTier for state storage.
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoCampaignTierState = {
+  name: string;
+  minNetDeposit: number;
 };
 
 /**
@@ -458,6 +468,23 @@ export interface OndoGmPortfolioDto {
 }
 
 /**
+ * Single entry in the balance history time-series.
+ */
+export interface OndoGmBalanceHistoryEntryDto {
+  /** @example '2026-03-10' — UTC date (YYYY-MM-DD) */
+  date: string;
+  /** @example '150.500000' — Cumulative net deposit balance in USD (6 decimal places) */
+  balance_usd: string;
+}
+
+/**
+ * Response DTO for GET /ondo-gm/:campaignId/portfolio/me/balance-history
+ */
+export interface OndoGmBalanceHistoryDto {
+  balance_history: OndoGmBalanceHistoryEntryDto[];
+}
+
+/**
  * Single cached portfolio row (mirrors {@link OndoGmPortfolioPositionDto}; explicit plain-object shape for cache / Json).
  */
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -495,6 +522,24 @@ export type OndoGmPortfolioState = {
   positions: OndoGmPortfolioPositionState[];
   summary: OndoGmPortfolioSummaryState;
   computedAt: string;
+  lastFetched: number;
+};
+
+/**
+ * Cached balance history entry (mirrors {@link OndoGmBalanceHistoryEntryDto}; explicit plain-object shape for cache / Json).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmBalanceHistoryEntryState = {
+  date: string;
+  balance_usd: string;
+};
+
+/**
+ * Cached balance history payload (explicit shape for Json / StateConstraint compatibility).
+ */
+// eslint-disable-next-line @typescript-eslint/consistent-type-definitions
+export type OndoGmBalanceHistoryState = {
+  balance_history: OndoGmBalanceHistoryEntryState[];
   lastFetched: number;
 };
 
@@ -568,6 +613,11 @@ export interface OndoCampaignHowItWorks {
 export interface OndoHoldingDetails {
   howItWorks: OndoCampaignHowItWorks;
   depositCutoffDate?: string;
+  tiers: OndoCampaignTier[];
+}
+export interface OndoCampaignTier {
+  name: string;
+  minNetDeposit: number;
 }
 
 export type CampaignDetails = OndoHoldingDetails;
@@ -1586,6 +1636,10 @@ export type RewardsControllerState = {
   ondoCampaignPortfolio: {
     [compositeId: string]: OndoGmPortfolioState;
   };
+  /** Ondo campaign balance history keyed by compositeId (subscriptionId:campaignId). */
+  ondoCampaignBalanceHistory: {
+    [compositeId: string]: OndoGmBalanceHistoryState;
+  };
   /**
    * History of points estimates for Customer Support diagnostics.
    * Stores the last N successful estimates to verify user-reported discrepancies.
@@ -2023,6 +2077,17 @@ export interface RewardsControllerGetOndoCampaignPortfolioPositionAction {
 }
 
 /**
+ * Action for getting the current user's Ondo GM balance history (authenticated)
+ */
+export interface RewardsControllerGetPortfolioBalanceHistoryAction {
+  type: 'RewardsController:getPortfolioBalanceHistory';
+  handler: (
+    campaignId: string,
+    subscriptionId: string,
+  ) => Promise<OndoGmBalanceHistoryDto>;
+}
+
+/**
  * Action for getting CAIP-10 accounts linked to a subscription that are not on this device
  */
 export interface RewardsControllerGetOffDeviceSubscriptionAccountsAction {
@@ -2145,6 +2210,7 @@ export type RewardsControllerActions =
   | RewardsControllerGetOndoCampaignLeaderboardAction
   | RewardsControllerGetOndoCampaignLeaderboardPositionAction
   | RewardsControllerGetOndoCampaignPortfolioPositionAction
+  | RewardsControllerGetPortfolioBalanceHistoryAction
   | RewardsControllerGetOffDeviceSubscriptionAccountsAction
   | RewardsControllerClaimRewardAction
   | RewardsControllerGetSeasonOneLineaRewardTokensAction

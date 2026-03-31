@@ -29,18 +29,23 @@ import CampaignHowItWorks from '../components/Campaigns/CampaignHowItWorks';
 import OndoLeaderboard from '../components/Campaigns/OndoLeaderboard';
 import OndoLeaderboardPosition from '../components/Campaigns/OndoLeaderboardPosition';
 import OndoPortfolio from '../components/Campaigns/OndoPortfolio';
+import BalanceHistoryChart from '../components/Campaigns/BalanceHistoryChart';
+import TierQualificationStreak from '../components/Campaigns/TierQualificationStreak';
+import { buildTierStreakSeries } from '../components/Campaigns/ondoTierStreak';
 import CampaignJoinCTA from '../components/Campaigns/CampaignJoinCTA';
 import {
   getCampaignStatus,
   isOptinAllowed,
 } from '../components/Campaigns/CampaignTile.utils';
 import { formatComputedAt } from '../components/Campaigns/OndoLeaderboard.utils';
+import { formatUsd } from '../components/Campaigns/OndoPortfolio.utils';
 import RewardsErrorBanner from '../components/RewardsErrorBanner';
 import RewardsInfoBanner from '../components/RewardsInfoBanner';
 import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticipantStatus';
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoBalanceHistory } from '../hooks/useGetOndoBalanceHistory';
 import { useRewardCampaigns } from '../hooks/useRewardCampaigns';
 import { strings } from '../../../../../locales/i18n';
 import Routes from '../../../../constants/navigation/Routes';
@@ -139,6 +144,34 @@ const OndoCampaignDetailsView: React.FC = () => {
     refetch: refetchLeaderboardPosition,
   } = useGetOndoLeaderboardPosition(
     isOptedIn && hasPositions ? campaignId : undefined,
+  );
+
+  const {
+    balanceHistory: balanceHistoryData,
+    isLoading: isBalanceHistoryLoading,
+  } = useGetOndoBalanceHistory(isOptedIn ? campaignId : undefined);
+
+  const chartData = useMemo(
+    () =>
+      (balanceHistoryData?.balance_history ?? []).map((entry) => ({
+        date: entry.date,
+        value: parseFloat(entry.balance_usd),
+      })),
+    [balanceHistoryData],
+  );
+
+  const thresholdLines = useMemo(
+    () =>
+      (campaign?.details?.tiers ?? []).map((tier) => ({
+        label: tier.name,
+        value: tier.minNetDeposit,
+      })),
+    [campaign],
+  );
+
+  const tierStreak = useMemo(
+    () => buildTierStreakSeries(chartData, thresholdLines),
+    [chartData, thresholdLines],
   );
 
   const {
@@ -369,6 +402,27 @@ const OndoCampaignDetailsView: React.FC = () => {
                       hasError={hasPortfolioError}
                       hasFetched={portfolioHasFetched}
                       refetch={refetchPortfolio}
+                    />
+                  </Box>
+                  <Box twClassName="border-b border-border-muted" />
+                  <Box twClassName="py-4">
+                    <Box twClassName="px-4 pb-2">
+                      <Text variant={TextVariant.HeadingMd}>
+                        {strings(
+                          'rewards.campaign_details.balance_history_title',
+                        )}
+                      </Text>
+                    </Box>
+                    <TierQualificationStreak
+                      result={tierStreak}
+                      thresholdLines={thresholdLines}
+                    />
+                    <BalanceHistoryChart
+                      data={chartData}
+                      thresholdLines={thresholdLines}
+                      formatValue={(v) => formatUsd(v.toFixed(6))}
+                      isLoading={isBalanceHistoryLoading}
+                      useLogScale
                     />
                   </Box>
                 </>

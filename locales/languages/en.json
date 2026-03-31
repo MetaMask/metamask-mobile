@@ -7975,7 +7975,11 @@
       "competition_closed_description": "Sorry, this competition is no longer open to join. You can follow the leaderboard below and check back for future campaigns.",
       "checking_opt_in_status": "Checking opt in status",
       "swap": "Swap",
-      "how_it_works": "How it works"
+      "how_it_works": "How it works",
+      "balance_history_title": "Balance History",
+      "tier_streak_title": "Tier qualification streak",
+      "tier_streak_qualified": "You met 10 consecutive days above the {{tier}} threshold.",
+      "tier_streak_progress": "{{current}}/{{required}} consecutive days above the {{tier}} threshold (last 10 calendar days)."
     },
     "ondo_campaign_leaderboard_position": {
       "title": "Your Position",

@@ -31,6 +31,7 @@ import type {
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
   OndoGmPortfolioDto,
+  OndoGmBalanceHistoryDto,
 } from '../types';
 import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
@@ -238,6 +239,11 @@ export interface RewardsDataServiceGetOndoCampaignPortfolioPositionAction {
   handler: RewardsDataService['getOndoCampaignPortfolioPosition'];
 }
 
+export interface RewardsDataServiceGetPortfolioBalanceHistoryAction {
+  type: `${typeof SERVICE_NAME}:getPortfolioBalanceHistory`;
+  handler: RewardsDataService['getPortfolioBalanceHistory'];
+}
+
 export interface RewardsDataServiceGetRewardsEnvUrlAction {
   type: `${typeof SERVICE_NAME}:getRewardsEnvUrl`;
   handler: RewardsDataService['getRewardsEnvUrl'];
@@ -293,7 +299,8 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
   | RewardsDataServiceGetOndoCampaignLeaderboardPositionAction
-  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction;
+  | RewardsDataServiceGetOndoCampaignPortfolioPositionAction
+  | RewardsDataServiceGetPortfolioBalanceHistoryAction;
 
 export type RewardsDataServiceMessenger = Messenger<
   typeof SERVICE_NAME,
@@ -1503,5 +1510,31 @@ export class RewardsDataService {
     }
 
     return (await response.json()) as OndoGmPortfolioDto;
+  }
+
+  /**
+   * Get the current user's Ondo GM portfolio balance history for a campaign.
+   * This is an authenticated endpoint.
+   * @param campaignId - The campaign ID to get balance history for.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @returns The balance history.
+   */
+  async getPortfolioBalanceHistory(
+    campaignId: string,
+    subscriptionId: string,
+  ): Promise<OndoGmBalanceHistoryDto> {
+    const response = await this.makeRequest(
+      `/ondo-gm/${campaignId}/portfolio/me/balance-history`,
+      { method: 'GET' },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Get portfolio balance history failed: ${response.status}`,
+      );
+    }
+
+    return (await response.json()) as OndoGmBalanceHistoryDto;
   }
 }

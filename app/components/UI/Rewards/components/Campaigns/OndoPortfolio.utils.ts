@@ -1,4 +1,5 @@
 import { BigNumber } from 'bignumber.js';
+import formatFiat from '../../../../../util/formatFiat';
 import type { OndoGmPortfolioPositionDto } from '../../../../../core/Engine/controllers/rewards-controller/types';
 
 /**
@@ -77,5 +78,17 @@ export function isPnlNonNegative(pnlPercent: string): boolean {
     return new BigNumber(pnlPercent).gte(0);
   } catch {
     return false;
+  }
+}
+
+/**
+ * Formats a numeric-string USD value (e.g. "150.500000") as a localised fiat string.
+ * Returns the raw value on parse failure.
+ */
+export function formatUsd(value: string): string {
+  try {
+    return formatFiat(new BigNumber(value), 'USD');
+  } catch {
+    return value;
   }
 }

@@ -20,9 +20,7 @@ import {
 import { StackActions, useNavigation } from '@react-navigation/native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Hex } from '@metamask/utils';
-import { BigNumber } from 'bignumber.js';
 import { strings } from '../../../../../../locales/i18n';
-import formatFiat from '../../../../../util/formatFiat';
 import Badge, {
   BadgeVariant,
 } from '../../../../../component-library/components/Badges/Badge';
@@ -40,6 +38,7 @@ import {
   groupPortfolioPositionsByAsset,
   formatPnlPercent,
   isPnlNonNegative,
+  formatUsd,
 } from './OndoPortfolio.utils';
 import { formatComputedAt } from './OndoLeaderboard.utils';
 
@@ -74,14 +73,6 @@ export const ONDO_PORTFOLIO_TEST_IDS = {
   ERROR: 'ondo-campaign-portfolio-error',
   EMPTY: 'ondo-campaign-portfolio-empty',
 } as const;
-
-const formatUsd = (value: string): string => {
-  try {
-    return formatFiat(new BigNumber(value), 'USD');
-  } catch {
-    return value;
-  }
-};
 
 interface OndoPortfolioProps {
   portfolio: OndoGmPortfolioDto | null;

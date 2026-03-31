@@ -13,6 +13,7 @@ import { useGetCampaignParticipantStatus } from '../hooks/useGetCampaignParticip
 import { useGetOndoLeaderboard } from '../hooks/useGetOndoLeaderboard';
 import { useGetOndoLeaderboardPosition } from '../hooks/useGetOndoLeaderboardPosition';
 import { useGetOndoPortfolioPosition } from '../hooks/useGetOndoPortfolioPosition';
+import { useGetOndoBalanceHistory } from '../hooks/useGetOndoBalanceHistory';
 import Routes from '../../../../constants/navigation/Routes';
 
 const mockGoBack = jest.fn();
@@ -166,6 +167,34 @@ jest.mock('../components/Campaigns/OndoPortfolio', () => {
   };
 });
 
+jest.mock('../components/Campaigns/TierQualificationStreak', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'tier-qualification-streak',
+      }),
+  };
+});
+
+jest.mock('../components/Campaigns/BalanceHistoryChart', () => {
+  const ReactActual = jest.requireActual('react');
+  const { View } = jest.requireActual('react-native');
+  return {
+    __esModule: true,
+    default: () =>
+      ReactActual.createElement(View, {
+        testID: 'balance-history-chart',
+      }),
+  };
+});
+
+jest.mock('../components/Campaigns/OndoPortfolio.utils', () => ({
+  formatUsd: (value: string) => `$${value}`,
+}));
+
 jest.mock('../components/RewardsInfoBanner', () => {
   const ReactActual = jest.requireActual('react');
   const { View } = jest.requireActual('react-native');
@@ -250,6 +279,12 @@ const mockUseGetOndoPortfolioPosition =
     typeof useGetOndoPortfolioPosition
   >;
 
+jest.mock('../hooks/useGetOndoBalanceHistory');
+const mockUseGetOndoBalanceHistory =
+  useGetOndoBalanceHistory as jest.MockedFunction<
+    typeof useGetOndoBalanceHistory
+  >;
+
 jest.mock('../../../../../locales/i18n', () => ({
   strings: (key: string) => {
     const translations: Record<string, string> = {
@@ -332,6 +367,13 @@ describe('OndoCampaignDetailsView', () => {
     });
     mockUseGetOndoPortfolioPosition.mockReturnValue({
       portfolio: null,
+      isLoading: false,
+      hasError: false,
+      hasFetched: false,
+      refetch: jest.fn(),
+    });
+    mockUseGetOndoBalanceHistory.mockReturnValue({
+      balanceHistory: null,
       isLoading: false,
       hasError: false,
       hasFetched: false,
@@ -428,6 +470,7 @@ describe('OndoCampaignDetailsView', () => {
                 steps: [],
               },
               depositCutoffDate: new Date(0).toISOString(),
+              tiers: [],
             },
           }),
         ],
@@ -452,30 +495,7 @@ describe('OndoCampaignDetailsView', () => {
                 steps: [],
               },
               depositCutoffDate: nextWeek.toISOString(),
-            },
-          }),
-        ],
-      });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('campaign-how-it-works')).toBeDefined();
-    });
-
-    it('renders CampaignHowItWorks when campaign is active and entries are still open', () => {
-      // Any real-world date is "future" relative to the mocked Date.now() of 123ms,
-      // so opt-in is still allowed and HowItWorks should be visible.
-      const nextWeek = new Date();
-      nextWeek.setDate(nextWeek.getDate() + 7);
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            details: {
-              howItWorks: {
-                title: 'How it works',
-                description: 'Description',
-                steps: [],
-              },
-              depositCutoffDate: nextWeek.toISOString(),
+              tiers: [],
             },
           }),
         ],
@@ -629,6 +649,7 @@ describe('OndoCampaignDetailsView', () => {
             details: {
               howItWorks: { title: 'How', description: 'Desc', steps: [] },
               depositCutoffDate: new Date(0).toISOString(),
+              tiers: [],
             },
           }),
         ],
@@ -666,6 +687,7 @@ describe('OndoCampaignDetailsView', () => {
             details: {
               howItWorks: { title: 'How', description: 'Desc', steps: [] },
               depositCutoffDate: new Date(0).toISOString(),
+              tiers: [],
             },
           }),
         ],
@@ -710,6 +732,7 @@ describe('OndoCampaignDetailsView', () => {
             details: {
               howItWorks: { title: 'How', description: 'Desc', steps: [] },
               depositCutoffDate: new Date(0).toISOString(),
+              tiers: [],
             },
           }),
         ],
@@ -733,6 +756,7 @@ describe('OndoCampaignDetailsView', () => {
             details: {
               howItWorks: { title: 'How', description: 'Desc', steps: [] },
               depositCutoffDate: new Date(0).toISOString(),
+              tiers: [],
             },
           }),
         ],
@@ -824,27 +848,7 @@ describe('OndoCampaignDetailsView', () => {
                 steps: [],
               },
               depositCutoffDate: new Date(0).toISOString(),
-            },
-          }),
-        ],
-      });
-      const { getByTestId } = render(<OndoCampaignDetailsView />);
-      expect(getByTestId('ondo-leaderboard')).toBeDefined();
-    });
-
-    it('shows OndoLeaderboard when not opted in and campaign is active past cutoff date', () => {
-      // Date.now() is mocked to 123ms in testSetup.js; use epoch (0ms) as a "past" cutoff
-      mockUseRewardCampaigns.mockReturnValue({
-        ...hookDefaults,
-        campaigns: [
-          createTestCampaign({
-            details: {
-              howItWorks: {
-                title: 'How it works',
-                description: 'Description',
-                steps: [],
-              },
-              depositCutoffDate: new Date(0).toISOString(),
+              tiers: [],
             },
           }),
         ],

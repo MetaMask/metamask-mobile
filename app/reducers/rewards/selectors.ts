@@ -269,3 +269,12 @@ export const selectOndoCampaignPortfolioById =
           `${subscriptionId}:${campaignId}`
         ] ?? null)
       : null;
+
+export const selectOndoCampaignBalanceHistoryById =
+  (subscriptionId: string | undefined, campaignId: string | undefined) =>
+  (state: RootState) =>
+    subscriptionId && campaignId && state.rewards.ondoCampaignBalanceHistory
+      ? (state.rewards.ondoCampaignBalanceHistory[
+          `${subscriptionId}:${campaignId}`
+        ] ?? null)
+      : null;
