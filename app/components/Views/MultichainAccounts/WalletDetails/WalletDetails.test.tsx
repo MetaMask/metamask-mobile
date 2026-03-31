@@ -28,7 +28,9 @@ jest.mock(
   }),
 );
 
-const mockBaseWalletDetails = jest.fn(() => null);
+const mockBaseWalletDetails = jest.fn(
+  (_props?: Record<string, unknown>) => null,
+);
 jest.mock('./BaseWalletDetails', () => {
   const { View, Text } = jest.requireActual('react-native');
   return {
