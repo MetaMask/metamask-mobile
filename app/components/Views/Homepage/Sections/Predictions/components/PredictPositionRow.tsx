@@ -106,7 +106,7 @@ export const PredictPositionRow = ({
           <SensitiveText
             variant={ComponentTextVariant.BodySMMedium}
             color={
-              percentPnl > 0
+              percentPnl >= 0
                 ? ComponentTextColor.Success
                 : ComponentTextColor.Error
             }
