@@ -370,7 +370,7 @@ import {
 import {
   MoneyAccountService,
   MoneyAccountServiceActions,
-} from '@metamask-previews/money-account-service';
+} from './controllers/money-account-service/index';
 import {
   GatorPermissionsController,
   GatorPermissionsControllerActions,

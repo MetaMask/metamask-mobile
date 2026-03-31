@@ -379,6 +379,7 @@ export class Engine {
         MoneyAccountService: moneyAccountServiceInit,
         ComplianceService: complianceServiceInit,
         ComplianceController: complianceControllerInit,
+        MoneyAccountService: moneyAccountServiceInit,
       },
       persistedState: initialState as EngineState,
       baseControllerMessenger: this.controllerMessenger,
