@@ -62,8 +62,8 @@ describe('getSeparatedLabelYPositions', () => {
     });
   });
 
-  describe('three positions with no overlap', () => {
-    it('returns originals', () => {
+  describe('three positions with no overlap but bottom overflow', () => {
+    it('preserves spacing and shifts group upward', () => {
       const input = [{ dotY: 20 }, { dotY: 100 }, { dotY: 180 }];
 
       const result = getSeparatedLabelYPositions(input);
