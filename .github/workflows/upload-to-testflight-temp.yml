@@ -10,12 +10,10 @@ on:
         description: 'Branch, tag, or SHA to build'
         required: true
         type: string
-        default: 'main'
       environment:
         description: 'Build environment / track (exp, beta, rc)'
         required: true
         type: string
-        default: 'rc'
       testflight_group:
         description: 'TestFlight external testing group'
         required: false
@@ -84,7 +82,7 @@ jobs:
       - name: Display TestFlight upload summary
         run: |
           BUILD_VERSION=$(node -p "require('./package.json').version")
-          BUILD_NUMBER=$(node -p "require('./package.json').version.split('.').pop()")
+          BUILD_NUMBER=$(awk '/versionCode/{print $2}' android/app/build.gradle)
           {
             echo "### 📲 TestFlight Upload"
             echo ""
