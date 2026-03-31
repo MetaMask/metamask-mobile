@@ -776,7 +776,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
       "SnapInterfaceController": {
         "interfaces": {},
       },
-      "SnapsRegistry": {
+      "SnapRegistryController": {
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,
@@ -1580,7 +1580,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
       "SnapInterfaceController": {
         "interfaces": {},
       },
-      "SnapsRegistry": {
+      "SnapRegistryController": {
         "database": null,
         "databaseUnavailable": false,
         "lastUpdated": null,

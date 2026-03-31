@@ -99,7 +99,7 @@ import {
   executionServiceInit,
   snapControllerInit,
   snapInterfaceControllerInit,
-  snapsRegistryInit,
+  snapRegistryControllerInit,
 } from './controllers/snaps';
 import { RestrictedMethods } from '../Permissions/constants';
 ///: END:ONLY_INCLUDE_IF
@@ -334,7 +334,7 @@ export class Engine {
         ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
         ExecutionService: executionServiceInit,
         CronjobController: cronjobControllerInit,
-        SnapsRegistry: snapsRegistryInit,
+        SnapRegistryController: snapRegistryControllerInit,
         SnapController: snapControllerInit,
         SnapInterfaceController: snapInterfaceControllerInit,
         NotificationServicesController: notificationServicesControllerInit,
@@ -453,7 +453,7 @@ export class Engine {
     const executionService = controllersByName.ExecutionService;
     const snapController = controllersByName.SnapController;
     const snapInterfaceController = controllersByName.SnapInterfaceController;
-    const snapsRegistry = controllersByName.SnapsRegistry;
+    const snapRegistryController = controllersByName.SnapRegistryController;
     const webSocketService = controllersByName.WebSocketService;
     const notificationServicesController =
       controllersByName.NotificationServicesController;
@@ -538,7 +538,7 @@ export class Engine {
       ExecutionService: executionService,
       SnapController: snapController,
       SnapInterfaceController: snapInterfaceController,
-      SnapsRegistry: snapsRegistry,
+      SnapRegistryController: snapRegistryController,
       SubjectMetadataController: this.subjectMetadataController,
       AuthenticationController: authenticationController,
       UserStorageController: userStorageController,
@@ -1362,7 +1362,7 @@ export default {
       NotificationServicesPushController,
       SnapController,
       SnapInterfaceController,
-      SnapsRegistry,
+      SnapRegistryController,
       SubjectMetadataController,
       UserStorageController,
       ///: END:ONLY_INCLUDE_IF
@@ -1434,7 +1434,7 @@ export default {
         NotificationServicesPushController.state,
       SnapController: SnapController.state,
       SnapInterfaceController: SnapInterfaceController.state,
-      SnapsRegistry: SnapsRegistry.state,
+      SnapRegistryController: SnapRegistryController.state,
       SubjectMetadataController: SubjectMetadataController.state,
       UserStorageController: UserStorageController.state,
       ///: END:ONLY_INCLUDE_IF

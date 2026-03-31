@@ -24,7 +24,7 @@ import {
   getSnapControllerInitMessenger,
   getSnapControllerMessenger,
   getSnapInterfaceControllerMessenger,
-  getSnapsRegistryMessenger,
+  getSnapRegistryControllerMessenger,
   getWebSocketServiceMessenger,
 } from './snaps';
 ///: END:ONLY_INCLUDE_IF
@@ -293,8 +293,8 @@ export const CONTROLLER_MESSENGERS = {
     getMessenger: getSnapInterfaceControllerMessenger,
     getInitMessenger: noop,
   },
-  SnapsRegistry: {
-    getMessenger: getSnapsRegistryMessenger,
+  SnapRegistryController: {
+    getMessenger: getSnapRegistryControllerMessenger,
     getInitMessenger: noop,
   },
   NotificationServicesController: {

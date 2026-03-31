@@ -181,14 +181,14 @@ import {
   PersistedSnapControllerState,
   SnapControllerEvents,
   SnapControllerActions,
-  JsonSnapsRegistry as SnapsRegistry,
-  SnapsRegistryState,
+  SnapRegistryController,
+  SnapRegistryControllerState,
   SnapInterfaceControllerState,
   SnapInterfaceControllerEvents,
   SnapInterfaceControllerActions,
   SnapInterfaceController,
-  SnapsRegistryActions,
-  SnapsRegistryEvents,
+  SnapRegistryControllerActions,
+  SnapRegistryControllerEvents,
   CronjobControllerState,
   CronjobControllerEvents,
   CronjobControllerActions,
@@ -463,12 +463,13 @@ type Permissions = PermissionsByRpcMethod[keyof PermissionsByRpcMethod];
 // TODO: Abstract this into controller utils for SnapsController
 type SnapsGlobalActions =
   | SnapControllerActions
-  | SnapsRegistryActions
+  | SnapRegistryControllerActions
   | SubjectMetadataControllerActions
   | PhishingControllerActions;
+
 type SnapsGlobalEvents =
   | SnapControllerEvents
-  | SnapsRegistryEvents
+  | SnapRegistryControllerEvents
   | SubjectMetadataControllerEvents
   | PhishingControllerEvents;
 ///: END:ONLY_INCLUDE_IF
@@ -714,7 +715,7 @@ export type Controllers = {
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   ExecutionService: ExecutionService;
   SnapController: SnapController;
-  SnapsRegistry: SnapsRegistry;
+  SnapRegistryController: SnapRegistryController;
   SubjectMetadataController: SubjectMetadataController;
   AuthenticationController: AuthenticationController.Controller;
   UserStorageController: UserStorageController.Controller;
@@ -796,7 +797,7 @@ export type EngineState = {
   DeFiPositionsController: DeFiPositionsControllerState;
   ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
   SnapController: PersistedSnapControllerState;
-  SnapsRegistry: SnapsRegistryState;
+  SnapRegistryController: SnapRegistryControllerState;
   SubjectMetadataController: SubjectMetadataControllerState;
   AuthenticationController: AuthenticationController.AuthenticationControllerState;
   UserStorageController: UserStorageController.UserStorageControllerState;
@@ -880,7 +881,7 @@ export type ControllersToInitialize =
   | 'ExecutionService'
   | 'SnapController'
   | 'SnapInterfaceController'
-  | 'SnapsRegistry'
+  | 'SnapRegistryController'
   | 'WebSocketService'
   | 'NotificationServicesController'
   | 'NotificationServicesPushController'

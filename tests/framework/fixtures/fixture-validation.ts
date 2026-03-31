@@ -202,7 +202,7 @@ export function getMobileFixtureIgnoredKeys(): string[] {
     // ── Snap-related (loaded from bundles at runtime, not fixture state) ──
     'engine.backgroundState.SnapController',
     'engine.backgroundState.SnapInterfaceController',
-    'engine.backgroundState.SnapsRegistry',
+    'engine.backgroundState.SnapRegistryController',
     'engine.backgroundState.SubjectMetadataController',
 
     // ── Per-wallet secrets and dynamic IDs (change every onboarding) ──
