@@ -29,3 +29,4 @@ models:
 
 modes:
   - pr-risk-analysis
+  - select-tags

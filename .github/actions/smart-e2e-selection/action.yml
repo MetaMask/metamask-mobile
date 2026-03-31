@@ -19,6 +19,10 @@ inputs:
   github-token:
     description: 'GitHub token for PR comments'
     required: true
+  ai-analyzer-token:
+    description: 'Token for checking out MetaMask/ai-analyzer action repo'
+    required: false
+    default: ''
   pr-number:
     description: 'Pull request number for commenting'
     required: true
@@ -37,6 +41,10 @@ inputs:
     description: 'Whether the PR is a draft'
     required: false
     default: 'false'
+  max-iterations:
+    description: 'Optional analyzer iteration override for larger PR contexts'
+    required: false
+    default: ''
 
 outputs:
   ai_e2e_test_tags:
@@ -93,53 +101,14 @@ runs:
         # Fetch the base branch for diff comparison (main or release/*)
         git fetch origin "${{ inputs.base-ref || 'main' }}" 2>/dev/null || true
 
-    - name: Setup Node.js
-      if: steps.check-skip-label.outputs.SKIP != 'true'
-      uses: actions/setup-node@v4
-      with:
-        node-version-file: '.nvmrc'
-
-    - name: Install minimal dependencies for AI analysis
-      if: steps.check-skip-label.outputs.SKIP != 'true'
-      shell: bash
-      run: |
-        echo "📦 Installing only required packages for AI analysis..."
-        # Install to a separate location that won't be overwritten
-        mkdir -p /tmp/ai-deps
-        cd /tmp/ai-deps
-        npm init -y
-        npm install @anthropic-ai/sdk@0.71.0 openai@4.77.0 @google/generative-ai@0.24.1 esbuild-register@3.6.0 --no-audit --no-fund
-        echo "✅ AI analysis dependencies installed in /tmp/ai-deps"
-
-    - name: Copy AI dependencies to workspace
-      if: steps.check-skip-label.outputs.SKIP != 'true'
-      shell: bash
-      run: |
-        echo "📋 Copying AI dependencies to workspace..."
-        # Create node_modules if it doesn't exist
-        mkdir -p node_modules
-        # Copy our pre-installed dependencies
-        cp -r /tmp/ai-deps/node_modules/* node_modules/
-        echo "✅ AI dependencies available in workspace"
-
-    - name: Run E2E AI analysis
-      id: ai-analysis
+    - name: Determine skip behavior
+      id: precheck
       shell: bash
       env:
-        E2E_CLAUDE_API_KEY: ${{ inputs.claude-api-key }}
-        E2E_OPENAI_API_KEY: ${{ inputs.openai-api-key }}
-        E2E_GEMINI_API_KEY: ${{ inputs.google-api-key }}
         EVENT_NAME: ${{ inputs.event-name }}
-        PR_NUMBER: ${{ inputs.pr-number }}
-        GH_TOKEN: ${{ inputs.github-token }}
-        GITHUB_REPOSITORY: ${{ inputs.repository }}
-        GITHUB_RUN_ID: ${{ github.run_id }}
         BASE_REF: ${{ inputs.base-ref }}
         IS_DRAFT: ${{ inputs.is-draft }}
       run: |
-        echo "ai_e2e_test_tags=[\"ALL\"]" >> "$GITHUB_OUTPUT"
-        echo "ai_confidence=0" >> "$GITHUB_OUTPUT"
-        echo "ai_performance_test_tags=[]" >> "$GITHUB_OUTPUT"
         SHOULD_SKIP=false
         SKIP_REASON=""
         FORCE_RUN=false
@@ -151,7 +120,6 @@ runs:
           SHOULD_SKIP=true
           SKIP_REASON="skip-smart-e2e-selection label found"
           FORCE_RUN=true
-          echo "ai_confidence=100" >> "$GITHUB_OUTPUT"
         elif [[ "$IS_DRAFT" == "true" ]]; then
           SHOULD_SKIP=true
           SKIP_REASON="draft PR"
@@ -167,10 +135,95 @@ runs:
 
         if [[ "$SHOULD_SKIP" == "true" ]]; then
           echo "⏭️ Skipping AI analysis - $SKIP_REASON"
+        fi
+
+    - name: Checkout AI analyzer action
+      if: steps.precheck.outputs.SKIPPED != 'true'
+      uses: actions/checkout@v4
+      with:
+        repository: MetaMask/ai-analyzer
+        ref: main
+        path: .ai-analyzer-action
+        token: ${{ inputs.ai-analyzer-token != '' && inputs.ai-analyzer-token || inputs.github-token }}
+
+    - name: Run select-tags and risk-analysis via AI analyzer
+      if: steps.precheck.outputs.SKIPPED != 'true'
+      id: run-analyzer
+      uses: ./.ai-analyzer-action
+      with:
+        modes: pr-risk-analysis,select-tags
+        config-path: .ai-pr-analyzer
+        pr-number: ${{ inputs.pr-number }}
+        base-branch: ${{ inputs.base-ref || 'main' }}
+        max-iterations: ${{ inputs.max-iterations }}
+        add-comment: false
+        add-label: false
+        claude-api-key: ${{ inputs.claude-api-key }}
+        openai-api-key: ${{ inputs.openai-api-key }}
+        google-api-key: ${{ inputs.google-api-key }}
+        github-token: ${{ inputs.github-token }}
+
+    - name: Build smart selection outputs
+      id: ai-analysis
+      if: always()
+      shell: bash
+      run: |
+        TAGS='["ALL"]'
+        CONFIDENCE='0'
+        RISK_LEVEL=''
+        PERF_TAGS='[]'
+        REASONING='AI analysis was inconclusive. Selecting all E2E tests as fallback.'
+        PERF_REASONING='No performance impact detected'
+
+        SKIPPED='${{ steps.precheck.outputs.SKIPPED }}'
+        SKIP_REASON='${{ steps.precheck.outputs.SKIP_REASON }}'
+        FORCE_RUN='${{ steps.precheck.outputs.FORCE_RUN }}'
+
+        if [[ "$SKIPPED" == "true" ]]; then
+          if [[ "$FORCE_RUN" == "true" ]]; then
+            CONFIDENCE='100'
+          fi
         else
-          echo "✅ Running AI analysis for PR #$PR_NUMBER"
-          # The script will generate the GH output variables - don't fail if script errors
-          node .github/scripts/e2e-smart-selection.mjs || echo "⚠️ AI analysis script failed, using fallback"
+          RESULT_JSON='${{ steps.run-analyzer.outputs.result_json }}'
+          if [[ -n "$RESULT_JSON" ]]; then
+            TAGS=$(echo "$RESULT_JSON" | jq -c '.results["select-tags"].selected_tags // .selected_tags // ["ALL"]')
+            CONFIDENCE=$(echo "$RESULT_JSON" | jq -r '.results["select-tags"].confidence // .confidence // 0')
+            RISK_LEVEL=$(echo "$RESULT_JSON" | jq -r '.results["pr-risk-analysis"].risk_level // .results["select-tags"].risk_level // .risk_level // empty')
+            PERF_TAGS=$(echo "$RESULT_JSON" | jq -c '.results["select-tags"].performance_tests.selected_tags // .performance_tests.selected_tags // []')
+            REASONING=$(echo "$RESULT_JSON" | jq -r '.results["select-tags"].reasoning // .reasoning // "AI analysis completed without detailed reasoning."')
+            PERF_REASONING=$(echo "$RESULT_JSON" | jq -r '.results["select-tags"].performance_tests.reasoning // .performance_tests.reasoning // "No performance impact detected"')
+          fi
+        fi
+
+        {
+          echo "ai_e2e_test_tags=$TAGS"
+          echo "ai_confidence=$CONFIDENCE"
+          echo "ai_risk_level=$RISK_LEVEL"
+          echo "ai_performance_test_tags=$PERF_TAGS"
+          echo "SKIPPED=$SKIPPED"
+          echo "SKIP_REASON=$SKIP_REASON"
+          echo "FORCE_RUN=$FORCE_RUN"
+        } >> "$GITHUB_OUTPUT"
+
+        if [[ "$SKIPPED" != "true" ]]; then
+          TAG_DISPLAY=$(echo "$TAGS" | jq -r 'if length == 0 then "None (no tests recommended)" else join(", ") end')
+          PERF_TAG_DISPLAY=$(echo "$PERF_TAGS" | jq -r 'if length == 0 then "None (no tests recommended)" else join(", ") end')
+          {
+            printf '%s\n' "- **Selected E2E tags**: ${TAG_DISPLAY}"
+            printf '%s\n' "- **Selected Performance tags**: ${PERF_TAG_DISPLAY}"
+            printf '%s\n' "- **Risk Level**: ${RISK_LEVEL}"
+            printf '%s\n' "- **AI Confidence**: ${CONFIDENCE}%"
+            printf '\n'
+            printf '%s\n' "<details>"
+            printf '%s\n' "<summary>click to see 🤖 AI reasoning details</summary>"
+            printf '\n'
+            printf '%s\n' "**E2E Test Selection:**"
+            printf '%s\n' "${REASONING}"
+            printf '\n'
+            printf '%s\n' "**Performance Test Selection:**"
+            printf '%s\n' "${PERF_REASONING}"
+            printf '%s\n' "</details>"
+          } > pr_comment.md
         fi
 
     - name: Set final outputs with fallback

@@ -1,0 +1,47 @@
+{
+  "conservative": {
+    "selected_tags": [
+      "SmokeAccounts",
+      "SmokeConfirmations",
+      "SmokeIdentity",
+      "SmokeNetworkAbstractions",
+      "SmokeNetworkExpansion",
+      "SmokeTrade",
+      "SmokeWalletPlatform",
+      "SmokeCard",
+      "SmokePerps",
+      "SmokeRamps",
+      "SmokeMultiChainAPI",
+      "SmokePredictions",
+      "FlaskBuildTests"
+    ],
+    "risk_level": "high",
+    "confidence": 100,
+    "reasoning": "Fallback: AI analysis did not complete successfully. Running all tests.",
+    "performance_tests": {
+      "selected_tags": [
+        "@PerformanceAccountList",
+        "@PerformanceOnboarding",
+        "@PerformanceLogin",
+        "@PerformanceSwaps",
+        "@PerformanceLaunch",
+        "@PerformanceAssetLoading",
+        "@PerformancePredict",
+        "@PerformancePreps"
+      ],
+      "reasoning": "Fallback: AI analysis did not complete successfully. Running all performance tests."
+    },
+    "label": "risk-high"
+  },
+  "empty": {
+    "selected_tags": [],
+    "risk_level": "low",
+    "confidence": 100,
+    "reasoning": "No files changed - no analysis needed",
+    "performance_tests": {
+      "selected_tags": [],
+      "reasoning": "No files changed - no performance tests needed"
+    },
+    "label": "risk-low"
+  }
+}

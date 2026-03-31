@@ -461,6 +461,7 @@ jobs:
           openai-api-key: ${{ secrets.E2E_OPENAI_API_KEY }}
           google-api-key: ${{ secrets.E2E_GEMINI_API_KEY }}
           github-token: ${{ github.token }}
+          ai-analyzer-token: ${{ secrets.AI_ANALYZER_TOKEN }}
           pr-number: ${{ github.event.pull_request.number }}
           repository: ${{ github.repository }}
           post-comment: 'true'

@@ -38,7 +38,7 @@ node -r esbuild-register tests/tools/e2e-ai-analyzer --mode select-tags --change
 node -r esbuild-register tests/tools/e2e-ai-analyzer --pr 12345 --provider <provider-name>
 ```
 
-For PR analysis, the same command is used in CI (see `.github/scripts/e2e-smart-selection.mjs`). Locally, results are printed to the console; in CI, they are also written to `e2e-ai-analysis.json` and used as workflow outputs.
+For PR analysis in CI, smart E2E selection now runs through `.ai-pr-analyzer` + `MetaMask/ai-analyzer` mode `select-tags` (see `.github/actions/smart-e2e-selection/action.yml`). This legacy command remains available for local tooling scenarios.
 
 ### Modes
 

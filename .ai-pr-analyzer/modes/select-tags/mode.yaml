@@ -1,0 +1,4 @@
+id: select-tags
+description: Select E2E and performance test tags based on regression risk
+finalizeToolName: finalize_select_tags
+outputFile: select-tags.json

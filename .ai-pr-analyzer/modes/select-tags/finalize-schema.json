@@ -1,0 +1,58 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "selected_tags": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Selected Detox E2E tags to run"
+    },
+    "risk_level": {
+      "type": "string",
+      "enum": ["low", "medium", "high"],
+      "description": "Regression risk level for this PR"
+    },
+    "confidence": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 100,
+      "description": "Confidence score for this selection"
+    },
+    "reasoning": {
+      "type": "string",
+      "description": "Reasoning for selected tags and risk level"
+    },
+    "performance_tests": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "selected_tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Selected performance test tags; empty array means none required"
+        },
+        "reasoning": {
+          "type": "string",
+          "description": "Reasoning for performance test selection"
+        }
+      },
+      "required": ["selected_tags", "reasoning"]
+    },
+    "label": {
+      "type": "string",
+      "description": "Suggested risk label (e.g., risk-low, risk-medium, risk-high)"
+    }
+  },
+  "required": [
+    "selected_tags",
+    "risk_level",
+    "confidence",
+    "reasoning",
+    "performance_tests",
+    "label"
+  ]
+}

@@ -1,0 +1,43 @@
+[
+  {
+    "name": "controller-version-update",
+    "description": "@metamask controller package version updated in package.json",
+    "trigger": {
+      "type": "diffPattern",
+      "file": "package.json",
+      "diffPattern": "@metamask\\/[^\"\\n]*controller[^\"\\n]*\""
+    },
+    "result": {
+      "selected_tags": [
+        "SmokeAccounts",
+        "SmokeConfirmations",
+        "SmokeIdentity",
+        "SmokeNetworkAbstractions",
+        "SmokeNetworkExpansion",
+        "SmokeTrade",
+        "SmokeWalletPlatform",
+        "SmokeCard",
+        "SmokePerps",
+        "SmokeRamps",
+        "SmokeMultiChainAPI",
+        "SmokePredictions",
+        "FlaskBuildTests"
+      ],
+      "risk_level": "high",
+      "label": "risk-high",
+      "performance_tests": {
+        "selected_tags": [
+          "@PerformanceAccountList",
+          "@PerformanceOnboarding",
+          "@PerformanceLogin",
+          "@PerformanceSwaps",
+          "@PerformanceLaunch",
+          "@PerformanceAssetLoading",
+          "@PerformancePredict",
+          "@PerformancePreps"
+        ],
+        "reasoning": "Hard rule: package-level controller updates can broadly impact runtime behavior. Running all performance tests."
+      }
+    }
+  }
+]

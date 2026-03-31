@@ -3,7 +3,7 @@
  *
  * These descriptions help the AI selector understand what each tag covers.
  *
- * Selection logic is defined in: tests/tools/e2e-ai-analyzer/modes/select-tags/prompt.ts
+ * Selection logic is defined in: .ai-pr-analyzer/modes/select-tags/prompt-context.md
  */
 const smokeTags = {
   smokeAccounts: {
