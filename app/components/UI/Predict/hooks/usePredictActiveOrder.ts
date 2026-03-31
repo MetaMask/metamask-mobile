@@ -20,6 +20,10 @@ export const usePredictActiveOrder = () => {
     PredictController.clearOrderError();
   }, [PredictController]);
 
+  const clearActiveOrderTransactionId = useCallback(() => {
+    PredictController.clearActiveOrderTransactionId();
+  }, [PredictController]);
+
   const currentState = useMemo(() => activeOrder?.state, [activeOrder]);
 
   const isDepositing = useMemo(
@@ -37,5 +41,6 @@ export const usePredictActiveOrder = () => {
     isDepositing,
     isPlacingOrder,
     clearOrderError,
+    clearActiveOrderTransactionId,
   };
 };

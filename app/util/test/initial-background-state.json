@@ -733,7 +733,7 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
-    "activeBuyOrder": null,
+    "activeBuyOrders": {},
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
@@ -791,6 +791,7 @@
       }
     },
     "requests": {},
-    "orders": []
+    "orders": [],
+    "providerAutoSelected": false
   }
 }

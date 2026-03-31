@@ -5,7 +5,7 @@ import styleSheet from '../../Deposit/Views/OrderProcessing/OrderProcessing.styl
 import { useNavigation } from '@react-navigation/native';
 import { useParams } from '../../../../../util/navigation/navUtils';
 import Routes from '../../../../../constants/navigation/Routes';
-import { useStyles } from '../../../../../component-library/hooks';
+import { useStyles } from '../../../../hooks/useStyles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import { getDepositNavbarOptions } from '../../../Navbar';
 import { getOrderById } from '../../../../../reducers/fiatOrders';
@@ -14,10 +14,11 @@ import { strings } from '../../../../../../locales/i18n';
 import DepositOrderContent from '../../Deposit/components/DepositOrderContent/DepositOrderContent';
 import { FIAT_ORDER_STATES } from '../../../../../constants/on-ramp';
 import { TRANSAK_SUPPORT_URL } from '../../Deposit/constants';
-import Button, {
+import {
+  Button,
   ButtonSize,
-  ButtonVariants,
-} from '../../../../../component-library/components/Buttons/Button';
+  ButtonVariant,
+} from '@metamask/design-system-react-native';
 import Loader from '../../../../../component-library/components-temp/Loader/Loader';
 import { ORDER_PROCESSING_TEST_IDS } from './OrderProcessing.testIds';
 
@@ -89,27 +90,25 @@ const V2OrderProcessing = () => {
                 order.state === FIAT_ORDER_STATES.FAILED) && (
                 <Button
                   style={styles.button}
-                  variant={ButtonVariants.Secondary}
+                  variant={ButtonVariant.Secondary}
                   size={ButtonSize.Lg}
                   onPress={handleContactSupport}
-                  label={strings(
-                    'deposit.order_processing.contact_support_button',
-                  )}
-                />
+                >
+                  {strings('deposit.order_processing.contact_support_button')}
+                </Button>
               )}
               <Button
                 style={styles.button}
-                variant={ButtonVariants.Primary}
+                variant={ButtonVariant.Primary}
                 size={ButtonSize.Lg}
                 onPress={handleMainAction}
                 testID={ORDER_PROCESSING_TEST_IDS.MAIN_ACTION_BUTTON}
-                label={
-                  order.state === FIAT_ORDER_STATES.CANCELLED ||
-                  order.state === FIAT_ORDER_STATES.FAILED
-                    ? strings('deposit.order_processing.error_button')
-                    : strings('deposit.order_processing.button')
-                }
-              />
+              >
+                {order.state === FIAT_ORDER_STATES.CANCELLED ||
+                order.state === FIAT_ORDER_STATES.FAILED
+                  ? strings('deposit.order_processing.error_button')
+                  : strings('deposit.order_processing.button')}
+              </Button>
             </View>
           </View>
         </ScreenLayout.Content>
