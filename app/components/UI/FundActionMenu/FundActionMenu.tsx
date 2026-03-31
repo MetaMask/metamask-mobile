@@ -234,7 +234,11 @@ const FundActionMenu = () => {
   );
 
   return (
-    <BottomSheet ref={sheetRef} goBack={navigation.goBack}>
+    <BottomSheet
+      ref={sheetRef}
+      goBack={navigation.goBack}
+      testID="bottom-sheet"
+    >
       <Box twClassName="py-4">
         {actionConfigs.map(
           (config) =>

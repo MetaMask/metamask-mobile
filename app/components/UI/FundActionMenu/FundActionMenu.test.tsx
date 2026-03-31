@@ -3,6 +3,7 @@ import React from 'react';
 import { render, fireEvent, waitFor } from '@testing-library/react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
+import mockSafeAreaContext from 'react-native-safe-area-context/jest/mock';
 
 // External dependencies.
 import { MetaMetricsEvents } from '../../../core/Analytics';
@@ -20,37 +21,7 @@ import { trace, TraceName } from '../../../util/trace';
 import FundActionMenu from './FundActionMenu';
 import { RampsButtonClickData } from '../Ramp/hooks/useRampsButtonClickData';
 
-// Mock BottomSheet component
-jest.mock(
-  '../../../component-library/components/BottomSheets/BottomSheet',
-  () => {
-    const { View } = jest.requireActual('react-native');
-    const { forwardRef, useImperativeHandle } = jest.requireActual('react');
-
-    const MockBottomSheet = forwardRef(
-      (props: { children: React.ReactNode }, ref: React.Ref<unknown>) => {
-        useImperativeHandle(ref, () => ({
-          onOpenBottomSheet: jest.fn(),
-          onCloseBottomSheet: jest.fn((callback?: () => void) => {
-            if (callback) callback();
-          }),
-        }));
-
-        return (
-          <View testID="bottom-sheet" {...props}>
-            {props.children}
-          </View>
-        );
-      },
-    );
-
-    return {
-      __esModule: true,
-      default: MockBottomSheet,
-    };
-  },
-);
-
+jest.mock('react-native-safe-area-context', () => mockSafeAreaContext);
 // Mock dependencies
 jest.mock('@react-navigation/native');
 jest.mock('@react-navigation/compat', () => ({
@@ -133,6 +104,7 @@ describe('FundActionMenu', () => {
     // Setup default mocks
     mockUseNavigation.mockReturnValue({
       navigate: mockNavigate,
+      goBack: jest.fn(),
     } as never);
 
     mockUseRoute.mockReturnValue({
