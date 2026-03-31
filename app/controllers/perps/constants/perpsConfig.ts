@@ -130,6 +130,10 @@ export const PERFORMANCE_CONFIG = {
   // Prevents excessive liquidation price calls during rapid form input changes
   LiquidationPriceDebounceMs: 500,
 
+  // Candle subscription debounce delay (milliseconds)
+  // Prevents WS subscription churn during rapid market switching (#28141)
+  CandleConnectDebounceMs: 500,
+
   // Navigation params delay (milliseconds)
   // Required for React Navigation to complete state transitions before setting params
   // This ensures navigation context is available when programmatically selecting tabs

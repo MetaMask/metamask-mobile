@@ -54,6 +54,9 @@ describe('CandleStreamChannel', () => {
     jest.useRealTimers();
   });
 
+  // Flush the debounce delay used by connect() → deferConnect() (#28141)
+  const flushConnectDebounce = () => jest.advanceTimersByTime(500);
+
   describe('Cache Management', () => {
     it('should generate correct cache key', () => {
       // Test via subscription - cache key format is symbol-interval
@@ -66,6 +69,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback,
       });
+      flushConnectDebounce();
 
       // Verify subscription was called (implies cache key was used internally)
       expect(mockSubscribeToCandles).toHaveBeenCalledWith(
@@ -93,6 +97,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: callback1,
       });
+      flushConnectDebounce();
 
       // Simulate WebSocket data
       capturedCallback?.(mockCandleData);
@@ -151,6 +156,7 @@ describe('CandleStreamChannel', () => {
         duration: TimeDuration.OneDay,
         callback: ethCallback,
       });
+      flushConnectDebounce();
 
       // Send BTC data
       btcCapturedCallback?.(mockBtcData);

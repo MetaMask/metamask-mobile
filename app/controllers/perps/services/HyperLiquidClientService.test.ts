@@ -555,12 +555,15 @@ describe('HyperLiquidClientService', () => {
           },
         ],
       });
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'BTC', // SDK uses 'coin' terminology
-        interval: '1h',
-        startTime: expect.any(Number),
-        endTime: expect.any(Number),
-      });
+      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'BTC', // SDK uses 'coin' terminology
+          interval: '1h',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        undefined,
+      );
     });
 
     it('handles empty candles response', async () => {
@@ -623,12 +626,15 @@ describe('HyperLiquidClientService', () => {
       });
 
       // Assert
-      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith({
-        coin: 'ETH', // SDK uses 'coin' terminology
-        interval: '5m',
-        startTime: expect.any(Number),
-        endTime: expect.any(Number),
-      });
+      expect(mockInfoClientWs.candleSnapshot).toHaveBeenCalledWith(
+        {
+          coin: 'ETH', // SDK uses 'coin' terminology
+          interval: '5m',
+          startTime: expect.any(Number),
+          endTime: expect.any(Number),
+        },
+        undefined,
+      );
 
       // Verify time range calculation
       const callArgs = mockInfoClientWs.candleSnapshot.mock.calls[0][0];
@@ -798,6 +804,7 @@ describe('HyperLiquidClientService', () => {
           coin: 'BTC',
           interval: '1h',
         }),
+        expect.any(AbortSignal),
       );
 
       // Assert - callback invoked with historical data
