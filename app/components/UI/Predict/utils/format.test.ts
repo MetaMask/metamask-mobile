@@ -11,6 +11,7 @@ import {
   calculateNetAmount,
   formatPriceWithSubscriptNotation,
   formatGameStartTime,
+  formatPredictUnrealizedPnLStringParts,
 } from './format';
 import { Recurrence, PredictSeries } from '../types';
 
@@ -2115,6 +2116,35 @@ describe('format utils', () => {
       [0.000000001, '$0.0₈1'],
     ])('formats %f as %s', (input, expected) => {
       expect(formatPriceWithSubscriptNotation(input)).toBe(expected);
+    });
+  });
+
+  describe('formatPredictUnrealizedPnLStringParts', () => {
+    it('formats positive cash and percent with explicit + on percent', () => {
+      expect(
+        formatPredictUnrealizedPnLStringParts({
+          cashUpnl: 95.39,
+          percentUpnl: 9.4,
+        }),
+      ).toEqual({ amount: '+$95.39', percent: '+9.4%' });
+    });
+
+    it('formats negative cash and percent', () => {
+      expect(
+        formatPredictUnrealizedPnLStringParts({
+          cashUpnl: -10.5,
+          percentUpnl: -3.25,
+        }),
+      ).toEqual({ amount: '-$10.50', percent: '-3.25%' });
+    });
+
+    it('formats zero with + on cash and percent (matches positions header)', () => {
+      expect(
+        formatPredictUnrealizedPnLStringParts({
+          cashUpnl: 0,
+          percentUpnl: 0,
+        }),
+      ).toEqual({ amount: '+$0.00', percent: '+0%' });
     });
   });
 

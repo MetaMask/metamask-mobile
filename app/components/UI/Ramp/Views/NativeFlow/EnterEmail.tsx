@@ -1,9 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { TextInput, View } from 'react-native';
-import Text, {
+import {
+  Text,
   TextVariant,
-} from '../../../../../component-library/components/Texts/Text';
-import { useStyles } from '../../../../../component-library/hooks';
+  Button,
+  ButtonVariant,
+  ButtonSize,
+} from '@metamask/design-system-react-native';
+import { useStyles } from '../../../../hooks/useStyles';
 import styleSheet from '../../Deposit/Views/EnterEmail/EnterEmail.styles';
 import ScreenLayout from '../../Aggregator/components/ScreenLayout';
 import {
@@ -18,11 +22,6 @@ import { getDepositNavbarOptions } from '../../../Navbar';
 import { createV2OtpCodeNavDetails } from './OtpCode';
 import { validateEmail } from '../../Deposit/utils';
 import DepositProgressBar from '../../Deposit/components/DepositProgressBar/DepositProgressBar';
-import Button, {
-  ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
 import PoweredByTransak from '../../Deposit/components/PoweredByTransak';
 import Logger from '../../../../../util/Logger';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
@@ -142,10 +141,10 @@ const V2EnterEmail = () => {
         <ScreenLayout.Content grow>
           <DepositProgressBar steps={4} currentStep={0} />
           <View style={styles.contentContainer}>
-            <Text variant={TextVariant.HeadingLG} style={styles.title}>
+            <Text variant={TextVariant.HeadingLg} style={styles.title}>
               {strings('deposit.enter_email.title')}
             </Text>
-            <Text style={styles.description}>
+            <Text variant={TextVariant.BodyMd} style={styles.description}>
               {strings('deposit.enter_email.description')}
             </Text>
 
@@ -165,12 +164,16 @@ const V2EnterEmail = () => {
             />
 
             {validationError && (
-              <Text style={styles.error}>
+              <Text variant={TextVariant.BodySm} style={styles.error}>
                 {strings('deposit.enter_email.validation_error')}
               </Text>
             )}
 
-            {error && <Text style={styles.error}>{error}</Text>}
+            {error && (
+              <Text variant={TextVariant.BodySm} style={styles.error}>
+                {error}
+              </Text>
+            )}
           </View>
         </ScreenLayout.Content>
       </ScreenLayout.Body>
@@ -181,12 +184,13 @@ const V2EnterEmail = () => {
             testID={EnterEmailSelectorsIDs.SEND_EMAIL_BUTTON}
             size={ButtonSize.Lg}
             onPress={handleSubmit}
-            label={strings('deposit.enter_email.submit_button')}
-            variant={ButtonVariants.Primary}
-            width={ButtonWidthTypes.Full}
-            loading={isLoading}
+            variant={ButtonVariant.Primary}
+            isFullWidth
+            isLoading={isLoading}
             isDisabled={isLoading}
-          />
+          >
+            {strings('deposit.enter_email.submit_button')}
+          </Button>
           <PoweredByTransak name="powered-by-transak-logo" />
         </ScreenLayout.Content>
       </ScreenLayout.Footer>

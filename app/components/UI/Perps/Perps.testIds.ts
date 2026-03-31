@@ -551,6 +551,10 @@ export const PerpsOrderViewSelectorsIDs = {
 export const PerpsLimitPriceBottomSheetSelectorsIDs = {
   PRICE_DISPLAY: 'perps-limit-price-display',
   CONFIRM_BUTTON: 'perps-limit-price-confirm-button',
+  PRESET_MID: 'perps-limit-price-preset-mid',
+  PRESET_BID: 'perps-limit-price-preset-bid',
+  PRESET_ASK: 'perps-limit-price-preset-ask',
+  PRESET_PERCENT: 'perps-limit-price-preset-',
 };
 
 // ========================================
@@ -754,4 +758,14 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_ORDERS: 'perps-transactions-tab-orders',
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
+} as const;
+
+// ========================================
+// PERPS FLIP POSITION CONFIRM SHEET SELECTORS
+// ========================================
+
+export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
+  SHEET: 'perps-flip-position-confirm-sheet',
+  CANCEL_BUTTON: 'perps-flip-position-cancel-button',
+  FLIP_BUTTON: 'perps-flip-position-flip-button',
 } as const;
