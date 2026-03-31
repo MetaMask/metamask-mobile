@@ -5,13 +5,12 @@ import {
   ButtonVariant,
   Text,
   TextVariant,
+  BottomSheet,
+  BottomSheetRef,
 } from '@metamask/design-system-react-native';
 import React, { useCallback, useRef } from 'react';
 import { Alert, Modal, View } from 'react-native';
 import { strings } from '../../../../locales/i18n';
-import BottomSheet, {
-  BottomSheetRef,
-} from '../../../component-library/components/BottomSheets/BottomSheet';
 import { Nft } from '@metamask/assets-controllers';
 import Engine from '../../../core/Engine';
 import { toHex } from '@metamask/controller-utils';
