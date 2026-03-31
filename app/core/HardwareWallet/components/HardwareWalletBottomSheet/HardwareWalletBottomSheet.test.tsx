@@ -16,7 +16,7 @@ const mockDeviceSelection = {
   scanError: null,
 };
 const mockActions = {
-  retryEnsureDeviceReady: jest.fn(),
+  ensureDeviceReady: jest.fn(),
   selectDevice: jest.fn(),
   rescan: jest.fn(),
   connect: jest.fn(),
@@ -497,7 +497,7 @@ describe('HardwareWalletBottomSheet', () => {
       expect(mockActions.connect).toHaveBeenCalledWith('device-1');
     });
 
-    it('calls retryEnsureDeviceReady when error continue is triggered', async () => {
+    it('calls ensureDeviceReady when error continue is triggered', async () => {
       const error = new HardwareWalletError('Test error', {
         code: ErrorCode.Unknown,
         severity: Severity.Err,
@@ -508,7 +508,7 @@ describe('HardwareWalletBottomSheet', () => {
         status: ConnectionStatus.ErrorState,
         error,
       });
-      mockActions.retryEnsureDeviceReady.mockResolvedValue(undefined);
+      mockActions.ensureDeviceReady.mockResolvedValue(undefined);
       render(<HardwareWalletBottomSheet {...createDefaultProps()} />);
 
       const onContinue =
@@ -516,7 +516,7 @@ describe('HardwareWalletBottomSheet', () => {
       expect(onContinue).toBeDefined();
       await onContinue();
 
-      expect(mockActions.retryEnsureDeviceReady).toHaveBeenCalled();
+      expect(mockActions.ensureDeviceReady).toHaveBeenCalled();
     });
 
     it('calls onClose when error dismiss is triggered', () => {
@@ -580,20 +580,20 @@ describe('HardwareWalletBottomSheet', () => {
       expect(onAwaitingConfirmationCancel).toHaveBeenCalled();
     });
 
-    it('calls retryEnsureDeviceReady when awaiting app continue is triggered', async () => {
+    it('calls ensureDeviceReady when awaiting app continue is triggered', async () => {
       Object.assign(mockConnectionState, {
         status: ConnectionStatus.AwaitingApp,
         deviceId: 'device-123',
         requiredApp: 'Ethereum',
       });
-      mockActions.retryEnsureDeviceReady.mockResolvedValue(undefined);
+      mockActions.ensureDeviceReady.mockResolvedValue(undefined);
       render(<HardwareWalletBottomSheet {...createDefaultProps()} />);
 
       const onContinue = lastAwaitingAppProps.onContinue as () => Promise<void>;
       expect(onContinue).toBeDefined();
       await onContinue();
 
-      expect(mockActions.retryEnsureDeviceReady).toHaveBeenCalled();
+      expect(mockActions.ensureDeviceReady).toHaveBeenCalled();
     });
   });
 });

@@ -514,7 +514,7 @@ describe('HardwareWalletProvider', () => {
       });
     });
 
-    describe('retryEnsureDeviceReady (internal, via bottom sheet props)', () => {
+    describe('ensureDeviceReady (via bottom sheet retry)', () => {
       it('transitions to connecting state when retrying', async () => {
         const { result } = renderWithActions();
 
@@ -536,10 +536,10 @@ describe('HardwareWalletProvider', () => {
           ConnectionStatus.ErrorState,
         );
 
-        const internalRetry =
-          capturedBottomSheetProps.retryEnsureDeviceReady as () => Promise<void>;
+        const bottomSheetRetry =
+          capturedBottomSheetProps.ensureDeviceReady as () => Promise<void>;
         await act(async () => {
-          await internalRetry();
+          await bottomSheetRetry();
         });
 
         expect(mockAdapterInstance.ensureDeviceReady).toHaveBeenCalled();

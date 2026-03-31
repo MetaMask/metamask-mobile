@@ -16,7 +16,6 @@ interface UseDeviceConnectionFlowOptions {
   refs: HardwareWalletRefs;
   setters: HardwareWalletStateSetters;
   walletType: HardwareWalletType | null;
-  deviceId: string | null;
   handleError: (error: unknown) => void;
   updateConnectionState: (state: HardwareWalletConnectionState) => void;
   createAdapterWithCallbacks: (
@@ -31,7 +30,6 @@ interface UseDeviceConnectionFlowOptions {
 interface UseDeviceConnectionFlowResult {
   ensureDeviceReady: (targetDeviceId?: string | null) => Promise<boolean>;
   connect: (targetDeviceId: string) => Promise<boolean>;
-  retryEnsureDeviceReady: () => Promise<void>;
   closeFlow: () => void;
   handleConnectionSuccess: () => void;
 }
@@ -46,7 +44,6 @@ export const useDeviceConnectionFlow = ({
   refs,
   setters,
   walletType,
-  deviceId,
   handleError,
   updateConnectionState,
   createAdapterWithCallbacks,
@@ -204,6 +201,10 @@ export const useDeviceConnectionFlow = ({
         adapter.resetFlowState();
       }
 
+      if (!(await adapter.ensurePermissions())) {
+        return false;
+      }
+
       const transportUnavailable =
         await checkTransportEnabledOrShowError(adapter);
       if (transportUnavailable) {
@@ -249,39 +250,6 @@ export const useDeviceConnectionFlow = ({
     ],
   );
 
-  const retryEnsureDeviceReady = useCallback(async (): Promise<void> => {
-    const adapter = refs.adapterRef.current;
-    if (adapter?.resetFlowState) {
-      adapter.resetFlowState();
-    }
-
-    if (adapter && !(await adapter.ensurePermissions())) {
-      return;
-    }
-
-    if (adapter && (await checkTransportEnabledOrShowError(adapter))) {
-      return;
-    }
-
-    if (deviceId && adapter) {
-      updateConnectionState({ status: ConnectionStatus.Connecting });
-      try {
-        await tryEnsureReady(adapter, deviceId);
-      } catch (error) {
-        handleError(error);
-      }
-    } else {
-      updateConnectionState({ status: ConnectionStatus.Scanning });
-    }
-  }, [
-    deviceId,
-    handleError,
-    updateConnectionState,
-    refs,
-    checkTransportEnabledOrShowError,
-    tryEnsureReady,
-  ]);
-
   const closeFlow = useCallback(() => {
     if (pendingReadyResolveRef.current) {
       pendingReadyResolveRef.current(false);
@@ -298,7 +266,6 @@ export const useDeviceConnectionFlow = ({
   return {
     ensureDeviceReady,
     connect,
-    retryEnsureDeviceReady,
     closeFlow,
     handleConnectionSuccess,
   };

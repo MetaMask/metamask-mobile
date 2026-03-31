@@ -1,4 +1,10 @@
-import React, { ReactNode, useCallback, useMemo, useRef, useState } from 'react';
+import React, {
+  ReactNode,
+  useCallback,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 
 import HardwareWalletContext from './contexts/HardwareWalletContext';
 import { HardwareWalletBottomSheet } from './components';
@@ -71,23 +77,17 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
     updateConnectionState,
   });
 
-  const {
-    ensureDeviceReady,
-    connect,
-    retryEnsureDeviceReady,
-    closeFlow,
-    handleConnectionSuccess,
-  } = useDeviceConnectionFlow({
-    refs,
-    setters,
-    walletType: effectiveWalletType,
-    deviceId,
-    handleError,
-    updateConnectionState,
-    createAdapterWithCallbacks,
-    initializeAdapter,
-    checkTransportEnabledOrShowError,
-  });
+  const { ensureDeviceReady, connect, closeFlow, handleConnectionSuccess } =
+    useDeviceConnectionFlow({
+      refs,
+      setters,
+      walletType: effectiveWalletType,
+      handleError,
+      updateConnectionState,
+      createAdapterWithCallbacks,
+      initializeAdapter,
+      checkTransportEnabledOrShowError,
+    });
 
   const awaitingConfirmationRejectRef = useRef<(() => void) | null>(null);
 
@@ -178,7 +178,7 @@ export const HardwareWalletProvider: React.FC<HardwareWalletProviderProps> = ({
         connectionState={connectionState}
         deviceSelection={deviceSelection}
         walletType={effectiveWalletType}
-        retryEnsureDeviceReady={retryEnsureDeviceReady}
+        ensureDeviceReady={ensureDeviceReady}
         selectDevice={selectDevice}
         rescan={rescan}
         connect={connect}

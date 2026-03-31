@@ -20,7 +20,6 @@ const mockEnsureDeviceReady = jest.fn();
 const mockSetTargetWalletType = jest.fn();
 const mockSelectDiscoveredDevice = jest.fn();
 const mockConnectToDevice = jest.fn();
-const mockRetryEnsureDeviceReady = jest.fn();
 const mockCloseConnectionFlow = jest.fn();
 const mockAcknowledgeConnectionSuccess = jest.fn();
 const mockSetConnectionSheetVisible = jest.fn();
@@ -82,7 +81,6 @@ describe('HardwareWallet onboarding screen', () => {
 
     mockEnsureDeviceReady.mockResolvedValue(false);
     mockConnectToDevice.mockResolvedValue(false);
-    mockRetryEnsureDeviceReady.mockResolvedValue(false);
 
     mockUseHardwareWallet.mockReturnValue({
       walletType: HardwareWalletType.Ledger,
@@ -99,7 +97,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -142,7 +139,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -182,7 +178,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -240,7 +235,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -290,7 +284,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -314,7 +307,7 @@ describe('HardwareWallet onboarding screen', () => {
 
     await waitFor(() => {
       expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
-      expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+      expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
     });
   });
 
@@ -337,7 +330,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -379,7 +371,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -404,7 +395,7 @@ describe('HardwareWallet onboarding screen', () => {
       fireEvent.press(getByText('Continue'));
     });
 
-    expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
     expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
   });
 
@@ -432,7 +423,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -453,7 +443,7 @@ describe('HardwareWallet onboarding screen', () => {
       fireEvent.press(getByText('Retry'));
     });
 
-    expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
     expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
   });
 
@@ -482,7 +472,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -508,7 +497,7 @@ describe('HardwareWallet onboarding screen', () => {
       fireEvent.press(getByText('Retry'));
     });
 
-    expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
     expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
 
     await act(async () => {
@@ -609,7 +598,6 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
-      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -713,7 +701,7 @@ describe('HardwareWallet onboarding screen', () => {
 
     await waitFor(() => {
       expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
-      expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+      expect(mockEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
     });
 
     await act(async () => {

@@ -54,7 +54,6 @@ const HardwareWallet = () => {
     connectionState,
     deviceSelection,
     ensureDeviceReady,
-    retryEnsureDeviceReady = ensureDeviceReady,
     setTargetWalletType,
     selectDiscoveredDevice,
     connectToDevice,
@@ -181,7 +180,7 @@ const HardwareWallet = () => {
     setConnectionSheetVisible(false);
 
     try {
-      const isConnected = await retryEnsureDeviceReady(retryTargetDeviceId);
+      const isConnected = await ensureDeviceReady(retryTargetDeviceId);
       if (isConnected && isMountedRef.current) {
         handleNavigateToLedgerConnect();
       }
@@ -193,9 +192,9 @@ const HardwareWallet = () => {
     }
   }, [
     deviceSelection.selectedDevice,
+    ensureDeviceReady,
     handleNavigateToLedgerConnect,
     handleRestartFlow,
-    retryEnsureDeviceReady,
     retryTargetDeviceId,
     setConnectionSheetVisible,
   ]);
@@ -250,7 +249,7 @@ const HardwareWallet = () => {
     isErrorState &&
     errorCode !== undefined &&
     errorCode !== ErrorCode.DeviceNotFound
-      ? 'flex-1 px-4'
+      ? 'flex-1 w-full'
       : 'flex-1 items-center justify-center px-4';
 
   return (
@@ -272,6 +271,7 @@ const HardwareWallet = () => {
             <DeviceFoundState
               deviceName={displayDevice.name}
               disabled={isBusy}
+              onConnect={() => handleSelectedDevice(displayDevice)}
               onOpenSelector={() => setIsSelectorOpen(true)}
             />
           ) : null
