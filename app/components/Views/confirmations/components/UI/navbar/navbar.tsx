@@ -52,7 +52,7 @@ export function getNavbar({
       marginRight: Device.isAndroid() ? 60 : undefined,
     },
     headerStyle: {
-      backgroundColor: theme.colors.background.alternative,
+      backgroundColor: theme.colors.background.default,
       shadowColor: importedColors.transparent,
       elevation: 0,
     },
@@ -72,7 +72,7 @@ export function getNavbar({
 
   const defaultHeaderLeft = () => (
     <ButtonIcon
-      size={ButtonIconSizes.Lg}
+      size={ButtonIconSizes.Md}
       iconName={IconName.ArrowLeft}
       onPress={handleBackPress}
       style={innerStyles.headerLeft}

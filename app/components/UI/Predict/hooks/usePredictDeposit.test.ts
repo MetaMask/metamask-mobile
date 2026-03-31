@@ -15,11 +15,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: (component: unknown) => component,
-  withNavigationFocus: (component: unknown) => component,
-}));
-
 jest.mock('../../../../core/Engine', () => ({
   context: {
     PredictController: {
@@ -32,14 +27,12 @@ jest.mock('../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
 
-jest.mock('../../../../util/theme', () => ({
-  useAppThemeFromContext: () => ({
-    colors: {
-      error: { default: '#FF0000' },
-      accent04: { normal: '#0000FF' },
-    },
-  }),
-}));
+jest.mock('../../../../util/theme', () => {
+  const { mockTheme } = jest.requireActual('../../../../util/theme');
+  return {
+    useAppThemeFromContext: () => mockTheme,
+  };
+});
 
 jest.mock('../../../../component-library/components/Toast', () => {
   const actualReact = jest.requireActual('react');
@@ -78,6 +71,13 @@ jest.mock('../utils/accounts', () => ({
     address: '0x1234567890123456789012345678901234567890',
   }),
 }));
+
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-account-group-id'),
+  }),
+);
 
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),

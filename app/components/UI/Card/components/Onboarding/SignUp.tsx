@@ -1,4 +1,10 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
 import { useNavigation } from '@react-navigation/native';
 import {
   Box,
@@ -8,26 +14,21 @@ import {
   Icon,
   IconSize,
   IconName,
-} from '@metamask/design-system-react-native';
-import Button, {
+  Label,
+  Button,
+  ButtonVariant,
   ButtonSize,
-  ButtonVariants,
-  ButtonWidthTypes,
-} from '../../../../../component-library/components/Buttons/Button';
+} from '@metamask/design-system-react-native';
 import TextField from '../../../../../component-library/components/Form/TextField';
-import Label from '../../../../../component-library/components/Form/Label';
 import Routes from '../../../../../constants/navigation/Routes';
 import { strings } from '../../../../../../locales/i18n';
 import OnboardingStep from './OnboardingStep';
 import { validateEmail } from '../../../Ramp/Deposit/utils';
 import { useDebouncedValue } from '../../../../hooks/useDebouncedValue';
 import useEmailVerificationSend from '../../hooks/useEmailVerificationSend';
-import useRegistrationSettings from '../../hooks/useRegistrationSettings';
+import useRegions from '../../hooks/useRegions';
 import {
-  selectCardGeoLocation,
-  selectSelectedCountry,
   setContactVerificationId,
-  setSelectedCountry,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
 import { useDispatch, useSelector } from 'react-redux';
@@ -35,15 +36,16 @@ import { validatePassword } from '../../util/validatePassword';
 import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { CardActions, CardScreens } from '../../util/metrics';
-import { TouchableOpacity } from 'react-native';
+import { ActivityIndicator, TouchableOpacity } from 'react-native';
 import {
   clearOnValueChange,
   createRegionSelectorModalNavigationDetails,
-  Region,
   setOnValueChange,
 } from './RegionSelectorModal';
-import { countryCodeToFlag } from '../../util/countryCodeToFlag';
 import SelectField from './SelectField';
+import { mapCountryToLocation } from '../../util/mapCountryToLocation';
+import type { Region } from '../../types';
+import { selectGeolocationLocation } from '../../../../../selectors/geolocationController';
 
 const SignUp = () => {
   const navigation = useNavigation();
@@ -55,9 +57,14 @@ const SignUp = () => {
   const [isPasswordError, setIsPasswordError] = useState(false);
   const [isPasswordValid, setIsPasswordValid] = useState(false);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const selectedCountry = useSelector(selectSelectedCountry);
-  const geoLocation = useSelector(selectCardGeoLocation);
-  const { data: registrationSettings } = useRegistrationSettings();
+  const [selectedCountry, setSelectedCountry] = useState<Region | null>(null);
+  const hasAutoSelectedCountry = useRef(false);
+  const geoLocation = useSelector(selectGeolocationLocation);
+  const {
+    signUpRegions,
+    getRegionByCode,
+    isLoading: isLoadingRegistrationSettings,
+  } = useRegions();
   const { trackEvent, createEventBuilder } = useAnalytics();
 
   useEffect(() => {
@@ -81,36 +88,28 @@ const SignUp = () => {
   const debouncedEmail = useDebouncedValue(email, 1000);
   const debouncedPassword = useDebouncedValue(password, 1000);
 
-  const regions: Region[] = useMemo(() => {
-    if (!registrationSettings?.countries) {
-      return [];
-    }
-    return [...registrationSettings.countries]
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .filter((country) => country.canSignUp)
-      .map((country) => ({
-        key: country.iso3166alpha2,
-        name: country.name,
-        emoji: countryCodeToFlag(country.iso3166alpha2),
-        areaCode: country.callingCode,
-      }));
-  }, [registrationSettings]);
-
   useEffect(() => {
-    if (selectedCountry || !regions.length || geoLocation === 'UNKNOWN') {
+    if (!signUpRegions.length || geoLocation === 'UNKNOWN') {
       return;
     }
 
-    const matchedRegion = regions.find((region) => region.key === geoLocation);
-    if (matchedRegion) {
-      dispatch(setSelectedCountry(matchedRegion));
-      dispatch(
-        setUserCardLocation(
-          matchedRegion.key === 'US' ? 'us' : 'international',
-        ),
-      );
+    // Run at most once: prevents a background re-fetch of registrationSettings
+    // (which produces a new getRegionByCode reference) from overwriting the
+    // user's manual country selection.
+    if (hasAutoSelectedCountry.current) {
+      return;
     }
-  }, [regions, geoLocation, selectedCountry, dispatch]);
+
+    const matchedRegion = getRegionByCode(geoLocation);
+
+    // Only pre-select countries that are eligible for sign-up.
+    // getRegionByCode searches allRegions, which includes canSignUp: false entries.
+    if (matchedRegion?.canSignUp) {
+      hasAutoSelectedCountry.current = true;
+      setSelectedCountry(matchedRegion);
+      dispatch(setUserCardLocation(mapCountryToLocation(matchedRegion.key)));
+    }
+  }, [signUpRegions.length, geoLocation, dispatch, getRegionByCode]);
 
   useEffect(() => {
     if (!debouncedEmail) {
@@ -198,6 +197,7 @@ const SignUp = () => {
         navigation.navigate(Routes.CARD.ONBOARDING.CONFIRM_EMAIL, {
           email,
           password,
+          countryKey: selectedCountry.key,
         });
       } else {
         // If no contactVerificationId, assume user is registered or email not valid
@@ -209,29 +209,36 @@ const SignUp = () => {
   }, [
     email,
     password,
-    selectedCountry,
     trackEvent,
     createEventBuilder,
     sendEmailVerification,
     dispatch,
     navigation,
+    selectedCountry,
   ]);
 
   const handleCountrySelect = useCallback(() => {
+    if (isLoadingRegistrationSettings) return;
     resetEmailVerificationSend();
     setOnValueChange((region) => {
-      dispatch(setSelectedCountry(region));
-      dispatch(
-        setUserCardLocation(region.key === 'US' ? 'us' : 'international'),
-      );
+      setSelectedCountry(region);
+      dispatch(setUserCardLocation(mapCountryToLocation(region.key)));
     });
 
     navigation.navigate(
       ...createRegionSelectorModalNavigationDetails({
-        regions,
+        regions: signUpRegions,
+        selectedRegionKey: selectedCountry?.key ?? null,
       }),
     );
-  }, [dispatch, navigation, regions, resetEmailVerificationSend]);
+  }, [
+    navigation,
+    signUpRegions,
+    selectedCountry?.key,
+    resetEmailVerificationSend,
+    isLoadingRegistrationSettings,
+    dispatch,
+  ]);
 
   useEffect(() => () => clearOnValueChange(), []);
 
@@ -239,11 +246,21 @@ const SignUp = () => {
     <>
       <Box>
         <Label>{strings('card.card_onboarding.sign_up.country_label')}</Label>
-        <SelectField
-          value={selectedCountry?.name}
-          onPress={handleCountrySelect}
-          testID="signup-country-select"
-        />
+        {isLoadingRegistrationSettings && !selectedCountry ? (
+          <Box
+            twClassName="flex-row items-center justify-center h-12 rounded-xl border border-solid border-border-muted bg-background-muted"
+            testID="signup-country-loading"
+          >
+            <ActivityIndicator size="small" />
+          </Box>
+        ) : (
+          <SelectField
+            value={selectedCountry?.name}
+            onPress={handleCountrySelect}
+            isDisabled={isLoadingRegistrationSettings}
+            testID="signup-country-select"
+          />
+        )}
       </Box>
 
       <Box>
@@ -331,15 +348,16 @@ const SignUp = () => {
   const renderActions = () => (
     <>
       <Button
-        variant={ButtonVariants.Primary}
-        label={strings('card.card_onboarding.continue_button')}
+        variant={ButtonVariant.Primary}
         size={ButtonSize.Lg}
         onPress={handleContinue}
-        width={ButtonWidthTypes.Full}
+        isFullWidth
         isDisabled={isDisabled}
-        loading={emailVerificationIsLoading}
+        isLoading={emailVerificationIsLoading}
         testID="signup-continue-button"
-      />
+      >
+        {strings('card.card_onboarding.continue_button')}
+      </Button>
       <TouchableOpacity
         onPress={() => navigation.navigate(Routes.CARD.AUTHENTICATION)}
       >

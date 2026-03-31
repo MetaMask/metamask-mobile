@@ -13,7 +13,7 @@ import {
   AnalysisContext,
   type ModeConfig,
 } from '../types';
-import { LLM_CONFIG } from '../config';
+import { LLM_CONFIG, MODEL_PRICING } from '../config';
 import { getToolDefinitions } from '../ai-tools/tool-registry';
 import { executeTool, ToolContext } from '../ai-tools/tool-executor';
 import {
@@ -33,6 +33,16 @@ import {
   outputAnalysis as outputSelectTagsAnalysis,
   checkHardRules as checkSelectTagsHardRules,
 } from '../modes/select-tags/handlers';
+import {
+  buildSystemPrompt as buildTestPlanSystemPrompt,
+  buildTaskPrompt as buildTestPlanTaskPrompt,
+} from '../modes/generate-test-plan/prompt';
+import {
+  processAnalysis as processTestPlanAnalysis,
+  createConservativeResult as createTestPlanConservativeResult,
+  createEmptyResult as createTestPlanEmptyResult,
+  outputAnalysis as outputTestPlanAnalysis,
+} from '../modes/generate-test-plan/handlers';
 
 /**
  * Mode Registry — see ModeConfig in types/index.ts for the full interface.
@@ -55,6 +65,16 @@ export const MODES: {
     createEmptyResult: createSelectTagsEmptyResult,
     outputAnalysis: outputSelectTagsAnalysis,
     checkHardRules: checkSelectTagsHardRules,
+  },
+  'generate-test-plan': {
+    description: 'Generate exploratory test plan for release testing',
+    finalizeToolName: 'finalize_test_plan_generation',
+    systemPromptBuilder: buildTestPlanSystemPrompt,
+    taskPromptBuilder: buildTestPlanTaskPrompt,
+    processAnalysis: processTestPlanAnalysis,
+    createConservativeResult: createTestPlanConservativeResult,
+    createEmptyResult: createTestPlanEmptyResult,
+    outputAnalysis: outputTestPlanAnalysis,
   },
 };
 
@@ -112,11 +132,49 @@ export async function analyzeWithAgent<M extends ModeKey>(
   const taskPrompt = modeConfig.taskPromptBuilder(
     allChangedFiles,
     criticalFiles,
+    context,
   );
 
   const tools = getToolDefinitions();
   let currentMessage: LLMContentBlock[] | string = taskPrompt;
   const conversationHistory: LLMMessage[] = [];
+
+  let totalInputTokens = 0;
+  let totalOutputTokens = 0;
+  const requestedModel = provider.getDefaultModel();
+  let resolvedModel: string | undefined;
+
+  function printTokenReport() {
+    if (totalInputTokens === 0 && totalOutputTokens === 0) return;
+    const pricing = MODEL_PRICING[requestedModel];
+    const inputCost = pricing
+      ? (totalInputTokens / 1_000_000) * pricing.inputPerM
+      : null;
+    const outputCost = pricing
+      ? (totalOutputTokens / 1_000_000) * pricing.outputPerM
+      : null;
+    const totalCost =
+      inputCost !== null && outputCost !== null ? inputCost + outputCost : null;
+
+    console.log('\n💰 Token Usage Report');
+    console.log('─────────────────────────────────────');
+    console.log(
+      `   Model:          ${requestedModel}${resolvedModel && resolvedModel !== requestedModel ? ` (${resolvedModel})` : ''}`,
+    );
+    console.log(
+      `   Input tokens:   ${totalInputTokens.toLocaleString()}${pricing ? `  ($${inputCost?.toFixed(4)})` : ''}`,
+    );
+    console.log(
+      `   Output tokens:  ${totalOutputTokens.toLocaleString()}${pricing ? `  ($${outputCost?.toFixed(4)})` : ''}`,
+    );
+    if (totalCost !== null) {
+      console.log(`   Total cost:     $${totalCost.toFixed(4)}`);
+    }
+    if (!pricing) {
+      console.log(`   ⚠️  No pricing data for model "${requestedModel}"`);
+    }
+    console.log('─────────────────────────────────────');
+  }
 
   console.log(`🤖 Using provider: ${provider.displayName}`);
 
@@ -134,6 +192,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
         { role: 'user', content: currentMessage },
       ],
     });
+
+    if (response.usage) {
+      totalInputTokens += response.usage.inputTokens;
+      totalOutputTokens += response.usage.outputTokens;
+      resolvedModel = response.model;
+    }
 
     // Handle tool uses
     const toolUseBlocks = response.content.filter(
@@ -182,10 +246,12 @@ export async function analyzeWithAgent<M extends ModeKey>(
 
             if (analysis) {
               console.log(`✅ Analysis complete!`);
+              printTokenReport();
               return analysis as ModeAnalysisResult<M>;
             }
 
-            console.log('⚠️ Failed to parse finalize_tag_selection');
+            console.log(`⚠️ Failed to parse ${modeConfig.finalizeToolName}`);
+            printTokenReport();
             return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
           }
 
@@ -200,8 +266,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
       // Update conversation history
       conversationHistory.push({
         role: 'user',
-        content:
-          typeof currentMessage === 'string' ? currentMessage : currentMessage,
+        content: currentMessage,
       });
       conversationHistory.push({
         role: 'assistant',
@@ -221,6 +286,7 @@ export async function analyzeWithAgent<M extends ModeKey>(
       );
       if (analysis) {
         console.log(`✅ Analysis complete!`);
+        printTokenReport();
         return analysis as ModeAnalysisResult<M>;
       }
     }
@@ -229,5 +295,6 @@ export async function analyzeWithAgent<M extends ModeKey>(
   }
 
   console.log('⚠️ Using fallback analysis');
+  printTokenReport();
   return modeConfig.createConservativeResult() as ModeAnalysisResult<M>;
 }

@@ -127,6 +127,47 @@ describe('PerpsOrderRedirect', () => {
     expect(mockDepositWithOrder).not.toHaveBeenCalled();
   });
 
+  it('calls depositWithOrder when WebSocket is ready', async () => {
+    // Arrange
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+
+    mockDepositWithOrder.mockResolvedValue(undefined);
+    (StackActions.replace as jest.Mock).mockReturnValue({ type: 'REPLACE' });
+
+    // Act
+    render(<PerpsOrderRedirect />);
+
+    // Assert
+    await waitFor(() => {
+      expect(mockDepositWithOrder).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  it('shows toast and goes back when depositWithOrder fails', async () => {
+    // Arrange
+    mockUsePerpsConnection.mockReturnValue({
+      isConnected: true,
+      isInitialized: true,
+    } as never);
+
+    mockDepositWithOrder.mockRejectedValue(new Error('Failed to create order'));
+
+    // Act
+    render(<PerpsOrderRedirect />);
+
+    // Assert
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalledWith(
+        mockToastOptions.accountManagement.oneClickTrade.txCreationFailed,
+      );
+      expect(mockGoBack).toHaveBeenCalled();
+    });
+    expect(mockDepositWithOrder).toHaveBeenCalled();
+  });
+
   it('calls depositWithOrder and navigates to confirmation on success', async () => {
     // Arrange
     mockUsePerpsConnection.mockReturnValue({
@@ -153,6 +194,9 @@ describe('PerpsOrderRedirect', () => {
         {
           direction: 'long',
           asset: 'ETH',
+          fromTokenDetails: undefined,
+          assetsASSETS2493AbtestTokenDetailsLayout: undefined,
+          source: 'asset_detail_screen',
           showPerpsHeader:
             CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
         },

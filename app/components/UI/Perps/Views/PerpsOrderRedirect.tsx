@@ -17,7 +17,7 @@ import usePerpsToasts from '../hooks/usePerpsToasts';
 import PerpsLoader from '../components/PerpsLoader';
 import Logger from '../../../../util/Logger';
 import { ensureError } from '../../../../util/errorUtils';
-import { PERPS_CONSTANTS } from '@metamask/perps-controller';
+import { PERPS_CONSTANTS, PERPS_EVENT_VALUE } from '@metamask/perps-controller';
 import { CONFIRMATION_HEADER_CONFIG } from '../constants/perpsConfig';
 import type { PerpsNavigationParamList } from '../types/navigation';
 
@@ -29,7 +29,7 @@ type RouteParams = RouteProp<PerpsNavigationParamList, 'PerpsOrderRedirect'>;
  * A redirect screen that handles navigation from Token Details to the Perps order confirmation.
  * This screen:
  * 1. Waits for the WebSocket connection to be established (via PerpsConnectionProvider)
- * 2. Calls depositWithOrder() to create the pending transaction
+ * 2. Calls depositWithOrder() to create the pending transaction (Arbitrum network check is handled internally by the hook)
  * 3. Navigates to the confirmation screen with the transaction ready
  *
  * This is necessary because Token Details is outside the Perps stack, so the WebSocket
@@ -77,6 +77,7 @@ const PerpsOrderRedirect: React.FC = () => {
               asset,
               fromTokenDetails,
               assetsASSETS2493AbtestTokenDetailsLayout,
+              source: PERPS_EVENT_VALUE.SOURCE.ASSET_DETAIL_SCREEN,
               showPerpsHeader:
                 CONFIRMATION_HEADER_CONFIG.ShowPerpsHeaderForDepositAndTrade,
             },

@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
 import { GanacheHardfork, RampsRegion } from './types.ts';
 import { DEFAULT_ANVIL_PORT } from '../seeder/anvil-manager.ts';
@@ -32,6 +32,9 @@ export const APP_PACKAGE_IDS = {
   IOS: 'io.metamask.MetaMask',
   ANDROID: 'io.metamask',
 } as const;
+
+// Package ID for the React Native playground APK (pre-installed on the device)
+export const PLAYGROUND_PACKAGE_ID = 'com.anonymous.multichainrnplayground';
 
 export const DEFAULT_TEST_DAPP_PATH = path.join(
   '..',

@@ -14,6 +14,8 @@ export default () => ({
   updateAuthPreference: Authentication.updateAuthPreference,
   getAuthCapabilities: Authentication.getAuthCapabilities,
   updateOsAuthEnabled: Authentication.updateOsAuthEnabled,
+  requestBiometricsAccessControlForIOS:
+    Authentication.requestBiometricsAccessControlForIOS,
   checkIsSeedlessPasswordOutdated:
     Authentication.checkIsSeedlessPasswordOutdated,
 });

@@ -17,6 +17,7 @@ jest.mock(
   '../../../../components/UI/Perps/adapters/mobileInfrastructure',
   () => ({
     createMobileInfrastructure: jest.fn(() => ({})),
+    createMobileClientConfig: jest.fn(() => ({})),
   }),
 );
 jest.mock('../../../../components/UI/Perps/utils/e2eBridgePerps', () => ({
@@ -129,6 +130,8 @@ describe('perps controller init', () => {
       hip3ConfigVersion: 0,
       withdrawInProgress: false,
       lastWithdrawResult: null,
+      lastCompletedWithdrawalTimestamp: null,
+      lastCompletedWithdrawalTxHashes: [],
       withdrawalRequests: [],
       withdrawalProgress: {
         progress: 0,
@@ -140,13 +143,8 @@ describe('perps controller init', () => {
       initializationError: null,
       initializationAttempts: 0,
       selectedPaymentToken: null,
-      cachedMarketData: null,
-      cachedMarketDataTimestamp: 0,
-      cachedPositions: null,
-      cachedOrders: null,
-      cachedAccountState: null,
-      cachedUserDataTimestamp: 0,
-      cachedUserDataAddress: null,
+      cachedMarketDataByProvider: {},
+      cachedUserDataByProvider: {},
     };
 
     initRequestMock.persistedState = {

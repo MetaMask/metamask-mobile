@@ -1,6 +1,7 @@
 import { createSelector } from 'reselect';
 import { RootState } from '../../../../../reducers';
 import { PredictPositionStatus } from '../../types';
+import { selectSelectedInternalAccountAddress } from '../../../../../selectors/accountsController';
 
 const selectPredictControllerState = (state: RootState) =>
   state.engine.backgroundState.PredictController;
@@ -10,9 +11,23 @@ const selectPredictPendingDeposits = createSelector(
   (predictControllerState) => predictControllerState?.pendingDeposits || {},
 );
 
+const selectPredictPendingClaims = createSelector(
+  selectPredictControllerState,
+  (predictControllerState) => predictControllerState?.pendingClaims || {},
+);
+
 const selectPredictWithdrawTransaction = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.withdrawTransaction,
+);
+
+const selectPredictActiveBuyOrder = createSelector(
+  selectPredictControllerState,
+  selectSelectedInternalAccountAddress,
+  (predictState, address) => {
+    if (!predictState || !address) return null;
+    return predictState.activeBuyOrders[address] ?? null;
+  },
 );
 
 const selectPredictClaimablePositions = createSelector(
@@ -70,6 +85,17 @@ const selectPredictPendingDepositByAddress = ({
     (pendingDeposits) => pendingDeposits[address] || undefined,
   );
 
+const selectPredictPendingClaimByAddress = ({ address }: { address: string }) =>
+  createSelector(
+    selectPredictPendingClaims,
+    (pendingClaims) => pendingClaims[address] || undefined,
+  );
+
+const selectPredictSelectedPaymentToken = createSelector(
+  selectPredictControllerState,
+  (predictState) => predictState?.selectedPaymentToken ?? null,
+);
+
 const selectPredictAccountMeta = createSelector(
   selectPredictControllerState,
   (predictControllerState) => predictControllerState?.accountMeta || {},
@@ -90,7 +116,9 @@ const selectPredictAccountMetaByAddress = ({
 export {
   selectPredictControllerState,
   selectPredictPendingDeposits,
+  selectPredictPendingClaims,
   selectPredictWithdrawTransaction,
+  selectPredictActiveBuyOrder,
   selectPredictClaimablePositions,
   selectPredictClaimablePositionsByAddress,
   selectPredictWonPositions,
@@ -99,6 +127,8 @@ export {
   selectPredictBalances,
   selectPredictBalanceByAddress,
   selectPredictPendingDepositByAddress,
+  selectPredictPendingClaimByAddress,
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
+  selectPredictSelectedPaymentToken,
 };

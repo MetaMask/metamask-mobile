@@ -17,7 +17,6 @@ export { usePerpsSorting } from './usePerpsSorting';
 export { usePerpsNavigation } from './usePerpsNavigation';
 
 // Connection management hooks
-export { usePerpsConnectionLifecycle } from './usePerpsConnectionLifecycle';
 export { usePerpsConnection } from './usePerpsConnection';
 export { useWebSocketHealthToast } from './useWebSocketHealthToast';
 

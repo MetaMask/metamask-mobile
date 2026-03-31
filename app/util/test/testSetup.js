@@ -1,7 +1,7 @@
 import { NativeModules } from 'react-native';
 import mockRNAsyncStorage from '@react-native-async-storage/async-storage/jest/async-storage-mock';
 import mockClipboard from '@react-native-clipboard/clipboard/jest/clipboard-mock.js';
-/* eslint-disable import/no-namespace */
+/* eslint-disable import-x/no-namespace */
 import { mockTheme } from '../theme';
 import Adapter from 'enzyme-adapter-react-16';
 import Enzyme from 'enzyme';
@@ -209,39 +209,12 @@ jest.mock('../../core/NotificationManager', () => ({
   showSimpleNotification: jest.fn(),
 }));
 
-const createMockAnalyticsEventBuilder = () => ({
-  addProperties: jest.fn().mockReturnThis(),
-  addSensitiveProperties: jest.fn().mockReturnThis(),
-  removeProperties: jest.fn().mockReturnThis(),
-  removeSensitiveProperties: jest.fn().mockReturnThis(),
-  setSaveDataRecording: jest.fn().mockReturnThis(),
-  build: jest.fn(() => ({})),
-});
+const { createMockUseAnalyticsHook } = require('./analyticsMock');
 
-const mockUseAnalytics = {
-  trackEvent: jest.fn(),
-  createEventBuilder: jest.fn(() => createMockAnalyticsEventBuilder()),
-  isEnabled: jest.fn().mockReturnValue(true),
-  enable: jest.fn().mockResolvedValue(undefined),
-  addTraitsToUser: jest.fn().mockResolvedValue(undefined),
-  createDataDeletionTask: jest.fn().mockResolvedValue({ status: 'ok' }),
-  checkDataDeleteStatus: jest.fn().mockResolvedValue({
-    deletionRequestDate: undefined,
-    hasCollectedDataSinceDeletionRequest: false,
-    dataDeletionRequestStatus: 'UNKNOWN',
-  }),
-  getDeleteRegulationCreationDate: jest.fn().mockReturnValue('20/04/2024'),
-  getDeleteRegulationId: jest.fn().mockReturnValue('mock-regulation-id'),
-  isDataRecorded: jest.fn().mockReturnValue(true),
-  getAnalyticsId: jest.fn().mockResolvedValue('mock-analytics-id'),
-};
+const mockUseAnalytics = createMockUseAnalyticsHook();
 
 jest.mock('../../components/hooks/useAnalytics/useAnalytics', () => ({
   useAnalytics: jest.fn(() => mockUseAnalytics),
-}));
-
-jest.mock('../../components/hooks/useAnalytics/withAnalyticsAwareness', () => ({
-  withAnalyticsAwareness: jest.fn((Component) => Component),
 }));
 
 let mockState = {};
@@ -568,6 +541,16 @@ jest.mock('@notifee/react-native', () =>
   require('@notifee/react-native/jest-mock'),
 );
 
+// ESM-only package; Jest must not load node_modules source (transformIgnorePatterns)
+jest.mock('@braze/react-native-sdk', () => ({
+  __esModule: true,
+  default: {
+    changeUser: jest.fn(),
+    addListener: jest.fn(() => ({ remove: jest.fn() })),
+    Events: { PUSH_NOTIFICATION_EVENT: 'push_notification_event' },
+  },
+}));
+
 jest.mock('react-native/Libraries/Image/resolveAssetSource', () => ({
   __esModule: true,
   default: (source) => {
@@ -589,7 +572,7 @@ jest.mock('../../store/storage-wrapper', () => ({
   setItem: jest.fn(),
 }));
 
-// eslint-disable-next-line import/no-commonjs
+// eslint-disable-next-line import-x/no-commonjs
 require('react-native-reanimated').setUpTests();
 global.__reanimatedWorkletInit = jest.fn();
 global.__DEV__ = false;
@@ -749,7 +732,7 @@ jest.mock('../../core/Analytics/MetaMetricsTestUtils', () => {
 // Mock whenEngineReady to prevent async Engine access after Jest teardown.
 // Components that trigger analytics (trackView/trackEvent) cause the queue to call
 // whenEngineReady(), which uses setTimeout and can run after tests finish.
-jest.mock('../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
 }));
 

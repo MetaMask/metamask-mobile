@@ -1,4 +1,4 @@
-/* eslint-disable import/no-nodejs-modules */
+/* eslint-disable import-x/no-nodejs-modules */
 import path from 'path';
 import type { BrowserStackConfig } from '../../../types.ts';
 import type { ProjectConfig } from '../../common/types.ts';
@@ -46,8 +46,11 @@ export class BrowserStackConfigBuilder {
       capabilities: {
         'bstack:options': {
           debug: true,
-          local: false, // To be implemented
+          local: process.env.BROWSERSTACK_LOCAL?.toLowerCase() === 'true',
           interactiveDebugging: true,
+          networkLogsOptions: {
+            captureContent: true,
+          },
           networkLogs: true,
           appiumVersion: '2.6.0', // BrowserStack doesn't support Appium 3 yet
           idleTimeout: 180,
@@ -60,11 +63,20 @@ export class BrowserStackConfigBuilder {
             `${projectName} ${platformName}`,
           sessionName: `${projectName} ${platformName} test`,
           buildIdentifier:
-            process.env.GITHUB_ACTIONS === 'true' ? '' : process.env.USER,
-          appProfiling: 'true',
-          selfHeal: 'true',
+            process.env.GITHUB_ACTIONS === 'true'
+              ? `CI ${process.env.GITHUB_RUN_ID}`
+              : process.env.USER,
+          appProfiling: true,
+          selfHeal: true,
           networkProfile: '4g-lte-advanced-good',
-          geoLocation: 'FR',
+          geoLocation: process.env.BROWSERSTACK_GEO_LOCATION || 'ES',
+          enableCameraImageInjection: device.enableCameraImageInjection,
+          ...(process.env.BROWSERSTACK_LOCAL_IDENTIFIER
+            ? { localIdentifier: process.env.BROWSERSTACK_LOCAL_IDENTIFIER }
+            : {}),
+          ...(process.env.BROWSERSTACK_RN_PLAYGROUND_URL
+            ? { otherApps: [process.env.BROWSERSTACK_RN_PLAYGROUND_URL] }
+            : {}),
         },
         'appium:autoGrantPermissions': true,
         'appium:app': appBsUrl,

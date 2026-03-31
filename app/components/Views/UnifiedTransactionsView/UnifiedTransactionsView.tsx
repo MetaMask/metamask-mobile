@@ -2,15 +2,15 @@ import { Transaction as NonEvmTransaction } from '@metamask/keyring-api';
 import { SupportedCaipChainId } from '@metamask/multichain-network-controller';
 import { SmartTransaction } from '@metamask/smart-transactions-controller';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { numberToHex } from '@metamask/utils';
 import { useNavigation } from '@react-navigation/native';
 import { FlashList, FlashListRef } from '@shopify/flash-list';
 import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { RefreshControl, View } from 'react-native';
-import { KeyboardAwareScrollView } from 'react-native-keyboard-aware-scroll-view';
-import Modal from 'react-native-modal';
 import { useSelector } from 'react-redux';
 import { strings } from '../../../../locales/i18n';
 import ExtendedKeyringTypes from '../../../constants/keyringTypes';
+import { RPC } from '../../../constants/network';
 import {
   selectSelectedInternalAccount,
   selectInternalAccounts,
@@ -48,14 +48,13 @@ import PriceChartContext, {
 import { useBridgeHistoryItemBySrcTxHash } from '../../UI/Bridge/hooks/useBridgeHistoryItemBySrcTxHash';
 import MultichainBridgeTransactionListItem from '../../UI/MultichainBridgeTransactionListItem';
 import MultichainTransactionListItem from '../../UI/MultichainTransactionListItem';
-import TransactionActionModal from '../../UI/TransactionActionModal';
 import TransactionElement from '../../UI/TransactionElement';
 import RetryModal from '../../UI/Transactions/RetryModal';
 import { filterDuplicateOutgoingTransactions } from '../../UI/Transactions/utils';
 import TransactionsFooter from '../../UI/Transactions/TransactionsFooter';
 import MultichainTransactionsFooter from '../MultichainTransactionsView/MultichainTransactionsFooter';
 import { getAddressUrl } from '../../../core/Multichain/utils';
-import UpdateEIP1559Tx from '../confirmations/legacy/components/UpdateEIP1559Tx';
+import { CancelSpeedupModal } from '../confirmations/components/modals/cancel-speedup-modal';
 import styleSheet from './UnifiedTransactionsView.styles';
 import { useUnifiedTxActions } from './useUnifiedTxActions';
 import { TransactionDetailLocation } from '../../../core/Analytics/events/transactions';
@@ -308,9 +307,21 @@ const UnifiedTransactionsView = ({
     const evmConfirmedDeduped =
       filterDuplicateOutgoingTransactions(allConfirmedFiltered);
 
-    // Non-EVM: filter by enabled chains
+    // Non-EVM: filter by enabled chains, also include bridge txs
+    // whose destination chain is enabled (e.g. Solana→Optimism bridge
+    // should appear when viewing Optimism activity)
+    const bridgeHistoryValues = Object.values(bridgeHistory ?? {});
     const filteredNonEvmTransactionsForSelectedChain = nonEvmTransactions
-      .filter((tx) => enabledNonEVMChainIds.includes(tx.chain))
+      .filter((tx) => {
+        if (enabledNonEVMChainIds.includes(tx.chain)) return true;
+        const bridge = bridgeHistoryValues.find(
+          (item) => item.status?.srcChain?.txHash === tx.id,
+        );
+        return (
+          bridge?.quote?.destChainId !== undefined &&
+          enabledEVMChainIds.includes(numberToHex(bridge.quote.destChainId))
+        );
+      })
       // deduplicate by id
       .filter(
         (tx, index, self) => index === self.findIndex((t) => t.id === tx.id),
@@ -413,7 +424,7 @@ const UnifiedTransactionsView = ({
     let title;
     if (configBlockExplorerUrl) {
       const result = getBlockExplorerAddressUrl(
-        providerType,
+        RPC,
         selectedAccountGroupEvmAddress,
         blockExplorerUrl,
       );
@@ -439,7 +450,6 @@ const UnifiedTransactionsView = ({
     });
   }, [
     navigation,
-    providerType,
     blockExplorerUrl,
     selectedAccountGroupEvmAddress,
     popularListBlockExplorer,
@@ -539,19 +549,14 @@ const UnifiedTransactionsView = ({
     retryErrorMsg,
     speedUpIsOpen,
     cancelIsOpen,
-    speedUp1559IsOpen,
-    cancel1559IsOpen,
-    speedUpConfirmDisabled,
-    cancelConfirmDisabled,
-    existingGas,
+    confirmDisabled,
     existingTx,
     speedUpTxId,
     cancelTxId,
     toggleRetry,
     onSpeedUpAction,
     onCancelAction,
-    onSpeedUpCompleted,
-    onCancelCompleted,
+    onSpeedUpCancelCompleted,
     speedUpTransaction,
     cancelTransaction,
     signQRTransaction,
@@ -635,6 +640,9 @@ const UnifiedTransactionsView = ({
         navigation={navigation}
         index={index}
         location={location}
+        showDestinationPerspective={
+          !enabledNonEVMChainIds.includes(item.tx.chain)
+        }
       />
     ) : (
       <MultichainTransactionListItem
@@ -684,92 +692,21 @@ const UnifiedTransactionsView = ({
             />
           )}
         </PriceChartContext.Consumer>
-        {/* Action modals for EVM Transactions */}
-        {(speedUp1559IsOpen || cancel1559IsOpen) && (
-          <Modal
-            isVisible
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            style={styles.modal}
-            backdropColor={colors.overlay.default}
-            backdropOpacity={1}
-            animationInTiming={600}
-            animationOutTiming={600}
-            onBackdropPress={
-              cancel1559IsOpen ? onCancelCompleted : onSpeedUpCompleted
-            }
-            onBackButtonPress={
-              cancel1559IsOpen ? onCancelCompleted : onSpeedUpCompleted
-            }
-            onSwipeComplete={
-              cancel1559IsOpen ? onCancelCompleted : onSpeedUpCompleted
-            }
-            swipeDirection={'down'}
-            propagateSwipe
-          >
-            <KeyboardAwareScrollView
-              contentContainerStyle={styles.scrollViewContent}
-            >
-              <UpdateEIP1559Tx
-                gas={existingTx?.txParams?.gas}
-                onSave={
-                  cancel1559IsOpen ? cancelTransaction : speedUpTransaction
-                }
-                onCancel={
-                  cancel1559IsOpen ? onCancelCompleted : onSpeedUpCompleted
-                }
-                existingGas={existingGas}
-                isCancel={cancel1559IsOpen}
-              />
-            </KeyboardAwareScrollView>
-          </Modal>
-        )}
-        {cancelIsOpen && (
-          <TransactionActionModal
-            isVisible={cancelIsOpen}
-            confirmDisabled={cancelConfirmDisabled}
-            onCancelPress={onCancelCompleted}
-            onConfirmPress={cancelTransaction}
-            confirmText={strings('transaction.lets_try')}
-            confirmButtonMode={'confirm'}
-            cancelText={strings('transaction.nevermind')}
-            feeText={undefined}
-            titleText={strings('transaction.cancel_tx_title')}
-            gasTitleText={strings('transaction.gas_cancel_fee')}
-            descriptionText={strings('transaction.cancel_tx_message')}
-          />
-        )}
-        {speedUpIsOpen && (
-          <TransactionActionModal
-            isVisible={speedUpIsOpen}
-            confirmDisabled={speedUpConfirmDisabled}
-            onCancelPress={onSpeedUpCompleted}
-            onConfirmPress={speedUpTransaction}
-            confirmText={strings('transaction.lets_try')}
-            confirmButtonMode={'confirm'}
-            cancelText={strings('transaction.nevermind')}
-            feeText={undefined}
-            titleText={strings('transaction.speedup_tx_title')}
-            gasTitleText={strings('transaction.gas_speedup_fee')}
-            descriptionText={strings('transaction.speedup_tx_message')}
-          />
-        )}
+        {/* Speed up / Cancel modals*/}
+        <CancelSpeedupModal
+          isVisible={speedUpIsOpen || cancelIsOpen}
+          isCancel={cancelIsOpen}
+          tx={existingTx}
+          onConfirm={cancelIsOpen ? cancelTransaction : speedUpTransaction}
+          onClose={onSpeedUpCancelCompleted}
+          confirmDisabled={confirmDisabled}
+        />
         <RetryModal
           onCancelPress={() => toggleRetry(undefined)}
           onConfirmPress={() => {
             toggleRetry(undefined);
-            if (speedUpTxId)
-              onSpeedUpAction(
-                true,
-                existingGas ?? undefined,
-                existingTx ?? undefined,
-              );
-            if (cancelTxId)
-              onCancelAction(
-                true,
-                existingGas ?? undefined,
-                existingTx ?? undefined,
-              );
+            if (speedUpTxId) onSpeedUpAction(true, existingTx ?? undefined);
+            if (cancelTxId) onCancelAction(true, existingTx ?? undefined);
           }}
           retryIsOpen={retryIsOpen}
           errorMsg={retryErrorMsg}

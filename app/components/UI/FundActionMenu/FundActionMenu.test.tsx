@@ -10,7 +10,8 @@ import { WalletActionsBottomSheetSelectorsIDs } from '../../Views/WalletActions/
 import { RampType } from '../../../reducers/fiatOrders/types';
 
 // Internal dependencies.
-import { useMetrics } from '../../hooks/useMetrics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
+import { createMockUseAnalyticsHook } from '../../../util/test/analyticsMock';
 import useRampNetwork from '../Ramp/Aggregator/hooks/useRampNetwork';
 import useDepositEnabled from '../Ramp/Deposit/hooks/useDepositEnabled';
 import useRampsUnifiedV1Enabled from '../Ramp/hooks/useRampsUnifiedV1Enabled';
@@ -52,18 +53,16 @@ jest.mock(
 
 // Mock dependencies
 jest.mock('@react-navigation/native');
-jest.mock('@react-navigation/compat', () => ({
-  withNavigation: jest.fn((component) => component),
-}));
 jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   connect: jest.fn(() => (component: React.ComponentType) => component),
 }));
-jest.mock('../../hooks/useMetrics');
+jest.mock('../../hooks/useAnalytics/useAnalytics');
 jest.mock('../Ramp/Aggregator/hooks/useRampNetwork');
 jest.mock('../Ramp/Deposit/hooks/useDepositEnabled');
 jest.mock('../Ramp/hooks/useRampsUnifiedV1Enabled');
+jest.mock('../Ramp/hooks/useRampsUnifiedV2Enabled');
 jest.mock('../Ramp/hooks/useRampNavigation');
 jest.mock('../../../util/trace');
 jest.mock('../../../util/networks', () => ({
@@ -94,7 +93,7 @@ const mockUseNavigation = useNavigation as jest.MockedFunction<
 >;
 const mockUseRoute = useRoute as jest.MockedFunction<typeof useRoute>;
 const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
-const mockUseMetrics = useMetrics as jest.MockedFunction<typeof useMetrics>;
+const mockUseAnalytics = jest.mocked(useAnalytics);
 const mockUseRampNetwork = useRampNetwork as jest.MockedFunction<
   typeof useRampNetwork
 >;
@@ -154,10 +153,12 @@ describe('FundActionMenu', () => {
       build: mockBuild,
     });
 
-    mockUseMetrics.mockReturnValue({
-      trackEvent: mockTrackEvent,
-      createEventBuilder: mockCreateEventBuilder,
-    } as never);
+    mockUseAnalytics.mockReturnValue(
+      createMockUseAnalyticsHook({
+        trackEvent: mockTrackEvent,
+        createEventBuilder: mockCreateEventBuilder,
+      }),
+    );
 
     mockUseRampNetwork.mockReturnValue([true, true]);
     mockUseDepositEnabled.mockReturnValue({ isDepositEnabled: true });
@@ -464,7 +465,7 @@ describe('FundActionMenu', () => {
       );
       expect(mockAddProperties).toHaveBeenCalledWith(
         expect.objectContaining({
-          text: 'Deposit',
+          button_text: 'Deposit',
           location: 'FundActionMenu',
           chain_id_destination: 1,
           ramp_type: 'DEPOSIT',
@@ -490,7 +491,7 @@ describe('FundActionMenu', () => {
           MetaMetricsEvents.RAMPS_BUTTON_CLICKED,
         );
         expect(mockAddProperties).toHaveBeenCalledWith({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 1,
           ramp_type: 'BUY',
@@ -539,7 +540,7 @@ describe('FundActionMenu', () => {
 
       await waitFor(() => {
         expect(mockAddProperties).toHaveBeenCalledWith({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'FundActionMenu',
           chain_id_destination: 137,
           ramp_type: 'BUY',

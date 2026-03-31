@@ -6,6 +6,7 @@ import {
   TextVariant,
   BoxAlignItems,
   BoxJustifyContent,
+  BoxFlexDirection,
   Icon,
   IconName,
   IconSize,
@@ -13,6 +14,7 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import AvatarToken from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarToken';
+import AvatarNetwork from '../../../../../../component-library/components/Avatars/Avatar/variants/AvatarNetwork';
 import { AvatarSize } from '../../../../../../component-library/components/Avatars/Avatar';
 import BadgeWrapper, {
   BadgePosition,
@@ -24,6 +26,9 @@ import { NetworkBadgeSource } from '../../../../AssetOverview/Balance/Balance';
 import { buildTokenIconUrl } from '../../../util/buildTokenIconUrl';
 import { LINEA_CAIP_CHAIN_ID } from '../../../util/buildTokenList';
 import { safeFormatChainIdToHex } from '../../../util/safeFormatChainIdToHex';
+import { getNetworkImageSource } from '../../../../../../util/networks';
+import { cardNetworkInfos } from '../../../constants';
+import { CaipChainId } from '@metamask/utils';
 
 export interface AssetCardProps {
   /** Token symbol (e.g., 'mUSD', 'USDC') or 'Other' */
@@ -32,12 +37,14 @@ export interface AssetCardProps {
   tokenAddress?: string;
   /** Optional fallback staging address for icons */
   stagingTokenAddress?: string;
+  /** Chain the token lives on — used for icon URL and network badge */
+  caipChainId?: CaipChainId;
   /** Whether this card is currently selected */
   isSelected: boolean;
   /** Whether this is the "Other" option */
   isOther?: boolean;
-  /** Callback when card is pressed */
-  onPress: () => void;
+  /** Callback when card is pressed. Omit for non-interactive cards. */
+  onPress?: () => void;
   /** Test ID for E2E testing */
   testID?: string;
 }
@@ -50,6 +57,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
   symbol,
   tokenAddress,
   stagingTokenAddress,
+  caipChainId,
   isSelected,
   isOther = false,
   onPress,
@@ -57,12 +65,12 @@ const AssetCard: React.FC<AssetCardProps> = ({
 }) => {
   const tw = useTailwind();
 
+  const resolvedChainId = caipChainId ?? LINEA_CAIP_CHAIN_ID;
+  const resolvedTokenAddress = tokenAddress || stagingTokenAddress;
+
   const iconUrl =
-    !isOther && (tokenAddress || stagingTokenAddress)
-      ? buildTokenIconUrl(
-          LINEA_CAIP_CHAIN_ID,
-          tokenAddress || stagingTokenAddress || '',
-        )
+    !isOther && resolvedTokenAddress
+      ? buildTokenIconUrl(resolvedChainId, resolvedTokenAddress)
       : null;
 
   return (
@@ -89,7 +97,7 @@ const AssetCard: React.FC<AssetCardProps> = ({
               <Badge
                 variant={BadgeVariant.Network}
                 imageSource={NetworkBadgeSource(
-                  safeFormatChainIdToHex(LINEA_CAIP_CHAIN_ID) as `0x${string}`,
+                  safeFormatChainIdToHex(resolvedChainId) as `0x${string}`,
                 )}
               />
             }
@@ -102,11 +110,40 @@ const AssetCard: React.FC<AssetCardProps> = ({
           </BadgeWrapper>
         )}
         {isOther && (
-          <Icon
-            name={IconName.MoreHorizontal}
-            size={IconSize.Lg}
-            color={isSelected ? IconColor.IconMuted : IconColor.IconDefault}
-          />
+          <Box
+            flexDirection={BoxFlexDirection.Row}
+            alignItems={BoxAlignItems.Center}
+          >
+            <AvatarNetwork
+              size={AvatarSize.Sm}
+              name="Base"
+              imageSource={getNetworkImageSource({
+                chainId: cardNetworkInfos.base.caipChainId,
+              })}
+              style={tw.style('rounded-full overflow-hidden')}
+            />
+            <AvatarNetwork
+              size={AvatarSize.Sm}
+              name="Solana"
+              imageSource={getNetworkImageSource({
+                chainId: cardNetworkInfos.solana.caipChainId,
+              })}
+              style={tw.style('-ml-2 rounded-full overflow-hidden')}
+            />
+            <Box
+              alignItems={BoxAlignItems.Center}
+              justifyContent={BoxJustifyContent.Center}
+              style={tw.style(
+                'w-6 h-6 -ml-2 rounded-full bg-background-default',
+              )}
+            >
+              <Icon
+                name={IconName.MoreHorizontal}
+                size={IconSize.Xs}
+                color={IconColor.PrimaryDefault}
+              />
+            </Box>
+          </Box>
         )}
 
         <Text

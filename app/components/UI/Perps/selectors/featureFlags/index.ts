@@ -26,6 +26,7 @@ export const selectPerpsEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -38,6 +39,7 @@ export const selectPerpsServiceInterruptionBannerEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpTradingServiceInterruptionBannerEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -49,6 +51,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
     const remoteFlag =
       remoteFeatureFlags?.perpsPerpGtmOnboardingModalEnabled as unknown as VersionGatedFeatureFlag;
 
+    // Fallback to local flag if remote flag is not available
     return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
   },
 );
@@ -62,6 +65,7 @@ export const selectPerpsGtmOnboardingModalEnabledFlag = createSelector(
 export const selectPerpsOrderBookEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => {
+    // Default to false if no flag is set (disabled by default)
     const localFlag = process.env.MM_PERPS_ORDER_BOOK_ENABLED === 'true';
     const remoteFlag =
       remoteFeatureFlags?.perpsOrderBookEnabled as unknown as VersionGatedFeatureFlag;
@@ -243,15 +247,25 @@ export const selectPerpsRewardsReferralCodeEnabledFlag = createSelector(
  * Pure utility so that both the Redux selector and the controller
  * (which reads RemoteFeatureFlagController state directly) share
  * the same logic.
+ *
+ * Local env var takes priority — if set to "true", MYX is always enabled
+ * regardless of remote flag. Remote flag only used as fallback when
+ * local is not explicitly enabled.
  */
 export function resolvePerpsMyxProviderEnabled(
   remoteFeatureFlags: Record<string, unknown> | undefined,
 ): boolean {
   const localFlag = process.env.MM_PERPS_MYX_PROVIDER_ENABLED === 'true';
+
+  // Local override always wins
+  if (localFlag) {
+    return true;
+  }
+
   const remoteFlag =
     remoteFeatureFlags?.perpsMyxProviderEnabled as VersionGatedFeatureFlag;
 
-  return validatedVersionGatedFeatureFlag(remoteFlag) ?? localFlag;
+  return validatedVersionGatedFeatureFlag(remoteFlag) ?? false;
 }
 
 /**
@@ -264,3 +278,20 @@ export const selectPerpsMYXProviderEnabledFlag = createSelector(
   selectRemoteFeatureFlags,
   (remoteFeatureFlags) => resolvePerpsMyxProviderEnabled(remoteFeatureFlags),
 );
+
+/**
+ * Selector for default pay token when no perps balance feature flag.
+ * When enabled: preselect allowlist token with highest balance in Pay row when user has no perps balance,
+ * and show "Add funds" CTA on market details when no token can be preselected.
+ * When disabled: no default token preselection and no Add funds CTA (legacy behavior).
+ * Controlled only by remote flag; when remote is missing or invalid, defaults to true.
+ *
+ * @returns boolean - true if feature is enabled, false otherwise
+ */
+export const selectPerpsDefaultPayTokenWhenNoBalanceEnabledFlag =
+  createSelector(selectRemoteFeatureFlags, (remoteFeatureFlags) => {
+    const remoteFlag =
+      remoteFeatureFlags?.perpsDefaultPayTokenWhenNoBalanceEnabled as unknown as VersionGatedFeatureFlag;
+
+    return validatedVersionGatedFeatureFlag(remoteFlag) ?? true;
+  });

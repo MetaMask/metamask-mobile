@@ -12,6 +12,7 @@ import { AlertKeys } from '../../constants/alerts';
 import { strings } from '../../../../../../locales/i18n';
 import {
   useIsTransactionPayLoading,
+  useTransactionPayFiatPayment,
   useTransactionPayQuotes,
   useTransactionPaySourceAmounts,
 } from '../pay/useTransactionPayData';
@@ -65,6 +66,7 @@ describe('useNoPayTokenQuotesAlert', () => {
     useTransactionPaySourceAmountsMock.mockReturnValue([
       {} as TransactionPaySourceAmount,
     ]);
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue(undefined);
   });
 
   it('returns alert if pay token selected and no quotes available', () => {
@@ -93,6 +95,43 @@ describe('useNoPayTokenQuotesAlert', () => {
 
   it('returns no alerts if quotes loading', () => {
     useIsTransactionPayLoadingMock.mockReturnValue(true);
+
+    const { result } = runHook();
+
+    expect(result.current).toStrictEqual([]);
+  });
+
+  it('returns alert for fiat when selected with valid amount and no quotes', () => {
+    useTransactionPayTokenMock.mockReturnValue({
+      payToken: undefined,
+    } as ReturnType<typeof useTransactionPayToken>);
+
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+      selectedPaymentMethodId: 'pm-card',
+      amountFiat: '50.00',
+    });
+
+    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPayQuotesMock.mockReturnValue([]);
+
+    const { result } = runHook();
+
+    expect(result.current).toEqual([
+      expect.objectContaining({
+        key: AlertKeys.NoPayTokenQuotes,
+        severity: Severity.Danger,
+        isBlocking: true,
+      }),
+    ]);
+  });
+
+  it('returns no alerts for fiat when amount is not entered', () => {
+    jest.mocked(useTransactionPayFiatPayment).mockReturnValue({
+      selectedPaymentMethodId: 'pm-card',
+    });
+
+    useTransactionPaySourceAmountsMock.mockReturnValue([]);
+    useTransactionPayQuotesMock.mockReturnValue([]);
 
     const { result } = runHook();
 

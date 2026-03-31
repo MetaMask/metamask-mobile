@@ -9,13 +9,13 @@ import React, {
 import PropTypes from 'prop-types';
 import {
   Alert,
-  View,
   TouchableOpacity,
   Animated,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { connect, useSelector } from 'react-redux';
+import { connect } from 'react-redux';
 import {
   KeyboardAwareScrollView,
   KeyboardProvider,
@@ -45,7 +45,21 @@ import { strings } from '../../../../locales/i18n';
 import { getOnboardingNavbarOptions } from '../../UI/Navbar';
 import { ScreenshotDeterrent } from '../../UI/ScreenshotDeterrent';
 import Routes from '../../../constants/navigation/Routes';
-import createStyles from './styles';
+import {
+  Box,
+  BoxAlignItems,
+  BoxFlexDirection,
+  BoxJustifyContent,
+  Button,
+  ButtonSize,
+  ButtonVariant,
+  FontWeight,
+  Label,
+  Text,
+  TextColor,
+  TextVariant,
+} from '@metamask/design-system-react-native';
+import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Authentication } from '../../../core';
 import AUTHENTICATION_TYPE from '../../../constants/userProperties';
 import { passcodeType } from '../../../util/authentication';
@@ -54,10 +68,8 @@ import { ChoosePasswordSelectorsIDs } from '../ChoosePassword/ChoosePassword.tes
 import trackOnboarding from '../../../util/metrics/TrackOnboarding/trackOnboarding';
 import { MetricsEventBuilder } from '../../../core/Analytics/MetricsEventBuilder';
 import Checkbox from '../../../component-library/components/Checkbox';
-import Button, {
+import OldButton, {
   ButtonVariants,
-  ButtonWidthTypes,
-  ButtonSize,
 } from '../../../component-library/components/Buttons/Button';
 import Icon, {
   IconName,
@@ -67,15 +79,13 @@ import Icon, {
 import { ToastContext } from '../../../component-library/components/Toast/Toast.context';
 import { ToastVariants } from '../../../component-library/components/Toast/Toast.types';
 import TextField from '../../../component-library/components/Form/TextField/TextField';
-import Label from '../../../component-library/components/Form/Label';
-import Text, {
-  TextVariant,
-  TextColor,
-} from '../../../component-library/components/Texts/Text';
 import { CommonActions } from '@react-navigation/native';
 import { SRP_LENGTHS, SPACE_CHAR, PASSCODE_NOT_SET_ERROR } from './constant';
 import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
-import { ONBOARDING_SUCCESS_FLOW } from '../../../constants/onboarding';
+import {
+  AccountType,
+  ONBOARDING_SUCCESS_FLOW,
+} from '../../../constants/onboarding';
 import { useAccountsWithNetworkActivitySync } from '../../hooks/useAccountsWithNetworkActivitySync';
 import {
   TraceName,
@@ -86,7 +96,6 @@ import {
 import { v4 as uuidv4 } from 'uuid';
 import SrpInputGrid from '../../UI/SrpInputGrid';
 import SrpWordSuggestions from '../../UI/SrpWordSuggestions';
-import { selectImportSrpWordSuggestionEnabledFlag } from '../../../selectors/featureFlagController/importSrpWordSuggestion';
 
 const SCREEN_WIDTH = Dimensions.get('window').width;
 
@@ -104,7 +113,7 @@ const ImportFromSecretRecoveryPhrase = ({
   route,
 }) => {
   const { colors, themeAppearance } = useTheme();
-  const styles = createStyles(colors);
+  const tw = useTailwind();
 
   const confirmPasswordInput = useRef();
 
@@ -126,11 +135,6 @@ const ImportFromSecretRecoveryPhrase = ({
   const srpInputGridRef = useRef(null);
   const slideAnim = useRef(new Animated.Value(0)).current;
   const [currentInputWord, setCurrentInputWord] = useState('');
-
-  // Feature flag for SRP word suggestions
-  const isSrpWordSuggestionsEnabled = useSelector(
-    selectImportSrpWordSuggestionEnabledFlag,
-  );
 
   const isKeyboardVisible = useKeyboardState((state) => state.isVisible);
 
@@ -234,7 +238,7 @@ const ImportFromSecretRecoveryPhrase = ({
         name={IconName.ArrowLeft}
         size={24}
         color={colors.text.default}
-        style={styles.headerLeft}
+        style={tw.style('ml-4')}
       />
     </TouchableOpacity>
   );
@@ -250,11 +254,11 @@ const ImportFromSecretRecoveryPhrase = ({
           size={24}
           color={colors.text.default}
           onPress={onQrCodePress}
-          style={styles.headerRight}
+          style={tw.style('mr-4')}
         />
       </TouchableOpacity>
     ) : (
-      <View />
+      <Box />
     );
 
   const updateNavBar = () => {
@@ -484,6 +488,7 @@ const ImportFromSecretRecoveryPhrase = ({
             onContinue: () => {
               navigation.dispatch(resetAction);
             },
+            accountType: AccountType.Imported,
           });
         }
       } catch (error) {
@@ -566,9 +571,12 @@ const ImportFromSecretRecoveryPhrase = ({
   const uniqueId = useMemo(() => uuidv4(), []);
 
   const content = (
-    <SafeAreaView edges={{ bottom: 'additive' }} style={styles.root}>
+    <SafeAreaView
+      edges={{ bottom: 'additive' }}
+      style={tw.style('flex-1 bg-default')}
+    >
       <KeyboardAwareScrollView
-        contentContainerStyle={styles.wrapper}
+        contentContainerStyle={tw.style('flex-grow px-4')}
         testID={ImportFromSeedSelectorsIDs.CONTAINER_ID}
         keyboardShouldPersistTaps="always"
         keyboardDismissMode="none"
@@ -577,24 +585,28 @@ const ImportFromSecretRecoveryPhrase = ({
       >
         <Animated.View
           style={[
-            styles.animatedContainer,
+            tw.style('flex-1'),
             { transform: [{ translateX: slideAnim }] },
           ]}
         >
           {currentStep === 0 && (
             <>
               <Text
-                variant={TextVariant.DisplayMD}
-                color={TextColor.Default}
+                variant={TextVariant.DisplayMd}
+                color={TextColor.TextDefault}
                 testID={ImportFromSeedSelectorsIDs.SCREEN_TITLE_ID}
               >
                 {strings('import_from_seed.title')}
               </Text>
-              <View style={styles.importSrpContainer}>
-                <View style={styles.description}>
+              <Box twClassName="mt-1.5">
+                <Box
+                  flexDirection={BoxFlexDirection.Row}
+                  alignItems={BoxAlignItems.Center}
+                  twClassName="gap-1"
+                >
                   <Text
-                    variant={TextVariant.BodyMD}
-                    color={TextColor.Alternative}
+                    variant={TextVariant.BodyMd}
+                    color={TextColor.TextAlternative}
                   >
                     {strings(
                       'import_from_seed.enter_your_secret_recovery_phrase',
@@ -612,7 +624,7 @@ const ImportFromSecretRecoveryPhrase = ({
                       color={colors.icon.alternative}
                     />
                   </TouchableOpacity>
-                </View>
+                </Box>
                 <SrpInputGrid
                   ref={srpInputGridRef}
                   seedPhrase={seedPhrase}
@@ -625,34 +637,35 @@ const ImportFromSecretRecoveryPhrase = ({
                   onCurrentWordChange={setCurrentInputWord}
                   autoFocus={false}
                 />
-              </View>
+              </Box>
             </>
           )}
 
           {currentStep === 1 && (
-            <View style={styles.passwordContainer}>
-              <View style={styles.passwordContainerTitle}>
+            <Box twClassName="gap-y-4 flex-grow">
+              <Box twClassName="gap-y-1">
                 <Text
-                  variant={TextVariant.DisplayMD}
-                  color={TextColor.Default}
+                  variant={TextVariant.DisplayMd}
+                  color={TextColor.TextDefault}
                   testID={ChoosePasswordSelectorsIDs.TITLE_ID}
                 >
                   {strings('import_from_seed.metamask_password')}
                 </Text>
                 <Text
-                  variant={TextVariant.BodyMD}
-                  color={TextColor.Alternative}
+                  variant={TextVariant.BodyMd}
+                  color={TextColor.TextAlternative}
                   testID={ChoosePasswordSelectorsIDs.DESCRIPTION_ID}
                 >
                   {strings('import_from_seed.metamask_password_description')}
                 </Text>
-              </View>
+              </Box>
 
-              <View style={styles.field}>
+              <Box twClassName="relative gap-2">
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                  style={styles.label}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  style={tw.style('-mb-1')}
                 >
                   {strings('import_from_seed.create_new_password')}
                 </Label>
@@ -684,24 +697,30 @@ const ImportFromSecretRecoveryPhrase = ({
                     />
                   }
                   testID={ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID}
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.NEW_PASSWORD_INPUT_ID
+                  }
                 />
                 <Text
-                  variant={TextVariant.BodySM}
+                  variant={TextVariant.BodySm}
                   color={
-                    isPasswordTooShort ? TextColor.Error : TextColor.Alternative
+                    isPasswordTooShort
+                      ? TextColor.ErrorDefault
+                      : TextColor.TextAlternative
                   }
                 >
                   {strings('choose_password.must_be_at_least', {
                     number: MIN_PASSWORD_LENGTH,
                   })}
                 </Text>
-              </View>
+              </Box>
 
-              <View style={styles.field}>
+              <Box twClassName="relative gap-2">
                 <Label
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Default}
-                  style={styles.label}
+                  variant={TextVariant.BodyMd}
+                  fontWeight={FontWeight.Medium}
+                  color={TextColor.TextDefault}
+                  style={tw.style('-mb-1')}
                 >
                   {strings('import_from_seed.confirm_password')}
                 </Label>
@@ -731,36 +750,49 @@ const ImportFromSecretRecoveryPhrase = ({
                     />
                   }
                   testID={ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID}
+                  accessibilityLabel={
+                    ChoosePasswordSelectorsIDs.CONFIRM_PASSWORD_INPUT_ID
+                  }
                   isDisabled={password === ''}
                 />
                 {isError && (
-                  <Text variant={TextVariant.BodySM} color={TextColor.Error}>
+                  <Text
+                    variant={TextVariant.BodySm}
+                    color={TextColor.ErrorDefault}
+                  >
                     {strings('import_from_seed.password_error')}
                   </Text>
                 )}
-              </View>
+              </Box>
 
-              <View style={styles.learnMoreContainer}>
+              <Box
+                flexDirection={BoxFlexDirection.Row}
+                alignItems={BoxAlignItems.Start}
+                justifyContent={BoxJustifyContent.Start}
+                twClassName="gap-2 mt-2 mb-4 bg-background-section rounded-lg p-4"
+              >
                 <Checkbox
                   onPress={() => setLearnMore(!learnMore)}
                   isChecked={learnMore}
-                  style={styles.checkbox}
+                  style={tw.style('items-start')}
                   testID={ChoosePasswordSelectorsIDs.I_UNDERSTAND_CHECKBOX_ID}
                 />
-                <Button
+                <OldButton
                   variant={ButtonVariants.Link}
                   onPress={() => setLearnMore(!learnMore)}
-                  style={styles.learnMoreTextContainer}
+                  style={tw.style(
+                    'flex-row items-start justify-start gap-px flex-wrap w-[90%] -mt-1.5',
+                  )}
                   testID={ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID}
                   label={
                     <Text
-                      variant={TextVariant.BodyMD}
-                      color={TextColor.Default}
+                      variant={TextVariant.BodyMd}
+                      color={TextColor.TextDefault}
                     >
                       {strings('import_from_seed.learn_more')}
                       <Text
-                        variant={TextVariant.BodyMD}
-                        color={TextColor.Primary}
+                        variant={TextVariant.BodyMd}
+                        color={TextColor.PrimaryDefault}
                         onPress={learnMoreLink}
                         testID={ImportFromSeedSelectorsIDs.LEARN_MORE_LINK_ID}
                       >
@@ -769,53 +801,57 @@ const ImportFromSecretRecoveryPhrase = ({
                     </Text>
                   }
                 />
-              </View>
+              </Box>
 
-              <View style={styles.createPasswordCtaContainer}>
+              <Box
+                style={tw.style(
+                  'w-full gap-y-4 mt-auto',
+                  Platform.OS === 'android' ? 'mb-6' : 'mb-4',
+                )}
+              >
                 <Button
-                  loading={loading}
-                  width={ButtonWidthTypes.Full}
-                  variant={ButtonVariants.Primary}
-                  label={strings('import_from_seed.import_create_password_cta')}
+                  isLoading={loading}
+                  isFullWidth
+                  variant={ButtonVariant.Primary}
                   onPress={onPressImport}
-                  disabled={isContinueButtonDisabled}
                   size={ButtonSize.Lg}
                   isDisabled={isContinueButtonDisabled}
                   testID={ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID}
-                />
-              </View>
-            </View>
+                >
+                  {strings('import_from_seed.import_create_password_cta')}
+                </Button>
+              </Box>
+            </Box>
           )}
         </Animated.View>
       </KeyboardAwareScrollView>
       {currentStep === 0 && (
-        <View style={styles.fixedBottomContainer}>
+        <Box twClassName="px-4 py-4 bg-default">
           <Button
-            variant={ButtonVariants.Primary}
-            label={strings('import_from_seed.continue')}
+            variant={ButtonVariant.Primary}
             onPress={handleContinueImportFlow}
-            width={ButtonWidthTypes.Full}
+            isFullWidth
             size={ButtonSize.Lg}
             isDisabled={isSRPContinueButtonDisabled}
             testID={ImportFromSeedSelectorsIDs.CONTINUE_BUTTON_ID}
-          />
-        </View>
-      )}
-      {isSrpWordSuggestionsEnabled &&
-        currentStep === 0 &&
-        isKeyboardVisible && (
-          <KeyboardStickyView
-            offset={{ closed: 0, opened: 0 }}
-            style={styles.keyboardStickyView}
           >
-            <SrpWordSuggestions
-              currentInputWord={currentInputWord}
-              onSuggestionSelect={(word) => {
-                srpInputGridRef.current?.handleSuggestionSelect(word);
-              }}
-            />
-          </KeyboardStickyView>
-        )}
+            {strings('import_from_seed.continue')}
+          </Button>
+        </Box>
+      )}
+      {currentStep === 0 && isKeyboardVisible && (
+        <KeyboardStickyView
+          offset={{ closed: 0, opened: 0 }}
+          style={tw.style('absolute bottom-0 left-0 right-0')}
+        >
+          <SrpWordSuggestions
+            currentInputWord={currentInputWord}
+            onSuggestionSelect={(word) => {
+              srpInputGridRef.current?.handleSuggestionSelect(word);
+            }}
+          />
+        </KeyboardStickyView>
+      )}
       <ScreenshotDeterrent enabled isSRP />
     </SafeAreaView>
   );

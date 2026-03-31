@@ -58,6 +58,7 @@ const mockUseSelector = useSelector as jest.MockedFunction<typeof useSelector>;
 describe('usePerpsTransactionHistory', () => {
   let mockController: {
     getActiveProvider: jest.MockedFunction<() => unknown>;
+    getActiveProviderOrNull: jest.MockedFunction<() => unknown>;
   };
   let mockProvider: {
     getOrderFills: jest.MockedFunction<
@@ -176,6 +177,7 @@ describe('usePerpsTransactionHistory', () => {
     // Mock controller
     mockController = {
       getActiveProvider: jest.fn().mockReturnValue(mockProvider),
+      getActiveProviderOrNull: jest.fn().mockReturnValue(mockProvider),
     };
 
     // Mock Engine context
@@ -647,7 +649,7 @@ describe('usePerpsTransactionHistory', () => {
     });
 
     it('handles no active provider', async () => {
-      mockController.getActiveProvider.mockReturnValue(undefined);
+      mockController.getActiveProviderOrNull.mockReturnValue(null);
       // WebSocket fills are empty for this test
       mockUsePerpsLiveFills.mockReturnValue({
         fills: [],
@@ -662,7 +664,8 @@ describe('usePerpsTransactionHistory', () => {
         await new Promise((resolve) => setTimeout(resolve, 0));
       });
 
-      expect(result.current.error).toBe('No active provider available');
+      // With getActiveProviderOrNull returning null, hook bails early without error
+      expect(result.current.error).toBeNull();
       // With no REST data and no WebSocket data, transactions should be empty
       expect(result.current.transactions).toEqual([]);
     });
@@ -1071,6 +1074,72 @@ describe('usePerpsTransactionHistory', () => {
       expect(mockTransformFillsToTransactions).toHaveBeenCalledWith([
         { ...mockFills[0], detailedOrderType: undefined },
       ]);
+    });
+  });
+
+  describe('WS fill merge preserves fillType from REST', () => {
+    it('preserves non-standard fillType when WS fill has standard', async () => {
+      // Arrange — REST returns a trade with stop_loss fillType
+      const restTrade = {
+        ...mockTransformedTransactions[0],
+        id: 'rest-sl-1',
+        asset: 'BTC',
+        timestamp: 1641000000000,
+        fill: {
+          ...mockTransformedTransactions[0].fill,
+          fillType: FillType.StopLoss,
+        },
+      };
+      // Live fill with same asset+timestamp(seconds) but standard fillType
+      const wsFill = {
+        ...mockTransformedTransactions[0],
+        id: 'ws-sl-1',
+        asset: 'BTC',
+        timestamp: 1641000000000,
+        fill: {
+          ...mockTransformedTransactions[0].fill,
+          fillType: FillType.Standard,
+        },
+      };
+
+      // Call order: (1) useMemo on initial render with liveFills,
+      // (2) fetchAllTransactions with REST fills (sets state),
+      // (3) useMemo re-runs with liveFills after state update
+      mockTransformFillsToTransactions
+        .mockReturnValueOnce([wsFill]) // initial render: live fills
+        .mockReturnValueOnce([restTrade]) // fetchAllTransactions: REST fills
+        .mockReturnValue([wsFill]); // re-render: live fills again
+
+      mockUsePerpsLiveFills.mockReturnValue({
+        fills: [
+          {
+            orderId: 'ws-1',
+            timestamp: 1641000000000,
+            symbol: 'BTC',
+            side: 'buy',
+            size: '0.1',
+            price: '50000',
+            pnl: '0',
+            direction: 'Open Long',
+            fee: '5',
+            feeToken: 'USDC',
+          },
+        ],
+        isInitialLoading: false,
+      });
+
+      // Act
+      const { result } = renderHook(() => usePerpsTransactionHistory());
+      await act(async () => {
+        await new Promise((resolve) => setTimeout(resolve, 0));
+      });
+
+      // Assert — merged trade preserves the stop_loss fillType
+      const trades = result.current.transactions.filter(
+        (tx) => tx.type === 'trade',
+      );
+      expect(trades).toHaveLength(1);
+      expect(trades[0].fill?.fillType).toBe(FillType.StopLoss);
     });
   });
 

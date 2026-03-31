@@ -7,6 +7,7 @@ import { Spinner } from '@metamask/design-system-react-native/dist/components/te
 import { useNavigation } from '@react-navigation/native';
 import { useQueryClient } from '@tanstack/react-query';
 import React, { useCallback, useMemo } from 'react';
+import { useSelector } from 'react-redux';
 import { strings } from '../../../../../locales/i18n';
 import { IconName } from '../../../../component-library/components/Icons/Icon';
 import { ToastVariants } from '../../../../component-library/components/Toast';
@@ -19,6 +20,7 @@ import type { PredictTransactionStatusChangedPayload } from '../controllers/Pred
 import { getEvmAccountFromSelectedAccountGroup } from '../utils/accounts';
 import { formatPrice } from '../utils/format';
 import { predictQueries } from '../queries';
+import { selectSelectedAccountGroupId } from '../../../../selectors/multichainAccounts/accountTreeController';
 import type { Hex } from '@metamask/utils';
 import { usePredictClaim } from './usePredictClaim';
 import { usePredictDeposit } from './usePredictDeposit';
@@ -139,12 +141,14 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
   const navigation = useNavigation();
   const theme = useAppThemeFromContext();
 
+  // Subscribe to account group changes so the hook re-renders when the user switches accounts
+  useSelector(selectSelectedAccountGroupId);
   const selectedAddress =
     getEvmAccountFromSelectedAccountGroup()?.address ?? '0x0';
   const normalizedSelectedAddress = selectedAddress.toLowerCase();
   const handleTransactionStatusChanged = useCallback(
     (payload: unknown, showToast: ToastRef['showToast']): void => {
-      const { type, status, senderAddress, transactionId, amount } =
+      const { type, status, senderAddress, transactionId, amount, marketId } =
         payload as PredictTransactionStatusChangedPayload;
       const canRetry =
         Boolean(senderAddress) && senderAddress === normalizedSelectedAddress;
@@ -155,8 +159,19 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         });
 
         queryClient.invalidateQueries({
-          queryKey: predictQueries.activity.keys.all(),
+          queryKey: predictQueries.unrealizedPnL.keys.all(),
         });
+
+        // Deposit/Withdraw should not invalidate positions/activity
+        if (type === 'claim' || type === 'order') {
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.positions.keys.all(),
+          });
+
+          queryClient.invalidateQueries({
+            queryKey: predictQueries.activity.keys.all(),
+          });
+        }
       }
 
       if (type === 'deposit') {
@@ -242,10 +257,6 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
         }
 
         if (status === 'confirmed') {
-          queryClient.invalidateQueries({
-            queryKey: predictQueries.positions.keys.all(),
-          });
-
           showSuccessToast({
             showToast,
             title: strings('predict.deposit.account_ready'),
@@ -318,6 +329,35 @@ export const usePredictToastRegistrations = (): ToastRegistration[] => {
                   },
                 }
               : {}),
+            backgroundColor: theme.colors.accent04.normal,
+            iconColor: theme.colors.error.default,
+          });
+          return;
+        }
+      }
+
+      if (type === 'order') {
+        if (status === 'confirmed') {
+          showToast({
+            variant: ToastVariants.Icon,
+            iconName: IconName.Check,
+            iconColor: theme.colors.success.default,
+            labelOptions: [
+              {
+                label: strings('predict.order.prediction_placed'),
+                isBold: true,
+              },
+            ],
+            hasNoTimeout: false,
+          });
+          return;
+        }
+
+        if (status === 'failed') {
+          showErrorToast({
+            showToast,
+            title: strings('predict.order.prediction_failed'),
+            description: strings('predict.order.order_failed_generic'),
             backgroundColor: theme.colors.accent04.normal,
             iconColor: theme.colors.error.default,
           });

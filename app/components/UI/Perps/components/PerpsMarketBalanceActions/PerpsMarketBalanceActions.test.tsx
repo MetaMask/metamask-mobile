@@ -27,7 +27,6 @@ interface MockComponentProps {
 const mockNavigate = jest.fn();
 const mockNavigateToConfirmation = jest.fn();
 const mockDepositWithConfirmation = jest.fn();
-const mockEnsureArbitrumNetworkExists = jest.fn();
 const mockStartPulseAnimation = jest.fn();
 const mockGetAnimatedStyle = jest.fn(() => ({}));
 const mockStopAnimation = jest.fn();
@@ -259,7 +258,7 @@ jest.mock('../../../../../component-library/components/Badges/Badge', () => {
   };
 });
 
-jest.mock('../../../../../component-library/components/Skeleton', () => {
+jest.mock('../../../../../component-library/components-temp/Skeleton', () => {
   const { View } = jest.requireActual('react-native');
   return {
     Skeleton: jest.fn(({ testID, width, height }) => (
@@ -306,6 +305,7 @@ describe('PerpsMarketBalanceActions', () => {
     perpsControllerOverrides: Partial<
       ReturnType<typeof getDefaultPerpsControllerState>
     > = {},
+    privacyMode = false,
   ) => ({
     engine: {
       backgroundState: {
@@ -317,6 +317,9 @@ describe('PerpsMarketBalanceActions', () => {
           multichainNetworkConfigurationsByChainId: {},
           isEvmSelected: true,
           selectedMultichainNetworkChainId: undefined, // EVM selected, non-EVM chain field is undefined
+        },
+        PreferencesController: {
+          privacyMode,
         },
       },
     },
@@ -346,16 +349,13 @@ describe('PerpsMarketBalanceActions', () => {
       depositWithConfirmation: mockDepositWithConfirmation,
     });
 
-    mockUsePerpsNetworkManagement.mockReturnValue({
-      ensureArbitrumNetworkExists: mockEnsureArbitrumNetworkExists,
-    });
+    mockUsePerpsNetworkManagement.mockReturnValue({});
 
     mockUseConfirmNavigation.mockReturnValue({
       navigateToConfirmation: mockNavigateToConfirmation,
     });
 
     mockDepositWithConfirmation.mockResolvedValue({});
-    mockEnsureArbitrumNetworkExists.mockResolvedValue({});
   });
 
   describe('Rendering', () => {
@@ -642,6 +642,76 @@ describe('PerpsMarketBalanceActions', () => {
 
       // Assert
       expect(mockStopAnimation).toHaveBeenCalled();
+    });
+  });
+
+  describe('Privacy Mode', () => {
+    const DOTS_MEDIUM = '•'.repeat(9); // SensitiveTextLength.Medium
+    const DOTS_SHORT = '•'.repeat(6); // SensitiveTextLength.Short
+
+    it('hides total balance value when privacy mode is enabled', () => {
+      // Arrange & Act
+      const { queryByText, getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({}, true) },
+        false,
+      );
+
+      // Assert - balance replaced with dots, actual value not shown
+      expect(queryByText('$10.57')).toBeNull();
+      expect(getByText(DOTS_MEDIUM)).toBeOnTheScreen();
+    });
+
+    it('shows total balance value when privacy mode is disabled', () => {
+      // Arrange & Act
+      const { getByTestId } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      // Assert
+      const balanceEl = getByTestId(
+        PerpsMarketBalanceActionsSelectorsIDs.BALANCE_VALUE,
+      );
+      expect(balanceEl.props.children).toBe('$10.57');
+    });
+
+    it('hides available balance amount when privacy mode is enabled', () => {
+      // Arrange & Act
+      const { getAllByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({}, true) },
+        false,
+      );
+
+      // Assert - at least the available balance value is hidden
+      const hiddenValues = getAllByText(DOTS_SHORT);
+      expect(hiddenValues.length).toBeGreaterThanOrEqual(1);
+    });
+
+    it('keeps "available" label visible when privacy mode is enabled', () => {
+      // Arrange & Act
+      const { getByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState({}, true) },
+        false,
+      );
+
+      // Assert - label stays, only the amount is hidden
+      expect(getByText('perps.available')).toBeOnTheScreen();
+    });
+
+    it('shows available balance amount when privacy mode is disabled', () => {
+      // Arrange & Act
+      const { queryByText } = renderWithProvider(
+        <PerpsMarketBalanceActions />,
+        { state: createMockState() },
+        false,
+      );
+
+      // Assert - actual value is visible, no dots
+      expect(queryByText(DOTS_SHORT)).toBeNull();
     });
   });
 });

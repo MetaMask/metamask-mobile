@@ -28,6 +28,7 @@ import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { AccountsMenuSelectorsIDs } from './AccountsMenu.testIds';
 import { isPermissionsSettingsV1Enabled } from '../../../util/networks';
 import useRampsUnifiedV1Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV1Enabled';
+import useRampsUnifiedV2Enabled from '../../UI/Ramp/hooks/useRampsUnifiedV2Enabled';
 import AppConstants from '../../../core/AppConstants';
 import DeeplinkManager from '../../../core/DeeplinkManager/DeeplinkManager';
 import { getDetectedGeolocation } from '../../../reducers/fiatOrders';
@@ -41,7 +42,6 @@ import {
   selectIsMetamaskNotificationsEnabled,
 } from '../../../selectors/notifications';
 import { selectIsBackupAndSyncEnabled } from '../../../selectors/identity';
-import { useNetworkManagementEnabled } from '../../../selectors/featureFlagController/networkManagement/useNetworkManagementEnabled';
 
 const AccountsMenu = () => {
   const tw = useTailwind();
@@ -53,6 +53,7 @@ const AccountsMenu = () => {
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const rampsButtonClickData = useRampsButtonClickData();
   const rampUnifiedV1Enabled = useRampsUnifiedV1Enabled();
+  const isV2UnifiedEnabled = useRampsUnifiedV2Enabled();
   const isNotificationEnabled = useSelector(
     selectIsMetamaskNotificationsEnabled,
   );
@@ -66,9 +67,9 @@ const AccountsMenu = () => {
     trackEvent(
       createEventBuilder(EVENT_NAME.RAMPS_BUTTON_CLICKED)
         .addProperties({
-          text: 'Buy',
+          button_text: 'Buy',
           location: 'AccountsMenu',
-          ramp_type: 'UNIFIED_BUY',
+          ramp_type: isV2UnifiedEnabled ? 'UNIFIED_BUY_2' : 'UNIFIED_BUY',
           chain_id_destination: null,
           region: rampGeodetectedRegion ?? null,
           ramp_routing: rampsButtonClickData.ramp_routing ?? null,
@@ -85,6 +86,7 @@ const AccountsMenu = () => {
     trackEvent,
     rampGeodetectedRegion,
     rampsButtonClickData,
+    isV2UnifiedEnabled,
   ]);
 
   const onPressNotifications = useCallback(() => {
@@ -118,8 +120,6 @@ const AccountsMenu = () => {
     readNotificationCount,
     isBackupAndSyncEnabled,
   ]);
-  const isNetworkManagementEnabled = useNetworkManagementEnabled();
-
   const handleBack = useCallback(() => {
     navigation.goBack();
   }, [navigation]);
@@ -455,17 +455,13 @@ const AccountsMenu = () => {
         )}
 
         {/* Networks Row */}
-        {isNetworkManagementEnabled && (
-          <ActionListItem
-            startAccessory={
-              <Icon name={IconName.Hierarchy} size={IconSize.Lg} />
-            }
-            label={strings('accounts_menu.networks')}
-            endAccessory={arrowRightIcon}
-            onPress={onPressNetworks}
-            testID={AccountsMenuSelectorsIDs.NETWORKS}
-          />
-        )}
+        <ActionListItem
+          startAccessory={<Icon name={IconName.Hierarchy} size={IconSize.Lg} />}
+          label={strings('accounts_menu.networks')}
+          endAccessory={arrowRightIcon}
+          onPress={onPressNetworks}
+          testID={AccountsMenuSelectorsIDs.NETWORKS}
+        />
 
         {separator}
 

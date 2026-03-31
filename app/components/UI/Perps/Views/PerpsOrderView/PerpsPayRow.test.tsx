@@ -21,6 +21,7 @@ import {
 } from '@metamask/perps-controller';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { usePerpsSelector } from '../../hooks/usePerpsSelector';
+import { useDefaultPayWithTokenWhenNoPerpsBalance } from '../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance';
 import {
   ConfirmationRowComponentIDs,
   TransactionPayComponentIDs,
@@ -44,6 +45,7 @@ jest.mock('../../hooks/useIsPerpsBalanceSelected', () => ({
   usePerpsPayWithToken: jest.fn(),
 }));
 jest.mock('../../hooks/usePerpsSelector');
+jest.mock('../../hooks/useDefaultPayWithTokenWhenNoPerpsBalance');
 jest.mock('../../../../../core/Engine', () => ({
   context: {
     PerpsController: {
@@ -59,6 +61,7 @@ jest.mock('../../hooks/usePerpsEventTracking');
 jest.mock('../../../../../util/address');
 jest.mock('../../../../Base/TokenIcon', () => jest.fn(() => null));
 jest.mock('../../../../../util/networks', () => ({
+  ...jest.requireActual('../../../../../util/networks'),
   getNetworkImageSource: jest.fn(() => ({ uri: 'network-icon.png' })),
 }));
 
@@ -81,6 +84,10 @@ const mockUsePerpsPayWithToken = usePerpsPayWithToken as jest.MockedFunction<
 const mockUsePerpsSelector = usePerpsSelector as jest.MockedFunction<
   typeof usePerpsSelector
 >;
+const mockUseDefaultPayWithTokenWhenNoPerpsBalance =
+  useDefaultPayWithTokenWhenNoPerpsBalance as jest.MockedFunction<
+    typeof useDefaultPayWithTokenWhenNoPerpsBalance
+  >;
 const mockUseTokenWithBalance = useTokenWithBalance as jest.MockedFunction<
   typeof useTokenWithBalance
 >;
@@ -131,6 +138,7 @@ describe('PerpsPayRow', () => {
     mockIsHardwareAccount.mockReturnValue(false);
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
   });
 
   it('renders pay with label', () => {
@@ -293,12 +301,43 @@ describe('PerpsPayRow', () => {
   it('calls setSelectedPaymentToken(null) when pending config has no selected token', () => {
     mockUsePerpsSelector.mockReturnValue({});
     mockUsePerpsPayWithToken.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(null);
 
     renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
 
     expect(
       Engine.context.PerpsController?.setSelectedPaymentToken,
     ).toHaveBeenCalledWith(null);
+  });
+
+  it('preselects allowlist token with highest balance when no perps balance and pending has no token', () => {
+    const setPayTokenMock = jest.fn();
+    const defaultToken = {
+      address: '0xUSDC' as const,
+      chainId: '0xa4b1' as const,
+      description: 'USDC',
+    };
+    mockUsePerpsSelector.mockReturnValue({});
+    mockUsePerpsPayWithToken.mockReturnValue(null);
+    mockUseDefaultPayWithTokenWhenNoPerpsBalance.mockReturnValue(defaultToken);
+    mockUseTransactionPayToken.mockReturnValue({
+      payToken: null,
+      setPayToken: setPayTokenMock,
+    } as unknown as ReturnType<typeof useTransactionPayToken>);
+
+    renderWithProvider(<PerpsPayRow initialAsset="BTC" />);
+
+    expect(setPayTokenMock).toHaveBeenCalledWith({
+      address: defaultToken.address,
+      chainId: defaultToken.chainId,
+    });
+    expect(
+      Engine.context.PerpsController?.setSelectedPaymentToken,
+    ).toHaveBeenCalledWith({
+      description: defaultToken.description,
+      address: defaultToken.address,
+      chainId: defaultToken.chainId,
+    });
   });
 
   describe('pending config sync (apply once per load)', () => {

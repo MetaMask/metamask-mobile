@@ -1,5 +1,6 @@
-import { MetaMetrics, MetaMetricsEvents } from '../../core/Analytics';
-import { MetricsEventBuilder } from '../../core/Analytics/MetricsEventBuilder';
+import { MetaMetricsEvents } from '../../core/Analytics';
+import { AnalyticsEventBuilder } from '../analytics/AnalyticsEventBuilder';
+import { analytics } from '../analytics/analytics';
 import { TRUE, USE_TERMS } from '../../constants/storage';
 import Routes from '../../constants/navigation/Routes';
 import { strings } from '../../../locales/i18n';
@@ -8,22 +9,18 @@ import StorageWrapper from '../../store/storage-wrapper';
 import navigateTermsOfUse from './termsOfUse';
 import termsOfUse from './termsOfUseContent';
 
-jest.mock('../../core/Analytics');
+jest.mock('../analytics/analytics');
 jest.mock('../../store/storage-wrapper');
 jest.mock('../../../locales/i18n');
 
 describe('Terms of Use', () => {
   const mockNavigate = jest.fn();
   const mockOnAccept = jest.fn();
-  const mockTrackEvent = jest.fn();
   const mockGetItem = jest.fn();
   const mockSetItem = jest.fn();
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (MetaMetrics.getInstance as jest.Mock).mockReturnValue({
-      trackEvent: mockTrackEvent,
-    });
     (StorageWrapper.getItem as jest.Mock) = mockGetItem;
     (StorageWrapper.setItem as jest.Mock) = mockSetItem;
     (strings as jest.Mock).mockImplementation((key) => key);
@@ -75,8 +72,8 @@ describe('Terms of Use', () => {
 
       expect(mockSetItem).toHaveBeenCalledWith(USE_TERMS, TRUE);
       expect(mockOnAccept).toHaveBeenCalled();
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
+      expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalledWith(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.USER_TERMS_ACCEPTED,
         ).build(),
       );
@@ -90,8 +87,8 @@ describe('Terms of Use', () => {
       await onAccept();
 
       expect(mockSetItem).toHaveBeenCalledWith(USE_TERMS, TRUE);
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
+      expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalledWith(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.USER_TERMS_ACCEPTED,
         ).build(),
       );
@@ -106,8 +103,8 @@ describe('Terms of Use', () => {
       const { onRender } = mockNavigate.mock.calls[0][1].params;
       onRender();
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        MetricsEventBuilder.createEventBuilder(
+      expect(jest.mocked(analytics.trackEvent)).toHaveBeenCalledWith(
+        AnalyticsEventBuilder.createEventBuilder(
           MetaMetricsEvents.USER_TERMS_SHOWN,
         ).build(),
       );

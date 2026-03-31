@@ -9,6 +9,11 @@ import {
   ButtonSemanticSeverity,
 } from './ButtonSemantic.types';
 
+/**
+ * @deprecated Please update your code to use `ButtonSemantic` from `@metamask/design-system-react-native`.
+ * The API may have changed - compare props before migrating.
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/ButtonSemantic/README.md}
+ */
 const ButtonSemantic: React.FC<ButtonSemanticProps> = ({
   severity,
   size = ButtonSize.Lg,

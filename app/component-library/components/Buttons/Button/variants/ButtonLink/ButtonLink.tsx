@@ -1,9 +1,5 @@
 /* eslint-disable react/prop-types */
 
-/**
- * @deprecated Please update your code to use `TextButton` from `@metamask/design-system-react-native`
- */
-
 // Third party dependencies.
 import React, { useState, useCallback } from 'react';
 import { GestureResponderEvent, StyleProp, TextStyle } from 'react-native';
@@ -26,6 +22,19 @@ import {
   DEFAULT_BUTTONLINK_LABEL_COLOR_ERROR_PRESSED,
 } from './ButtonLink.constants';
 
+/**
+ * @deprecated ButtonLink has been replaced by design-system components.
+ *
+ * - Use `TextButton` for inline links within text flows.
+ * - Use `Button` with `variant={ButtonVariant.Tertiary}` for standalone link‑style buttons (e.g., CTAs, headers, separators).
+ *
+ * Examples:
+ * Inline: <Text>Forgot your password? <TextButton onPress={...}>Reset</TextButton></Text>
+ * Standalone: <Button variant={ButtonVariant.Tertiary} onPress={...}>Forgot password?</Button>
+ *
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/TextButton/README.md | TextButton}
+ * @see {@link https://github.com/MetaMask/metamask-design-system/blob/main/packages/design-system-react-native/src/components/Button/README.md | Button}
+ */
 const ButtonLink: React.FC<ButtonLinkProps> = ({
   style,
   onPressIn,

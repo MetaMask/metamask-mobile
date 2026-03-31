@@ -73,6 +73,9 @@ const SECRETS_TO_VERIFY = [
   // Other critical secrets
   'MM_FOX_CODE',
   'MM_BRANCH_KEY_LIVE',
+  'MM_BRAZE_API_KEY_IOS',
+  'MM_BRAZE_API_KEY_ANDROID',
+  'MM_BRAZE_SDK_ENDPOINT',
   'GOOGLE_SERVICES_B64_IOS',
   'GOOGLE_SERVICES_B64_ANDROID',
 ];
@@ -309,25 +312,6 @@ function verifyConfig(options = {}) {
       actual: 'undefined',
     });
     console.log(`   ❌ No code fencing defined in builds.yml`);
-  }
-
-  // Verify remote feature flags
-  console.log('\n🚩 Checking remote feature flags...');
-  if (config.remote_feature_flags) {
-    const flags = Object.keys(config.remote_feature_flags);
-    if (verbose) {
-      Object.entries(config.remote_feature_flags).forEach(([flag, value]) => {
-        console.log(`   ✅ ${flag}: ${value}`);
-      });
-    } else {
-      console.log(`   ✅ ${flags.length} remote feature flags configured`);
-    }
-  } else {
-    warnings.push({
-      key: 'remote_feature_flags',
-      reason: 'Not defined in builds.yml',
-    });
-    console.log(`   ⚠️  No remote feature flags defined`);
   }
 
   // REVERSE CHECK: Find Bitrise env vars NOT in builds.yml

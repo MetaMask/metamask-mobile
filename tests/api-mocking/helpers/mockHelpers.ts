@@ -1,15 +1,16 @@
-import { Mockttp } from 'mockttp';
+import type { Mockttp, MockttpServer } from 'mockttp';
 import _ from 'lodash';
-import {
-  createLogger,
-  LogLevel,
+import { createLogger, LogLevel } from '../../framework/logger.ts';
+import type {
   MockApiEndpoint,
   MockEventsObject,
-} from '../../framework';
+} from '../../framework/types.ts';
+import { sleep } from '../../framework/Utilities.ts';
 import { getDecodedProxiedURL } from '../../smoke/notifications/utils/helpers.ts';
+import { safeGetBodyText } from '../MockServerE2E.ts';
 
 // Creates a logger with INFO level as the mockServer produces too much noise
-// Change this to DEBUG as needed
+// Change this to DEBUG as needed (required to see `waitForProxiedRequestsMatching` dumps)
 const logger = createLogger({
   name: 'TestSpecificMockHelpers',
   level: LogLevel.INFO,
@@ -184,7 +185,7 @@ export async function setupMockRequest(
     requestRuleBuilder = server.forHead('/proxy');
   }
 
-  await requestRuleBuilder
+  const ruleBuilder = requestRuleBuilder
     ?.matching((request) => {
       const url = getDecodedProxiedURL(request.url);
 
@@ -195,18 +196,60 @@ export async function setupMockRequest(
       const matches = url.includes(String(response.url));
       return matches;
     })
-    .asPriority(priority ?? 999) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
-    .thenCallback((request) => {
-      logger.info(
-        `Mocking ${request.method} request to: ${getDecodedProxiedURL(
-          request.url,
-        )}`,
-      );
-      logger.debug(`Returning response:`, response.response);
-      return {
-        statusCode: response.responseCode ?? 200,
-        json: response.response,
-      };
+    .asPriority(priority ?? 999); // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
+
+  // Use thenReply/thenJson instead of thenCallback to avoid mockttp's
+  // internal body buffering (waitForCompletedRequest → streamToBuffer).
+  // When clients abort connections (e.g., bridge controller AbortController),
+  // streamToBuffer rejects with Error('Aborted'). Since CallbackHandler
+  // eagerly buffers the body BEFORE calling the callback, the rejection
+  // propagates through mockttp's internals and reaches Jest as a test failure.
+  // SimpleHandler (used by thenReply/thenJson) never reads the request body,
+  // eliminating this error source entirely.
+  if (typeof response.response === 'string') {
+    await ruleBuilder?.thenReply(
+      response.responseCode ?? 200,
+      response.response,
+    );
+  } else {
+    await ruleBuilder?.thenJson(
+      response.responseCode ?? 200,
+      response.response as object,
+    );
+  }
+}
+
+/**
+ * Sets up a mock for Server-Sent Events (SSE) endpoints through the mobile proxy.
+ * Unlike {@link setupMockRequest}, this sends the response with
+ * `Content-Type: text/event-stream` so that SSE clients (e.g. expo/fetch)
+ * recognise the stream format.
+ *
+ * @param server - The mockttp server instance
+ * @param url - URL pattern to match (string or RegExp)
+ * @param sseBody - Pre-formatted SSE body (use `toSSEResponse()` to convert quote arrays)
+ * @param priority - Rule priority (default 999)
+ */
+export async function setupSSEMockRequest(
+  server: Mockttp,
+  url: string | RegExp,
+  sseBody: string,
+  priority = 999,
+) {
+  await server
+    .forGet('/proxy')
+    .matching((request) => {
+      const decodedUrl = getDecodedProxiedURL(request.url);
+      if (url instanceof RegExp) {
+        return url.test(decodedUrl);
+      }
+      return decodedUrl.includes(String(url));
+    })
+    .asPriority(priority)
+    .thenReply(200, sseBody, {
+      'content-type': 'text/event-stream',
+      'cache-control': 'no-cache',
+      connection: 'keep-alive',
     });
 }
 
@@ -253,30 +296,27 @@ export const setupMockPostRequest = async (
       }
 
       // If URL matches, also check if request body matches (ignoring specified fields)
-      try {
-        const requestBodyText = await request.body.getText();
-        const result = processPostRequestBody(requestBodyText, requestBody, {
-          ignoreFields,
-        });
+      // Use safeGetBodyText to handle abort errors gracefully
+      const requestBodyText = await safeGetBodyText(request);
 
-        if (!result.matches) {
-          logger.warn('❌ Request body validation failed for', decodedUrl);
-          logger.debug('Expected:', requestBody);
-          logger.debug('Received:', result.requestBodyJson);
-          logger.debug('Ignored fields:', ignoreFields);
-          logger.debug('Error:', result.error);
-        }
-
-        return result.matches;
-      } catch (error) {
-        // If we can't read the body, log the error and don't match
-        // This prevents incorrect mock selection when body processing fails
-        logger.error(
-          'Failed to read request body during mock matching:',
-          error,
-        );
+      // If body read failed/aborted, don't match this mock
+      if (requestBodyText === undefined) {
         return false;
       }
+
+      const result = processPostRequestBody(requestBodyText, requestBody, {
+        ignoreFields,
+      });
+
+      if (!result.matches) {
+        logger.warn('❌ Request body validation failed for', decodedUrl);
+        logger.debug('Expected:', requestBody);
+        logger.debug('Received:', result.requestBodyJson);
+        logger.debug('Ignored fields:', ignoreFields);
+        logger.debug('Error:', result.error);
+      }
+
+      return result.matches;
     })
     .asPriority(priority) // Adding priority to this mock request helper as we want TestSpecificMocks to always take precedence
     .thenCallback(async (request) => {
@@ -325,17 +365,35 @@ export const interceptProxyUrl = async (
         }
       }
 
-      const response = await fetch(transformedUrl, {
-        method: request.method,
-        headers,
-        body:
-          request.method === 'POST' ? await request.body.getText() : undefined,
-      });
+      // Use safeGetBodyText to handle abort errors gracefully
+      let bodyText: string | undefined;
+      if (request.method === 'POST') {
+        bodyText = await safeGetBodyText(request);
+        // If body read was aborted, return 499 (client closed request)
+        if (bodyText === undefined) {
+          return { statusCode: 499, body: '' };
+        }
+      }
 
-      return {
-        statusCode: response.status,
-        body: await response.text(),
-      };
+      try {
+        const response = await fetch(transformedUrl, {
+          method: request.method,
+          headers,
+          body: bodyText,
+        });
+
+        return {
+          statusCode: response.status,
+          body: await response.text(),
+        };
+      } catch (error) {
+        // Handle fetch errors (e.g., network issues)
+        logger.error('Error forwarding request:', error);
+        return {
+          statusCode: 502,
+          body: JSON.stringify({ error: 'Failed to forward request' }),
+        };
+      }
     });
 };
 
@@ -403,4 +461,218 @@ export async function setupAccountsV2SupportedNetworksMock(
     },
     responseCode: 200,
   });
+}
+
+export interface SeenProxiedRequest {
+  method: string;
+  proxiedUrl: string;
+}
+
+export interface ProxiedRequestMatcher {
+  method?: string;
+  urlSubstring?: string;
+  urlRegex?: RegExp;
+}
+
+/**
+ * Stable string for logs and errors for {@link ProxiedRequestMatcher}.
+ * Unlike `JSON.stringify(matcher)`, serializes `urlRegex` as `/source/flags` instead of `{}`.
+ */
+export function formatProxiedRequestMatcher(
+  matcher: ProxiedRequestMatcher,
+): string {
+  const record: Record<string, string> = {};
+  if (matcher.method !== undefined) {
+    record.method = matcher.method;
+  }
+  if (matcher.urlSubstring !== undefined) {
+    record.urlSubstring = matcher.urlSubstring;
+  }
+  if (matcher.urlRegex !== undefined) {
+    record.urlRegex = String(matcher.urlRegex);
+  }
+  return JSON.stringify(record);
+}
+
+/**
+ * Completed requests seen by mockttp rules, with the real target URL decoded from `/proxy?url=…`.
+ * Same pattern as `getEventsPayloads` in tests/helpers/analytics/helpers.ts (without MetaMetrics filtering).
+ */
+export async function collectSeenProxiedRequests(
+  mockServer: Mockttp | MockttpServer,
+): Promise<SeenProxiedRequest[]> {
+  const mockedEndpoints = await mockServer.getMockedEndpoints();
+  const requests = (
+    await Promise.all(
+      mockedEndpoints.map((endpoint) => endpoint.getSeenRequests()),
+    )
+  ).flat();
+
+  return requests.map((request) => ({
+    method: request.method,
+    proxiedUrl: getDecodedProxiedURL(request.url),
+  }));
+}
+
+export function filterProxiedRequests(
+  seen: SeenProxiedRequest[],
+  matcher: ProxiedRequestMatcher,
+): SeenProxiedRequest[] {
+  return seen.filter((r) => {
+    if (matcher.method !== undefined && r.method !== matcher.method) {
+      return false;
+    }
+    if (
+      matcher.urlSubstring !== undefined &&
+      !r.proxiedUrl.includes(matcher.urlSubstring)
+    ) {
+      return false;
+    }
+    if (
+      matcher.urlRegex !== undefined &&
+      !matcher.urlRegex.test(r.proxiedUrl)
+    ) {
+      return false;
+    }
+    return true;
+  });
+}
+
+/**
+ * Count of proxied requests matching `matcher` (for baselines before a flow).
+ */
+export async function countProxiedRequestsMatching(
+  mockServer: Mockttp | MockttpServer,
+  matcher: ProxiedRequestMatcher,
+): Promise<number> {
+  const seen = await collectSeenProxiedRequests(mockServer);
+  return filterProxiedRequests(seen, matcher).length;
+}
+
+export interface WaitForAdditionalProxiedRequestsOptions {
+  description: string;
+  /** Matching requests beyond baseline required (default 1). */
+  additional?: number;
+  timeout?: number;
+  interval?: number;
+  /**
+   * After a successful wait, logs `label: new count=<delta>` at INFO on `logger`.
+   * Delta is `matches.length - baselineMatchCount` from the same snapshot as the wait.
+   */
+  successLog?: {
+    logger: { info: (message: string) => void };
+    label: string;
+  };
+}
+
+/**
+ * Waits until at least `baselineMatchCount + additional` proxied requests match,
+ * then optionally logs how many new matches appeared since baseline.
+ * Use with {@link countProxiedRequestsMatching} before the flow under test.
+ */
+export async function waitForAdditionalProxiedRequestsMatching(
+  mockServer: Mockttp | MockttpServer,
+  matcher: ProxiedRequestMatcher,
+  baselineMatchCount: number,
+  options: WaitForAdditionalProxiedRequestsOptions,
+): Promise<SeenProxiedRequest[]> {
+  const additional = options.additional ?? 1;
+  const matches = await waitForProxiedRequestsMatching(mockServer, matcher, {
+    minCount: baselineMatchCount + additional,
+    description: options.description,
+    timeout: options.timeout,
+    interval: options.interval,
+  });
+
+  if (options.successLog) {
+    // Derive delta from `matches` (same snapshot as wait success) — avoids a second
+    // collectSeenProxiedRequests pass and TOCTOU inflation from requests after return.
+    const delta = matches.length - baselineMatchCount;
+    options.successLog.logger.info(
+      `${options.successLog.label}: new count=${String(delta)}`,
+    );
+  }
+
+  return matches;
+}
+
+/**
+ * Polls until at least `minCount` proxied requests match, or throws after timeout.
+ * Polls every `interval` ms (default 1000) for up to `timeout` ms (default 60000).
+ * On timeout only: logs the full proxied request list at DEBUG (see module LogLevel).
+ */
+export async function waitForProxiedRequestsMatching(
+  mockServer: Mockttp | MockttpServer,
+  matcher: ProxiedRequestMatcher,
+  options: {
+    minCount?: number;
+    timeout?: number;
+    interval?: number;
+    description: string;
+  },
+): Promise<SeenProxiedRequest[]> {
+  const {
+    minCount = 1,
+    timeout = 60000,
+    interval = 1000,
+    description,
+  } = options;
+
+  const pollIntervalMs = Math.max(1, interval);
+  const startMs = Date.now();
+
+  logger.info(
+    `Polling proxied requests for "${description}" (matcher ${formatProxiedRequestMatcher(
+      matcher,
+    )}, minCount ${String(minCount)}, every ${String(
+      pollIntervalMs,
+    )}ms, up to ${String(timeout)}ms)`,
+  );
+
+  for (;;) {
+    const seen = await collectSeenProxiedRequests(mockServer);
+    const matches = filterProxiedRequests(seen, matcher);
+
+    if (matches.length >= minCount) {
+      const matchedRequestsDump = matches
+        .map(
+          (request, index) =>
+            `[${String(index + 1)}] ${request.method} ${request.proxiedUrl}`,
+        )
+        .join('\n');
+      logger.info(
+        `Matched proxied request(s) for "${description}": ${String(matches.length)} (required: ${String(minCount)})\n${matchedRequestsDump}`,
+      );
+      return matches;
+    }
+
+    const elapsedMs = Date.now() - startMs;
+    if (elapsedMs >= timeout) {
+      const seenRequestsDump = seen
+        .map(
+          (request, index) =>
+            `[${String(index + 1)}] ${request.method} ${request.proxiedUrl}`,
+        )
+        .join('\n');
+
+      logger.debug(
+        `Proxied requests mismatch for "${description}": expected >= ${String(minCount)} matching ${formatProxiedRequestMatcher(
+          matcher,
+        )}, got ${String(matches.length)} (total proxied rows: ${String(
+          seen.length,
+        )})\nSeen proxied requests:\n${seenRequestsDump || '(none)'}`,
+      );
+
+      throw new Error(
+        `Expected at least ${String(minCount)} proxied request(s) matching ${formatProxiedRequestMatcher(
+          matcher,
+        )}, got ${String(matches.length)} (total proxied rows: ${String(
+          seen.length,
+        )})`,
+      );
+    }
+
+    const remainingMs = timeout - elapsedMs;
+    await sleep(Math.min(pollIntervalMs, remainingMs));
+  }
 }

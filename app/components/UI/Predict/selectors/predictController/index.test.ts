@@ -10,6 +10,8 @@ import {
   selectPredictAccountMeta,
   selectPredictAccountMetaByAddress,
   selectPredictWithdrawTransaction,
+  selectPredictActiveBuyOrder,
+  selectPredictSelectedPaymentToken,
 } from './index';
 import { PredictPosition, PredictPositionStatus } from '../../types';
 
@@ -134,6 +136,87 @@ describe('Predict Controller Selectors', () => {
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const result = selectPredictWithdrawTransaction(mockState as any);
+
+      expect(result).toBeNull();
+    });
+  });
+
+  describe('selectPredictActiveBuyOrder', () => {
+    const mockAccountsController = {
+      internalAccounts: {
+        selectedAccount: 'acct-1',
+        accounts: {
+          'acct-1': {
+            address: '0xabc123',
+            type: 'eip155:eoa',
+            id: 'acct-1',
+            metadata: {
+              name: 'Account 1',
+              keyring: { type: 'HD Key Tree' },
+              importTime: 0,
+              lastSelected: 0,
+            },
+            options: {},
+            methods: [],
+            scopes: [],
+          },
+        },
+      },
+    };
+
+    it('returns active buy order for the selected account address', () => {
+      const activeBuyOrder = {
+        state: 'preview',
+        transactionId: 'tx-1',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: { '0xabc123': activeBuyOrder },
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toEqual(activeBuyOrder);
+    });
+
+    it('returns null when no order exists for the selected address', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              activeBuyOrders: {},
+            },
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+            AccountsController: mockAccountsController,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictActiveBuyOrder(mockState as any);
 
       expect(result).toBeNull();
     });
@@ -1252,6 +1335,104 @@ describe('Predict Controller Selectors', () => {
       const result = selector(mockState as any);
 
       expect(result).toEqual({});
+    });
+  });
+
+  describe('selectPredictSelectedPaymentToken', () => {
+    it('returns null when selectedPaymentToken is null', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken: null,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns token object when selectedPaymentToken is set', () => {
+      const selectedPaymentToken = {
+        address: '0x1234567890123456789012345678901234567890',
+        chainId: '0x1',
+        symbol: 'USDC',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toEqual(selectedPaymentToken);
+    });
+
+    it('returns null when PredictController state is undefined', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: undefined,
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns null when selectedPaymentToken property is missing', () => {
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {},
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toBeNull();
+    });
+
+    it('returns token with all properties', () => {
+      const selectedPaymentToken = {
+        address: '0xabcdef1234567890abcdef1234567890abcdef12',
+        chainId: '0x89',
+        symbol: 'DAI',
+      };
+
+      const mockState = {
+        engine: {
+          backgroundState: {
+            PredictController: {
+              selectedPaymentToken,
+            },
+          },
+        },
+      };
+
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const result = selectPredictSelectedPaymentToken(mockState as any);
+
+      expect(result).toEqual(selectedPaymentToken);
+      expect(result?.address).toBe(selectedPaymentToken.address);
+      expect(result?.chainId).toBe(selectedPaymentToken.chainId);
+      expect(result?.symbol).toBe(selectedPaymentToken.symbol);
     });
   });
 });

@@ -1,8 +1,11 @@
+import { Platform } from 'react-native';
 import { AuthConnection } from './OAuthInterface';
 import ReduxService, { ReduxStore } from '../redux';
 import Engine from '../Engine';
 import { OAuthError, OAuthErrorType } from './error';
 import { Web3AuthNetwork } from '@metamask/seedless-onboarding-controller';
+import { TraceName, TraceOperation } from '../../util/trace';
+import { signOut as acmSignOut } from '@metamask/react-native-acm';
 
 const MOCK_JWT_TOKEN =
   'eyJhbGciOiJFUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InN3bmFtOTA5QGdtYWlsLmNvbSIsInN1YiI6InN3bmFtOTA5QGdtYWlsLmNvbSIsImlzcyI6Im1ldGFtYXNrIiwiYXVkIjoibWV0YW1hc2siLCJpYXQiOjE3NDUyMDc1NjYsImVhdCI6MTc0NTIwNzg2NiwiZXhwIjoxNzQ1MjA3ODY2fQ.nXRRLB7fglRll7tMzFFCU0u7Pu6EddqEYf_DMyRgOENQ6tJ8OLtVknNf83_5a67kl_YKHFO-0PEjvJviPID6xg';
@@ -10,6 +13,8 @@ const MOCK_JWT_TOKEN =
 jest.mock('./OAuthLoginHandlers/constants', () => ({
   web3AuthNetwork: 'sapphire_mainnet',
   AuthServerUrl: 'https://auth.example.com',
+  E2E_QA_MOCK_OAUTH_TOKEN_URL:
+    'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token',
   AUTH_SERVER_MARKETING_OPT_IN_PATH: '/api/v1/oauth/marketing_opt_in_status',
   IosGID: 'mock-ios-google-client-id',
   IosGoogleRedirectUri: 'mock-ios-google-redirect-uri',
@@ -40,14 +45,41 @@ jest.mock('./OAuthLoginHandlers/constants', () => ({
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
 }));
 
-jest.mock('../Analytics/whenEngineReady', () => ({
+jest.mock('@metamask/react-native-acm', () => ({
+  signOut: jest.fn().mockResolvedValue(undefined),
+  signInWithGoogle: jest.fn(),
+}));
+
+jest.mock('../../util/analytics/whenEngineReady', () => ({
   whenEngineReady: jest.fn().mockResolvedValue(undefined),
+}));
+
+const mockTrace = jest.fn();
+const mockEndTrace = jest.fn();
+
+jest.mock('../../util/trace', () => ({
+  ...jest.requireActual('../../util/trace'),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  trace: (...args: any[]) => mockTrace(...args),
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  endTrace: (...args: any[]) => mockEndTrace(...args),
 }));
 
 jest.mock('../../util/analytics/analytics', () => ({
   analytics: {
     trackEvent: jest.fn(),
   },
+}));
+
+const mockIsE2EMockOAuth = jest.fn().mockReturnValue(false);
+const mockGetE2EByoaAuthSecret = jest.fn<string | undefined, []>(
+  () => undefined,
+);
+
+jest.mock('../../util/environment', () => ({
+  ...jest.requireActual('../../util/environment'),
+  isE2EMockOAuth: () => mockIsE2EMockOAuth(),
+  getE2EByoaAuthSecret: () => mockGetE2EByoaAuthSecret(),
 }));
 
 import OAuthLoginService from './OAuthService';
@@ -69,6 +101,11 @@ const mockGetAuthTokens = jest.fn().mockImplementation(() => ({
 
 const mockCreateLoginHandler = jest.fn().mockImplementation(() => ({
   authConnection: AuthConnection.Google,
+  options: {
+    clientId: 'e2e-mock-google-client-id',
+    authServerUrl: 'https://auth.example.com',
+    web3AuthNetwork: 'sapphire_mainnet',
+  },
   login: () => mockLoginHandlerResponse(),
   getAuthTokens: () => mockGetAuthTokens(),
   decodeIdToken: () =>
@@ -260,6 +297,320 @@ describe('OAuth login service', () => {
       expect(mockAuthenticate).toHaveBeenCalledTimes(0);
     });
   }
+
+  it('does not trace OnboardingOAuthProviderLoginError when login throws UserCancelled', async () => {
+    // Arrange
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError(
+        'User cancelled the login process',
+        OAuthErrorType.UserCancelled,
+      );
+    });
+
+    // Act
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      OAuthErrorType.UserCancelled,
+    );
+
+    // Assert
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+  });
+
+  it('does not trace OnboardingOAuthProviderLoginError when login throws UserDismissed', async () => {
+    // Arrange
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError(
+        'User dismissed the login process',
+        OAuthErrorType.UserDismissed,
+      );
+    });
+
+    // Act
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      OAuthErrorType.UserDismissed,
+    );
+
+    // Assert
+    expect(mockTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+    expect(mockEndTrace).not.toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+  });
+
+  it('traces OnboardingOAuthProviderLoginError when login throws a non-user-action error', async () => {
+    // Arrange
+    const loginHandler = mockCreateLoginHandler();
+    mockLoginHandlerResponse.mockImplementation(() => {
+      throw new OAuthError('Login error', OAuthErrorType.LoginError);
+    });
+
+    // Act
+    await expectOAuthError(
+      OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      OAuthErrorType.LoginError,
+    );
+
+    // Assert
+    expect(mockTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+        op: TraceOperation.OnboardingError,
+        tags: { errorMessage: 'Login error - Login error' },
+      }),
+    );
+    expect(mockEndTrace).toHaveBeenCalledWith(
+      expect.objectContaining({
+        name: TraceName.OnboardingOAuthProviderLoginError,
+      }),
+    );
+  });
+
+  describe('acmSignOut on Android Google login', () => {
+    const originalPlatform = Platform.OS;
+
+    beforeEach(() => {
+      mockLoginHandlerResponse.mockImplementation(() => ({
+        idToken: MOCK_JWT_TOKEN,
+        authConnection: AuthConnection.Google,
+        clientId: 'clientId',
+        web3AuthNetwork: Web3AuthNetwork.Mainnet,
+      }));
+      mockGetAuthTokens.mockImplementation(() => ({
+        id_token: MOCK_JWT_TOKEN,
+        access_token: 'mock-access-token',
+        indexes: [1, 2, 3],
+        endpoints: { endpoint1: 'value1' },
+        refresh_token: 'mock-refresh-token',
+        revoke_token: 'mock-revoke-token',
+      }));
+      mockAuthenticate.mockImplementation(() => ({
+        nodeAuthTokens: [],
+        isNewUser: true,
+      }));
+    });
+
+    afterEach(() => {
+      Platform.OS = originalPlatform;
+      (acmSignOut as jest.Mock).mockClear();
+    });
+
+    it('calls acmSignOut after successful Google login on Android', async () => {
+      Platform.OS = 'android';
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(acmSignOut).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not call acmSignOut on iOS Google login', async () => {
+      Platform.OS = 'ios';
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(acmSignOut).not.toHaveBeenCalled();
+    });
+
+    it('does not call acmSignOut for Apple login on Android', async () => {
+      Platform.OS = 'android';
+      const loginHandler = {
+        ...mockCreateLoginHandler(),
+        authConnection: AuthConnection.Apple,
+      };
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(acmSignOut).not.toHaveBeenCalled();
+    });
+
+    it('calls acmSignOut even when provider login fails on Android', async () => {
+      Platform.OS = 'android';
+      mockLoginHandlerResponse.mockImplementation(() => {
+        throw new OAuthError('User cancelled', OAuthErrorType.UserCancelled);
+      });
+      const loginHandler = mockCreateLoginHandler();
+
+      await expect(
+        OAuthLoginService.handleOAuthLogin(loginHandler, false),
+      ).rejects.toThrow();
+
+      expect(acmSignOut).toHaveBeenCalledTimes(1);
+    });
+
+    it('handles acmSignOut failure gracefully', async () => {
+      Platform.OS = 'android';
+      (acmSignOut as jest.Mock).mockRejectedValueOnce(
+        new Error('signOut failed'),
+      );
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result).toBeDefined();
+      expect(result.type).toBe('success');
+      expect(acmSignOut).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('E2E_MOCK_OAUTH mode', () => {
+    let fetchSpy: jest.SpiedFunction<typeof fetch>;
+
+    const qaMockTokenEnvelope = () => ({
+      success: true,
+      data: {
+        tokens: {
+          jwt_token: MOCK_JWT_TOKEN,
+          access_token: 'mock-access-token',
+          metadata_access_token: 'mock-metadata-access-token',
+          refresh_token: 'mock-refresh-token',
+          revoke_token: 'mock-revoke-token',
+          indexes: [1, 2, 3],
+          endpoints: { endpoint1: 'value1' },
+        },
+      },
+    });
+
+    beforeEach(() => {
+      mockIsE2EMockOAuth.mockReturnValue(true);
+      mockGetE2EByoaAuthSecret.mockReturnValue('test-byoa-secret');
+      fetchSpy = jest.spyOn(global, 'fetch').mockResolvedValue({
+        ok: true,
+        status: 200,
+        json: () => Promise.resolve(qaMockTokenEnvelope()),
+      } as Response);
+    });
+
+    afterEach(() => {
+      fetchSpy.mockRestore();
+      mockIsE2EMockOAuth.mockReturnValue(false);
+      mockGetE2EByoaAuthSecret.mockReturnValue(undefined);
+      delete process.env.E2E_MOCK_OAUTH_EMAIL;
+    });
+
+    it('exchanges QA mock tokens and returns mock success without seedless authenticate', async () => {
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result.type).toBe('success');
+      expect(result.existingUser).toBe(false);
+      expect(result.accountName).toBe('swnam909@gmail.com');
+      expect(fetchSpy).toHaveBeenCalledTimes(1);
+      expect(fetchSpy).toHaveBeenCalledWith(
+        'https://auth-service.uat-api.cx.metamask.io/api/v1/qa/mock/oauth/token',
+        expect.objectContaining({
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'byoa-auth-secret': 'test-byoa-secret',
+          },
+        }),
+      );
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body).toMatchObject({
+        email_id: 'newuser+e2e@web3auth.io',
+        client_id: 'e2e-mock-google-client-id',
+        login_provider: AuthConnection.Google,
+        access_type: 'offline',
+      });
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+      expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
+      expect(mockGetAuthTokens).not.toHaveBeenCalled();
+    });
+
+    it('uses E2E_MOCK_OAUTH_EMAIL for email_id when set', async () => {
+      process.env.E2E_MOCK_OAUTH_EMAIL = 'custom+e2e@web3auth.io';
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      const body = JSON.parse(
+        (fetchSpy.mock.calls[0][1] as RequestInit).body as string,
+      );
+      expect(body.email_id).toBe('custom+e2e@web3auth.io');
+    });
+
+    it('rejects when QA mock token response is non-OK', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: false,
+        status: 503,
+        json: () => Promise.resolve({}),
+      } as Response);
+      const loginHandler = mockCreateLoginHandler();
+
+      await expectOAuthError(
+        OAuthLoginService.handleOAuthLogin(loginHandler, false),
+        OAuthErrorType.LoginError,
+      );
+
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+    });
+
+    it('succeeds when QA mock response omits refresh_token', async () => {
+      fetchSpy.mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        json: () =>
+          Promise.resolve({
+            success: true,
+            data: {
+              tokens: {
+                jwt_token: MOCK_JWT_TOKEN,
+                access_token: 'mock-access-token',
+                metadata_access_token: 'mock-metadata-access-token',
+              },
+            },
+          }),
+      } as Response);
+      const loginHandler = mockCreateLoginHandler();
+
+      const result = await OAuthLoginService.handleOAuthLogin(
+        loginHandler,
+        false,
+      );
+
+      expect(result.type).toBe('success');
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+    });
+
+    it('does not call provider login, getAuthTokens, or seedless authenticate', async () => {
+      const loginHandler = mockCreateLoginHandler();
+
+      await OAuthLoginService.handleOAuthLogin(loginHandler, false);
+
+      expect(mockLoginHandlerResponse).not.toHaveBeenCalled();
+      expect(mockGetAuthTokens).not.toHaveBeenCalled();
+      expect(mockAuthenticate).not.toHaveBeenCalled();
+    });
+  });
 });
 
 describe('updateMarketingOptInStatus', () => {

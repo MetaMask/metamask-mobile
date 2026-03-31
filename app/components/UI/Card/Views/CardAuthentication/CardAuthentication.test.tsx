@@ -6,7 +6,7 @@ import { CardAuthenticationSelectors } from './CardAuthentication.testIds';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
 
 // Mock whenEngineReady to prevent async polling after test teardown
-jest.mock('../../../../../core/Analytics/whenEngineReady', () => ({
+jest.mock('../../../../../util/analytics/whenEngineReady', () => ({
   __esModule: true,
   default: jest.fn().mockResolvedValue(undefined),
 }));
@@ -28,12 +28,6 @@ jest.mock('@react-navigation/native', () => ({
   }),
 }));
 
-jest.mock('@react-navigation/compat', () => ({
-  NavigationActions: {
-    navigate: jest.fn((params) => ({ type: 'NAVIGATE', ...params })),
-  },
-}));
-
 const mockLogin = jest.fn();
 const mockClearError = jest.fn();
 const mockSendOtpLogin = jest.fn();
@@ -53,17 +47,22 @@ jest.mock('../../hooks/useCardProviderAuthentication', () => ({
   })),
 }));
 
-jest.mock('../../../../../util/theme', () => ({
-  useTheme: () => ({
-    colors: {
-      background: { default: '#FFFFFF' },
-      text: { primary: '#000000', alternative: '#666666' },
-      primary: { default: '#037DD6' },
-      error: { default: '#D73A49', muted: '#FEF2F2' },
-      border: { default: '#E1E4E8' },
-    },
-  }),
-}));
+jest.mock('../../../../../util/theme', () => {
+  const actual = jest.requireActual('../../../../../util/theme');
+  return {
+    ...actual,
+    useTheme: () => ({
+      ...actual.mockTheme,
+      colors: {
+        ...actual.mockTheme.colors,
+        text: {
+          ...actual.mockTheme.colors.text,
+          primary: actual.mockTheme.colors.text.default,
+        },
+      },
+    }),
+  };
+});
 
 jest.mock('../../../../../../locales/i18n', () => ({
   strings: (key: string) => {
@@ -407,7 +406,8 @@ describe('CardAuthentication Component', () => {
       fireEvent.press(loginButton);
 
       await waitFor(() => {
-        expect(loginButton).toHaveProp('loading', true);
+        expect(loginButton).toBeDisabled();
+        expect(loginButton.props.accessibilityState.busy).toBe(true);
       });
 
       if (resolveLogin) {
@@ -415,7 +415,7 @@ describe('CardAuthentication Component', () => {
       }
 
       await waitFor(() => {
-        expect(loginButton).toHaveProp('loading', false);
+        expect(loginButton.props.accessibilityState.busy).toBeFalsy();
       });
     });
   });

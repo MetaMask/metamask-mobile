@@ -6,6 +6,39 @@ import {
 } from '../components/TrendingTokensBottomSheet';
 import { getPriceChangeFieldKey } from '../components/TrendingTokenRowItem/utils';
 
+const getDataPredicate = (
+  option: PriceChangeOption,
+): ((t: TrendingAsset) => boolean) => {
+  switch (option) {
+    case PriceChangeOption.PriceChange:
+      // Not using price change on purpose since price change can be 0%
+      return (t) => Boolean(t.price && t.price !== '0');
+    case PriceChangeOption.Volume:
+      return (t) => Boolean(t.aggregatedUsdVolume);
+    case PriceChangeOption.MarketCap:
+      return (t) => Boolean(t.marketCap);
+  }
+};
+
+const getValueExtractor = (
+  option: PriceChangeOption,
+  timeOption: TimeOption,
+): ((t: TrendingAsset) => number) => {
+  switch (option) {
+    case PriceChangeOption.PriceChange: {
+      const key = getPriceChangeFieldKey(timeOption);
+      return (t) => {
+        const v = t.priceChangePct?.[key];
+        return v ? parseFloat(v) || 0 : 0;
+      };
+    }
+    case PriceChangeOption.Volume:
+      return (t) => t.aggregatedUsdVolume ?? 0;
+    case PriceChangeOption.MarketCap:
+      return (t) => t.marketCap ?? 0;
+  }
+};
+
 /**
  * Sorts trending tokens based on the selected option and direction
  * @param tokens - Array of trending tokens to sort
@@ -24,37 +57,17 @@ export const sortTrendingTokens = (
     return [];
   }
 
-  // Create a new array and sort in-place for better performance
-  const sorted = [...tokens];
-  sorted.sort((a, b) => {
-    let aValue: number;
-    let bValue: number;
+  const hasData = getDataPredicate(option);
+  const getValue = getValueExtractor(option, timeOption);
+  const dirMultiplier = direction === SortDirection.Ascending ? 1 : -1;
 
-    switch (option) {
-      case PriceChangeOption.PriceChange: {
-        // For price change, use the priceChangePct field corresponding to the selected time option
-        const priceChangeFieldKey = getPriceChangeFieldKey(timeOption);
-        const aPriceChange = a.priceChangePct?.[priceChangeFieldKey];
-        aValue = aPriceChange ? parseFloat(aPriceChange) || 0 : 0;
-        const bPriceChange = b.priceChangePct?.[priceChangeFieldKey];
-        bValue = bPriceChange ? parseFloat(bPriceChange) || 0 : 0;
-        break;
-      }
-      case PriceChangeOption.Volume:
-        aValue = a.aggregatedUsdVolume ?? 0;
-        bValue = b.aggregatedUsdVolume ?? 0;
-        break;
-      case PriceChangeOption.MarketCap:
-        aValue = a.marketCap ?? 0;
-        bValue = b.marketCap ?? 0;
-        break;
-      default:
-        return 0;
-    }
+  const sortable: TrendingAsset[] = [];
+  const nulled: TrendingAsset[] = [];
+  for (const token of tokens) {
+    (hasData(token) ? sortable : nulled).push(token);
+  }
 
-    const comparison = aValue - bValue;
-    return direction === SortDirection.Ascending ? comparison : -comparison;
-  });
+  sortable.sort((a, b) => (getValue(a) - getValue(b)) * dirMultiplier);
 
-  return sorted;
+  return [...sortable, ...nulled];
 };

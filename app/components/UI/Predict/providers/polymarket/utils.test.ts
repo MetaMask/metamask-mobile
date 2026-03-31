@@ -976,6 +976,81 @@ describe('polymarket utils', () => {
         },
       );
     });
+
+    it('includes executor in request body when provided', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        executor: '0x1111111111111111111111111111111111111111',
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.executor).toBe(
+        '0x1111111111111111111111111111111111111111',
+      );
+    });
+
+    it('supports Permit2 fee authorization payload in request body', async () => {
+      const feeAuthorization = {
+        type: 'safe-permit2' as const,
+        authorization: {
+          permit: {
+            permitted: {
+              token: '0x2791Bca1f2de4661ED88A30C99A7a9449Aa84174',
+              amount: '1000000',
+            },
+            nonce: '0',
+            deadline: '1700000000',
+          },
+          spender: '0x1111111111111111111111111111111111111111',
+          signature: '0xabc',
+        },
+      };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        feeAuthorization,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.feeAuthorization).toEqual(feeAuthorization);
+    });
+
+    it('includes allowancesTx in request body when provided', async () => {
+      const allowancesTx = { to: '0xSafeAddress', data: '0xallowanceData' };
+
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+        allowancesTx,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody.allowancesTx).toEqual(allowancesTx);
+    });
+
+    it('omits allowancesTx from request body when not provided', async () => {
+      await submitClobOrder({
+        headers: mockHeaders,
+        clobOrder: mockClobOrder,
+      });
+
+      const callArgs = mockFetch.mock.calls[0];
+      const bodyString = callArgs[1].body;
+      const parsedBody = JSON.parse(bodyString);
+
+      expect(parsedBody).not.toHaveProperty('allowancesTx');
+    });
   });
 
   describe('parsePolymarketEvents', () => {
@@ -2239,6 +2314,135 @@ describe('polymarket utils', () => {
       expect(result).toEqual([]);
       expect(mockFetch).not.toHaveBeenCalled();
     });
+
+    describe('negRisk outcome label resolution', () => {
+      it('non-negRisk position outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: false,
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position without eventSlug outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: undefined,
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position with non-draw-capable league eventSlug outcome stays as original', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'politics-election-2024',
+            slug: 'politics-election-2024-candidate-a',
+            outcome: 'Yes',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Yes');
+      });
+
+      it('negRisk position with UCL eventSlug and draw suffix resolves to Draw', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-draw',
+            outcome: 'Draw',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('Draw');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation with teamLookup resolves to team name', async () => {
+        const mockTeamLookup = jest.fn(
+          (league: string, abbreviation: string) => {
+            if (league === 'ucl' && abbreviation === 'mci') {
+              return {
+                id: 'team-1',
+                name: 'Manchester City',
+                logo: 'https://example.com/mci.png',
+                abbreviation: 'mci',
+                color: 'team-blue',
+                alias: 'City',
+              };
+            }
+            return undefined;
+          },
+        );
+
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-mci',
+            outcome: 'Manchester City',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({
+          positions,
+          teamLookup: mockTeamLookup,
+        });
+
+        expect(result[0].outcome).toBe('Manchester City');
+        expect(mockTeamLookup).toHaveBeenCalledWith('ucl', 'mci');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation without teamLookup resolves to uppercase abbreviation', async () => {
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-mci',
+            outcome: 'MCI',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({ positions });
+
+        expect(result[0].outcome).toBe('MCI');
+      });
+
+      it('negRisk position with UCL eventSlug and team abbreviation with teamLookup returning undefined resolves to uppercase abbreviation', async () => {
+        const mockTeamLookup = jest.fn(() => undefined);
+
+        const positions = [
+          createPosition('1', 0, {
+            negativeRisk: true,
+            eventSlug: 'ucl-final-2024',
+            slug: 'ucl-final-2024-xyz',
+            outcome: 'XYZ',
+          }),
+        ];
+
+        const result = await parsePolymarketPositions({
+          positions,
+          teamLookup: mockTeamLookup,
+        });
+
+        expect(result[0].outcome).toBe('XYZ');
+      });
+    });
   });
 
   describe('getPredictPositionStatus', () => {
@@ -2787,6 +2991,8 @@ describe('polymarket utils', () => {
       expect(fees.metamaskFee).toBe(expectedMetamaskFee);
       expect(fees.totalFeePercentage).toBe(totalFeePercentage);
       expect(fees.collector).toBe(feeCollection.collector);
+      expect(fees.executors).toEqual(feeCollection.executors ?? []);
+      expect(fees.permit2Enabled).toBe(feeCollection.permit2Enabled ?? false);
     });
 
     it('calculates fees correctly for various amounts', async () => {
@@ -2863,6 +3069,8 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(0);
       expect(fees.totalFeePercentage).toBe(0);
       expect(fees.collector).toBe('0x0');
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
     });
 
     it('waives fees for markets in waiveList', async () => {
@@ -2893,6 +3101,27 @@ describe('polymarket utils', () => {
       expect(fees.totalFee).toBe(0);
       expect(fees.totalFeePercentage).toBe(0);
       expect(fees.collector).toBe('0x0');
+      expect(fees.executors).toEqual([]);
+      expect(fees.permit2Enabled).toBe(false);
+    });
+
+    it('returns executors and permit2Enabled from feeCollection config', async () => {
+      const params = {
+        feeCollection: {
+          ...feeCollection,
+          executors: ['0x1111111111111111111111111111111111111111'],
+          permit2Enabled: true,
+        },
+        marketId: 'market-1',
+        userBetAmount: 100,
+      };
+
+      const fees = await calculateFees(params);
+
+      expect(fees.executors).toEqual([
+        '0x1111111111111111111111111111111111111111',
+      ]);
+      expect(fees.permit2Enabled).toBe(true);
     });
   });
 

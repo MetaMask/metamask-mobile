@@ -7,69 +7,19 @@ import { mockTheme, ThemeContext } from '../../../util/theme';
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { strings } from '../../../../locales/i18n';
 import { ProtectWalletModalSelectorsIDs } from './ProtectWalletModal.testIds';
+import { analytics } from '../../../util/analytics/analytics';
 
-const mockMetricsIsEnabled = jest.fn().mockReturnValue(true);
-const mockTrackEvent = jest.fn();
-const mockCreateEventBuilder = jest.fn().mockImplementation(() => ({
-  addProperties: jest.fn().mockReturnThis(),
-  build: jest.fn().mockReturnValue({
-    name: 'Wallet Security Reminder Engaged',
-    properties: { source: 'Modal', wallet_protection_required: false },
-    saveDataRecording: true,
-    sensitiveProperties: {},
-  }),
-}));
-
-// Mock whenEngineReady to prevent Engine access after Jest teardown
-jest.mock('../../../core/Analytics/whenEngineReady', () => ({
-  whenEngineReady: jest.fn().mockResolvedValue(undefined),
-}));
-
-// Mock analytics module
 jest.mock('../../../util/analytics/analytics', () => ({
   analytics: {
-    isEnabled: jest.fn(() => false),
     trackEvent: jest.fn(),
-    optIn: jest.fn().mockResolvedValue(undefined),
-    optOut: jest.fn().mockResolvedValue(undefined),
-    getAnalyticsId: jest.fn().mockResolvedValue('test-analytics-id'),
-    identify: jest.fn(),
-    trackView: jest.fn(),
-    isOptedIn: jest.fn().mockResolvedValue(false),
   },
 }));
 
-// Mock useAnalytics hook which is used by withAnalyticsAwareness HOC
-jest.mock('../../../components/hooks/useAnalytics/useAnalytics', () => ({
-  useAnalytics: () => ({
-    trackEvent: mockTrackEvent,
-    createEventBuilder: mockCreateEventBuilder,
-    isEnabled: mockMetricsIsEnabled,
-  }),
-}));
-
-jest.mock(
-  '../../../components/hooks/useAnalytics/withAnalyticsAwareness',
-  () => ({
-    withAnalyticsAwareness:
-      (Component: React.ComponentType) => (props: Record<string, unknown>) => (
-        <Component
-          {...props}
-          {...({
-            analytics: {
-              trackEvent: mockTrackEvent,
-              createEventBuilder: mockCreateEventBuilder,
-              isEnabled: mockMetricsIsEnabled,
-            },
-          } as Record<string, unknown>)}
-        />
-      ),
-  }),
-);
+const mockTrackEvent = jest.mocked(analytics.trackEvent);
 
 const mockStore = configureMockStore();
 
-const initialState = {
+const createInitialState = (overrides = {}) => ({
   user: {
     protectWalletModalVisible: true,
     passwordSet: true,
@@ -81,155 +31,66 @@ const initialState = {
       },
     },
   },
-};
-
-const store = mockStore(initialState);
-
-interface ProtectYourWalletModalProps {
-  navigation?: {
-    navigate: jest.Mock;
-  };
-}
+  ...overrides,
+});
 
 const mockNavigation = {
   navigate: jest.fn(),
 };
 
-const defaultProps: ProtectYourWalletModalProps = {
-  navigation: mockNavigation,
+const renderModal = (storeOverride?: ReturnType<typeof mockStore>) => {
+  const store = storeOverride ?? mockStore(createInitialState());
+  return render(
+    <Provider store={store}>
+      <ThemeContext.Provider value={mockTheme}>
+        <ProtectYourWalletModal navigation={mockNavigation} />
+      </ThemeContext.Provider>
+    </Provider>,
+  );
 };
 
 describe('ProtectYourWalletModal', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
-  it('render matches snapshot', () => {
-    const { toJSON } = render(
-      <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>
-          <ProtectYourWalletModal {...defaultProps} />
-        </ThemeContext.Provider>
-      </Provider>,
-    );
-    expect(toJSON()).toMatchSnapshot();
-  });
 
-  it('render title, top button and bottom button', () => {
-    const { getByText } = render(
-      <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>
-          <ProtectYourWalletModal {...defaultProps} />
-        </ThemeContext.Provider>
-      </Provider>,
-    );
-    expect(getByText(strings('protect_wallet_modal.title'))).toBeOnTheScreen();
-    expect(
-      getByText(strings('protect_wallet_modal.top_button')),
-    ).toBeOnTheScreen();
-    expect(
-      getByText(strings('protect_wallet_modal.bottom_button')),
-    ).toBeOnTheScreen();
-  });
+  describe('rendering', () => {
+    it('renders modal title', () => {
+      const { getByText } = renderModal();
 
-  it('render learn more button and open webview', async () => {
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>
-          <ProtectYourWalletModal {...defaultProps} />
-        </ThemeContext.Provider>
-      </Provider>,
-    );
-
-    const learnMoreButton = getByTestId(
-      ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON,
-    );
-    expect(learnMoreButton).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(learnMoreButton);
+      expect(
+        getByText(strings('protect_wallet_modal.title')),
+      ).toBeOnTheScreen();
     });
 
-    await waitFor(() => {
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
-        screen: 'SimpleWebview',
-        params: {
-          url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
-          title: strings('protect_wallet_modal.title'),
-        },
-      });
-    });
-  });
+    it('renders top (protect) button', () => {
+      const { getByText } = renderModal();
 
-  it('render cancel button and onDismiss track event', async () => {
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>
-          <ProtectYourWalletModal {...defaultProps} />
-        </ThemeContext.Provider>
-      </Provider>,
-    );
-
-    const cancelButton = getByTestId(
-      ProtectWalletModalSelectorsIDs.CANCEL_BUTTON,
-    );
-    expect(cancelButton).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(cancelButton);
+      expect(
+        getByText(strings('protect_wallet_modal.top_button')),
+      ).toBeOnTheScreen();
     });
 
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Wallet Security Reminder Engaged',
-          properties: { source: 'Modal', wallet_protection_required: false },
-          saveDataRecording: true,
-          sensitiveProperties: {},
-        }),
-      );
-    });
-  });
+    it('renders bottom (dismiss) button', () => {
+      const { getByText } = renderModal();
 
-  it('navigates to set password flow when cancel button is pressed', async () => {
-    const { getByTestId } = render(
-      <Provider store={store}>
-        <ThemeContext.Provider value={mockTheme}>
-          <ProtectYourWalletModal {...defaultProps} />
-        </ThemeContext.Provider>
-      </Provider>,
-    );
-
-    const cancelButton = getByTestId(
-      ProtectWalletModalSelectorsIDs.CANCEL_BUTTON,
-    );
-    expect(cancelButton).toBeOnTheScreen();
-
-    await act(async () => {
-      fireEvent.press(cancelButton);
+      expect(
+        getByText(strings('protect_wallet_modal.bottom_button')),
+      ).toBeOnTheScreen();
     });
 
-    await waitFor(() => {
-      expect(mockNavigation.navigate).toHaveBeenCalledWith('SetPasswordFlow', {
-        screen: 'AccountBackupStep1',
-      });
+    it('renders learn more link', () => {
+      const { getByTestId } = renderModal();
 
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        expect.objectContaining({
-          name: 'Wallet Security Reminder Engaged',
-          properties: { source: 'Modal', wallet_protection_required: false },
-          saveDataRecording: true,
-          sensitiveProperties: {},
-        }),
-      );
+      expect(
+        getByTestId(ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON),
+      ).toBeOnTheScreen();
     });
-  });
 
-  it('render matches snapshot when isSeedlessOnboardingLoginFlow is true', () => {
-    const { toJSON, queryByText } = renderWithProvider(
-      <ProtectYourWalletModal />,
-      {
+    it('hides modal when seedless onboarding login flow is active', () => {
+      const { queryByText } = renderWithProvider(<ProtectYourWalletModal />, {
         state: {
-          ...initialState,
+          ...createInitialState(),
           engine: {
             backgroundState: {
               SeedlessOnboardingController: {
@@ -238,9 +99,135 @@ describe('ProtectYourWalletModal', () => {
             },
           },
         },
-      },
-    );
-    expect(toJSON()).toMatchSnapshot();
-    expect(queryByText(strings('protect_wallet_modal.title'))).toBeNull();
+      });
+
+      expect(queryByText(strings('protect_wallet_modal.title'))).toBeNull();
+    });
+  });
+
+  describe('learn more button', () => {
+    it('navigates to support webview when pressed', async () => {
+      const { getByTestId } = renderModal();
+
+      const learnMoreButton = getByTestId(
+        ProtectWalletModalSelectorsIDs.LEARN_MORE_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(learnMoreButton);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith('Webview', {
+          screen: 'SimpleWebview',
+          params: {
+            url: 'https://support.metamask.io/privacy-and-security/basic-safety-and-security-tips-for-metamask/',
+            title: strings('protect_wallet_modal.title'),
+          },
+        });
+      });
+    });
+  });
+
+  describe('protect button (cancel)', () => {
+    it('tracks Wallet Security Reminder event when pressed', async () => {
+      const { getByTestId } = renderModal();
+
+      const cancelButton = getByTestId(
+        ProtectWalletModalSelectorsIDs.CANCEL_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(cancelButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalledWith(
+          expect.objectContaining({
+            name: 'Wallet Security Reminder Engaged',
+            properties: { source: 'Modal', wallet_protection_required: false },
+            saveDataRecording: false,
+            sensitiveProperties: {},
+          }),
+        );
+      });
+    });
+
+    it('navigates to AccountBackupStep1 when passwordSet is true', async () => {
+      const { getByTestId } = renderModal();
+
+      const cancelButton = getByTestId(
+        ProtectWalletModalSelectorsIDs.CANCEL_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(cancelButton);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          'SetPasswordFlow',
+          { screen: 'AccountBackupStep1' },
+        );
+      });
+    });
+
+    it('navigates to SetPasswordFlow without screen param when passwordSet is false', async () => {
+      const store = mockStore(
+        createInitialState({
+          user: {
+            protectWalletModalVisible: true,
+            passwordSet: false,
+          },
+        }),
+      );
+      const { getByTestId } = renderModal(store);
+
+      const cancelButton = getByTestId(
+        ProtectWalletModalSelectorsIDs.CANCEL_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(cancelButton);
+      });
+
+      await waitFor(() => {
+        expect(mockNavigation.navigate).toHaveBeenCalledWith(
+          'SetPasswordFlow',
+          undefined,
+        );
+      });
+    });
+  });
+
+  describe('dismiss button (confirm)', () => {
+    it('dispatches protectWalletModalNotVisible action when pressed', async () => {
+      const store = mockStore(createInitialState());
+      const mockDispatch = jest.fn();
+      store.dispatch = mockDispatch;
+      const { getByTestId } = renderModal(store);
+
+      const confirmButton = getByTestId(
+        ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        expect(mockDispatch).toHaveBeenCalled();
+      });
+    });
+
+    it('tracks analytics event when dismiss button is pressed', async () => {
+      const { getByTestId } = renderModal();
+
+      const confirmButton = getByTestId(
+        ProtectWalletModalSelectorsIDs.CONFIRM_BUTTON,
+      );
+      await act(async () => {
+        fireEvent.press(confirmButton);
+      });
+
+      await waitFor(() => {
+        expect(mockTrackEvent).toHaveBeenCalled();
+      });
+    });
   });
 });

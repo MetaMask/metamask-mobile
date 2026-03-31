@@ -74,12 +74,6 @@ jest.mock('../../../../../util/navigation/navUtils', () => ({
   useParams: () => mockUseParams(),
 }));
 
-const mockTrackEvent = jest.fn();
-jest.mock('../../hooks/useAnalytics', () => ({
-  __esModule: true,
-  default: () => mockTrackEvent,
-}));
-
 jest.mock('../../../../../util/Logger', () => ({
   error: jest.fn(),
 }));
@@ -307,6 +301,12 @@ describe('V2OtpCode', () => {
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
 
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
     });
@@ -320,6 +320,12 @@ describe('V2OtpCode', () => {
     mockSendUserOtp.mockResolvedValue({ stateToken: 'new-state-token' });
 
     const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
 
     await act(async () => {
       fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
@@ -343,53 +349,6 @@ describe('V2OtpCode', () => {
 
     await waitFor(() => {
       expect(getByText('No response from verifyUserOtp')).toBeOnTheScreen();
-    });
-  });
-
-  it('tracks RAMPS_OTP_CONFIRMED on successful verification', async () => {
-    jest.useRealTimers();
-
-    const mockToken = { accessToken: 'otp-token', ttl: 3600 };
-    const mockQuote = { quoteId: 'q1', fiatAmount: 100 };
-    mockVerifyUserOtp.mockResolvedValue(mockToken);
-    mockSetAuthToken.mockResolvedValue(true);
-    mockGetBuyQuote.mockResolvedValue(mockQuote);
-    mockRouteAfterAuthentication.mockResolvedValue(undefined);
-
-    const { getByTestId } = renderWithTheme(<V2OtpCode />);
-
-    await act(async () => {
-      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
-    });
-
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_OTP_CONFIRMED',
-        expect.objectContaining({
-          ramp_type: 'DEPOSIT',
-        }),
-      );
-    });
-  });
-
-  it('tracks RAMPS_OTP_FAILED on verification error', async () => {
-    jest.useRealTimers();
-
-    mockVerifyUserOtp.mockRejectedValue(new Error('Invalid OTP'));
-
-    const { getByTestId } = renderWithTheme(<V2OtpCode />);
-
-    await act(async () => {
-      fireEvent.changeText(getByTestId('otp-code-input'), '123456');
-    });
-
-    await waitFor(() => {
-      expect(mockTrackEvent).toHaveBeenCalledWith(
-        'RAMPS_OTP_FAILED',
-        expect.objectContaining({
-          ramp_type: 'DEPOSIT',
-        }),
-      );
     });
   });
 
@@ -421,6 +380,46 @@ describe('V2OtpCode', () => {
 
     await waitFor(() => {
       expect(Clipboard.getString).toHaveBeenCalled();
+    });
+  });
+
+  it('shows error when sendUserOtp API fails', async () => {
+    mockSendUserOtp.mockRejectedValue(new Error('Network error'));
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('Network error')).toBeOnTheScreen();
+    });
+  });
+
+  it('shows fallback error when sendUserOtp fails without message', async () => {
+    mockSendUserOtp.mockRejectedValue(new Error());
+
+    const { getByText } = renderWithTheme(<V2OtpCode />);
+
+    for (let i = 0; i < 60; i++) {
+      act(() => {
+        jest.advanceTimersByTime(1000);
+      });
+    }
+
+    await act(async () => {
+      fireEvent.press(getByText('deposit.otp_code.resend_code_button'));
+    });
+
+    await waitFor(() => {
+      expect(getByText('deposit.otp_code.resend_code_error')).toBeOnTheScreen();
     });
   });
 });

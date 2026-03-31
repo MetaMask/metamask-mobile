@@ -16,11 +16,6 @@ import {
 } from '../../../api-mocking/mock-responses/simulations';
 import TestDApp from '../../../page-objects/Browser/TestDApp';
 import { DappVariants } from '../../../framework/Constants';
-import {
-  EventPayload,
-  getEventsPayloads,
-} from '../../../helpers/analytics/helpers';
-import SoftAssert from '../../../framework/SoftAssert';
 import { Mockttp } from 'mockttp';
 import {
   setupMockRequest,
@@ -35,21 +30,7 @@ import {
 import { setupRemoteFeatureFlagsMock } from '../../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { confirmationFeatureFlags } from '../../../api-mocking/mock-responses/feature-flags-mocks';
 import { DEFAULT_ANVIL_PORT } from '../../../seeder/anvil-manager';
-import { commonTransactionPropertiesAndTypes } from '../../../helpers/analytics/common-transaction-properties';
-
-const expectedEvents = {
-  TRANSACTION_ADDED: 'Transaction Added',
-  TRANSACTION_SUBMITTED: 'Transaction Submitted',
-  TRANSACTION_APPROVED: 'Transaction Approved',
-  TRANSACTION_FINALIZED: 'Transaction Finalized',
-};
-
-const expectedEventNames = [
-  expectedEvents.TRANSACTION_ADDED,
-  expectedEvents.TRANSACTION_SUBMITTED,
-  expectedEvents.TRANSACTION_APPROVED,
-  expectedEvents.TRANSACTION_FINALIZED,
-];
+import { dappInitiatedTransferAnalyticsExpectations } from '../../../helpers/analytics/expectations/dapp-initiated-transfer.analytics';
 
 describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
   const testSpecificMock = async (mockServer: Mockttp) => {
@@ -101,13 +82,12 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
       Object.assign({}, ...confirmationFeatureFlags),
     );
   };
-  let eventsToCheck: EventPayload[];
 
   beforeAll(async () => {
     jest.setTimeout(2500000);
   });
 
-  it('sends native asset', async () => {
+  it('sends native asset and validates MetaMetrics transaction events', async () => {
     await withFixtures(
       {
         dapps: [
@@ -117,13 +97,11 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
         ],
         fixture: new FixtureBuilder()
           .withNetworkController({
-            providerConfig: {
-              chainId: '0x539',
-              rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
-              type: 'custom',
-              nickname: 'Local RPC',
-              ticker: 'ETH',
-            },
+            chainId: '0x539',
+            rpcUrl: `http://localhost:${DEFAULT_ANVIL_PORT}`,
+            type: 'custom',
+            nickname: 'Local RPC',
+            ticker: 'ETH',
           })
           .withNetworkEnabledMap({
             eip155: { '0x539': true },
@@ -135,175 +113,79 @@ describe(SmokeConfirmations('DApp Initiated Transfer'), () => {
           .build(),
         restartDevice: true,
         testSpecificMock,
-        endTestfn: async ({ mockServer }) => {
-          eventsToCheck = await getEventsPayloads(
-            mockServer,
-            expectedEventNames,
-          );
-        },
+        analyticsExpectations: dappInitiatedTransferAnalyticsExpectations,
       },
       async () => {
         await loginToApp();
 
         await navigateToBrowserView();
         await Browser.navigateToTestDApp();
+        await Assertions.expectElementToBeVisible(TestDApp.testDappPageTitle, {
+          description: 'Test dapp page title should be visible',
+        });
+        await Assertions.expectElementToBeVisible(TestDApp.sendEIP1559Button, {
+          description: 'Send EIP1559 button should be visible',
+        });
         await TestDApp.tapSendEIP1559Button();
 
-        // Check all expected elements are visible
         await Assertions.expectElementToBeVisible(
           ConfirmationUITypes.ModalConfirmationContainer,
+          {
+            description: 'Transaction confirmation modal should be visible',
+          },
         );
-        await Assertions.expectElementToBeVisible(RowComponents.TokenHero);
+        await Assertions.expectElementToBeVisible(RowComponents.TokenHero, {
+          description: 'Token hero row should be visible',
+        });
         await Assertions.expectTextDisplayed('0 ETH');
         await Assertions.expectElementToBeVisible(RowComponents.FromTo);
         await Assertions.expectElementToBeVisible(
           RowComponents.SimulationDetails,
         );
 
-        // Scroll to reveal GasFeesDetails on Android due to taller From/To row
         if (device.getPlatform() === 'android') {
           await Gestures.swipe(RowComponents.SimulationDetails, 'up');
         }
 
         await Assertions.expectElementToBeVisible(RowComponents.GasFeesDetails);
 
-        // Scroll to Advanced Details section on Android
         if (device.getPlatform() === 'android') {
-          await Gestures.swipe(RowComponents.GasFeesDetails, 'up');
+          await Gestures.swipe(
+            ConfirmationUITypes.ModalConfirmationContainer,
+            'up',
+            {
+              elemDescription: 'Scroll transaction confirmation content',
+            },
+          );
         }
 
         await Assertions.expectElementToBeVisible(
+          RowComponents.SimulationDetails,
+          {
+            description: 'Simulation details row should be visible',
+            timeout: 30000,
+          },
+        );
+        await Assertions.expectElementToBeVisible(
+          RowComponents.GasFeesDetails,
+          {
+            description: 'Gas fees details row should be visible',
+            timeout: 30000,
+          },
+        );
+        await Assertions.expectElementToBeVisible(
           RowComponents.AdvancedDetails,
+          {
+            description: 'Advanced details row should be visible',
+          },
         );
 
-        // Accept confirmation
         await FooterActions.tapConfirmButton();
 
-        // Close browser to reveal app tab bar, then check activity
         await Browser.tapCloseBrowserButton();
         await TabBarComponent.tapActivity();
         await Assertions.expectTextDisplayed('Confirmed');
       },
     );
-  });
-
-  it('validates the segment events from the dapp initiated transfer', async () => {
-    if (!eventsToCheck) {
-      throw new Error('Events to check are not defined');
-    }
-
-    const softAssert = new SoftAssert();
-
-    // Transaction Added
-    const transactionAddedEvent = eventsToCheck.find(
-      (event) => event.event === expectedEvents.TRANSACTION_ADDED,
-    );
-    await softAssert.checkAndCollect(
-      () => Assertions.checkIfValueIsDefined(transactionAddedEvent),
-      'Transaction Added: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfObjectHasKeysAndValidValues(
-          transactionAddedEvent?.properties ?? {},
-          {
-            ...commonTransactionPropertiesAndTypes,
-          },
-        ),
-      'Transaction Added: Should have the correct properties',
-    );
-
-    // Transaction Submitted
-    const transactionSubmittedEvent = eventsToCheck.find(
-      (event) => event.event === expectedEvents.TRANSACTION_SUBMITTED,
-    );
-    await softAssert.checkAndCollect(
-      () => Assertions.checkIfValueIsDefined(transactionSubmittedEvent),
-      'Transaction Submitted: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfObjectHasKeysAndValidValues(
-          transactionSubmittedEvent?.properties ?? {},
-          {
-            ...commonTransactionPropertiesAndTypes,
-            simulation_response: 'string',
-            simulation_latency: 'number',
-            simulation_receiving_assets_quantity: 'number',
-            simulation_receiving_assets_type: 'array',
-            simulation_receiving_assets_value: 'array',
-            simulation_sending_assets_quantity: 'number',
-            simulation_sending_assets_type: 'array',
-            simulation_sending_assets_value: 'array',
-            asset_type: 'string',
-            simulation_receiving_assets_total_value: 'number',
-            simulation_sending_assets_total_value: 'number',
-          },
-        ),
-      'Transaction Submitted: Should have the correct properties',
-    );
-
-    // Transaction Approved
-    const transactionApprovedEvent = eventsToCheck.find(
-      (event) => event.event === expectedEvents.TRANSACTION_APPROVED,
-    );
-    await softAssert.checkAndCollect(
-      () => Assertions.checkIfValueIsDefined(transactionApprovedEvent),
-      'Transaction Approved: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfObjectHasKeysAndValidValues(
-          transactionApprovedEvent?.properties ?? {},
-          {
-            ...commonTransactionPropertiesAndTypes,
-            simulation_response: 'string',
-            simulation_latency: 'number',
-            simulation_receiving_assets_quantity: 'number',
-            simulation_receiving_assets_type: 'array',
-            simulation_receiving_assets_value: 'array',
-            simulation_sending_assets_quantity: 'number',
-            simulation_sending_assets_type: 'array',
-            simulation_sending_assets_value: 'array',
-            asset_type: 'string',
-            simulation_receiving_assets_total_value: 'number',
-            simulation_sending_assets_total_value: 'number',
-          },
-        ),
-      'Transaction Approved: Should have the correct properties',
-    );
-
-    // Transaction Finalized
-    const transactionFinalizedEvent = eventsToCheck.find(
-      (event) => event.event === expectedEvents.TRANSACTION_FINALIZED,
-    );
-    await softAssert.checkAndCollect(
-      () => Assertions.checkIfValueIsDefined(transactionFinalizedEvent),
-      'Transaction Finalized: Should be defined',
-    );
-    await softAssert.checkAndCollect(
-      () =>
-        Assertions.checkIfObjectHasKeysAndValidValues(
-          transactionFinalizedEvent?.properties ?? {},
-          {
-            ...commonTransactionPropertiesAndTypes,
-            simulation_response: 'string',
-            simulation_latency: 'number',
-            simulation_receiving_assets_quantity: 'number',
-            simulation_receiving_assets_type: 'array',
-            simulation_receiving_assets_value: 'array',
-            simulation_sending_assets_quantity: 'number',
-            simulation_sending_assets_type: 'array',
-            simulation_sending_assets_value: 'array',
-            asset_type: 'string',
-            rpc_domain: 'string',
-            simulation_receiving_assets_total_value: 'number',
-            simulation_sending_assets_total_value: 'number',
-          },
-        ),
-      'Transaction Finalized: Should have the correct properties',
-    );
-
-    softAssert.throwIfErrors();
   });
 });

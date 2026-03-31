@@ -1,11 +1,11 @@
 import React, { useCallback } from 'react';
+import { Pressable } from 'react-native';
 import { KeyringAccountType } from '@metamask/keyring-api';
 import {
   Box,
   FontWeight,
   Text,
   TextVariant,
-  ButtonBase,
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 
@@ -36,7 +36,6 @@ export interface RecipientType {
 interface RecipientProps {
   recipient: RecipientType;
   isSelected?: boolean;
-  isBIP44?: boolean;
   accountAvatarType: AvatarAccountType;
   onPress?: (recipient: RecipientType) => void;
 }
@@ -44,7 +43,6 @@ interface RecipientProps {
 export function Recipient({
   recipient,
   isSelected,
-  isBIP44,
   accountAvatarType,
   onPress,
 }: RecipientProps) {
@@ -73,7 +71,7 @@ export function Recipient({
     ACCOUNT_TYPE_LABELS[recipient.accountType as KeyringAccountType];
 
   return (
-    <ButtonBase
+    <Pressable
       testID={
         isSelected
           ? `selected-${recipient.address}`
@@ -81,14 +79,18 @@ export function Recipient({
       }
       style={({ pressed }) =>
         tw.style(
-          'w-full flex-row items-center justify-between h-18 rounded-none',
+          'w-full flex-row items-center justify-between h-18 rounded-none px-4',
           pressed || isSelected ? 'bg-pressed' : 'bg-transparent',
         )
       }
       onPress={handlePressRecipient}
+      accessibilityRole="button"
     >
       <Box twClassName="flex-row items-center">
-        <Box twClassName="h-12 justify-center">
+        <Box
+          twClassName="h-12 justify-center"
+          testID={`recipient-avatar-${recipient.address}`}
+        >
           <Avatar
             variant={AvatarVariant.Account}
             type={accountAvatarType}
@@ -103,9 +105,7 @@ export function Recipient({
             fontWeight={FontWeight.Medium}
             numberOfLines={1}
           >
-            {isBIP44
-              ? recipient.accountGroupName || recipient.contactName
-              : recipient.accountName || recipient.contactName}
+            {recipient.accountGroupName || recipient.contactName}
           </Text>
           <Box twClassName="flex-row items-center">
             <Text
@@ -120,6 +120,6 @@ export function Recipient({
           </Box>
         </Box>
       </Box>
-    </ButtonBase>
+    </Pressable>
   );
 }

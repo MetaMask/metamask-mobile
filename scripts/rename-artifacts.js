@@ -132,6 +132,16 @@ function renameAndroid() {
     }
   }
 
+  // Expose sourcemap directory for all non-Debug builds (prod, RC, beta, test, e2e, exp)
+  if (buildConfig === 'release') {
+    const sourcemapDir = path.join(
+      __dirname,
+      `../android/app/build/generated/sourcemaps/react/${appFlavor}Release`,
+    );
+    setGithubOutput('android_sourcemap_dir', sourcemapDir);
+    console.log(`✅ Sourcemap dir: ${sourcemapDir}`);
+  }
+
   // List final artifacts
   console.log('📦 Final artifacts:');
   const outputDir = path.join(__dirname, '../android/app/build/outputs');
@@ -230,17 +240,28 @@ function renameIos() {
     console.log(`⚠️  Binary not found: ${oldBinary}`);
   }
 
-  // Rename xcarchive (only for device builds)
+  // Expose sourcemap path for device builds (mirrors Bitrise's Deploy Source Map step)
+  if (!isSimBuild) {
+    const sourcemapPath = path.join(__dirname, '../sourcemaps/ios/index.js.map');
+    setGithubOutput('ios_sourcemap_path', sourcemapPath);
+    console.log(`✅ Sourcemap path: ${sourcemapPath}`);
+  }
+
+  // Zip xcarchive into a single file (only for device builds)
+  // .xcarchive is a directory; zipping it produces a clean single-file artifact
+  // that Runway and other tools can match by extension.
   if (!isSimBuild) {
     const oldArchive = path.join(__dirname, `../ios/build/${appName}.xcarchive`);
     if (fs.existsSync(oldArchive)) {
-      const newArchive = path.join(
+      const archiveZip = path.join(
         __dirname,
-        `../ios/build/${newBaseName}.xcarchive`,
+        `../ios/build/${newBaseName}.xcarchive.zip`,
       );
-      execSync(`cp -r "${oldArchive}" "${newArchive}"`);
-      console.log(`✅ Renamed archive: ${newArchive}`);
-      setGithubOutput('ios_archive_path', newArchive);
+      execSync(
+        `ditto -c -k --sequesterRsrc --keepParent "${oldArchive}" "${archiveZip}"`,
+      );
+      console.log(`✅ Zipped archive: ${archiveZip}`);
+      setGithubOutput('ios_archive_path', archiveZip);
     } else {
       console.log(`⚠️  Archive not found: ${oldArchive}`);
     }

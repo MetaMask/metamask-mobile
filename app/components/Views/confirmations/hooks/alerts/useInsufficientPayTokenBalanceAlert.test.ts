@@ -21,13 +21,16 @@ import { strings } from '../../../../../../locales/i18n';
 import { Severity } from '../../types/alerts';
 import { useTokenWithBalance } from '../tokens/useTokenWithBalance';
 import { useTransactionMetadataRequest } from '../transactions/useTransactionMetadataRequest';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../pay/useTransactionPaySelectedFiatPaymentMethod';
 import { Hex } from '@metamask/utils';
 import { TransactionMeta } from '@metamask/transaction-controller';
+import { type PaymentMethod } from '@metamask/ramps-controller';
 
 jest.mock('../pay/useTransactionPayToken');
 jest.mock('../transactions/useTransactionMetadataRequest');
 jest.mock('../pay/useTransactionPayData');
 jest.mock('../tokens/useTokenWithBalance');
+jest.mock('../pay/useTransactionPaySelectedFiatPaymentMethod');
 
 const PAY_TOKEN_MOCK = {
   address: '0x123' as Hex,
@@ -101,6 +104,9 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
     useTransactionMetadataRequestMock.mockReturnValue(
       undefined as unknown as TransactionMeta,
     );
+    jest
+      .mocked(useTransactionPaySelectedFiatPaymentMethod)
+      .mockReturnValue(undefined);
 
     useTransactionPayTokenMock.mockReturnValue({
       payToken: PAY_TOKEN_MOCK,
@@ -358,6 +364,29 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
 
       expect(result.current).toStrictEqual([]);
     });
+
+    it('uses the standard message (with network switch hint) for non-post-quote flows', () => {
+      useTokenWithBalanceMock.mockReturnValue({
+        ...NATIVE_TOKEN_MOCK,
+        balanceRaw: '99',
+      } as ReturnType<typeof useTokenWithBalance>);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([
+        {
+          key: AlertKeys.InsufficientPayTokenNative,
+          field: RowAlertKey.Amount,
+          isBlocking: true,
+          title: strings('alert_system.insufficient_pay_token_balance.message'),
+          message: strings(
+            'alert_system.insufficient_pay_token_native.message',
+            { ticker: 'ETH' },
+          ),
+          severity: Severity.Danger,
+        },
+      ]);
+    });
   });
 
   describe('for post-quote (withdrawal) flows', () => {
@@ -461,7 +490,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           isBlocking: true,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_native.message',
+            'alert_system.insufficient_pay_token_native_post_quote.message',
             { ticker: 'POL' },
           ),
           severity: Severity.Danger,
@@ -491,7 +520,7 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           isBlocking: true,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_native.message',
+            'alert_system.insufficient_pay_token_native_post_quote.message',
             { ticker: 'POL' },
           ),
           severity: Severity.Danger,
@@ -528,12 +557,32 @@ describe('useInsufficientPayTokenBalanceAlert', () => {
           isBlocking: true,
           title: strings('alert_system.insufficient_pay_token_balance.message'),
           message: strings(
-            'alert_system.insufficient_pay_token_native.message',
+            'alert_system.insufficient_pay_token_native_post_quote.message',
             { ticker: 'POL' },
           ),
           severity: Severity.Danger,
         },
       ]);
+    });
+  });
+
+  describe('fiat payment', () => {
+    it('returns no alerts when fiat payment method is selected', () => {
+      useTransactionPayTokenMock.mockReturnValue({
+        payToken: {
+          ...PAY_TOKEN_MOCK,
+          balanceUsd: '0',
+        },
+        setPayToken: jest.fn(),
+      });
+
+      jest
+        .mocked(useTransactionPaySelectedFiatPaymentMethod)
+        .mockReturnValue({ id: 'pm-card' } as PaymentMethod);
+
+      const { result } = runHook();
+
+      expect(result.current).toStrictEqual([]);
     });
   });
 });

@@ -27,9 +27,9 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#121314",
+            "color": "#131416",
             "fontFamily": "Geist-Medium",
-            "fontSize": 18,
+            "fontSize": 20,
             "letterSpacing": 0,
             "lineHeight": 24,
           }
@@ -54,7 +54,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
                 "alignSelf": "flex-end",
               },
               {
-                "backgroundColor": "#b7bbc866",
+                "backgroundColor": "#b4b4b566",
                 "borderRadius": 16,
               },
             ],
@@ -62,7 +62,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
         }
         testID="notification-settings-notifications-toggle"
         thumbTintColor="#ffffff"
-        tintColor="#b7bbc866"
+        tintColor="#b4b4b566"
         value={false}
       />
     </View>
@@ -77,7 +77,7 @@ exports[`NotificationsSettings render matches snapshot 1`] = `
         accessibilityRole="text"
         style={
           {
-            "color": "#686e7d",
+            "color": "#66676a",
             "fontFamily": "Geist-Regular",
             "fontSize": 16,
             "letterSpacing": 0,

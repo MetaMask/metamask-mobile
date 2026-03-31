@@ -20,10 +20,10 @@ exports[`DisplayNFTMediaSettings render matches snapshot 1`] = `
       accessibilityRole="text"
       style={
         {
-          "color": "#121314",
+          "color": "#131416",
           "flex": 1,
           "fontFamily": "Geist-Medium",
-          "fontSize": 18,
+          "fontSize": 20,
           "letterSpacing": 0,
           "lineHeight": 24,
         }
@@ -55,7 +55,7 @@ exports[`DisplayNFTMediaSettings render matches snapshot 1`] = `
                 "alignSelf": "flex-start",
               },
               {
-                "backgroundColor": "#b7bbc866",
+                "backgroundColor": "#b4b4b566",
                 "borderRadius": 16,
               },
             ],
@@ -63,7 +63,7 @@ exports[`DisplayNFTMediaSettings render matches snapshot 1`] = `
         }
         testID="nft-display-media-mode-section"
         thumbTintColor="#ffffff"
-        tintColor="#b7bbc866"
+        tintColor="#b4b4b566"
         value={false}
       />
     </View>
@@ -72,7 +72,7 @@ exports[`DisplayNFTMediaSettings render matches snapshot 1`] = `
     accessibilityRole="text"
     style={
       {
-        "color": "#686e7d",
+        "color": "#66676a",
         "fontFamily": "Geist-Regular",
         "fontSize": 16,
         "letterSpacing": 0,

@@ -582,6 +582,7 @@
     "ok": "OK",
     "cancel": "Cancelar",
     "error": "Erro",
+    "open_settings": "Configurações",
     "attempting_to_scan_with_wallet_locked": "Parece que você está tentando escanear um código QR. Você deve destravar sua carteira para conseguir usá-la.",
     "attempting_sync_from_wallet_error": "Parece que você está tentando sincronizar com uma extensão. Para fazê-lo, você precisará excluir sua carteira atual. \n\nApós ter excluído ou reinstalado uma versão mais recente do app, selecione a opção para \"Sincronizar com a Extensão MetaMask\". Importante! Antes de excluir a sua carteira, certifique-se de ter feito uma cópia de segurança da sua Frase de Recuperação Secreta."
   },

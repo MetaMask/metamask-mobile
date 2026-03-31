@@ -9,21 +9,18 @@ import { strings } from '../../../../../locales/i18n';
 import { useStyles } from '../../../../component-library/hooks';
 import { toDateFormat } from '../../../../util/date';
 import { addCurrencySymbol } from '../../../../util/number';
+import { formatPriceWithSubscriptNotation } from '../../Predict/utils/format';
 import Text, {
   TextColor,
   TextVariant,
 } from '../../../../component-library/components/Texts/Text';
+
 import PriceChart from '../PriceChart/PriceChart';
 import { distributeDataPoints } from '../PriceChart/utils';
 import styleSheet from './Price.styles';
 import { TokenOverviewSelectorsIDs } from '../TokenOverview.testIds';
-import { TokenI } from '../../Tokens/types';
-import StockBadge from '../../shared/StockBadge/StockBadge';
-import { BridgeToken } from '../../Bridge/types';
-import { useRWAToken } from '../../Bridge/hooks/useRWAToken';
 
 interface PriceProps {
-  asset: TokenI;
   prices: TokenPrice[];
   priceDiff: number;
   currentPrice: number;
@@ -34,7 +31,6 @@ interface PriceProps {
 }
 
 const Price = ({
-  asset,
   prices,
   priceDiff,
   currentPrice,
@@ -44,7 +40,6 @@ const Price = ({
   timePeriod,
 }: PriceProps) => {
   const [activeChartIndex, setActiveChartIndex] = useState<number>(-1);
-  const { isStockToken } = useRWAToken();
 
   const distributedPriceData = useMemo(() => {
     if (prices.length > 0) {
@@ -87,47 +82,10 @@ const Price = ({
       : priceDiff;
 
   const { styles, theme } = useStyles(styleSheet, { priceDiff: diff });
-  const ticker = asset.ticker || asset.symbol;
 
-  const stockTokenBadge = isStockToken(asset as BridgeToken) && (
-    <StockBadge style={styles.stockBadge} token={asset as BridgeToken} />
-  );
   return (
     <>
       <View style={styles.wrapper}>
-        {asset.name ? (
-          stockTokenBadge ? (
-            <View>
-              <Text
-                variant={TextVariant.BodyMDMedium}
-                color={TextColor.Alternative}
-              >
-                {asset.name}
-              </Text>
-              <View style={styles.assetWrapper}>
-                <Text
-                  variant={TextVariant.BodyMDMedium}
-                  color={TextColor.Alternative}
-                >
-                  {ticker}
-                </Text>
-                {stockTokenBadge}
-              </View>
-            </View>
-          ) : (
-            <Text
-              variant={TextVariant.BodyMDMedium}
-              color={TextColor.Alternative}
-            >
-              {asset.name} ({ticker})
-            </Text>
-          )
-        ) : (
-          <View style={styles.assetWrapper}>
-            <Text variant={TextVariant.BodyMDMedium}>{ticker}</Text>
-            {stockTokenBadge}
-          </View>
-        )}
         {!isNaN(price) && (
           <Text
             testID={TokenOverviewSelectorsIDs.TOKEN_PRICE}
@@ -147,7 +105,7 @@ const Price = ({
                 </SkeletonPlaceholder>
               </View>
             ) : (
-              addCurrencySymbol(price, currentCurrency, true)
+              formatPriceWithSubscriptNotation(price, currentCurrency)
             )}
           </Text>
         )}
@@ -171,8 +129,14 @@ const Price = ({
               variant={TextVariant.BodyMDMedium}
               allowFontScaling={false}
             >
-              {diff > 0 ? '+' : ''}
-              {addCurrencySymbol(diff, currentCurrency, true)} (
+              {diff > 0 ? '+' : diff < 0 ? '-' : ''}
+              {diff !== 0
+                ? formatPriceWithSubscriptNotation(
+                    Math.abs(diff),
+                    currentCurrency,
+                  )
+                : addCurrencySymbol(0, currentCurrency, true)}{' '}
+              {'('}
               {diff > 0 ? '+' : ''}
               {diff === 0 ? '0' : ((diff / comparePrice) * 100).toFixed(2)}
               %){' '}

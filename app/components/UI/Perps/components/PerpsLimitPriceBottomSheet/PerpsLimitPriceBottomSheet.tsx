@@ -22,12 +22,14 @@ import {
   PRICE_RANGES_UNIVERSAL,
 } from '../../utils/formatUtils';
 import {
+  DECIMAL_PRECISION_CONFIG,
   getPerpsDisplaySymbol,
   PERPS_CONSTANTS,
   PERPS_EVENT_PROPERTY,
   PERPS_EVENT_VALUE,
 } from '@metamask/perps-controller';
 import { createStyles } from './PerpsLimitPriceBottomSheet.styles';
+import { PerpsLimitPriceBottomSheetSelectorsIDs } from '../../Perps.testIds';
 import { usePerpsLivePrices, usePerpsTopOfBook } from '../../hooks/stream';
 import { LIMIT_PRICE_CONFIG } from '../../constants/perpsConfig';
 import { BigNumber } from 'bignumber.js';
@@ -312,6 +314,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
   const footerButtonProps = [
     {
       label: strings('perps.order.limit_price_modal.set'),
+      testID: PerpsLimitPriceBottomSheetSelectorsIDs.CONFIRM_BUTTON,
       variant: ButtonVariants.Primary,
       size: ButtonSize.Lg,
       onPress: handleConfirm,
@@ -342,7 +345,10 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         <Text style={styles.inputLabel}>
           {strings('perps.order.limit_price')}
         </Text>
-        <View style={styles.limitPriceDisplay}>
+        <View
+          testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRICE_DISPLAY}
+          style={styles.limitPriceDisplay}
+        >
           <View style={tw.style('flex-row items-center flex-1')}>
             <Text style={getLimitPriceTextStyle(limitPrice)}>
               {formatLimitPriceValue(limitPrice)}
@@ -369,11 +375,15 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
         <View style={styles.percentageButtonsRow}>
           {/* Mid price button - uses currentPrice which is the mid price from allMids stream */}
           <TouchableOpacity
+            testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_MID}
             style={styles.percentageButton}
             onPress={() => {
               if (currentPrice) {
                 setLimitPrice(
-                  formatWithSignificantDigits(currentPrice, 4).value.toString(),
+                  formatWithSignificantDigits(
+                    currentPrice,
+                    DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
+                  ).value.toString(),
                 );
                 setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
               }
@@ -389,6 +399,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             <>
               {/* Bid price button */}
               <TouchableOpacity
+                testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_BID}
                 style={styles.percentageButton}
                 onPress={() => {
                   const price = bidPrice || currentPriceData?.price;
@@ -396,7 +407,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     setLimitPrice(
                       formatWithSignificantDigits(
                         parseFloat(price),
-                        4,
+                        DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
                       ).value.toString(),
                     );
                     setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
@@ -412,6 +423,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               {LIMIT_PRICE_CONFIG.LongPresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
+                  testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
                   style={styles.percentageButton}
                   onPress={() => {
                     const calculatedPrice =
@@ -420,7 +432,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                       setLimitPrice(
                         formatWithSignificantDigits(
                           parseFloat(calculatedPrice),
-                          4,
+                          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
                         ).value.toString(),
                       );
                       setInputMethod(
@@ -441,6 +453,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
             <>
               {/* Ask price button */}
               <TouchableOpacity
+                testID={PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_ASK}
                 style={styles.percentageButton}
                 onPress={() => {
                   const price = askPrice || currentPriceData?.price;
@@ -448,7 +461,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                     setLimitPrice(
                       formatWithSignificantDigits(
                         parseFloat(price),
-                        4,
+                        DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
                       ).value.toString(),
                     );
                     setInputMethod(PERPS_EVENT_VALUE.INPUT_METHOD.PRESET);
@@ -464,6 +477,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
               {LIMIT_PRICE_CONFIG.ShortPresets.map((percentage) => (
                 <TouchableOpacity
                   key={percentage}
+                  testID={`${PerpsLimitPriceBottomSheetSelectorsIDs.PRESET_PERCENT}${percentage}`}
                   style={styles.percentageButton}
                   onPress={() => {
                     const calculatedPrice =
@@ -472,7 +486,7 @@ const PerpsLimitPriceBottomSheet: React.FC<PerpsLimitPriceBottomSheetProps> = ({
                       setLimitPrice(
                         formatWithSignificantDigits(
                           parseFloat(calculatedPrice),
-                          4,
+                          DECIMAL_PRECISION_CONFIG.MaxSignificantFigures,
                         ).value.toString(),
                       );
                       setInputMethod(

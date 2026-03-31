@@ -4,6 +4,7 @@ import {
   createMockPerpsControllerState,
   createMockInfrastructure,
 } from '../../../components/UI/Perps/__mocks__/serviceMocks';
+import { PERPS_EVENT_VALUE } from '../constants/eventNames';
 import { PerpsAnalyticsEvent } from '../types';
 import type {
   PerpsProvider,
@@ -322,6 +323,48 @@ describe('TradingService', () => {
       );
     });
 
+    it('includes mm_pay_token_selected "Perps Balance" when user uses perps balance', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        leverage: 10,
+        trackingData: {
+          totalFee: 0,
+          marketPrice: 50000,
+          tradeWithToken: false,
+        },
+      };
+      const mockOrderResult: OrderResult = {
+        success: true,
+        orderId: 'order-123',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      };
+
+      mockProvider.placeOrder.mockResolvedValue(mockOrderResult);
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.metrics.trackPerpsEvent).toHaveBeenCalledWith(
+        PerpsAnalyticsEvent.TradeTransaction,
+        expect.objectContaining({
+          status: 'executed',
+          trade_with_token: false,
+          mm_pay_token_selected: PERPS_EVENT_VALUE.MM_PAY_TOKEN.PERPS_BALANCE,
+        }),
+      );
+    });
+
     it('tracks analytics event when order fails', async () => {
       const orderParams: OrderParams = {
         symbol: 'BTC',
@@ -444,9 +487,85 @@ describe('TradingService', () => {
         expect.objectContaining({
           name: expect.any(String),
           id: 'mock-trace-id',
+          tags: expect.objectContaining({
+            payment_token: 'perps_balance',
+          }),
         }),
       );
       expect(mockDeps.tracer.endTrace).toHaveBeenCalled();
+    });
+
+    it('adds payment_token tag for order trace (perps_balance when not tradeWithToken)', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+      };
+      mockProvider.placeOrder.mockResolvedValue({
+        success: true,
+        orderId: 'order-123',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      });
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            payment_token: 'perps_balance',
+          }),
+        }),
+      );
+    });
+
+    it('adds payment_token tag for order trace (token symbol when tradeWithToken)', async () => {
+      const orderParams: OrderParams = {
+        symbol: 'BTC',
+        isBuy: true,
+        size: '0.1',
+        orderType: 'market',
+        trackingData: {
+          totalFee: 0,
+          marketPrice: 50000,
+          tradeWithToken: true,
+          mmPayTokenSelected: 'ETH',
+          mmPayNetworkSelected: 'arbitrum',
+        },
+      };
+      mockProvider.placeOrder.mockResolvedValue({
+        success: true,
+        orderId: 'order-123',
+        filledSize: '0.1',
+        averagePrice: '50000',
+      });
+      mockRewardsIntegrationService.calculateUserFeeDiscount.mockResolvedValue(
+        undefined,
+      );
+
+      await tradingService.placeOrder({
+        provider: mockProvider,
+        params: orderParams,
+        context: mockContext,
+        reportOrderToDataLake: mockReportOrderToDataLake,
+      });
+
+      expect(mockDeps.tracer.trace).toHaveBeenCalledWith(
+        expect.objectContaining({
+          tags: expect.objectContaining({
+            payment_token: 'ETH',
+          }),
+        }),
+      );
     });
 
     it('handles order placement failure', async () => {
@@ -1949,6 +2068,31 @@ describe('TradingService', () => {
           context: mockContext,
         }),
       ).rejects.toThrow(/Insufficient balance for flip fees/);
+    });
+
+    it('allows flip when balance covers 1x notional fee estimate', async () => {
+      // position: size=0.5, entryPrice=50000
+      // estimatedFees = positionSize * entryPrice * ESTIMATED_FEE_RATE
+      //               = 0.5 * 50000 * 0.0009 = $22.50 (1x notional, correct)
+      // pre-fix would compute 2x: 1.0 * 50000 * 0.0009 = $45 → would block this user
+      mockProvider.getAccountState = jest.fn().mockResolvedValue({
+        ...mockAccountState,
+        availableBalance: '30', // $30 > $22.50, sufficient with 1x
+      });
+      mockProvider.placeOrder.mockResolvedValue({
+        success: true,
+        orderId: 'flip-balance-fixed',
+        filledSize: '1.0',
+        averagePrice: '50000',
+      });
+
+      const result = await tradingService.flipPosition({
+        provider: mockProvider,
+        position: mockPosition,
+        context: mockContext,
+      });
+
+      expect(result.success).toBe(true);
     });
 
     it('throws error when account state cannot be retrieved', async () => {

@@ -98,7 +98,7 @@ const createStyles = (colors) =>
     },
   });
 
-const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import/no-commonjs
+const foxImage = require('../../../../images/branding/fox.png'); // eslint-disable-line import-x/no-commonjs
 
 /**
  * View that contains app information
@@ -243,6 +243,12 @@ class AppInformation extends PureComponent {
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`Remote Feature Flag Distribution: ${getFeatureFlagAppDistribution()}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`Rewards API URL: ${process.env.REWARDS_API_URL ?? '—'}`}
+                </Text>
+                <Text style={styles.branchInfo}>
+                  {`MM_PORTFOLIO_URL: ${process.env.MM_PORTFOLIO_URL ?? '—'}`}
                 </Text>
                 <Text style={styles.branchInfo}>
                   {`OTA Updates enabled: ${String(isOTAUpdatesEnabled)}`}

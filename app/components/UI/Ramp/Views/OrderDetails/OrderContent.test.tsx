@@ -3,23 +3,22 @@ import { fireEvent, act, screen } from '@testing-library/react-native';
 import OrderContent from './OrderContent';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import { backgroundState } from '../../../../../util/test/initial-root-state';
-import {
-  FIAT_ORDER_STATES,
-  FIAT_ORDER_PROVIDERS,
-} from '../../../../../constants/on-ramp';
-import type { FiatOrder } from '../../../../../reducers/fiatOrders';
-import type { RampsOrder } from '@metamask/ramps-controller';
+import { type RampsOrder, RampsOrderStatus } from '@metamask/ramps-controller';
 import Clipboard from '@react-native-clipboard/clipboard';
 import InAppBrowser from 'react-native-inappbrowser-reborn';
+
+type RampsOrderWithPaymentDetails = RampsOrder & {
+  paymentDetails: {
+    fiatCurrency: string;
+    paymentMethod: string;
+    fields: { name: string; id: string; value: string }[];
+  }[];
+};
 
 const mockNavigate = jest.fn();
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({ navigate: mockNavigate, goBack: jest.fn() }),
-}));
-
-jest.mock('../../../../../reducers/fiatOrders', () => ({
-  getProviderName: jest.fn(() => 'Transak'),
 }));
 
 jest.mock('../../../../../util/networks', () => ({
@@ -37,7 +36,10 @@ jest.mock('react-native-inappbrowser-reborn', () => ({
   open: jest.fn(),
 }));
 
-const mockRampsOrderData: Partial<RampsOrder> = {
+const mockOrder: RampsOrder = {
+  id: '/providers/transak/orders/abc123',
+  isOnlyLink: false,
+  success: true,
   providerOrderId: 'transak_order_abc123',
   providerOrderLink: 'https://transak.com/order/abc',
   fiatAmount: 100,
@@ -53,23 +55,16 @@ const mockRampsOrderData: Partial<RampsOrder> = {
   statusDescription: 'Card purchases typically take a few minutes',
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   provider: { id: '/providers/transak', name: 'Transak', links: [] } as any,
-};
-
-const mockOrder: FiatOrder = {
-  id: '/providers/transak/orders/abc123',
-  provider: FIAT_ORDER_PROVIDERS.RAMPS_V2,
   createdAt: 1700000000000,
-  amount: 100,
-  currency: 'USD',
-  cryptoAmount: 0.05,
-  cryptocurrency: 'ETH',
-  fee: 2.5,
-  state: FIAT_ORDER_STATES.COMPLETED,
-  account: '0x1234',
-  network: '1',
+  txHash: '',
+  walletAddress: '0x1234',
+  status: RampsOrderStatus.Completed,
+  network: { chainId: '1', name: 'Ethereum' },
+  canBeUpdated: false,
+  idHasExpired: false,
   excludeFromPurchases: false,
+  timeDescriptionPending: '',
   orderType: 'BUY',
-  data: mockRampsOrderData as RampsOrder,
 };
 
 describe('OrderContent', () => {
@@ -78,7 +73,7 @@ describe('OrderContent', () => {
   });
 
   function renderOrder(
-    order: FiatOrder,
+    order: RampsOrder,
     props?: { showCloseButton?: boolean },
   ) {
     return renderWithProvider(<OrderContent order={order} {...props} />, {
@@ -92,12 +87,24 @@ describe('OrderContent', () => {
   });
 
   it('renders loading state when order has no amount', () => {
-    const pendingOrder: FiatOrder = {
+    const pendingOrder: RampsOrder = {
       ...mockOrder,
-      amount: 0,
-      state: FIAT_ORDER_STATES.PENDING,
+      fiatAmount: 0,
+      cryptoAmount: 0,
+      status: RampsOrderStatus.Pending,
     };
     renderOrder(pendingOrder);
+    expect(screen.toJSON()).toMatchSnapshot();
+  });
+
+  it('shows placeholder for token amount when cryptoAmount is 0 or missing', () => {
+    const orderWithZeroCrypto: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0,
+      fiatAmount: 100,
+      status: RampsOrderStatus.Pending,
+    };
+    renderOrder(orderWithZeroCrypto);
     expect(screen.toJSON()).toMatchSnapshot();
   });
 
@@ -107,9 +114,7 @@ describe('OrderContent', () => {
     if (copyButton) {
       fireEvent.press(copyButton);
     }
-    expect(Clipboard.setString).toHaveBeenCalledWith(
-      '/providers/transak/orders/abc123',
-    );
+    expect(Clipboard.setString).toHaveBeenCalledWith('transak_order_abc123');
   });
 
   it('opens provider link with InAppBrowser when available', async () => {
@@ -155,22 +160,22 @@ describe('OrderContent', () => {
   });
 
   it('renders correct status text for each order state', () => {
-    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.COMPLETED });
+    renderOrder({ ...mockOrder, status: RampsOrderStatus.Completed });
     expect(screen.getByText('Complete')).toBeOnTheScreen();
   });
 
   it('renders failed status', () => {
-    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.FAILED });
+    renderOrder({ ...mockOrder, status: RampsOrderStatus.Failed });
     expect(screen.getByText('Failed')).toBeOnTheScreen();
   });
 
   it('renders cancelled status', () => {
-    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.CANCELLED });
+    renderOrder({ ...mockOrder, status: RampsOrderStatus.Cancelled });
     expect(screen.getByText('Cancelled')).toBeOnTheScreen();
   });
 
   it('renders processing status for pending orders', () => {
-    renderOrder({ ...mockOrder, state: FIAT_ORDER_STATES.PENDING });
+    renderOrder({ ...mockOrder, status: RampsOrderStatus.Pending });
     expect(screen.getByText('Processing')).toBeOnTheScreen();
   });
 
@@ -181,13 +186,148 @@ describe('OrderContent', () => {
     ).toBeOnTheScreen();
   });
 
-  it('does not render info row when statusDescription is absent', () => {
-    const orderWithoutDescription: FiatOrder = {
+  it('does not render bank details section when paymentDetails is absent', () => {
+    renderOrder(mockOrder);
+
+    expect(screen.queryByText('To complete your order')).toBeNull();
+  });
+
+  it('does not render bank details section when paymentDetails has no matching fields', () => {
+    const orderWithPaymentDetails: RampsOrderWithPaymentDetails = {
       ...mockOrder,
-      data: {
-        ...mockRampsOrderData,
-        statusDescription: undefined,
-      } as RampsOrder,
+      paymentDetails: [
+        {
+          fiatCurrency: 'USD',
+          paymentMethod: 'credit_debit_card',
+          fields: [],
+        },
+      ],
+    };
+
+    renderOrder(orderWithPaymentDetails);
+
+    expect(screen.queryByText('To complete your order')).toBeNull();
+  });
+
+  it('renders bank details section when paymentDetails has bank transfer fields', () => {
+    const orderWithPaymentDetails: RampsOrderWithPaymentDetails = {
+      ...mockOrder,
+      paymentDetails: [
+        {
+          fiatCurrency: 'USD',
+          paymentMethod: 'manual_bank_transfer',
+          fields: [
+            { name: 'Amount', id: 'amount', value: '$100.00' },
+            {
+              name: 'Routing Number',
+              id: 'routingNumber',
+              value: '021000021',
+            },
+            {
+              name: 'Account Number',
+              id: 'accountNumber',
+              value: '1234567890',
+            },
+          ],
+        },
+      ],
+    };
+
+    renderOrder(orderWithPaymentDetails);
+
+    expect(screen.getByText('To complete your order')).toBeOnTheScreen();
+    expect(screen.getByText(/Routing number/i)).toBeOnTheScreen();
+    expect(screen.getByText('021000021')).toBeOnTheScreen();
+  });
+
+  it('renders bank details section when paymentDetails only includes SEPA fields', () => {
+    const orderWithPaymentDetails: RampsOrderWithPaymentDetails = {
+      ...mockOrder,
+      paymentDetails: [
+        {
+          fiatCurrency: 'EUR',
+          paymentMethod: 'sepa_bank_transfer',
+          fields: [
+            { name: 'IBAN', id: 'iban', value: 'DE89370400440532013000' },
+            { name: 'BIC', id: 'bic', value: 'COBADEFFXXX' },
+          ],
+        },
+      ],
+    };
+
+    renderOrder(orderWithPaymentDetails);
+
+    expect(screen.getByText('To complete your order')).toBeOnTheScreen();
+    expect(screen.getByText(/^IBAN$/i)).toBeOnTheScreen();
+    expect(screen.getByText('DE89370400440532013000')).toBeOnTheScreen();
+    expect(screen.getByText(/^BIC$/i)).toBeOnTheScreen();
+    expect(screen.getByText('COBADEFFXXX')).toBeOnTheScreen();
+  });
+
+  it('truncates long crypto amounts to 5 decimal places', () => {
+    const longDecimalOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0.01588973776561068,
+    };
+    renderOrder(longDecimalOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    expect(tokenAmount.props.children).not.toContain('0.01588973776561068');
+    expect(tokenAmount).toHaveTextContent('0.01589 ETH');
+  });
+
+  it('uses subscript notation for very small crypto amounts', () => {
+    const tinyAmountOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0.00000614,
+    };
+    renderOrder(tinyAmountOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    // 0.00000614 has 5 leading zeros -> "0.0₅614"
+    expect(tokenAmount).toHaveTextContent('0.0₅614 ETH');
+  });
+
+  it('shows placeholder when cryptoAmount is missing', () => {
+    const noAmountOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: undefined as unknown as number,
+    };
+    renderOrder(noAmountOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    expect(tokenAmount).toHaveTextContent('... ETH');
+  });
+
+  it('shows placeholder when cryptoAmount is zero', () => {
+    const zeroAmountOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0,
+    };
+    renderOrder(zeroAmountOrder);
+    const tokenAmount = screen.getByTestId('ramps-order-details-token-amount');
+    expect(tokenAmount).toHaveTextContent('... ETH');
+  });
+
+  it('shows placeholder amounts for terminal orders with no amounts', () => {
+    const failedOrder: RampsOrder = {
+      ...mockOrder,
+      cryptoAmount: 0,
+      fiatAmount: 0,
+      totalFeesFiat: 0,
+      status: RampsOrderStatus.Failed,
+    };
+
+    renderOrder(failedOrder);
+
+    expect(screen.getByText('Failed')).toBeOnTheScreen();
+    expect(
+      screen.getByTestId('ramps-order-details-token-amount'),
+    ).toHaveTextContent('... ETH');
+    expect(screen.getAllByText('...')).toHaveLength(2);
+  });
+
+  it('does not render info row when statusDescription is absent', () => {
+    const orderWithoutDescription: RampsOrder = {
+      ...mockOrder,
+      statusDescription: undefined,
     };
     renderOrder(orderWithoutDescription);
     expect(

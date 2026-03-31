@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import BigNumber from 'bignumber.js';
 import {
   normalizeToDotDecimal,
@@ -13,24 +12,25 @@ import { TokenI } from '../../Tokens/types';
 import Engine from '../../../../core/Engine';
 import Logger from '../../../../util/Logger';
 import { safeParseBigNumber } from '../../../../util/number/bignumber';
-import type { TronResourcesMap } from '../../../../selectors/assets/assets-list';
+import type { TronSpecialAssetsMap } from '../../../../selectors/assets/assets-list';
+import type { AppNavigationProp } from '../../../../core/NavigationService/types';
 
 /**
- * Returns the total staked TRX (sTRX) amount from TRON resources.
+ * Returns the total staked TRX (sTRX) amount from Tron special assets.
  * This is pre-computed in the selector using BigNumber to avoid floating-point precision errors.
  */
-export function getStakedTrxTotalFromResources(
-  resources?: TronResourcesMap | null,
+export function getStakedTrxTotalFromSpecialAssets(
+  specialAssets?: TronSpecialAssetsMap | null,
 ): number {
-  return resources?.totalStakedTrx ?? 0;
+  return specialAssets?.totalStakedTrx ?? 0;
 }
 
 /**
- * True if the user holds any sTRX according to TRON resources.
+ * True if the user holds any sTRX according to Tron special assets.
  */
 export const hasStakedTrxPositions = (
-  resources?: TronResourcesMap | null,
-): boolean => getStakedTrxTotalFromResources(resources) > 0;
+  specialAssets?: TronSpecialAssetsMap | null,
+): boolean => getStakedTrxTotalFromSpecialAssets(specialAssets) > 0;
 
 export const buildTronEarnTokenIfEligible = (
   token: TokenI,
@@ -139,7 +139,7 @@ export const getLocalizedErrorMessage = (errors?: string[]): string => {
 };
 
 export const handleTronStakingNavigationResult = (
-  navigation: NavigationProp<ParamListBase>,
+  navigation: AppNavigationProp,
   result: TronStakingNavigationResult,
   action: TronStakingAction,
   accountId?: string,

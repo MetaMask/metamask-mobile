@@ -1,6 +1,6 @@
 import React, { useCallback, useMemo } from 'react';
 import { ImageSourcePropType, TouchableOpacity, View } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { StackActions, useNavigation } from '@react-navigation/native';
 import { useSelector } from 'react-redux';
 import Text, {
   TextColor,
@@ -40,12 +40,9 @@ import { formatPriceWithSubscriptNotation } from '../../../Predict/utils/format'
 import { TimeOption, PriceChangeOption } from '../TrendingTokensBottomSheet';
 import { selectNetworkConfigurationsByCaipChainId } from '../../../../../selectors/networkController';
 import { getTrendingTokenImageUrl } from '../../utils/getTrendingTokenImageUrl';
-import { useRWAToken } from '../../../Bridge/hooks/useRWAToken';
-import StockBadge from '../../../shared/StockBadge';
 import { useAddPopularNetwork } from '../../../../hooks/useAddPopularNetwork';
 import TrendingFeedSessionManager from '../../services/TrendingFeedSessionManager';
 import type { TrendingFilterContext } from '../TrendingTokensList/TrendingTokensList';
-import { BridgeToken } from '../../../Bridge/types';
 import { TokenDetailsSource } from '../../../TokenDetails/constants/constants';
 
 /**
@@ -134,12 +131,20 @@ interface TrendingTokenRowItemProps {
   position?: number;
   /** Filter context for analytics tracking */
   filterContext?: TrendingFilterContext;
+  /**
+   * Token Details `source` for MetaMetrics (e.g. Explore trending vs Swaps trending).
+   * @default TokenDetailsSource.Trending
+   */
+  tokenDetailsSource?: TokenDetailsSource;
 }
 
 /**
  * Converts a TrendingAsset to Asset navigation params
  */
-const getAssetNavigationParams = (token: TrendingAsset) => {
+const getAssetNavigationParams = (
+  token: TrendingAsset,
+  source: TokenDetailsSource,
+) => {
   const [caipChainId, assetIdentifier] = token.assetId.split('/');
   if (!isCaipChainId(caipChainId)) return null;
 
@@ -164,8 +169,9 @@ const getAssetNavigationParams = (token: TrendingAsset) => {
     isNative: isNativeToken,
     isETH: isNativeToken && hexChainId === '0x1',
     isFromTrending: true,
-    source: TokenDetailsSource.Trending,
+    source,
     rwaData: token.rwaData,
+    securityData: token.securityData,
   };
 };
 
@@ -174,6 +180,7 @@ const TrendingTokenRowItem = ({
   selectedTimeOption = TimeOption.TwentyFourHours,
   position,
   filterContext,
+  tokenDetailsSource = TokenDetailsSource.Trending,
 }: TrendingTokenRowItemProps) => {
   const { styles } = useStyles(styleSheet, {});
   const navigation = useNavigation();
@@ -181,7 +188,6 @@ const TrendingTokenRowItem = ({
     selectNetworkConfigurationsByCaipChainId,
   );
   const { addPopularNetwork } = useAddPopularNetwork();
-  const { isStockToken } = useRWAToken();
   const sessionManager = TrendingFeedSessionManager.getInstance();
 
   // Memoize derived values
@@ -190,7 +196,10 @@ const TrendingTokenRowItem = ({
     [token.assetId],
   );
 
-  const assetParams = useMemo(() => getAssetNavigationParams(token), [token]);
+  const assetParams = useMemo(
+    () => getAssetNavigationParams(token, tokenDetailsSource),
+    [token, tokenDetailsSource],
+  );
 
   const networkBadgeImageSource = useMemo(
     () => getNetworkBadgeSource(caipChainId),
@@ -252,7 +261,10 @@ const TrendingTokenRowItem = ({
       }
     }
 
-    navigation.navigate('Asset', assetParams);
+    // Use push so we always open a new Asset screen for the tapped token.
+    // This prevents issues such as dismissing screens like Bridge instead
+    // of navigating forward to the new token.
+    navigation.dispatch(StackActions.push('Asset', assetParams));
   }, [
     assetParams,
     caipChainId,
@@ -310,12 +322,6 @@ const TrendingTokenRowItem = ({
             token.aggregatedUsdVolume ?? 0,
           )}
         </Text>
-        {isStockToken(token as unknown as BridgeToken) && (
-          <StockBadge
-            style={styles.stockBadgeWrapper}
-            token={token as unknown as BridgeToken}
-          />
-        )}
       </View>
       <View style={styles.rightContainer}>
         <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>

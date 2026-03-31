@@ -22,6 +22,18 @@ jest.mock('../utils/accounts', () => ({
     mockGetEvmAccountFromSelectedAccountGroup(),
 }));
 
+jest.mock(
+  '../../../../selectors/multichainAccounts/accountTreeController',
+  () => ({
+    selectSelectedAccountGroupId: jest.fn(() => 'mock-account-group-id'),
+  }),
+);
+
+jest.mock('react-redux', () => ({
+  ...jest.requireActual('react-redux'),
+  useSelector: (selector: () => unknown) => selector(),
+}));
+
 const mockGetPositions = jest.fn<
   Promise<PredictPosition[]>,
   [{ address: string }]
@@ -71,7 +83,7 @@ const createPosition = (
 
 const createWrapper = () => {
   const queryClient = new QueryClient({
-    defaultOptions: { queries: { retry: false, gcTime: Infinity } },
+    defaultOptions: { queries: { retry: false, cacheTime: Infinity } },
   });
   const Wrapper = ({ children }: { children: React.ReactNode }) =>
     React.createElement(QueryClientProvider, { client: queryClient }, children);
@@ -207,7 +219,7 @@ describe('usePredictPositions', () => {
 
     expect(mockGetPositions).not.toHaveBeenCalled();
     expect(result.current.data).toBeUndefined();
-    expect(result.current.isLoading).toBe(false);
+    expect(result.current.isFetching).toBe(false);
   });
 
   it('returns query error message when query fails', async () => {

@@ -30,12 +30,21 @@ exports[`PredictDetailsButtonsSkeleton matches snapshot 1`] = `
   >
     <View
       style={
-        {
-          "borderRadius": 12,
-          "height": 48,
-          "overflow": "hidden",
-          "width": "100%",
-        }
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 48,
+          },
+          {
+            "width": "100%",
+          },
+          {
+            "borderRadius": 12,
+          },
+        ]
       }
       testID="predict-details-buttons-skeleton-button-1"
     >
@@ -44,7 +53,7 @@ exports[`PredictDetailsButtonsSkeleton matches snapshot 1`] = `
         pointerEvents="none"
         style={
           {
-            "backgroundColor": "#686e7d",
+            "backgroundColor": "#66676a",
             "borderRadius": 4,
             "bottom": 0,
             "left": 0,
@@ -72,12 +81,21 @@ exports[`PredictDetailsButtonsSkeleton matches snapshot 1`] = `
   >
     <View
       style={
-        {
-          "borderRadius": 12,
-          "height": 48,
-          "overflow": "hidden",
-          "width": "100%",
-        }
+        [
+          {
+            "borderRadius": 4,
+            "overflow": "hidden",
+          },
+          {
+            "height": 48,
+          },
+          {
+            "width": "100%",
+          },
+          {
+            "borderRadius": 12,
+          },
+        ]
       }
       testID="predict-details-buttons-skeleton-button-2"
     >
@@ -86,7 +104,7 @@ exports[`PredictDetailsButtonsSkeleton matches snapshot 1`] = `
         pointerEvents="none"
         style={
           {
-            "backgroundColor": "#686e7d",
+            "backgroundColor": "#66676a",
             "borderRadius": 4,
             "bottom": 0,
             "left": 0,

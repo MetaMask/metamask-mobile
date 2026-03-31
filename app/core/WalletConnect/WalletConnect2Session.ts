@@ -1,5 +1,8 @@
 import { WalletDevice } from '@metamask/transaction-controller';
-import { NavigationContainerRef } from '@react-navigation/native';
+import {
+  NavigationContainerRef,
+  ParamListBase,
+} from '@react-navigation/native';
 import { IWalletKit, WalletKitTypes } from '@reown/walletkit';
 import { SessionTypes } from '@walletconnect/types';
 import { ImageSourcePropType, Linking, Platform } from 'react-native';
@@ -37,7 +40,7 @@ import {
   normalizeDappUrl,
 } from './wc-utils';
 import { selectPerOriginChainId } from '../../selectors/selectedNetworkController';
-import { providerErrors, rpcErrors } from '@metamask/rpc-errors';
+import { errorCodes, providerErrors, rpcErrors } from '@metamask/rpc-errors';
 import { switchToNetwork } from '../RPCMethods/lib/ethereum-chain-utils';
 import { updateWC2Metadata } from '../../actions/sdk';
 import AppConstants from '../AppConstants';
@@ -58,7 +61,7 @@ interface BackgroundBridgeFactory {
 class WalletConnect2Session {
   private channelId: string;
   private backgroundBridge: BackgroundBridge;
-  private navigation?: NavigationContainerRef;
+  private navigation?: NavigationContainerRef<ParamListBase>;
   private web3Wallet: IWalletKit;
   private deeplink: boolean;
   // timeoutRef is used on android to prevent automatic redirect on switchChain and wait for wallet_addEthereumChain.
@@ -72,6 +75,7 @@ class WalletConnect2Session {
   private lastChainId: Hex;
   private isHandlingChainChange = false;
   private _isHandlingRequest = false;
+  private storeUnsubscribe: (() => void) | null = null;
 
   public session: SessionTypes.Struct;
 
@@ -90,7 +94,7 @@ class WalletConnect2Session {
     channelId: string;
     session: SessionTypes.Struct;
     deeplink: boolean;
-    navigation?: NavigationContainerRef;
+    navigation?: NavigationContainerRef<ParamListBase>;
     backgroundBridgeFactory?: BackgroundBridgeFactory;
   }) {
     this.channelId = channelId;
@@ -164,7 +168,7 @@ class WalletConnect2Session {
     this.checkPendingRequests();
     this.lastChainId = this.getCurrentChainId();
     // Subscribe to store changes to detect chain switches
-    store.subscribe(this.onStoreChange.bind(this));
+    this.storeUnsubscribe = store.subscribe(this.onStoreChange.bind(this));
   }
 
   /**
@@ -583,7 +587,7 @@ class WalletConnect2Session {
         // Clear any pending approvals before prompting the user to permit a new chain.
         // Unsure why this is needed, but it was previously found here before this code was refactored.
         // https://github.com/MetaMask/metamask-mobile/blob/081e412f6680e03ad509194acd620c67a273a92b/app/core/WalletConnect/wc-utils.ts#L242
-        Engine.context.ApprovalController.clear(
+        Engine.context.ApprovalController.clearRequests(
           providerErrors.userRejectedRequest(),
         );
         return originalRequestPermittedChainsPermissionIncrementalForOrigin(
@@ -645,6 +649,25 @@ class WalletConnect2Session {
       requestEvent,
       this.selfReportedUrl,
     );
+
+    // Prevent external transactions from using internal origins.
+    // This is an external connection (WalletConnect), so block any internal origin.
+    // NOTE: unverifiedOrigin is self-reported by the dapp.
+    if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
+      this._isHandlingRequest = false;
+      return this.web3Wallet.respondSessionRequest({
+        topic: this.session.topic,
+        response: {
+          id: requestEvent.id,
+          jsonrpc: '2.0',
+          error: {
+            code: errorCodes.provider.unauthorized,
+            message: ERROR_MESSAGES.INVALID_ORIGIN,
+          },
+        },
+      });
+    }
+
     const method = requestEvent.params.request.method;
     const isSwitchingChain = isSwitchingChainRequest(requestEvent);
 
@@ -772,6 +795,8 @@ class WalletConnect2Session {
   };
 
   removeListeners = async () => {
+    this.storeUnsubscribe?.();
+    this.storeUnsubscribe = null;
     this.backgroundBridge.onDisconnect();
   };
 
@@ -784,15 +809,6 @@ class WalletConnect2Session {
     unverifiedOrigin: string,
   ) {
     try {
-      // Prevent external transactions from using internal origins.
-      // This is an external connection (WalletConnect), so block any internal origin.
-      // NOTE: unverifiedOrigin is self-reported by the dapp.
-      if (INTERNAL_ORIGINS.includes(unverifiedOrigin)) {
-        throw rpcErrors.invalidParams({
-          message: 'External transactions cannot use internal origins',
-        });
-      }
-
       const networkClientId = getNetworkClientIdForCaipChainId(caip2ChainId);
       const trx = await addTransaction(methodParams[0], {
         deviceConfirmedOn: WalletDevice.MM_MOBILE,

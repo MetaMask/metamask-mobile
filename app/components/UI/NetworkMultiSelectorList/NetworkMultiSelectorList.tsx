@@ -29,7 +29,6 @@ import Cell, {
 } from '../../../component-library/components/Cells/Cell/index.ts';
 import Text, {
   TextVariant,
-  TextColor,
 } from '../../../component-library/components/Texts/Text/index.ts';
 import { isTestNet } from '../../../util/networks/index.js';
 import hideProtocolFromUrl from '../../../util/hideProtocolFromUrl';
@@ -60,6 +59,8 @@ import { selectEvmChainId } from '../../../selectors/networkController';
 import { formatChainIdToCaip } from '@metamask/bridge-controller';
 import { NETWORK_MULTI_SELECTOR_TEST_IDS } from '../NetworkMultiSelector/NetworkMultiSelector.constants';
 import { getGasFeesSponsoredNetworkEnabled } from '../../../selectors/featureFlagController/gasFeesSponsored/index.ts';
+import { selectSelectedInternalAccountFormattedAddress } from '../../../selectors/accountsController';
+import { isHardwareAccount } from '../../../util/address';
 import { strings } from '../../../../locales/i18n';
 import TagColored, {
   TagColor,
@@ -106,6 +107,12 @@ const NetworkMultiSelectList = ({
     : (nonEvmChainId ?? formatChainIdToCaip(evmChainId));
   const isGasFeesSponsoredNetworkEnabled = useSelector(
     getGasFeesSponsoredNetworkEnabled,
+  );
+  const selectedAddress = useSelector(
+    selectSelectedInternalAccountFormattedAddress,
+  );
+  const isHardwareWallet = Boolean(
+    selectedAddress && isHardwareAccount(selectedAddress),
   );
 
   const { styles } = useStyles(styleSheet, {});
@@ -270,7 +277,8 @@ const NetworkMultiSelectList = ({
       const isDisabled = isLoading || isSelectionDisabled;
       const showButtonIcon = Boolean(networkTypeOrRpcUrl);
 
-      const isGasSponsored = isGasFeesSponsoredNetworkEnabled(chainId);
+      const isGasSponsored =
+        !isHardwareWallet && isGasFeesSponsoredNetworkEnabled(chainId);
 
       return (
         <View>
@@ -284,13 +292,17 @@ const NetworkMultiSelectList = ({
                   <TagColored
                     color={TagColor.Success}
                     style={styles.noNetworkFeeContainer}
+                    labelProps={{
+                      variant: TextVariant.BodySM,
+                      style: {
+                        textTransform: 'none',
+                        textAlign: 'center',
+                        bottom: 1,
+                        fontWeight: 'normal',
+                      },
+                    }}
                   >
-                    <Text
-                      variant={TextVariant.BodySM}
-                      color={TextColor.Success}
-                    >
-                      {strings('networks.no_network_fee')}
-                    </Text>
+                    {strings('networks.no_network_fee')}
                   </TagColored>
                 </Box>
               ) : (
@@ -317,7 +329,13 @@ const NetworkMultiSelectList = ({
               isSelected,
             )}
           >
-            {renderRightAccessory?.(caipChainId, name)}
+            {showButtonIcon ? (
+              renderRightAccessory?.(caipChainId, name)
+            ) : (
+              <Box paddingRight={8}>
+                {renderRightAccessory?.(caipChainId, name)}
+              </Box>
+            )}
           </Cell>
         </View>
       );
@@ -333,6 +351,7 @@ const NetworkMultiSelectList = ({
       isSelectAllNetworksSection,
       openRpcModal,
       isGasFeesSponsoredNetworkEnabled,
+      isHardwareWallet,
       styles.centeredNetworkCell,
       styles.noNetworkFeeContainer,
     ],
@@ -342,11 +361,17 @@ const NetworkMultiSelectList = ({
     if (!networks.length || !isAutoScrollEnabled) return;
     if (networksLengthRef.current !== networks.length) {
       const selectedNetwork = networks.find(({ isSelected }) => isSelected);
-      networkListRef?.current?.scrollToOffset({
-        offset: selectedNetwork?.yOffset ?? 0,
-        animated: false,
-      });
+      const offset = selectedNetwork?.yOffset ?? 0;
       networksLengthRef.current = networks.length;
+      // Defer scroll so FlashList has time to lay out items and avoid "index out of bounds"
+      requestAnimationFrame(() => {
+        if (networkListRef?.current?.scrollToOffset) {
+          networkListRef.current.scrollToOffset({
+            offset,
+            animated: false,
+          });
+        }
+      });
     }
   }, [networks, isAutoScrollEnabled]);
 

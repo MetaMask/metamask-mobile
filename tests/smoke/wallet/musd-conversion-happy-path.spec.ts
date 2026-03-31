@@ -13,7 +13,10 @@ import TransactionPayConfirmation from '../../page-objects/Confirmation/Transact
 import FooterActions from '../../page-objects/Browser/Confirmations/FooterActions';
 import TabBarComponent from '../../page-objects/wallet/TabBarComponent';
 import ActivitiesView from '../../page-objects/Transactions/ActivitiesView';
-import { setupMusdMocks } from '../../api-mocking/mock-responses/musd/musd-mocks';
+import {
+  setupMusdMocks,
+  type MusdMockOptions,
+} from '../../api-mocking/mock-responses/musd/musd-mocks';
 import {
   createMusdFixture,
   type MusdFixtureOptions,
@@ -26,6 +29,11 @@ import {
 function withMusdFixturesOptions(
   fixtureOptions: MusdFixtureOptions,
 ): WithFixturesOptions {
+  const mockOptions: MusdMockOptions = {
+    hasMusdBalance: fixtureOptions.hasMusdBalance,
+    musdBalance: fixtureOptions.musdBalance,
+  };
+
   return {
     fixture: ({ localNodes }: { localNodes?: LocalNode[] }) => {
       const node = localNodes?.[0] as unknown as AnvilManager;
@@ -40,7 +48,7 @@ function withMusdFixturesOptions(
     restartDevice: true,
     // Skip reload in cleanup to avoid native crash (SIGSEGV) when sync was disabled during test (same as snaps)
     skipReactNativeReload: true,
-    testSpecificMock: setupMusdMocks,
+    testSpecificMock: (mockServer) => setupMusdMocks(mockServer, mockOptions),
   };
 }
 
@@ -59,7 +67,6 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         musdConversionEducationSeen: false,
       }),
       async () => {
-        await device.disableSynchronization();
         await loginToApp();
 
         // Verify wallet is visible
@@ -71,10 +78,12 @@ describe(SmokeWalletPlatform('mUSD Conversion Happy Path'), () => {
         await Assertions.expectElementToBeVisible(
           WalletView.musdConversionCta,
           {
+            timeout: 30000,
             description: 'mUSD conversion CTA should be visible',
           },
         );
         await WalletView.tapGetMusdButton();
+        await device.disableSynchronization();
 
         // Verify education screen is shown (first time user) and tap Get Started
         await Assertions.expectElementToBeVisible(WalletView.getStartedButton, {

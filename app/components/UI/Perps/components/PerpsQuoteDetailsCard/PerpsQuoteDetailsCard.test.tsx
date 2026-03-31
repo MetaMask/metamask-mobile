@@ -1,6 +1,7 @@
 import React from 'react';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import PerpsQuoteDetailsCard from './PerpsQuoteDetailsCard';
+const { mockTheme } = jest.requireActual('../../../../../util/theme');
 
 jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
@@ -20,13 +21,7 @@ jest.mock('../../../../../component-library/hooks', () => ({
       quoteRow: {},
       slippageButton: {},
     },
-    theme: {
-      colors: {
-        primary: {
-          default: '#0376C9',
-        },
-      },
-    },
+    theme: mockTheme,
   })),
 }));
 

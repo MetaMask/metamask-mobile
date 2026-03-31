@@ -7,6 +7,10 @@ function getSentUnitMessage(unit: string) {
 export const ActivitiesViewSelectorsIDs = {
   CONTAINER: 'transactions-container',
   TABS_CONTAINER: 'activity-view-tabs',
+  SAFE_AREA_VIEW: 'activity-view-safe-area',
+  HEADER_ROOT: 'activity-view-header-root',
+  HEADER_COMPACT_STANDARD: 'activity-view-header-compact-standard',
+  TRANSFER_TAB: 'activity-view-tabs-bar-tab-1',
 };
 
 export const ActivitiesViewSelectorsText = {
@@ -27,6 +31,7 @@ export const ActivitiesViewSelectorsText = {
   UNSTAKE: enContent.transactions.tx_review_staking_unstake,
   STAKING_CLAIM: enContent.transactions.tx_review_staking_claim,
   PREDICT_DEPOSIT: enContent.transactions.tx_review_predict_deposit,
+  PREDICT_WITHDRAW: enContent.transactions.tx_review_predict_withdraw,
   MUSD_CONVERSION: enContent.transactions.tx_review_musd_conversion,
 };
 

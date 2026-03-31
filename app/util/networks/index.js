@@ -343,6 +343,21 @@ export const isTestNetworkWithFaucet = (chainId) =>
  */
 export const isTestNet = (chainId) => TESTNET_CHAIN_IDS.includes(chainId);
 
+/**
+ * Returns whether the network can be deleted by the user.
+ * Aligns with NetworkSelector: mainnet, Linea mainnet, and testnets cannot be removed.
+ *
+ * @param {string} chainId - The chain ID to check (e.g. '0x1', '0x89').
+ * @returns {boolean} True if the network can be deleted, false otherwise.
+ */
+export const canDeleteNetwork = (chainId) =>
+  Boolean(
+    chainId &&
+      !isTestNet(chainId) &&
+      !isMainNet(chainId) &&
+      !isLineaMainnetChainId(chainId),
+  );
+
 export function getNetworkTypeById(id) {
   if (!id) {
     throw new Error(NetworkSwitchErrorType.missingNetworkId);
@@ -482,6 +497,14 @@ export function compareRpcUrls(rpcOne, rpcTwo) {
 }
 
 /**
+ * Hostname-to-display-name overrides for block explorers whose
+ * auto-derived name (first subdomain, capitalised) is not ideal.
+ */
+const BLOCK_EXPLORER_NAME_OVERRIDES = {
+  'megaeth.blockscout.com': 'MegaETH Explorer',
+};
+
+/**
  * From block explorer url, get rendereable name or undefined
  *
  * @param {string} blockExplorerUrl - block explorer url
@@ -490,6 +513,14 @@ export function getBlockExplorerName(blockExplorerUrl) {
   if (!blockExplorerUrl) return undefined;
   const hostname = new URL(blockExplorerUrl).hostname;
   if (!hostname) return undefined;
+  if (
+    Object.prototype.hasOwnProperty.call(
+      BLOCK_EXPLORER_NAME_OVERRIDES,
+      hostname,
+    )
+  ) {
+    return BLOCK_EXPLORER_NAME_OVERRIDES[hostname];
+  }
   const tempBlockExplorerName = fastSplit(hostname);
   if (!tempBlockExplorerName || !tempBlockExplorerName[0]) return undefined;
   return (
