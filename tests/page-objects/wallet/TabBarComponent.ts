@@ -6,6 +6,7 @@ import ActivitiesView from '../Transactions/ActivitiesView';
 import SettingsView from '../Settings/SettingsView';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
+import WalletActionsBottomSheet from './WalletActionsBottomSheet';
 
 class TabBarComponent {
   get tabBarExploreButton(): DetoxElement {
@@ -61,32 +62,67 @@ class TabBarComponent {
   }
 
   async tapActions(): Promise<void> {
-    await Gestures.waitAndTap(this.tabBarActionButton, {
-      elemDescription: 'Tab Bar - Trade Button',
-    });
-  }
-
-  async tapTrade(): Promise<void> {
-    await Gestures.waitAndTap(this.tabBarTradeButton, {
-      elemDescription: 'Tab Bar - Trade Button',
-    });
-  }
-
-  async tapSettings(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
-        // Navigate to Wallet first (where the hamburger menu lives)
-        await Gestures.waitAndTap(this.tabBarWalletButton);
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
-        await Assertions.expectElementToBeVisible(SettingsView.title);
+        await Gestures.waitAndTap(this.tabBarActionButton, {
+          timeout: 2000,
+          elemDescription: 'Tab Bar - Trade Button',
+        });
+        await Assertions.expectElementToBeVisible(
+          WalletActionsBottomSheet.swapButton,
+          { timeout: 500 },
+        );
       },
       {
+        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        maxRetries: 15,
         timeout: 45000,
-        description: 'Tap Settings Button',
+        description: 'Tap Actions Button with Validation',
       },
     );
   }
+
+  async tapTrade(): Promise<void> {
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(this.tabBarTradeButton, {
+          timeout: 2000,
+          elemDescription: 'Tab Bar - Trade Button',
+        });
+        await Assertions.expectElementToBeVisible(
+          WalletActionsBottomSheet.swapButton,
+          { timeout: 500 },
+        );
+      },
+      {
+        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        maxRetries: 15,
+        timeout: 45000,
+        description: 'Tap Trade Button with Validation',
+      },
+    );
+  }
+
+  async tapSettings(): Promise<void> {
+    await this.tapWallet();
+    await Utilities.executeWithRetry(
+      async () => {
+        await Gestures.waitAndTap(WalletView.hamburgerMenuButton, {
+          timeout: 2000,
+        });
+        await Assertions.expectElementToBeVisible(SettingsView.title, {
+          timeout: 500,
+        });
+      },
+      {
+        // Each attempt: ~2.5s (2s tap + 0.5s assertion). 15 retries ≈ ~37s total budget.
+        maxRetries: 15,
+        timeout: 45000,
+        description: 'Tap Hamburger Menu to open Settings',
+      },
+    );
+  }
+
   async tapExploreButton(): Promise<void> {
     await Utilities.executeWithRetry(
       async () => {
