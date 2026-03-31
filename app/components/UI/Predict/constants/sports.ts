@@ -5,11 +5,15 @@ import { PredictSportsLeague } from '../types';
  *
  * To add a new league:
  * 1. Add the league to `PredictSportsLeague` type in `../types/index.ts`
- * 2. Add a slug pattern regex to `LEAGUE_SLUG_PATTERNS` in `../utils/gameParser.ts`
+ * 2. Add a slug config to `LEAGUE_SLUG_CONFIGS` in `../utils/gameParser.ts`
  * 3. Add the league to this array
  * 4. Add tests for the new league's slug parsing
  */
-export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = ['nfl', 'nba'];
+export const SUPPORTED_SPORTS_LEAGUES: PredictSportsLeague[] = [
+  'nfl',
+  'nba',
+  'ucl',
+];
 
 export const filterSupportedLeagues = (
   leagues: string[],
@@ -17,3 +21,8 @@ export const filterSupportedLeagues = (
   leagues.filter((league): league is PredictSportsLeague =>
     SUPPORTED_SPORTS_LEAGUES.includes(league as PredictSportsLeague),
   );
+
+const DRAW_CAPABLE_LEAGUES: ReadonlySet<PredictSportsLeague> = new Set(['ucl']);
+
+export const isDrawCapableLeague = (league: PredictSportsLeague): boolean =>
+  DRAW_CAPABLE_LEAGUES.has(league);
