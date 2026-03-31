@@ -2,7 +2,6 @@ import React from 'react';
 import { fireEvent, screen } from '@testing-library/react-native';
 import renderWithProvider from '../../../../../util/test/renderWithProvider';
 import MusdAggregatedRow from './MusdAggregatedRow';
-import Routes from '../../../../../constants/navigation/Routes';
 import { TokenDetailsSource } from '../../../../UI/TokenDetails/constants/constants';
 import NavigationService from '../../../../../core/NavigationService';
 
@@ -35,6 +34,7 @@ const mockUseMerklBonusClaim = jest.fn(() => ({
   hasPendingClaim: false,
   claimRewards: mockClaimRewards,
   isClaiming: false,
+  error: null as string | null,
 }));
 jest.mock(
   '../../../../UI/Earn/components/MerklRewards/hooks/useMerklBonusClaim',
@@ -71,6 +71,7 @@ describe('MusdAggregatedRow', () => {
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: false,
+      error: null,
     });
   });
 
@@ -100,12 +101,27 @@ describe('MusdAggregatedRow', () => {
     expect(screen.getByTestId('cash-section-musd-row')).toBeOnTheScreen();
   });
 
+  it('navigates to Asset with mobile_token_list_page source when row is pressed', () => {
+    renderWithProvider(<MusdAggregatedRow />);
+
+    fireEvent.press(screen.getByTestId('cash-section-musd-row'));
+
+    const mockNavigate = jest.mocked(NavigationService.navigation.navigate);
+    expect(mockNavigate).toHaveBeenCalledWith(
+      'Asset',
+      expect.objectContaining({
+        source: TokenDetailsSource.MobileTokenListPage,
+      }),
+    );
+  });
+
   it('shows Spinner when isClaiming is true', () => {
     mockUseMerklBonusClaim.mockReturnValue({
       claimableReward: '10',
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: true,
+      error: null,
     });
 
     renderWithProvider(<MusdAggregatedRow />);
@@ -120,6 +136,7 @@ describe('MusdAggregatedRow', () => {
       hasPendingClaim: false,
       claimRewards: mockClaimRewards,
       isClaiming: false,
+      error: null,
     });
 
     renderWithProvider(<MusdAggregatedRow />);
@@ -129,7 +146,7 @@ describe('MusdAggregatedRow', () => {
   });
 
   describe('handleTokenRowPress', () => {
-    it('navigates to CASH_TOKENS_FULL_VIEW when user has mUSD balance on any chain', () => {
+    it('navigates to mUSD mainnet Asset details with mobile_token_list_page source when user has mUSD on a chain', () => {
       mockUseMusdBalance.mockReturnValueOnce({
         tokenBalanceAggregated: '1800.5',
         fiatBalanceAggregatedFormatted: '$1,800.50',
@@ -141,7 +158,10 @@ describe('MusdAggregatedRow', () => {
       fireEvent.press(screen.getByTestId('cash-section-musd-row'));
 
       expect(NavigationService.navigation.navigate).toHaveBeenCalledWith(
-        Routes.WALLET.CASH_TOKENS_FULL_VIEW,
+        'Asset',
+        expect.objectContaining({
+          source: TokenDetailsSource.MobileTokenListPage,
+        }),
       );
     });
 
@@ -166,6 +186,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -180,6 +201,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -193,6 +215,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);
@@ -207,6 +230,7 @@ describe('MusdAggregatedRow', () => {
         hasPendingClaim: false,
         claimRewards: mockClaimRewards,
         isClaiming: false,
+        error: null,
       });
 
       renderWithProvider(<MusdAggregatedRow />);

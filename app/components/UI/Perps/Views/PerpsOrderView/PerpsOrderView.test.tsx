@@ -172,11 +172,26 @@ jest.mock('../../hooks/stream', () => ({
   })),
 }));
 
+jest.mock('../../hooks/usePerpsNetworkManagement', () => ({
+  usePerpsNetworkManagement: () => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  }),
+}));
+
 // Mock the hooks module - these will be overridden in beforeEach
 jest.mock('../../hooks', () => ({
   usePerpsLiveAccount: jest.fn(),
   usePerpsTrading: jest.fn(),
   usePerpsNetwork: jest.fn(),
+  usePerpsNetworkManagement: jest.fn(() => ({
+    ensureArbitrumNetworkExists: jest.fn().mockResolvedValue(undefined),
+    enableArbitrumNetwork: jest.fn(),
+    getArbitrumChainId: jest.fn(),
+    currentNetwork: 'mainnet',
+  })),
   usePerpsPrices: jest.fn(),
   usePerpsLivePrices: jest.fn(() => ({
     ETH: { price: '3000', percentChange24h: '2.5' },
@@ -363,6 +378,13 @@ jest.mock('../../hooks/usePerpsPaymentTokens', () => ({
       name: 'USD Coin',
     },
   ]),
+}));
+
+const mockUseIsPerpsBalanceSelected = jest.fn<boolean, unknown[]>(() => false);
+jest.mock('../../hooks/useIsPerpsBalanceSelected', () => ({
+  useIsPerpsBalanceSelected: (...args: unknown[]) =>
+    mockUseIsPerpsBalanceSelected(...args),
+  usePerpsPayWithToken: jest.fn(() => null),
 }));
 
 jest.mock('../../../../Views/confirmations/hooks/tokens/useAddToken', () => ({
@@ -1081,9 +1103,14 @@ describe('PerpsOrderView', () => {
     expect(mockGetPositions).toBeDefined();
   });
 
-  it('does not show order submitted toast; submitting your trade toast is shown instead', async () => {
+  it('shows persistent submitting toast when custom token is selected (deposit flow)', async () => {
+    mockUseIsPerpsBalanceSelected.mockReturnValue(false);
+
     const mockShowToast = jest.fn();
     const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
+    const mockSubmitting = jest.fn(() => ({
+      id: 'submitting-your-trade-toast',
+    }));
     (usePerpsToasts as jest.Mock).mockReturnValue({
       showToast: mockShowToast,
       PerpsToastOptions: {
@@ -1105,7 +1132,7 @@ describe('PerpsOrderView', () => {
             creationFailed: jest.fn(),
           },
           shared: {
-            submitting: jest.fn(() => ({ id: 'submitting-your-trade-toast' })),
+            submitting: mockSubmitting,
           },
         },
         positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
@@ -1140,8 +1167,76 @@ describe('PerpsOrderView', () => {
     await waitFor(() => {
       expect(mockShowToast).toHaveBeenCalled();
     });
-    // We show "Submitting your trade" (from shared.submitting), not "Order submitted"
+    expect(mockSubmitting).toHaveBeenCalled();
     expect(mockSubmitted).not.toHaveBeenCalled();
+  });
+
+  it('shows standard submitted toast when using perps balance', async () => {
+    mockUseIsPerpsBalanceSelected.mockReturnValue(true);
+
+    const mockShowToast = jest.fn();
+    const mockSubmitted = jest.fn(() => ({ id: 'order-submitted-toast' }));
+    const mockSubmitting = jest.fn(() => ({
+      id: 'submitting-your-trade-toast',
+    }));
+    (usePerpsToasts as jest.Mock).mockReturnValue({
+      showToast: mockShowToast,
+      PerpsToastOptions: {
+        formValidation: {
+          orderForm: {
+            limitPriceRequired: {},
+            validationError: jest.fn(),
+          },
+        },
+        orderManagement: {
+          market: {
+            submitted: mockSubmitted,
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          limit: {
+            submitted: jest.fn(),
+            confirmed: jest.fn(),
+            creationFailed: jest.fn(),
+          },
+          shared: {
+            submitting: mockSubmitting,
+          },
+        },
+        positionManagement: { tpsl: { updateTPSLError: jest.fn() } },
+        dataFetching: {
+          market: { error: { marketDataUnavailable: jest.fn() } },
+        },
+        accountManagement: {
+          deposit: {
+            inProgress: jest.fn(),
+            takingLonger: {},
+            tradeCanceled: {},
+            error: {},
+          },
+        },
+      },
+    });
+
+    (usePerpsOrderExecution as jest.Mock).mockImplementation(() => ({
+      placeOrder: jest.fn().mockResolvedValue({ success: true }),
+      isPlacing: false,
+    }));
+
+    render(<PerpsOrderView />, { wrapper: TestWrapper });
+
+    const placeOrderButton = await screen.findByTestId(
+      PerpsOrderViewSelectorsIDs.PLACE_ORDER_BUTTON,
+    );
+    await act(async () => {
+      fireEvent.press(placeOrderButton);
+    });
+
+    await waitFor(() => {
+      expect(mockShowToast).toHaveBeenCalled();
+    });
+    expect(mockSubmitted).toHaveBeenCalled();
+    expect(mockSubmitting).not.toHaveBeenCalled();
   });
 
   it('handles failed order placement', async () => {

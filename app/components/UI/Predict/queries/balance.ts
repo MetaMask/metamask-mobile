@@ -15,7 +15,7 @@ export const predictBalanceKeys = {
 };
 
 export const predictBalanceOptions = ({ address = '' }: GetBalanceParams) =>
-  queryOptions({
+  queryOptions<number, Error>({
     queryKey: predictBalanceKeys.detail(address),
     queryFn: async (): Promise<number> => {
       const balance = await Engine.context.PredictController.getBalance({

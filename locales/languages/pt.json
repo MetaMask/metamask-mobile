@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Incrementos ativos",
     "season_1": "Temporada 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "Calculadora de bônus mUSD",
       "description": "Veja quanto você pode ganhar convertendo suas stablecoins para mUSD.",
       "amount_label": "Valor convertido",

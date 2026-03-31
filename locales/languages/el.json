@@ -7872,6 +7872,7 @@
     "active_boosts_title": "Ενεργές ενισχύσεις",
     "season_1": "Περίοδος 1",
     "musd": {
+      "page_title": "mUSD",
       "title": "Εκτίμηση του μπόνους σε mUSD",
       "description": "Δείτε πόσα μπορείτε να κερδίσετε μετατρέποντας τα stablecoins σας σε mUSD.",
       "amount_label": "Το ποσό μετατράπηκε",
