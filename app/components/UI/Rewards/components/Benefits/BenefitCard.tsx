@@ -61,23 +61,25 @@ const BenefitCard = ({ benefit }: Props) => {
           >
             {benefit.shortDescription}
           </Text>
-          <Box
-            twClassName="gap-1"
-            flexDirection={BoxFlexDirection.Row}
-            alignItems={BoxAlignItems.Center}
-          >
-            <Icon
-              name={IconName.Clock}
-              size={IconSize.Md}
-              color={IconColor.IconAlternative}
-            />
-            <Text
-              variant={TextVariant.BodyMd}
-              color={TextColor.TextAlternative}
+          {benefit.actionDate && (
+            <Box
+              twClassName="gap-1"
+              flexDirection={BoxFlexDirection.Row}
+              alignItems={BoxAlignItems.Center}
             >
-              {formatDayHourRemaining(benefit.actionDate)}
-            </Text>
-          </Box>
+              <Icon
+                name={IconName.Clock}
+                size={IconSize.Md}
+                color={IconColor.IconAlternative}
+              />
+              <Text
+                variant={TextVariant.BodyMd}
+                color={TextColor.TextAlternative}
+              >
+                {formatDayHourRemaining(benefit.actionDate)}
+              </Text>
+            </Box>
+          )}
         </Box>
       </Box>
     </TouchableOpacity>
