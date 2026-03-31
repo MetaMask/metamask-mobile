@@ -153,11 +153,18 @@ const TokenDetails: React.FC<{
     ///: END:ONLY_INCLUDE_IF
   } = useTokenBalance(token);
 
-  const { onBuy, onSend, onReceive, goToSwaps, hasEligibleSwapTokens } =
-    useTokenActions({
-      token,
-      networkName,
-    });
+  const {
+    onBuy,
+    onSend,
+    onReceive,
+    goToSwaps,
+    handleStickySwapPress,
+    hasEligibleSwapTokens,
+  } = useTokenActions({
+    token,
+    networkName,
+    currentTokenBalance: balance,
+  });
 
   // Swaps view should always scroll to top when navigating from the token details view
   const goToSwapsFromDetails = useCallback(
@@ -306,7 +313,7 @@ const TokenDetails: React.FC<{
           token={token}
           securityData={securityData}
           onBuy={onBuy}
-          goToSwaps={goToSwapsFromDetails}
+          onSwap={handleStickySwapPress}
           hasEligibleSwapTokens={hasEligibleSwapTokens}
         />
       )}

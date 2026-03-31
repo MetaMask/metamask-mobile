@@ -51,7 +51,6 @@ perfTest.describe(PerformancePredict, () => {
       performanceTracker.addTimers(timer1);
 
       // Attach performance metrics to test report
-      await performanceTracker.attachToTest(testInfo);
 
       console.log('Predict Available Balance Performance Test completed');
       console.log(`Available Balance Display: ${timer1.getDuration()}ms`);

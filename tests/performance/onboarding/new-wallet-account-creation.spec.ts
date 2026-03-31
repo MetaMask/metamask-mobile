@@ -139,7 +139,6 @@ test.describe(`${PerformanceOnboarding} ${PerformanceAccountList}`, () => {
       });
 
       performanceTracker.addTimers(screen1Timer, screen2Timer, screen3Timer);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

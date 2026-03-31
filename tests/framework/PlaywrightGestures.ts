@@ -246,8 +246,9 @@ export default class PlaywrightGestures {
       }
     }
 
-    // Timeout to ensure the app is terminated
-    await new Promise((resolve) => setTimeout(resolve, finalTimeout));
+    throw new Error(
+      `Failed to terminate app "${bundleId}" after ${maxRetries} attempts`,
+    );
   }
 
   /**

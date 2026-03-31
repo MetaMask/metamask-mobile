@@ -33,7 +33,6 @@ test.describe(`${PerformanceLogin} ${PerformanceSwaps}`, () => {
       await swapTimer.measure(() => QuoteView.isQuoteDisplayed());
 
       performanceTracker.addTimers(swapLoadTimer, swapTimer);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

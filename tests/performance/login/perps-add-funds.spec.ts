@@ -72,7 +72,6 @@ test.describe(PerformancePreps, () => {
         openAddFundsTimer,
         getQuoteTimer,
       );
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

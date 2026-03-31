@@ -16,11 +16,22 @@ export const fetchProductionFeatureFlags = async (
   environment: string,
 ): Promise<Record<string, unknown>> => {
   logger.info(
-    `Fetching production feature flags for distribution: ${distribution} and environment: ${environment}`,
+    `Fetching feature flags for distribution: ${distribution} and environment: ${environment}`,
   );
-  const { data } = await axios.get<Record<string, unknown>>(CLIENT_CONFIG_URL, {
+  logger.info(
+    `Feature flag url: ${CLIENT_CONFIG_URL}?client=mobile&distribution=${distribution}&environment=${environment}`,
+  );
+  const { data } = await axios.get<
+    Record<string, unknown>[] | Record<string, unknown>
+  >(CLIENT_CONFIG_URL, {
     params: { client: 'mobile', distribution, environment },
     headers: { Accept: 'application/json' },
   });
+
+  // The API returns an array of single-key objects like [{ "flagName": { ... } }, ...]
+  // Merge into a single flat object so consumers can access flags by name directly
+  if (Array.isArray(data)) {
+    return Object.assign({}, ...data) as Record<string, unknown>;
+  }
   return data;
 };

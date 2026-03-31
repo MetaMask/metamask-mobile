@@ -242,7 +242,16 @@ class PerpsMarketDetailsView {
   }
 
   async tapShortButton() {
-    await Gestures.waitAndTap(this.shortButton);
+    await encapsulatedAction({
+      detox: async () => {
+        await Gestures.waitAndTap(this.shortButton);
+      },
+      appium: async () => {
+        await PlaywrightGestures.waitAndTap(
+          await asPlaywrightElement(this.shortButton),
+        );
+      },
+    });
   }
 
   async tapMoreButton() {

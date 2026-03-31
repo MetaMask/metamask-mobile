@@ -26,7 +26,6 @@ test.describe(`${PerformanceOnboarding} ${PerformanceLaunch}`, () => {
       );
 
       performanceTracker.addTimer(timer1);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

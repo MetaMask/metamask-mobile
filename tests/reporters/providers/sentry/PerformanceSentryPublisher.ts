@@ -28,6 +28,7 @@ interface PublishPerformanceScenarioOptions {
   testTitle: string;
   projectName: string;
   testFilePath?: string;
+  browserstackRecordingUrl?: string | null;
   tags: string[];
   status?: string;
   retry?: number;

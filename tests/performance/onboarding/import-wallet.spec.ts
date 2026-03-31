@@ -169,7 +169,6 @@ test.describe(PerformanceOnboarding, () => {
       ) {
         performanceTracker.addTimer(timer6);
       }
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

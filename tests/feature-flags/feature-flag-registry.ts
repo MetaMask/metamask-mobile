@@ -2899,6 +2899,17 @@ export const FEATURE_FLAG_REGISTRY: Record<string, FeatureFlagRegistryEntry> = {
     status: FeatureFlagStatus.Active,
   },
 
+  moneyAccount: {
+    name: 'moneyAccount',
+    type: FeatureFlagType.Remote,
+    inProd: false,
+    productionDefault: {
+      moneyAccountDepositEnabled: false,
+      moneyAccountWithdrawEnabled: false,
+    },
+    status: FeatureFlagStatus.Active,
+  },
+
   moneyHomeScreenEnabled: {
     name: 'moneyHomeScreenEnabled',
     type: FeatureFlagType.Remote,

@@ -101,7 +101,6 @@ perfTest.describe(PerformancePredict, () => {
       performanceTracker.addTimers(timer1, timer2, timer3, timer4);
 
       // Attach performance metrics to test report
-      await performanceTracker.attachToTest(testInfo);
 
       console.log('Predict Deposit Performance Test completed');
       console.log(`Navigate to Predict: ${timer1.getDuration()}ms`);

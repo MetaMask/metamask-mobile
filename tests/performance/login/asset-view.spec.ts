@@ -44,7 +44,6 @@ perfTest.describe(`${PerformanceLogin} ${PerformanceAssetLoading}`, () => {
       });
 
       performanceTracker.addTimer(assetViewScreen);
-      await performanceTracker.attachToTest(testInfo);
     },
   );
 });

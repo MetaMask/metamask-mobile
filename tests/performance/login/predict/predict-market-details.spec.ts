@@ -106,7 +106,6 @@ perfTest.describe(PerformancePredict, () => {
       performanceTracker.addTimers(...timersToAdd);
 
       // Attach performance metrics to test report
-      await performanceTracker.attachToTest(testInfo);
 
       console.log('Predict Market Details Performance Test completed');
       console.log(`Navigate to Predict: ${timer1.getDuration()}ms`);
