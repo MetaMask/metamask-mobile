@@ -6,16 +6,12 @@ import { strings } from '../../../../../locales/i18n';
 import HardwareWalletTestIds from '../hardwareWallet.testIds';
 import LedgerDeviceIllustration from '../components/LedgerDeviceIllustration';
 import ErrorState from './ErrorState';
-
-type LedgerDeviceUnresponsiveErrorProps = {
-  isBusy?: boolean;
-  onRetry: () => void;
-};
+import type { ErrorComponentProps } from './types';
 
 const LedgerDeviceUnresponsiveError = ({
   isBusy,
   onRetry,
-}: LedgerDeviceUnresponsiveErrorProps) => (
+}: ErrorComponentProps) => (
   <ErrorState
     testID={HardwareWalletTestIds.ERROR_DEVICE_UNRESPONSIVE}
     title={strings('hardware_wallet.error.connection_timeout')}

@@ -7,3 +7,12 @@ export { default as LedgerConnectionError } from './connection/LedgerConnectionE
 export { default as LedgerDeviceUnresponsiveError } from './LedgerDeviceUnresponsiveError';
 export { default as LedgerGenericError } from './LedgerGenericError';
 export { isConnectionErrorCode } from './connection/LedgerConnectionError';
+export type { ErrorComponentProps, ErrorRendererMap } from './types';
+export {
+  resolveErrorComponent,
+  registerWalletErrors,
+  registerSharedErrors,
+  resetRegistry,
+} from './registry';
+
+import './ledger';

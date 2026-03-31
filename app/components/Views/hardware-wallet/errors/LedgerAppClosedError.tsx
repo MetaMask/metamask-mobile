@@ -6,16 +6,9 @@ import ledgerAppClosedImage from '../../../../images/hardware-ledger-app-closed.
 
 import HardwareWalletTestIds from '../hardwareWallet.testIds';
 import ErrorState from './ErrorState';
+import type { ErrorComponentProps } from './types';
 
-type LedgerAppClosedErrorProps = {
-  isBusy?: boolean;
-  onContinue: () => void;
-};
-
-const LedgerAppClosedError = ({
-  isBusy,
-  onContinue,
-}: LedgerAppClosedErrorProps) => (
+const LedgerAppClosedError = ({ isBusy, onContinue }: ErrorComponentProps) => (
   <ErrorState
     testID={HardwareWalletTestIds.ERROR_APP_NOT_OPEN}
     title={strings('hardware_wallet.error.app_not_open')}

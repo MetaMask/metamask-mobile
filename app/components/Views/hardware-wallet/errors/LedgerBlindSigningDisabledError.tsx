@@ -6,16 +6,12 @@ import ledgerBlindSigningImage from '../../../../images/hardware-ledger-blind-si
 
 import HardwareWalletTestIds from '../hardwareWallet.testIds';
 import ErrorState from './ErrorState';
-
-type LedgerBlindSigningDisabledErrorProps = {
-  isBusy?: boolean;
-  onContinue: () => void;
-};
+import type { ErrorComponentProps } from './types';
 
 const LedgerBlindSigningDisabledError = ({
   isBusy,
   onContinue,
-}: LedgerBlindSigningDisabledErrorProps) => (
+}: ErrorComponentProps) => (
   <ErrorState
     testID={HardwareWalletTestIds.ERROR_BLIND_SIGNING_DISABLED}
     title={strings('hardware_wallet.error.blind_signing_disabled')}
