@@ -358,7 +358,7 @@ export const selectMusdConversionMinAssetBalanceRequired = createSelector(
 export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
   CHAIN_IDS.MAINNET, // Ethereum mainnet
   CHAIN_IDS.LINEA_MAINNET, // Linea mainnet
-] as const;
+];
 
 /**
  * Selects the chain IDs on which the mUSD token should be eagerly registered
@@ -378,7 +378,7 @@ export const selectMusdTokenRegistrationChainIds = createSelector(
       return remoteFlag.chainIds;
     }
 
-    return [...MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK];
+    return MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK;
   },
 );
 

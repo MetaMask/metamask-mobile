@@ -2165,7 +2165,7 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdTokenRegistrationChainIds(stateWithoutRemote);
 
-      expect(result).toEqual([...MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK]);
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
     });
 
     it('returns fallback chain IDs when remote flag chainIds is an empty array', () => {
@@ -2175,7 +2175,7 @@ describe('Earn Feature Flag Selectors', () => {
 
       const result = selectMusdTokenRegistrationChainIds(stateWithEmptyRemote);
 
-      expect(result).toEqual([...MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK]);
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
     });
 
     it('returns fallback chain IDs when remote flag chainIds is not an array', () => {
@@ -2187,7 +2187,7 @@ describe('Earn Feature Flag Selectors', () => {
         stateWithInvalidRemote,
       );
 
-      expect(result).toEqual([...MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK]);
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
     });
 
     it('returns fallback chain IDs when remote flag is present but has no chainIds property', () => {
@@ -2199,7 +2199,7 @@ describe('Earn Feature Flag Selectors', () => {
         stateWithMissingChainIds,
       );
 
-      expect(result).toEqual([...MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK]);
+      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
     });
   });
 });
