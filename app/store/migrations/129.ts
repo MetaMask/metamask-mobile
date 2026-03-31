@@ -56,7 +56,7 @@ const migration = (state: unknown): unknown => {
       !isObject(state.onboarding.seedless)
     ) {
       state.onboarding.seedless = {
-        pendingSocialLoginMarketingConsentBackfill: null,
+        pendingSocialLoginMarketingConsentBackfill: authConnection,
       };
     } else {
       state.onboarding.seedless.pendingSocialLoginMarketingConsentBackfill =
