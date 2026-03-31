@@ -1,3 +1,4 @@
+// TODO: remove this test comment (codeowners-comment workflow test)
 /* eslint-disable import-x/no-commonjs */
 /**
  * Tailwind CSS Configuration for MetaMask Mobile

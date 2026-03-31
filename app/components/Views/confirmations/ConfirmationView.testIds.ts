@@ -1,3 +1,4 @@
+// TODO: remove this test comment (codeowners-comment workflow test)
 import { ApprovalType } from '@metamask/controller-utils';
 import enContent from '../../../../locales/languages/en.json';
 
