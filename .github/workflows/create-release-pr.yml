@@ -29,6 +29,7 @@ jobs:
     outputs:
       checkout_base: ${{ steps.out.outputs.checkout_base }}
       release_base: ${{ steps.out.outputs.release_base }}
+      is_ota: ${{ steps.out.outputs.is_ota }}
     steps:
       - id: out
         shell: bash
@@ -45,6 +46,15 @@ jobs:
           fi
 
           patch="${SEMVER##*.}"
+          # OTA hotfix: patch segment has two or more digit characters (e.g. 7.71.01). Skips package.json / native build version bump; only OTA_VERSION is bumped later.
+          if [[ ${#patch} -ge 2 ]]; then
+            echo "is_ota=true" >> "$GITHUB_OUTPUT"
+            echo "OTA hotfix (patch segment length ${#patch}: ${patch}): will skip standard semver/build bump."
+          else
+            echo "is_ota=false" >> "$GITHUB_OUTPUT"
+            echo "Not OTA hotfix (patch segment: ${patch})."
+          fi
+
           if [ "$patch" -gt 0 ]; then
             echo "Detected hotfix (patch=$patch): using stable for checkout and stable for release PR base."
             echo "checkout_base=stable" >> "$GITHUB_OUTPUT"
@@ -72,19 +82,24 @@ jobs:
           .github/scripts/resolve-previous-ref.sh
 
   generate-build-version:
+    needs: resolve-bases
+    if: needs.resolve-bases.outputs.is_ota != 'true'
     uses: MetaMask/metamask-mobile-build-version/.github/workflows/metamask-mobile-build-version.yml@v0.3.0
     permissions:
       id-token: write
 
   create-release-pr:
     needs: [resolve-bases, resolve-previous-ref, generate-build-version]
+    # When generate-build-version is skipped (OTA), this job must still run; see https://docs.github.com/en/actions/using-jobs/using-jobs-in-a-workflow#handling-skipped-dependent-jobs
+    if: always() && needs.resolve-bases.result == 'success' && needs.resolve-previous-ref.result == 'success' && (needs.generate-build-version.result == 'success' || needs.generate-build-version.result == 'skipped')
     name: Create Release Pull Request using Github Tools
     runs-on: ubuntu-latest
     permissions:
       contents: write
       pull-requests: write
     steps:
-      - name: Create Release PR
+      - name: Create Release PR (semver / native version bump)
+        if: needs.resolve-bases.outputs.is_ota != 'true'
         uses: MetaMask/github-tools/.github/actions/create-release-pr@v1
         with:
           platform: mobile
@@ -98,3 +113,37 @@ jobs:
           # (this is due to github limitations on fetching secrets from called workflows).
           github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           google-application-creds-base64: ${{ github.event_name == 'workflow_dispatch' && secrets.GCP_RLS_SHEET_ACCOUNT_BASE64 || secrets.google-application-creds-base64 }}
+
+      - name: Checkout release branch (OTA hotfix — OTA_VERSION only)
+        if: needs.resolve-bases.outputs.is_ota == 'true'
+        uses: actions/checkout@v4
+        with:
+          ref: release/${{ inputs.semver-version }}
+          token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+          fetch-depth: 0
+
+      - name: Bump OTA_VERSION and open release PR if missing (OTA hotfix)
+        if: needs.resolve-bases.outputs.is_ota == 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          RELEASE_BASE: ${{ needs.resolve-bases.outputs.release_base }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}"
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          ./.github/scripts/bump-ota-version-constants.sh app/constants/ota.ts
+          git add app/constants/ota.ts
+          git commit -m "chore: bump OTA_VERSION for OTA hotfix ${SEMVER}"
+          git push origin "$BRANCH"
+          COUNT=$(gh pr list --repo "$GITHUB_REPOSITORY" --head "$BRANCH" --base "$RELEASE_BASE" --json number --jq 'length')
+          if [[ "$COUNT" -eq 0 ]]; then
+            gh pr create --repo "$GITHUB_REPOSITORY" --draft \
+              --base "$RELEASE_BASE" --head "$BRANCH" \
+              --title "release: ${SEMVER} (OTA)" \
+              --body "OTA hotfix release branch \`${BRANCH}\`. Native semver and build version are not bumped; only \`OTA_VERSION\` in \`app/constants/ota.ts\` was incremented."
+          else
+            echo "Release PR already exists for $BRANCH → $RELEASE_BASE"
+          fi
