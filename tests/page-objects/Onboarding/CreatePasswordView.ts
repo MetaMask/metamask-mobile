@@ -219,7 +219,7 @@ class CreatePasswordView {
         });
       },
       appium: async () => {
-        await UnifiedGestures.tap(this.iUnderstandCheckbox, {
+        await UnifiedGestures.waitAndTap(this.iUnderstandCheckbox, {
           description: 'Create Password - I Understand Checkbox',
         });
       },
@@ -249,7 +249,7 @@ class CreatePasswordView {
         });
       },
       appium: async () => {
-        await UnifiedGestures.tap(this.passwordVisibilityIcon, {
+        await UnifiedGestures.waitAndTap(this.passwordVisibilityIcon, {
           description: 'Create Password Password Visibility Icon',
         });
       },
