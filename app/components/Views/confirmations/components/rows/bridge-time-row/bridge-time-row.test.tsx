@@ -16,9 +16,12 @@ import {
 import { TransactionType } from '@metamask/transaction-controller';
 import { Hex, Json } from '@metamask/utils';
 import { useTransactionPayToken } from '../../../hooks/pay/useTransactionPayToken';
+import { useTransactionPaySelectedFiatPaymentMethod } from '../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod';
+import { type PaymentMethod } from '@metamask/ramps-controller';
 
 jest.mock('../../../hooks/pay/useTransactionPayData');
 jest.mock('../../../hooks/pay/useTransactionPayToken');
+jest.mock('../../../hooks/pay/useTransactionPaySelectedFiatPaymentMethod');
 
 function render(options: { type?: TransactionType } = {}) {
   const state = merge(
@@ -60,6 +63,10 @@ describe('BridgeTimeRow', () => {
     useTransactionPayTokenMock.mockReturnValue({
       payToken: undefined,
     } as ReturnType<typeof useTransactionPayToken>);
+
+    jest
+      .mocked(useTransactionPaySelectedFiatPaymentMethod)
+      .mockReturnValue(undefined);
   });
 
   it.each([
@@ -117,6 +124,20 @@ describe('BridgeTimeRow', () => {
     } as TransactionPayTotals);
 
     const { queryByText } = render({ type: TransactionType.musdConversion });
+
+    expect(queryByText('1 min')).toBeNull();
+  });
+
+  it('does not render when fiat payment method is selected', () => {
+    useTransactionPayTotalsMock.mockReturnValue({
+      estimatedDuration: 60,
+    } as TransactionPayTotals);
+
+    jest
+      .mocked(useTransactionPaySelectedFiatPaymentMethod)
+      .mockReturnValue({ id: 'pm-card' } as PaymentMethod);
+
+    const { queryByText } = render();
 
     expect(queryByText('1 min')).toBeNull();
   });
