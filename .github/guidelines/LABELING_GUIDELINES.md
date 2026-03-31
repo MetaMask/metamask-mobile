@@ -31,6 +31,10 @@ Using any of these labels should be exceptional in case of CI friction and urgen
 
 - **skip-smart-e2e-selection**: This label is used to bypass the Smart E2E Selection (select E2E tests to run depending on the PR changes). Useful when we do want all E2E tests to run for a given PR.
 
+### PR risk labels (automated)
+
+- **`risk:low`**, **`risk:medium`**, **`risk:high`**, **`risk:critical`**: Applied by the **AI PR analysis** workflow (`.github/workflows/ai-pr-analysis.yml`) from the MetaMask `ai-analyzer` composite action.
+
 ### Block merge if any is present
 
 - **needs-qa**: The PR requires a full manual QA prior to being merged and added to a release.
