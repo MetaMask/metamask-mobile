@@ -64,7 +64,7 @@ export const useTopTraders = (
       rank: entry.rank,
       username: entry.name,
       avatarUri: entry.imageUrl,
-      percentageChange: entry.roi30d ?? 0,
+      percentageChange: (entry.roi30d ?? 0) * 100,
       pnlValue: entry.pnl30d,
       isFollowing: localFollowOverrides[entry.profileId] ?? false,
     }));

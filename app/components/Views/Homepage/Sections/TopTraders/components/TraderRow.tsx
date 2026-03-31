@@ -43,6 +43,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
   const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
   const pnlText = formatPnl(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
+  const isRoiPositive = trader.percentageChange >= 0;
 
   return (
     <Box
@@ -93,23 +94,25 @@ const TraderRow: React.FC<TraderRowProps> = ({
           >
             {trader.username}
           </Text>
-          <Text variant={TextVariant.BodyXs} fontWeight={FontWeight.Medium}>
+          <Text variant={TextVariant.BodySm} fontWeight={FontWeight.Medium}>
             <Text
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
-              twClassName="text-success-default"
+              twClassName={
+                isRoiPositive ? 'text-success-default' : 'text-error-default'
+              }
             >
               {roiText}
             </Text>
             <Text
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextDefault}
             >
               {' \u00B7 '}
             </Text>
             <Text
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               twClassName={
                 isPnlPositive ? 'text-success-default' : 'text-error-default'
@@ -118,7 +121,7 @@ const TraderRow: React.FC<TraderRowProps> = ({
               {pnlText}
             </Text>
             <Text
-              variant={TextVariant.BodyXs}
+              variant={TextVariant.BodySm}
               fontWeight={FontWeight.Medium}
               color={TextColor.TextMuted}
             >

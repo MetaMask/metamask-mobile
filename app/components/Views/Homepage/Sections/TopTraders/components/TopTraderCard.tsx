@@ -43,10 +43,11 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
   const roiText = `${roiSign}${trader.percentageChange.toFixed(1)}%`;
   const pnlText = formatPnl(trader.pnlValue);
   const isPnlPositive = trader.pnlValue >= 0;
+  const isRoiPositive = trader.percentageChange >= 0;
 
   return (
     <Box
-      twClassName="w-[184px] rounded-2xl bg-muted p-4 gap-1 overflow-hidden"
+      twClassName="w-[200px] rounded-2xl bg-muted p-4 gap-1 overflow-hidden"
       testID={testID ?? `top-trader-card-${trader.id}`}
     >
       {/* Avatar */}
@@ -93,7 +94,9 @@ const TopTraderCard: React.FC<TopTraderCardProps> = ({
           <Text
             variant={TextVariant.BodyXs}
             fontWeight={FontWeight.Medium}
-            twClassName="text-success-default"
+            twClassName={
+              isRoiPositive ? 'text-success-default' : 'text-error-default'
+            }
           >
             {roiText}
           </Text>
