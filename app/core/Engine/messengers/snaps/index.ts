@@ -1,7 +1,6 @@
 export { getCronjobControllerMessenger } from './cronjob-controller-messenger';
 export type { CronjobControllerMessenger } from './cronjob-controller-messenger';
 export { getExecutionServiceMessenger } from './execution-service-messenger';
-export type { ExecutionServiceMessenger } from './execution-service-messenger';
 export {
   getSnapControllerMessenger,
   getSnapControllerInitMessenger,
