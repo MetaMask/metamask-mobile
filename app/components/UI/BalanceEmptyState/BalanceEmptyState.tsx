@@ -16,7 +16,8 @@ import {
 } from '@metamask/design-system-react-native';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { strings } from '../../../../locales/i18n';
-import { MetaMetricsEvents, useMetrics } from '../../hooks/useMetrics';
+import { MetaMetricsEvents } from '../../../core/Analytics';
+import { useAnalytics } from '../../hooks/useAnalytics/useAnalytics';
 import { getDecimalChainId } from '../../../util/networks';
 import { selectChainId } from '../../../selectors/networkController';
 import { trace, TraceName } from '../../../util/trace';
@@ -38,7 +39,7 @@ const BalanceEmptyState: React.FC<BalanceEmptyStateProps> = ({
 }) => {
   const tw = useTailwind();
   const chainId = useSelector(selectChainId);
-  const { trackEvent, createEventBuilder } = useMetrics();
+  const { trackEvent, createEventBuilder } = useAnalytics();
   const rampGeodetectedRegion = useSelector(getDetectedGeolocation);
   const { goToBuy } = useRampNavigation();
   const buttonClickData = useRampsButtonClickData();
