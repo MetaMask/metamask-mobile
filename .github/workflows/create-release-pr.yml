@@ -143,7 +143,38 @@ jobs:
           token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
           fetch-depth: 0
 
-      - name: Bump OTA_VERSION and open release PR if missing (OTA hotfix)
+      - name: Bump OTA_VERSION and push (OTA hotfix)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        shell: bash
+        env:
+          SEMVER: ${{ inputs.semver-version }}
+          GH_TOKEN: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+        run: |
+          set -euo pipefail
+          BRANCH="release/${SEMVER}"
+          git config user.name metamaskbot
+          git config user.email metamaskbot@users.noreply.github.com
+          bash .github/scripts/bump-ota-version-constants.sh app/constants/ota.ts "${SEMVER}"
+          if git diff --quiet app/constants/ota.ts; then
+            echo "No OTA_VERSION file change; skipping commit and push."
+          else
+            git add app/constants/ota.ts
+            git commit -m "chore: set OTA_VERSION to v${SEMVER} for OTA hotfix"
+            git push origin "$BRANCH"
+          fi
+
+      # Run after OTA_VERSION is on origin so the changelog action sees the latest release branch (changelog PR before stable release PR so retries can still refresh changelog if PR create fails).
+      - name: Update release changelog (OTA hotfix)
+        if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
+        uses: MetaMask/github-tools/.github/actions/update-release-changelog@v1
+        with:
+          release-branch: release/${{ inputs.semver-version }}
+          repository-url: ${{ github.server_url }}/${{ github.repository }}
+          platform: mobile
+          previous-version-ref: 'null'
+          github-token: ${{ github.event_name == 'workflow_dispatch' && secrets.PR_TOKEN || secrets.github-token }}
+
+      - name: Create OTA release PR to stable (if missing)
         if: needs.resolve-bases.outputs.is_ota == 'true' && steps.ota_release_pr.outputs.exists != 'true'
         shell: bash
         env:
@@ -153,13 +184,7 @@ jobs:
         run: |
           set -euo pipefail
           BRANCH="release/${SEMVER}"
-          git config user.name metamaskbot
-          git config user.email metamaskbot@users.noreply.github.com
-          ./.github/scripts/bump-ota-version-constants.sh app/constants/ota.ts
-          git add app/constants/ota.ts
-          git commit -m "chore: bump OTA_VERSION for OTA hotfix ${SEMVER}"
-          git push origin "$BRANCH"
           gh pr create --repo "$GITHUB_REPOSITORY" --draft \
             --base "$RELEASE_BASE" --head "$BRANCH" \
             --title "release: ${SEMVER} (OTA)" \
-            --body "OTA hotfix release branch \`${BRANCH}\`. Native semver and build version are not bumped; only \`OTA_VERSION\` in \`app/constants/ota.ts\` was incremented."
+            --body "OTA hotfix release branch \`${BRANCH}\`. Native semver and build version are not bumped; \`OTA_VERSION\` in \`app/constants/ota.ts\` is \`v${SEMVER}\` (matches OTA production tags). The release changelog PR was refreshed by \`update-release-changelog\` in this workflow run."
