@@ -1,0 +1,45 @@
+repo: MetaMask/metamask-mobile
+
+critical:
+  files:
+    - package.json
+    - yarn.lock
+    - metro.config.js
+    - babel.config.js
+    - tsconfig.json
+    - app.config.js
+
+  keywords:
+    - Controller
+    - Engine
+
+  paths:
+    - app/core/
+    - app/components/
+    - app/hooks/
+    - app/selectors/
+    - app/store/
+    - tests/
+    - e2e/
+    - .github/workflows/
+    - .github/actions/
+    - ios/
+    - android/
+    - scripts/
+
+searchDirs:
+  - app/
+  - e2e/
+  - .github/
+  - scripts/
+  - tests/
+  - ios/
+  - android/
+
+models:
+  default: anthropic/claude-haiku-4-5
+  escalation: anthropic/claude-sonnet-4-6
+  escalationThreshold: 3
+
+modes:
+  - pr-risk-analysis
