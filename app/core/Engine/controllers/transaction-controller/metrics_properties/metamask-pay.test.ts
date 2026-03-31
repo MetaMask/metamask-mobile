@@ -17,8 +17,9 @@ const PAY_CONTROLLER_STATE_MOCK = {
         transactionData: {
           'parent-1': {
             quotes: [
-              {},
+              { dust: { usd: '0', fiat: '0' } },
               {
+                dust: { usd: '0', fiat: '0' },
                 original: {
                   metrics: { attempts: 3, buffer: 0.123, latency: 1234 },
                   quote: { bridgeId: 'testBridge' },
@@ -41,10 +42,6 @@ describe('Metamask Pay Metrics', () => {
     Parameters<TransactionMetricsBuilder>[0]['getState']
   > = jest.fn();
 
-  const getUIMetricsMock: jest.MockedFn<
-    Parameters<TransactionMetricsBuilder>[0]['getUIMetrics']
-  > = jest.fn();
-
   let request: Parameters<TransactionMetricsBuilder>[0];
 
   beforeEach(() => {
@@ -57,7 +54,7 @@ describe('Metamask Pay Metrics', () => {
         txParams: { nonce: '0x1' },
       } as TransactionMeta,
       allTransactions: [],
-      getUIMetrics: getUIMetricsMock,
+      getUIMetrics: jest.fn(),
       getState: getStateMock,
       initMessenger: {} as never,
       smartTransactionsController: {} as never,
@@ -86,20 +83,38 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('copies properties from parent transaction if bridge', () => {
-    getUIMetricsMock.mockReturnValue({
-      properties: {
-        mm_pay: true,
-        mm_pay_use_case: 'test_use_case',
-        mm_pay_transaction_step_total: 3,
+  it('derives parent mm_pay_* properties for child transaction from controller state', () => {
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          TransactionPayController: {
+            transactionData: {
+              'parent-1': {
+                paymentToken: { symbol: 'USDC', chainId: '0x1' },
+                quotes: [{ strategy: TransactionPayStrategy.Relay }],
+                tokens: [{ skipIfBalance: false, amountUsd: '100' }],
+                totals: {
+                  targetAmount: { usd: '99', fiat: '99' },
+                  fees: {
+                    metaMask: { usd: '0.5', fiat: '0.5' },
+                    provider: { usd: '0.3', fiat: '0.3' },
+                    sourceNetwork: { estimate: { usd: '0.1', fiat: '0.1' } },
+                    targetNetwork: { usd: '0.05', fiat: '0.05' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      sensitiveProperties: {},
-    });
+    } as never);
 
     request.allTransactions = [
       {
         id: 'parent-1',
         type: TransactionType.perpsDeposit,
+        metamaskPay: { chainId: '0x1', tokenAddress: '0xA0b8' },
         requiredTransactionIds: ['child-1'],
       } as TransactionMeta,
     ];
@@ -109,30 +124,52 @@ describe('Metamask Pay Metrics', () => {
     expect(result).toStrictEqual({
       properties: expect.objectContaining({
         mm_pay: true,
-        mm_pay_use_case: 'test_use_case',
-        mm_pay_transaction_step_total: 3,
+        mm_pay_use_case: 'perps_deposit',
+        mm_pay_token_selected: 'USDC',
+        mm_pay_chain_selected: '0x1',
+        mm_pay_sending_value_usd: 100,
+        mm_pay_receiving_value_usd: 99,
+        mm_pay_metamask_fee_usd: 0.5,
+        mm_pay_strategy: 'relay',
+        mm_pay_transaction_step: 1,
+        mm_pay_transaction_step_total: 2,
       }),
       sensitiveProperties: {},
     });
   });
 
-  it('copies USD value metrics from predictWithdraw parent to child', () => {
-    getUIMetricsMock.mockReturnValue({
-      properties: {
-        mm_pay: true,
-        mm_pay_use_case: 'predict_withdraw',
-        mm_pay_transaction_step_total: 2,
-        mm_pay_sending_value_usd: 1500.5,
-        mm_pay_receiving_value_usd: 1495.25,
-        mm_pay_metamask_fee_usd: 0.00435,
+  it('derives parent mm_pay_* properties for predictWithdraw child transaction', () => {
+    getStateMock.mockReturnValue({
+      engine: {
+        backgroundState: {
+          TokensController: { allTokens: {} },
+          TransactionPayController: {
+            transactionData: {
+              'parent-1': {
+                paymentToken: { symbol: 'BNB', chainId: '0x38' },
+                quotes: [{ strategy: TransactionPayStrategy.Relay }],
+                tokens: [{ skipIfBalance: false, amountUsd: '1500.50' }],
+                totals: {
+                  targetAmount: { usd: '1495.25', fiat: '1495.25' },
+                  fees: {
+                    metaMask: { usd: '0.00435', fiat: '0.00435' },
+                    provider: { usd: '0', fiat: '0' },
+                    sourceNetwork: { estimate: { usd: '0', fiat: '0' } },
+                    targetNetwork: { usd: '0', fiat: '0' },
+                  },
+                },
+              },
+            },
+          },
+        },
       },
-      sensitiveProperties: {},
-    });
+    } as never);
 
     request.allTransactions = [
       {
         id: 'parent-1',
         type: TransactionType.predictWithdraw,
+        metamaskPay: { chainId: '0x38', tokenAddress: '0x000' },
         requiredTransactionIds: ['child-1'],
       } as TransactionMeta,
     ];
@@ -143,40 +180,9 @@ describe('Metamask Pay Metrics', () => {
       properties: expect.objectContaining({
         mm_pay: true,
         mm_pay_use_case: 'predict_withdraw',
-        mm_pay_transaction_step_total: 2,
         mm_pay_sending_value_usd: 1500.5,
         mm_pay_receiving_value_usd: 1495.25,
         mm_pay_metamask_fee_usd: 0.00435,
-      }),
-      sensitiveProperties: {},
-    });
-  });
-
-  it('copies properties from parent transaction if swap', () => {
-    getUIMetricsMock.mockReturnValue({
-      properties: {
-        mm_pay: true,
-        mm_pay_use_case: 'test_use_case',
-        mm_pay_transaction_step_total: 3,
-      },
-      sensitiveProperties: {},
-    });
-
-    request.allTransactions = [
-      {
-        id: 'parent-1',
-        type: TransactionType.perpsDeposit,
-        requiredTransactionIds: ['child-1'],
-      } as TransactionMeta,
-    ];
-
-    const result = getMetaMaskPayProperties(request);
-
-    expect(result).toStrictEqual({
-      properties: expect.objectContaining({
-        mm_pay: true,
-        mm_pay_use_case: 'test_use_case',
-        mm_pay_transaction_step_total: 3,
       }),
       sensitiveProperties: {},
     });
@@ -282,15 +288,8 @@ describe('Metamask Pay Metrics', () => {
     });
   });
 
-  it('adds dust property', () => {
+  it('adds dust property from quote', () => {
     request.transactionMeta.type = TransactionType.bridge;
-
-    getUIMetricsMock.mockReturnValue({
-      properties: {
-        mm_pay_dust_usd: '1.23',
-      },
-      sensitiveProperties: {},
-    });
 
     request.allTransactions = [
       {
@@ -305,7 +304,28 @@ describe('Metamask Pay Metrics', () => {
       request.transactionMeta,
     ];
 
-    getStateMock.mockReturnValue(PAY_CONTROLLER_STATE_MOCK);
+    getStateMock.mockReturnValue(
+      merge({}, PAY_CONTROLLER_STATE_MOCK, {
+        engine: {
+          backgroundState: {
+            TransactionPayController: {
+              transactionData: {
+                'parent-1': {
+                  quotes: [
+                    {},
+                    {
+                      dust: { usd: '1.23', fiat: '1.23' },
+                      request: { targetTokenAddress: '0x123' },
+                      strategy: TransactionPayStrategy.Bridge,
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        },
+      }) as unknown as RootState,
+    );
 
     const result = getMetaMaskPayProperties(request);
 
@@ -319,13 +339,6 @@ describe('Metamask Pay Metrics', () => {
 
   it('does not add dust property if native bridge', () => {
     request.transactionMeta.type = TransactionType.bridge;
-
-    getUIMetricsMock.mockReturnValue({
-      properties: {
-        mm_pay_dust_usd: '1.23',
-      },
-      sensitiveProperties: {},
-    });
 
     request.allTransactions = [
       {

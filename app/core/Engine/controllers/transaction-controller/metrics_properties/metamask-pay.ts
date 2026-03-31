@@ -19,15 +19,6 @@ import { BigNumber } from 'bignumber.js';
 
 const FOUR_BYTE_SAFE_PROXY_CREATE = '0xa1884d2c';
 
-const COPY_METRICS = [
-  'mm_pay',
-  'mm_pay_use_case',
-  'mm_pay_transaction_step_total',
-  'mm_pay_sending_value_usd',
-  'mm_pay_receiving_value_usd',
-  'mm_pay_metamask_fee_usd',
-] as const;
-
 const PAY_TYPES = [
   TransactionType.perpsDeposit,
   TransactionType.perpsWithdraw,
@@ -46,7 +37,6 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
   eventType,
   transactionMeta,
   allTransactions,
-  getUIMetrics,
   getState,
 }) => {
   const properties: JsonMap = {};
@@ -82,13 +72,7 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     };
   }
 
-  const parentMetrics = getUIMetrics(parentTransaction.id);
-
-  for (const key of COPY_METRICS) {
-    if (parentMetrics?.properties?.[key] !== undefined) {
-      properties[key] = parentMetrics.properties[key];
-    }
-  }
+  addPayTypeProperties(properties, parentTransaction, getState());
 
   const relatedTransactionIds = parentTransaction.requiredTransactionIds ?? [];
 
@@ -130,7 +114,7 @@ export const getMetaMaskPayProperties: TransactionMetricsBuilder = ({
     }
 
     if (quote && quote.request.targetTokenAddress !== NATIVE_TOKEN_ADDRESS) {
-      properties.mm_pay_dust_usd = parentMetrics?.properties?.mm_pay_dust_usd;
+      properties.mm_pay_dust_usd = quote.dust.usd;
     }
   }
 
