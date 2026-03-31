@@ -226,26 +226,15 @@ describe('useEVMNfts', () => {
   });
 
   it('returns empty array when no account group is selected', async () => {
-    mockSelectSelectedAccountGroup.mockReturnValue(
-      createMockAccountGroup(['account-1']),
-    );
-    mockSelectInternalAccountsById.mockReturnValue(
-      createMockInternalAccountsById({
-        'account-1': mockAccount,
-      }),
-    );
-    mockSelectAllNfts.mockReturnValue(
-      createMockAllNfts({
-        [mockAccount.address]: {
-          '0x1': [mockNft],
-        },
-      }),
-    );
+    mockSelectSelectedAccountGroup.mockReturnValue(null);
+    mockSelectInternalAccountsById.mockReturnValue({});
+    mockSelectAllNfts.mockReturnValue({});
 
     const { result } = renderHookWithStore(() => useEVMNfts());
 
     await waitFor(() => {
       expect(result.current.nfts).toEqual([]);
+      expect(result.current.isLoading).toBe(false);
     });
   });
 
