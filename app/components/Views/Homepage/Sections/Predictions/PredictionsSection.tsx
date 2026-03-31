@@ -186,7 +186,7 @@ const PredictionsSection = forwardRef<
   const isEmpty =
     !isLoading && !hasPositions && markets.length === 0 && !hasError;
 
-  const itemCount = hasPositions ? positions.length : markets.length;
+  const itemCount = hasPositions ? positions.length : 0;
 
   // Determine whether the section will actually render visible content.
   // Pass null when the section returns null so the event fires immediately.
@@ -201,8 +201,9 @@ const PredictionsSection = forwardRef<
     sectionName: HomeSectionNames.PREDICT,
     sectionIndex,
     totalSectionsLoaded,
+    // Empty when user has no positions (showing discovery/promotional content or nothing).
     // Treat error state as empty — there is no useful content to show.
-    isEmpty: isEmpty || !!hasError,
+    isEmpty: !hasPositions || !!hasError,
     itemCount,
   });
 
