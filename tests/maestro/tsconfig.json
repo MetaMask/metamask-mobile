@@ -7,5 +7,11 @@
       ]
     }
   },
-  "include": ["orchestrator/**/*.ts", "fixtures/**/*.ts", "mocks/**/*.ts"]
+  "include": [
+    "orchestrator/**/*.ts",
+    "fixtures/**/*.ts",
+    "mocks/**/*.ts",
+    "../visual/cli.ts",
+    "../visual/rewrite-flow.ts"
+  ]
 }
