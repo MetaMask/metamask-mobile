@@ -291,7 +291,11 @@ const PredictionsSection = forwardRef<
 
     const { onLayout } = useHomeViewedEvent({
       sectionRef: willRender ? sectionViewRef : null,
-      isLoading: isTrendingOnly ? isLoadingMarkets : isLoading,
+      isLoading: isTrendingOnly
+        ? isLoadingMarkets
+        : isPositionsOnly
+          ? isLoadingPositions
+          : isLoading,
       sectionName: analyticsName,
       sectionIndex,
       totalSectionsLoaded,

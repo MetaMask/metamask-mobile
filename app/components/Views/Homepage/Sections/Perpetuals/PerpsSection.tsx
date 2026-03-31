@@ -312,12 +312,18 @@ const PerpsSection = forwardRef<SectionRefreshHandle, PerpsSectionProps>(
 
     // Pass null while loading so the hook uses the immediate-fire path and
     // does not fire from viewport visibility with stale itemCount/isEmpty.
+    // positions-only: never wait on market/trending data — analytics for empty
+    // sections must not block on unrelated REST market loads (see pendingTrending).
     const isLoadingSection = isTrendingOnly
       ? marketsLoading
-      : hookLoading || deferredLoading || pendingTrending;
+      : isPositionsOnly
+        ? showSkeleton
+        : hookLoading || deferredLoading || pendingTrending;
     const willRender = isTrendingOnly
       ? !marketsLoading && allCarouselMarkets.length > 0
-      : !isLoadingSection;
+      : isPositionsOnly
+        ? !showSkeleton && hasItems
+        : !isLoadingSection;
 
     let isEmpty: boolean;
     if (isTrendingOnly) {
