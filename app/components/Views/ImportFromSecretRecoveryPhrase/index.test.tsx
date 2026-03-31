@@ -2216,6 +2216,11 @@ describe('ImportFromSecretRecoveryPhrase', () => {
       fireEvent.changeText(passwordInput, 'StrongPass123!');
       fireEvent.changeText(confirmPasswordInput, 'StrongPass123!');
 
+      const learnMoreCheckbox = getByTestId(
+        ImportFromSeedSelectorsIDs.CHECKBOX_TEXT_ID,
+      );
+      fireEvent.press(learnMoreCheckbox);
+
       const confirmButton = getByTestId(
         ChoosePasswordSelectorsIDs.SUBMIT_BUTTON_ID,
       );
