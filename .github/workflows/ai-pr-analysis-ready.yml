@@ -1,0 +1,22 @@
+# Dedicated workflow to run AI PR risk analysis when a draft PR is marked as ready.
+# This is intentionally separate from ci.yml so that converting a draft to ready
+# does NOT restart the full CI suite (which has cancel-in-progress: true).
+
+name: AI PR Risk Analysis (ready for review)
+
+on:
+  pull_request:
+    types:
+      - ready_for_review
+
+jobs:
+  ai-pr-risk-analysis:
+    name: AI PR risk analysis
+    if: >-
+      !(github.event.pull_request.head.repo.fork || github.event.repository.fork)
+      && (github.event.pull_request.base.ref == 'main' || startsWith(github.event.pull_request.base.ref, 'release/'))
+    permissions:
+      contents: read
+      pull-requests: write
+    uses: ./.github/workflows/ai-pr-analysis.yml
+    secrets: inherit
