@@ -19,7 +19,6 @@ import {
 } from './useTransactionPayData';
 import { useTransactionPayAvailableTokens } from './useTransactionPayAvailableTokens';
 import { useAccountTokens } from '../send/useAccountTokens';
-import { getNativeTokenAddress } from '@metamask/assets-controllers';
 
 /**
  * Dispatches UI-only mm_pay_* properties to confirmationMetrics.
@@ -57,7 +56,6 @@ export function useTransactionPayMetrics() {
     [tokens],
   );
 
-  const { chainId } = transactionMeta ?? {};
   const primaryRequiredToken = useTransactionPayRequiredTokens().find(
     (t) => !t.skipIfBalance,
   );
@@ -92,16 +90,6 @@ export function useTransactionPayMetrics() {
       hasTransactionType(transactionMeta, [TransactionType.predictDeposit]))
   ) {
     properties.simulation_sending_assets_total_value = sendingValue;
-  }
-
-  const nativeTokenAddress = getNativeTokenAddress(chainId as Hex);
-
-  const nonGasQuote = quotes?.find(
-    (q) => q.request?.targetTokenAddress !== nativeTokenAddress,
-  );
-
-  if (nonGasQuote) {
-    properties.mm_pay_dust_usd = nonGasQuote.dust.usd;
   }
 
   const params = useDeepMemo(

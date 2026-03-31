@@ -234,29 +234,6 @@ describe('useTransactionPayMetrics', () => {
     });
   });
 
-  it('includes dust property for non-native quote', async () => {
-    useTransactionPayTokenMock.mockReturnValue({
-      payToken: PAY_TOKEN_MOCK,
-      setPayToken: noop,
-    } as ReturnType<typeof useTransactionPayToken>);
-
-    useTransactionPayQuotesMock.mockReturnValue([QUOTE_MOCK, QUOTE_MOCK]);
-
-    runHook();
-
-    await act(async () => noop());
-
-    expect(updateConfirmationMetricMock).toHaveBeenCalledWith({
-      id: transactionIdMock,
-      params: {
-        properties: expect.objectContaining({
-          mm_pay_dust_usd: '0.5',
-        }),
-        sensitiveProperties: {},
-      },
-    });
-  });
-
   describe('mm_pay_quote_requested', () => {
     it('is false initially', async () => {
       useTransactionPayTokenMock.mockReturnValue({
