@@ -103,11 +103,14 @@ describe('useEnsureMusdTokenRegistered', () => {
   });
 
   describe('skipping chains without a network client', () => {
-    it('skips registration for a chain when findNetworkClientIdByChainId returns null', async () => {
+    it('skips registration for a chain when findNetworkClientIdByChainId throws and continues to the next chain', async () => {
+      const chainNotFoundError = new Error('Invalid chain ID "0xe708"');
       mockUseSelector.mockReturnValue(['0x1', '0xe708']);
       mockFindNetworkClientIdByChainId
         .mockReturnValueOnce('mainnet')
-        .mockReturnValueOnce(null as unknown as string);
+        .mockImplementationOnce(() => {
+          throw chainNotFoundError;
+        });
 
       renderHook(() => useEnsureMusdTokenRegistered());
 
@@ -120,21 +123,23 @@ describe('useEnsureMusdTokenRegistered', () => {
         chainId: '0x1',
         networkClientId: 'mainnet',
       });
-      expect(mockEnsureMusdTokenRegistered).not.toHaveBeenCalledWith(
-        expect.objectContaining({ chainId: '0xe708' }),
+      expect(mockLoggerError).toHaveBeenCalledWith(
+        chainNotFoundError,
+        '[mUSD] Failed to register mUSD token for chain 0xe708',
       );
     });
 
-    it('does not call ensureMusdTokenRegistered when all chains return null networkClientId', async () => {
+    it('logs an error for each chain when findNetworkClientIdByChainId throws for all chains', async () => {
+      const chainNotFoundError = new Error('Invalid chain ID');
       mockUseSelector.mockReturnValue(['0x1', '0xe708']);
-      mockFindNetworkClientIdByChainId.mockReturnValue(
-        null as unknown as string,
-      );
+      mockFindNetworkClientIdByChainId.mockImplementation(() => {
+        throw chainNotFoundError;
+      });
 
       renderHook(() => useEnsureMusdTokenRegistered());
 
       await waitFor(() => {
-        expect(mockFindNetworkClientIdByChainId).toHaveBeenCalledTimes(2);
+        expect(mockLoggerError).toHaveBeenCalledTimes(2);
       });
 
       expect(mockEnsureMusdTokenRegistered).not.toHaveBeenCalled();
@@ -184,6 +189,23 @@ describe('useEnsureMusdTokenRegistered', () => {
       expect(mockEnsureMusdTokenRegistered).toHaveBeenCalledWith({
         chainId: '0xe708',
         networkClientId: 'linea-mainnet',
+      });
+    });
+
+    it('logs an unexpected error via Logger.error when registerMusdTokens rejects outside the per-chain catch', async () => {
+      const unexpectedError = new Error('unexpected failure');
+      mockUseSelector.mockReturnValue(['0x1']);
+      mockFindNetworkClientIdByChainId.mockReturnValue('mainnet');
+      mockEnsureMusdTokenRegistered.mockRejectedValue(unexpectedError);
+      mockRetryWithExponentialDelay.mockRejectedValue(unexpectedError);
+
+      renderHook(() => useEnsureMusdTokenRegistered());
+
+      await waitFor(() => {
+        expect(mockLoggerError).toHaveBeenCalledWith(
+          unexpectedError,
+          '[mUSD] Failed to register mUSD token for chain 0x1',
+        );
       });
     });
   });

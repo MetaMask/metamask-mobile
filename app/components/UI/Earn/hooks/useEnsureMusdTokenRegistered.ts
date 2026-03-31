@@ -17,16 +17,12 @@ export function useEnsureMusdTokenRegistered(): void {
   useEffect(() => {
     const registerMusdTokens = async () => {
       for (const chainId of chainIdsToRegister as Hex[]) {
-        const networkClientId =
-          Engine.context.NetworkController.findNetworkClientIdByChainId(
-            chainId,
-          );
-
-        if (!networkClientId) {
-          continue;
-        }
-
         try {
+          const networkClientId =
+            Engine.context.NetworkController.findNetworkClientIdByChainId(
+              chainId,
+            );
+
           await retryWithExponentialDelay(
             () => ensureMusdTokenRegistered({ chainId, networkClientId }),
             2, // 3 total attempts
@@ -40,6 +36,8 @@ export function useEnsureMusdTokenRegistered(): void {
       }
     };
 
-    registerMusdTokens();
+    registerMusdTokens().catch((error) => {
+      Logger.error(error, '[mUSD] Unexpected error in registerMusdTokens');
+    });
   }, [chainIdsToRegister]);
 }
