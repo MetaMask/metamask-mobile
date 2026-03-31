@@ -21,15 +21,15 @@ Key changes:
 
 - **Fixture-driven state management** via tags in Maestro YAML (Section 3)
 - **Node.js orchestrator** wraps `maestro test` with fixture setup/teardown (Section 5) — developers run `yarn maestro:visual` instead of calling `maestro test` directly, because the orchestrator must build and serve the fixture state before Maestro can run the flow. Under the hood, the orchestrator still invokes `maestro test` to execute the actual flow.
-- **No more `clearState`/`launchApp`/unlock flows** — the orchestrator handles app lifecycle
+- **Shared sub-flows for `clearState`/`launchApp`/unlock** — reusable YAML sub-flows handle app lifecycle
 - **Composable fixture tags** using colon-delimited base + modifiers
 
 ### Assumptions
 
 - The app is **already built and installed** on a simulator/emulator
 - The app uses an **E2E/QA build** that supports fixture loading (reads from `ReadOnlyNetworkStore`)
-- Flows do **not** handle app launch, login, or onboarding — the orchestrator + fixtures handle that
-- Flows handle non-deterministic UI defensively using `optional: true`, `extendedWaitUntil`, and `cropOn`
+- Flows handle `clearState`, `launchApp`, and unlock via shared sub-flows — the orchestrator handles fixture/mock server lifecycle
+- Flows handle non-deterministic UI defensively using `optional: true` and `extendedWaitUntil`
 
 ### Design Principles
 
@@ -44,44 +44,44 @@ Key changes:
 ## 2. Directory Structure
 
 ```
-tests/visual/
+tests/maestro/                       # Shared Maestro infrastructure (all test types)
+├── orchestrator/
+│   ├── index.ts                     # Shared CLI orchestrator (flow discovery, execution loop)
+│   ├── run-flow.ts                  # Single flow executor (fixture/mock servers + Maestro)
+│   ├── parse-tags.ts                # Extracts fixture: and mock: tags from YAML metadata
+│   ├── device.ts                    # iOS simulator detection
+│   ├── register.js                  # Runtime hooks (module shims, Detox stubs)
+│   └── empty-stub.js               # Stub for Playwright transitive imports
+├── fixtures/
+│   └── presets.ts                   # Composable fixture tag → FixtureBuilder registry
+└── mocks/
+    ├── registry.ts                  # Mock tag → setup function mapping
+    └── send-balances.ts             # Send flow mock overrides
+
+tests/visual/                        # Visual regression tests (uses shared orchestrator)
 ├── README.md                        # Setup, usage, guidelines
 ├── maestro.config.yaml              # Global Maestro config (testOutputDir, env)
-├── orchestrator/                    # Node.js orchestrator (fixture + Maestro bridge)
-│   ├── index.ts                     # CLI entry point
-│   ├── run-flow.ts                  # Per-flow executor: parse tag, build fixture, run
-│   ├── parse-fixture-tag.ts         # Extract and validate fixture:* tag from YAML
-│   └── fixture-server-manager.ts    # Start/stop FixtureServer lifecycle
-├── fixtures/                        # Fixture preset registry
-│   ├── presets.ts                   # Base + modifier definitions
-│   └── README.md                    # How to add new presets
+├── cli.ts                           # Visual CLI entry point (adds --update-baselines)
+├── rewrite-flow.ts                  # Rewrites assertScreenshot → takeScreenshot
 ├── flows/                           # Maestro YAML flows
-│   ├── shared/                      # Reusable sub-flows
-│   │   ├── dismiss-promos.yaml      # Dismiss modals, promos, dev menu
-│   │   └── navigate-to-send.yaml
-│   ├── wallet/
-│   │   ├── wallet-home.yaml
-│   │   └── wallet-home-tokens.yaml
-│   ├── send/
-│   │   └── send-amount-entry.yaml
-│   ├── settings/
-│   │   └── settings-main.yaml
-│   └── trade/
-│       └── swap-screen.yaml
+│   ├── shared/                      # Reusable sub-flows (unlock, dismiss dev screens)
+│   │   ├── dismiss-dev-screens.yaml
+│   │   └── unlock-app.yaml
+│   └── wallet/
+│       ├── wallet-home.yaml
+│       └── send-eth.yaml
 ├── .tmp/                            # Temp rewritten flows (gitignored, auto-cleaned)
 └── baselines/                       # Golden screenshots (committed)
     └── ios/
-        ├── wallet/
-        ├── send/
-        ├── settings/
-        └── trade/
+        └── wallet/
 ```
 
-### Why `tests/visual/` instead of `.maestro/`
+### Why `tests/maestro/` + `tests/visual/`
 
 - Consistent with existing convention: all test artifacts live under `tests/`
 - Discoverable alongside `tests/smoke/`, `tests/regression/`, `tests/performance/`
-- The `orchestrator/` directory sits alongside the flows it manages
+- Shared orchestrator in `tests/maestro/` supports multiple test types (visual, functional E2E, performance)
+- Visual-specific code (CLI, flow rewriter, baselines) stays in `tests/visual/`
 
 ### Baselines in Git
 
@@ -124,9 +124,7 @@ tags:
       id: 'wallet-screen'
     timeout: 15000
 - assertScreenshot:
-    path: ios/wallet/home.png
-    cropOn:
-      id: 'wallet-screen'
+    path: tests/visual/baselines/ios/wallet/home.png
     thresholdPercentage: 95
 ```
 
@@ -137,14 +135,16 @@ tags:
   - visual
   - fixture:default:with-tokens:with-multiple-accounts
 ---
+- clearState
+- launchApp
+- runFlow: ../shared/dismiss-dev-screens.yaml
+- runFlow: ../shared/unlock-app.yaml
 - extendedWaitUntil:
     visible:
       id: 'wallet-screen'
     timeout: 15000
 - assertScreenshot:
-    path: ios/wallet/home-tokens-multi-account.png
-    cropOn:
-      id: 'wallet-screen'
+    path: tests/visual/baselines/ios/wallet/home-tokens-multi-account.png
     thresholdPercentage: 95
 ```
 
@@ -155,6 +155,10 @@ tags:
   - visual
   - fixture:default:with-tokens
 ---
+- clearState
+- launchApp
+- runFlow: ../shared/dismiss-dev-screens.yaml
+- runFlow: ../shared/unlock-app.yaml
 - extendedWaitUntil:
     visible:
       id: 'wallet-screen'
@@ -166,9 +170,7 @@ tags:
       id: 'send-screen'
     timeout: 10000
 - assertScreenshot:
-    path: ios/send/amount-entry.png
-    cropOn:
-      id: 'send-screen'
+    path: tests/visual/baselines/ios/wallet/send-amount-entry.png
     thresholdPercentage: 95
 ```
 
@@ -193,7 +195,7 @@ tags:
 ### Base + Modifier Architecture
 
 ```typescript
-// tests/visual/fixtures/presets.ts
+// tests/maestro/fixtures/presets.ts
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import type { Fixture } from '../../framework/fixtures/types';
 
@@ -301,51 +303,59 @@ To support a new visual test scenario:
 
 ### Why an Orchestrator?
 
-Maestro has no concept of fixtures, HTTP servers, or app launch arguments. The orchestrator is a Node.js script that:
+Maestro has no concept of fixtures, HTTP servers, or app launch arguments. The shared orchestrator (`tests/maestro/orchestrator/`) is a Node.js module that:
 
-1. Scans flow YAML files for `fixture:*` tags
+1. Scans flow YAML files for `fixture:*` and `mock:*` tags
 2. Builds the fixture using `buildFromTag()`
-3. Starts a `FixtureServer` with the built state
-4. Launches the app with the fixture server port as a launch argument
+3. Starts `MockServerE2E` (port 8000) and `FixtureServer` (port 12345)
+4. Optionally transforms the flow file (e.g. rewrite screenshots for baseline capture)
 5. Runs the Maestro flow
-6. Tears down the server and app
+6. Tears down servers and cleans up temp files
+
+Test-type-specific CLIs (e.g. `tests/visual/cli.ts`) wrap the shared orchestrator with their own options.
 
 ### Flow Execution Sequence
 
 ```
-yarn maestro:visual [optional-flow-path]
+yarn maestro:visual --flow [path]
          |
          v
 +---------------------------+
-|  Orchestrator (Node.js)   |
+|  Visual CLI (cli.ts)      |  <-- tests/visual/cli.ts
+|  Wraps shared orchestrator|
+|  with --update-baselines  |
+|  and transformFlow hook   |
++---------------------------+
+         |
+         v
++---------------------------+
+|  Shared Orchestrator      |  <-- tests/maestro/orchestrator/index.ts
 |                           |
-|  1. Discover flows        |  <-- Scans tests/visual/flows/**/*.yaml
-|  2. Parse fixture tags    |  <-- Extracts fixture:* from YAML frontmatter
-|  3. Group by fixture      |  <-- Flows sharing a fixture can run together (future)
+|  1. Discover flows        |  <-- Scans flows dir for *.yaml with fixture: tags
+|  2. Parse fixture/mock    |  <-- Extracts fixture:* and mock:* from YAML
+|     tags                  |
 |                           |
 |  For each flow:           |
 |  +---------------------+  |
-|  | 4. Build fixture     |  |  <-- buildFromTag('fixture:default:with-tokens')
-|  | 5. Start server      |  |  <-- FixtureServer on dynamic port
-|  | 6. Launch app        |  |  <-- simctl launch with fixtureServerPort arg
-|  | 7. Rewrite flow      |  |  <-- If --update-baselines: rewrite
-|  |    (if updating)     |  |      assertScreenshot -> takeScreenshot
-|  |                      |  |      in a temp file
-|  | 8. Run Maestro       |  |  <-- maestro test <flow> --device <UDID>
-|  |                      |  |      (temp file in update mode, original otherwise)
-|  | 9. Collect results   |  |  <-- Pass/fail + diff images
-|  | 10. Terminate app    |  |  <-- simctl terminate
-|  | 11. Stop server      |  |  <-- FixtureServer.stop()
+|  | 3. Build fixture     |  |  <-- buildFromTag('fixture:default:with-eth-balance')
+|  | 4. Start mock server |  |  <-- MockServerE2E on port 8000
+|  | 5. Start fixture srv |  |  <-- FixtureServer on port 12345
+|  | 6. Terminate app     |  |  <-- simctl terminate (stale instance)
+|  | 7. Transform flow    |  |  <-- Optional: rewrite assertScreenshot → takeScreenshot
+|  |    (if hook provided)|  |
+|  | 8. Run Maestro       |  |  <-- async spawn: maestro test --device <UDID>
+|  | 9. Collect results   |  |  <-- Pass/fail
+|  | 10. Teardown         |  |  <-- Stop servers, kill ports, clean temp files
 |  +---------------------+  |
 |                           |
-|  12. Report results       |  <-- Summary of pass/fail per flow
+|  11. Report results       |  <-- Summary of pass/fail per flow
 +---------------------------+
 ```
 
 ### Tag Parsing
 
 ```typescript
-// tests/visual/orchestrator/parse-fixture-tag.ts
+// tests/maestro/orchestrator/parse-tags.ts
 import { parse } from 'yaml';
 import { readFileSync } from 'fs';
 
@@ -413,7 +423,7 @@ The orchestrator shells out to `maestro test <flow.yaml> --device <UDID> --no-an
 
 ## 6. Existing Infrastructure Reuse
 
-The visual regression system **consumes** the existing E2E fixture infrastructure without modifying it. No changes are made to FixtureBuilder, FixtureServer, ReadOnlyNetworkStore, PortManager, the JSON fixture files, or shim.js. The only new fixture-related file is `tests/visual/fixtures/presets.ts`, which is a thin registry that calls existing FixtureBuilder methods.
+The visual regression system **consumes** the existing E2E fixture and mock infrastructure without modifying it. No changes are made to FixtureBuilder, FixtureServer, MockServerE2E, ReadOnlyNetworkStore, the JSON fixture files, or shim.js. The new fixture-related file is `tests/maestro/fixtures/presets.ts`, which is a thin registry that calls existing FixtureBuilder methods. Mock overrides are registered in `tests/maestro/mocks/registry.ts`.
 
 Reused components:
 
@@ -428,12 +438,15 @@ Reused components:
 
 ### What's New (Not Reused)
 
-| Component             | Purpose                                                       |
-| --------------------- | ------------------------------------------------------------- |
-| `orchestrator/`       | CLI tool that bridges fixture building with Maestro execution |
-| `fixtures/presets.ts` | Named base + modifier registry for visual test fixtures       |
-| `flows/*.yaml`        | Maestro flow files with fixture tags                          |
-| `baselines/`          | Golden screenshots                                            |
+| Component                           | Purpose                                                       |
+| ----------------------------------- | ------------------------------------------------------------- |
+| `tests/maestro/orchestrator/`       | Shared CLI that bridges fixture/mock setup with Maestro       |
+| `tests/maestro/fixtures/presets.ts` | Named base + modifier registry for test fixtures              |
+| `tests/maestro/mocks/`              | Mock tag → setup function mapping for test-specific overrides |
+| `tests/visual/cli.ts`               | Visual CLI wrapper (adds `--update-baselines`)                |
+| `tests/visual/rewrite-flow.ts`      | Rewrites `assertScreenshot` → `takeScreenshot` for captures   |
+| `tests/visual/flows/*.yaml`         | Maestro flow files with fixture tags                          |
+| `tests/visual/baselines/`           | Golden screenshots                                            |
 
 ---
 
@@ -456,7 +469,7 @@ Reused components:
 
 ### Don't
 
-- **Don't include `launchApp`, `clearState`, or unlock steps.** The orchestrator handles this.
+- **Don't skip `clearState`/`launchApp`/unlock sub-flows.** Every flow must start with these to ensure a clean state.
 - **Don't use `takeScreenshot` in flows.** Always use `assertScreenshot`. The orchestrator handles the rewrite to `takeScreenshot` when updating baselines.
 - **Don't duplicate testID strings.** Reference existing `.testIds.ts` constants.
 - **Don't commit placeholder baselines.** Every baseline must be a real screenshot captured via `yarn maestro:visual:update-baselines`.
@@ -472,17 +485,13 @@ When baselines need to be created or updated, the orchestrator handles the mode 
 ```yaml
 # What developers write in flows (always assertScreenshot):
 - assertScreenshot:
-    path: ios/wallet/home.png
-    cropOn:
-      id: 'wallet-screen'
+    path: tests/visual/baselines/ios/wallet/home.png
     thresholdPercentage: 95
 
-# What the orchestrator passes to Maestro in --update-baselines mode:
+# What the rewriter (rewrite-flow.ts) passes to Maestro in --update-baselines mode:
 # (dynamically rewritten, never checked in)
 - takeScreenshot:
-    path: ios/wallet/home
-    cropOn:
-      id: 'wallet-screen'
+    path: tests/visual/baselines/ios/wallet/home
 ```
 
 ### Threshold Guidelines
@@ -508,26 +517,25 @@ tags:
   - visual
   - fixture:default
 ---
-# Wait for wallet home to load (fixture provides logged-in state)
-# This also ensures the screen has settled before the conditional runFlow below,
-# since runFlow's when: visible: check is instant and does not wait.
+# Clear app state and relaunch so ReadOnlyNetworkStore refetches from fixture server.
+- clearState
+- launchApp
+
+# Dismiss developer screens (debug builds only)
+- runFlow: ../shared/dismiss-dev-screens.yaml
+
+# Unlock the app with fixture default password
+- runFlow: ../shared/unlock-app.yaml
+
+# Wait for wallet home to load
 - extendedWaitUntil:
     visible:
       id: 'wallet-screen'
-    timeout: 15000
-
-# Dismiss any promo modals that may appear
-- runFlow:
-    when:
-      visible:
-        text: 'Dismiss'
-    file: ../shared/dismiss-promos.yaml
+    timeout: 30000
 
 # Capture wallet home — tokens tab (default view)
 - assertScreenshot:
-    path: ios/wallet/home-default.png
-    cropOn:
-      id: 'wallet-screen'
+    path: tests/visual/baselines/ios/wallet/home-default.png
     thresholdPercentage: 95
 ```
 
@@ -585,10 +593,10 @@ The baseline workflow mirrors how snapshot testing works in Jest:
 yarn maestro:visual
 
 # Run a specific flow
-yarn maestro:visual tests/visual/flows/wallet/wallet-home.yaml
+yarn maestro:visual --flow tests/visual/flows/wallet/wallet-home.yaml
 
 # Run all wallet flows
-yarn maestro:visual tests/visual/flows/wallet/
+yarn maestro:visual --flow tests/visual/flows/wallet/
 ```
 
 ### When a Test Fails
@@ -602,7 +610,7 @@ Maestro generates a **visual diff image** highlighting changed pixels. Use this 
 yarn maestro:visual:update-baselines
 
 # Can also target specific flows
-yarn maestro:visual:update-baselines tests/visual/flows/wallet/wallet-home.yaml
+yarn maestro:visual:update-baselines --flow tests/visual/flows/wallet/wallet-home.yaml
 
 # Review what changed
 git diff tests/visual/baselines/
@@ -618,8 +626,8 @@ This is the same command whether you're creating baselines for a brand-new flow 
 
 ```json
 {
-  "maestro:visual": "ts-node tests/visual/orchestrator/index.ts",
-  "maestro:visual:update-baselines": "ts-node tests/visual/orchestrator/index.ts --update-baselines"
+  "maestro:visual": "ts-node --transpile-only -r ./tests/maestro/orchestrator/register.js tests/visual/cli.ts",
+  "maestro:visual:update-baselines": "ts-node --transpile-only -r ./tests/maestro/orchestrator/register.js tests/visual/cli.ts --update-baselines"
 }
 ```
 
@@ -740,6 +748,6 @@ Start with **Wallet Home** to validate the end-to-end workflow (orchestrator + f
 - **Fixture grouping optimization**: Flows sharing the same fixture tag could reuse the same server session, avoiding re-launch between them. Worth exploring once there are enough flows to benefit.
 - **CI integration**: Simulator provisioning, baseline artifact storage, PR commenting with diff images.
 - **Android support**: `adb reverse` port mapping, Android-specific launch arguments.
-- **Mock server integration**: Some visual states may need API mocks (e.g., specific token prices). The existing `MockServerE2E` could be integrated into the orchestrator.
+- **~~Mock server integration~~**: ✅ Implemented — `MockServerE2E` runs on port 8000 with `DEFAULT_MOCKS`, deterministic feature flags, and optional test-specific overrides via `mock:` tags.
 - **Baseline management tooling**: Script to review and approve baseline changes interactively.
 - **App readiness detection**: The orchestrator currently relies on Maestro's `extendedWaitUntil` in the flow to handle app readiness after launch. If Maestro starts the flow before the app has loaded its fixture state, the wait may not be enough. May need an orchestrator-level readiness check (e.g., polling a health endpoint or waiting for a known delay after `simctl launch`) before invoking Maestro.

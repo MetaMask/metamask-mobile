@@ -7,5 +7,5 @@
       ]
     }
   },
-  "include": ["cli.ts", "rewrite-flow.ts"]
+  "include": ["orchestrator/**/*.ts", "fixtures/**/*.ts", "mocks/**/*.ts"]
 }

@@ -18604,6 +18604,13 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@types/js-yaml@npm:^4.0.9":
+  version: 4.0.9
+  resolution: "@types/js-yaml@npm:4.0.9"
+  checksum: 10/a0ce595db8a987904badd21fc50f9f444cb73069f4b95a76cc222e0a17b3ff180669059c763ec314bc4c3ce284379177a9da80e83c5f650c6c1310cafbfaa8e6
+  languageName: node
+  linkType: hard
+
 "@types/jsftp@npm:2.1.2":
   version: 2.1.2
   resolution: "@types/jsftp@npm:2.1.2"
@@ -35693,6 +35700,7 @@ __metadata:
     "@types/i18n-js": "npm:^3.8.4"
     "@types/is-url": "npm:^1.2.30"
     "@types/jest": "npm:^29.5.12"
+    "@types/js-yaml": "npm:^4.0.9"
     "@types/koa": "npm:^2.15.0"
     "@types/lodash": "npm:^4.14.184"
     "@types/luxon": "npm:^3.4.2"

@@ -4,7 +4,7 @@
 
 **Goal:** Build a Node.js/TypeScript orchestrator that bridges the existing FixtureBuilder/FixtureServer infrastructure with Maestro visual regression test execution.
 
-**Architecture:** The orchestrator is a CLI tool (`tests/visual/orchestrator/index.ts`) invoked via `yarn maestro:visual`. It scans Maestro YAML flows for `fixture:*` tags, builds fixtures using a presets registry, starts FixtureServer, launches the app via `xcrun simctl`, runs `maestro test`, and tears down. In `--update-baselines` mode, it rewrites `assertScreenshot` to `takeScreenshot` in temp files before passing them to Maestro.
+**Architecture:** The shared orchestrator (`tests/maestro/orchestrator/`) provides flow discovery, fixture/mock server lifecycle, and Maestro execution. Test-type-specific CLIs wrap it — e.g. `tests/visual/cli.ts` adds `--update-baselines` mode. The orchestrator scans YAML flows for `fixture:*` and `mock:*` tags, builds fixtures, starts MockServerE2E (port 8000) and FixtureServer (port 12345), runs `maestro test` via async spawn, and tears down.
 
 **Tech Stack:** TypeScript, ts-node, js-yaml (already in devDeps), FixtureBuilder/FixtureServer (existing), xcrun simctl (iOS), Maestro CLI
 
@@ -14,16 +14,22 @@
 
 ## File Structure
 
-| File                                             | Responsibility                                                                               |
-| ------------------------------------------------ | -------------------------------------------------------------------------------------------- |
-| `tests/visual/orchestrator/index.ts`             | CLI entry point — parses args, discovers flows, orchestrates execution loop, reports results |
-| `tests/visual/orchestrator/parse-fixture-tag.ts` | Extracts `fixture:*` tag from Maestro YAML frontmatter                                       |
-| `tests/visual/orchestrator/rewrite-flow.ts`      | Rewrites `assertScreenshot` to `takeScreenshot` in a temp file for baseline capture          |
-| `tests/visual/orchestrator/run-flow.ts`          | Executes a single flow: build fixture, start server, launch app, run maestro, teardown       |
-| `tests/visual/orchestrator/device.ts`            | Detects booted iOS simulator UDID                                                            |
-| `tests/visual/fixtures/presets.ts`               | Fixture base + modifier registry, `buildFromTag()` function                                  |
-| `tests/visual/flows/wallet/wallet-home.yaml`     | First sample flow — wallet home with `fixture:default`                                       |
-| `tests/visual/maestro.config.yaml`               | Maestro workspace config (testOutputDir, env)                                                |
+| File                                         | Responsibility                                                                |
+| -------------------------------------------- | ----------------------------------------------------------------------------- |
+| `tests/maestro/orchestrator/index.ts`        | Shared CLI orchestrator — flow discovery, execution loop, results reporting   |
+| `tests/maestro/orchestrator/run-flow.ts`     | Single flow executor — fixture/mock servers, Maestro spawn, teardown          |
+| `tests/maestro/orchestrator/parse-tags.ts`   | Extracts `fixture:*` and `mock:*` tags from Maestro YAML frontmatter          |
+| `tests/maestro/orchestrator/device.ts`       | Detects booted iOS simulator UDID                                             |
+| `tests/maestro/orchestrator/register.js`     | Runtime hooks — module shims for @metamask/native-utils, Detox stubs          |
+| `tests/maestro/orchestrator/empty-stub.js`   | Stub for Playwright transitive imports                                        |
+| `tests/maestro/fixtures/presets.ts`          | Fixture base + modifier registry, `buildFromTag()` function                   |
+| `tests/maestro/mocks/registry.ts`            | Mock tag → setup function mapping                                             |
+| `tests/maestro/mocks/send-balances.ts`       | Send flow mock overrides                                                      |
+| `tests/visual/cli.ts`                        | Visual CLI entry point — wraps shared orchestrator, adds `--update-baselines` |
+| `tests/visual/rewrite-flow.ts`               | Rewrites `assertScreenshot` → `takeScreenshot` for baseline capture           |
+| `tests/visual/flows/wallet/wallet-home.yaml` | Wallet home visual flow with `fixture:default`                                |
+| `tests/visual/flows/wallet/send-eth.yaml`    | Send ETH visual flow with 4 screen captures                                   |
+| `tests/visual/maestro.config.yaml`           | Maestro workspace config (testOutputDir, env)                                 |
 
 ---
 
@@ -31,12 +37,12 @@
 
 **Files:**
 
-- Create: `tests/visual/orchestrator/parse-fixture-tag.ts`
+- Create: `tests/maestro/orchestrator/parse-tags.ts`
 
 - [ ] **Step 1: Write `parseFixtureTag`**
 
 ```typescript
-// tests/visual/orchestrator/parse-fixture-tag.ts
+// tests/maestro/orchestrator/parse-tags.ts
 import yaml from 'js-yaml';
 import { readFileSync } from 'fs';
 
@@ -77,7 +83,7 @@ tags:
     timeout: 15000' > /tmp/test-flow.yaml
 
 yarn ts-node --transpile-only -e "
-const { parseFixtureTag } = require('./tests/visual/orchestrator/parse-fixture-tag');
+const { parseFixtureTag } = require('./tests/maestro/orchestrator/parse-tags');
 console.log(parseFixtureTag('/tmp/test-flow.yaml'));
 "
 ```
@@ -87,7 +93,7 @@ Expected: `fixture:default:with-tokens`
 - [ ] **Step 3: Commit**
 
 ```bash
-git add tests/visual/orchestrator/parse-fixture-tag.ts
+git add tests/maestro/orchestrator/parse-tags.ts
 git commit -m "feat(visual): add fixture tag parser for Maestro YAML flows"
 ```
 
@@ -97,14 +103,14 @@ git commit -m "feat(visual): add fixture tag parser for Maestro YAML flows"
 
 **Files:**
 
-- Create: `tests/visual/fixtures/presets.ts`
+- Create: `tests/maestro/fixtures/presets.ts`
 
 **Context:** This file imports from the existing FixtureBuilder at `tests/framework/fixtures/FixtureBuilder.ts`. The FixtureBuilder API uses method chaining: `new FixtureBuilder().withDefaultFixture().withTokens(...)`.build()`.
 
 - [ ] **Step 1: Write the presets registry**
 
 ```typescript
-// tests/visual/fixtures/presets.ts
+// tests/maestro/fixtures/presets.ts
 import FixtureBuilder from '../../framework/fixtures/FixtureBuilder';
 import type { Fixture } from '../../framework/fixtures/types';
 
@@ -178,7 +184,7 @@ Note: Starting with a minimal set of modifiers. `with-tokens` is excluded for no
 
 ```bash
 yarn ts-node --transpile-only -e "
-const { buildFromTag } = require('./tests/visual/fixtures/presets');
+const { buildFromTag } = require('./tests/maestro/fixtures/presets');
 const fixture = buildFromTag('fixture:default');
 console.log('state keys:', Object.keys(fixture.state || {}));
 console.log('SUCCESS');
@@ -191,7 +197,7 @@ Expected: Prints state keys and `SUCCESS` without errors.
 
 ```bash
 yarn ts-node --transpile-only -e "
-const { buildFromTag } = require('./tests/visual/fixtures/presets');
+const { buildFromTag } = require('./tests/maestro/fixtures/presets');
 try { buildFromTag('fixture:unknown'); } catch(e) { console.log('CAUGHT:', e.message); }
 try { buildFromTag('fixture:default:bad-modifier'); } catch(e) { console.log('CAUGHT:', e.message); }
 "
@@ -202,7 +208,7 @@ Expected: Two `CAUGHT:` lines with helpful error messages.
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tests/visual/fixtures/presets.ts
+git add tests/maestro/fixtures/presets.ts
 git commit -m "feat(visual): add fixture presets registry with base + modifier pattern"
 ```
 
@@ -212,14 +218,14 @@ git commit -m "feat(visual): add fixture presets registry with base + modifier p
 
 **Files:**
 
-- Create: `tests/visual/orchestrator/rewrite-flow.ts`
+- Create: `tests/visual/rewrite-flow.ts`
 
 **Context:** In `--update-baselines` mode, the orchestrator needs to rewrite `assertScreenshot` to `takeScreenshot` in the YAML, stripping the `.png` extension from paths. Must handle both inline and block syntax. Writes a temp file to `tests/visual/.tmp/`.
 
 - [ ] **Step 1: Write the rewriter**
 
 ```typescript
-// tests/visual/orchestrator/rewrite-flow.ts
+// tests/visual/rewrite-flow.ts
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import path from 'path';
 
@@ -263,7 +269,7 @@ export function rewriteFlowForCapture(flowPath: string): string {
 ```bash
 echo '- assertScreenshot: ios/wallet/home.png' > /tmp/test-inline.yaml
 yarn ts-node --transpile-only -e "
-const { rewriteFlowForCapture } = require('./tests/visual/orchestrator/rewrite-flow');
+const { rewriteFlowForCapture } = require('./tests/visual/rewrite-flow');
 const result = rewriteFlowForCapture('/tmp/test-inline.yaml');
 const fs = require('fs');
 console.log(fs.readFileSync(result, 'utf-8'));
@@ -283,7 +289,7 @@ cat > /tmp/test-block.yaml << 'EOF'
     thresholdPercentage: 95
 EOF
 yarn ts-node --transpile-only -e "
-const { rewriteFlowForCapture } = require('./tests/visual/orchestrator/rewrite-flow');
+const { rewriteFlowForCapture } = require('./tests/visual/rewrite-flow');
 const result = rewriteFlowForCapture('/tmp/test-block.yaml');
 const fs = require('fs');
 console.log(fs.readFileSync(result, 'utf-8'));
@@ -295,7 +301,7 @@ Expected: `takeScreenshot` with `path: ios/wallet/home` (no `.png`), no `thresho
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tests/visual/orchestrator/rewrite-flow.ts
+git add tests/visual/rewrite-flow.ts
 git commit -m "feat(visual): add flow rewriter for baseline capture mode"
 ```
 
@@ -305,14 +311,14 @@ git commit -m "feat(visual): add flow rewriter for baseline capture mode"
 
 **Files:**
 
-- Create: `tests/visual/orchestrator/device.ts`
+- Create: `tests/maestro/orchestrator/device.ts`
 
 **Context:** The orchestrator needs the booted iOS simulator UDID to pass `--device` to Maestro. Uses `xcrun simctl list devices booted` to find it.
 
 - [ ] **Step 1: Write device detection**
 
 ```typescript
-// tests/visual/orchestrator/device.ts
+// tests/maestro/orchestrator/device.ts
 import { execFileSync } from 'child_process';
 
 /**
@@ -353,7 +359,7 @@ export function getBootedSimulatorUdid(): string {
 
 ```bash
 yarn ts-node --transpile-only -e "
-const { getBootedSimulatorUdid } = require('./tests/visual/orchestrator/device');
+const { getBootedSimulatorUdid } = require('./tests/maestro/orchestrator/device');
 console.log('UDID:', getBootedSimulatorUdid());
 "
 ```
@@ -363,7 +369,7 @@ Expected: Prints a UDID like `49FD6DB0-BFB0-448B-9B06-2951E9886E6F`
 - [ ] **Step 3: Commit**
 
 ```bash
-git add tests/visual/orchestrator/device.ts
+git add tests/maestro/orchestrator/device.ts
 git commit -m "feat(visual): add booted iOS simulator detection"
 ```
 
@@ -373,7 +379,7 @@ git commit -m "feat(visual): add booted iOS simulator detection"
 
 **Files:**
 
-- Create: `tests/visual/orchestrator/run-flow.ts`
+- Create: `tests/maestro/orchestrator/run-flow.ts`
 
 **Context:** This is the core of the orchestrator — it executes a single Maestro flow end-to-end: build fixture, start server, launch app, run Maestro, teardown.
 
@@ -386,14 +392,14 @@ Key infrastructure:
 - [ ] **Step 1: Write run-flow**
 
 ```typescript
-// tests/visual/orchestrator/run-flow.ts
+// tests/maestro/orchestrator/run-flow.ts
 import { execFileSync } from 'child_process';
 import { rmSync } from 'fs';
 import FixtureServer from '../../framework/fixtures/FixtureServer';
 import { startResourceWithRetry } from '../../framework/fixtures/FixtureUtils';
 import { ResourceType } from '../../framework/PortManager';
 import { buildFromTag } from '../fixtures/presets';
-import { parseFixtureTag } from './parse-fixture-tag';
+import { parseFixtureTag } from './parse-tags';
 import { rewriteFlowForCapture } from './rewrite-flow';
 
 const APP_BUNDLE_ID = 'io.metamask.MetaMask';
@@ -530,7 +536,7 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
 
 ```bash
 yarn ts-node --transpile-only -e "
-const { runFlow } = require('./tests/visual/orchestrator/run-flow');
+const { runFlow } = require('./tests/maestro/orchestrator/run-flow');
 console.log('runFlow imported:', typeof runFlow);
 "
 ```
@@ -540,7 +546,7 @@ Expected: `runFlow imported: function`
 - [ ] **Step 3: Commit**
 
 ```bash
-git add tests/visual/orchestrator/run-flow.ts
+git add tests/maestro/orchestrator/run-flow.ts
 git commit -m "feat(visual): add single flow executor with fixture server lifecycle"
 ```
 
@@ -550,18 +556,18 @@ git commit -m "feat(visual): add single flow executor with fixture server lifecy
 
 **Files:**
 
-- Create: `tests/visual/orchestrator/index.ts`
+- Create: `tests/maestro/orchestrator/index.ts`
 
 **Context:** The main CLI that ties everything together. Discovers flows, runs each one, reports results.
 
 - [ ] **Step 1: Write the CLI entry point**
 
 ```typescript
-// tests/visual/orchestrator/index.ts
+// tests/maestro/orchestrator/index.ts
 import { readdirSync, statSync, mkdirSync, rmSync } from 'fs';
 import path from 'path';
 import { getBootedSimulatorUdid } from './device';
-import { parseFixtureTag } from './parse-fixture-tag';
+import { parseFixtureTag } from './parse-tags';
 import { runFlow, RunFlowResult } from './run-flow';
 
 const FLOWS_DIR = path.join(__dirname, '..', 'flows');
@@ -683,7 +689,7 @@ main().catch((err) => {
 - [ ] **Step 2: Verify it compiles and shows help-like output with no flows**
 
 ```bash
-yarn ts-node --transpile-only tests/visual/orchestrator/index.ts 2>&1 || true
+yarn ts-node --transpile-only tests/maestro/orchestrator/index.ts 2>&1 || true
 ```
 
 Expected: Either "No flows with fixture: tags found." (if no flows exist yet) or starts running.
@@ -691,7 +697,7 @@ Expected: Either "No flows with fixture: tags found." (if no flows exist yet) or
 - [ ] **Step 3: Commit**
 
 ```bash
-git add tests/visual/orchestrator/index.ts
+git add tests/maestro/orchestrator/index.ts
 git commit -m "feat(visual): add orchestrator CLI entry point"
 ```
 
@@ -778,8 +784,8 @@ git commit -m "feat(visual): add maestro config, sample wallet-home flow, and ba
 Add these to the `"scripts"` section:
 
 ```json
-"maestro:visual": "ts-node --transpile-only tests/visual/orchestrator/index.ts",
-"maestro:visual:update-baselines": "ts-node --transpile-only tests/visual/orchestrator/index.ts --update-baselines"
+"maestro:visual": "ts-node --transpile-only -r ./tests/maestro/orchestrator/register.js tests/visual/cli.ts",
+"maestro:visual:update-baselines": "ts-node --transpile-only -r ./tests/maestro/orchestrator/register.js tests/visual/cli.ts --update-baselines"
 ```
 
 - [ ] **Step 2: Verify the script runs**
@@ -851,7 +857,7 @@ git commit -m "fix(visual): address issues found during orchestrator smoke test"
 
 **Files:**
 
-- Modify: `tests/visual/orchestrator/run-flow.ts`
+- Modify: `tests/maestro/orchestrator/run-flow.ts`
 
 **Context:** Without a mock server, the E2E app's `shim.js` routes all HTTP traffic to real MetaMask API endpoints. This causes:
 
@@ -949,7 +955,7 @@ After the mock server is integrated, the "Perps are here" promo and similar feat
 - [ ] **Step 4: Commit**
 
 ```bash
-git add tests/visual/orchestrator/run-flow.ts
+git add tests/maestro/orchestrator/run-flow.ts
 git commit -m "feat(visual): add MockServerE2E for deterministic API responses and feature flags"
 ```
 
@@ -1048,7 +1054,7 @@ Add a visual regression flow for the send ETH flow, capturing 4 screens: asset s
 
 **Recipient address:** `0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb` (same as Detox tests)
 
-**Balance:** The default fixture has `balance: "0x0"` in `AccountTrackerController`, but `MockServerE2E` + `DEFAULT_MOCKS` mock the accounts API to return 0.5 ETH (`tests/api-mocking/mock-responses/defaults/accounts.ts:1297`). The app fetches balance from this API, so the send flow should have funds available. If balance still shows 0, add a `with-eth-balance` modifier to `tests/visual/fixtures/presets.ts` that sets `AccountTrackerController.accountsByChainId` to a non-zero value.
+**Balance:** The default fixture has `balance: "0x0"` in `AccountTrackerController`, but `MockServerE2E` + `DEFAULT_MOCKS` mock the accounts API to return 0.5 ETH (`tests/api-mocking/mock-responses/defaults/accounts.ts:1297`). The app fetches balance from this API, so the send flow should have funds available. If balance still shows 0, add a `with-eth-balance` modifier to `tests/maestro/fixtures/presets.ts` that sets `AccountTrackerController.accountsByChainId` to a non-zero value.
 
 **Risk:** The confirmation screen requires gas estimation API responses. `MockServerE2E` + `DEFAULT_MOCKS` should cover this (they mock `transaction.api.cx.metamask.io/networks/*/getFees` and Tenderly simulation). If the confirmation screen doesn't render, drop the last screenshot and stop at recipient.
 
