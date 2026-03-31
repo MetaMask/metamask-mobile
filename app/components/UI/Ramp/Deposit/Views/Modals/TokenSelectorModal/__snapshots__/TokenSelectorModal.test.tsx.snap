@@ -3347,13 +3347,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -3361,13 +3365,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC
@@ -3578,13 +3586,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Tether USD
@@ -3592,13 +3604,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDT
@@ -3794,13 +3810,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Bitcoin
@@ -3808,13 +3828,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           BTC
@@ -4010,13 +4034,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           Ethereum
@@ -4024,13 +4052,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           ETH
@@ -4226,13 +4258,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#131416",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 16,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 24,
-                                            }
+                                            [
+                                              {
+                                                "color": "#131416",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 16,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 24,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USD Coin
@@ -4240,13 +4276,17 @@ exports[`TokenSelectorModal Component renders correctly and matches snapshot 1`]
                                         <Text
                                           accessibilityRole="text"
                                           style={
-                                            {
-                                              "color": "#66676a",
-                                              "fontFamily": "Geist-Medium",
-                                              "fontSize": 14,
-                                              "letterSpacing": 0,
-                                              "lineHeight": 22,
-                                            }
+                                            [
+                                              {
+                                                "color": "#66676a",
+                                                "fontFamily": "Geist-Medium",
+                                                "fontSize": 14,
+                                                "fontWeight": 400,
+                                                "letterSpacing": 0,
+                                                "lineHeight": 22,
+                                              },
+                                              undefined,
+                                            ]
                                           }
                                         >
                                           USDC
