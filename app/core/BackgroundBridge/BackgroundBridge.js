@@ -377,7 +377,7 @@ export class BackgroundBridge extends EventEmitter {
    */
   getNonEvmSupportedMethods(scope) {
     return Engine.controllerMessenger.call(
-      'MultichainRouter:getSupportedMethods',
+      'MultichainRoutingService:getSupportedMethods',
       scope,
     );
   }
@@ -766,16 +766,19 @@ export class BackgroundBridge extends EventEmitter {
         getNonEvmSupportedMethods: this.getNonEvmSupportedMethods.bind(this),
         isNonEvmScopeSupported: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
-          'MultichainRouter:isSupportedScope',
+          'MultichainRoutingService:isSupportedScope',
         ),
         handleNonEvmRequestForOrigin: (params) =>
-          Engine.controllerMessenger.call('MultichainRouter:handleRequest', {
-            ...params,
-            origin: this.origin,
-          }),
+          Engine.controllerMessenger.call(
+            'MultichainRoutingService:handleRequest',
+            {
+              ...params,
+              origin: this.origin,
+            },
+          ),
         getNonEvmAccountAddresses: Engine.controllerMessenger.call.bind(
           Engine.controllerMessenger,
-          'MultichainRouter:getSupportedAccounts',
+          'MultichainRoutingService:getSupportedAccounts',
         ),
         trackSessionCreatedEvent: () => undefined,
       }),

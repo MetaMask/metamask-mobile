@@ -18,6 +18,7 @@ const getRootMessenger = (): RootMessenger =>
   new Messenger<MockAnyNamespace, never, never>({
     namespace: MOCK_ANY_NAMESPACE,
   });
+
 describe('getExecutionServiceMessenger', () => {
   it('returns a messenger', () => {
     const rootMessenger = getRootMessenger();
