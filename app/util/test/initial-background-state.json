@@ -443,6 +443,8 @@
       "activeWithdrawalId": null
     },
     "lastWithdrawResult": null,
+    "lastCompletedWithdrawalTimestamp": null,
+    "lastCompletedWithdrawalTxHashes": [],
     "lastError": null,
     "lastUpdateTimestamp": 0,
     "isEligible": false,
@@ -708,6 +710,9 @@
     "pointsEstimateHistory": [],
     "pointsEvents": {},
     "campaigns": {},
+    "ondoCampaignLeaderboardPositions": {},
+    "ondoCampaignPortfolio": {},
+    "ondoCampaignLeaderboard": {},
     "campaignParticipantStatus": {},
     "unlockedRewards": {},
     "seasonStatuses": {},
@@ -727,7 +732,7 @@
     "pendingDeposits": {},
     "pendingClaims": {},
     "withdrawTransaction": null,
-    "activeOrder": null,
+    "activeBuyOrder": null,
     "selectedPaymentToken": null,
     "accountMeta": {}
   },
