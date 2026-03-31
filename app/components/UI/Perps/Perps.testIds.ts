@@ -759,3 +759,13 @@ export const PerpsTransactionsViewSelectorsIDs = {
   TAB_FUNDING: 'perps-transactions-tab-funding',
   TAB_DEPOSITS: 'perps-transactions-tab-deposits',
 } as const;
+
+// ========================================
+// PERPS FLIP POSITION CONFIRM SHEET SELECTORS
+// ========================================
+
+export const PerpsFlipPositionConfirmSheetSelectorsIDs = {
+  SHEET: 'perps-flip-position-confirm-sheet',
+  CANCEL_BUTTON: 'perps-flip-position-cancel-button',
+  FLIP_BUTTON: 'perps-flip-position-flip-button',
+} as const;
