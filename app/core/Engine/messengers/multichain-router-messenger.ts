@@ -30,7 +30,7 @@ export function getMultichainRouterMessenger(
   });
   rootMessenger.delegate({
     actions: [
-      'SnapController:getAll',
+      'SnapController:getAllSnaps',
       'SnapController:handleRequest',
       'PermissionController:getPermissions',
       'AccountsController:listMultichainAccounts',

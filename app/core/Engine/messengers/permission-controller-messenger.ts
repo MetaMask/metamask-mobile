@@ -5,8 +5,8 @@ import {
 } from '@metamask/messenger';
 
 import {
-  GetPermittedSnaps,
-  InstallSnaps,
+  SnapControllerGetPermittedSnapsAction,
+  SnapControllerInstallSnapsAction,
   MultichainRouterGetSupportedAccountsAction,
   MultichainRouterIsSupportedScopeAction,
 } from '@metamask/snaps-controllers';
@@ -30,8 +30,8 @@ export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
   const messenger = new Messenger<
     'PermissionController',
     | MessengerActions<PermissionControllerMessenger>
-    | GetPermittedSnaps
-    | InstallSnaps,
+    | SnapControllerGetPermittedSnapsAction
+    | SnapControllerInstallSnapsAction,
     MessengerEvents<PermissionControllerMessenger>,
     RootMessenger
   >({
@@ -45,8 +45,8 @@ export function getPermissionControllerMessenger(rootMessenger: RootMessenger) {
       'ApprovalController:acceptRequest',
       'ApprovalController:rejectRequest',
       ///: BEGIN:ONLY_INCLUDE_IF(preinstalled-snaps,external-snaps)
-      'SnapController:getPermitted',
-      'SnapController:install',
+      'SnapController:getPermittedSnaps',
+      'SnapController:installSnaps',
       'SubjectMetadataController:getSubjectMetadata',
       ///: END:ONLY_INCLUDE_IF
     ],
@@ -105,7 +105,7 @@ export function getPermissionControllerInitMessenger(
       'PhishingController:testOrigin',
       'PreferencesController:getState',
       'SnapController:clearSnapState',
-      'SnapController:get',
+      'SnapController:getSnap',
       'SnapController:getSnapState',
       'SnapController:handleRequest',
       'SnapController:updateSnapState',
