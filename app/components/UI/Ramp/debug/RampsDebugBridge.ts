@@ -401,25 +401,31 @@ function wrapControllerMethods(
         typeof (result as Promise<unknown>).then === 'function';
 
       if (isPromiseLike) {
-        // Only attach onFulfilled so we do not consume rejections (avoids masking
-        // unhandled rejections in devtools). Failed async methods still reject to callers.
+        // Second argument avoids an unhandled rejection on the *derived* promise from
+        // `.then()` in React Native __DEV__ (LogBox). The original promise is still
+        // returned to callers unchanged.
         // eslint-disable-next-line @typescript-eslint/no-floating-promises -- debug-only side effect; original promise is still returned to callers
-        (result as Promise<unknown>).then((resolved) => {
-          const cacheStatus =
-            trackCache && requestsBefore
-              ? detectCacheStatus(controller, requestsBefore)
-              : null;
-          send({
-            type: 'method',
-            name,
-            args: sanitizeArgs(args),
-            result: sanitizeResult(resolved),
-            duration: Date.now() - start,
-            timestamp: Date.now(),
-            cacheStatus,
-            requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
-          });
-        });
+        (result as Promise<unknown>).then(
+          (resolved) => {
+            const cacheStatus =
+              trackCache && requestsBefore
+                ? detectCacheStatus(controller, requestsBefore)
+                : null;
+            send({
+              type: 'method',
+              name,
+              args: sanitizeArgs(args),
+              result: sanitizeResult(resolved),
+              duration: Date.now() - start,
+              timestamp: Date.now(),
+              cacheStatus,
+              requestUrl: trackCache ? urlTracker.findUrl(name, start) : null,
+            });
+          },
+          () => {
+            /* intentional no-op: rejection is handled by the caller's promise */
+          },
+        );
       } else {
         const cacheStatus =
           trackCache && requestsBefore
