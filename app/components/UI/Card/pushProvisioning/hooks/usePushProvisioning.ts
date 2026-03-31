@@ -466,7 +466,6 @@ export function usePushProvisioning(
     !isLoading &&
     !!cardDetails &&
     isCardEligible &&
-    isAccountEligible &&
     !!cardAdapter &&
     !!walletAdapter &&
     eligibility?.isAvailable === true &&
