@@ -76,10 +76,8 @@ import {
 } from '../../constants';
 import { useCardSDK } from '../../sdk';
 import Routes from '../../../../../constants/navigation/Routes';
-import {
-  resetAuthenticatedData,
-  selectUserCardLocation,
-} from '../../../../../core/redux/slices/card';
+import { resetAuthenticatedData } from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { cardQueries } from '../../queries';
 import { selectMetalCardCheckoutFeatureFlag } from '../../../../../selectors/featureFlagController/card';
 import CardMessageBox from '../../components/CardMessageBox/CardMessageBox';
@@ -144,7 +142,7 @@ const CardHome = () => {
   const [isHandlingAuthError, setIsHandlingAuthError] = useState(false);
   const { toastRef } = useContext(ToastContext);
   const { logoutFromProvider, isLoading: isSDKLoading } = useCardSDK();
-  const userLocation = useSelector(selectUserCardLocation);
+  const userLocation = useSelector(selectCardUserLocation);
   const isMetalCardCheckoutEnabled = useSelector(
     selectMetalCardCheckoutFeatureFlag,
   );

@@ -25,10 +25,10 @@ import { useAnalytics } from '../../../../hooks/useAnalytics/useAnalytics';
 import { MetaMetricsEvents } from '../../../../../core/Analytics';
 import { useDispatch, useSelector } from 'react-redux';
 import {
-  selectUserCardLocation,
   setOnboardingId,
   setUserCardLocation,
 } from '../../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../../selectors/cardController';
 import { CardActions, CardScreens } from '../../util/metrics';
 import OnboardingStep from '../../components/Onboarding/OnboardingStep';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
@@ -49,7 +49,7 @@ const CardAuthentication = () => {
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const location = useSelector(selectUserCardLocation);
+  const location = useSelector(selectCardUserLocation);
   const [otpData, setOtpData] = useState<{
     userId: string;
     maskedPhoneNumber?: string;

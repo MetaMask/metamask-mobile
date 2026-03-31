@@ -26,10 +26,8 @@ import {
   selectGeolocationLocation,
   selectGeolocationStatus,
 } from '../../../../../selectors/geolocationController';
-import {
-  selectIsCardholder,
-  selectIsAuthenticatedCard,
-} from '../../../../../core/redux/slices/card';
+import { selectIsAuthenticatedCard } from '../../../../../core/redux/slices/card';
+import { selectIsCardholder } from '../../../../../selectors/cardController';
 import { handleDeeplink } from '../../../../../core/DeeplinkManager';
 import musdImage from '../../../../../images/rewards/rewards-musd-earn.png';
 import cardImage from '../../../../../images/rewards/rewards-card-earn.png';

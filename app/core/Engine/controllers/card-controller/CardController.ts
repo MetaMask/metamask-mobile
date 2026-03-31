@@ -15,6 +15,11 @@ import {
   type ICardProvider,
 } from './provider-types';
 import { CardTokenStore } from './CardTokenStore';
+import { isEthAccount } from '../../../Multichain/utils';
+import type { InternalAccount } from '@metamask/accounts-controller';
+
+const CARDHOLDER_BATCH_SIZE = 50;
+const CARDHOLDER_MAX_BATCHES = 3;
 
 const metadata: StateMetadata<CardControllerState> = {
   selectedCountry: {
@@ -92,6 +97,134 @@ export class CardController extends BaseController<
       },
     });
     this.providers = providers;
+    this.#subscribeToEvents();
+  }
+
+  #subscribeToEvents(): void {
+    // On app unlock: run both cardholder check AND session verification
+    this.messagingSystem.subscribe('KeyringController:unlock', () => {
+      this.#triggerCardholderCheck();
+      this.validateAndRefreshSession().catch((error) =>
+        Logger.error(error as Error, {
+          tags: { feature: 'card' },
+          context: { name: 'CardController', data: { method: '#onUnlock' } },
+        }),
+      );
+    });
+
+    // Re-check when EVM account set changes (account added/removed).
+    // The selector extracts a stable key; handler fires only when it changes,
+    // avoiding redundant API calls on unrelated account data updates.
+    this.messagingSystem.subscribe(
+      'AccountsController:stateChange',
+      (_key: string) => {
+        this.#triggerCardholderCheck();
+      },
+      (state) =>
+        Object.values(state.internalAccounts.accounts)
+          .filter((acc) => isEthAccount(acc as InternalAccount))
+          .map((acc) => (acc as InternalAccount).address.toLowerCase())
+          .sort()
+          .join(','),
+    );
+  }
+
+  #triggerCardholderCheck(): void {
+    const accounts = this.messagingSystem.call(
+      'AccountsController:listMultichainAccounts',
+    );
+    const evmAccounts = accounts.filter((acc) =>
+      isEthAccount(acc as InternalAccount),
+    );
+    if (!evmAccounts.length) return;
+
+    const caipAccountIds = evmAccounts.map(
+      (acc) =>
+        `eip155:0:${(acc as InternalAccount).address}` as `${string}:${string}:${string}`,
+    );
+
+    const featureState = this.messagingSystem.call(
+      'RemoteFeatureFlagController:getState',
+    );
+    const cardFeature = featureState.remoteFeatureFlags?.cardFeature as
+      | { constants?: { accountsApiUrl?: string } }
+      | undefined;
+    const accountsApiUrl = cardFeature?.constants?.accountsApiUrl;
+    if (!accountsApiUrl) return;
+
+    this.checkCardholderAccounts(caipAccountIds, accountsApiUrl).catch(
+      (error) =>
+        Logger.error(error as Error, {
+          tags: { feature: 'card' },
+          context: {
+            name: 'CardController',
+            data: { method: '#triggerCardholderCheck' },
+          },
+        }),
+    );
+  }
+
+  /**
+   * Checks which CAIP-10 account IDs are MetaMask Card holders and stores
+   * the result in controller state. Processes up to 150 accounts (3 × 50).
+   * Public for testability.
+   */
+  async checkCardholderAccounts(
+    caipAccountIds: `${string}:${string}:${string}`[],
+    accountsApiUrl: string,
+  ): Promise<void> {
+    if (!caipAccountIds?.length || !accountsApiUrl) return;
+
+    const batches = this.#createBatches(
+      caipAccountIds,
+      CARDHOLDER_BATCH_SIZE,
+      CARDHOLDER_MAX_BATCHES,
+    );
+
+    try {
+      const results = await Promise.all(
+        batches.map((batch) =>
+          this.#fetchCardholderBatch(batch, accountsApiUrl),
+        ),
+      );
+      this.update((s) => {
+        s.cardholderAccounts = results.flat();
+      });
+    } catch (error) {
+      Logger.error(error as Error, {
+        tags: { feature: 'card', operation: 'checkCardholderAccounts' },
+        context: {
+          name: 'CardController',
+          data: { accountCount: caipAccountIds.length },
+        },
+      });
+    }
+  }
+
+  async #fetchCardholderBatch(
+    accountIds: string[],
+    accountsApiUrl: string,
+  ): Promise<string[]> {
+    const url = new URL('v1/metadata', accountsApiUrl);
+    url.searchParams.set('accountIds', accountIds.join(',').toLowerCase());
+    url.searchParams.set('label', 'card_user');
+    const response = await fetch(url.toString());
+    if (!response.ok)
+      throw new Error(`Cardholder API error: ${response.status}`);
+    const data = await response.json();
+    return (data.is as string[]) ?? [];
+  }
+
+  #createBatches<T>(items: T[], size: number, maxBatches: number): T[][] {
+    const batches: T[][] = [];
+    for (
+      let i = 0;
+      i < items.length && batches.length < maxBatches;
+      i += size
+    ) {
+      batches.push(items.slice(i, i + size));
+    }
+    return batches;
   }
 
   private getActiveProvider(): ICardProvider {
@@ -104,12 +237,6 @@ export class CardController extends BaseController<
       );
     }
     return provider;
-  }
-
-  private markAuthenticated(): void {
-    this.update((s) => {
-      s.isAuthenticated = true;
-    });
   }
 
   private markUnauthenticated(): void {
@@ -239,7 +366,17 @@ export class CardController extends BaseController<
     const validity = provider.validateTokens(tokens);
 
     if (validity === 'valid') {
-      this.markAuthenticated();
+      this.update((s) => {
+        s.isAuthenticated = true;
+        (s.providerData as unknown as Record<string, Record<string, string>>)[
+          pid
+        ] = {
+          ...((
+            s.providerData as unknown as Record<string, Record<string, string>>
+          )[pid] ?? {}),
+          location: tokens.location,
+        };
+      });
       return { isAuthenticated: true, location: tokens.location };
     }
 
@@ -247,7 +384,20 @@ export class CardController extends BaseController<
       try {
         const newTokens = await provider.refreshTokens(tokens);
         await CardTokenStore.set(pid, newTokens);
-        this.markAuthenticated();
+        this.update((s) => {
+          s.isAuthenticated = true;
+          (s.providerData as unknown as Record<string, Record<string, string>>)[
+            pid
+          ] = {
+            ...((
+              s.providerData as unknown as Record<
+                string,
+                Record<string, string>
+              >
+            )[pid] ?? {}),
+            location: newTokens.location,
+          };
+        });
         return { isAuthenticated: true, location: newTokens.location };
       } catch (error) {
         Logger.error(error as Error, {

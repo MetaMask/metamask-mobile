@@ -1,19 +1,12 @@
 import { RootState } from '../../../../reducers';
 import cardReducer, {
   CardSliceState,
-  selectCardholderAccounts,
-  selectIsCardholder,
-  loadCardholderAccounts,
   resetCardState,
   initialState,
   setHasViewedCardButton,
   selectHasViewedCardButton,
-  selectCardIsLoaded,
-  selectIsAuthenticatedCard,
-  selectUserCardLocation,
   setIsAuthenticatedCard,
   setUserCardLocation,
-  verifyCardAuthentication,
   setOnboardingId,
   setContactVerificationId,
   setConsentSetId,
@@ -24,44 +17,9 @@ import cardReducer, {
   resetAuthenticatedData,
 } from '.';
 
-// Mock the multichain selectors
-jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
-  selectSelectedInternalAccountByScope: jest.fn(),
-}));
-
-// Mock the multichain utils
-jest.mock('../../../Multichain/utils', () => ({
-  isEthAccount: jest.fn(),
-}));
-
-// Mock handleLocalAuthentication
-jest.mock(
-  '../../../../components/UI/Card/util/handleLocalAuthentication',
-  () => ({
-    handleLocalAuthentication: jest.fn(),
-  }),
-);
-
-import { selectSelectedInternalAccountByScope } from '../../../../selectors/multichainAccounts/accounts';
-import { isEthAccount } from '../../../Multichain/utils';
-const mockSelectSelectedInternalAccountByScope =
-  selectSelectedInternalAccountByScope as jest.MockedFunction<
-    typeof selectSelectedInternalAccountByScope
-  >;
-
-const mockIsEthAccount = isEthAccount as jest.MockedFunction<
-  typeof isEthAccount
->;
-
-const CARDHOLDER_ACCOUNTS_MOCK: string[] = [
-  '0x1234567890123456789012345678901234567890',
-  '0xabcdefabcdefabcdefabcdefabcdefabcdefabcd',
-];
-
 const CARD_STATE_MOCK: CardSliceState = {
-  cardholderAccounts: CARDHOLDER_ACCOUNTS_MOCK,
+  cardholderAccounts: ['0x1234', '0xabcd'],
   isDaimoDemo: false,
-  isLoaded: true,
   hasViewedCardButton: true,
   isAuthenticated: false,
   userCardLocation: 'international',
@@ -75,7 +33,6 @@ const CARD_STATE_MOCK: CardSliceState = {
 const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   cardholderAccounts: [],
   isDaimoDemo: false,
-  isLoaded: false,
   hasViewedCardButton: false,
   isAuthenticated: false,
   userCardLocation: 'international',
@@ -86,44 +43,7 @@ const EMPTY_CARD_STATE_MOCK: CardSliceState = {
   },
 };
 
-// Mock account object that matches the expected structure
-const createMockAccount = (address: string) => ({
-  address: address.toLowerCase(),
-  id: `mock-id-${address}`,
-  metadata: {
-    name: 'Mock Account',
-    importTime: Date.now(),
-    keyring: {
-      type: 'HD Key Tree',
-    },
-  },
-  options: {},
-  methods: [],
-  type: 'eip155:eoa' as const,
-  scopes: ['eip155:59144' as const],
-});
-
 describe('Card Selectors', () => {
-  describe('selectCardholderAccounts', () => {
-    it('returns the cardholder accounts array from the card state', () => {
-      const mockRootState = {
-        card: CARD_STATE_MOCK,
-      } as unknown as RootState;
-
-      expect(selectCardholderAccounts(mockRootState)).toEqual(
-        CARDHOLDER_ACCOUNTS_MOCK,
-      );
-    });
-
-    it('returns an empty array when no cardholder accounts exist', () => {
-      const mockRootState = {
-        card: EMPTY_CARD_STATE_MOCK,
-      } as unknown as RootState;
-
-      expect(selectCardholderAccounts(mockRootState)).toEqual([]);
-    });
-  });
-
   describe('selectHasViewedCardButton', () => {
     it('returns false by default from initial state', () => {
       const mockRootState = { card: initialState } as unknown as RootState;
@@ -137,107 +57,6 @@ describe('Card Selectors', () => {
       };
       const mockRootState = { card: stateWithFlag } as unknown as RootState;
       expect(selectHasViewedCardButton(mockRootState)).toBe(true);
-    });
-  });
-
-  describe('selectCardIsLoaded', () => {
-    it('returns false by default from initial state', () => {
-      const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectCardIsLoaded(mockRootState)).toBe(false);
-    });
-
-    it('returns true when isLoaded is true', () => {
-      const mockRootState = { card: CARD_STATE_MOCK } as unknown as RootState;
-      expect(selectCardIsLoaded(mockRootState)).toBe(true);
-    });
-
-    it('returns false when isLoaded is false (initial/loading state)', () => {
-      const mockRootState = {
-        card: EMPTY_CARD_STATE_MOCK,
-      } as unknown as RootState;
-      expect(selectCardIsLoaded(mockRootState)).toBe(false);
-    });
-  });
-
-  describe('selectIsCardholder', () => {
-    beforeEach(() => {
-      jest.clearAllMocks();
-    });
-
-    it('returns true when selected account is in cardholder accounts', () => {
-      const selectedAccount = createMockAccount(CARDHOLDER_ACCOUNTS_MOCK[0]);
-
-      // Mock the selector to return a function that returns the account
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        () => selectedAccount,
-      );
-      mockIsEthAccount.mockReturnValue(true);
-
-      const mockRootState = {
-        card: CARD_STATE_MOCK,
-      } as unknown as RootState;
-
-      expect(selectIsCardholder(mockRootState)).toBe(true);
-    });
-
-    it('returns false when selected account is not in cardholder accounts', () => {
-      const selectedAccount = createMockAccount(
-        '0x9999999999999999999999999999999999999999',
-      );
-
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        () => selectedAccount,
-      );
-      mockIsEthAccount.mockReturnValue(true);
-
-      const mockRootState = {
-        card: CARD_STATE_MOCK,
-      } as unknown as RootState;
-
-      expect(selectIsCardholder(mockRootState)).toBe(false);
-    });
-
-    it('returns false when no account is selected', () => {
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(() => undefined);
-      mockIsEthAccount.mockReturnValue(false);
-
-      const mockRootState = {
-        card: CARD_STATE_MOCK,
-      } as unknown as RootState;
-
-      expect(selectIsCardholder(mockRootState)).toBe(false);
-    });
-
-    it('returns false when selected account is not an ETH account', () => {
-      const selectedAccount = createMockAccount(CARDHOLDER_ACCOUNTS_MOCK[0]);
-
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        () => selectedAccount,
-      );
-      mockIsEthAccount.mockReturnValue(false);
-
-      const mockRootState = {
-        card: CARD_STATE_MOCK,
-      } as unknown as RootState;
-
-      expect(selectIsCardholder(mockRootState)).toBe(false);
-    });
-
-    it('returns false when no cardholder accounts exist', () => {
-      const selectedAccount = createMockAccount(
-        '0x1234567890123456789012345678901234567890',
-      );
-
-      mockSelectSelectedInternalAccountByScope.mockReturnValue(
-        () => selectedAccount,
-      );
-      mockIsEthAccount.mockReturnValue(true);
-
-      const mockRootState = {
-        card: EMPTY_CARD_STATE_MOCK,
-      } as unknown as RootState;
-
-      expect(selectIsCardholder(mockRootState)).toBe(false);
     });
   });
 
@@ -313,72 +132,11 @@ describe('Card Selectors', () => {
 });
 
 describe('Card Reducer', () => {
-  describe('extraReducers', () => {
-    describe('loadCardholderAccounts', () => {
-      it('should set cardholder accounts and update state when fulfilled', () => {
-        const mockPayload = {
-          cardholderAddresses: ['0x123', '0x456'],
-        };
-        const action = {
-          type: loadCardholderAccounts.fulfilled.type,
-          payload: mockPayload,
-        };
-        const state = cardReducer(initialState, action);
-
-        expect(state.cardholderAccounts).toEqual(['0x123', '0x456']);
-        expect(state.isLoaded).toBe(true);
-      });
-
-      it('should handle empty cardholderAddresses in payload when fulfilled', () => {
-        const mockPayload = {
-          cardholderAddresses: [],
-        };
-        const action = {
-          type: loadCardholderAccounts.fulfilled.type,
-          payload: mockPayload,
-        };
-        const state = cardReducer(initialState, action);
-
-        expect(state.cardholderAccounts).toEqual([]);
-        expect(state.isLoaded).toBe(true);
-      });
-
-      it('should handle null cardholderAddresses in payload when fulfilled', () => {
-        const mockPayload = {
-          cardholderAddresses: null,
-        };
-        const action = {
-          type: loadCardholderAccounts.fulfilled.type,
-          payload: mockPayload,
-        };
-        const state = cardReducer(initialState, action);
-
-        expect(state.cardholderAccounts).toEqual([]);
-        expect(state.isLoaded).toBe(true);
-      });
-
-      it('should set isLoaded to true when rejected', () => {
-        const errorMessage = 'Failed to load accounts';
-        const action = {
-          type: loadCardholderAccounts.rejected.type,
-          error: {
-            message: errorMessage,
-          },
-        };
-        const state = cardReducer(initialState, action);
-
-        expect(state.isLoaded).toBe(true);
-        expect(state.cardholderAccounts).toEqual([]); // Should remain empty on error
-      });
-    });
-  });
-
   describe('reducers', () => {
     it('should reset card state', () => {
       const currentState: CardSliceState = {
         cardholderAccounts: ['0x123'],
         isDaimoDemo: false,
-        isLoaded: true,
         hasViewedCardButton: true,
         isAuthenticated: false,
         userCardLocation: 'us',
@@ -398,7 +156,6 @@ describe('Card Reducer', () => {
       it('should set hasViewedCardButton to true', () => {
         const state = cardReducer(initialState, setHasViewedCardButton(true));
         expect(state.hasViewedCardButton).toBe(true);
-        // ensure other parts of state untouched
         expect(state.cardholderAccounts).toEqual(
           initialState.cardholderAccounts,
         );
@@ -423,7 +180,6 @@ describe('Card Reducer', () => {
             setOnboardingId(onboardingId),
           );
           expect(state.onboarding.onboardingId).toBe(onboardingId);
-          // ensure other parts of state untouched
           expect(state.onboarding.contactVerificationId).toBe(null);
           expect(state.onboarding.consentSetId).toBe(null);
         });
@@ -462,7 +218,6 @@ describe('Card Reducer', () => {
             setContactVerificationId(verificationId),
           );
           expect(state.onboarding.contactVerificationId).toBe(verificationId);
-          // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.consentSetId).toBe(null);
         });
@@ -506,7 +261,6 @@ describe('Card Reducer', () => {
             setConsentSetId(consentSetId),
           );
           expect(state.onboarding.consentSetId).toBe(consentSetId);
-          // ensure other parts of state untouched
           expect(state.onboarding.onboardingId).toBe(null);
           expect(state.onboarding.contactVerificationId).toBe(null);
         });
@@ -553,7 +307,6 @@ describe('Card Reducer', () => {
             contactVerificationId: null,
             consentSetId: null,
           });
-          // ensure other parts of state untouched
           expect(state.cardholderAccounts).toEqual(current.cardholderAccounts);
         });
 
@@ -597,7 +350,6 @@ describe('Card Reducer', () => {
         const currentState: CardSliceState = {
           ...initialState,
           cardholderAccounts: ['0x123'],
-          isLoaded: true,
           hasViewedCardButton: true,
           userCardLocation: 'us',
           isAuthenticated: true,
@@ -611,13 +363,8 @@ describe('Card Reducer', () => {
         const state = cardReducer(currentState, resetAuthenticatedData());
 
         expect(state.isAuthenticated).toBe(false);
-
-        // userCardLocation is preserved (not part of auth data)
         expect(state.userCardLocation).toBe('us');
-
-        // Other state properties remain unchanged
         expect(state.cardholderAccounts).toEqual(['0x123']);
-        expect(state.isLoaded).toBe(true);
         expect(state.hasViewedCardButton).toBe(true);
         expect(state.onboarding).toEqual({
           onboardingId: 'test-id',
@@ -636,61 +383,7 @@ describe('Card Reducer', () => {
   });
 });
 
-describe('Authentication Selectors and Actions', () => {
-  describe('selectIsAuthenticatedCard', () => {
-    it('returns false by default from initial state', () => {
-      const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectIsAuthenticatedCard(mockRootState)).toBe(false);
-    });
-
-    it('returns true when isAuthenticated is true', () => {
-      const stateWithAuth: CardSliceState = {
-        ...initialState,
-        isAuthenticated: true,
-      };
-      const mockRootState = { card: stateWithAuth } as unknown as RootState;
-      expect(selectIsAuthenticatedCard(mockRootState)).toBe(true);
-    });
-
-    it('returns false when isAuthenticated is false', () => {
-      const stateWithoutAuth: CardSliceState = {
-        ...initialState,
-        isAuthenticated: false,
-      };
-      const mockRootState = { card: stateWithoutAuth } as unknown as RootState;
-      expect(selectIsAuthenticatedCard(mockRootState)).toBe(false);
-    });
-  });
-
-  describe('selectUserCardLocation', () => {
-    it('returns international by default from initial state', () => {
-      const mockRootState = { card: initialState } as unknown as RootState;
-      expect(selectUserCardLocation(mockRootState)).toBe('international');
-    });
-
-    it('returns us when userCardLocation is us', () => {
-      const stateWithUsLocation: CardSliceState = {
-        ...initialState,
-        userCardLocation: 'us',
-      };
-      const mockRootState = {
-        card: stateWithUsLocation,
-      } as unknown as RootState;
-      expect(selectUserCardLocation(mockRootState)).toBe('us');
-    });
-
-    it('returns international when userCardLocation is international', () => {
-      const stateWithIntlLocation: CardSliceState = {
-        ...initialState,
-        userCardLocation: 'international',
-      };
-      const mockRootState = {
-        card: stateWithIntlLocation,
-      } as unknown as RootState;
-      expect(selectUserCardLocation(mockRootState)).toBe('international');
-    });
-  });
-
+describe('Authentication Actions', () => {
   describe('setIsAuthenticatedCard', () => {
     it('sets isAuthenticated to true', () => {
       const state = cardReducer(initialState, setIsAuthenticatedCard(true));
@@ -752,175 +445,6 @@ describe('Authentication Selectors and Actions', () => {
   });
 });
 
-describe('verifyCardAuthentication Async Thunk', () => {
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  describe('verifyCardAuthentication.fulfilled', () => {
-    it('updates isAuthenticated and userCardLocation on success', () => {
-      const mockPayload = {
-        isAuthenticated: true,
-        userCardLocation: 'us' as const,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(initialState, action);
-
-      expect(state.isAuthenticated).toBe(true);
-      expect(state.userCardLocation).toBe('us');
-    });
-
-    it('handles international location on success', () => {
-      const mockPayload = {
-        isAuthenticated: true,
-        userCardLocation: 'international' as const,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(initialState, action);
-
-      expect(state.isAuthenticated).toBe(true);
-      expect(state.userCardLocation).toBe('international');
-    });
-
-    it('handles false authentication status', () => {
-      const mockPayload = {
-        isAuthenticated: false,
-        userCardLocation: 'international' as const,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(initialState, action);
-
-      expect(state.isAuthenticated).toBe(false);
-      expect(state.userCardLocation).toBe('international');
-    });
-
-    it('preserves existing userCardLocation when payload has null location', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        userCardLocation: 'us',
-      };
-      const mockPayload = {
-        isAuthenticated: true,
-        userCardLocation: null,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(currentState, action);
-
-      expect(state.isAuthenticated).toBe(true);
-      expect(state.userCardLocation).toBe('us');
-    });
-
-    it('preserves existing userCardLocation when payload has no location', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        userCardLocation: 'us',
-      };
-      const mockPayload = {
-        isAuthenticated: true,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(currentState, action);
-
-      expect(state.isAuthenticated).toBe(true);
-      expect(state.userCardLocation).toBe('us');
-    });
-
-    it('keeps default userCardLocation when payload has no location and state is default', () => {
-      const mockPayload = {
-        isAuthenticated: true,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(initialState, action);
-
-      expect(state.isAuthenticated).toBe(true);
-      expect(state.userCardLocation).toBe('international');
-    });
-
-    it('does not affect other state properties', () => {
-      const mockPayload = {
-        isAuthenticated: true,
-        userCardLocation: 'us' as const,
-      };
-      const action = {
-        type: verifyCardAuthentication.fulfilled.type,
-        payload: mockPayload,
-      };
-      const state = cardReducer(initialState, action);
-
-      expect(state.cardholderAccounts).toEqual(initialState.cardholderAccounts);
-      expect(state.isLoaded).toEqual(initialState.isLoaded);
-    });
-  });
-
-  describe('verifyCardAuthentication.rejected', () => {
-    it('resets authentication state on error but preserves userCardLocation', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        isAuthenticated: true,
-        userCardLocation: 'us',
-      };
-
-      const action = {
-        type: verifyCardAuthentication.rejected.type,
-        error: {
-          message: 'Authentication failed',
-        },
-      };
-      const state = cardReducer(currentState, action);
-
-      expect(state.isAuthenticated).toBe(false);
-      expect(state.userCardLocation).toBe('us');
-    });
-
-    it('handles rejection from initial state', () => {
-      const action = {
-        type: verifyCardAuthentication.rejected.type,
-        error: {
-          message: 'Authentication failed',
-        },
-      };
-      const state = cardReducer(initialState, action);
-
-      expect(state.isAuthenticated).toBe(false);
-      expect(state.userCardLocation).toBe('international');
-    });
-
-    it('does not affect other state properties', () => {
-      const currentState: CardSliceState = {
-        ...initialState,
-        isAuthenticated: true,
-        cardholderAccounts: ['0x123'],
-        isLoaded: true,
-      };
-
-      const action = {
-        type: verifyCardAuthentication.rejected.type,
-        error: {
-          message: 'Authentication failed',
-        },
-      };
-      const state = cardReducer(currentState, action);
-
-      expect(state.cardholderAccounts).toEqual(['0x123']);
-      expect(state.isLoaded).toBe(true);
-    });
-  });
-});
+// Suppress unused variable warnings for state mocks used for type checking only
+void CARD_STATE_MOCK;
+void EMPTY_CARD_STATE_MOCK;

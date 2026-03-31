@@ -7,24 +7,14 @@ import {
 } from '@testing-library/react-native';
 import { useSelector } from 'react-redux';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
-import {
-  CardSDKProvider,
-  useCardSDK,
-  ICardSDK,
-  CardVerification,
-} from './index';
+import { CardSDKProvider, useCardSDK, ICardSDK } from './index';
 import { CardSDK } from './CardSDK';
 import {
   CardFeatureFlag,
   SupportedToken,
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import {
-  selectUserCardLocation,
-  selectOnboardingId,
-} from '../../../../core/redux/slices/card';
-import { useCardholderCheck } from '../hooks/useCardholderCheck';
-import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
+import { selectOnboardingId } from '../../../../core/redux/slices/card';
 import {
   getCardBaanxToken,
   storeCardBaanxToken,
@@ -52,7 +42,6 @@ jest.mock('../../../../selectors/featureFlagController/card', () => ({
 
 jest.mock('../../../../core/redux/slices/card', () => ({
   setIsAuthenticatedCard: jest.fn(),
-  selectUserCardLocation: jest.fn(),
   setUserCardLocation: jest.fn(),
   setContactVerificationId: jest.fn(),
   selectOnboardingId: jest.fn(),
@@ -62,6 +51,10 @@ jest.mock('../../../../core/redux/slices/card', () => ({
   resetAuthenticatedData: jest.fn(() => ({
     type: 'card/resetAuthenticatedData',
   })),
+}));
+
+jest.mock('../../../../selectors/cardController', () => ({
+  selectCardUserLocation: jest.fn(),
 }));
 
 jest.mock('../../../../selectors/multichainAccounts/accounts', () => ({
@@ -75,14 +68,6 @@ jest.mock('react-redux', () => ({
   ...jest.requireActual('react-redux'),
   useSelector: jest.fn(),
   useDispatch: jest.fn(() => mockDispatch),
-}));
-
-jest.mock('../hooks/useCardholderCheck', () => ({
-  useCardholderCheck: jest.fn(),
-}));
-
-jest.mock('../hooks/useCardAuthenticationVerification', () => ({
-  useCardAuthenticationVerification: jest.fn(),
 }));
 
 jest.mock('../util/cardTokenVault', () => ({
@@ -104,11 +89,6 @@ describe('CardSDK Context', () => {
   const MockedCardholderSDK = jest.mocked(CardSDK);
   const mockUseSelector = jest.mocked(useSelector);
   const mockSelectCardFeatureFlag = jest.mocked(selectCardFeatureFlag);
-  const mockSelectUserCardLocation = jest.mocked(selectUserCardLocation);
-  const mockUseCardholderCheck = jest.mocked(useCardholderCheck);
-  const mockUseCardAuthenticationVerification = jest.mocked(
-    useCardAuthenticationVerification,
-  );
   const mockGetCardBaanxToken = jest.mocked(getCardBaanxToken);
   const mockStoreCardBaanxToken = jest.mocked(storeCardBaanxToken);
   const mockRemoveCardBaanxToken = jest.mocked(removeCardBaanxToken);
@@ -148,9 +128,6 @@ describe('CardSDK Context', () => {
     mockUseSelector.mockImplementation((selector) => {
       if (selector === mockSelectCardFeatureFlag) {
         return featureFlag;
-      }
-      if (selector === mockSelectUserCardLocation) {
-        return userCardLocation;
       }
       if (selector === mockSelectOnboardingId) {
         return onboardingId;
@@ -199,8 +176,6 @@ describe('CardSDK Context', () => {
     MockedCardholderSDK.mockClear();
     mockSelectCardFeatureFlag.mockClear();
     mockUseSelector.mockClear();
-    mockUseCardholderCheck.mockClear();
-    mockUseCardAuthenticationVerification.mockClear();
     mockGetCardBaanxToken.mockClear();
     mockStoreCardBaanxToken.mockClear();
     mockRemoveCardBaanxToken.mockClear();
@@ -581,32 +556,6 @@ describe('CardSDK Context', () => {
       });
 
       expect(result.current.sdk).toBeNull();
-    });
-  });
-
-  describe('CardVerification', () => {
-    it('calls useCardholderCheck hook', () => {
-      // When: component renders
-      render(<CardVerification />);
-
-      // Then: should call cardholder check
-      expect(mockUseCardholderCheck).toHaveBeenCalledTimes(1);
-    });
-
-    it('calls useCardAuthenticationVerification hook', () => {
-      // When: component renders
-      render(<CardVerification />);
-
-      // Then: should call authentication verification
-      expect(mockUseCardAuthenticationVerification).toHaveBeenCalledTimes(1);
-    });
-
-    it('renders nothing', () => {
-      // When: component renders
-      const { toJSON } = render(<CardVerification />);
-
-      // Then: should return null
-      expect(toJSON()).toBeNull();
     });
   });
 

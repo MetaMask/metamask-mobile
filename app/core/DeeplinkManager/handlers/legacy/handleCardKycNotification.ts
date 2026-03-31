@@ -5,8 +5,8 @@ import Routes from '../../../../constants/navigation/Routes';
 import {
   selectIsAuthenticatedCard,
   selectOnboardingId,
-  selectUserCardLocation,
 } from '../../../redux/slices/card';
+import { selectCardUserLocation } from '../../../../selectors/cardController';
 import {
   selectCardFeatureFlag,
   CardFeatureFlag,
@@ -121,7 +121,7 @@ async function handleOnboardingFlow(
   );
 
   // Get location from selectedCountry
-  const location = selectUserCardLocation(state);
+  const location = selectCardUserLocation(state);
 
   Logger.log('[handleCardKycNotification] Determined location:', {
     location,
@@ -156,7 +156,7 @@ async function handleAuthenticatedFlow(
   Logger.log('[handleCardKycNotification] Handling authenticated flow');
 
   // Get location directly from userCardLocation (already stored for authenticated users)
-  const userCardLocation = selectUserCardLocation(state);
+  const userCardLocation = selectCardUserLocation(state);
 
   Logger.log(
     '[handleCardKycNotification] User card location:',

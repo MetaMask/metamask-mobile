@@ -15,16 +15,14 @@ import {
   CardFeatureFlag,
   selectCardFeatureFlag,
 } from '../../../../selectors/featureFlagController/card';
-import { useCardholderCheck } from '../hooks/useCardholderCheck';
-import { useCardAuthenticationVerification } from '../hooks/useCardAuthenticationVerification';
 import {
-  selectUserCardLocation,
   selectOnboardingId,
   resetOnboardingState,
   resetAuthenticatedData,
   setContactVerificationId,
   setUserCardLocation,
 } from '../../../../core/redux/slices/card';
+import { selectCardUserLocation } from '../../../../selectors/cardController';
 import { cardQueries } from '../queries';
 import { UserResponse } from '../types';
 import { getErrorMessage } from '../util/getErrorMessage';
@@ -59,7 +57,7 @@ export const CardSDKProvider = ({
   ...props
 }: ProviderProps<ICardSDK>) => {
   const cardFeatureFlag = useSelector(selectCardFeatureFlag);
-  const userCardLocation = useSelector(selectUserCardLocation);
+  const userCardLocation = useSelector(selectCardUserLocation);
   const onboardingId = useSelector(selectOnboardingId);
   const dispatch = useDispatch();
   const queryClient = useQueryClient();
@@ -199,18 +197,5 @@ export const withCardSDK =
       <Component {...props} />
     </CardSDKProvider>
   );
-
-/**
- * Component that performs cardholder verification.
- * This should be mounted at the app entry level to ensure
- * cardholder verification is always up-to-date.
- * Returns null as it's just a side-effect component.
- */
-export const CardVerification: React.FC = () => {
-  useCardholderCheck();
-  useCardAuthenticationVerification();
-
-  return null;
-};
 
 export default CardSDKContext;
