@@ -1,4 +1,3 @@
-import { NavigationProp, ParamListBase } from '@react-navigation/native';
 import { SuccessErrorSheetParams } from './interface';
 import Routes from '../../../constants/navigation/Routes';
 import { AppNavigationProp } from '../../../core/NavigationService/types';

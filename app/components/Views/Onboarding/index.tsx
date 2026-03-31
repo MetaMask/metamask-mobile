@@ -61,8 +61,6 @@ import {
   useRoute,
   RouteProp,
   StackActions,
-  type NavigationProp,
-  type ParamListBase,
 } from '@react-navigation/native';
 import {
   TraceName,
