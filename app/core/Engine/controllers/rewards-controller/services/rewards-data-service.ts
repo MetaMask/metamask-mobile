@@ -1,44 +1,41 @@
-import type { Messenger } from '@metamask/messenger';
-import { getVersion } from 'react-native-device-info';
+import type {Messenger} from '@metamask/messenger';
+import {getVersion} from 'react-native-device-info';
 import type {
-  LoginResponseDto,
-  EstimatePointsDto,
-  EstimatedPointsDto,
-  GetPerpsDiscountDto,
-  PerpsDiscountData,
-  SubscriptionSeasonReferralDetailsDto,
-  PaginatedPointsEventsDto,
-  GetPointsEventsDto,
-  MobileLoginDto,
-  SubscriptionDto,
-  OptInStatusInputDto,
-  OptInStatusDto,
-  OptOutDto,
-  PointsBoostEnvelopeDto,
-  RewardDto,
-  SubscriptionBenefitDto,
-  ClaimRewardDto,
-  GetPointsEventsLastUpdatedDto,
-  MobileOptinDto,
-  DiscoverSeasonsDto,
-  SeasonMetadataDto,
-  SeasonStateDto,
-  LineaTokenRewardDto,
-  ApplyReferralDto,
   ApplyBonusCodeDto,
+  ApplyReferralDto,
   CampaignDto,
-  CampaignParticipantStatusDto,
-  ClientVersionRequirementDto,
   CampaignLeaderboardDto,
   CampaignLeaderboardPositionDto,
+  CampaignParticipantStatusDto,
+  ClaimRewardDto,
+  ClientVersionRequirementDto,
+  DiscoverSeasonsDto,
+  EstimatedPointsDto,
+  EstimatePointsDto,
+  GetPerpsDiscountDto,
+  GetPointsEventsDto,
+  GetPointsEventsLastUpdatedDto,
+  LineaTokenRewardDto,
+  LoginResponseDto,
+  MobileLoginDto,
+  MobileOptinDto,
   OndoGmPortfolioDto,
+  OptInStatusDto,
+  OptInStatusInputDto,
+  OptOutDto,
+  PaginatedPointsEventsDto,
+  PerpsDiscountData,
+  PointsBoostEnvelopeDto,
+  RewardDto,
+  SeasonMetadataDto,
+  SeasonStateDto,
+  SubscriptionBenefitDto,
+  SubscriptionDto,
+  SubscriptionSeasonReferralDetailsDto,
 } from '../types';
-import { getSubscriptionToken } from '../utils/multi-subscription-token-vault';
+import {getSubscriptionToken} from '../utils/multi-subscription-token-vault';
 import Logger from '../../../../../util/Logger';
-import {
-  canChangeRewardsEnvUrl,
-  getDefaultRewardsApiBaseUrlForMetaMaskEnv,
-} from '../utils/rewards-api-url';
+import {canChangeRewardsEnvUrl, getDefaultRewardsApiBaseUrlForMetaMaskEnv,} from '../utils/rewards-api-url';
 
 /**
  * Custom error for invalid timestamps
@@ -265,6 +262,11 @@ export interface RewardsDataServiceGetBenefitsAction {
   handler: RewardsDataService['getBenefits'];
 }
 
+export interface RewardsDataServicePostBenefitImpressionAction {
+  type: `${typeof SERVICE_NAME}:postBenefitImpression`;
+  handler: RewardsDataService['postBenefitImpression'];
+}
+
 export type RewardsDataServiceActions =
   | RewardsDataServiceLoginAction
   | RewardsDataServiceGetPointsEventsAction
@@ -297,6 +299,7 @@ export type RewardsDataServiceActions =
   | RewardsDataServiceGetCampaignsAction
   | RewardsDataServiceOptInToCampaignAction
   | RewardsDataServiceGetBenefitsAction
+  | RewardsDataServicePostBenefitImpressionAction
   | RewardsDataServiceGetCampaignParticipantStatusAction
   | RewardsDataServiceGetClientVersionRequirementsAction
   | RewardsDataServiceGetOndoCampaignLeaderboardAction
@@ -479,6 +482,10 @@ export class RewardsDataService {
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getBenefits`,
       this.getBenefits.bind(this),
+    );
+    this.#messenger.registerActionHandler(
+      `${SERVICE_NAME}:postBenefitImpression`,
+      this.postBenefitImpression.bind(this),
     );
     this.#messenger.registerActionHandler(
       `${SERVICE_NAME}:getClientVersionRequirements`,
@@ -1443,7 +1450,7 @@ export class RewardsDataService {
    */
   async getBenefits(
     subscriptionId: string,
-    limit: number
+    limit: number,
   ): Promise<SubscriptionBenefitDto[]> {
     const response = await this.makeRequest(
       `/benefits?limit=${limit}&offset=0`,
@@ -1458,6 +1465,36 @@ export class RewardsDataService {
     }
     const data = await response.json();
     return data.results as SubscriptionBenefitDto[];
+  }
+
+  /**
+   * Record an impression for a specific benefit. This is used to track when users have viewed a benefit in the UI.
+   * @param subscriptionId - The subscription ID for authentication.
+   * @param benefitId - The benefit ID to record impression for.
+   * @param benefitType - The benefit type to record impression for.
+   * @returns Promise that resolves when the impression is recorded successfully.
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    const response = await this.makeRequest(
+      `/benefits/impression`,
+      {
+        method: 'POST',
+        body: JSON.stringify({
+          benefitId,
+          benefitType,
+        }),
+      },
+      subscriptionId,
+    );
+
+    if (!response.ok) {
+      throw new Error(`Post benefit impression failed: ${response.status}`);
+    }
+    return;
   }
 
   /**

@@ -9,7 +9,7 @@ import {
 import Engine from '../../../../core/Engine';
 import type {
   SubscriptionBenefitDto,
-  SubscriptionBenefitsState
+  SubscriptionBenefitsState,
 } from '../../../../core/Engine/controllers/rewards-controller/types';
 import { useFocusEffect } from '@react-navigation/native';
 import { useInvalidateByRewardEvents } from './useInvalidateByRewardEvents';
@@ -42,7 +42,7 @@ export const useBenefits = (): {
           await Engine.controllerMessenger.call(
             'RewardsController:getBenefits',
             subscriptionId,
-            limit
+            limit,
           );
 
         dispatch(setBenefits(benefitsState));
@@ -60,14 +60,20 @@ export const useBenefits = (): {
     await fetchBenefits(200);
   }, [fetchBenefits]);
 
-  const postImpression = useCallback(async (benefit: SubscriptionBenefitDto): Promise<void> => {
-    // await Engine.controllerMessenger.call(
-    //     'RewardsController:postBenefitImpression',
-    //     subscriptionId,
-    //     benefit.id,
-    //     benefit.type
-    //   );
-  }, []);
+  const postImpression = useCallback(
+    async (benefit: SubscriptionBenefitDto): Promise<void> => {
+      if (!subscriptionId) {
+        return;
+      }
+      await Engine.controllerMessenger.call(
+        'RewardsController:postBenefitImpression',
+        subscriptionId,
+        benefit.id,
+        benefit.type.id,
+      );
+    },
+    [subscriptionId],
+  );
 
   useFocusEffect(
     useCallback(() => {

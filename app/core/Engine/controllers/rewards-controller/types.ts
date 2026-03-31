@@ -1139,6 +1139,7 @@ export type SubscriptionBenefitDto = {
   url: string;
   actionDate: string;
   chain: string;
+  type: { id: number, name: string };
 };
 
 // eslint-disable-next-line @typescript-eslint/consistent-type-definitions
@@ -1583,6 +1584,9 @@ export type RewardsControllerState = {
   };
   subscriptionBenefits: {
     [compositeId: string]: SubscriptionBenefitsState;
+  };
+  benefitImpressions: {
+    [compositeId: string]: boolean;
   };
   seasonStatuses: { [compositeId: string]: SeasonStatusState };
   activeBoosts: { [compositeId: string]: ActiveBoostsState };
@@ -2130,6 +2134,18 @@ export interface RewardsControllerGetBenefitsAction {
 }
 
 /**
+ * Action for getting benefits of an existing subscription
+ */
+export interface RewardsControllerPostBenefitImpressionAction {
+  type: 'RewardsController:postBenefitImpression';
+  handler: (
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number
+  ) => Promise<void>;
+}
+
+/**
  * Response DTO for the client version requirements endpoint.
  */
 export interface ClientVersionRequirementDto {
@@ -2190,6 +2206,7 @@ export type RewardsControllerActions =
   | RewardsControllerSetRewardsEnvUrlAction
   | RewardsControllerGetDefaultRewardsEnvUrlAction
   | RewardsControllerGetBenefitsAction
+  | RewardsControllerPostBenefitImpressionAction
   | RewardsControllerApplyBonusCodeAction
   | RewardsControllerGetClientVersionRequirementsAction;
 

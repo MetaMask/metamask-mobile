@@ -98,6 +98,9 @@ const REFERRAL_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minutes
 // Benefits details cache threshold
 const BENEFITS_DETAILS_CACHE_THRESHOLD_MS = 1000 * 60 * 15; // 15 minutes
 
+// Benefits details cache threshold
+const BENEFITS_IMPRESSION_CACHE_THRESHOLD_MS = 1000 * 60 * 60 * 24; // 24 hours
+
 // Active boosts cache threshold
 const ACTIVE_BOOSTS_CACHE_THRESHOLD_MS = 1000 * 60 * 1; // 1 minute
 
@@ -707,6 +710,10 @@ export class RewardsController extends BaseController<
     this.messenger.registerActionHandler(
       'RewardsController:getBenefits',
       this.getBenefits.bind(this),
+    );
+    this.messenger.registerActionHandler(
+      'RewardsController:postBenefitImpression',
+      this.postBenefitImpression.bind(this),
     );
     this.messenger.registerActionHandler(
       'RewardsController:getClientVersionRequirements',
@@ -3897,19 +3904,12 @@ export class RewardsController extends BaseController<
    * Get benefits details with caching
    * @param subscriptionId - The subscription ID for authentication
    * @param limit - The maximum number of items requested
-   * @param refresh - Whether to bypass the cache and fetch fresh data
    * @returns Promise<SubscriptionBenefitsState> - The benefits data
    */
   async getBenefits(
     subscriptionId: string,
     limit: number,
-    refresh: boolean,
   ): Promise<SubscriptionBenefitsState> {
-    if (refresh) {
-      this.update((state) => {
-        delete state.subscriptionBenefits[subscriptionId];
-      });
-    }
     return await wrapWithCache<SubscriptionBenefitsState>({
       key: `${subscriptionId}`,
       ttl: BENEFITS_DETAILS_CACHE_THRESHOLD_MS,
@@ -3952,6 +3952,62 @@ export class RewardsController extends BaseController<
       writeCache: (key, payload) => {
         this.update((state) => {
           state.subscriptionBenefits[key] = payload;
+        });
+      },
+    });
+  }
+
+  /**
+   * Post a benefit impression with caching to prevent duplicate impressions within a short time frame
+   * @param subscriptionId - The subscription ID for authentication
+   * @param benefitId - The specific benefit ID that was impressed
+   * @param benefitType - The type of the benefit that was impressed
+   * @returns Promise<SubscriptionBenefitsState> - The benefits data
+   */
+  async postBenefitImpression(
+    subscriptionId: string,
+    benefitId: number,
+    benefitType: number,
+  ): Promise<void> {
+    await wrapWithCache<boolean>({
+      key: `${subscriptionId}-${benefitId}`,
+      ttl: BENEFITS_IMPRESSION_CACHE_THRESHOLD_MS,
+      readCache: (key) => {
+        const cached = this.state.benefitImpressions[key] || undefined;
+        if (!cached) return;
+        return {
+          payload: cached,
+          lastFetched: cached.lastFetched,
+        };
+      },
+      fetchFresh: async () => {
+        try {
+          Logger.log(
+            'RewardsController: Posting benefit impression via API call for',
+            { subscriptionId, benefitId },
+          );
+          await this.#withAuthRetry(
+            () =>
+              this.messenger.call(
+                'RewardsDataService:postBenefitImpression',
+                subscriptionId,
+                benefitId,
+                benefitType
+              ),
+            subscriptionId,
+          );
+          return true;
+        } catch (error) {
+          Logger.log(
+            'RewardsController: Failed to post benefit impression:',
+            error instanceof Error ? error.message : String(error),
+          );
+          throw error;
+        }
+      },
+      writeCache: (key, payload) => {
+        this.update((state) => {
+          state.benefitImpressions[key] = payload;
         });
       },
     });

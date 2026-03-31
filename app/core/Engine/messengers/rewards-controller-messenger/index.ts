@@ -174,6 +174,7 @@ export function getRewardsControllerMessenger(
       'RewardsDataService:setRewardsEnvUrl',
       'RewardsDataService:getDefaultRewardsEnvUrl',
       'RewardsDataService:getBenefits',
+      'RewardsDataService:postBenefitImpression',
       'RewardsDataService:getClientVersionRequirements',
       'RewardsDataService:getOndoCampaignLeaderboard',
       'RewardsDataService:getOndoCampaignLeaderboardPosition',
