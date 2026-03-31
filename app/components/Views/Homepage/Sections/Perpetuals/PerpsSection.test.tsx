@@ -614,12 +614,14 @@ describe('PerpsSection', () => {
     expect(usePerpsLivePositions).toHaveBeenCalledWith(
       expect.objectContaining({
         throttleMs: 5000,
+        enabled: true,
       }),
     );
     expect(usePerpsLiveOrders).toHaveBeenCalledWith(
       expect.objectContaining({
         hideTpSl: true,
         throttleMs: 5000,
+        enabled: true,
       }),
     );
   });
