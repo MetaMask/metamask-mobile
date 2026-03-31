@@ -7,10 +7,8 @@ name: Nightly Build (temp)
 # iOS builds are handled end-to-end by upload-to-testflight-temp.yml (build + upload).
 # Android builds use create-build-branch.yml + build.yml (build artifacts only).
 #
-# rc depends on exp within each platform stream to ensure the external version
-# service produces sequential numbers (N for exp, N+1 for rc).
-# iOS and Android streams run in parallel; their version numbers will differ
-# but remain unique, which is all TestFlight / Play Store require.
+# All four streams (ios-exp, ios-rc, android-exp, android-rc) run independently
+# so that a failure in one does not block the others.
 
 on:
   schedule:
@@ -33,10 +31,9 @@ jobs:
       testflight_group: 'MetaMask BETA & Release Candidates'
     secrets: inherit
 
-  # ── iOS rc: build + TestFlight upload (after exp for sequential versions) ─
+  # ── iOS rc: build + TestFlight upload ─────────────────────────────────
   ios-rc:
     name: Nightly iOS rc
-    needs: [ios-exp]
     uses: ./.github/workflows/upload-to-testflight-temp.yml
     with:
       source_branch: main
@@ -62,9 +59,8 @@ jobs:
       source_branch: ${{ needs.android-exp-branch.outputs.build_branch }}
     secrets: inherit
 
-  # ── Android rc: ephemeral branch + build (after exp for sequential versions) ─
+  # ── Android rc: ephemeral branch + build ──────────────────────────────
   android-rc-branch:
-    needs: [android-exp]
     uses: ./.github/workflows/create-build-branch.yml
     with:
       source_branch: main
