@@ -54,6 +54,7 @@ export const rampsControllerInit: ControllerInitFunction<
   });
 
   let orderSubscriptionsRegistered = false;
+  let transakWebSocketSubscribed = false;
 
   const registerUnifiedBuyV2OrderSubscriptions = (): void => {
     if (orderSubscriptionsRegistered) {
@@ -78,10 +79,13 @@ export const rampsControllerInit: ControllerInitFunction<
     controller
       .init()
       .then(() => {
-        try {
-          controller.subscribeToTransakOrderUpdates();
-        } catch {
-          // WebSocket subscription failed — polling below serves as fallback
+        if (!transakWebSocketSubscribed) {
+          transakWebSocketSubscribed = true;
+          try {
+            controller.subscribeToTransakOrderUpdates();
+          } catch {
+            // WebSocket subscription failed — polling below serves as fallback
+          }
         }
         controller.startOrderPolling();
       })
@@ -97,8 +101,9 @@ export const rampsControllerInit: ControllerInitFunction<
   //
   // This event fires for any RemoteFeatureFlagController state update — not
   // only rampsUnifiedBuyV2. When V2 is off, startUnifiedBuyV2IfEnabled returns
-  // immediately. When V2 is on, order subscriptions register once; init() and
-  // startOrderPolling() are idempotent, so repeat invocations are safe.
+  // immediately. When V2 is on, all setup is guarded: order subscriptions
+  // register once; init() and startOrderPolling() are idempotent;
+  // subscribeToTransakOrderUpdates() runs once via transakWebSocketSubscribed.
   initMessenger.subscribe('RemoteFeatureFlagController:stateChange', () => {
     startUnifiedBuyV2IfEnabled();
   });

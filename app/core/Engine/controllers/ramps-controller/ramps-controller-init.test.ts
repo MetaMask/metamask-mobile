@@ -263,6 +263,38 @@ describe('ramps controller init', () => {
       });
     });
 
+    it('calls subscribeToTransakOrderUpdates only once across multiple RemoteFeatureFlagController:stateChange events', async () => {
+      const subscribeMock = jest.fn();
+      const initMessenger = {
+        call: jest.fn(() => ({
+          remoteFeatureFlags: {
+            rampsUnifiedBuyV2: { enabled: true, minimumVersion: '1.0.0' },
+          },
+        })),
+        subscribe: subscribeMock,
+      } as unknown as RampsControllerInitMessenger;
+
+      initRequestMock.initMessenger = initMessenger;
+
+      rampsControllerInit(initRequestMock);
+
+      await waitFor(() => {
+        expect(mockSubscribeToTransakOrderUpdates).toHaveBeenCalledTimes(1);
+      });
+
+      const stateChangeHandler = subscribeMock.mock.calls.find(
+        (call) => call[0] === 'RemoteFeatureFlagController:stateChange',
+      )?.[1] as () => void;
+
+      stateChangeHandler();
+      stateChangeHandler();
+      stateChangeHandler();
+
+      await waitFor(() => {
+        expect(mockSubscribeToTransakOrderUpdates).toHaveBeenCalledTimes(1);
+      });
+    });
+
     it('handles init failure gracefully', async () => {
       initRequestMock.initMessenger = createMockInitMessenger({
         enabled: true,
