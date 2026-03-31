@@ -33,6 +33,10 @@ jest.mock('@react-navigation/native', () => ({
 const mockTrackEvent = jest.fn();
 const mockCreateEventBuilder = jest.fn(() => ({
   addProperties: jest.fn().mockReturnThis(),
+  addSensitiveProperties: jest.fn().mockReturnThis(),
+  removeProperties: jest.fn().mockReturnThis(),
+  removeSensitiveProperties: jest.fn().mockReturnThis(),
+  setSaveDataRecording: jest.fn().mockReturnThis(),
   build: jest.fn().mockReturnValue({}),
 }));
 
