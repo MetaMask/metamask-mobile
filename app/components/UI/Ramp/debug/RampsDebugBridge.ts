@@ -465,7 +465,11 @@ function sanitizeResult(result: unknown): unknown {
   try {
     const str = safeStringify(result);
     if (str.length > 5000) {
-      return JSON.parse(str.slice(0, 5000) + '..."');
+      return {
+        _truncated: true,
+        length: str.length,
+        preview: str.slice(0, 5000),
+      };
     }
     return JSON.parse(str);
   } catch {

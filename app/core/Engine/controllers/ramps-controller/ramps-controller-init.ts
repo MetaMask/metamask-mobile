@@ -9,6 +9,7 @@ import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeature
 import { RAMPS_UNIFIED_BUY_V2_FLAG_KEY } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
+import { isRampsDebugDashboardEnabled } from '../../../../util/environment';
 
 /**
  * Whether Unified Buy V2 is enabled per RemoteFeatureFlagController state.
@@ -100,7 +101,8 @@ export const rampsControllerInit: ControllerInitFunction<
 
   // Dev-only: streams controller state / traffic to the local dashboard (see Ramp/debug/README.md).
   // Use require (not dynamic import) so Jest can mock the module; Metro drops this block in prod (__DEV__ false).
-  if (__DEV__) {
+  // Opt-in: set RAMPS_DEBUG_DASHBOARD=true (see util/environment).
+  if (__DEV__ && isRampsDebugDashboardEnabled()) {
     try {
       const { initRampsDebugBridge } =
         // eslint-disable-next-line @typescript-eslint/no-require-imports -- dev-only optional tooling; Jest cannot mock dynamic import()

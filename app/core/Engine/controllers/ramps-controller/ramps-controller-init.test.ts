@@ -323,18 +323,30 @@ describe('ramps controller init', () => {
 
   describe('when __DEV__ is true', () => {
     let previousDev: boolean;
+    let previousRampsDebugDashboard: string | undefined;
+
+    const getDevGlobal = (): { __DEV__: boolean } =>
+      globalThis as unknown as { __DEV__: boolean };
 
     beforeEach(() => {
-      previousDev = (global as { __DEV__: boolean }).__DEV__;
-      (global as { __DEV__: boolean }).__DEV__ = true;
+      previousDev = getDevGlobal().__DEV__;
+      previousRampsDebugDashboard = process.env.RAMPS_DEBUG_DASHBOARD;
+      delete process.env.RAMPS_DEBUG_DASHBOARD;
+      getDevGlobal().__DEV__ = true;
       getInitRampsDebugBridgeMock().mockClear();
     });
 
     afterEach(() => {
-      (global as { __DEV__: boolean }).__DEV__ = previousDev;
+      getDevGlobal().__DEV__ = previousDev;
+      if (previousRampsDebugDashboard === undefined) {
+        delete process.env.RAMPS_DEBUG_DASHBOARD;
+      } else {
+        process.env.RAMPS_DEBUG_DASHBOARD = previousRampsDebugDashboard;
+      }
     });
 
     it('requires RampsDebugBridge and calls initRampsDebugBridge with controller and messenger', () => {
+      process.env.RAMPS_DEBUG_DASHBOARD = 'true';
       initRequestMock.initMessenger = createMockInitMessenger({
         enabled: false,
       });
@@ -347,6 +359,27 @@ describe('ramps controller init', () => {
         controller,
         initRequestMock.controllerMessenger,
       );
+    });
+
+    it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is false', () => {
+      process.env.RAMPS_DEBUG_DASHBOARD = 'false';
+      initRequestMock.initMessenger = createMockInitMessenger({
+        enabled: false,
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      expect(getInitRampsDebugBridgeMock()).not.toHaveBeenCalled();
+    });
+
+    it('does not load RampsDebugBridge when RAMPS_DEBUG_DASHBOARD is unset', () => {
+      initRequestMock.initMessenger = createMockInitMessenger({
+        enabled: false,
+      });
+
+      rampsControllerInit(initRequestMock);
+
+      expect(getInitRampsDebugBridgeMock()).not.toHaveBeenCalled();
     });
   });
 });
