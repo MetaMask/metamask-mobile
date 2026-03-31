@@ -13,6 +13,7 @@ import SettingsView from '../Settings/SettingsView';
 import AccountMenu from '../AccountMenu/AccountMenu';
 import WalletView from './WalletView';
 import TrendingView from '../Trending/TrendingView';
+import WalletActionsBottomSheet from './WalletActionsBottomSheet';
 
 class TabBarComponent {
   get tabBarExploreButton(): EncapsulatedElementType {
@@ -174,28 +175,60 @@ class TabBarComponent {
   }
 
   async tapActions(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.tabBarActionButton, {
-      description: 'Tab Bar - Trade Button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await UnifiedGestures.waitAndTap(this.tabBarActionButton, {
+          timeout: 2000,
+          description: 'Tab Bar - Trade Button',
+        });
+        await Assertions.expectElementToBeVisible(
+          WalletActionsBottomSheet.swapButton,
+          { timeout: 500 },
+        );
+      },
+      {
+        maxRetries: 15,
+        timeout: 45000,
+        description: 'Tap Actions Button with Validation',
+      },
+    );
   }
 
   async tapTrade(): Promise<void> {
-    await UnifiedGestures.waitAndTap(this.tabBarTradeButton, {
-      description: 'Tab Bar - Trade Button',
-    });
+    await Utilities.executeWithRetry(
+      async () => {
+        await UnifiedGestures.waitAndTap(this.tabBarTradeButton, {
+          timeout: 2000,
+          description: 'Tab Bar - Trade Button',
+        });
+        await Assertions.expectElementToBeVisible(
+          WalletActionsBottomSheet.swapButton,
+          { timeout: 500 },
+        );
+      },
+      {
+        maxRetries: 15,
+        timeout: 45000,
+        description: 'Tap Trade Button with Validation',
+      },
+    );
   }
 
   async tapAccountsMenu(): Promise<void> {
+    await this.tapWallet();
     await Utilities.executeWithRetry(
       async () => {
-        await UnifiedGestures.waitAndTap(this.tabBarWalletButton);
-        await Assertions.expectElementToBeVisible(WalletView.container);
-        await Gestures.waitAndTap(WalletView.hamburgerMenuButton);
-        await Assertions.expectElementToBeVisible(AccountMenu.container);
+        await Gestures.waitAndTap(WalletView.hamburgerMenuButton, {
+          timeout: 2000,
+        });
+        await Assertions.expectElementToBeVisible(AccountMenu.container, {
+          timeout: 500,
+        });
       },
       {
+        maxRetries: 15,
         timeout: 45000,
-        description: 'Tap Accounts Menu Button',
+        description: 'Tap Hamburger Menu to open Accounts Menu',
       },
     );
   }
