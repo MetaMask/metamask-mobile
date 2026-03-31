@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {
   Box,
   FontWeight,
@@ -12,12 +12,18 @@ import { strings } from '../../../../../locales/i18n';
 import HardwareWalletTestIds from '../hardwareWallet.testIds';
 import LedgerDeviceIllustration from './LedgerDeviceIllustration';
 
-const LookingForDeviceState = () => (
+interface LookingForDeviceStateProps {
+  illustration?: ReactNode;
+}
+
+const LookingForDeviceState = ({
+  illustration,
+}: LookingForDeviceStateProps) => (
   <Box
     testID={HardwareWalletTestIds.LOOKING_FOR_DEVICE}
     twClassName="w-full items-center"
   >
-    <LedgerDeviceIllustration state="searching" />
+    {illustration ?? <LedgerDeviceIllustration state="searching" />}
     <Text
       variant={TextVariant.HeadingLg}
       fontWeight={FontWeight.Medium}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { type ReactNode } from 'react';
 import {
   Box,
   Button,
@@ -18,8 +18,10 @@ import OnboardingTips from './OnboardingTips';
 
 const DeviceNotFoundState = ({
   onRetry,
+  illustration,
 }: {
   onRetry: () => void;
+  illustration?: ReactNode;
 }) => {
   const tw = useTailwind();
 
@@ -28,7 +30,7 @@ const DeviceNotFoundState = ({
       testID={HardwareWalletTestIds.DEVICE_NOT_FOUND}
       twClassName="w-full items-center"
     >
-      <LedgerDeviceIllustration state="not-found" />
+      {illustration ?? <LedgerDeviceIllustration state="not-found" />}
       <Text
         variant={TextVariant.HeadingLg}
         fontWeight={FontWeight.Medium}

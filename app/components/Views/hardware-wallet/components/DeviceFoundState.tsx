@@ -1,5 +1,10 @@
-import React from 'react';
-import { Box, FontWeight, Text, TextVariant } from '@metamask/design-system-react-native';
+import React, { type ReactNode } from 'react';
+import {
+  Box,
+  FontWeight,
+  Text,
+  TextVariant,
+} from '@metamask/design-system-react-native';
 
 import { strings } from '../../../../../locales/i18n';
 
@@ -11,16 +16,18 @@ const DeviceFoundState = ({
   deviceName,
   disabled,
   onOpenSelector,
+  illustration,
 }: {
   deviceName: string;
   disabled: boolean;
   onOpenSelector: () => void;
+  illustration?: ReactNode;
 }) => (
   <Box
     testID={HardwareWalletTestIds.DEVICE_FOUND}
     twClassName="w-full items-center"
   >
-    <LedgerDeviceIllustration state="found" />
+    {illustration ?? <LedgerDeviceIllustration state="found" />}
     <Text
       variant={TextVariant.HeadingLg}
       fontWeight={FontWeight.Medium}
