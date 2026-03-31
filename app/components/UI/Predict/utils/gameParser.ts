@@ -10,12 +10,26 @@ import {
   PolymarketApiTeam,
 } from '../providers/polymarket/types';
 
-const NFL_SLUG_PATTERN = /^nfl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/;
-const NBA_SLUG_PATTERN = /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/;
+type SlugTeamOrder = 'away-home' | 'home-away';
 
-const LEAGUE_SLUG_PATTERNS: Record<PredictSportsLeague, RegExp> = {
-  nfl: NFL_SLUG_PATTERN,
-  nba: NBA_SLUG_PATTERN,
+interface LeagueSlugConfig {
+  pattern: RegExp;
+  teamOrder: SlugTeamOrder;
+}
+
+const LEAGUE_SLUG_CONFIGS: Record<PredictSportsLeague, LeagueSlugConfig> = {
+  nfl: {
+    pattern: /^nfl-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  nba: {
+    pattern: /^nba-([a-z]+)-([a-z]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'away-home',
+  },
+  ucl: {
+    pattern: /^ucl-([a-z0-9]+)-([a-z0-9]+)-(\d{4}-\d{2}-\d{2})$/,
+    teamOrder: 'home-away',
+  },
 };
 
 export type TeamLookup = (
@@ -38,10 +52,10 @@ export function getEventLeague(
     return null;
   }
 
-  const leagues = Object.keys(LEAGUE_SLUG_PATTERNS) as PredictSportsLeague[];
+  const leagues = Object.keys(LEAGUE_SLUG_CONFIGS) as PredictSportsLeague[];
   for (const league of leagues) {
     const hasLeagueTag = tags.some((tag) => tag.slug === league);
-    const pattern = LEAGUE_SLUG_PATTERNS[league];
+    const { pattern } = LEAGUE_SLUG_CONFIGS[league];
     const hasValidSlug = pattern.test(event.slug);
     if (hasLeagueTag && hasValidSlug) {
       return league;
@@ -63,17 +77,18 @@ export function parseGameSlugTeams(
   slug: string,
   league: PredictSportsLeague,
 ): ParsedGameSlug | null {
-  const pattern = LEAGUE_SLUG_PATTERNS[league];
-  if (!pattern) {
+  const config = LEAGUE_SLUG_CONFIGS[league];
+  if (!config) {
     return null;
   }
-  const match = slug.match(pattern);
+  const match = slug.match(config.pattern);
   if (!match) {
     return null;
   }
+  const isHomeFirst = config.teamOrder === 'home-away';
   return {
-    awayAbbreviation: match[1],
-    homeAbbreviation: match[2],
+    awayAbbreviation: isHomeFirst ? match[2] : match[1],
+    homeAbbreviation: isHomeFirst ? match[1] : match[2],
     dateString: match[3],
   };
 }
@@ -92,6 +107,14 @@ export function formatPeriodDisplay(period: string): string {
     case 'FT':
     case 'VFT':
       return 'Final';
+    case '1H':
+      return '1st Half';
+    case '2H':
+      return '2nd Half';
+    case 'ET':
+      return 'Extra Time';
+    case 'PK':
+      return 'Penalties';
     default:
       return period;
   }

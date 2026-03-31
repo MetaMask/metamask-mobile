@@ -17,6 +17,8 @@ export interface UseCancelSpeedupGasResult {
   networkFeeFiat: string | null;
   /** Native currency symbol for the chain (e.g. "ETH") */
   nativeTokenSymbol: string;
+  /** True once previousGas has been persisted and initial gas params applied. */
+  isInitialGasReady: boolean;
 }
 
 export interface UseCancelSpeedupGasInput {
