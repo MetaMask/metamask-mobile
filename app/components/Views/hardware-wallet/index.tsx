@@ -1,24 +1,39 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { StackActions, useNavigation } from '@react-navigation/native';
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from 'react';
+import {
+  StackActions,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import { Linking, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useTailwind } from '@metamask/design-system-twrnc-preset';
 import { Box } from '@metamask/design-system-react-native';
-import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import {
+  ConnectionStatus,
+  ErrorCode,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 
 import Routes from '../../../constants/navigation/Routes';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
 import type { DiscoveredDevice } from '../../../core/HardwareWallet/types';
 
-import HardwareWalletTestIds from './hardwareWallet.testIds';
 import {
   DeviceFoundState,
-  DeviceNotFoundState,
   LookingForDeviceState,
   SelectDeviceSheet,
 } from './components';
+import { resolveErrorComponent } from './errors';
 
 const HardwareWallet = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const tw = useTailwind();
   const [isSelectorOpen, setIsSelectorOpen] = useState(false);
   const [isConnectingToSelectedDevice, setIsConnectingToSelectedDevice] =
@@ -26,15 +41,20 @@ const HardwareWallet = () => {
   const didNavigateRef = useRef(false);
   const didStartFlowRef = useRef(false);
   const isMountedRef = useRef(true);
+  const isRetryingErrorActionRef = useRef(false);
   const closeConnectionFlowRef = useRef<() => void>(() => undefined);
   const setConnectionSheetVisibleRef = useRef<(isVisible: boolean) => void>(
     () => undefined,
   );
 
+  const walletType = ((route.params as Record<string, unknown> | undefined)
+    ?.walletType ?? HardwareWalletType.Ledger) as HardwareWalletType;
+
   const {
     connectionState,
     deviceSelection,
     ensureDeviceReady,
+    retryEnsureDeviceReady = ensureDeviceReady,
     setTargetWalletType,
     selectDiscoveredDevice,
     connectToDevice,
@@ -54,7 +74,10 @@ const HardwareWallet = () => {
   }, [closeConnectionFlow, setConnectionSheetVisible]);
 
   useEffect(() => {
-    if (!deviceSelection.selectedDevice && deviceSelection.devices.length === 1) {
+    if (
+      !deviceSelection.selectedDevice &&
+      deviceSelection.devices.length === 1
+    ) {
       selectDiscoveredDevice(deviceSelection.devices[0]);
     }
   }, [
@@ -70,9 +93,14 @@ const HardwareWallet = () => {
 
     didStartFlowRef.current = true;
     setConnectionSheetVisible(false);
-    setTargetWalletType(HardwareWalletType.Ledger);
+    setTargetWalletType(walletType);
     ensureDeviceReady().catch(() => false);
-  }, [ensureDeviceReady, setConnectionSheetVisible, setTargetWalletType]);
+  }, [
+    ensureDeviceReady,
+    setConnectionSheetVisible,
+    setTargetWalletType,
+    walletType,
+  ]);
 
   useEffect(
     () => () => {
@@ -94,7 +122,6 @@ const HardwareWallet = () => {
       setIsSelectorOpen(false);
       setIsConnectingToSelectedDevice(true);
       selectDiscoveredDevice(selectedDevice);
-      setConnectionSheetVisible(true);
 
       try {
         const isConnected = await connectToDevice(selectedDevice.id);
@@ -115,23 +142,98 @@ const HardwareWallet = () => {
       isConnectingToSelectedDevice,
       navigation,
       selectDiscoveredDevice,
-      setConnectionSheetVisible,
     ],
   );
 
-  const handleRetry = useCallback(() => {
+  const handleNavigateToLedgerConnect = useCallback(() => {
+    acknowledgeConnectionSuccess();
+    didNavigateRef.current = true;
+    navigation.dispatch(StackActions.replace(Routes.HW.LEDGER_CONNECT));
+  }, [acknowledgeConnectionSuccess, navigation]);
+
+  const handleRestartFlow = useCallback(() => {
     closeConnectionFlow();
     setConnectionSheetVisible(false);
-    setTargetWalletType(HardwareWalletType.Ledger);
+    setTargetWalletType(walletType);
     ensureDeviceReady().catch(() => false);
   }, [
     closeConnectionFlow,
     ensureDeviceReady,
     setConnectionSheetVisible,
     setTargetWalletType,
+    walletType,
   ]);
 
+  const retryTargetDeviceId = displayDevice?.id ?? null;
+
+  const handleRetryCurrentDevice = useCallback(async () => {
+    if (isRetryingErrorActionRef.current) {
+      return;
+    }
+
+    if (!retryTargetDeviceId && !deviceSelection.selectedDevice) {
+      handleRestartFlow();
+      return;
+    }
+
+    isRetryingErrorActionRef.current = true;
+    setIsConnectingToSelectedDevice(true);
+    setConnectionSheetVisible(false);
+
+    try {
+      const isConnected = await retryEnsureDeviceReady(retryTargetDeviceId);
+      if (isConnected && isMountedRef.current) {
+        handleNavigateToLedgerConnect();
+      }
+    } finally {
+      isRetryingErrorActionRef.current = false;
+      if (isMountedRef.current) {
+        setIsConnectingToSelectedDevice(false);
+      }
+    }
+  }, [
+    deviceSelection.selectedDevice,
+    handleNavigateToLedgerConnect,
+    handleRestartFlow,
+    retryEnsureDeviceReady,
+    retryTargetDeviceId,
+    setConnectionSheetVisible,
+  ]);
+
+  const handleContinue = useCallback(() => {
+    handleRetryCurrentDevice();
+  }, [handleRetryCurrentDevice]);
+
+  const handleExitErrorFlow = useCallback(() => {
+    didNavigateRef.current = true;
+    closeConnectionFlow();
+    navigation.goBack();
+  }, [closeConnectionFlow, navigation]);
+
+  const handleOpenSettings = useCallback(() => {
+    Linking.openSettings().catch(() => undefined);
+  }, []);
+
+  const handleOpenBluetoothSettings = useCallback(() => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('App-Prefs:Bluetooth').catch(() => {
+        Linking.openSettings().catch(() => undefined);
+      });
+      return;
+    }
+
+    Linking.sendIntent('android.settings.BLUETOOTH_SETTINGS').catch(() => {
+      Linking.openSettings().catch(() => undefined);
+    });
+  }, []);
+
   const isErrorState = connectionState.status === ConnectionStatus.ErrorState;
+  const connectionError = isErrorState ? connectionState.error : undefined;
+  const errorCode = connectionError?.code;
+  const shouldShowAppClosedState =
+    connectionState.status === ConnectionStatus.AwaitingApp ||
+    errorCode === ErrorCode.DeviceStateEthAppClosed ||
+    errorCode === ErrorCode.DeviceMissingCapability;
   const hasDiscoveredDevices = deviceSelection.devices.length > 0;
   const isBusy =
     isConnectingToSelectedDevice ||
@@ -139,11 +241,32 @@ const HardwareWallet = () => {
     connectionState.status === ConnectionStatus.Connected ||
     connectionState.status === ConnectionStatus.AwaitingApp;
 
+  const ErrorComponent = resolveErrorComponent(
+    walletType,
+    shouldShowAppClosedState ? ErrorCode.DeviceStateEthAppClosed : errorCode,
+  );
+
+  const containerClassName =
+    isErrorState &&
+    errorCode !== undefined &&
+    errorCode !== ErrorCode.DeviceNotFound
+      ? 'flex-1 px-4'
+      : 'flex-1 items-center justify-center px-4';
+
   return (
     <SafeAreaView style={tw.style('flex-1 bg-default')}>
-      <Box twClassName="flex-1 items-center justify-center px-4">
-        {isErrorState ? (
-          <DeviceNotFoundState onRetry={handleRetry} />
+      <Box twClassName={containerClassName}>
+        {shouldShowAppClosedState || isErrorState ? (
+          <ErrorComponent
+            errorCode={errorCode ?? ErrorCode.Unknown}
+            error={connectionError}
+            isBusy={isBusy}
+            onRetry={handleRetryCurrentDevice}
+            onContinue={handleContinue}
+            onExit={handleExitErrorFlow}
+            onOpenSettings={handleOpenSettings}
+            onOpenBluetoothSettings={handleOpenBluetoothSettings}
+          />
         ) : hasDiscoveredDevices ? (
           displayDevice ? (
             <DeviceFoundState

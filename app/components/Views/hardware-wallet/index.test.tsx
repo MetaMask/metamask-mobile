@@ -1,18 +1,26 @@
 import React from 'react';
 import { act, fireEvent, waitFor } from '@testing-library/react-native';
 import { StackActions } from '@react-navigation/native';
-import { ConnectionStatus, HardwareWalletType } from '@metamask/hw-wallet-sdk';
+import { Linking, View as MockView } from 'react-native';
+import {
+  ConnectionStatus,
+  ErrorCode,
+  HardwareWalletType,
+} from '@metamask/hw-wallet-sdk';
 
 import renderWithProvider from '../../../util/test/renderWithProvider';
 import { useHardwareWallet } from '../../../core/HardwareWallet';
+import { AppThemeKey } from '../../../util/theme/models';
 import HardwareWallet from './index';
 import HardwareWalletTestIds from './hardwareWallet.testIds';
 
 const mockDispatch = jest.fn();
+const mockGoBack = jest.fn();
 const mockEnsureDeviceReady = jest.fn();
 const mockSetTargetWalletType = jest.fn();
 const mockSelectDiscoveredDevice = jest.fn();
 const mockConnectToDevice = jest.fn();
+const mockRetryEnsureDeviceReady = jest.fn();
 const mockCloseConnectionFlow = jest.fn();
 const mockAcknowledgeConnectionSuccess = jest.fn();
 const mockSetConnectionSheetVisible = jest.fn();
@@ -28,8 +36,7 @@ jest.mock('../../../core/HardwareWallet', () => ({
 jest.mock(
   '../../../component-library/components/BottomSheets/BottomSheet',
   () => {
-    const React = require('react');
-    const { View: MockView } = require('react-native');
+    const mockReact = jest.requireActual('react');
 
     return ({
       children,
@@ -37,7 +44,7 @@ jest.mock(
     }: {
       children: React.ReactNode;
       testID?: string;
-    }) => React.createElement(MockView, { testID }, children);
+    }) => mockReact.createElement(MockView, { testID }, children);
   },
 );
 
@@ -45,28 +52,37 @@ jest.mock('@react-navigation/native', () => ({
   ...jest.requireActual('@react-navigation/native'),
   useNavigation: () => ({
     dispatch: mockDispatch,
+    goBack: mockGoBack,
+  }),
+  useRoute: () => ({
+    params: {},
   }),
   StackActions: {
-    replace: (...args: unknown[]) => mockReplace(...args),
+    replace: (name: string) => mockReplace(name),
   },
 }));
 
 const mockUseHardwareWallet = useHardwareWallet as jest.MockedFunction<
   typeof useHardwareWallet
 >;
+const mockOpenSettings = jest.spyOn(Linking, 'openSettings');
+const mockOpenURL = jest.spyOn(Linking, 'openURL');
 
 const initialState = {
   user: {
-    appTheme: 'light',
+    appTheme: AppThemeKey.light,
   },
 };
 
 describe('HardwareWallet onboarding screen', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockOpenSettings.mockResolvedValue();
+    mockOpenURL.mockResolvedValue('App-Prefs:Bluetooth');
 
     mockEnsureDeviceReady.mockResolvedValue(false);
     mockConnectToDevice.mockResolvedValue(false);
+    mockRetryEnsureDeviceReady.mockResolvedValue(false);
 
     mockUseHardwareWallet.mockReturnValue({
       walletType: HardwareWalletType.Ledger,
@@ -83,6 +99,7 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -125,6 +142,7 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -164,6 +182,7 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -193,7 +212,6 @@ describe('HardwareWallet onboarding screen', () => {
         id: 'ledger-2',
         name: 'Flex',
       });
-      expect(mockSetConnectionSheetVisible).toHaveBeenCalledWith(true);
       expect(mockConnectToDevice).toHaveBeenCalledWith('ledger-2');
       expect(mockAcknowledgeConnectionSuccess).toHaveBeenCalled();
       expect(mockReplace).toHaveBeenCalledWith('LedgerConnect');
@@ -207,7 +225,10 @@ describe('HardwareWallet onboarding screen', () => {
     mockUseHardwareWallet.mockReturnValue({
       walletType: HardwareWalletType.Ledger,
       deviceId: null,
-      connectionState: { status: ConnectionStatus.ErrorState, error: {} as never },
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {} as never,
+      },
       deviceSelection: {
         devices: [],
         selectedDevice: null,
@@ -219,6 +240,7 @@ describe('HardwareWallet onboarding screen', () => {
       selectDiscoveredDevice: mockSelectDiscoveredDevice,
       rescanDevices: jest.fn(),
       connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
       closeConnectionFlow: mockCloseConnectionFlow,
       acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
       setConnectionSheetVisible: mockSetConnectionSheetVisible,
@@ -242,6 +264,463 @@ describe('HardwareWallet onboarding screen', () => {
       expect(mockCloseConnectionFlow).toHaveBeenCalled();
       expect(mockEnsureDeviceReady).toHaveBeenCalledTimes(2);
     });
+  });
+
+  it('renders the Ethereum app closed error state and reconnects the same device', async () => {
+    mockConnectToDevice.mockResolvedValue(false);
+
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: 'ledger-1',
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {
+          code: ErrorCode.DeviceStateEthAppClosed,
+          userMessage: 'Please open the Ethereum app on your device',
+        } as never,
+      },
+      deviceSelection: {
+        devices: [{ id: 'ledger-1', name: 'Nano X' }],
+        selectedDevice: { id: 'ledger-1', name: 'Nano X' },
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    expect(getByText('Ethereum App Not Open')).toBeTruthy();
+    expect(
+      getByText('Please open the Ethereum app on your device'),
+    ).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(getByText('Continue'));
+    });
+
+    await waitFor(() => {
+      expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
+      expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    });
+  });
+
+  it('keeps showing the app-closed screen while awaiting the Ethereum app', () => {
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: 'ledger-1',
+      connectionState: {
+        status: ConnectionStatus.AwaitingApp,
+        appName: 'Ethereum',
+      } as never,
+      deviceSelection: {
+        devices: [{ id: 'ledger-1', name: 'Nano X' }],
+        selectedDevice: { id: 'ledger-1', name: 'Nano X' },
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText, queryByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    expect(getByText('Ethereum App Not Open')).toBeTruthy();
+    expect(queryByText('Ledger device found')).toBeNull();
+  });
+
+  it('renders the blind signing disabled error state and retries the same device', async () => {
+    mockConnectToDevice.mockResolvedValue(false);
+
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: 'ledger-1',
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {
+          code: ErrorCode.DeviceStateBlindSignNotSupported,
+          userMessage:
+            'Blind signing is disabled. Please enable it in your device settings',
+        } as never,
+      },
+      deviceSelection: {
+        devices: [{ id: 'ledger-1', name: 'Nano X' }],
+        selectedDevice: { id: 'ledger-1', name: 'Nano X' },
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    expect(getByText('Blind Signing Disabled')).toBeTruthy();
+    expect(
+      getByText(
+        'Blind signing is disabled. Please enable it in your device settings',
+      ),
+    ).toBeTruthy();
+    expect(getByText('Continue')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(getByText('Continue'));
+    });
+
+    expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
+  });
+
+  it('renders the device unresponsive error state and retries the same device', async () => {
+    mockConnectToDevice.mockResolvedValue(false);
+
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: 'ledger-1',
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {
+          code: ErrorCode.DeviceUnresponsive,
+          userMessage: 'Connection timed out. Please try again',
+        } as never,
+      },
+      deviceSelection: {
+        devices: [{ id: 'ledger-1', name: 'Nano X' }],
+        selectedDevice: { id: 'ledger-1', name: 'Nano X' },
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    expect(getByText('Device Unresponsive')).toBeTruthy();
+    expect(getByText('Connection timed out. Please try again')).toBeTruthy();
+    expect(getByText('Retry')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(getByText('Retry'));
+    });
+
+    expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
+  });
+
+  it('renders the generic Ledger error state and allows exiting the flow', async () => {
+    mockConnectToDevice.mockResolvedValue(false);
+
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: 'ledger-1',
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {
+          code: ErrorCode.Unknown,
+          userMessage:
+            'Make sure your Ledger is set up with the Secret Recovery Phrase or passphrase for this account',
+        } as never,
+      },
+      deviceSelection: {
+        devices: [{ id: 'ledger-1', name: 'Nano X' }],
+        selectedDevice: { id: 'ledger-1', name: 'Nano X' },
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    expect(getByText('Something went wrong')).toBeTruthy();
+    expect(
+      getByText(
+        'Make sure your Ledger is set up with the Secret Recovery Phrase or passphrase for this account',
+      ),
+    ).toBeTruthy();
+    expect(getByText('Retry')).toBeTruthy();
+    expect(getByText('Continue')).toBeTruthy();
+
+    await act(async () => {
+      fireEvent.press(getByText('Retry'));
+    });
+
+    expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
+
+    await act(async () => {
+      fireEvent.press(getByText('Continue'));
+    });
+
+    expect(mockCloseConnectionFlow).toHaveBeenCalled();
+    expect(mockGoBack).toHaveBeenCalled();
+  });
+
+  it.each([
+    [
+      ErrorCode.PermissionBluetoothDenied,
+      'Bluetooth access denied',
+      'Enable Bluetooth in your device settings to connect your Ledger device',
+    ],
+    [
+      ErrorCode.PermissionLocationDenied,
+      'Location access denied',
+      'Enable location permissions in your device settings to connect your Ledger device',
+    ],
+    [
+      ErrorCode.PermissionNearbyDevicesDenied,
+      'Permissions to nearby devices denied',
+      'Enable access to nearby devices in Settings to connect your Ledger device',
+    ],
+    [
+      ErrorCode.BluetoothDisabled,
+      'Bluetooth is turned off',
+      'Enable Bluetooth in your device settings to connect your Ledger device',
+    ],
+    [
+      ErrorCode.BluetoothConnectionFailed,
+      'Bluetooth connection failed',
+      'Make sure your device is nearby, then try reconnecting',
+    ],
+  ])(
+    'renders the Bluetooth-specific error state for %s',
+    (errorCodeValue, title, description) => {
+      mockUseHardwareWallet.mockReturnValue({
+        walletType: HardwareWalletType.Ledger,
+        deviceId: null,
+        connectionState: {
+          status: ConnectionStatus.ErrorState,
+          error: {
+            code: errorCodeValue,
+            userMessage: description,
+          } as never,
+        },
+        deviceSelection: {
+          devices: [],
+          selectedDevice: null,
+          isScanning: false,
+          scanError: null,
+        },
+        ensureDeviceReady: mockEnsureDeviceReady,
+        setTargetWalletType: mockSetTargetWalletType,
+        selectDiscoveredDevice: mockSelectDiscoveredDevice,
+        rescanDevices: jest.fn(),
+        connectToDevice: mockConnectToDevice,
+        closeConnectionFlow: mockCloseConnectionFlow,
+        acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+        setConnectionSheetVisible: mockSetConnectionSheetVisible,
+        showHardwareWalletError: jest.fn(),
+        showAwaitingConfirmation: jest.fn(),
+        hideAwaitingConfirmation: jest.fn(),
+      });
+
+      const { getByText } = renderWithProvider(<HardwareWallet />, {
+        state: initialState,
+      });
+
+      expect(getByText(title)).toBeTruthy();
+      expect(getByText(description)).toBeTruthy();
+    },
+  );
+
+  it('opens settings from the Bluetooth access denied state', async () => {
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: null,
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {
+          code: ErrorCode.PermissionBluetoothDenied,
+          userMessage:
+            'Enable Bluetooth in your device settings to connect your Ledger device',
+        } as never,
+      },
+      deviceSelection: {
+        devices: [],
+        selectedDevice: null,
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      retryEnsureDeviceReady: mockRetryEnsureDeviceReady,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('View Settings'));
+    });
+
+    expect(mockOpenSettings).toHaveBeenCalled();
+  });
+
+  it('opens Bluetooth settings from the Bluetooth disabled state', async () => {
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: null,
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {
+          code: ErrorCode.BluetoothDisabled,
+          userMessage:
+            'Enable Bluetooth in your device settings to connect your Ledger device',
+        } as never,
+      },
+      deviceSelection: {
+        devices: [],
+        selectedDevice: null,
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('View Settings'));
+    });
+
+    expect(mockOpenURL).toHaveBeenCalledWith('App-Prefs:Bluetooth');
+  });
+
+  it('retries and exits from the Bluetooth connection failed state', async () => {
+    mockConnectToDevice.mockResolvedValue(false);
+
+    mockUseHardwareWallet.mockReturnValue({
+      walletType: HardwareWalletType.Ledger,
+      deviceId: 'ledger-1',
+      connectionState: {
+        status: ConnectionStatus.ErrorState,
+        error: {
+          code: ErrorCode.BluetoothConnectionFailed,
+          userMessage: 'Make sure your device is nearby, then try reconnecting',
+        } as never,
+      },
+      deviceSelection: {
+        devices: [{ id: 'ledger-1', name: 'Nano X' }],
+        selectedDevice: { id: 'ledger-1', name: 'Nano X' },
+        isScanning: false,
+        scanError: null,
+      },
+      ensureDeviceReady: mockEnsureDeviceReady,
+      setTargetWalletType: mockSetTargetWalletType,
+      selectDiscoveredDevice: mockSelectDiscoveredDevice,
+      rescanDevices: jest.fn(),
+      connectToDevice: mockConnectToDevice,
+      closeConnectionFlow: mockCloseConnectionFlow,
+      acknowledgeConnectionSuccess: mockAcknowledgeConnectionSuccess,
+      setConnectionSheetVisible: mockSetConnectionSheetVisible,
+      showHardwareWalletError: jest.fn(),
+      showAwaitingConfirmation: jest.fn(),
+      hideAwaitingConfirmation: jest.fn(),
+    });
+
+    const { getByText } = renderWithProvider(<HardwareWallet />, {
+      state: initialState,
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('Retry'));
+    });
+
+    await waitFor(() => {
+      expect(mockCloseConnectionFlow).not.toHaveBeenCalled();
+      expect(mockRetryEnsureDeviceReady).toHaveBeenCalledWith('ledger-1');
+    });
+
+    await act(async () => {
+      fireEvent.press(getByText('Continue'));
+    });
+
+    expect(mockGoBack).toHaveBeenCalled();
   });
 
   it('does not restart the onboarding flow when hook callback identities change', async () => {
