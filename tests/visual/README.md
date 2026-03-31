@@ -55,7 +55,7 @@ tags:
 
 ### 2. Choose a fixture preset
 
-The `fixture:` tag in your YAML tells the orchestrator which app state to load. Available presets are defined in `tests/visual/fixtures/presets.ts`:
+The `fixture:` tag in your YAML tells the orchestrator which app state to load. Available presets are defined in `tests/maestro/fixtures/presets.ts`:
 
 | Tag                                      | Description                                       |
 | ---------------------------------------- | ------------------------------------------------- |
@@ -66,7 +66,7 @@ The `fixture:` tag in your YAML tells the orchestrator which app state to load. 
 
 Modifiers are composable: `fixture:default:with-multiple-accounts:with-clean-banners`
 
-To add a new preset, add a modifier function to `tests/visual/fixtures/presets.ts`:
+To add a new preset, add a modifier function to `tests/maestro/fixtures/presets.ts`:
 
 ```ts
 const modifiers = {
@@ -157,23 +157,31 @@ A single flow can capture multiple screens — just use different `path` values:
 ## Architecture
 
 ```
-tests/visual/
-├── baselines/              # Baseline screenshots (gitkeep, storage TBD)
-├── fixtures/
-│   └── presets.ts          # Composable fixture tag → FixtureBuilder registry
-├── flows/
-│   ├── shared/             # Reusable sub-flows (unlock, dismiss dev screens)
-│   └── wallet/             # Flows organized by feature area
+tests/maestro/                 # Shared Maestro infrastructure (all test types)
 ├── orchestrator/
-│   ├── index.ts            # CLI entry point
-│   ├── run-flow.ts         # Single flow executor (servers + Maestro)
-│   ├── parse-fixture-tag.ts # Extracts fixture: tag from YAML metadata
-│   ├── rewrite-flow.ts     # Rewrites assertScreenshot → takeScreenshot
-│   ├── device.ts           # iOS simulator detection
-│   ├── register.js         # Runtime hooks (module shims, Detox stubs)
-│   └── empty-stub.js       # Stub for Playwright transitive imports
-├── maestro.config.yaml     # Maestro configuration
-└── tsconfig.json           # TypeScript config for orchestrator
+│   ├── index.ts               # Shared CLI orchestrator (flow discovery, execution loop)
+│   ├── run-flow.ts            # Single flow executor (fixture/mock servers + Maestro)
+│   ├── parse-tags.ts          # Extracts fixture: and mock: tags from YAML metadata
+│   ├── device.ts              # iOS simulator detection
+│   ├── register.js            # Runtime hooks (module shims, Detox stubs)
+│   └── empty-stub.js          # Stub for Playwright transitive imports
+├── fixtures/
+│   └── presets.ts             # Composable fixture tag → FixtureBuilder registry
+└── mocks/
+    ├── registry.ts            # Mock tag → setup function mapping
+    └── send-balances.ts       # Send flow mock overrides
+
+tests/visual/                  # Visual regression tests (uses shared orchestrator)
+├── baselines/ios/wallet/      # Baseline screenshots
+├── cli.ts                     # Visual CLI entry point (adds --update-baselines)
+├── rewrite-flow.ts            # Rewrites assertScreenshot → takeScreenshot
+├── flows/
+│   ├── shared/                # Reusable sub-flows (unlock, dismiss dev screens)
+│   └── wallet/                # Visual flow YAMLs
+├── maestro.config.yaml        # Maestro configuration
+└── README.md
 ```
 
-The orchestrator starts a **FixtureServer** (port 12345) and **MockServerE2E** (port 8000) for each flow, providing deterministic app state and API responses. Maestro runs as a child process while the servers handle requests on the Node event loop.
+The shared orchestrator (`tests/maestro/`) starts a **FixtureServer** (port 12345) and **MockServerE2E** (port 8000) for each flow, providing deterministic app state and API responses. Maestro runs as a child process while the servers handle requests on the Node event loop.
+
+The visual CLI (`tests/visual/cli.ts`) wraps the shared orchestrator and adds `--update-baselines` mode, which rewrites `assertScreenshot` commands to `takeScreenshot` before running Maestro.

@@ -1,8 +1,8 @@
 import { readFileSync, writeFileSync, mkdirSync } from 'fs';
 import path from 'path';
 
-const TMP_DIR = path.join(__dirname, '..', '.tmp');
-const FLOWS_DIR = path.join(__dirname, '..', 'flows');
+const TMP_DIR = path.join(__dirname, '.tmp');
+const FLOWS_DIR = path.join(__dirname, 'flows');
 
 /**
  * Rewrite a Maestro flow YAML, converting assertScreenshot to takeScreenshot.

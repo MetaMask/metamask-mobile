@@ -2,10 +2,10 @@ import type { Mockttp } from 'mockttp';
 import { setupSendBalancesMock } from './send-balances';
 
 /**
- * Signature for visual-test-specific mock setup functions.
+ * Signature for test-specific mock setup functions.
  * Matches the TestSpecificMock type from the E2E framework.
  */
-export type VisualTestMock = (server: Mockttp) => Promise<void>;
+export type TestMock = (server: Mockttp) => Promise<void>;
 
 /**
  * Registry of named mock overrides that can be referenced from flow YAML
@@ -14,7 +14,7 @@ export type VisualTestMock = (server: Mockttp) => Promise<void>;
  *
  * Example YAML tag: `mock:send-balances`
  */
-const registry: Record<string, VisualTestMock> = {
+const registry: Record<string, TestMock> = {
   'send-balances': setupSendBalancesMock,
 };
 
@@ -22,7 +22,7 @@ const registry: Record<string, VisualTestMock> = {
  * Look up a mock override by name.
  * @returns The mock setup function, or undefined if not found.
  */
-export function getMockOverride(name: string): VisualTestMock | undefined {
+export function getMockOverride(name: string): TestMock | undefined {
   return registry[name];
 }
 

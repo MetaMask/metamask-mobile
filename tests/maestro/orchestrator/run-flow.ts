@@ -6,9 +6,8 @@ import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
 import { buildFromTag } from '../fixtures/presets';
-import { parseFixtureTag, parseMockTag } from './parse-fixture-tag';
+import { parseFixtureTag, parseMockTag } from './parse-tags';
 import { getMockOverride } from '../mocks/registry';
-import { rewriteFlowForCapture } from './rewrite-flow';
 
 const APP_BUNDLE_ID = 'io.metamask.MetaMask';
 
@@ -24,7 +23,12 @@ const MOCK_SERVER_PORT = 8000;
 export interface RunFlowOptions {
   flowPath: string;
   deviceUdid: string;
-  updateBaselines: boolean;
+  /**
+   * Optional hook to transform the flow file before Maestro runs it.
+   * Returns the path to the transformed flow (caller is responsible for cleanup).
+   * If not provided, the original flow path is used.
+   */
+  transformFlow?: (flowPath: string) => string | null;
 }
 
 export interface RunFlowResult {
@@ -71,16 +75,16 @@ function killProcessOnPort(port: number): void {
 }
 
 /**
- * Execute a single Maestro visual regression flow:
- * 1. Parse fixture tag from YAML
+ * Execute a single Maestro flow:
+ * 1. Parse fixture/mock tags from YAML
  * 2. Build fixture from presets registry
- * 3. Start FixtureServer (using startResourceWithRetry for port allocation + retry)
- * 4. Launch app with fixture server port
- * 5. Run Maestro test (or rewritten flow in update mode)
- * 6. Teardown: terminate app, stop server
+ * 3. Start MockServerE2E and FixtureServer
+ * 4. Optionally transform the flow file (e.g. rewrite screenshots)
+ * 5. Run Maestro test
+ * 6. Teardown: stop servers, clean up temp files
  */
 export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
-  const { flowPath, deviceUdid, updateBaselines } = options;
+  const { flowPath, deviceUdid, transformFlow } = options;
   const fixtureServer = new FixtureServer();
   let tempFlowPath: string | null = null;
 
@@ -93,7 +97,7 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     return {
       flowPath,
       passed: false,
-      error: `Unknown mock override: "${mockTagName}". Check tests/visual/mocks/registry.ts`,
+      error: `Unknown mock override: "${mockTagName}". Check tests/maestro/mocks/registry.ts`,
     };
   }
 
@@ -142,14 +146,13 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     //    server. We just terminate any stale instance before Maestro takes over.
     terminateApp(deviceUdid);
 
-    // 7. Determine which flow file to pass to Maestro
+    // 7. Optionally transform the flow file (e.g. rewrite assertScreenshot → takeScreenshot)
     let maestroFlowPath = flowPath;
-    if (updateBaselines) {
-      tempFlowPath = rewriteFlowForCapture(flowPath);
-      maestroFlowPath = tempFlowPath;
-      console.log(
-        '  Mode: update-baselines (assertScreenshot -> takeScreenshot)',
-      );
+    if (transformFlow) {
+      tempFlowPath = transformFlow(flowPath);
+      if (tempFlowPath) {
+        maestroFlowPath = tempFlowPath;
+      }
     }
 
     // 8. Run Maestro (async spawn so the Node event loop stays unblocked

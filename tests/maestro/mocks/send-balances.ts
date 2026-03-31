@@ -10,7 +10,7 @@ const ETH_BALANCE = '10.000000000000000000';
 const ETH_BALANCE_WEI_HEX = '0x8AC7230489E80000'; // 10 ETH in wei
 
 /**
- * Visual-test-specific mock that overrides Accounts API balance endpoints
+ * Test-specific mock that overrides Accounts API balance endpoints
  * and mainnet RPC to return consistent 10 ETH balance.
  *
  * Pattern is taken directly from the working send-erc20-token.spec.ts test.

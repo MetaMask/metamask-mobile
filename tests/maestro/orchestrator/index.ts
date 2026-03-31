@@ -1,16 +1,13 @@
 import { existsSync, readdirSync, statSync, rmSync } from 'fs';
 import path from 'path';
 import { getBootedSimulatorUdid } from './device';
-import { parseFixtureTag } from './parse-fixture-tag';
-import { runFlow, RunFlowResult } from './run-flow';
-
-const FLOWS_DIR = path.join(__dirname, '..', 'flows');
-const TMP_DIR = path.join(__dirname, '..', '.tmp');
+import { parseFixtureTag } from './parse-tags';
+import { runFlow, RunFlowOptions, RunFlowResult } from './run-flow';
 
 /**
- * Recursively discover all .yaml files in a directory.
+ * Recursively discover all .yaml files in a directory that have a fixture: tag.
  */
-function discoverFlows(dir: string): string[] {
+export function discoverFlows(dir: string): string[] {
   const flows: string[] = [];
 
   for (const entry of readdirSync(dir)) {
@@ -32,9 +29,24 @@ function discoverFlows(dir: string): string[] {
   return flows;
 }
 
-async function main() {
+export interface OrchestratorOptions {
+  /** Default directory to scan when no --flow is specified */
+  defaultFlowsDir: string;
+  /** Directory for temp files (cleaned up automatically) */
+  tmpDir: string;
+  /** Optional hook to transform flows before Maestro runs them */
+  transformFlow?: (flowPath: string) => string | null;
+}
+
+/**
+ * Shared Maestro orchestrator CLI.
+ * Parses --flow arguments, discovers flows, runs each one with fixture/mock servers.
+ * Can be used directly or wrapped by test-type-specific CLIs (e.g. visual).
+ */
+export async function orchestrate(options: OrchestratorOptions): Promise<void> {
+  const { defaultFlowsDir, tmpDir, transformFlow } = options;
+
   const args = process.argv.slice(2);
-  const updateBaselines = args.includes('--update-baselines');
 
   // Parse --flow <path> argument (can be specified multiple times)
   const flowArgs: string[] = [];
@@ -45,7 +57,7 @@ async function main() {
   }
 
   // Clean tmp dir at start
-  rmSync(TMP_DIR, { recursive: true, force: true });
+  rmSync(tmpDir, { recursive: true, force: true });
 
   // Detect device
   let deviceUdid: string;
@@ -60,7 +72,6 @@ async function main() {
   // Discover flows
   let flowPaths: string[];
   if (flowArgs.length > 0) {
-    // Specific flow or directory passed as argument
     flowPaths = [];
     for (const arg of flowArgs) {
       const resolved = path.resolve(arg);
@@ -75,11 +86,11 @@ async function main() {
       }
     }
   } else {
-    if (!existsSync(FLOWS_DIR)) {
-      console.error(`Flows directory not found: ${FLOWS_DIR}`);
+    if (!existsSync(defaultFlowsDir)) {
+      console.error(`Flows directory not found: ${defaultFlowsDir}`);
       process.exit(1);
     }
-    flowPaths = discoverFlows(FLOWS_DIR);
+    flowPaths = discoverFlows(defaultFlowsDir);
   }
 
   if (flowPaths.length === 0) {
@@ -87,9 +98,7 @@ async function main() {
     process.exit(1);
   }
 
-  const mode = updateBaselines ? 'update-baselines' : 'assert';
-  console.log(`\nMode: ${mode}`);
-  console.log(`Flows: ${flowPaths.length}\n`);
+  console.log(`\nFlows: ${flowPaths.length}\n`);
 
   // Run each flow
   const results: RunFlowResult[] = [];
@@ -97,12 +106,13 @@ async function main() {
     const relativePath = path.relative(process.cwd(), flowPath);
     console.log(`Running: ${relativePath}`);
 
-    const result = await runFlow({
+    const flowOptions: RunFlowOptions = {
       flowPath,
       deviceUdid,
-      updateBaselines,
-    });
+      transformFlow,
+    };
 
+    const result = await runFlow(flowOptions);
     results.push(result);
 
     if (result.passed) {
@@ -122,14 +132,15 @@ async function main() {
   );
 
   // Clean tmp dir at end
-  rmSync(TMP_DIR, { recursive: true, force: true });
+  rmSync(tmpDir, { recursive: true, force: true });
 
   if (failed > 0) {
     process.exit(1);
   }
 }
 
-main().catch((err) => {
-  console.error('Orchestrator error:', err);
-  process.exit(1);
-});
+// Re-export for convenience
+export { runFlow } from './run-flow';
+export type { RunFlowOptions, RunFlowResult } from './run-flow';
+export { getBootedSimulatorUdid } from './device';
+export { parseFixtureTag, parseMockTag } from './parse-tags';

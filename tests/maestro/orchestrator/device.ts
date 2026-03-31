@@ -26,6 +26,6 @@ export function getBootedSimulatorUdid(): string {
   }
 
   throw new Error(
-    'No booted iOS simulator found. Start a simulator before running visual tests.',
+    'No booted iOS simulator found. Start a simulator before running Maestro tests.',
   );
 }
