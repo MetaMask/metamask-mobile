@@ -60,6 +60,7 @@ exports[`logs :: generateStateLogs Sanitized SeedlessOnboardingController State 
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
         },
+        "quoteStreamComplete": null,
         "quotes": [],
         "quotesInitialLoadTime": null,
         "quotesLastFetched": null,
@@ -881,6 +882,7 @@ exports[`logs :: generateStateLogs generates a valid json export 1`] = `
         "quoteRequest": {
           "srcTokenAddress": "0x0000000000000000000000000000000000000000",
         },
+        "quoteStreamComplete": null,
         "quotes": [],
         "quotesInitialLoadTime": null,
         "quotesLastFetched": null,
