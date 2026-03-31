@@ -625,6 +625,7 @@
     "quotesLastFetched": null,
     "quotesLoadingStatus": null,
     "quotesRefreshCount": 0,
+    "quoteStreamComplete": null,
     "tokenWarnings": []
   },
   "BridgeStatusController": {
