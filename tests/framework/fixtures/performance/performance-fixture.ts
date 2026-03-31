@@ -110,7 +110,7 @@ export const test = base.extend<PerformanceFixtures>({
     const sessionId = getSessionIdFromAnnotations(testInfo.annotations);
 
     if (metrics) {
-      const browserstackRecordingUrl = await getBrowserStackRecordingUrl(
+      const videoRecordingUrl = await getBrowserStackRecordingUrl(
         sessionId,
         testInfo.project?.name ?? 'unknown',
       );
@@ -121,7 +121,7 @@ export const test = base.extend<PerformanceFixtures>({
           testTitle: testInfo.title,
           projectName: testInfo.project?.name ?? 'unknown',
           testFilePath: testInfo.file,
-          browserstackRecordingUrl,
+          videoRecordingUrl,
           tags: testTags,
           status: testInfo.status,
           retry: testInfo.retry,
