@@ -392,10 +392,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
       [tw],
     );
     const textareaInputStyle = useMemo(
-      () =>
-        tw.style(
-          'h-[66px] bg-transparent text-text-alternative text-base leading-5 my-4',
+      () => ({
+        ...tw.style(
+          'h-[66px] bg-transparent text-text-alternative text-base my-4',
         ),
+        lineHeight: 20,
+      }),
       [tw],
     );
     const gridInputItemStyle = useMemo(
@@ -432,6 +434,7 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
           {seedPhrase.map((item, index) => (
             <SrpInput
               key={`seed-phrase-item-${uniqueId}-${index}`}
+              {...SHARED_INPUT_PROPS}
               ref={(itemRef) => {
                 const inputRefs = getSeedPhraseInputRef();
                 if (itemRef) {
@@ -476,12 +479,12 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
               }
               onKeyPress={(e) => handleKeyPress(e, index)}
               isDisabled={disabled}
-              {...SHARED_INPUT_PROPS}
             />
           ))}
 
           <SrpInput
             key={`seed-phrase-item-${uniqueId}`}
+            {...SHARED_INPUT_PROPS}
             value={seedPhrase[0]}
             onFocus={() => handleOnFocus(0)}
             onBlur={() => handleOnBlur(0)}
@@ -497,7 +500,6 @@ const SrpInputGrid = React.forwardRef<SrpInputGridRef, SrpInputGridProps>(
             multiline
             onKeyPress={(e) => handleKeyPress(e, 0)}
             isDisabled={disabled}
-            {...SHARED_INPUT_PROPS}
           />
         </Box>
 
