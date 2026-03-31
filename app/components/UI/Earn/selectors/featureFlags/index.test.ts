@@ -2168,14 +2168,14 @@ describe('Earn Feature Flag Selectors', () => {
       expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
     });
 
-    it('returns fallback chain IDs when remote flag chainIds is an empty array', () => {
+    it('returns an empty array when remote flag chainIds is an empty array, disabling registration', () => {
       const stateWithEmptyRemote = createStateWithRemoteFlags({
         earnMusdTokenRegistrationChainIds: { chainIds: [] },
       });
 
       const result = selectMusdTokenRegistrationChainIds(stateWithEmptyRemote);
 
-      expect(result).toEqual(MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK);
+      expect(result).toEqual([]);
     });
 
     it('returns fallback chain IDs when remote flag chainIds is not an array', () => {

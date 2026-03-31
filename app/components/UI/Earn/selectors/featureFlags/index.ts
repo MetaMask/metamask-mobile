@@ -365,7 +365,9 @@ export const MUSD_TOKEN_REGISTRATION_CHAIN_IDS_FALLBACK = [
  * in TokensController at app mount (via useEnsureMusdTokenRegistered).
  *
  * Remote flag takes precedence over the local fallback.
- * If both are unavailable or invalid, defaults to mainnet and Linea.
+ * An empty remote array is honoured (disabling registration); the fallback is
+ * only used when the remote flag is absent or structurally invalid (i.e.
+ * `chainIds` is missing or not an array).
  */
 export const selectMusdTokenRegistrationChainIds = createSelector(
   selectRemoteFeatureFlags,
@@ -374,7 +376,7 @@ export const selectMusdTokenRegistrationChainIds = createSelector(
       | { chainIds?: string[] }
       | undefined;
 
-    if (Array.isArray(remoteFlag?.chainIds) && remoteFlag.chainIds.length > 0) {
+    if (Array.isArray(remoteFlag?.chainIds)) {
       return remoteFlag.chainIds;
     }
 
