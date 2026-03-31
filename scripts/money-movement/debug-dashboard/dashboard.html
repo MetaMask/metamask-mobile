@@ -934,10 +934,11 @@
 
         function renderStateSection(key, value) {
           const isOpen = openSections.has(key);
+          const safeKey = esc(String(key));
           return `<div class="state-section">
-      <div class="state-section-header" data-key="${key}">
+      <div class="state-section-header" data-key="${safeKey}">
         <span class="state-section-chevron ${isOpen ? 'open' : ''}">&#9654;</span>
-        <span class="state-section-name">${key}</span>
+        <span class="state-section-name">${safeKey}</span>
         <span class="state-section-badges">${getSectionBadges(key, value)}</span>
       </div>
       <div class="state-section-body ${isOpen ? 'open' : ''}">
@@ -957,7 +958,7 @@
             if (value.isLoading)
               b += '<span class="badge badge-loading">loading</span>';
             if (value.error)
-              b += '<span class="badge badge-error">error</span>';
+              b += `<span class="badge badge-error">error: ${esc(String(value.error))}</span>`;
             if (value.selected !== undefined && value.selected !== null) {
               const label = value.selected?.name || value.selected?.id || 'yes';
               b += `<span class="badge badge-selected">selected: ${esc(String(label))}</span>`;
