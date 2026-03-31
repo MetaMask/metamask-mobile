@@ -1,9 +1,11 @@
 import { Platform } from 'react-native';
+import Pusher from 'pusher-js/react-native';
 import { ControllerInitFunction } from '../../types';
 import {
   TransakService,
   TransakServiceMessenger,
   TransakEnvironment,
+  type PusherFactory,
 } from '@metamask/ramps-controller';
 
 export function getTransakEnvironment(): TransakEnvironment {
@@ -27,6 +29,21 @@ function getTransakContext(): string {
   return Platform.OS === 'ios' ? 'mobile-ios' : 'mobile-android';
 }
 
+const createPusher: PusherFactory = (key, options) => {
+  const pusher = new Pusher(key, options);
+  return {
+    subscribe(channelName: string) {
+      const channel = pusher.subscribe(channelName);
+      return {
+        bind: channel.bind.bind(channel),
+        unbindAll: channel.unbind_all.bind(channel),
+      };
+    },
+    unsubscribe: pusher.unsubscribe.bind(pusher),
+    disconnect: pusher.disconnect.bind(pusher),
+  };
+};
+
 export const transakServiceInit: ControllerInitFunction<
   TransakService,
   TransakServiceMessenger
@@ -36,6 +53,7 @@ export const transakServiceInit: ControllerInitFunction<
     environment: getTransakEnvironment(),
     context: getTransakContext(),
     fetch,
+    createPusher,
   });
 
   return {

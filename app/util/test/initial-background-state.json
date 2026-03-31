@@ -766,6 +766,7 @@
       "isLoading": false,
       "error": null
     },
+    "providerAutoSelected": false,
     "nativeProviders": {
       "transak": {
         "buyQuote": {

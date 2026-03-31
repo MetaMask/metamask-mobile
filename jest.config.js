@@ -88,6 +88,7 @@ const config = {
     '^@metamask/design-system-react-native/dist/components/temp-components/Spinner/index.cjs$':
       '<rootDir>/app/__mocks__/spinnerMock.js',
     '^rive-react-native$': '<rootDir>/app/__mocks__/rive-react-native.tsx',
+    '^pusher-js(/.*)?$': '<rootDir>/app/__mocks__/pusher-js.js',
   },
   // Disable jest cache
   cache: false,

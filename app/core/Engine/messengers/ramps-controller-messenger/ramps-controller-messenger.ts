@@ -72,8 +72,11 @@ export function getRampsControllerMessenger(
       'TransakService:cancelOrder',
       'TransakService:cancelAllActiveOrders',
       'TransakService:getActiveOrders',
+      'TransakService:subscribeToOrder',
+      'TransakService:unsubscribeFromOrder',
+      'TransakService:disconnectWebSocket',
     ],
-    events: [],
+    events: ['TransakService:orderUpdate'],
   });
 
   return messenger;
