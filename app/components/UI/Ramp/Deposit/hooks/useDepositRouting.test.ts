@@ -195,18 +195,6 @@ jest.mock('../orderProcessor', () => ({
 
 jest.mock('../../hooks/useAnalytics', () => () => mockTrackEvent);
 
-let capturedCheckoutCallback:
-  | ((navState: { url: string }) => Promise<void>)
-  | undefined;
-jest.mock('../../utils/checkoutCallbackRegistry', () => ({
-  registerCheckoutCallback: jest.fn(
-    (cb: (navState: { url: string }) => Promise<void>) => {
-      capturedCheckoutCallback = cb;
-      return 'mock-callback-key';
-    },
-  ),
-}));
-
 jest.mock('../../../../../util/trace', () => ({
   endTrace: jest.fn(),
   TraceName: {
@@ -233,7 +221,6 @@ const mockPreviousFormData = {
 describe('useDepositRouting', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    capturedCheckoutCallback = undefined;
 
     mockSelectedRegion = { isoCode: 'US', currency: 'USD' } as DepositRegion;
     mockSelectedPaymentMethod = {
@@ -385,7 +372,7 @@ describe('useDepositRouting', () => {
         screen: 'DepositWebviewModal',
         params: {
           sourceUrl: 'https://payment.url',
-          callbackKey: 'mock-callback-key',
+          handleNavigationStateChange: expect.any(Function),
         },
       });
     });
@@ -866,11 +853,27 @@ describe('useDepositRouting', () => {
   });
 
   describe('handleNavigationStateChange', () => {
-    const getCheckoutHandler = () => {
-      if (!capturedCheckoutCallback) {
-        throw new Error('Checkout callback was not registered');
+    const getDepositWebviewNavigationHandler = () => {
+      const webviewCall = mockNavigate.mock.calls.find(
+        (call) =>
+          call[0] === 'DepositModals' &&
+          (call[1] as { screen?: string })?.screen === 'DepositWebviewModal',
+      );
+      if (!webviewCall) {
+        throw new Error('Deposit webview navigation was not called');
       }
-      return capturedCheckoutCallback;
+      const params = (
+        webviewCall[1] as {
+          params?: {
+            handleNavigationStateChange?: (navState: { url: string }) => void;
+          };
+        }
+      ).params;
+      const handler = params?.handleNavigationStateChange;
+      if (!handler) {
+        throw new Error('handleNavigationStateChange was not passed');
+      }
+      return handler;
     };
 
     it('processes order and navigates when URL contains orderId', async () => {
@@ -882,9 +885,9 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
-      expect(capturedCheckoutCallback).toBeDefined();
+      const handleNavigation = getDepositWebviewNavigationHandler();
 
-      await getCheckoutHandler()({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
@@ -925,9 +928,11 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
+      const handleNavigation = getDepositWebviewNavigationHandler();
+
       mockTrackEvent.mockClear();
 
-      await getCheckoutHandler()({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
@@ -963,10 +968,12 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
+      const handleNavigation = getDepositWebviewNavigationHandler();
+
       mockTrackEvent.mockClear();
       mockNavigate.mockClear();
 
-      await getCheckoutHandler()({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
@@ -980,9 +987,11 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
+      const handleNavigation = getDepositWebviewNavigationHandler();
+
       jest.clearAllMocks();
 
-      await getCheckoutHandler()({
+      await handleNavigation({
         url: 'https://example.com/success?orderId=test-order-id',
       });
 
@@ -997,9 +1006,11 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
+      const handleNavigation = getDepositWebviewNavigationHandler();
+
       jest.clearAllMocks();
 
-      await getCheckoutHandler()({ url: REDIRECTION_URL });
+      await handleNavigation({ url: REDIRECTION_URL });
 
       expect(mockGetOrder).not.toHaveBeenCalled();
       expect(mockNavigate).not.toHaveBeenCalled();
@@ -1017,9 +1028,11 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
+      const handleNavigation = getDepositWebviewNavigationHandler();
+
       jest.clearAllMocks();
 
-      await getCheckoutHandler()({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
@@ -1039,9 +1052,11 @@ describe('useDepositRouting', () => {
       const mockQuote = { quoteId: 'test-quote-id' } as BuyQuote;
       await result.current.routeAfterAuthentication(mockQuote);
 
+      const handleNavigation = getDepositWebviewNavigationHandler();
+
       jest.clearAllMocks();
 
-      await getCheckoutHandler()({
+      await handleNavigation({
         url: `${REDIRECTION_URL}?orderId=test-order-id`,
       });
 
