@@ -205,7 +205,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     }
 
     // Ensure WebSocket connected for this symbol+interval
-    this.connect(symbol, interval, cacheKey);
+    this.connect(symbol, interval, cacheKey, onError);
 
     // Return unsubscribe function
     return () => {
@@ -241,6 +241,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     symbol: string,
     interval: CandlePeriod,
     cacheKey: string,
+    onError?: (error: Error) => void,
   ): void {
     // Skip if already connected for this symbol+interval
     if (this.wsSubscriptions.has(cacheKey)) {
@@ -280,7 +281,7 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
         this.notifySubscribers(cacheKey, candleData);
       },
       onError: (error: Error) => {
-        // Log initialization failure
+        onError?.(error);
         DevLogger.log(
           'CandleStreamChannel: Subscription initialization failed',
           {
@@ -377,24 +378,15 @@ export class CandleStreamChannel extends StreamChannel<CandleData> {
     duration: TimeDuration,
   ): Promise<void> {
     const cacheKey = this.getCacheKey(symbol, interval);
-    const cachedData = this.cache.get(cacheKey);
-
-    // If no cached data or no candles, nothing to extend
-    if (!cachedData || cachedData.candles.length === 0) {
-      DevLogger.log(
-        'CandleStreamChannel: No cached data to extend, skipping historical fetch',
-        { symbol, interval },
-      );
-      return;
-    }
+    const cachedData = this.cache.get(cacheKey) ?? {
+      symbol,
+      interval,
+      candles: [],
+    };
 
     // Get the oldest candle timestamp
-    const oldestCandle = cachedData.candles[0];
-    if (!oldestCandle) {
-      return;
-    }
-
-    const oldestTime = oldestCandle.time;
+    const oldestCandle = cachedData?.candles?.[0];
+    const oldestTime = oldestCandle?.time ?? Date.now();
     const endTime = oldestTime - 1; // Fetch candles ending just before the oldest
 
     // Calculate dynamic limit based on duration and interval
