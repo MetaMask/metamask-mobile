@@ -671,9 +671,36 @@ export class PredictController extends BaseController<
     }
   }
 
-  /**
-   * Get detailed information for a single market
-   */
+  async getCarouselMarkets(): Promise<PredictMarket[]> {
+    try {
+      const markets = (await this.provider.getCarouselMarkets?.()) ?? [];
+
+      this.update((state) => {
+        state.lastError = null;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      return markets;
+    } catch (error) {
+      const errorMessage =
+        error instanceof Error
+          ? error.message
+          : PREDICT_ERROR_CODES.MARKETS_FAILED;
+
+      this.update((state) => {
+        state.lastError = errorMessage;
+        state.lastUpdateTimestamp = Date.now();
+      });
+
+      Logger.error(
+        ensureError(error),
+        this.getErrorContext('getCarouselMarkets', {}),
+      );
+
+      throw error;
+    }
+  }
+
   async getMarket({
     marketId,
   }: {

@@ -26,10 +26,15 @@ import {
   PredictNavigationParamList,
   PredictEntryPoint,
 } from '../../types/navigation';
-import { formatVolume, formatPrice } from '../../utils/format';
+import {
+  formatVolume,
+  formatPrice,
+  formatPercentage,
+} from '../../utils/format';
 import { PredictEventValues } from '../../constants/eventNames';
 import { usePredictActionGuard } from '../../hooks/usePredictActionGuard';
 import { usePredictNavigation } from '../../hooks/usePredictNavigation';
+import FeaturedCarouselSportCard from './FeaturedCarouselSportCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 import cardStyleSheet from './FeaturedCarouselCard.styles';
 
@@ -106,6 +111,24 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
     return sum + vol;
   }, 0);
 
+  if (market.game) {
+    return (
+      <FeaturedCarouselSportCard
+        market={market}
+        index={index}
+        entryPoint={entryPoint}
+      />
+    );
+  }
+
+  const formattedEndDate = market.endDate
+    ? new Intl.DateTimeFormat(undefined, {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      }).format(new Date(market.endDate))
+    : null;
+
   return (
     <TouchableOpacity
       testID={FEATURED_CAROUSEL_TEST_IDS.CARD(index)}
@@ -114,6 +137,18 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
     >
       <Box style={styles.cardContainer}>
         <Box twClassName="flex-1">
+          {market.image && (
+            <Box alignItems={BoxAlignItems.Center} twClassName="mb-2">
+              <Box twClassName="w-10 h-10 rounded-full bg-muted overflow-hidden">
+                <Image
+                  source={{ uri: market.image }}
+                  style={tw.style('w-full h-full')}
+                  resizeMode="cover"
+                />
+              </Box>
+            </Box>
+          )}
+
           <Text
             testID={FEATURED_CAROUSEL_TEST_IDS.CARD_TITLE(index)}
             variant={TextVariant.BodyLg}
@@ -133,6 +168,7 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
             {displayOutcomes.map((outcome, outcomeIdx) => {
               const token = outcome.tokens[0];
               if (!token) return null;
+              const percentage = Math.round(token.price * 100);
 
               return (
                 <Box
@@ -144,18 +180,6 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                   alignItems={BoxAlignItems.Center}
                   twClassName="flex-1"
                 >
-                  <Box twClassName="w-10 h-10 rounded-full bg-muted overflow-hidden mb-2">
-                    {outcome.image ? (
-                      <Image
-                        source={{ uri: outcome.image }}
-                        style={tw.style('w-full h-full')}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <Box twClassName="w-full h-full bg-muted" />
-                    )}
-                  </Box>
-
                   <Text
                     variant={TextVariant.BodyMd}
                     fontWeight={FontWeight.Medium}
@@ -165,14 +189,25 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                     {outcome.groupItemTitle || outcome.title}
                   </Text>
 
-                  <Text
-                    variant={TextVariant.BodySm}
-                    color={TextColor.SuccessDefault}
-                    twClassName="mt-1"
+                  <Box
+                    flexDirection={BoxFlexDirection.Row}
+                    alignItems={BoxAlignItems.Center}
+                    twClassName="mt-1 gap-1"
                   >
-                    {formatPrice(BET_AMOUNT)} {String.fromCharCode(0x2192)}{' '}
-                    {getPayoutDisplay(token.price)}
-                  </Text>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.TextAlternative}
+                    >
+                      {formatPrice(BET_AMOUNT)} {String.fromCharCode(0x2192)}
+                    </Text>
+                    <Text
+                      variant={TextVariant.BodySm}
+                      color={TextColor.SuccessDefault}
+                      fontWeight={FontWeight.Medium}
+                    >
+                      {getPayoutDisplay(token.price)}
+                    </Text>
+                  </Box>
 
                   <Box twClassName="w-full mt-2">
                     <Button
@@ -185,15 +220,15 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
                         backgroundColor: styles.buyButton.backgroundColor,
                       }}
                       isFullWidth
-                      size={ButtonBaseSize.Md}
+                      size={ButtonBaseSize.Lg}
                     >
                       <Text
-                        variant={TextVariant.BodySm}
+                        variant={TextVariant.BodyMd}
                         style={tw.style('font-medium')}
                         color={TextColor.SuccessDefault}
                         numberOfLines={1}
                       >
-                        {`${strings('predict.buy')} ${outcome.groupItemTitle || outcome.title}`}
+                        {formatPercentage(percentage)}
                       </Text>
                     </Button>
                   </Box>
@@ -211,16 +246,20 @@ const FeaturedCarouselCard: React.FC<FeaturedCarouselCardProps> = ({
           twClassName="mt-4"
         >
           <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            {remainingOptions > 0
-              ? `+ ${remainingOptions} ${
-                  remainingOptions === 1
-                    ? strings('predict.outcomes_singular')
-                    : strings('predict.outcomes_plural')
-                }`
-              : ''}
+            {remainingOptions > 0 &&
+              `+ ${remainingOptions} ${strings(
+                remainingOptions === 1
+                  ? 'predict.outcomes_singular'
+                  : 'predict.outcomes_plural',
+              )}`}
           </Text>
-          <Text variant={TextVariant.BodySm} color={TextColor.TextAlternative}>
-            ${formatVolume(totalVolume)} {strings('predict.volume_abbreviated')}
+          <Text
+            variant={TextVariant.BodySm}
+            color={TextColor.TextAlternative}
+            numberOfLines={1}
+          >
+            {formattedEndDate && `${formattedEndDate} · `}$
+            {formatVolume(totalVolume)} {strings('predict.volume_abbreviated')}
           </Text>
         </Box>
       </Box>

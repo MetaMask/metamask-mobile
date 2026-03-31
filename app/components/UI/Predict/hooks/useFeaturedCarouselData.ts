@@ -1,8 +1,7 @@
-import { useMemo } from 'react';
-import { usePredictMarketData } from './usePredictMarketData';
+import { useCallback, useEffect, useState } from 'react';
+import Engine from '../../../../core/Engine';
+import Logger from '../../../../util/Logger';
 import { PredictMarket } from '../types';
-
-const CAROUSEL_PAGE_SIZE = 8;
 
 export interface UseFeaturedCarouselDataResult {
   markets: PredictMarket[];
@@ -11,40 +10,41 @@ export interface UseFeaturedCarouselDataResult {
   refetch: () => Promise<void>;
 }
 
-/**
- * Hook to fetch featured carousel markets.
- *
- * Currently fetches trending markets sorted by volume (highest first).
- *
- * TODO: PRED-533 - Filter by isCarousel tag from Polymarket API response.
- * The PolymarketApiTag type already has `isCarousel?: boolean`, but the
- * parsed PredictMarket only preserves tag slugs. To properly support this:
- * 1. Preserve isCarousel flag through parsePolymarketEvents
- * 2. Filter events where tags.some(t => t.isCarousel === true)
- * 3. Fall back to trending by volume if no isCarousel markets found
- *
- * TODO: PRED-533 - Pin BTC Up or Down as Card 1 when implemented.
- * Fetch via tag_slug=up-or-down, filter series[].slug = btc-up-or-down-5m,
- * and always render as the first carousel card.
- */
 export const useFeaturedCarouselData = (): UseFeaturedCarouselDataResult => {
-  const { marketData, isFetching, error, refetch } = usePredictMarketData({
-    category: 'trending',
-    pageSize: CAROUSEL_PAGE_SIZE,
-  });
+  const [markets, setMarkets] = useState<PredictMarket[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const markets = useMemo(
-    () =>
-      marketData.filter(
-        (market) => market.status === 'open' && market.outcomes.length > 0,
-      ),
-    [marketData],
-  );
+  const fetchData = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      setError(null);
+
+      const controller = Engine.context.PredictController;
+      if (!controller) {
+        throw new Error('PredictController not available');
+      }
+
+      const result = await controller.getCarouselMarkets();
+      setMarkets(result);
+    } catch (e) {
+      const message =
+        e instanceof Error ? e.message : 'Failed to fetch carousel';
+      setError(message);
+      Logger.error(e instanceof Error ? e : new Error(message));
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    fetchData();
+  }, [fetchData]);
 
   return {
     markets,
-    isLoading: isFetching,
+    isLoading,
     error,
-    refetch,
+    refetch: fetchData,
   };
 };

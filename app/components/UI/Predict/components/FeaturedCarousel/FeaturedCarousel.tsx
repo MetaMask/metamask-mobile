@@ -16,11 +16,11 @@ import FeaturedCarouselCard from './FeaturedCarouselCard';
 import { FEATURED_CAROUSEL_TEST_IDS } from './FeaturedCarousel.testIds';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const HORIZONTAL_PADDING = 16;
-const CARD_GAP = 12;
-const CARD_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2;
-const CARD_HEIGHT = 280;
-const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
+export const HORIZONTAL_PADDING = 16;
+export const CARD_GAP = 12;
+export const CARD_WIDTH = SCREEN_WIDTH - HORIZONTAL_PADDING * 2;
+export const CARD_HEIGHT = 280;
+export const SNAP_INTERVAL = CARD_WIDTH + CARD_GAP;
 
 const FeaturedCarouselSkeleton: React.FC = () => {
   const tw = useTailwind();
@@ -40,7 +40,7 @@ interface PaginationDotsProps {
   activeIndex: number;
 }
 
-const PaginationDots: React.FC<PaginationDotsProps> = ({
+export const PaginationDots: React.FC<PaginationDotsProps> = ({
   count,
   activeIndex,
 }) => {
@@ -53,18 +53,17 @@ const PaginationDots: React.FC<PaginationDotsProps> = ({
       testID={FEATURED_CAROUSEL_TEST_IDS.PAGINATION_DOTS}
       twClassName="flex-row justify-center items-center gap-1 mt-3"
     >
-      {Array.from({ length: count }).map((_, idx) => {
-        const isActive = idx === activeIndex;
-        return (
-          <View
-            key={`dot-${idx}`}
-            style={tw.style(
-              'h-2 rounded-full',
-              isActive ? 'bg-primary-default w-5' : 'bg-icon-muted w-2',
-            )}
-          />
-        );
-      })}
+      {Array.from({ length: count }).map((_, dotPosition) => (
+        <View
+          key={`pagination-dot-${dotPosition}`}
+          style={tw.style(
+            'h-2 rounded-full',
+            dotPosition === activeIndex
+              ? 'bg-icon-alternative w-5'
+              : 'bg-icon-muted w-2',
+          )}
+        />
+      ))}
     </Box>
   );
 };
@@ -86,23 +85,20 @@ const FeaturedCarousel: React.FC = () => {
   );
 
   const renderItem = useCallback(
-    ({ item, index }: { item: PredictMarket; index: number }) => {
-      const isLast = index === markets.length - 1;
-      return (
-        <Box
-          style={tw.style(
-            { width: CARD_WIDTH, height: CARD_HEIGHT },
-            !isLast && { marginRight: CARD_GAP },
-          )}
-        >
-          <FeaturedCarouselCard
-            market={item}
-            index={index}
-            entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
-          />
-        </Box>
-      );
-    },
+    ({ item: market, index: idx }: { item: PredictMarket; index: number }) => (
+      <Box
+        style={tw.style(
+          { width: CARD_WIDTH, height: CARD_HEIGHT },
+          idx < markets.length - 1 && { marginRight: CARD_GAP },
+        )}
+      >
+        <FeaturedCarouselCard
+          market={market}
+          index={idx}
+          entryPoint={PredictEventValues.ENTRY_POINT.PREDICT_FEED}
+        />
+      </Box>
+    ),
     [markets.length, tw],
   );
 

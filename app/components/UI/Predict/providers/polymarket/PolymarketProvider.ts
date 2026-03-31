@@ -92,6 +92,7 @@ import {
   createApiKey,
   encodeErc20Transfer,
   fetchEventsFromPolymarketApi,
+  fetchCarouselFromPolymarketApi,
   generateSalt,
   getBalance,
   getContractConfig,
@@ -409,6 +410,50 @@ export class PolymarketProvider implements PredictProvider {
           sortBy: params?.sortBy,
           hasSearchQuery: !!params?.q,
         }),
+      );
+
+      return [];
+    }
+  }
+
+  public async getCarouselMarkets(): Promise<PredictMarket[]> {
+    try {
+      const supportedLeagues = this.#getSupportedLeagues();
+      const liveSportsEnabled = supportedLeagues.length > 0;
+
+      const items = await fetchCarouselFromPolymarketApi();
+      const events = items.map((item) => item.event);
+
+      if (liveSportsEnabled) {
+        const neededTeams = extractNeededTeamsFromEvents(
+          events,
+          supportedLeagues,
+        );
+
+        await Promise.all(
+          [...neededTeams.entries()].map(([league, abbreviations]) =>
+            TeamsCache.getInstance().ensureTeamsLoaded(league, abbreviations),
+          ),
+        );
+      }
+
+      const teamLookup = this.#createTeamLookup(liveSportsEnabled);
+
+      const parsedMarkets = parsePolymarketEvents(events, {
+        category: 'trending',
+        sortMarketsBy: 'price',
+        teamLookup,
+      }).filter((m) => m.status === 'open' && m.outcomes.length > 0);
+
+      return liveSportsEnabled
+        ? GameCache.getInstance().overlayOnMarkets(parsedMarkets)
+        : parsedMarkets;
+    } catch (error) {
+      DevLogger.log('Error fetching carousel markets:', error);
+
+      Logger.error(
+        error instanceof Error ? error : new Error(String(error)),
+        this.getErrorContext('getCarouselMarkets', {}),
       );
 
       return [];
