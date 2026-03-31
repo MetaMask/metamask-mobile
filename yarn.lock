@@ -2103,6 +2103,20 @@ __metadata:
   languageName: node
   linkType: hard
 
+"@braze/react-native-sdk@npm:19.1.0":
+  version: 19.1.0
+  resolution: "@braze/react-native-sdk@npm:19.1.0"
+  checksum: 10/2d279c2e40783eb73bd8d508e00cd36afec7da4bab3e0d34a0a5ef32cfd75badc2443428d37405b8e46f6d9eb959e1b9dd7e7ec6e555364b2e9c685f7ce2a63f
+  languageName: node
+  linkType: hard
+
+"@braze/react-native-sdk@patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch":
+  version: 19.1.0
+  resolution: "@braze/react-native-sdk@patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch::version=19.1.0&hash=c50812"
+  checksum: 10/8d57b8d761d71bc2410eb1de640fd2c018617495f044a937b2f9c9589716d05800210ce5356087fba0e78d72f833e070cba5c89405b58447a4ab29cc8318b9ec
+  languageName: node
+  linkType: hard
+
 "@callstack/reassure-cli@npm:1.4.0":
   version: 1.4.0
   resolution: "@callstack/reassure-cli@npm:1.4.0"
@@ -35522,6 +35536,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.25.3"
     "@babel/register": "npm:^7.24.6"
     "@babel/runtime": "npm:^7.25.0"
+    "@braze/react-native-sdk": "patch:@braze/react-native-sdk@npm%3A19.1.0#~/.yarn/patches/@braze-react-native-sdk-npm-19.1.0-076-reactmoduleinfo.patch"
     "@config-plugins/detox": "npm:^9.0.0"
     "@consensys/native-ramps-sdk": "npm:^2.1.7"
     "@consensys/on-ramp-sdk": "npm:2.1.12"
