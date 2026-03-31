@@ -23,6 +23,7 @@ import Logger from '../../util/Logger';
 import AppConstants from '../AppConstants';
 import Engine from '../Engine';
 import {
+  addPermittedAccounts,
   getDefaultCaip25CaveatValue,
   getPermittedAccounts,
   updatePermittedChains,
@@ -46,7 +47,10 @@ import {
   Caip25EndowmentPermissionName,
 } from '@metamask/chain-agnostic-permission';
 import WalletConnect2Session from './WalletConnect2Session';
-import { CaipChainId } from '@metamask/utils';
+import { CaipAccountId, CaipChainId } from '@metamask/utils';
+///: BEGIN:ONLY_INCLUDE_IF(tron)
+import { TrxAccountType, TrxScope } from '@metamask/keyring-api';
+///: END:ONLY_INCLUDE_IF
 import NavigationService from '../NavigationService';
 const { PROJECT_ID } = AppConstants.WALLET_CONNECT;
 export const isWC2Enabled =
@@ -650,6 +654,33 @@ export class WC2Manager {
           err,
         );
       }
+
+      ///: BEGIN:ONLY_INCLUDE_IF(tron)
+      // Register Tron accounts in the permission system so the CAIP-25 caveat
+      // reflects Tron authorization alongside EVM.
+      try {
+        const tronAccounts =
+          Engine.context.AccountsController.listAccounts().filter(
+            (account: { type: string }) => account.type === TrxAccountType.Eoa,
+          );
+        if (tronAccounts.length > 0) {
+          const tronCaipAccountIds = tronAccounts.map(
+            (account: { address: string }) =>
+              `${TrxScope.Mainnet}:${account.address}` as CaipAccountId,
+          );
+          addPermittedAccounts(channelId, tronCaipAccountIds);
+          DevLogger.log(
+            `WC2::session_proposal Tron accounts added to permissions`,
+            tronCaipAccountIds,
+          );
+        }
+      } catch (err) {
+        DevLogger.log(
+          `WC2::session_proposal error adding Tron account permissions`,
+          err,
+        );
+      }
+      ///: END:ONLY_INCLUDE_IF
     } catch (err) {
       DevLogger.log(`WC2::session_proposal requestPermissions error`, {
         err,

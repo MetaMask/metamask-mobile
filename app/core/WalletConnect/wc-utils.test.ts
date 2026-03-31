@@ -4,7 +4,6 @@ import {
   showWCLoadingState,
   isValidWCURI,
   waitForNetworkModalOnboarding,
-  getApprovedSessionMethods,
   getScopedPermissions,
   networkModalOnboardingConfig,
   getHostname,
@@ -15,6 +14,7 @@ import type {
   NavigationContainerRef,
   ParamListBase,
 } from '@react-navigation/native';
+import { APPROVED_METHODS_BY_NAMESPACE } from './wc-config';
 import Routes from '../../../app/constants/navigation/Routes';
 // eslint-disable-next-line import-x/no-namespace
 import * as StoreModule from '../../../app/store';
@@ -59,6 +59,17 @@ jest.mock('../RPCMethods/lib/ethereum-chain-utils', () => ({
 
 jest.mock('../SDKConnect/utils/DevLogger', () => ({
   log: jest.fn(),
+}));
+
+jest.mock('../Engine', () => ({
+  __esModule: true,
+  default: {
+    context: {
+      AccountsController: {
+        listAccounts: jest.fn().mockReturnValue([]),
+      },
+    },
+  },
 }));
 
 jest.mock('qs', () => ({
@@ -211,15 +222,15 @@ describe('WalletConnect Utils', () => {
     });
   });
 
-  describe('getApprovedSessionMethods', () => {
+  describe('APPROVED_METHODS_BY_NAMESPACE', () => {
     it('returns all approved EIP-155 methods', () => {
-      const methods = getApprovedSessionMethods();
+      const methods = APPROVED_METHODS_BY_NAMESPACE.eip155;
       expect(methods).toContain('eth_sendTransaction');
       expect(methods).toContain('wallet_switchEthereumChain');
     });
 
     it('includes EIP-5792 methods', () => {
-      const methods = getApprovedSessionMethods();
+      const methods = APPROVED_METHODS_BY_NAMESPACE.eip155;
       expect(methods).toContain('wallet_sendCalls');
       expect(methods).toContain('wallet_getCallsStatus');
       expect(methods).toContain('wallet_getCapabilities');
