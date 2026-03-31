@@ -750,6 +750,7 @@
       "isLoading": false,
       "error": null
     },
+    "providerAutoSelected": false,
     "providers": {
       "data": [],
       "selected": null,
