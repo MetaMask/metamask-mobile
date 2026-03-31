@@ -20,12 +20,16 @@ const mockGetIosGoogleConfig = jest.fn();
 
 jest.mock('./constants', () => ({
   AuthServerUrl: 'https://auth.example.com',
-  AppRedirectUri: 'https://app.example.com',
+  AppRedirectUri: 'metamask://oauth-redirect',
   GoogleWebGID: 'mock-android-google-client-id',
   GoogleRedirectUri: 'https://link.metamask.io/oauth-redirect',
   AppleWebClientId: 'mock-android-apple-client-id',
   AppleServerRedirectUri: 'https://auth.example.com/api/v1/oauth/callback',
   getIosGoogleConfig: (...args: unknown[]) => mockGetIosGoogleConfig(...args),
+  TelegramAuthServerInitiatePath: '/api/v2/telegram/login/initiate',
+  TelegramAuthServerUrl: 'https://telegram.example.com',
+  TelegramAuthServerVerifyPath: '/api/v2/telegram/login/verify',
+  TelegramMintPath: '/api/v1/oauth/mint',
 }));
 
 jest.mock('expo-auth-session', () => ({
@@ -84,6 +88,15 @@ jest.mock('../../../util/device', () => ({
   },
 }));
 
+const mockOpenAuthSessionAsync = jest.fn().mockResolvedValue({
+  type: 'success',
+  url: 'metamask://oauth-redirect?code=telegramCode&state=telegram-state',
+});
+jest.mock('expo-web-browser', () => ({
+  openAuthSessionAsync: (...args: unknown[]) =>
+    mockOpenAuthSessionAsync(...args),
+}));
+
 describe('OAuth login handlers', () => {
   beforeEach(() => {
     jest.clearAllMocks();
@@ -98,6 +111,19 @@ describe('OAuth login handlers', () => {
   for (const os of ['ios', 'android']) {
     for (const provider of Object.values(AuthConnection)) {
       it(`creates the correct login handler for ${os} and ${provider}`, async () => {
+        if (provider === AuthConnection.Telegram) {
+          jest.spyOn(global, 'fetch').mockResolvedValueOnce(
+            new Response(
+              JSON.stringify({
+                authorization_url:
+                  'https://oauth.telegram.org/auth?client_id=8373330520&state=telegram-state',
+                state: 'telegram-state',
+              }),
+              { status: 200 },
+            ),
+          );
+        }
+
         const handler = createLoginHandler(os as Platform['OS'], provider);
         const result = await handler.login();
 
@@ -116,6 +142,12 @@ describe('OAuth login handlers', () => {
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
+              case AuthConnection.Telegram:
+                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
             }
             break;
           }
@@ -129,6 +161,12 @@ describe('OAuth login handlers', () => {
               case AuthConnection.Google:
                 expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
                 expect(mockSignInWithGoogle).toHaveBeenCalledTimes(1);
+                expect(mockSignInAsync).toHaveBeenCalledTimes(0);
+                break;
+              case AuthConnection.Telegram:
+                expect(mockOpenAuthSessionAsync).toHaveBeenCalledTimes(1);
+                expect(mockExpoAuthSessionPromptAsync).toHaveBeenCalledTimes(0);
+                expect(mockSignInWithGoogle).toHaveBeenCalledTimes(0);
                 expect(mockSignInAsync).toHaveBeenCalledTimes(0);
                 break;
             }
@@ -151,6 +189,10 @@ describe('OAuth login handlers', () => {
                 expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/token');
                 break;
+              case AuthConnection.Telegram:
+                expect(handler.scope).toEqual(['openid']);
+                expect(handler.authServerPath).toBe('api/v1/oauth/mint');
+                break;
             }
             break;
           }
@@ -167,35 +209,75 @@ describe('OAuth login handlers', () => {
                 expect(handler.scope).toEqual(['email', 'profile', 'openid']);
                 expect(handler.authServerPath).toBe('api/v1/oauth/id_token');
                 break;
+              case AuthConnection.Telegram:
+                expect(handler.scope).toEqual(['openid']);
+                expect(handler.authServerPath).toBe('api/v1/oauth/mint');
+                break;
             }
             break;
           }
         }
 
-        jest.spyOn(global, 'fetch').mockResolvedValueOnce(
-          new Response(
-            JSON.stringify({
-              access_token: 'access-token',
-              metadata_access_token: 'metadata-access-token',
-              refresh_token: 'refresh-token',
-              revoke_token: 'revoke-token',
-              id_token: 'id-token',
-              indexes: [1, 2, 3],
-              endpoints: {
-                'https://example.com': 'https://endpoint.example.com',
+        jest
+          .spyOn(global, 'fetch')
+          .mockResolvedValueOnce(
+            provider === AuthConnection.Telegram
+              ? new Response(
+                  JSON.stringify({
+                    token: 'metamask-oidc-token',
+                    expires_in: 3600,
+                    profile: {
+                      id: 'profile-id',
+                      identifier_id: 'identifier-id',
+                      identifier_type: 'TELEGRAM',
+                    },
+                  }),
+                  { status: 200 },
+                )
+              : new Response(
+                  JSON.stringify({
+                    access_token: 'access-token',
+                    metadata_access_token: 'metadata-access-token',
+                    refresh_token: 'refresh-token',
+                    revoke_token: 'revoke-token',
+                    id_token: 'id-token',
+                    indexes: [1, 2, 3],
+                    endpoints: {
+                      'https://example.com': 'https://endpoint.example.com',
+                    },
+                  }),
+                  {
+                    status: 200,
+                  },
+                ),
+          )
+          .mockResolvedValueOnce(
+            new Response(
+              JSON.stringify({
+                access_token: 'access-token',
+                metadata_access_token: 'metadata-access-token',
+                refresh_token: 'refresh-token',
+                revoke_token: 'revoke-token',
+                id_token: 'id-token',
+                indexes: [1, 2, 3],
+                endpoints: {
+                  'https://example.com': 'https://endpoint.example.com',
+                },
+              }),
+              {
+                status: 200,
               },
-            }),
-            {
-              status: 200,
-            },
-          ),
-        );
+            ),
+          );
 
         const mockAuthTokenParams: HandleFlowParams = {
           idToken: 'id-token',
           code: 'code',
+          state: 'telegram-state',
           authConnection: provider,
           clientId: 'mock-client-id',
+          redirectUri: 'https://app.example.com',
+          codeVerifier: 'mock-code-verifier',
           web3AuthNetwork: Web3AuthNetwork.Mainnet,
         };
 

@@ -30,6 +30,7 @@ export interface OnboardingSheetParams {
   onPressImport?: () => void;
   onPressContinueWithGoogle?: (createWallet: boolean) => void;
   onPressContinueWithApple?: (createWallet: boolean) => void;
+  onPressContinueWithTelegram?: (createWallet: boolean) => void;
   createWallet?: boolean;
 }
 
@@ -47,6 +48,7 @@ const OnboardingSheet = () => {
     onPressImport,
     onPressContinueWithGoogle,
     onPressContinueWithApple,
+    onPressContinueWithTelegram,
     createWallet = false,
   } = params ?? {};
   const { colors } = useTheme();
@@ -73,6 +75,12 @@ const OnboardingSheet = () => {
   const onPressContinueWithAppleAction = () => {
     if (onPressContinueWithApple) {
       onPressContinueWithApple(createWallet);
+    }
+  };
+
+  const onPressContinueWithTelegramAction = () => {
+    if (onPressContinueWithTelegram) {
+      onPressContinueWithTelegram(createWallet);
     }
   };
 
@@ -167,6 +175,30 @@ const OnboardingSheet = () => {
             {createWallet
               ? strings('onboarding.continue_with_apple')
               : strings('onboarding.sign_in_with_apple')}
+          </Button>
+          <Button
+            variant={ButtonVariant.Secondary}
+            onPress={onPressContinueWithTelegramAction}
+            testID={OnboardingSheetSelectorIDs.TELEGRAM_LOGIN_BUTTON}
+            startAccessory={
+              <Text
+                variant={TextVariant.BodyMd}
+                fontWeight={FontWeight.Medium}
+                style={tw.style({ color: colors.background.default })}
+              >
+                {'✈️'}
+              </Text>
+            }
+            isFullWidth
+            size={ButtonSize.Lg}
+            style={tw.style('border border-muted', {
+              backgroundColor: colors.text.default,
+            })}
+            textProps={{ style: { color: colors.background.default } }}
+          >
+            {createWallet
+              ? strings('onboarding.continue_with_telegram')
+              : strings('onboarding.sign_in_with_telegram')}
           </Button>
         </Box>
         <Box

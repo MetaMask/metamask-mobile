@@ -15,6 +15,7 @@ export interface HandleOAuthLoginResult {
 export enum AuthConnection {
   Google = 'google',
   Apple = 'apple',
+  Telegram = 'telegram',
 }
 
 export interface LoginHandlerCodeResult {

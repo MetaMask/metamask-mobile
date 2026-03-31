@@ -1,0 +1,52 @@
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java
+index 916ed31..83110b5 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Accelerometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java
+index 05b4f26..f1770c0 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Barometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java
+index 7e6b191..23e826f 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Gyroscope.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;
+diff --git a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java
+index ed53c8e..9d1930d 100644
+--- a/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java
++++ b/node_modules/react-native-sensors/android/src/main/java/com/sensors/Magnetometer.java
+@@ -6,7 +6,7 @@ import android.hardware.SensorEvent;
+ import android.hardware.SensorEventListener;
+ import android.hardware.SensorManager;
+ import android.util.Log;
+-import android.support.annotation.Nullable;
++import androidx.annotation.Nullable;
+ 
+ import com.facebook.react.bridge.Arguments;
+ import com.facebook.react.bridge.ReactApplicationContext;

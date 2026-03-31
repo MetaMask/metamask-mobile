@@ -23,6 +23,8 @@ export enum AccountType {
   ImportedGoogle = 'imported_google',
   MetamaskApple = 'metamask_apple',
   ImportedApple = 'imported_apple',
+  MetamaskTelegram = 'metamask_telegram',
+  ImportedTelegram = 'imported_telegram',
 }
 
 const socialAccountTypeMap: Record<
@@ -36,6 +38,10 @@ const socialAccountTypeMap: Record<
   apple: {
     new: AccountType.MetamaskApple,
     existing: AccountType.ImportedApple,
+  },
+  telegram: {
+    new: AccountType.MetamaskTelegram,
+    existing: AccountType.ImportedTelegram,
   },
 };
 

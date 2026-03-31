@@ -598,7 +598,8 @@ const ResetPassword = ({ navigation, route }: ResetPasswordProps) => {
       passwordsMatch && isSelected && password.length >= MIN_PASSWORD_LENGTH;
     const isSrp =
       authConnection !== AuthConnection.Apple &&
-      authConnection !== AuthConnection.Google;
+      authConnection !== AuthConnection.Google &&
+      authConnection !== AuthConnection.Telegram;
 
     return (
       <Box

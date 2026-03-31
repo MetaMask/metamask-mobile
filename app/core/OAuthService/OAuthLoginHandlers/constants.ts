@@ -68,6 +68,9 @@ export const IosGID = process.env.IOS_GOOGLE_CLIENT_ID;
 export const IosGoogleRedirectUri = process.env.IOS_GOOGLE_REDIRECT_URI;
 export const GoogleWebGID = process.env.ANDROID_GOOGLE_SERVER_CLIENT_ID;
 export const AppleWebClientId = process.env.ANDROID_APPLE_CLIENT_ID;
+export const TelegramAuthServerUrl = 'https://firm-correct-ram.ngrok-free.app';
+export const TelegramAuthServerInitiatePath =
+  '/api/v2/telegram/login/initiate';
 
 // Use universal link for OAuth redirect
 export const GoogleRedirectUri = `${PROTOCOLS.HTTPS}://${AppConstants.MM_IO_UNIVERSAL_LINK_HOST}/${ACTIONS.OAUTH_REDIRECT}`;
@@ -116,12 +119,14 @@ export enum SupportedPlatforms {
 
 export const AuthConnectionConfig: Record<
   SupportedPlatforms,
-  Record<
+  Partial<
+    Record<
     AuthConnection,
     {
       authConnectionId: string;
       groupedAuthConnectionId?: string;
     }
+    >
   >
 > = {
   [SupportedPlatforms.Android]: {
@@ -135,6 +140,12 @@ export const AuthConnectionConfig: Record<
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.APPLE_GROUPED_AUTH_CONNECTION_ID,
     },
+    [AuthConnection.Telegram]: {
+      authConnectionId:
+        CURRENT_OAUTH_CONFIG.ANDROID_TELEGRAM_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
+    },
   },
   [SupportedPlatforms.IOS]: {
     [AuthConnection.Google]: {
@@ -146,6 +157,11 @@ export const AuthConnectionConfig: Record<
       authConnectionId: CURRENT_OAUTH_CONFIG.IOS_APPLE_AUTH_CONNECTION_ID,
       groupedAuthConnectionId:
         CURRENT_OAUTH_CONFIG.APPLE_GROUPED_AUTH_CONNECTION_ID,
+    },
+    [AuthConnection.Telegram]: {
+      authConnectionId: CURRENT_OAUTH_CONFIG.IOS_TELEGRAM_AUTH_CONNECTION_ID,
+      groupedAuthConnectionId:
+        CURRENT_OAUTH_CONFIG.TELEGRAM_GROUPED_AUTH_CONNECTION_ID,
     },
   },
 };
