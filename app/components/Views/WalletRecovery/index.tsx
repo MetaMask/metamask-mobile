@@ -140,6 +140,14 @@ const SocialLinked = ({
       );
     }
 
+    if (authConnection === 'telegram') {
+      return (
+        <Text variant={TextVariant.BodyMDMedium} color={TextColor.Default}>
+          {'✈️'}
+        </Text>
+      );
+    }
+
     return (
       <AppleIcon fill="currentColor" width={24} height={24} name={'apple'} />
     );

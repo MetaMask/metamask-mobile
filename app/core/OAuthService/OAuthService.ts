@@ -150,6 +150,13 @@ export class OAuthService {
         authConnectionConfig: this.config.authConnectionConfig,
       });
 
+      if (!authConnectionConfig) {
+        throw new SeedlessOnboardingControllerError(
+          SeedlessOnboardingControllerErrorType.AuthenticationError,
+          `No auth connection config found for ${authConnection}`,
+        );
+      }
+
       const refreshToken = data.refresh_token;
       const revokeToken = data.revoke_token;
 
@@ -172,7 +179,7 @@ export class OAuthService {
       const result =
         await Engine.context.SeedlessOnboardingController.authenticate({
           idTokens: [data.id_token],
-          authConnection,
+          authConnection: authConnection as unknown as SeedlessAuthConnection,
           authConnectionId: authConnectionConfig.authConnectionId,
           groupedAuthConnectionId: authConnectionConfig.groupedAuthConnectionId,
           userId,

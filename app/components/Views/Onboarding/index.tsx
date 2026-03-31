@@ -872,6 +872,12 @@ const Onboarding = () => {
     [onPressContinueWithSocialLogin],
   );
 
+  const onPressContinueWithTelegram = useCallback(
+    async (createWallet: boolean): Promise<void> =>
+      onPressContinueWithSocialLogin(createWallet, AuthConnection.Telegram),
+    [onPressContinueWithSocialLogin],
+  );
+
   const handleCtaActions = useCallback(
     async (actionType: string): Promise<void> => {
       if (SEEDLESS_ONBOARDING_ENABLED) {
@@ -883,6 +889,7 @@ const Onboarding = () => {
             onPressImport,
             onPressContinueWithGoogle,
             onPressContinueWithApple,
+            onPressContinueWithTelegram,
             createWallet: actionType === 'create',
           },
         });
@@ -899,6 +906,7 @@ const Onboarding = () => {
       onPressContinueWithGoogle,
       onPressContinueWithApple,
       dispatch,
+      onPressContinueWithTelegram,
     ],
   );
 

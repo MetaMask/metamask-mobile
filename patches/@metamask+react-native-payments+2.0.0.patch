@@ -18,3 +18,22 @@ index 0d066bd..02caf64 100644
          versionCode 1
          versionName "1.0"
          ndk {
+diff --git a/node_modules/@metamask/react-native-payments/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java b/node_modules/@metamask/react-native-payments/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java
+index 8f38e91..1b2bf0d 100644
+--- a/node_modules/@metamask/react-native-payments/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java
++++ b/node_modules/@metamask/react-native-payments/android/src/main/java/com/reactnativepayments/ReactNativePaymentsModule.java
+@@ -5,11 +5,11 @@ import android.view.WindowManager;
+ import android.app.Activity;
+ import android.content.Intent;
+ import android.os.Bundle;
+-import android.support.annotation.Nullable;
+-import android.support.annotation.NonNull;
++import androidx.annotation.Nullable;
++import androidx.annotation.NonNull;
+ import android.app.Fragment;
+ import android.app.FragmentManager;
+-import android.support.annotation.RequiresPermission;
++import androidx.annotation.RequiresPermission;
+ import android.util.Log;
+ 
+ import com.facebook.react.bridge.Callback;

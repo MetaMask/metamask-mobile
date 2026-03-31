@@ -5,11 +5,13 @@ import { IosAppleLoginHandler } from './iosHandlers/apple';
 import { AndroidGoogleLoginHandler } from './androidHandlers/google';
 import { AndroidGoogleFallbackLoginHandler } from './androidHandlers/googleFallback';
 import { AndroidAppleLoginHandler } from './androidHandlers/apple';
+import { TelegramLoginHandler } from './shared/TelegramLoginHandler';
 import {
   AuthServerUrl,
   GoogleWebGID,
   GoogleRedirectUri,
   AppleWebClientId,
+  AppRedirectUri,
   web3AuthNetwork,
   getIosGoogleConfig,
 } from './constants';
@@ -50,8 +52,18 @@ export function createLoginHandler(
           });
         }
         case AuthConnection.Apple:
+          if (!AppleWebClientId) {
+            throw new Error('Missing environment variables');
+          }
           return new IosAppleLoginHandler({
             clientId: AppleWebClientId,
+            authServerUrl: AuthServerUrl,
+            web3AuthNetwork,
+          });
+        case AuthConnection.Telegram:
+          return new TelegramLoginHandler({
+            clientId: 'telegram',
+            appRedirectUri: AppRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
           });
@@ -77,8 +89,18 @@ export function createLoginHandler(
                 web3AuthNetwork,
               });
         case AuthConnection.Apple:
+          if (!AppleWebClientId) {
+            throw new Error('Missing environment variables');
+          }
           return new AndroidAppleLoginHandler({
             clientId: AppleWebClientId,
+            appRedirectUri: GoogleRedirectUri,
+            authServerUrl: AuthServerUrl,
+            web3AuthNetwork,
+          });
+        case AuthConnection.Telegram:
+          return new TelegramLoginHandler({
+            clientId: 'telegram',
             appRedirectUri: GoogleRedirectUri,
             authServerUrl: AuthServerUrl,
             web3AuthNetwork,
