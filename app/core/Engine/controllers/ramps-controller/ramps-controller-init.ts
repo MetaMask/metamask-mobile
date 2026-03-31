@@ -9,7 +9,14 @@ import { validatedVersionGatedFeatureFlag } from '../../../../util/remoteFeature
 import { RAMPS_UNIFIED_BUY_V2_FLAG_KEY } from '../../../../selectors/featureFlagController/ramps/rampsUnifiedBuyV2';
 import { handleOrderStatusChangedForNotifications } from './event-handlers/notification';
 import { handleOrderStatusChangedForMetrics } from './event-handlers/analytics';
-import { isRampsDebugDashboardEnabled } from '../../../../util/environment';
+
+/**
+ * Opt-in for the Ramps WebSocket debug dashboard (`RAMPS_DEBUG_DASHBOARD=true` in `.js.env`).
+ * Only used under `__DEV__`; see `app/components/UI/Ramp/debug/README.md`.
+ */
+function isRampsDebugDashboardEnabled(): boolean {
+  return process.env.RAMPS_DEBUG_DASHBOARD === 'true';
+}
 
 /**
  * Whether Unified Buy V2 is enabled per RemoteFeatureFlagController state.
@@ -101,7 +108,7 @@ export const rampsControllerInit: ControllerInitFunction<
 
   // Dev-only: streams controller state / traffic to the local dashboard (see Ramp/debug/README.md).
   // Use require (not dynamic import) so Jest can mock the module; Metro drops this block in prod (__DEV__ false).
-  // Opt-in: set RAMPS_DEBUG_DASHBOARD=true (see util/environment).
+  // Opt-in: set RAMPS_DEBUG_DASHBOARD=true (see `isRampsDebugDashboardEnabled` above).
   if (__DEV__ && isRampsDebugDashboardEnabled()) {
     try {
       const { initRampsDebugBridge } =

@@ -53,4 +53,4 @@ From **`scripts/money-movement/debug-dashboard/`**: `npm ci && node server.mjs` 
 ## Related code
 
 - `RampsDebugBridge.ts` — WebSocket client, controller wrapping, fetch instrumentation.
-- `app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts` — `__DEV__`-gated `require` (see `isRampsDebugDashboardEnabled()` in `app/util/environment.ts`).
+- `app/core/Engine/controllers/ramps-controller/ramps-controller-init.ts` — `__DEV__`-gated `require` and `isRampsDebugDashboardEnabled()`.

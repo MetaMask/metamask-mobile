@@ -1,4 +1,4 @@
-import { isProduction, isRampsDebugDashboardEnabled } from './environment';
+import { isProduction } from './environment';
 
 const originalMetamaskEnvironment = process.env.METAMASK_ENVIRONMENT;
 
@@ -40,32 +40,5 @@ describe('isProduction', () => {
       configurable: true,
     });
     expect(isProduction()).toBe(false);
-  });
-});
-
-describe('isRampsDebugDashboardEnabled', () => {
-  const original = process.env.RAMPS_DEBUG_DASHBOARD;
-
-  afterEach(() => {
-    if (original === undefined) {
-      delete process.env.RAMPS_DEBUG_DASHBOARD;
-    } else {
-      process.env.RAMPS_DEBUG_DASHBOARD = original;
-    }
-  });
-
-  it('returns false when RAMPS_DEBUG_DASHBOARD is unset', () => {
-    delete process.env.RAMPS_DEBUG_DASHBOARD;
-    expect(isRampsDebugDashboardEnabled()).toBe(false);
-  });
-
-  it('returns false when RAMPS_DEBUG_DASHBOARD is not true', () => {
-    process.env.RAMPS_DEBUG_DASHBOARD = 'false';
-    expect(isRampsDebugDashboardEnabled()).toBe(false);
-  });
-
-  it('returns true when RAMPS_DEBUG_DASHBOARD is true', () => {
-    process.env.RAMPS_DEBUG_DASHBOARD = 'true';
-    expect(isRampsDebugDashboardEnabled()).toBe(true);
   });
 });

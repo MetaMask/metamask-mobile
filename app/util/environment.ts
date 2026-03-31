@@ -12,14 +12,6 @@ export const isGatorPermissionsFeatureEnabled = (): boolean =>
 export const isE2EMockOAuth = (): boolean =>
   process.env.E2E_MOCK_OAUTH === 'true';
 
-/**
- * Whether the Ramps WebSocket debug dashboard bridge may load (only called under `__DEV__`).
- * Opt-in only: set `RAMPS_DEBUG_DASHBOARD=true` in `.js.env` (or your shell) so devs who do not
- * use the dashboard avoid fetch instrumentation and the reconnect loop.
- */
-export const isRampsDebugDashboardEnabled = (): boolean =>
-  process.env.RAMPS_DEBUG_DASHBOARD === 'true';
-
 export const getE2EByoaAuthSecret = (): string | undefined => {
   const secret = process.env.E2E_BYOA_AUTH_SECRET;
   return typeof secret === 'string' && secret.length > 0 ? secret : undefined;

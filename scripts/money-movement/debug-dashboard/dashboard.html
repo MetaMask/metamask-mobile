@@ -1125,10 +1125,14 @@
             const parts = [];
             for (const k of keys.slice(0, 3)) {
               const v = msg.result[k];
-              if (Array.isArray(v)) parts.push(`${k}: [${v.length}]`);
+              if (Array.isArray(v))
+                parts.push(`${esc(k)}: [${v.length}]`);
               else if (typeof v === 'object' && v !== null)
-                parts.push(`${k}: {...}`);
-              else parts.push(`${k}: ${truncate(JSON.stringify(v), 20)}`);
+                parts.push(`${esc(k)}: {...}`);
+              else
+                parts.push(
+                  `${esc(k)}: ${esc(truncate(JSON.stringify(v), 20))}`,
+                );
             }
             if (keys.length > 3) parts.push('...');
             return `<div class="method-result-summary">→ {${parts.join(', ')}}</div>`;
@@ -1199,7 +1203,7 @@
           el.className =
             'widget-entry' + (d.ok ? '' : ' has-error');
           const statusHtml = d.status != null
-            ? `<span class="widget-status ${d.ok ? 'widget-status-ok' : ''}">${d.status} ${d.statusText || ''}</span>`
+            ? `<span class="widget-status ${d.ok ? 'widget-status-ok' : ''}">${d.status} ${esc(d.statusText || '')}</span>`
             : d.error
               ? `<span class="widget-status">Error: ${esc(d.error)}</span>`
               : '';
@@ -1217,7 +1221,7 @@
       ${bodyHtml}
       <div class="method-detail" style="display:none">
         <div><strong>Full URL:</strong>\n${esc(d.url)}</div>
-        ${d.status != null ? `<div><strong>Status:</strong> ${d.status} ${d.statusText || ''}</div>` : ''}
+        ${d.status != null ? `<div><strong>Status:</strong> ${d.status} ${esc(d.statusText || '')}</div>` : ''}
         ${d.error ? `<div class="method-error"><strong>Error:</strong> ${esc(d.error)}</div>` : ''}
         ${d.responseBody ? `<div><strong>Response body:</strong>\n${esc(d.responseBody)}</div>` : ''}
         <div><strong>Duration:</strong> ${d.duration}ms</div>
@@ -1272,7 +1276,10 @@
           for (const patch of filtered) {
             const el = document.createElement('div');
             const pathStr = (patch.path || []).join('.');
-            const opClass = `patch-op-${patch.op}`;
+            const opSafe = String(patch.op ?? 'unknown')
+              .replace(/[^a-zA-Z0-9_-]/g, '')
+              .slice(0, 48);
+            const opClass = `patch-op-${opSafe || 'unknown'}`;
 
             const primitiveHtml =
               patch.value !== undefined ? formatPatchValue(patch.value) : null;
