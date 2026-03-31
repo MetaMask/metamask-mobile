@@ -18,5 +18,5 @@ tags:
 
 # Capture wallet home — tokens tab (default view)
 - assertScreenshot:
-    path: ios/wallet/home-default.png
+    path: tests/visual/baselines/ios/wallet/home-default.png
     thresholdPercentage: 95

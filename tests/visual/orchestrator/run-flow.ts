@@ -6,7 +6,8 @@ import { DEFAULT_MOCKS } from '../../api-mocking/mock-responses/defaults';
 import { setupRemoteFeatureFlagsMock } from '../../api-mocking/helpers/remoteFeatureFlagsHelper';
 import { mockNotificationServices } from '../../smoke/notifications/utils/mocks';
 import { buildFromTag } from '../fixtures/presets';
-import { parseFixtureTag } from './parse-fixture-tag';
+import { parseFixtureTag, parseMockTag } from './parse-fixture-tag';
+import { getMockOverride } from '../mocks/registry';
 import { rewriteFlowForCapture } from './rewrite-flow';
 
 const APP_BUNDLE_ID = 'io.metamask.MetaMask';
@@ -81,11 +82,28 @@ function killProcessOnPort(port: number): void {
 export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
   const { flowPath, deviceUdid, updateBaselines } = options;
   const fixtureServer = new FixtureServer();
-  const mockServer = new MockServerE2E({ events: DEFAULT_MOCKS });
   let tempFlowPath: string | null = null;
 
+  // 1. Resolve optional mock override from YAML `mock:` tag
+  const mockTagName = parseMockTag(flowPath);
+  const testSpecificMock = mockTagName
+    ? getMockOverride(mockTagName)
+    : undefined;
+  if (mockTagName && !testSpecificMock) {
+    return {
+      flowPath,
+      passed: false,
+      error: `Unknown mock override: "${mockTagName}". Check tests/visual/mocks/registry.ts`,
+    };
+  }
+
+  const mockServer = new MockServerE2E({
+    events: DEFAULT_MOCKS,
+    testSpecificMock,
+  });
+
   try {
-    // 1. Parse fixture tag
+    // 2. Parse fixture tag
     const fixtureTag = parseFixtureTag(flowPath);
     if (!fixtureTag) {
       return {
@@ -95,10 +113,10 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
       };
     }
 
-    // 2. Build fixture
+    // 3. Build fixture
     const fixture = buildFromTag(fixtureTag);
 
-    // 3. Start mock server for deterministic API responses and feature flags.
+    // 4. Start mock server for deterministic API responses and feature flags.
     // The app's shim.js auto-detects this via health check on localhost:8000
     // and proxies all HTTP traffic through it, giving us stable UI state.
     killProcessOnPort(MOCK_SERVER_PORT);
@@ -106,22 +124,25 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     await mockServer.start();
     await mockNotificationServices(mockServer.server);
     await setupRemoteFeatureFlagsMock(mockServer.server);
+    if (mockTagName) {
+      console.log(`  Mock override applied: ${mockTagName}`);
+    }
 
     console.log(`  Mock server started on port ${MOCK_SERVER_PORT}`);
 
-    // 4. Start fixture server on the well-known fallback port.
+    // 5. Start fixture server on the well-known fallback port.
     killProcessOnPort(FIXTURE_SERVER_PORT);
     fixtureServer.setServerPort(FIXTURE_SERVER_PORT);
     await fixtureServer.start();
     fixtureServer.loadJsonState(fixture, null);
     console.log(`  Fixture server started on port ${FIXTURE_SERVER_PORT}`);
 
-    // 5. The flow itself handles app launch via Maestro's clearState + launchApp
+    // 6. The flow itself handles app launch via Maestro's clearState + launchApp
     //    commands, which ensures the app starts fresh and refetches from the fixture
     //    server. We just terminate any stale instance before Maestro takes over.
     terminateApp(deviceUdid);
 
-    // 6. Determine which flow file to pass to Maestro
+    // 7. Determine which flow file to pass to Maestro
     let maestroFlowPath = flowPath;
     if (updateBaselines) {
       tempFlowPath = rewriteFlowForCapture(flowPath);
@@ -131,7 +152,7 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
       );
     }
 
-    // 7. Run Maestro (async spawn so the Node event loop stays unblocked
+    // 8. Run Maestro (async spawn so the Node event loop stays unblocked
     //    and the fixture/mock servers can serve requests while Maestro runs)
     const maestroPassed = await new Promise<boolean>((resolve) => {
       const child = spawn(
@@ -154,8 +175,7 @@ export async function runFlow(options: RunFlowOptions): Promise<RunFlowResult> {
     const message = err instanceof Error ? err.message : String(err);
     return { flowPath, passed: false, error: message };
   } finally {
-    // Teardown — always clean up to prevent zombie processes
-    terminateApp(deviceUdid);
+    // Teardown — stop servers but leave the app running for easier debugging
 
     if (mockServer.isStarted()) {
       await mockServer.stop();

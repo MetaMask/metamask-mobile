@@ -1023,21 +1023,193 @@ These issues were discovered and fixed during the smoke test. They inform the cu
 
 ## Next Steps
 
-### Task 12: Add Send Flow
+### Task 12: Add Send ETH Visual Flow
 
-Add a visual regression flow for the send ETH flow, capturing multiple screens: asset selection, amount input, and recipient input.
+Add a visual regression flow for the send ETH flow, capturing 4 screens: asset selection, amount input, recipient input, and transaction confirmation/review.
 
 **Files:**
 
 - Create: `tests/visual/flows/wallet/send-eth.yaml`
 
-Key screens to capture:
+**Context:** The send flow navigation is: wallet home → asset selection → amount input → recipient → confirmation review. The Detox E2E tests (`tests/smoke/confirmations/send/send-native-token.spec.ts`) follow the same sequence using page objects. Our visual flow replicates this navigation using Maestro commands and captures a screenshot at each screen.
 
-- Tap `wallet-send-button` → asset selection screen (`assertScreenshot`)
-- Tap "Ethereum" → amount input screen with `send_amount` testID (`assertScreenshot`)
-- Enter amount, tap "Continue" → recipient input screen with `recipient-address-input` testID (`assertScreenshot`)
+**TestIDs used** (from `RedesignedSendView.testIds.ts` and `ConfirmationView.testIds.ts`):
 
-Uses `fixture:default` preset. No local node needed since we're only capturing UI screens, not submitting transactions.
+| TestID                        | Screen                                                                       |
+| ----------------------------- | ---------------------------------------------------------------------------- |
+| `wallet-send-button`          | Wallet home — entry point                                                    |
+| `pay-with-token-list`         | Asset selection — token list                                                 |
+| `send_amount`                 | Amount input — amount display                                                |
+| `percentage-button-100`       | Amount input — max amount button                                             |
+| `recipient-address-input`     | Recipient — address input field                                              |
+| `review-button`               | Recipient — proceed to review                                                |
+| `flat-confirmation-container` | Confirmation — review screen container                                       |
+| `confirm-button`              | Confirmation — footer confirm button (NOT tapped, just used as ready signal) |
+
+**Recipient address:** `0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb` (same as Detox tests)
+
+**Balance:** The default fixture has `balance: "0x0"` in `AccountTrackerController`, but `MockServerE2E` + `DEFAULT_MOCKS` mock the accounts API to return 0.5 ETH (`tests/api-mocking/mock-responses/defaults/accounts.ts:1297`). The app fetches balance from this API, so the send flow should have funds available. If balance still shows 0, add a `with-eth-balance` modifier to `tests/visual/fixtures/presets.ts` that sets `AccountTrackerController.accountsByChainId` to a non-zero value.
+
+**Risk:** The confirmation screen requires gas estimation API responses. `MockServerE2E` + `DEFAULT_MOCKS` should cover this (they mock `transaction.api.cx.metamask.io/networks/*/getFees` and Tenderly simulation). If the confirmation screen doesn't render, drop the last screenshot and stop at recipient.
+
+- [ ] **Step 1: Write the flow YAML**
+
+```yaml
+# tests/visual/flows/wallet/send-eth.yaml
+#
+# Visual regression test for the send ETH flow.
+# Captures 4 screens: asset selection, amount input, recipient, confirmation.
+# Fixture provides a pre-configured wallet with default account and networks.
+appId: io.metamask.MetaMask
+tags:
+  - visual
+  - fixture:default
+---
+# Clear app state and relaunch so ReadOnlyNetworkStore refetches from fixture server.
+- clearState
+- launchApp
+
+# Dismiss developer screens (debug builds only)
+- runFlow: ../shared/dismiss-dev-screens.yaml
+
+# Unlock the app with fixture default password
+- runFlow: ../shared/unlock-app.yaml
+
+# --- Screen 1: Asset Selection ---
+
+- tapOn:
+    id: 'wallet-send-button'
+
+- extendedWaitUntil:
+    visible:
+      id: 'pay-with-token-list'
+    timeout: 15000
+
+- assertScreenshot:
+    path: ios/wallet/send-asset-selection.png
+    thresholdPercentage: 95
+
+# --- Screen 2: Amount Input ---
+
+- tapOn: 'Ethereum'
+
+- extendedWaitUntil:
+    visible:
+      id: 'send_amount'
+    timeout: 15000
+
+- assertScreenshot:
+    path: ios/wallet/send-amount-input.png
+    thresholdPercentage: 95
+
+# --- Screen 3: Recipient Input ---
+
+- tapOn:
+    id: 'percentage-button-100'
+- tapOn: 'Continue'
+
+- extendedWaitUntil:
+    visible:
+      id: 'recipient-address-input'
+    timeout: 15000
+
+- assertScreenshot:
+    path: ios/wallet/send-recipient-input.png
+    thresholdPercentage: 95
+
+# --- Screen 4: Confirmation / Review ---
+
+- tapOn:
+    id: 'recipient-address-input'
+- inputText: '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb'
+- hideKeyboard
+
+# Short wait for keyboard dismiss animation to complete
+- wait: 1000
+
+# Wait for review button to become visible (address validation is async)
+- extendedWaitUntil:
+    visible:
+      id: 'review-button'
+    timeout: 15000
+
+# Short wait for animations to settle (Detox uses waitForElementToStopMoving here)
+- wait: 1000
+- tapOn:
+    id: 'review-button'
+
+# Wait for the confirmation screen to fully render
+- extendedWaitUntil:
+    visible:
+      id: 'flat-confirmation-container'
+    timeout: 30000
+
+# Wait for confirm button as a signal the screen is fully loaded
+- extendedWaitUntil:
+    visible:
+      id: 'confirm-button'
+    timeout: 15000
+
+- assertScreenshot:
+    path: ios/wallet/send-confirmation.png
+    thresholdPercentage: 95
+```
+
+- [ ] **Step 2: Create baseline directory**
+
+```bash
+mkdir -p tests/visual/baselines/ios/wallet
+```
+
+(Should already exist from wallet-home, but ensure it's there.)
+
+- [ ] **Step 3: Run update-baselines to capture initial baselines**
+
+```bash
+yarn maestro:visual:update-baselines --flow tests/visual/flows/wallet/send-eth.yaml
+```
+
+Expected: Orchestrator starts, builds `fixture:default`, starts FixtureServer + MockServerE2E, launches app, Maestro navigates through send flow capturing 4 screenshots.
+
+Watch for:
+
+- Asset selection screen loads with token list
+- Amount screen shows after tapping Ethereum
+- Recipient screen shows after tapping 100% + Continue
+- Confirmation screen renders after entering address + tapping Review
+- If confirmation screen fails (gas estimation not mocked properly), remove the last screenshot section and re-run
+
+- [ ] **Step 4: Verify baselines were captured**
+
+```bash
+ls -la tests/visual/baselines/ios/wallet/send-*.png
+```
+
+Expected: 4 files (`send-asset-selection.png`, `send-amount-input.png`, `send-recipient-input.png`, `send-confirmation.png`). If only 3, the confirmation screen didn't work — see risk note above.
+
+- [ ] **Step 5: Run assert mode to verify screenshots match**
+
+```bash
+yarn maestro:visual --flow tests/visual/flows/wallet/send-eth.yaml
+```
+
+Expected: PASS — all screenshots match baselines within 95% threshold.
+
+- [ ] **Step 6: Fix any issues found during testing**
+
+Address any problems with:
+
+- Timing (increase timeouts if screens load slowly)
+- Keyboard dismissal (may need `hideKeyboard` after input)
+- Review button not becoming visible (address validation async)
+- Confirmation screen not rendering (mock server coverage)
+
+- [ ] **Step 7: Commit**
+
+```bash
+git add tests/visual/flows/wallet/send-eth.yaml
+git commit -m "feat(visual): add send ETH visual regression flow with 4 screen captures"
+```
 
 ---
 

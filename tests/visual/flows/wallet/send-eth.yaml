@@ -1,0 +1,117 @@
+# Visual regression test for the send ETH flow.
+# Captures 4 screens: asset selection, amount input, recipient, confirmation.
+# Fixture provides a pre-configured wallet with default account and networks.
+appId: io.metamask.MetaMask
+tags:
+  - visual
+  - fixture:default:with-evm-account-tree:with-eth-balance
+  - mock:send-balances
+---
+
+# Clear app state and relaunch so ReadOnlyNetworkStore refetches from fixture server.
+- clearState
+- launchApp
+
+# Dismiss developer screens (debug builds only)
+- runFlow: ../shared/dismiss-dev-screens.yaml
+
+# Unlock the app with fixture default password
+- runFlow: ../shared/unlock-app.yaml
+
+# Give the app extra time to load account balances and populate the asset list.
+# The balance API and token list can take several seconds to resolve.
+- extendedWaitUntil:
+    visible:
+      id: 'wallet-screen'
+    timeout: 30000
+- waitForAnimationToEnd
+
+# Wait for balance controllers to refresh from mock APIs before opening send.
+# Without this, CurrencyRateController may not have fetched conversion rates yet.
+# Maestro has no sleep command, so we scroll down and back to burn ~3 seconds.
+- repeat:
+    times: 3
+    commands:
+      - waitForAnimationToEnd
+
+# --- Screen 1: Asset Selection ---
+
+- tapOn:
+    id: 'wallet-send-button'
+
+- extendedWaitUntil:
+    visible:
+      id: 'pay-with-token-list'
+    timeout: 15000
+
+- assertScreenshot:
+    path: tests/visual/baselines/ios/wallet/send-asset-selection.png
+    thresholdPercentage: 95
+
+# --- Screen 2: Amount Input ---
+
+# Tap the Ethereum token row by matching its accessibility label.
+# React Native merges child text into container accessibilityText, so we match on that.
+- tapOn:
+    text: 'Ethereum ETH.*'
+
+- extendedWaitUntil:
+    visible:
+      id: 'send_amount'
+    timeout: 15000
+
+- assertScreenshot:
+    path: tests/visual/baselines/ios/wallet/send-amount-input.png
+    thresholdPercentage: 95
+
+# --- Screen 3: Recipient Input ---
+
+- tapOn:
+    id: 'percentage-button-100'
+- tapOn: 'Continue'
+
+- extendedWaitUntil:
+    visible:
+      id: 'textfield'
+    timeout: 15000
+
+- assertScreenshot:
+    path: tests/visual/baselines/ios/wallet/send-recipient-input.png
+    thresholdPercentage: 95
+
+# --- Screen 4: Confirmation / Review ---
+
+- tapOn:
+    id: 'textfield'
+- inputText: '0x0c54fccd2e384b4bb6f2e405bf5cbc15a017aafb'
+- hideKeyboard
+
+# Wait for keyboard dismiss animation to complete
+- waitForAnimationToEnd
+
+# Wait for review button to become visible (address validation is async)
+- extendedWaitUntil:
+    visible:
+      id: 'review-button'
+    timeout: 15000
+
+# Wait for animations to settle (Detox uses waitForElementToStopMoving here)
+- waitForAnimationToEnd
+- tapOn:
+    id: 'review-button'
+
+# Wait for the confirmation screen to fully render
+- extendedWaitUntil:
+    visible:
+      id: 'flat-confirmation-container'
+    timeout: 30000
+
+# Wait for confirm button as a signal the screen is fully loaded
+- extendedWaitUntil:
+    visible:
+      id: 'confirm-button'
+    timeout: 15000
+
+- assertScreenshot:
+    path: tests/visual/baselines/ios/wallet/send-confirmation.png
+    thresholdPercentage: 95
